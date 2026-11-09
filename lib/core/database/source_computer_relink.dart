@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/computer_serial_identity.dart';
@@ -15,7 +16,8 @@ import 'package:submersion/core/database/table_columns.dart';
 /// word: the dive is attributed to an existing computer, the source's model
 /// snapshot names that computer's model, its serial snapshot is empty or the
 /// same serial, the dive has no source already linked to that computer, and
-/// no other unlinked downloaded source on the dive fits as well. A dive with
+/// no other unlinked downloaded source on the dive fits as well. Its profile
+/// and tank pressure series, cleared by the same repair, follow it. A dive with
 /// no computer of its own is never guessed at, so the sources of a computer
 /// the diver deleted stay detached.
 ///
@@ -58,24 +60,47 @@ Future<int> relinkDiveAttributedSources(DatabaseConnectionUser db) async {
 
   // Candidates per dive: more than one fitting source means the dive cannot
   // say which is its computer's.
-  final fitting = <String, List<QueryRow>>{};
-  for (final row in rows) {
-    if (_fits(row)) {
-      (fitting[row.read<String>('dive_id')] ??= []).add(row);
-    }
-  }
+  final fitting = groupBy(
+    rows.where(_fits),
+    (QueryRow row) => row.read<String>('dive_id'),
+  );
+  final hasSeries = await _seriesTablesWithSource(db);
 
   var relinked = 0;
   for (final candidates in fitting.values) {
     if (candidates.length != 1) continue;
     final row = candidates.single;
+    final computerId = row.read<String>('computer_id');
+    final sourceId = row.read<String>('id');
     await db.customStatement(
       'UPDATE dive_data_sources SET computer_id = ? WHERE id = ?',
-      [row.read<String>('computer_id'), row.read<String>('id')],
+      [computerId, sourceId],
     );
+    // The same repair cleared the link on the source's recorded series,
+    // which say whose they are only through it.
+    for (final table in hasSeries) {
+      await db.customStatement(
+        'UPDATE $table SET computer_id = ? '
+        'WHERE source_id = ? AND computer_id IS NULL',
+        [computerId, sourceId],
+      );
+    }
     relinked++;
   }
   return relinked;
+}
+
+/// The series tables that carry both a `computer_id` and a `source_id`.
+Future<List<String>> _seriesTablesWithSource(DatabaseConnectionUser db) async {
+  const tables = ['dive_profile_series', 'tank_pressure_series'];
+  return [
+    for (final table in tables)
+      if ((await tableColumnNames(
+        db,
+        table,
+      )).containsAll(const {'computer_id', 'source_id'}))
+        table,
+  ];
 }
 
 /// Whether the source's snapshots describe the dive's computer.

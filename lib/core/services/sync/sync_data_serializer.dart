@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart' show IterableExtension;
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show listEquals, visibleForTesting;
@@ -16,6 +17,7 @@ import 'package:submersion/core/database/dive_course_links_schema.dart';
 import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
+import 'package:submersion/core/database/source_computer_relink.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/database/trip_checklist_default.dart';
 import 'package:submersion/core/services/sync/child_column_clears.dart';
@@ -3200,6 +3202,21 @@ class SyncDataSerializer {
     await alignLinkedRouteOwners();
     await seedRepresentativeCourseLinks();
     await anchorTankInspectionClocks();
+    await relinkClearedSourceComputers();
+  }
+
+  /// The foreign-key repair above clears a data source's computer link when
+  /// an apply ends without that computer's row (issue #4368). Gives it back
+  /// where the source's own dive names the computer. Marks nothing pending:
+  /// every device derives the same link from the same synced rows.
+  Future<void> relinkClearedSourceComputers() async {
+    if (await relinkDiveAttributedSources(_db) > 0) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.diveDataSources, kind: UpdateKind.update),
+        TableUpdate.onTable(_db.diveProfileSeries, kind: UpdateKind.update),
+        TableUpdate.onTable(_db.tankPressureSeries, kind: UpdateKind.update),
+      });
+    }
   }
 
   /// A peer below v317 saves a tank's last visual inspection and last hydro
@@ -10894,20 +10911,14 @@ class SyncDataSerializer {
             id,
     }.toList();
     if (missing.isEmpty) return exported;
-    final extra = <Map<String, dynamic>>[];
-    for (var i = 0; i < missing.length; i += _referencedComputerChunk) {
-      final chunk = missing.sublist(
-        i,
-        math.min(i + _referencedComputerChunk, missing.length),
-      );
-      final rows = await (_db.select(
-        _db.diveComputers,
-      )..where((t) => t.id.isIn(chunk))).get();
-      extra.addAll(
-        rows.map((r) => withoutDeviceLocalColumns('diveComputers', r.toJson())),
-      );
-    }
-    return [...exported, ...extra];
+    return [
+      ...exported,
+      for (final chunk in missing.slices(_referencedComputerChunk))
+        for (final row in await (_db.select(
+          _db.diveComputers,
+        )..where((t) => t.id.isIn(chunk))).get())
+          withoutDeviceLocalColumns('diveComputers', row.toJson()),
+    ];
   }
 
   /// Ids per query when fetching referenced computers, well below SQLite's

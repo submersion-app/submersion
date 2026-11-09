@@ -102,6 +102,40 @@ void main() {
     expect((await source('s2')).computerId, 'sw');
   });
 
+  test('the source\'s profile series follows it', () async {
+    await insertComputer('sw');
+    await insertDive('d1', computerId: 'sw');
+    await insertSource('s1', diveId: 'd1');
+    await db.customStatement(
+      'INSERT INTO dive_profile_series (id, dive_id, source_id, '
+      'sample_count, start_timestamp, end_timestamp, max_depth, '
+      'first_depth, last_depth, codec_version, samples, created_at, '
+      "updated_at) VALUES ('p1', 'd1', 's1', 0, 0, 0, 0, 0, 0, 1, x'', 1, 1)",
+    );
+
+    expect(await relinkDiveAttributedSources(db), 1);
+
+    final series = await db
+        .customSelect(
+          "SELECT computer_id FROM dive_profile_series WHERE id = 'p1'",
+        )
+        .getSingle();
+    expect(series.read<String?>('computer_id'), 'sw');
+  });
+
+  test('the every-open heal relinks first, so the source takes its '
+      'computer\'s serial in the same open', () async {
+    await insertComputer('sw');
+    await insertDive('d1', computerId: 'sw');
+    await insertSource('s1', diveId: 'd1');
+
+    await db.healDownloadedComputerSerialsForTest();
+
+    final s1 = await source('s1');
+    expect(s1.computerId, 'sw');
+    expect(s1.computerSerial, '8629AC48');
+  });
+
   test('a dive with no computer of its own is never guessed at', () async {
     await insertComputer('sw');
     await insertDive('d1');

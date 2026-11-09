@@ -183,6 +183,23 @@ void main() {
       expect((await source('s1')).computerSerial, '8C4FE663');
     });
 
+    test('another unit\'s serial still in decimal is kept, in hex', () async {
+      // 0x8C4FE663 == 2354046563: not the linked computer, but a Shearwater
+      // download, so only its spelling changes.
+      await insertComputer('sw', serial: '8629AC48');
+      await insertDive('d1');
+      await insertSource(
+        's1',
+        diveId: 'd1',
+        computerId: 'sw',
+        serial: '2354046563',
+      );
+
+      expect(await healDownloadedSnapshotSerials(db), 1);
+      expect(await healDownloadedSnapshotSerials(db), 0);
+      expect((await source('s1')).computerSerial, '8C4FE663');
+    });
+
     test('a file import\'s source is not a download\'s copy and is left '
         'alone', () async {
       await insertComputer('sw', serial: '8629AC48');

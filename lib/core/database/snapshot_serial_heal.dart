@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/computer_serial_identity.dart';
+import 'package:submersion/core/database/shearwater_serial_heal.dart';
 import 'package:submersion/core/database/table_columns.dart';
 
 /// Brings the serial a download copied onto its `dive_data_sources` row and
@@ -22,23 +23,26 @@ import 'package:submersion/core/database/table_columns.dart';
 /// record, rather than converting digits, settles the 8-digit case the
 /// characters cannot: `12345678` is a decimal or an all-digit hex, and only
 /// the computer's own spelling says which. A copy that names a different
-/// serial is left alone, since it records which unit actually answered.
+/// serial is not replaced, since it records which unit actually answered.
 ///
-/// A downloaded Shearwater copy with no linked computer to compare against
-/// is converted from decimal to hex by its characters, which is safe only
-/// for the lengths a stored hex never has; an 8-digit copy is left as it is,
-/// the same rule `healShearwaterDownloadSerials` keeps on an ordinary open.
+/// Any downloaded Shearwater copy still in decimal after that (no computer,
+/// a computer with no serial, or another unit's serial) is converted to hex
+/// by its characters, which is safe only for the lengths a stored hex never
+/// has; an 8-digit copy is left as it is, the rule
+/// `healShearwaterDownloadSerials` keeps on an ordinary open.
 ///
-/// Dives are touched only when a downloaded source on the dive links the
-/// same computer, so a file import's dive attributed by model alone never
-/// gains a serial it was not given.
+/// Dives are touched only when a downloaded source on the dive is from the
+/// same computer (or, for the conversion, from any computer), so a file
+/// import's dive attributed by model alone never gains a serial it was not
+/// given.
 ///
 /// Local-only and idempotent: no HLC bump, no pending mark, `updated_at`
 /// untouched. Every device on this version derives the same value, so a
 /// synced fleet converges without traffic, and it runs again after an
-/// inbound sync apply for rows a peer below this version sends. [computerId]
-/// limits it to one computer's rows, as a download that just learned its
-/// serial does.
+/// inbound sync apply for rows a peer below this version sends.
+/// [computerId] limits it to the copies linked to one computer, as saving
+/// that computer does; the conversion by characters then waits for the next
+/// whole-library run.
 Future<int> healDownloadedSnapshotSerials(
   DatabaseConnectionUser db, {
   String? computerId,
@@ -60,30 +64,108 @@ Future<int> healDownloadedSnapshotSerials(
       })) {
     return 0;
   }
-
-  var changed = await _healLinkedSources(db, computerId);
-  changed += await _healUnlinkedShearwaterSources(db, sourceCols, computerId);
   final diveCols = await tableColumnNames(db, 'dives');
-  if (diveCols.containsAll(const {
+  final hasDiveCopies = diveCols.containsAll(const {
     'id',
     'computer_id',
     'dive_computer_serial',
-  })) {
-    changed += await _healLinkedDives(db, computerId);
-    if (computerId == null && diveCols.contains('dive_computer_model')) {
-      changed += await _healUnlinkedShearwaterDives(db);
-    }
+  });
+
+  var changed = await _healLinked(db, _sourceCopies, computerId);
+  if (hasDiveCopies) {
+    changed += await _healLinked(db, _diveCopies, computerId);
+  }
+  if (computerId != null) return changed;
+
+  final hasVendor = sourceCols.containsAll(const {
+    'descriptor_vendor',
+    'descriptor_product',
+  });
+  final sourceModel = sourceCols.contains('computer_model')
+      ? (hasVendor
+            ? 'COALESCE(s.computer_model, s.descriptor_product)'
+            : 's.computer_model')
+      : (hasVendor ? 's.descriptor_product' : 'NULL');
+  changed += await _convertDecimal(
+    db,
+    table: 'dive_data_sources',
+    column: 'computer_serial',
+    vendorExpr: hasVendor ? 's.descriptor_vendor' : 'NULL',
+    modelExpr: sourceModel,
+    where: "s.source_format = 'dive_computer'",
+  );
+  if (hasDiveCopies && diveCols.contains('dive_computer_model')) {
+    changed += await _convertDecimal(
+      db,
+      table: 'dives',
+      column: 'dive_computer_serial',
+      vendorExpr: 'NULL',
+      modelExpr: 's.dive_computer_model',
+      where: _hasDownloadedSource(sameComputer: false),
+    );
   }
   return changed;
 }
 
-/// The hex for a downloaded Shearwater [serial] stored in decimal, or null
-/// when it is not one: an 8-digit value is ambiguous and stays.
-String? _unlinkedShearwaterHex(String serial, {String? vendor, String? model}) {
-  if (!isAllDigitsSerial(serial) || serial.length == 8) return null;
-  if (!isShearwaterFamily(manufacturer: vendor, model: model)) return null;
-  final hex = canonicalDownloadedSerial(vendor: 'Shearwater', serial: serial);
-  return hex == serial ? null : hex;
+/// A table that holds a download's serial copy beside a `computer_id` link.
+typedef _Copies = ({String table, String column, String where});
+
+const _Copies _sourceCopies = (
+  table: 'dive_data_sources',
+  column: 'computer_serial',
+  where: "s.source_format = 'dive_computer'",
+);
+
+final _Copies _diveCopies = (
+  table: 'dives',
+  column: 'dive_computer_serial',
+  where: _hasDownloadedSource(sameComputer: true),
+);
+
+/// SQL true for a dive (aliased `s`) with a downloaded source, from its own
+/// computer when [sameComputer].
+String _hasDownloadedSource({required bool sameComputer}) =>
+    'EXISTS (SELECT 1 FROM dive_data_sources x WHERE x.dive_id = s.id '
+    "${sameComputer ? 'AND x.computer_id = s.computer_id ' : ''}"
+    "AND x.source_format = 'dive_computer')";
+
+/// Copies a linked computer's serial onto the [copies] it should replace.
+Future<int> _healLinked(
+  DatabaseConnectionUser db,
+  _Copies copies,
+  String? computerId,
+) async {
+  final column = 's.${copies.column}';
+  final rows = await db
+      .customSelect(
+        'SELECT s.id, $column AS copy, c.serial_number, c.manufacturer, '
+        'c.model FROM ${copies.table} s '
+        'JOIN dive_computers c ON c.id = s.computer_id '
+        'WHERE ${copies.where} '
+        "AND TRIM(COALESCE(c.serial_number, '')) <> '' "
+        'AND ($column IS NULL OR $column <> c.serial_number)'
+        '${computerId == null ? '' : ' AND c.id = ?'}',
+        variables: [if (computerId != null) Variable<String>(computerId)],
+      )
+      .get();
+  var changed = 0;
+  for (final row in rows) {
+    final target = _linkedTarget(
+      current: row.readNullable<String>('copy'),
+      computerSerial: row.read<String>('serial_number').trim(),
+      shearwater: isShearwaterFamily(
+        manufacturer: row.readNullable<String>('manufacturer'),
+        model: row.readNullable<String>('model'),
+      ),
+    );
+    if (target == null) continue;
+    await db.customStatement(
+      'UPDATE ${copies.table} SET ${copies.column} = ? WHERE id = ?',
+      [target, row.read<String>('id')],
+    );
+    changed++;
+  }
+  return changed;
 }
 
 /// The serial [current] should become to match a computer stored as
@@ -101,146 +183,36 @@ String? _linkedTarget({
       : null;
 }
 
-Future<int> _healLinkedSources(
-  DatabaseConnectionUser db,
-  String? computerId,
-) async {
-  final rows = await db
-      .customSelect(
-        'SELECT s.id, s.computer_serial, c.serial_number, c.manufacturer, '
-        'c.model FROM dive_data_sources s '
-        'JOIN dive_computers c ON c.id = s.computer_id '
-        "WHERE s.source_format = 'dive_computer' "
-        "AND TRIM(COALESCE(c.serial_number, '')) <> '' "
-        'AND (s.computer_serial IS NULL OR s.computer_serial <> c.serial_number)'
-        '${computerId == null ? '' : ' AND c.id = ?'}',
-        variables: [if (computerId != null) Variable<String>(computerId)],
-      )
-      .get();
-  var changed = 0;
-  for (final row in rows) {
-    final target = _linkedTarget(
-      current: row.readNullable<String>('computer_serial'),
-      computerSerial: row.read<String>('serial_number').trim(),
-      shearwater: isShearwaterFamily(
-        manufacturer: row.readNullable<String>('manufacturer'),
-        model: row.readNullable<String>('model'),
-      ),
-    );
-    if (target == null) continue;
-    await db.customStatement(
-      'UPDATE dive_data_sources SET computer_serial = ? WHERE id = ?',
-      [target, row.read<String>('id')],
-    );
-    changed++;
-  }
-  return changed;
-}
-
-Future<int> _healUnlinkedShearwaterSources(
-  DatabaseConnectionUser db,
-  Set<String> sourceCols,
-  String? computerId,
-) async {
-  // Scoped to one computer, the linked pass above has done all there is.
-  if (computerId != null) return 0;
-  final hasModel = sourceCols.contains('computer_model');
-  final hasVendor = sourceCols.containsAll(const {
-    'descriptor_vendor',
-    'descriptor_product',
-  });
+/// Converts the decimal Shearwater copies in [table] (aliased `s`) that
+/// match [where] to hex, by their characters. A copy that is its linked
+/// computer's own serial is settled already and never reconverted.
+Future<int> _convertDecimal(
+  DatabaseConnectionUser db, {
+  required String table,
+  required String column,
+  required String vendorExpr,
+  required String modelExpr,
+  required String where,
+}) async {
   final rows = await db.customSelect('''
-    SELECT s.id, s.computer_serial,
-      ${hasModel ? 's.computer_model' : 'NULL'} AS computer_model,
-      ${hasVendor ? 's.descriptor_vendor' : 'NULL'} AS descriptor_vendor,
-      ${hasVendor ? 's.descriptor_product' : 'NULL'} AS descriptor_product
-    FROM dive_data_sources s
-    WHERE s.source_format = 'dive_computer'
-      AND s.computer_serial IS NOT NULL
-      AND NOT EXISTS (SELECT 1 FROM dive_computers c WHERE c.id = s.computer_id
-        AND TRIM(COALESCE(c.serial_number, '')) <> '')
+    SELECT s.id, s.$column AS copy, $vendorExpr AS vendor, $modelExpr AS model
+    FROM $table s
+    WHERE $where AND ${decimalSerialCandidateSql('s.$column')}
+      AND NOT EXISTS (SELECT 1 FROM dive_computers c
+        WHERE c.id = s.computer_id AND c.serial_number = s.$column)
   ''').get();
   var changed = 0;
   for (final row in rows) {
-    final hex = _unlinkedShearwaterHex(
-      row.read<String>('computer_serial').trim(),
-      vendor: row.readNullable<String>('descriptor_vendor'),
-      model:
-          row.readNullable<String>('computer_model') ??
-          row.readNullable<String>('descriptor_product'),
+    final hex = downloadedShearwaterSerialHex(
+      row.read<String>('copy'),
+      manufacturer: row.readNullable<String>('vendor'),
+      model: row.readNullable<String>('model'),
     );
     if (hex == null) continue;
-    await db.customStatement(
-      'UPDATE dive_data_sources SET computer_serial = ? WHERE id = ?',
-      [hex, row.read<String>('id')],
-    );
-    changed++;
-  }
-  return changed;
-}
-
-Future<int> _healLinkedDives(
-  DatabaseConnectionUser db,
-  String? computerId,
-) async {
-  final rows = await db
-      .customSelect(
-        'SELECT d.id, d.dive_computer_serial, c.serial_number, '
-        'c.manufacturer, c.model FROM dives d '
-        'JOIN dive_computers c ON c.id = d.computer_id '
-        "WHERE TRIM(COALESCE(c.serial_number, '')) <> '' "
-        'AND (d.dive_computer_serial IS NULL '
-        'OR d.dive_computer_serial <> c.serial_number) '
-        'AND EXISTS (SELECT 1 FROM dive_data_sources s '
-        'WHERE s.dive_id = d.id AND s.computer_id = d.computer_id '
-        "AND s.source_format = 'dive_computer')"
-        '${computerId == null ? '' : ' AND c.id = ?'}',
-        variables: [if (computerId != null) Variable<String>(computerId)],
-      )
-      .get();
-  var changed = 0;
-  for (final row in rows) {
-    final target = _linkedTarget(
-      current: row.readNullable<String>('dive_computer_serial'),
-      computerSerial: row.read<String>('serial_number').trim(),
-      shearwater: isShearwaterFamily(
-        manufacturer: row.readNullable<String>('manufacturer'),
-        model: row.readNullable<String>('model'),
-      ),
-    );
-    if (target == null) continue;
-    await db.customStatement(
-      'UPDATE dives SET dive_computer_serial = ? WHERE id = ?',
-      [target, row.read<String>('id')],
-    );
-    changed++;
-  }
-  return changed;
-}
-
-/// A downloaded dive whose computer record has no serial to copy, or none
-/// at all, still converts a decimal Shearwater serial by its characters.
-Future<int> _healUnlinkedShearwaterDives(DatabaseConnectionUser db) async {
-  final rows = await db.customSelect('''
-    SELECT d.id, d.dive_computer_serial, d.dive_computer_model
-    FROM dives d
-    WHERE d.dive_computer_serial IS NOT NULL
-      AND NOT EXISTS (SELECT 1 FROM dive_computers c WHERE c.id = d.computer_id
-        AND TRIM(COALESCE(c.serial_number, '')) <> '')
-      AND EXISTS (SELECT 1 FROM dive_data_sources s
-        WHERE s.dive_id = d.id AND s.source_format = 'dive_computer')
-  ''').get();
-  var changed = 0;
-  for (final row in rows) {
-    final hex = _unlinkedShearwaterHex(
-      row.read<String>('dive_computer_serial').trim(),
-      model: row.readNullable<String>('dive_computer_model'),
-    );
-    if (hex == null) continue;
-    await db.customStatement(
-      'UPDATE dives SET dive_computer_serial = ? WHERE id = ?',
-      [hex, row.read<String>('id')],
-    );
+    await db.customStatement('UPDATE $table SET $column = ? WHERE id = ?', [
+      hex,
+      row.read<String>('id'),
+    ]);
     changed++;
   }
   return changed;
