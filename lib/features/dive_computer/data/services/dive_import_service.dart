@@ -441,6 +441,7 @@ class DiveImportService {
     final importedDives = <DownloadedDive>[];
     final conflicts = <ImportConflict>[];
     final duplicateCandidates = <DuplicateCandidate>[];
+    final replacedDiveIds = <String>[];
 
     // Sort dives chronologically (oldest first) so that sequential
     // getDiveNumberForDate() calls produce correct numbering.
@@ -507,6 +508,7 @@ class DiveImportService {
                 descriptorModel: descriptorModel,
                 libdivecomputerVersion: libdivecomputerVersion,
               );
+              replacedDiveIds.add(duplicateResult.matchingDiveId!);
               updated++;
             } else {
               // Import as new (importAsNew or consolidate treated as new here;
@@ -542,6 +544,7 @@ class DiveImportService {
               descriptorModel: descriptorModel,
               libdivecomputerVersion: libdivecomputerVersion,
             );
+            replacedDiveIds.add(duplicateResult.matchingDiveId!);
             updated++;
           } else {
             // Low confidence match in 'all' mode - import as new.
@@ -586,6 +589,8 @@ class DiveImportService {
         skipped++;
       }
     }
+
+    await _settleReplacedTransmitters(replacedDiveIds);
 
     return ImportResult.success(
       imported: imported,
@@ -1068,12 +1073,16 @@ class DiveImportService {
       otu: dive.otu,
       addMissingTanks: true,
     );
-    // The stored cylinders keep the diver's edits, so the registry match a
-    // new dive gets never reached them: a serial importProfile just gave one
-    // gets its Transmitter item (#3676) and fills that transmitter's setup
-    // in, fill-only (issue #4388).
-    await registerTransmittersForDives([existingDiveId]);
-    await applyTransmitterSetupToDives([existingDiveId]);
+  }
+
+  /// After a Replace source: the stored cylinders keep the diver's edits,
+  /// so the registry match a new dive gets never reached them. A serial
+  /// importProfile just gave one gets its Transmitter item (#3676) and fills
+  /// that transmitter's setup in, fill-only (issue #4388). Once per batch.
+  Future<void> _settleReplacedTransmitters(List<String> diveIds) async {
+    if (diveIds.isEmpty) return;
+    await registerTransmittersForDives(diveIds);
+    await applyTransmitterSetupToDives(diveIds);
   }
 
   /// Attach [dive]'s download to the planned dive [plannedDiveId] (issue
@@ -1185,6 +1194,7 @@ class DiveImportService {
           descriptorModel: descriptorModel,
           libdivecomputerVersion: libdivecomputerVersion,
         );
+        await _settleReplacedTransmitters([conflict.existingDiveId]);
         return conflict.existingDiveId;
 
       case ConflictResolution.importAsNew:

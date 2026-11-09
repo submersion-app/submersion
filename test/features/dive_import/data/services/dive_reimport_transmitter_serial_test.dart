@@ -94,6 +94,19 @@ void main() {
     },
   );
 
+  test('a serial the diver has never seen gets its Transmitter item '
+      '(#3676)', () async {
+    await seedTank('tank-a', 0);
+
+    await resync([
+      {'order': 0, 'startPressure': 200.0, 'transmitterSerial': '76287'},
+    ]);
+
+    final rows = await db.select(db.transmitters).get();
+    expect(rows.single.transmitterSerial, '76287');
+    expect(rows.single.isConfigured, isFalse);
+  });
+
   test('keeps a serial the cylinder already has', () async {
     await seedTank('tank-a', 0, serial: '11111');
 

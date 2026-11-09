@@ -85,4 +85,15 @@ void main() {
     expect(tank.volume, 10);
     expect(tank.tankName, 'T2');
   });
+
+  test('Replace source gives a serial the diver has never seen its '
+      'Transmitter item (#3676)', () async {
+    await download(dive(), ImportMode.newOnly);
+
+    await download(dive(serial: '76287'), ImportMode.replaceSource);
+
+    final rows = await db.select(db.transmitters).get();
+    expect(rows.single.transmitterSerial, '76287');
+    expect(rows.single.isConfigured, isFalse);
+  });
 }
