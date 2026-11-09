@@ -45,6 +45,16 @@ void main() {
       expect(placed.map((p) => p.left), [56, 120]);
     });
 
+    test('drops a label wider than the bar', () {
+      // Large text on a narrow bar: the label cannot fit anywhere, so it is
+      // dropped rather than drawn past the bar's end.
+      final placed = placeRhythmLabels([
+        spec(RhythmLabelKind.sunrise, 0.25, 120),
+        spec(RhythmLabelKind.tick, 0.5, 40),
+      ], 100);
+      expect(placed.map((p) => p.spec.kind), [RhythmLabelKind.tick]);
+    });
+
     test('drops the sunset when there is no room', () {
       final placed = placeRhythmLabels([
         spec(RhythmLabelKind.sunrise, 0.9, 60),

@@ -30,7 +30,8 @@ typedef RhythmLabel = ({
 /// and kept inside the bar. A sunset that would overlap the sunrise moves
 /// clear of it, on the side its own moment lies, and is dropped when there
 /// is still no room. Hour ticks come last and are dropped wherever they
-/// would overlap a placed label. The result keeps the input order.
+/// would overlap a placed label. A label wider than the bar is dropped. The
+/// result keeps the input order.
 List<PlacedRhythmLabel> placeRhythmLabels(
   List<RhythmLabelSpec> specs,
   double barWidth, {
@@ -56,6 +57,9 @@ List<PlacedRhythmLabel> placeRhythmLabels(
   final lefts = <int, double>{};
   for (final i in order) {
     final spec = specs[i];
+    // A label wider than the whole bar (large text on a narrow bar) has no
+    // place to go; drawing it would run past the bar's end.
+    if (spec.width > barWidth) continue;
     final center = spec.centerFraction * barWidth;
     var left = clampLeft(center - spec.width / 2, spec.width);
     if (spec.kind != RhythmLabelKind.tick) {

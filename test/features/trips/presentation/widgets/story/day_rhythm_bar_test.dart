@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -59,6 +60,16 @@ dynamic _painter(WidgetTester tester) => tester
     .painter;
 
 void main() {
+  // UnitFormatter.formatTime formats with DateFormat, which resolves against
+  // the process-global Intl.defaultLocale, not MaterialApp.locale. Pin it so
+  // the AM/PM and digit assertions do not ride on whatever another test left
+  // behind, and restore it so the global stays contained.
+  setUp(() {
+    final previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+  });
+
   testWidgets('renders with a semantics label', (tester) async {
     await tester.pumpWidget(
       _host([Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))]),
