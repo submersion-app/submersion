@@ -572,7 +572,7 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                     ?a.ownerKey: a.section.items.map((e) => e.id),
                     for (final group in a.groups)
                       if (group.type case final type?)
-                        typeFoldKey(type, locationKey: a.ownerKey): group.items
+                        typeFoldKey(type, parentKey: a.ownerKey): group.items
                             .map((e) => e.id),
                   },
                 }, _picked.keys.toSet());
@@ -597,14 +597,14 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       if (group.type case final type?) ...[
                         _HeaderRow(
                           type,
-                          foldKey: typeFoldKey(type, locationKey: a.ownerKey),
+                          foldKey: typeFoldKey(type, parentKey: a.ownerKey),
                           nested: a.ownerKey != null,
                           items: group.items,
                           isOpen: isOpen(
-                            typeFoldKey(type, locationKey: a.ownerKey),
+                            typeFoldKey(type, parentKey: a.ownerKey),
                           ),
                         ),
-                        if (isOpen(typeFoldKey(type, locationKey: a.ownerKey)))
+                        if (isOpen(typeFoldKey(type, parentKey: a.ownerKey)))
                           for (final equipment in group.items)
                             _ItemRow(equipment, showTypeLabel: false),
                       ] else

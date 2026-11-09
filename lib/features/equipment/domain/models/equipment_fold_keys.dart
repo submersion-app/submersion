@@ -23,11 +23,12 @@ const int kMaxStoredFoldKeys = 300;
 /// The key of a place's group; null is "No location".
 String locationFoldKey(String? locationId) => 'loc:${locationId ?? 'none'}';
 
-/// The key of a type's group, nested under [locationKey] when the page
-/// groups by location. A null [type] is the ungrouped bucket.
-String typeFoldKey(EquipmentType? type, {String? locationKey}) {
+/// The key of a type's group, nested under [parentKey] when the type sits
+/// inside another group (a place on the Equipment list, an owner's shared
+/// gear in a picker). A null [type] is the ungrouped bucket.
+String typeFoldKey(EquipmentType? type, {String? parentKey}) {
   final own = 'type:${type?.name ?? 'none'}';
-  return locationKey == null ? own : '$locationKey/$own';
+  return parentKey == null ? own : '$parentKey/$own';
 }
 
 /// The folded keys stored in [raw], a JSON list. Anything else (null, blank,

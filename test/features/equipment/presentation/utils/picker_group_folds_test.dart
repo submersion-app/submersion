@@ -36,7 +36,7 @@ void main() {
   test('owner key and nested type key', () {
     expect(ownerFoldKey('d2'), 'owner:d2');
     expect(
-      typeFoldKey(EquipmentType.bcd, locationKey: ownerFoldKey('d2')),
+      typeFoldKey(EquipmentType.bcd, parentKey: ownerFoldKey('d2')),
       'owner:d2/type:bcd',
     );
   });

@@ -14,7 +14,7 @@ void main() {
       expect(typeFoldKey(EquipmentType.bcd), 'type:bcd');
       expect(typeFoldKey(null), 'type:none');
       expect(
-        typeFoldKey(EquipmentType.secondStage, locationKey: 'loc:abc'),
+        typeFoldKey(EquipmentType.secondStage, parentKey: 'loc:abc'),
         'loc:abc/type:secondStage',
       );
     });

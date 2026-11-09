@@ -128,7 +128,7 @@ EquipmentRowLayout layoutEquipmentRows({
       }
       return;
     }
-    final key = typeFoldKey(type, locationKey: locationKey);
+    final key = typeFoldKey(type, parentKey: locationKey);
     if (locationKey == null) outerKeys.add(key);
     final isExpanded = !collapsed.contains(key);
     for (final item in group.items) {
@@ -185,7 +185,7 @@ EquipmentRowLayout layoutEquipmentRows({
             foldKeysByItem[item.id] = [
               key,
               if (group.type case final type?)
-                typeFoldKey(type, locationKey: key),
+                typeFoldKey(type, parentKey: key),
             ];
           }
         }
