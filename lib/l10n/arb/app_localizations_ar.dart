@@ -14501,6 +14501,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_tankRole_stage => 'أسطوانة مرحلية';
 
   @override
+  String get enum_tankRole_suitInflation => 'نفخ البدلة';
+
+  @override
   String get enum_tankRole_twinSet => 'طقم مزدوج';
 
   @override
@@ -40732,6 +40735,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_valve_type => 'الصمام';
 
   @override
+  String get attrLabel_cylinder_use => 'استخدام الأسطوانة';
+
+  @override
   String get attrLabel_tank_identifier => 'المعرف';
 
   @override
@@ -41087,6 +41093,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'قابل للتحويل';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'غاز التنفس';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'نفخ البدلة';
 
   @override
   String get attrChoice_connection_din => 'DIN';

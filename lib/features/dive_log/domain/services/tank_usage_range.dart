@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// A switch this many seconds or less after the dive starts names the
@@ -52,8 +53,10 @@ List<GasSwitchWithTank> knownGasSwitches(
 }
 
 /// The cylinder breathed at [timestamp]: the one the last switch at or
-/// before it names, else the starting gas (see [_startingTank]). Null when
-/// there are no cylinders. [onLoop] as for [startingTankOf].
+/// before it names, else the starting gas (see [_startingTank]). Never a
+/// suit inflation bottle: a switch to one counts against the breathing
+/// cylinder on its mix (issue #4243). Null when no cylinder holds breathing
+/// gas. [onLoop] as for [startingTankOf].
 DiveTank? activeTankAt({
   required List<DiveTank> tanks,
   required List<GasSwitchWithTank>? gasSwitches,
@@ -61,16 +64,19 @@ DiveTank? activeTankAt({
   required int diveStart,
   bool onLoop = false,
 }) {
-  if (tanks.isEmpty) return null;
-  final sorted = knownGasSwitches(tanks, gasSwitches)
-    ..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
+  final breathing = breathingTanks(tanks);
+  if (breathing.isEmpty) return null;
+  final sorted = knownGasSwitches(
+    breathing,
+    gasSwitches == null ? null : breathingGasSwitches(gasSwitches, tanks),
+  )..sort((a, b) => a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp));
   final active = sorted.lastWhereOrNull(
     (sw) => sw.gasSwitch.timestamp <= timestamp,
   );
   if (active == null) {
-    return _startingTank(tanks, sorted, diveStart, onLoop: onLoop);
+    return _startingTank(breathing, sorted, diveStart, onLoop: onLoop);
   }
-  return tanks.firstWhere((t) => t.id == active.gasSwitch.tankId);
+  return breathing.firstWhere((t) => t.id == active.gasSwitch.tankId);
 }
 
 /// The cylinder the dive starts on: the one a switch in its first moments
@@ -101,22 +107,25 @@ DiveTank? startingTankOf({
   required int diveStart,
   bool onLoop = false,
 }) {
-  if (tanks.isEmpty) return null;
-  final tankIds = {for (final t in tanks) t.id};
-  final first = switches
+  // A suit inflation bottle is never the starting gas, and a switch to one
+  // counts against the breathing cylinder on its mix (issue #4243).
+  final breathing = breathingTanks(tanks);
+  if (breathing.isEmpty) return null;
+  final tankIds = {for (final t in breathing) t.id};
+  final first = breathingRawGasSwitches(switches.toList(), tanks)
       .where((s) => tankIds.contains(s.tankId))
       .sorted((a, b) => a.timestamp.compareTo(b.timestamp))
       .firstOrNull;
   if (first != null &&
       first.timestamp <= diveStart + startingSwitchGraceSeconds) {
-    return tanks.firstWhere((t) => t.id == first.tankId);
+    return breathing.firstWhere((t) => t.id == first.tankId);
   }
   final diluent = onLoop
-      ? tanks
+      ? breathing
             .sortedBy<num>((t) => t.order)
             .firstWhereOrNull((t) => t.role == TankRole.diluent)
       : null;
-  return diluent ?? sacReferenceTankOf(tanks)!;
+  return diluent ?? sacReferenceTankOf(breathing)!;
 }
 
 /// The periods, in seconds and time order, when [tank] was breathed: from the
@@ -124,6 +133,11 @@ DiveTank? startingTankOf({
 /// diver returned to has one per visit (#3900). Empty when nothing says when
 /// the tank was breathed (a stage with no recorded switch). [onLoop] as for
 /// [startingTankOf].
+///
+/// A suit inflation bottle is never breathed, so it has no window, and the
+/// other cylinders' windows are worked out as if it were not carried: a
+/// switch to it counts against the breathing cylinder on its mix
+/// (issue #4243).
 List<TankUsageWindow> tankUsageWindows({
   required DiveTank tank,
   required List<GasSwitchWithTank>? gasSwitches,
@@ -131,6 +145,29 @@ List<TankUsageWindow> tankUsageWindows({
   required int diveEnd,
   required List<DiveTank> tanks,
   bool onLoop = false,
+}) {
+  if (!tank.role.isBreathingGas) return const [];
+  return _breathingTankUsageWindows(
+    tank: tank,
+    gasSwitches: gasSwitches == null
+        ? null
+        : breathingGasSwitches(gasSwitches, tanks),
+    diveStart: diveStart,
+    diveEnd: diveEnd,
+    tanks: breathingTanks(tanks),
+    onLoop: onLoop,
+  );
+}
+
+/// [tankUsageWindows] over [tanks] and [gasSwitches] that hold breathing
+/// gas only.
+List<TankUsageWindow> _breathingTankUsageWindows({
+  required DiveTank tank,
+  required List<GasSwitchWithTank>? gasSwitches,
+  required int diveStart,
+  required int diveEnd,
+  required List<DiveTank> tanks,
+  required bool onLoop,
 }) {
   if (diveEnd <= diveStart) return const [];
 

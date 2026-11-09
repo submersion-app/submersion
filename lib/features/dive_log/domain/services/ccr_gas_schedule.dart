@@ -4,6 +4,8 @@ import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
+import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// What a recorded gas switch means on a closed-circuit dive (issue #577).
 enum CcrGasChangeKind {
@@ -57,9 +59,14 @@ List<CcrGasChange> classifyCcrGasChanges(
   List<GasSwitchWithTank> switches,
   List<DiveTank> tanks,
 ) {
-  final roles = {for (final tank in tanks) tank.id: ccrCylinderRole(tank)};
+  // A suit inflation bottle is not breathed: a switch to it counts against
+  // the breathing cylinder on its mix, and it is never a bailout (#4243).
+  final roles = {
+    for (final tank in breathingTanks(tanks)) tank.id: ccrCylinderRole(tank),
+  };
+  final breathing = breathingGasSwitches(switches, tanks);
   final ordered =
-      switches.where((s) => roles.containsKey(s.gasSwitch.tankId)).toList()
+      breathing.where((s) => roles.containsKey(s.gasSwitch.tankId)).toList()
         ..sort((a, b) {
           final byTime = a.gasSwitch.timestamp.compareTo(b.gasSwitch.timestamp);
           return byTime != 0

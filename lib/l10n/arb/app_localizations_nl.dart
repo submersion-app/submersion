@@ -14223,6 +14223,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get enum_tankRole_stage => 'Stagefles';
 
   @override
+  String get enum_tankRole_suitInflation => 'Droogpakfles';
+
+  @override
   String get enum_tankRole_twinSet => 'Dubbelset';
 
   @override
@@ -39955,6 +39958,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_valve_type => 'Kraan';
 
   @override
+  String get attrLabel_cylinder_use => 'Gebruik van de fles';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificatie';
 
   @override
@@ -40311,6 +40317,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Ombouwbaar';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Ademgas';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Droogpakfles';
 
   @override
   String get attrChoice_connection_din => 'DIN';

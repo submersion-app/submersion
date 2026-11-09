@@ -119,4 +119,37 @@ void main() {
     ).map((d) => d.key);
     expect(keys, ['hose_type']);
   });
+
+  testWidgets('a tank offers its Cylinder use (#4243)', (tester) async {
+    var conditions = <EquipmentAttrCondition>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: StatefulBuilder(
+              builder: (context, setState) => EquipmentChoiceAttributeFilter(
+                type: EquipmentType.tank,
+                conditions: conditions,
+                onChanged: (next) => setState(() => conditions = next),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Cylinder use'), findsOneWidget);
+    await tester.tap(chip('cylinder_use', 'suit_inflation'));
+    await tester.pumpAndSettle();
+    expect(conditions, [
+      const EquipmentAttrCondition(
+        key: 'cylinder_use',
+        choices: {'suit_inflation'},
+        types: {EquipmentType.tank},
+      ),
+    ]);
+  });
 }

@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/features/dive_log/data/repositories/depth_bucket_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
@@ -3458,10 +3459,11 @@ class DiveRepository {
             // Correlated on d.id so SQLite reads only the kept dives' tanks
             // through idx_dive_tanks_dive_id, rather than grouping the whole
             // table for every diver.
+            // A suit inflation bottle is not the dive's gas (issue #4243).
             '(SELECT MAX(dt.o2_percent) FROM dive_tanks dt '
-            'WHERE dt.dive_id = d.id) AS max_o2, '
+            'WHERE dt.dive_id = d.id AND ${breathingTankSql('dt')}) AS max_o2, '
             '(SELECT MAX(dt.he_percent) FROM dive_tanks dt '
-            'WHERE dt.dive_id = d.id) AS max_he '
+            'WHERE dt.dive_id = d.id AND ${breathingTankSql('dt')}) AS max_he '
             'FROM dives d '
             'LEFT JOIN dive_sites s ON d.site_id = s.id '
             'LEFT JOIN trips t ON d.trip_id = t.id '

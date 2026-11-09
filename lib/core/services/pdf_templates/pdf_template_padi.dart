@@ -267,7 +267,9 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
     List<Signature>? signatures,
     Map<String, String> annotationTimes = const {},
   }) {
-    final tank = dive.tanks.isNotEmpty ? dive.tanks.first : null;
+    // The dive's gas is its first breathing cylinder's, never a suit
+    // inflation bottle's (issue #4243).
+    final tank = dive.breathingTanks.firstOrNull;
     final isTrainingDive =
         dive.diveTypeIds.any((t) => t.toLowerCase().contains('training')) ||
         dive.courseId != null;

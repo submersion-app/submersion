@@ -577,4 +577,42 @@ void main() {
       );
     });
   });
+
+  // A suit inflation bottle is not breathing gas (issue #4243).
+  group('suit inflation bottle', () {
+    final suit = _tank(id: 'suit', o2: 21, role: TankRole.suitInflation);
+    final left = _tank(id: 'l', o2: 32, order: 1, role: TankRole.sidemountLeft);
+
+    test('never starts the gas strip, listed first', () {
+      final segments = buildGasUsageSegments(
+        tanks: [suit, left],
+        gasSwitches: const [],
+        diveDurationSeconds: 3000,
+        onLoop: false,
+      );
+
+      expect(segments.single.gasMix, const GasMix(o2: 32));
+    });
+
+    test('gets no active interval', () {
+      final intervals = buildActiveTankIntervals(
+        tanks: [suit, left],
+        gasSwitches: const [],
+        diveDurationSeconds: 3000,
+      );
+
+      expect(intervals.keys, ['l']);
+    });
+
+    test('alone draws no strip', () {
+      expect(
+        buildGasUsageSegments(
+          tanks: [suit],
+          gasSwitches: const [],
+          diveDurationSeconds: 3000,
+        ),
+        isEmpty,
+      );
+    });
+  });
 }

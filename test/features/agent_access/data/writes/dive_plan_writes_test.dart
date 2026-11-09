@@ -134,4 +134,18 @@ void main() {
     expect(plan.items[0].block!.reason, BlockReason.unknownReference);
     expect(plan.items[1].block!.reason, BlockReason.invalidValue);
   });
+
+  test('a plan tank in the suit inflation role is refused (#4243)', () async {
+    final plan = await h.preview([
+      createOp('dive_plans', {
+        'name': 'Dry',
+        'tanks': [
+          {'volume_l': 11.1, 'o2_fraction': 0.32},
+          {'volume_l': 0.85, 'o2_fraction': 0.21, 'role': 'suitInflation'},
+        ],
+      }),
+    ]);
+
+    expect(plan.items.single.block!.reason, BlockReason.invalidValue);
+  });
 }

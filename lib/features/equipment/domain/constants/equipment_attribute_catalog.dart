@@ -110,6 +110,11 @@ abstract final class EquipmentAttrKeys {
   static const workingPressureBar = 'working_pressure_bar';
   static const tankMaterial = 'tank_material';
 
+  // What a cylinder holds gas for (issue #4243): breathing gas, or a
+  // drysuit's inflation (often argon). Unset means breathing gas. Picking or
+  // linking a suit inflation cylinder sets a dive tank's role to match.
+  static const cylinderUse = 'cylinder_use';
+
   // A cylinder's last visual inspection and hydro test dates. The VIP and
   // hydro service clocks count from them (issue #3662).
   static const lastVisualInspection = 'last_visual_inspection';
@@ -396,6 +401,11 @@ abstract final class EquipmentAttributeCatalog {
         key: 'valve_type',
         kind: AttributeKind.choice,
         choiceKeys: ['din', 'yoke', 'convertible'],
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.cylinderUse,
+        kind: AttributeKind.choice,
+        choiceKeys: ['breathing_gas', 'suit_inflation'],
       ),
       EquipmentAttributeDef(
         key: EquipmentAttrKeys.lastVisualInspection,

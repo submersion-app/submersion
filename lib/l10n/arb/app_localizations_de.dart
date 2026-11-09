@@ -14315,6 +14315,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_tankRole_stage => 'Stageflasche';
 
   @override
+  String get enum_tankRole_suitInflation => 'Anzugflasche';
+
+  @override
   String get enum_tankRole_twinSet => 'Doppelgerät';
 
   @override
@@ -40143,6 +40146,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_valve_type => 'Ventil';
 
   @override
+  String get attrLabel_cylinder_use => 'Flaschenverwendung';
+
+  @override
   String get attrLabel_tank_identifier => 'Kennung';
 
   @override
@@ -40502,6 +40508,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Umrüstbar';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Atemgas';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Anzugflasche';
 
   @override
   String get attrChoice_connection_din => 'DIN';

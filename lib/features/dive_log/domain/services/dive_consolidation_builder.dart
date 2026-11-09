@@ -261,6 +261,12 @@ class DiveConsolidationBuilder {
   bool _tankMatches(DiveTank primary, DiveTank secondary) {
     final bySerial = _serialIdentity(primary, secondary);
     if (bySerial != null) return bySerial;
+    // Without a serial, a suit inflation bottle is only ever the same
+    // cylinder as another suit bottle: an air bottle must not fold into air
+    // back gas (issue #4243), where its pressure would count toward SAC.
+    if (primary.role.isBreathingGas != secondary.role.isBreathingGas) {
+      return false;
+    }
     final o2Close =
         (primary.gasMix.o2 - secondary.gasMix.o2).abs() <= _gasTolerancePct;
     final heClose =

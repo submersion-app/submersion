@@ -123,7 +123,11 @@ List<FigureZone> _zonesForTankRole(FigureItemInput item) {
     TankRole.stage ||
     TankRole.deco ||
     TankRole.bailout ||
-    TankRole.pony => const [FigureZone.stageLeft, FigureZone.stageRight],
+    TankRole.pony ||
+    TankRole.suitInflation => const [
+      FigureZone.stageLeft,
+      FigureZone.stageRight,
+    ],
     TankRole.backGas ||
     TankRole.twinSet ||
     TankRole.diluent ||
