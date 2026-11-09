@@ -366,6 +366,50 @@ void main() {
     expect(imageAlignmentY(tester), greaterThan(0));
   });
 
+  testWidgets('untagging the people on a photo analysed before reuses its '
+      'scores without decoding again', (tester) async {
+    var decodes = 0;
+    final analyzer = CardFocusAnalyzer(
+      decode: (_) async {
+        decodes++;
+        return _analysedImage();
+      },
+    );
+    // Another card already analysed this photo's pixels.
+    await tester.runAsync(
+      () => analyzer.rowScoresFor(_key('m1'), MemoryImage(png)),
+    );
+    expect(decodes, 1);
+    final photo = ValueNotifier(
+      const CardPhoto(
+        mediaId: 'm1',
+        focusBoxes: [FocusBox(x: 0.3, y: 0.05, width: 0.2, height: 0.1)],
+      ),
+    );
+    await pumpCard(tester, photo: photo, analyzer: analyzer);
+    expect(imageAlignmentY(tester), lessThan(0));
+
+    await tester.runAsync(() async {
+      photo.value = const CardPhoto(mediaId: 'm1');
+      await settle(tester);
+    });
+
+    expect(decodes, 1);
+    expect(opacity(tester), 1);
+    expect(
+      imageAlignmentY(tester),
+      closeTo(
+        cardCropAlignmentY(
+          imageAspect: imageAspect,
+          cardAspect: cardAspect,
+          rowScores: analyzer.peek(_key('m1')),
+        ),
+        0.02,
+      ),
+    );
+    expect(imageAlignmentY(tester), greaterThan(0));
+  });
+
   testWidgets('tagging someone on a photo crops it to them without decoding '
       'again', (tester) async {
     var decodes = 0;
