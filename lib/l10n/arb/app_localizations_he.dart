@@ -1900,6 +1900,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'זמני הצלילה ביום זה';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise, שקיעה $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'זמני הצלילה ביום זה. שקיעה $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'מפת יום $number';
   }
@@ -7914,9 +7932,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_diveMode_title => 'מצב צלילה';
 
   @override
-  String get diveLog_editSighting_count => 'כמות';
-
-  @override
   String get diveLog_editSighting_notes => 'הערות';
 
   @override
@@ -10697,6 +10712,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'לחץ סיום';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'נשימה על פני המים';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'דקות על מכל זה אחרי שהמחשב הפסיק לתעד, למשל חמצן על הסירה';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'דקות';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -18672,9 +18697,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'אתרים מובילים';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'סה\"כ תצפיות';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'הוסף מין';
 
   @override
@@ -18974,7 +18996,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'מיון';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'הכי הרבה תצפיות';
+  String get marineLife_speciesPage_sort_mostDives => 'הכי הרבה צלילות';
+
+  @override
+  String get marineLife_abundance_label => 'כמה';
+
+  @override
+  String get marineLife_abundance_seen => 'נצפה';
+
+  @override
+  String get marineLife_abundance_single => 'יחיד';
+
+  @override
+  String get marineLife_abundance_few => 'מעטים';
+
+  @override
+  String get marineLife_abundance_many => 'רבים';
+
+  @override
+  String get marineLife_abundance_abundant => 'בשפע';
+
+  @override
+  String get marineLife_abundance_exact => 'מדויק';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'מעטים 2 עד 10, רבים 11 עד 100, בשפע מעל 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'נראו לאחרונה';
@@ -20383,6 +20430,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_empty => 'אין מדיה עדיין';
 
   @override
+  String get media_library_emptyFiltered => 'אין מדיה שתואמת למסננים אלה';
+
+  @override
   String get media_library_filter_all => 'הכול';
 
   @override
@@ -20413,6 +20463,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'קבצים חסרים ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'אף אחד לא מתויג';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אנשים',
+      one: 'אדם אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'חיפוש אנשים';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'אין אנשים תואמים';
+
+  @override
+  String get media_library_filter_peopleClear => 'ניקוי אנשים';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'לא ממוקם בצלילה';
 
   @override
   String get media_library_filter_clear => 'ניקוי מסננים';
@@ -25666,6 +25752,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_supersedesRuleId => 'מחליף כלל מובנה';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'זמן נשימה על פני המים';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'תנאים בפני המים';
@@ -52142,6 +52232,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profilePanel_noProfileData => 'אין נתוני פרופיל לצלילה זו';
+
+  @override
+  String get diveLog_estimatedProfile_caption =>
+      'הערכה לפי עומק מרבי וזמן, לא פרופיל מוקלט';
 
   @override
   String get settings_export_progress_divesCsv => 'מייצא צלילות ל-CSV...';

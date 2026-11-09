@@ -4,6 +4,7 @@ import 'package:submersion/core/services/export/uddf/uddf_full_import_service.da
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 
 import '../../../core/services/export/uddf/uddf_observations_round_trip_test.dart'
@@ -63,6 +64,31 @@ void main() {
     expect(sightings.single.speciesName, 'Giant Manta Ray');
     expect(sightings.single.count, 2);
     expect(sightings.single.notes, 'cleaning station');
+  });
+
+  test('a sighting keeps how many the file recorded (issue #4337)', () async {
+    final diveId = await importDive({
+      'dateTime': DateTime.utc(2024, 6, 1, 9, 30),
+      'sightings': [
+        {'speciesName': 'Test Jack', 'count': 1},
+        {'speciesName': 'Test Grouper'},
+        {'speciesName': 'Test Snapper', 'abundance': 'many', 'count': 40},
+      ],
+    });
+
+    final byName = {
+      for (final s in await SpeciesRepository().getSightingsForDive(diveId))
+        s.speciesName: s.amount,
+    };
+    expect(byName['Test Jack'], (abundance: SightingAbundance.exact, count: 1));
+    expect(byName['Test Grouper'], (
+      abundance: SightingAbundance.seen,
+      count: 1,
+    ));
+    expect(byName['Test Snapper'], (
+      abundance: SightingAbundance.many,
+      count: 1,
+    ));
   });
 
   test('one malformed sighting does not cost the dive its others', () async {

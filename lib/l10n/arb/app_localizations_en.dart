@@ -1908,6 +1908,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Dive times during this day';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Dive times during this day. Sunrise $sunrise, sunset $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Dive times during this day. Sunrise $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Dive times during this day. Sunset $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Map of day $number';
   }
@@ -7959,9 +7977,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_diveMode_title => 'Dive Mode';
 
   @override
-  String get diveLog_editSighting_count => 'Count';
-
-  @override
   String get diveLog_editSighting_notes => 'Notes';
 
   @override
@@ -10766,6 +10781,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'End Pressure';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'Breathed at the surface';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'min';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -18804,9 +18829,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Top Sites';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'Total Sightings';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Add Species';
 
   @override
@@ -19111,7 +19133,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Sort';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Most sightings';
+  String get marineLife_speciesPage_sort_mostDives => 'Most dives';
+
+  @override
+  String get marineLife_abundance_label => 'How many';
+
+  @override
+  String get marineLife_abundance_seen => 'Seen';
+
+  @override
+  String get marineLife_abundance_single => 'Single';
+
+  @override
+  String get marineLife_abundance_few => 'Few';
+
+  @override
+  String get marineLife_abundance_many => 'Many';
+
+  @override
+  String get marineLife_abundance_abundant => 'Abundant';
+
+  @override
+  String get marineLife_abundance_exact => 'Exact';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Few 2 to 10, Many 11 to 100, Abundant over 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Recently seen';
@@ -20532,6 +20579,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_empty => 'No media yet';
 
   @override
+  String get media_library_emptyFiltered => 'No media matches these filters';
+
+  @override
   String get media_library_filter_all => 'All';
 
   @override
@@ -20562,6 +20612,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Missing files ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'No one tagged';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '$count person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Search people';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'No people match';
+
+  @override
+  String get media_library_filter_peopleClear => 'Clear people';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'Not placed in the dive';
 
   @override
   String get media_library_filter_clear => 'Clear filters';
@@ -25886,6 +25972,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Replaces built-in rule';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'Time breathed at the surface';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'Surface conditions';
@@ -52422,6 +52512,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_profilePanel_noProfileData =>
       'No profile data for this dive';
+
+  @override
+  String get diveLog_estimatedProfile_caption =>
+      'Estimated from max depth and time, not a recorded profile';
 
   @override
   String get settings_export_progress_divesCsv => 'Exporting dives to CSV...';

@@ -66,9 +66,8 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
   Widget build(BuildContext context) {
     final state = ref.watch(mediaLibraryNotifierProvider);
     final mode = ref.watch(mediaLibraryViewModeProvider);
-    final showingMissing =
-        ref.watch(mediaLibraryFilterProvider).health ==
-        MediaHealthFilter.missing;
+    final filter = ref.watch(mediaLibraryFilterProvider);
+    final showingMissing = filter.health == MediaHealthFilter.missing;
 
     final visibleIds = state.entries.map((e) => e.item.id).toList();
     // Drop checked ids that a filter or sort change pushed off screen, so a
@@ -124,13 +123,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
             if (showingMissing)
               MediaMissingBanner(isEmpty: state.entries.isEmpty),
             Expanded(
-              child: _buildBody(
-                context,
-                state,
-                mode,
-                showingMissing,
-                selection,
-              ),
+              child: _buildBody(context, state, mode, filter, selection),
             ),
           ],
         ),
@@ -142,7 +135,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     BuildContext context,
     MediaLibraryState state,
     MediaLibraryViewMode mode,
-    bool showingMissing,
+    MediaLibraryFilter filter,
     SelectionState selection,
   ) {
     // The map runs its own unpaged query and owns its loading, empty and
@@ -152,13 +145,17 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
       return const Center(child: CircularProgressIndicator());
     }
     if (state.entries.isEmpty) {
-      return Center(
-        child: Text(
-          showingMissing
-              ? context.l10n.media_missing_empty
-              : context.l10n.media_library_empty,
-        ),
-      );
+      // Under a filter, empty means nothing matches it, not an empty
+      // library; with the cleanup filters (issue #4148) it is the finished
+      // state. So a read that failed must not pass for either.
+      final message = state.error != null
+          ? context.l10n.media_diveMediaSection_errorLoading
+          : filter.health == MediaHealthFilter.missing
+          ? context.l10n.media_missing_empty
+          : filter.isEmpty
+          ? context.l10n.media_library_empty
+          : context.l10n.media_library_emptyFiltered;
+      return Center(child: Text(message));
     }
     void loadMore() =>
         ref.read(mediaLibraryNotifierProvider.notifier).loadMore();

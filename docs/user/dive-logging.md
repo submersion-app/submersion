@@ -95,6 +95,18 @@ The rows, in order:
 > entry and exit times (or runtime) are filled in. A dive with only a bottom time
 > has no runtime, so it shows no SAC or RMV and adds nothing to your total time or
 > longest dive. Fill in its runtime, or its entry and exit times, to count it.
+>
+> If your computer keeps logging at the surface (some do while the transmitter
+> is still pressurised), or starts logging before you descend, that surface time
+> is left out of the dive's SAC and RMV. Anything at 1 m or shallower at the very
+> start or end of the profile counts as surface time; your runtime and profile
+> stay exactly as recorded.
+>
+> Surface time you spent breathing a cylinder still counts, at the surface: a
+> gas switch logged after you surfaced (oxygen on the boat), or a cylinder whose
+> pressure keeps falling by 5 bar or more on the surface (a surface swim on the
+> regulator). For time after your computer stopped logging, enter the minutes in
+> the cylinder's **Breathed at the surface** field.
 
 ### Automatic dive numbering
 

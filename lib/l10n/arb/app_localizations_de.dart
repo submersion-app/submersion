@@ -1921,6 +1921,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Tauchzeiten an diesem Tag';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Tauchzeiten an diesem Tag. Sonnenaufgang $sunrise, Sonnenuntergang $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Tauchzeiten an diesem Tag. Sonnenaufgang $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Tauchzeiten an diesem Tag. Sonnenuntergang $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Karte von Tag $number';
   }
@@ -8084,9 +8102,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_diveMode_title => 'Tauchmodus';
 
   @override
-  String get diveLog_editSighting_count => 'Anzahl';
-
-  @override
   String get diveLog_editSighting_notes => 'Notizen';
 
   @override
@@ -10936,6 +10951,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'Enddruck';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'An der Oberfläche geatmet';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minuten an dieser Flasche, nachdem der Computer die Aufzeichnung beendet hat, etwa Sauerstoff auf dem Boot';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'Min.';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -19068,10 +19093,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Häufigste Tauchplätze';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Sichtungen gesamt';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Art hinzufügen';
 
   @override
@@ -19382,7 +19403,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Sortieren';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Meiste Sichtungen';
+  String get marineLife_speciesPage_sort_mostDives => 'Meiste Tauchgänge';
+
+  @override
+  String get marineLife_abundance_label => 'Wie viele';
+
+  @override
+  String get marineLife_abundance_seen => 'Gesehen';
+
+  @override
+  String get marineLife_abundance_single => 'Einzeln';
+
+  @override
+  String get marineLife_abundance_few => 'Wenige';
+
+  @override
+  String get marineLife_abundance_many => 'Viele';
+
+  @override
+  String get marineLife_abundance_abundant => 'Massenhaft';
+
+  @override
+  String get marineLife_abundance_exact => 'Genau';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Wenige 2 bis 10, Viele 11 bis 100, Massenhaft über 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Zuletzt gesehen';
@@ -20825,6 +20871,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_empty => 'Noch keine Medien';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Keine Medien entsprechen diesen Filtern';
+
+  @override
   String get media_library_filter_all => 'Alle';
 
   @override
@@ -20855,6 +20905,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Fehlende Dateien ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Niemand markiert';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Personen',
+      one: '$count Person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Personen suchen';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Keine passenden Personen';
+
+  @override
+  String get media_library_filter_peopleClear => 'Personenauswahl aufheben';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Nicht im Tauchgang platziert';
 
   @override
   String get media_library_filter_clear => 'Filter zurücksetzen';
@@ -26285,6 +26372,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Ersetzt integrierte Regel';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'An der Oberfläche geatmete Zeit';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
@@ -53120,6 +53211,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_profilePanel_noProfileData =>
       'Keine Profildaten für diesen Tauchgang';
+
+  @override
+  String get diveLog_estimatedProfile_caption =>
+      'Geschätzt aus maximaler Tiefe und Zeit, kein aufgezeichnetes Profil';
 
   @override
   String get settings_export_progress_divesCsv =>

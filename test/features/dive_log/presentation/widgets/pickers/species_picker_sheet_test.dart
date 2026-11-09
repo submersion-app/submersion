@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
@@ -24,7 +25,7 @@ Future<void> _pump(
   List<Species> all = const [_ray, _turtle],
   List<Species> byCategory = const [_turtle],
   List<Species> searchResults = const [],
-  void Function(Species, int, String)? onSpeciesSelected,
+  void Function(Species, SightingAmount, String)? onSpeciesSelected,
 }) async {
   tester.view.physicalSize = const Size(900, 1800);
   tester.view.devicePixelRatio = 1.0;
@@ -88,23 +89,51 @@ void main() {
     expect(find.text('Green Turtle'), findsOneWidget);
   });
 
+  testWidgets('the dialog starts at Seen with no number shown', (tester) async {
+    // Issue #4337: the dialog no longer shows a "1" the diver did not pick.
+    SightingAmount? amount;
+    await _pump(tester, onSpeciesSelected: (_, a, _) => amount = a);
+    await tester.tap(find.text('Eagle Ray'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1'), findsNothing);
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(amount, (abundance: SightingAbundance.seen, count: 1));
+  });
+
+  testWidgets('a REEF group is collected from the dialog', (tester) async {
+    SightingAmount? amount;
+    await _pump(tester, onSpeciesSelected: (_, a, _) => amount = a);
+    await tester.tap(find.text('Eagle Ray'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Few'));
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    expect(amount, (abundance: SightingAbundance.few, count: 1));
+  });
+
   testWidgets('selecting a species collects count and notes via the dialog', (
     tester,
   ) async {
     Species? picked;
-    int? count;
+    SightingAmount? amount;
     String? notes;
     await _pump(
       tester,
-      onSpeciesSelected: (species, c, n) {
+      onSpeciesSelected: (species, a, n) {
         picked = species;
-        count = c;
+        amount = a;
         notes = n;
       },
     );
     await tester.tap(find.text('Eagle Ray'));
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('Exact'));
+    await tester.pump();
     await tester.tap(find.byIcon(Icons.add_circle_outline));
     await tester.pump();
     await tester.tap(find.byIcon(Icons.add_circle_outline));
@@ -120,7 +149,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(picked?.id, 'sp-ray');
-    expect(count, 2);
+    expect(amount, (abundance: SightingAbundance.exact, count: 2));
     expect(notes, 'cruising the wall');
   });
 

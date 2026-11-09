@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -30,6 +31,7 @@ MediaItem _media(String id) => MediaItem(
 Sighting _sighting(
   String id,
   String species, {
+  SightingAbundance abundance = SightingAbundance.seen,
   int count = 1,
   String? speciesId,
 }) => Sighting(
@@ -37,6 +39,7 @@ Sighting _sighting(
   diveId: 'd1',
   speciesId: speciesId ?? 'sp-$species',
   speciesName: species,
+  abundance: abundance,
   count: count,
 );
 
@@ -312,16 +315,40 @@ void main() {
       kind: TripStoryDayKind.past,
       dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
       sightings: [
-        _sighting('s1', 'Reef shark'),
-        _sighting('s2', 'Reef shark'),
+        _sighting('s1', 'Reef shark', abundance: SightingAbundance.exact),
+        _sighting('s2', 'Reef shark', abundance: SightingAbundance.exact),
         _sighting('s3', 'Turtle'),
       ],
     );
     await pumpCard(tester, day);
 
-    // Two "Reef shark" sightings merge into a single "x2" chip.
+    // Two exact "Reef shark" counts of one merge into a single "x2" chip;
+    // a turtle only Seen shows its name alone.
     expect(find.text('Reef shark x2'), findsOneWidget);
     expect(find.text('Turtle'), findsOneWidget);
+  });
+
+  testWidgets('past day shows the larger REEF group across dives', (
+    tester,
+  ) async {
+    // Issue #4337: an exact 3 and "Many" have no total; the day shows the
+    // larger group, and a Seen sighting gives way to a count.
+    final day = TripStoryDay(
+      date: DateTime(2026, 3, 8),
+      dayNumber: 2,
+      kind: TripStoryDayKind.past,
+      dives: [Dive(id: 'd1', dateTime: DateTime(2026, 3, 8, 9))],
+      sightings: [
+        _sighting('s1', 'Jack', abundance: SightingAbundance.exact, count: 3),
+        _sighting('s2', 'Jack', abundance: SightingAbundance.many),
+        _sighting('s3', 'Ray'),
+        _sighting('s4', 'Ray', abundance: SightingAbundance.exact, count: 4),
+      ],
+    );
+    await pumpCard(tester, day);
+
+    expect(find.text('Jack Many'), findsOneWidget);
+    expect(find.text('Ray x4'), findsOneWidget);
   });
 
   testWidgets('distinct species sharing a common name are not merged', (

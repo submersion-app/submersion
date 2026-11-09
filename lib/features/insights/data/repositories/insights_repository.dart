@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -273,6 +274,9 @@ class InsightsRepository with InsightsChartDives {
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveProfileSeries),
+          // Whole-dive SAC and RMV read the stored gas-use window (#2930),
+          // which the derived metrics sweep writes after the dive itself.
+          TableUpdateQuery.onTable(_db.diveDerivedMetricsRows),
           // The deco card classifies a dive from its stop events, which a
           // sync pull can write without touching the dive.
           TableUpdateQuery.onTable(_db.diveProfileEvents),
@@ -397,8 +401,8 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           d.id AS dive_id,
           d.dive_date_time,
-          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          ${measuredRuntimeSecondsSql('d')} AS duration_sec,
+          ${diveAmbientBarSql('d', gasUseAvgDepthSql('d', lane: GasUseLane.volume))} AS ambient_bar,
+          ${gasUseSecondsSql('d', lane: GasUseLane.volume)} AS duration_sec,
           t.start_pressure,
           t.end_pressure,
           ${consumptionVolumeSql('t')} AS volume,
@@ -608,8 +612,8 @@ class InsightsRepository with InsightsChartDives {
           d.id AS dive_id,
           d.dive_number,
           d.dive_date_time,
-          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          ${measuredRuntimeSecondsSql('d')} AS duration_sec,
+          ${diveAmbientBarSql('d', gasUseAvgDepthSql('d', lane: GasUseLane.volume))} AS ambient_bar,
+          ${gasUseSecondsSql('d', lane: GasUseLane.volume)} AS duration_sec,
           ds.name AS site_name,
           t.start_pressure,
           t.end_pressure,
@@ -2101,7 +2105,9 @@ class InsightsRepository with InsightsChartDives {
     }
   }
 
-  /// Get most common sightings
+  /// Get most common sightings, ranked by the number of dives a species was
+  /// seen on. Not by a sum of counts: a sighting may be Seen or a REEF group
+  /// rather than an exact number (issue #4337).
   ///
   /// A null [limit] returns every row.
   Future<List<RankingItem>> getMostCommonSightings({
@@ -2119,7 +2125,7 @@ class InsightsRepository with InsightsChartDives {
           sp.id,
           sp.common_name,
           sp.category,
-          SUM(s.count) AS total_count
+          COUNT(DISTINCT s.dive_id) AS total_count
         FROM sightings s
         JOIN species sp ON sp.id = s.species_id
         JOIN dives d ON d.id = s.dive_id
@@ -2191,7 +2197,8 @@ class InsightsRepository with InsightsChartDives {
     }
   }
 
-  /// Get detailed statistics for a single species
+  /// Get detailed statistics for a single species. Sighting totals count
+  /// sightings and dives, never animals (issue #4337).
   Future<SpeciesInsights> getSpeciesInsights({
     required String speciesId,
     String? diverId,
@@ -2207,7 +2214,7 @@ class InsightsRepository with InsightsChartDives {
       // Aggregate stats: total sightings, dive count, depth range, date range
       final statsResult = await _db.customSelect('''
         SELECT
-          COALESCE(SUM(s.count), 0) AS total_sightings,
+          COUNT(DISTINCT s.dive_id) AS total_sightings,
           COUNT(DISTINCT s.dive_id) AS dive_count,
           MIN(d.max_depth) AS min_depth,
           MAX(d.max_depth) AS max_depth,
@@ -2230,7 +2237,7 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           ds.id,
           ds.name,
-          SUM(s.count) AS sighting_count
+          COUNT(DISTINCT s.dive_id) AS sighting_count
         FROM sightings s
         JOIN dives d ON d.id = s.dive_id
         JOIN dive_sites ds ON ds.id = d.site_id

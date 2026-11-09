@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import 'package:submersion/core/services/export/shared/export_file_name.dart';
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
+import 'package:submersion/features/dive_log/data/services/dive_sightings_hydration.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/core/services/export/pdf/pdf_annotation_times.dart';
@@ -243,8 +244,13 @@ class PdfExportService {
     Map<String, DiveRole> diveRolesById = const {},
     required EquipmentArrangement gearArrangement,
   }) async {
+    // The detailed logbook prints marine life, which the dive list does not
+    // load (issue #4337 follow-up).
+    final exported = options.template == PdfTemplate.detailed
+        ? await hydrateMarineSightings(dives)
+        : dives;
     final diveSignatures = await SignatureStorageService()
-        .getSignaturesForDives([for (final dive in dives) dive.id]);
+        .getSignaturesForDives([for (final dive in exported) dive.id]);
 
     // The legacy builder never did this, so accented site names were dropped.
     await PdfFonts.instance.initialize();
@@ -259,7 +265,7 @@ class PdfExportService {
     final generatedAt = _now();
 
     final builder = _templateFor(options.template);
-    final annotationTimesByDive = await annotationTimesForPdf(dives);
+    final annotationTimesByDive = await annotationTimesForPdf(exported);
     // The language picked in the export sheet (#2252). A null title lets the
     // template head the document in that language, and dates name months in
     // it too.
@@ -268,7 +274,7 @@ class PdfExportService {
       generatedAt: generatedAt,
       gearArrangement: gearArrangement,
       equipmentSetNamesById: equipmentSetNamesById,
-      dives: dives,
+      dives: exported,
       pageSize: options.pageSize,
       dates: dates.inLanguage(localization.languageCode),
       units: units,

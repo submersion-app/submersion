@@ -1844,6 +1844,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_rhythm_semantics => '当天的潜水时间';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return '当天的潜水时间。日出 $sunrise，日落 $sunset。';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return '当天的潜水时间。日出 $sunrise。';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return '当天的潜水时间。日落 $sunset。';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return '第 $number 天地图';
   }
@@ -7675,9 +7693,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_diveMode_title => '潜水模式';
 
   @override
-  String get diveLog_editSighting_count => '数量';
-
-  @override
   String get diveLog_editSighting_notes => '备注';
 
   @override
@@ -10384,6 +10399,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => '结束压力';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => '水面呼吸';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      '潜水电脑停止记录后在水面使用此气瓶的分钟数，例如在船上吸氧';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => '分钟';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -18146,9 +18171,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => '热门潜水点';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => '总目击次数';
-
-  @override
   String get marineLife_speciesEdit_addTitle => '添加物种';
 
   @override
@@ -18440,7 +18462,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => '排序';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => '目击次数最多';
+  String get marineLife_speciesPage_sort_mostDives => '潜水次数最多';
+
+  @override
+  String get marineLife_abundance_label => '数量';
+
+  @override
+  String get marineLife_abundance_seen => '已见到';
+
+  @override
+  String get marineLife_abundance_single => '单只';
+
+  @override
+  String get marineLife_abundance_few => '少量';
+
+  @override
+  String get marineLife_abundance_many => '较多';
+
+  @override
+  String get marineLife_abundance_abundant => '大量';
+
+  @override
+  String get marineLife_abundance_exact => '精确';
+
+  @override
+  String get marineLife_abundance_ranges => '少量 2 至 10，较多 11 至 100，大量超过 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => '最近见到';
@@ -19817,6 +19863,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_empty => '暂无媒体';
 
   @override
+  String get media_library_emptyFiltered => '没有符合这些筛选条件的媒体';
+
+  @override
   String get media_library_filter_all => '全部';
 
   @override
@@ -19847,6 +19896,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return '缺失的文件（$count）';
   }
+
+  @override
+  String get media_library_filter_noPeople => '未标记人物';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first、$second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 人',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => '搜索人物';
+
+  @override
+  String get media_library_filter_peopleNoMatch => '没有匹配的人物';
+
+  @override
+  String get media_library_filter_peopleClear => '清除人物';
+
+  @override
+  String get media_library_filter_notPlacedInDive => '未定位到潜水时间点';
 
   @override
   String get media_library_filter_clear => '清除筛选';
@@ -24837,6 +24921,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_supersedesRuleId => '替换内置规则';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration => '水面呼吸时间';
 
   @override
   String get settings_conflict_field_surfaceConditions => '水面状况';
@@ -49949,6 +50036,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_profilePanel_noProfileData => '此次潜水没有轮廓数据';
+
+  @override
+  String get diveLog_estimatedProfile_caption => '根据最大深度和时间估算，并非记录的轮廓';
 
   @override
   String get settings_export_progress_divesCsv => '正在将潜水记录导出为 CSV...';

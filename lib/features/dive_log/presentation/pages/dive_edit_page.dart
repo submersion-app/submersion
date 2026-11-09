@@ -24,6 +24,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/sighting_amount_badge.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
@@ -6179,26 +6180,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (sighting.count > 1)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'x${sighting.count}',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                    SightingAmountBadge(amount: sighting.amount),
                     IconButton(
                       icon: const Icon(Icons.close, size: 18),
                       tooltip: context.l10n.diveLog_edit_tooltip_removeSighting,
@@ -6232,7 +6214,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         expand: false,
         builder: (context, scrollController) => SpeciesPickerSheet(
           scrollController: scrollController,
-          onSpeciesSelected: (species, count, notes) {
+          onSpeciesSelected: (species, amount, notes) {
             setState(() {
               _markDirty();
               _sightings.add(
@@ -6242,7 +6224,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   speciesId: species.id,
                   speciesName: species.commonName,
                   speciesCategory: species.category,
-                  count: count,
+                  abundance: amount.abundance,
+                  count: amount.count,
                   notes: notes,
                 ),
               );
@@ -6699,6 +6682,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             await speciesRepository.addSighting(
               diveId: savedDiveId,
               speciesId: sighting.speciesId,
+              abundance: sighting.abundance,
               count: sighting.count,
               notes: sighting.notes,
             );

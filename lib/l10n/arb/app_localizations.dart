@@ -2947,6 +2947,27 @@ abstract class AppLocalizations {
   /// **'Dive times during this day'**
   String get trips_story_rhythm_semantics;
 
+  /// No description provided for @trips_story_rhythm_semanticsSunriseSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunrise {sunrise}, sunset {sunset}.'**
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  );
+
+  /// No description provided for @trips_story_rhythm_semanticsSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunrise {sunrise}.'**
+  String trips_story_rhythm_semanticsSunrise(String sunrise);
+
+  /// No description provided for @trips_story_rhythm_semanticsSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunset {sunset}.'**
+  String trips_story_rhythm_semanticsSunset(String sunset);
+
   /// No description provided for @trips_story_dayMap_semantics.
   ///
   /// In en, this message translates to:
@@ -12712,12 +12733,6 @@ abstract class AppLocalizations {
   /// **'Dive Mode'**
   String get diveLog_diveMode_title;
 
-  /// No description provided for @diveLog_editSighting_count.
-  ///
-  /// In en, this message translates to:
-  /// **'Count'**
-  String get diveLog_editSighting_count;
-
   /// No description provided for @diveLog_editSighting_notes.
   ///
   /// In en, this message translates to:
@@ -17346,6 +17361,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'End Pressure'**
   String get diveLog_tank_label_endPressure;
+
+  /// No description provided for @diveLog_tank_label_surfaceBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathed at the surface'**
+  String get diveLog_tank_label_surfaceBreathing;
+
+  /// No description provided for @diveLog_tank_surfaceBreathing_helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat'**
+  String get diveLog_tank_surfaceBreathing_helper;
+
+  /// No description provided for @diveLog_tank_surfaceBreathing_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get diveLog_tank_surfaceBreathing_unit;
 
   /// No description provided for @diveLog_tank_label_he.
   ///
@@ -30587,12 +30620,6 @@ abstract class AppLocalizations {
   /// **'Top Sites'**
   String get marineLife_speciesDetail_topSitesTitle;
 
-  /// No description provided for @marineLife_speciesDetail_totalSightingsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Total Sightings'**
-  String get marineLife_speciesDetail_totalSightingsLabel;
-
   /// No description provided for @marineLife_speciesEdit_addTitle.
   ///
   /// In en, this message translates to:
@@ -31031,11 +31058,59 @@ abstract class AppLocalizations {
   /// **'Sort'**
   String get marineLife_speciesPage_sortTooltip;
 
-  /// No description provided for @marineLife_speciesPage_sort_mostSightings.
+  /// No description provided for @marineLife_speciesPage_sort_mostDives.
   ///
   /// In en, this message translates to:
-  /// **'Most sightings'**
-  String get marineLife_speciesPage_sort_mostSightings;
+  /// **'Most dives'**
+  String get marineLife_speciesPage_sort_mostDives;
+
+  /// Label above the sighting abundance choices
+  ///
+  /// In en, this message translates to:
+  /// **'How many'**
+  String get marineLife_abundance_label;
+
+  /// Sighting abundance: the species was seen, with no number given
+  ///
+  /// In en, this message translates to:
+  /// **'Seen'**
+  String get marineLife_abundance_seen;
+
+  /// Sighting abundance, REEF survey group: one animal
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get marineLife_abundance_single;
+
+  /// Sighting abundance, REEF survey group: 2 to 10 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Few'**
+  String get marineLife_abundance_few;
+
+  /// Sighting abundance, REEF survey group: 11 to 100 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Many'**
+  String get marineLife_abundance_many;
+
+  /// Sighting abundance, REEF survey group: more than 100 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Abundant'**
+  String get marineLife_abundance_abundant;
+
+  /// Sighting abundance: an exact number of animals, entered with a stepper
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get marineLife_abundance_exact;
+
+  /// Helper line under the sighting abundance choices giving each REEF group's range
+  ///
+  /// In en, this message translates to:
+  /// **'Few 2 to 10, Many 11 to 100, Abundant over 100'**
+  String get marineLife_abundance_ranges;
 
   /// No description provided for @marineLife_speciesPage_sort_recentlySeen.
   ///
@@ -33096,6 +33171,12 @@ abstract class AppLocalizations {
   /// **'No media yet'**
   String get media_library_empty;
 
+  /// Empty state for the media library while a filter is on and nothing matches it
+  ///
+  /// In en, this message translates to:
+  /// **'No media matches these filters'**
+  String get media_library_emptyFiltered;
+
   /// Library filter chip: no type filter
   ///
   /// In en, this message translates to:
@@ -33155,6 +33236,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Missing files ({count})'**
   String media_library_filter_missingCount(int count);
+
+  /// Library filter People choice, pinned first in the People picker and shown as the People row's value: items with no buddy or Me tag at all
+  ///
+  /// In en, this message translates to:
+  /// **'No one tagged'**
+  String get media_library_filter_noPeople;
+
+  /// People row in the library filter: two people picked, e.g. Me, Alex
+  ///
+  /// In en, this message translates to:
+  /// **'{first}, {second}'**
+  String media_library_filter_peopleTwo(String first, String second);
+
+  /// People row in the library filter: the first names picked, then how many more, e.g. Me, Alex +3
+  ///
+  /// In en, this message translates to:
+  /// **'{names} +{count}'**
+  String media_library_filter_peopleAndMore(String names, int count);
+
+  /// People row in the library filter while buddy names are still loading: how many people are picked
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} person} other{{count} people}}'**
+  String media_library_filter_peopleCount(int count);
+
+  /// Search field hint in the library filter's People picker
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get media_library_filter_peopleSearchHint;
+
+  /// People picker in the library filter: nothing matches the search
+  ///
+  /// In en, this message translates to:
+  /// **'No people match'**
+  String get media_library_filter_peopleNoMatch;
+
+  /// Tooltip on the button that clears the people picked in the library filter
+  ///
+  /// In en, this message translates to:
+  /// **'Clear people'**
+  String get media_library_filter_peopleClear;
+
+  /// Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them
+  ///
+  /// In en, this message translates to:
+  /// **'Not placed in the dive'**
+  String get media_library_filter_notPlacedInDive;
 
   /// Library filter chip: reset every filter
   ///
@@ -41963,6 +42092,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replaces built-in rule'**
   String get settings_conflict_field_supersedesRuleId;
+
+  /// No description provided for @settings_conflict_field_surfaceBreathingDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Time breathed at the surface'**
+  String get settings_conflict_field_surfaceBreathingDuration;
 
   /// No description provided for @settings_conflict_field_surfaceConditions.
   ///
@@ -83942,6 +84077,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No profile data for this dive'**
   String get diveLog_profilePanel_noProfileData;
+
+  /// Caption under the dashed outline drawn for a dive with no recorded profile
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated from max depth and time, not a recorded profile'**
+  String get diveLog_estimatedProfile_caption;
 
   /// No description provided for @settings_export_progress_divesCsv.
   ///

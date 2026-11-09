@@ -243,26 +243,44 @@ double? _perCorrectedMinute(
 ) {
   final int seconds;
   final double? ambient;
+  // Minutes the diver entered for breathing these cylinders at the surface
+  // after the computer stopped (issue #2930), counted at 0 m as each row's
+  // rate counts them; the windows never hold them. A matched pair's shared
+  // time counts once, as its recorded durations do.
+  final surfaceByTank = {for (final r in rows) r.tankId: r.surfaceSeconds};
+  final surface = enteredSurfaceSeconds(
+    [for (final r in rows) ?tanks[r.tankId]],
+    contributes: (_) => true,
+    secondsOf: (t) => surfaceByTank[t.id] ?? 0,
+  );
   if (rows.any((r) => r.usageFromRecordedDuration)) {
     // An unrecorded cylinder alongside carries the whole dive, and one diver
-    // cannot breathe for longer than the dive lasted.
-    final diveSeconds = rows
-        .expand((r) => r.usageWindows)
-        .map((w) => w.end)
-        .max;
-    seconds = math.min(_recordedSeconds(rows, tanks), diveSeconds);
-    ambient = rows.first.rateAmbientBar;
+    // cannot breathe for longer than the dive lasted: its window, which
+    // starts after any surface run the gas-use window leaves out.
+    final diveSeconds = unionOfWindows(
+      rows.expand((r) => r.usageWindows),
+    ).breathedSeconds;
+    final recorded = math.min(_recordedSeconds(rows, tanks), diveSeconds);
+    seconds = recorded + surface;
+    // The first row's ambient blends only its own surface minutes, so the
+    // group's are blended here from the depth that row was breathed at.
+    final depth = rows.first.avgDepthDuringUse ?? dive.avgDepth;
+    ambient = surface > 0 && depth != null
+        ? dive.environment.pressureAtDepth(depth * recorded / seconds)
+        : rows.first.rateAmbientBar;
   } else {
     final union = unionOfWindows(rows.expand((r) => r.usageWindows));
-    seconds = union.breathedSeconds;
+    final windowSeconds = union.breathedSeconds;
+    seconds = windowSeconds + surface;
     final depth = timeWeightedMeanAcross(
       profile,
       windows: union,
       time: (p) => p.timestamp,
       value: (p) => p.depth,
     );
-    ambient = depth != null
-        ? dive.environment.pressureAtDepth(depth)
+    // A row's own ambient already counts its surface minutes.
+    ambient = depth != null && seconds > 0
+        ? dive.environment.pressureAtDepth(depth * windowSeconds / seconds)
         : rows.first.rateAmbientBar;
   }
   if (seconds < _minimumSeconds || ambient == null || ambient <= 0) {
@@ -285,7 +303,13 @@ int _recordedSeconds(List<CylinderSac> rows, Map<String, DiveTank> tanks) {
       clusters.add([row]);
     }
   }
+  // A row's time includes the surface minutes the diver entered, which the
+  // caller adds on its own (issue #2930).
   return clusters
-      .map((c) => c.map((r) => r.usageDuration?.inSeconds ?? 0).max)
+      .map(
+        (c) => c
+            .map((r) => (r.usageDuration?.inSeconds ?? 0) - r.surfaceSeconds)
+            .max,
+      )
       .sum;
 }

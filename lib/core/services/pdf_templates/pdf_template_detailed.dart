@@ -15,6 +15,9 @@ import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_localization.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
+import 'package:submersion/features/marine_life/presentation/sighting_abundance_display.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_front_matter.dart';
@@ -30,7 +33,6 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
-import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -810,6 +812,9 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     MarineSighting sighting,
     AppLocalizations l10n,
   ) {
+    // Issue #4337: an exact count reads "x3" (a deliberate 1 too), a REEF
+    // group its name in parentheses, and a sighting only Seen the name alone.
+    final amount = sightingAmountLabel(l10n, sighting.amount);
     // The stored name is the catalog's English one; the report names the
     // species in its own language, as the app does (issue #4339).
     final name = localizedSpeciesName(
@@ -817,8 +822,11 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
       sighting.speciesId,
       sighting.speciesName,
     );
-    // A count on a lone animal reads as noise, so only a real tally is shown.
-    final species = sighting.count > 1 ? '$name x${sighting.count}' : name;
+    final species = switch (sighting.abundance) {
+      SightingAbundance.seen => name,
+      SightingAbundance.exact => '$name $amount',
+      _ => '$name ($amount)',
+    };
     const speciesStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey800);
     const notesStyle = pw.TextStyle(fontSize: 9, color: PdfColors.grey600);
 

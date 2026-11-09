@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "media {value}",
   "trips_story_history_avgDepth": "prof. media {value}",
   "trips_story_rhythm_semantics": "Horarios de inmersión de este día",
+  "trips_story_rhythm_semanticsSunriseSunset": "Horarios de inmersión de este día. Salida del sol {sunrise}, puesta del sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Horarios de inmersión de este día. Salida del sol {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Horarios de inmersión de este día. Puesta del sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Mapa del día {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -2726,7 +2753,6 @@
   "diveLog_diveMode_ocDescription": "Buceo estándar de circuito abierto con tanques",
   "diveLog_diveMode_scrDescription": "Rebreather semicerrado con ppO₂ variable",
   "diveLog_diveMode_title": "Modo de buceo",
-  "diveLog_editSighting_count": "Cantidad",
   "diveLog_editSighting_notes": "Notas",
   "diveLog_editSighting_notesHint": "Tamaño, comportamiento, ubicación...",
   "diveLog_editSighting_remove": "Quitar",
@@ -3451,6 +3477,9 @@
   "diveLog_summary_stat_totalDives": "Total de inmersiones",
   "diveLog_summary_title": "Resumen del registro de buceo",
   "diveLog_tank_label_endPressure": "Presión final",
+  "diveLog_tank_label_surfaceBreathing": "Respirado en superficie",
+  "diveLog_tank_surfaceBreathing_helper": "Minutos con esta botella tras detenerse el registro del ordenador, como oxígeno en el barco",
+  "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
@@ -5603,7 +5632,6 @@
   "marineLife_speciesDetail_sitesLabel": "Puntos",
   "marineLife_speciesDetail_taxonomyClassLabel": "Clase: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Mejores puntos",
-  "marineLife_speciesDetail_totalSightingsLabel": "Total de avistamientos",
   "marineLife_speciesEdit_addTitle": "Agregar especie",
   "marineLife_speciesEdit_addedSnackbar": "Se agregó \"{name}\"",
   "marineLife_speciesEdit_backTooltip": "Atrás",
@@ -5677,7 +5705,15 @@
   "marineLife_speciesPage_searchHint": "Buscar especies que has visto",
   "marineLife_speciesPage_manageCatalogTooltip": "Gestionar catálogo",
   "marineLife_speciesPage_sortTooltip": "Ordenar",
-  "marineLife_speciesPage_sort_mostSightings": "Más avistamientos",
+  "marineLife_speciesPage_sort_mostDives": "Más inmersiones",
+  "marineLife_abundance_label": "Cuántos",
+  "marineLife_abundance_seen": "Visto",
+  "marineLife_abundance_single": "Uno solo",
+  "marineLife_abundance_few": "Pocos",
+  "marineLife_abundance_many": "Muchos",
+  "marineLife_abundance_abundant": "Abundantes",
+  "marineLife_abundance_exact": "Exacto",
+  "marineLife_abundance_ranges": "Pocos de 2 a 10, Muchos de 11 a 100, Abundantes más de 100",
   "marineLife_speciesPage_sort_recentlySeen": "Vistas recientemente",
   "marineLife_speciesPage_sort_firstSeen": "Primer avistamiento",
   "marineLife_speciesPage_sort_name": "Nombre",
@@ -5950,6 +5986,7 @@
   "media_console_library": "Biblioteca",
   "media_console_transfers": "Transferencias",
   "media_library_empty": "Todavía no hay contenido multimedia",
+  "media_library_emptyFiltered": "Ningún contenido multimedia coincide con estos filtros",
   "media_library_filter_all": "Todo",
   "media_library_filter_photos": "Fotos",
   "media_library_filter_videos": "Vídeos",
@@ -6029,6 +6066,14 @@
   "media_library_filter_dates": "Fechas",
   "media_library_filter_missing": "Archivos faltantes",
   "media_library_filter_missingCount": "Archivos faltantes ({count})",
+  "media_library_filter_noPeople": "Nadie etiquetado",
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} persona} other{{count} personas}}",
+  "media_library_filter_peopleSearchHint": "Buscar personas",
+  "media_library_filter_peopleNoMatch": "Ninguna persona coincide",
+  "media_library_filter_peopleClear": "Quitar personas",
+  "media_library_filter_notPlacedInDive": "Sin ubicar en la inmersión",
   "media_library_filter_clear": "Borrar filtros",
   "media_library_filter_any": "Cualquiera",
   "media_library_filter_title": "Filtrar medios",
@@ -7818,6 +7863,7 @@
   "settings_conflict_field_summaryRuntimeSeconds": "Duración prevista",
   "settings_conflict_field_summaryTtsSeconds": "Tiempo hasta la superficie previsto",
   "settings_conflict_field_supersedesRuleId": "Sustituye a la regla integrada",
+  "settings_conflict_field_surfaceBreathingDuration": "Tiempo respirado en superficie",
   "settings_conflict_field_surfaceConditions": "Condiciones en superficie",
   "settings_conflict_field_surfaceSwimLimitM": "Nado en superficie más largo",
   "settings_conflict_field_swimSpeedMps": "Velocidad de nado",
@@ -15802,6 +15848,7 @@
   "diveLog_detail_errorLoadingSignature": "Error al cargar la firma: {error}",
   "diveLog_profilePanel_selectDive": "Selecciona una inmersión para ver su perfil",
   "diveLog_profilePanel_noProfileData": "Sin datos de perfil para esta inmersión",
+  "diveLog_estimatedProfile_caption": "Estimado a partir de la profundidad máxima y el tiempo, no es un perfil registrado",
   "settings_export_progress_divesCsv": "Exportando inmersiones a CSV...",
   "settings_export_progress_sitesCsv": "Exportando puntos de buceo a CSV...",
   "settings_export_progress_equipmentCsv": "Exportando equipo a CSV...",
