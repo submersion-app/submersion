@@ -172,8 +172,8 @@ Future<int> _healLinked(
   return changed;
 }
 
-/// The serial [current] should become to match a computer stored as
-/// [computerSerial], or null to leave it.
+/// The serial [current] should take to match a computer stored as
+/// [computerSerial], or null to leave it as it is.
 String? _linkedTarget({
   required String? current,
   required String computerSerial,
