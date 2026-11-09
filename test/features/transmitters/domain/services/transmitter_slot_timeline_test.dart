@@ -57,6 +57,13 @@ void main() {
     expect(r.changedHands, isFalse);
   });
 
+  test('a dive earlier on the day of a download that shows a new serial '
+      'counts as changed hands: the swap could have been that morning', () {
+    final r = timeline.resolve('perdix', 1, DateTime.utc(2026, 6, 1, 7));
+    expect(r.changedHands, isTrue);
+    expect(r.serial, isNull);
+  });
+
   test('another computer or slot has its own timeline', () {
     expect(timeline.resolve('petrel', 1, mar).serial, isNull);
     expect(timeline.resolve('perdix', 2, mar).serial, isNull);

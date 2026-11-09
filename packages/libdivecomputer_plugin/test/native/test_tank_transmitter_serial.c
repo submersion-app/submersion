@@ -116,11 +116,51 @@ static void test_tanks_carry_transmitter_slots(void) {
     printf("PASS: test_tanks_carry_transmitter_slots\n");
 }
 
+/* The slot is the physical one, not the tank's place among the active
+   tanks (issue #4347). With T1 switched off in every sample (0xFFFF, "AI is
+   off"), T2 is the only active tank: it compacts to index 0 but must still
+   report slot 2. A patch that reported the compacted index would give 1. */
+static void test_only_t2_active_reports_slot_two(void) {
+    unsigned char *data = NULL;
+    unsigned int size = load_fixture("fixtures/petrel3_ccr_o2_cells.bin", &data);
+    assert(size == 22400);
+
+    /* Petrel PNF log: 32-byte records, type in the first byte, the T1
+       pressure at bytes 1 + 27 and 1 + 28 of a dive sample (0x01). */
+    unsigned int patched = 0;
+    for (unsigned int off = 0; off + 32 <= size; off += 32) {
+        if (data[off] == 0x01) {
+            data[off + 1 + 27] = 0xFF;
+            data[off + 1 + 28] = 0xFF;
+            patched++;
+        }
+    }
+    assert(patched > 0);
+
+    libdc_parsed_dive_t dive;
+    char err[256] = {0};
+    int rc = libdc_parse_raw_dive("Shearwater", "Petrel 3", 10, data, size,
+                                  &dive, err, sizeof(err));
+    assert(rc == 0);
+    free(data);
+
+    printf("  only-T2 tank_count %u, slot %u, serial %u\n", dive.tank_count,
+           dive.tanks[0].slot, dive.tanks[0].serial);
+    assert(dive.tank_count == 1);
+    assert(dive.tanks[0].serial == EXPECTED_TANK1_SERIAL);
+    assert(dive.tanks[0].slot == EXPECTED_TANK1_SLOT);
+
+    free(dive.samples);
+    free(dive.events);
+    printf("PASS: test_only_t2_active_reports_slot_two\n");
+}
+
 int main(void) {
     printf("Running tank transmitter serial tests...\n");
     test_tanks_carry_transmitter_serials();
     test_unused_tank_slots_have_no_serial();
     test_tanks_carry_transmitter_slots();
+    test_only_t2_active_reports_slot_two();
     printf("All tank transmitter serial tests passed\n");
     return 0;
 }

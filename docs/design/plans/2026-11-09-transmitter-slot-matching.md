@@ -42,9 +42,10 @@ the exact slot tank ids it showed to the write.
 
 ## Review Focus
 
-1. A file-imported dive dated exactly on, or the same day as, a download that
-   observed the slot: it resolves to that download's serial, never to
-   "changed hands" (test in Task 8).
+1. A file-imported dive dated exactly at a download that observed the slot
+   resolves to that download's serial. One earlier the same day, after a
+   download showing another serial, counts as "changed hands": the swap could
+   have been that morning (tests in Task 8).
 2. A Shearwater Cloud dive whose stored tank count no longer equals the file's
    (a tank deleted or added by hand): the backfill skips the dive and writes
    nothing (test in Task 10).

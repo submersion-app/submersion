@@ -183,6 +183,29 @@ void main() {
       expect(tanks.single.transmitterSerial, '180777');
     });
 
+    test(
+      'persists the tankdata transmitterslot to dive_tanks (#4347)',
+      () async {
+        final diverId = await createTestDiver();
+        final uddf = buildMinimalUddf().replaceFirst(
+          '<tankvolume>12.0</tankvolume>',
+          '<tankvolume>12.0</tankvolume>\n'
+              '          <transmitterslot>2</transmitterslot>',
+        );
+
+        final parsed = await exportService.importAllDataFromUddf(uddf);
+        await importer.import(
+          data: parsed,
+          selections: const UddfImportSelections(dives: {0}),
+          repositories: buildRepositories(),
+          diverId: diverId,
+        );
+
+        final tanks = await db.select(db.diveTanks).get();
+        expect(tanks.single.transmitterSlot, 2);
+      },
+    );
+
     test('a transmitter serial the import brings in gets its Transmitter '
         'item, on the dive (#3676)', () async {
       final diverId = await createTestDiver();
