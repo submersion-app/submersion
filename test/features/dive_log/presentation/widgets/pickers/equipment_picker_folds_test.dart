@@ -191,4 +191,18 @@ void main() {
     expect(find.text('DIN First Stage'), findsNothing);
     expect(find.text('Cold Water Reg'), findsOneWidget);
   });
+
+  testWidgets('a fold tapped while the parts index loads folds only that '
+      'group', (tester) async {
+    final pending = Completer<ComponentsIndex>();
+    await pumpPicker(tester, index: pending.future);
+    expect(find.text('Zeagle'), findsOneWidget);
+
+    await tester.tap(typeHeader('type:bcd'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Zeagle'), findsNothing);
+    expect(find.text('Faber'), findsOneWidget);
+    pending.complete(ComponentsIndex.empty);
+  });
 }

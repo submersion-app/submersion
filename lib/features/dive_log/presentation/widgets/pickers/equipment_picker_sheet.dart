@@ -125,6 +125,10 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
   /// saved; it lasts as long as the sheet.
   Set<String>? _open;
 
+  /// Every group on screen, so a tap before [_open] is worked out starts
+  /// from every group open, as drawn.
+  Set<String> _shownGroups = const {};
+
   /// Groups the diver closed while the filter was on, when every group
   /// starts open. Dropped when the filter clears.
   Set<String> _closedWhileFiltered = const {};
@@ -141,7 +145,7 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
       if (filtered) {
         _closedWhileFiltered = flip(_closedWhileFiltered);
       } else {
-        _open = flip(_open ?? const {});
+        _open = flip(_open ?? _shownGroups);
       }
     });
   }
@@ -568,6 +572,14 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
               ];
               // Worked out once the parts index has settled: before it, parts
               // still listed could make one group look like several.
+              _shownGroups = {
+                for (final a in arranged) ...{
+                  ?a.ownerKey,
+                  for (final group in a.groups)
+                    if (group.type case final type?)
+                      typeFoldKey(type, parentKey: a.ownerKey),
+                },
+              };
               final indexSettled =
                   componentsAsync == null ||
                   componentsAsync.hasValue ||
