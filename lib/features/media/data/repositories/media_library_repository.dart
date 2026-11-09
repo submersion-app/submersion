@@ -84,6 +84,26 @@ class MediaLibraryRepository {
       ? const Constant(true)
       : _db.media.diveId.isNull() | _db.dives.diverId.equals(diverId);
 
+  /// Rows attached to any of [kinds] (issue #4224), by the row's own links in
+  /// [MediaAttachmentKind]'s precedence, the one `groupByDive` and the By
+  /// dive group key use. Reads only media columns, so it adds no join.
+  Expression<bool> _attachedToFacet(Set<MediaAttachmentKind> kinds) {
+    final m = _db.media;
+    final noDive = m.diveId.isNull();
+    final noSite = m.siteId.isNull();
+    return [
+      for (final kind in kinds)
+        switch (kind) {
+          MediaAttachmentKind.dive => m.diveId.isNotNull(),
+          MediaAttachmentKind.site => noDive & m.siteId.isNotNull(),
+          MediaAttachmentKind.equipment =>
+            noDive & noSite & m.equipmentId.isNotNull(),
+          MediaAttachmentKind.unlinked =>
+            noDive & noSite & m.equipmentId.isNull(),
+        },
+    ].reduce((a, b) => a | b);
+  }
+
   /// Any of the selected buddies, or the viewing diver's own Me tags
   /// (issue #1745). EXISTS for the same reason as the tag facet: a photo
   /// with two of them comes back once. Me is one diver even when the
@@ -234,6 +254,9 @@ class MediaLibraryRepository {
     }
     if (filter.hasPeople) {
       where = where & _peopleFacet(diverId, filter);
+    }
+    if (filter.attachedTo.isNotEmpty) {
+      where = where & _attachedToFacet(filter.attachedTo);
     }
     // taken_at is stored as wall-clock-as-UTC millis, so a bound picked in
     // local time has to be normalised the same way before it can be
