@@ -55,40 +55,46 @@ double fitNavBarLabelScale({
     // A style without a size cannot be scaled, so it has no say.
     final fontSize = style.fontSize;
     if (fontSize == null || fontSize <= 0) continue;
-    final widest = _widestWord(
-      words,
-      style,
-      textScaler: textScaler,
-      textDirection: textDirection,
-      locale: locale,
-    );
-    if (widest <= available) continue;
+    // Width is not proportional to the font size: letter and word spacing
+    // stay fixed, and a nonlinear scaler (Android 14 and later) grows small
+    // sizes more than large ones. So every candidate size is laid out.
+    bool fits(double size) =>
+        _widestWord(
+          words,
+          style.copyWith(fontSize: size),
+          textScaler: textScaler,
+          textDirection: textDirection,
+          locale: locale,
+        ) <=
+        available;
+    if (fits(fontSize)) continue;
     final floor = math.min(fontSize, minFontSize);
-    // Drawn width follows the scaled size, which a nonlinear scaler (Android
-    // 14 and later) does not keep proportional to the font size, so find the
-    // font size whose scaled size shrinks the widest word to the slot.
-    final target = textScaler.scale(fontSize) * available / widest;
-    final fitted = _largestFontSizeWithin(textScaler, target, floor, fontSize);
-    scale = math.min(scale, fitted / fontSize);
+    scale = math.min(
+      scale,
+      _largestFittingSize(fits, floor, fontSize) / fontSize,
+    );
   }
   return scale;
 }
 
-/// The largest font size in [low]..[high] whose scaled size is at most
-/// [target], or [low] when even that is too large. TextScaler.scale only
-/// ever grows with the font size, so a bisection finds it.
-double _largestFontSizeWithin(
-  TextScaler textScaler,
-  double target,
+/// Bisection steps when searching for the fitting size: enough to pin a
+/// size between the minimum and 12 to well under a hundredth of a point.
+const int _kFitSteps = 12;
+
+/// The largest size in [low]..[high] that [fits], or [low] when even that
+/// does not. [high] is known not to fit, and a word only ever widens as its
+/// size grows, so a bisection finds the boundary.
+double _largestFittingSize(
+  bool Function(double size) fits,
   double low,
   double high,
 ) {
-  if (textScaler.scale(low) >= target) return low;
+  if (!fits(low)) return low;
   var lo = low;
   var hi = high;
-  for (var i = 0; i < 24; i++) {
+  for (var i = 0; i < _kFitSteps; i++) {
     final mid = (lo + hi) / 2;
-    if (textScaler.scale(mid) <= target) {
+    if (fits(mid)) {
       lo = mid;
     } else {
       hi = mid;

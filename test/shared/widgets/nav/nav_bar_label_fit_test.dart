@@ -8,11 +8,12 @@ int _lineCount(
   required double fontSize,
   required double maxWidth,
   TextScaler textScaler = TextScaler.noScaling,
+  double? letterSpacing,
 }) {
   final painter = TextPainter(
     text: TextSpan(
       text: text,
-      style: TextStyle(fontSize: fontSize),
+      style: TextStyle(fontSize: fontSize, letterSpacing: letterSpacing),
     ),
     textDirection: TextDirection.ltr,
     textScaler: textScaler,
@@ -329,7 +330,14 @@ void main() {
       );
 
       expect(style, isNotNull);
-      expect(style!.resolve(<WidgetState>{})!.fontSize, lessThan(12));
+      final fontSize = style!.resolve(<WidgetState>{})!.fontSize!;
+      expect(fontSize, lessThan(12));
+      // The spacing does not shrink with the font, so a size scaled by
+      // 74 / 80 alone (11.1, drawing 75.5 wide) would still wrap.
+      expect(
+        _lineCount('Dives', fontSize: fontSize, maxWidth: 75, letterSpacing: 4),
+        1,
+      );
     });
   });
 }
