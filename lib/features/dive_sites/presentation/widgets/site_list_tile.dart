@@ -32,8 +32,9 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 /// Detailed list card for one dive site.
 ///
 /// Configurable slots (title, subtitle, stat1, stat2, extra fields) come from
-/// [siteDetailedCardConfigProvider]; the rating, shared badge, water type and
-/// feature chips are fixed identity elements. Hand-rolled
+/// [siteDetailedCardConfigProvider]; the rating, shared badge, site type
+/// badges (at the end of the stat line), water type and feature chips are
+/// fixed identity elements. Hand-rolled
 /// rather than a ListTile so the title keeps its font role under every theme
 /// preset and nothing text-bearing sits in the trailing slot.
 class SiteListTile extends ConsumerStatefulWidget {
