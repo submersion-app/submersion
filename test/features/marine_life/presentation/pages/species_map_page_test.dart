@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -313,6 +314,24 @@ void main() {
     );
 
     expect(find.text('Public records could not be loaded.'), findsOneWidget);
+  });
+
+  testWidgets('panning clears the note so it reflects the tiles now in view', (
+    tester,
+  ) async {
+    // No taxon key, so no tile can fail again during the test.
+    await _pump(
+      tester,
+      initialSpeciesId: 'manta',
+      publicOn: true,
+      tileFailed: true,
+    );
+    expect(find.text('Public records could not be loaded.'), findsOneWidget);
+
+    await tester.drag(find.byType(FlutterMap), const Offset(-200, 0));
+    await _settleMap(tester);
+
+    expect(find.text('Public records could not be loaded.'), findsNothing);
   });
 
   testWidgets('with the public layer off the page sends nothing to GBIF', (

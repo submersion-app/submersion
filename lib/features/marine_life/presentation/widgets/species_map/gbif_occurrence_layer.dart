@@ -33,6 +33,9 @@ class GbifOccurrenceLayer extends ConsumerWidget {
         // GBIF draws records up to its own detail level; beyond it the
         // hexagons only get bigger.
         maxNativeZoom: 14,
+        // A failed tile is dropped once out of view, so panning back asks
+        // GBIF again instead of keeping the gap.
+        evictErrorTileStrategy: EvictErrorTileStrategy.notVisibleRespectMargin,
         // A tile that fails (offline, rate limited) is not drawn, and the
         // page says the records did not load.
         tileProvider: NetworkTileProvider(

@@ -393,6 +393,16 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
               onTap: (_, _) => ref
                   .read(mapListSelectionProvider(_sectionKey).notifier)
                   .deselect(),
+              // The "records did not load" note speaks for the tiles in view:
+              // moving the map asks for new ones (failed tiles are evicted, so
+              // they are asked again too), and a new failure sets it again.
+              onPositionChanged: (_, hasGesture) {
+                if (!hasGesture || speciesId == null) return;
+                final failed = ref.read(
+                  speciesMapPublicTilesFailedProvider(speciesId).notifier,
+                );
+                if (failed.state) failed.state = false;
+              },
             ),
             children: [
               TileLayer(

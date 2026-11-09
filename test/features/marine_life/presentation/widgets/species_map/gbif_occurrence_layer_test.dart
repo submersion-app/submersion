@@ -71,6 +71,11 @@ void main() {
     );
     // A failed tile is reported, so the page can say records did not load.
     expect(layer.errorTileCallback, isNotNull);
+    // And dropped once out of view, so panning back asks GBIF again.
+    expect(
+      layer.evictErrorTileStrategy,
+      EvictErrorTileStrategy.notVisibleRespectMargin,
+    );
   });
 
   testWidgets('with the layer on and no key draws nothing', (tester) async {
