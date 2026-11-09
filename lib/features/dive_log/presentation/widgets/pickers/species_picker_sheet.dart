@@ -310,6 +310,9 @@ class _SpeciesPickerSheetState extends ConsumerState<SpeciesPickerSheet> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
+          // Scrolls on a short screen: the "How many" chips, the stepper and
+          // the keyboard for the notes can outgrow it.
+          scrollable: true,
           title: Text(species.localizedCommonName(context.l10n)),
           content: Column(
             mainAxisSize: MainAxisSize.min,

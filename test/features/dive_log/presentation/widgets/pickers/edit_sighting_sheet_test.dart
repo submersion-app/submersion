@@ -96,6 +96,35 @@ void main() {
     expect(saved?.notes, 'single ray');
   });
 
+  testWidgets('fits a small phone with the keyboard up', (tester) async {
+    // The "How many" chips and stepper made the sheet taller; it scrolls
+    // rather than overflowing (an overflow fails the test).
+    tester.view.physicalSize = const Size(375, 667);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: EditSightingSheet(
+              sighting: _sighting,
+              onSave: (_) {},
+              onDelete: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Save Changes'), findsOneWidget);
+  });
+
   testWidgets('delete asks for confirmation before firing onDelete', (
     tester,
   ) async {

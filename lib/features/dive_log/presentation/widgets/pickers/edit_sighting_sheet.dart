@@ -42,103 +42,109 @@ class _EditSightingSheetState extends State<EditSightingSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                localizedSpeciesName(
-                  context.l10n,
-                  widget.sighting.speciesId,
-                  widget.sighting.speciesName,
+    // Scrolls: the "How many" chips and stepper plus the keyboard for the
+    // notes do not fit a small phone's height.
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  localizedSpeciesName(
+                    context.l10n,
+                    widget.sighting.speciesId,
+                    widget.sighting.speciesName,
+                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                tooltip: context.l10n.diveLog_editSighting_remove,
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (dialogContext) => AlertDialog(
-                      title: Text(
-                        context.l10n.diveLog_editSighting_removeTitle,
-                      ),
-                      content: Text(
-                        context.l10n.diveLog_editSighting_removeConfirm(
-                          localizedSpeciesName(
-                            context.l10n,
-                            widget.sighting.speciesId,
-                            widget.sighting.speciesName,
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  tooltip: context.l10n.diveLog_editSighting_remove,
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (dialogContext) => AlertDialog(
+                        title: Text(
+                          context.l10n.diveLog_editSighting_removeTitle,
+                        ),
+                        content: Text(
+                          context.l10n.diveLog_editSighting_removeConfirm(
+                            localizedSpeciesName(
+                              context.l10n,
+                              widget.sighting.speciesId,
+                              widget.sighting.speciesName,
+                            ),
                           ),
                         ),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(dialogContext).pop(),
-                          child: Text(context.l10n.common_action_cancel),
-                        ),
-                        FilledButton(
-                          onPressed: () {
-                            Navigator.of(dialogContext).pop();
-                            widget.onDelete();
-                          },
-                          style: FilledButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.error,
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            child: Text(context.l10n.common_action_cancel),
                           ),
-                          child: Text(context.l10n.diveLog_editSighting_remove),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          SightingAbundancePicker(
-            value: _amount,
-            onChanged: (v) => setState(() => _amount = v),
-          ),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _notesController,
-            decoration: InputDecoration(
-              labelText: context.l10n.diveLog_editSighting_notes,
-              hintText: context.l10n.diveLog_editSighting_notesHint,
-              border: const OutlineInputBorder(),
+                          FilledButton(
+                            onPressed: () {
+                              Navigator.of(dialogContext).pop();
+                              widget.onDelete();
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.error,
+                            ),
+                            child: Text(
+                              context.l10n.diveLog_editSighting_remove,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-            maxLines: 3,
-          ),
-          const SizedBox(height: 24),
-          FilledButton(
-            onPressed: () {
-              widget.onSave(
-                widget.sighting.copyWith(
-                  abundance: _amount.abundance,
-                  count: _amount.count,
-                  notes: _notesController.text,
-                ),
-              );
-            },
-            child: Text(context.l10n.diveLog_editSighting_save),
-          ),
-        ],
+            const SizedBox(height: 24),
+            SightingAbundancePicker(
+              value: _amount,
+              onChanged: (v) => setState(() => _amount = v),
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: _notesController,
+              decoration: InputDecoration(
+                labelText: context.l10n.diveLog_editSighting_notes,
+                hintText: context.l10n.diveLog_editSighting_notesHint,
+                border: const OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: () {
+                widget.onSave(
+                  widget.sighting.copyWith(
+                    abundance: _amount.abundance,
+                    count: _amount.count,
+                    notes: _notesController.text,
+                  ),
+                );
+              },
+              child: Text(context.l10n.diveLog_editSighting_save),
+            ),
+          ],
+        ),
       ),
     );
   }

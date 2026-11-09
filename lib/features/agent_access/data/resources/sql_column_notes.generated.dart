@@ -632,7 +632,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'interval_days': 'Per-item overrides',
   },
   'sightings': {
-    'abundance': 'how many animals the diver recorded, as the storage value of a `SightingAbundance`: `seen`, or a REEF group (`single`, `few`, `many`, `abundant`)',
+    'abundance': 'NULL when count is exact, else seen, single, few, many or abundant with count 1',
   },
   'site_features': {
     'bearing_deg': '0-359 compass degrees',
