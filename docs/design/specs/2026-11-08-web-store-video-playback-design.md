@@ -70,8 +70,8 @@ worker that adds the header.
 | --- | --- | --- |
 | S3 and S3-compatible | A SigV4 presigned GET URL for the object, signed locally | 6 hours (my call) |
 | Dropbox | A temporary link from `/2/files/get_temporary_link` | 4 hours (fixed by Dropbox) |
-| Google Drive | A same-site `media-stream/<ticket>` URL (under the base href) served by the stream worker, which calls `drive/v3/files/<id>?alt=media` with the current bearer token | Ticket lives while the viewer page holds it |
-| WebDAV | A same-site `media-stream/<ticket>` URL served by the stream worker, which calls the file's WebDAV URL with the store's `Authorization` header | Same |
+| Google Drive | A same-site `media-stream/<ticket>` URL (under the base href). The stream worker relays each request to the page, which reads that byte range through its Drive store adapter | Ticket lives while the viewer page holds it |
+| WebDAV | A same-site `media-stream/<ticket>` URL, relayed the same way through the page's WebDAV store adapter | Same |
 
 The `<video>` element loads S3 and Dropbox links cross-origin without CORS
 (a media element in no-cors mode), and the site's
@@ -89,8 +89,7 @@ plays. A row with only a rendition plays the rendition.
 ### Stale links
 
 A link can stop working while the viewer is open: an S3 or Dropbox link
-expires, or the browser stops an idle service worker and its in-memory
-tickets go with it. When the player reports an error after it had
+expires, or a relayed read fails. When the player reports an error after it had
 initialised, the viewer resolves a fresh source once, builds a new
 controller, seeks to the last position and restores the play or pause
 state, with nothing shown to the user. A second failure in a row shows the
@@ -108,9 +107,8 @@ download-into-memory fallback.
 ### Store setup
 
 The WebDAV CORS templates in `lib/core/platform/web/cors_rule_templates.dart`
-(nginx and Apache) add `Range` to `Access-Control-Allow-Headers` and
-`Content-Range, Content-Length, Accept-Ranges` to
-`Access-Control-Expose-Headers`, and the hosting guide says existing WebDAV
+(nginx and Apache) add `Range` to `Access-Control-Allow-Headers`, and the
+hosting guide says existing WebDAV
 users update their header block once. Drive needs nothing new. S3 and
 Dropbox need nothing new (no-cors media loads).
 
@@ -132,16 +130,14 @@ the controller's position are expected to keep working.
    it. The browser path asks the media store runtime's resolver; it never
    downloads bytes.
 2. **A store capability for streaming.** Store adapters that can stream a
-   key answer with either a direct URL plus its expiry (S3, Dropbox) or an
-   upstream request (URL plus the headers to add, with a way to get fresh
-   headers) that must go through the stream worker (Drive, WebDAV). This is
-   a separate optional interface, not a new member on `MediaObjectStore`,
+   key either give a direct URL plus its expiry (S3, Dropbox) or read one
+   byte range of it (Drive, WebDAV), which the relay serves. Each is a
+   separate optional interface, not a new member on `MediaObjectStore`,
    so installed-app adapters and test fakes are untouched. iCloud does not
    implement it.
 3. **S3 presigning** lives in `SigV4Signer` (query-string auth:
    `X-Amz-Algorithm`, `X-Amz-Credential`, `X-Amz-Date`, `X-Amz-Expires`,
-   `X-Amz-SignedHeaders=host`, `X-Amz-Security-Token` when a session token
-   is configured, `UNSIGNED-PAYLOAD`, `X-Amz-Signature`) and uses the same
+   `X-Amz-SignedHeaders=host`, `UNSIGNED-PAYLOAD`, `X-Amz-Signature`) and uses the same
    addressing, key prefix and effective region as `S3ApiClient`'s signed
    requests, so path-style endpoints (MinIO) and region correction behave
    the same.
@@ -149,15 +145,20 @@ the controller's position are expected to keep working.
    the base href), registered
    at app start in browser builds only. It answers only
    `GET <base>media-stream/<ticket>` and lets every other request go to the
-   network untouched. The page registers a ticket (upstream URL and
-   headers), updates its headers when the Drive token renews, and releases
-   it when the video page is released. The worker forwards the request's
-   `Range` header, adds the ticket's headers, and streams the upstream
-   response back with its status and its `Content-Type`, `Content-Length`,
-   `Content-Range` and `Accept-Ranges` headers. An unknown ticket answers
-   an error status so the viewer's stale-link path re-registers. Tickets
-   live in the worker's memory only. The worker calls `clients.claim()` on
-   activation so the first visit is controlled without a reload.
+   network untouched. It holds no state and no credentials: for each
+   request it posts the ticket and the `Range` header to the page that made
+   the request (over a `MessageChannel`), and builds the response from the
+   page's answer. The page keeps the tickets (store, key, content type,
+   total size), reads at most one chunk of the requested range through the
+   store adapter it already has (sign-in, token renewal and retries
+   included), and answers `206` with `Content-Range`, `Content-Length`,
+   `Content-Type` and `Accept-Ranges`. An unknown ticket answers `404` and
+   a failed read `502`, which the viewer's stale-link path handles. Tickets
+   are released when the video page is released. The worker calls
+   `clients.claim()` on activation so the first visit is controlled without
+   a reload. (Changed from an earlier draft in which the worker held each
+   upstream URL and its credentials; the maintainer chose the relay on
+   2026-11-08 so no credentials leave the page.)
 5. **The bundle.** The worker file is added to `check_web_bundle.py`'s
    required list (it must not be named `flutter_service_worker.js`, which
    the build deletes), and the hosting configs serve it with
@@ -169,23 +170,20 @@ the controller's position are expected to keep working.
 
 ## Testing
 
-- `SigV4Signer` presigning against AWS's published presigned URL example
-  (and a session token case), plus path-style addressing.
+- `SigV4Signer` presigning against AWS's published presigned URL example,
+  plus path-style addressing.
 - Dropbox temporary link request and response mapping, and link reuse
   until near expiry.
-- Drive and WebDAV upstream requests (URL and headers), including a Drive
-  token renewal reaching the worker.
-- The stream worker's routing, `Range` forwarding and unknown-ticket answer,
-  in a Chrome test run (`scripts/web/test_web.sh`).
+- Drive and WebDAV ranged reads, and the relay's range parsing, chunking,
+  `416`, `404` and `502` answers, as VM unit tests.
 - Viewer widget tests with the fake video player: URL source chosen in a
   browser, original-to-rendition fallback, one silent stale retry restoring
   position, the second failure showing the error, and the no-worker message
   for Drive and WebDAV.
-- The web smoke, in Chromium, Firefox and WebKit, plays a seeded video from
-  MinIO through a presigned URL, and plays one through the stream worker
-  (a WebDAV or stubbed upstream, whichever the smoke can host).
-- A sub-path build (`--base-href`) registers the worker under its base and
-  plays through it.
+- A Playwright test in Chromium, Firefox and WebKit (run in the web smoke
+  job) plays a video through the real stream worker with a page-side
+  responder, at the site root and under a sub-path base, and plays a MinIO
+  presigned URL under the site's isolation headers.
 - Real Dropbox, Google Drive and WebDAV stores are checked by the
   maintainer, as in #4142.
 
