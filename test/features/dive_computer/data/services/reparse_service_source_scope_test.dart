@@ -237,6 +237,53 @@ void main() {
     expect(await profileSeries.hasPrimarySeries('dive-1'), isTrue);
   });
 
+  group("a null-computer source's manual edit", () {
+    // saveEditedProfile writes the edit live with no computer over the
+    // demoted generation it corrects. A source with no computer shares that
+    // null strand, so only the generation beneath tells the edit apart.
+    test('is kept, the fresh parse landing beneath it', () async {
+      await insertDive();
+      await insertSource(id: 'comp-a', isPrimary: true, withRawData: true);
+      final edit = await insertSeries(sourceId: 'comp-a', isPrimary: true);
+      final generation = await insertSeries(
+        sourceId: 'comp-a',
+        isPrimary: false,
+        now: 500,
+      );
+
+      await reparse('comp-a');
+
+      final after = await seriesById();
+      expect(after[edit], (sourceId: 'comp-a', isPrimary: true));
+      expect(after.containsKey(generation), isFalse);
+      final fresh = after.entries.where(
+        (e) => e.key != edit && e.value.sourceId == 'comp-a',
+      );
+      expect(fresh.single.value.isPrimary, isFalse);
+    });
+
+    test('of a non-primary source is kept too', () async {
+      await insertDive();
+      await insertSource(id: 'uddf', isPrimary: true, sourceFormat: 'uddf');
+      await insertSource(id: 'comp-a', isPrimary: false, withRawData: true);
+      final edit = await insertSeries(sourceId: 'comp-a', isPrimary: true);
+      await insertSeries(sourceId: 'comp-a', isPrimary: false, now: 500);
+
+      await reparse('comp-a');
+
+      final after = await seriesById();
+      expect(after[edit], (sourceId: 'comp-a', isPrimary: true));
+      expect(
+        after.entries
+            .where((e) => e.key != edit && e.value.sourceId == 'comp-a')
+            .single
+            .value
+            .isPrimary,
+        isFalse,
+      );
+    });
+  });
+
   group('legacy series with no source', () {
     test(
       'are replaced when the re-parsed source is alone on its computer',

@@ -1101,7 +1101,8 @@ class ProfileSeriesRepository {
   /// primary half of it is the user's manual correction, which carries a null
   /// computer on purpose rather than because a computer delete stripped one.
   /// Stamping it would hand the edit to the next reparse of the dive, whose
-  /// first act is `deleteByComputer`, and a series is deleted whole: the
+  /// first act is to replace what its source owns on the computer's strand,
+  /// and a series is deleted whole: the
   /// correction would be gone here and tombstoned on every peer. The same
   /// predicate spares a file-imported profile that `setPrimaryDataSource`
   /// promoted over the computer's samples.

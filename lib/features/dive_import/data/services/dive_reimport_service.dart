@@ -656,12 +656,12 @@ class DiveReimportService {
   ///
   /// `source_id` only, never `computer_id`: that is the identity a fresh
   /// import of the same file writes, and a file source routinely carries a
-  /// physical computer's id (`matchImportedComputer` matches on serial) whose
-  /// own re-parse deletes by `computer_id` alone.
+  /// physical computer's id (`matchImportedComputer` matches on serial), and
+  /// a series stamped with it would sit on that computer's strand.
   ///
-  /// The delete is the file-side twin of the `deleteByComputer(diveId,
-  /// computerId)` a re-parse runs: the null-computer strands, which is what a
-  /// file parse writes, minus the diver's manual edit. `saveEditedProfile`
+  /// The delete is the file-side twin of the strand replace a re-parse runs:
+  /// the null-computer strands, which is what a file parse writes, minus the
+  /// diver's manual edit. `saveEditedProfile`
   /// leaves that edit as the primary null-computer series over the demoted
   /// generation it corrects -- the shape `relinkComputer` already spares --
   /// so where one exists the fresh parse lands demoted beneath it and
