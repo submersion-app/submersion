@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
@@ -96,6 +97,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
     required String speciesId,
     required String speciesName,
     SpeciesCategory? speciesCategory,
+    SightingAbundance abundance = SightingAbundance.seen,
     int count = 1,
     String notes = '',
   }) async {
@@ -108,6 +110,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
         speciesId: speciesId,
         speciesName: speciesName,
         speciesCategory: speciesCategory,
+        abundance: abundance,
         count: count,
         notes: notes,
       );
@@ -117,6 +120,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
       final sighting = await _repository.addSighting(
         diveId: _diveId,
         speciesId: speciesId,
+        abundance: abundance,
         count: count,
         notes: notes,
       );
@@ -148,6 +152,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
       await _repository.addSighting(
         diveId: diveId,
         speciesId: sighting.speciesId,
+        abundance: sighting.abundance,
         count: sighting.count,
         notes: sighting.notes,
       );
