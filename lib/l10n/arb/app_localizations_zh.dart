@@ -5124,16 +5124,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_gear_unknownSet => '套装';
 
   @override
-  String get diveLog_health_after15 => 'After 15 min';
+  String get diveLog_health_after15 => '15 分钟后';
 
   @override
-  String get diveLog_health_after5 => 'After 5 min';
+  String get diveLog_health_after5 => '5 分钟后';
 
   @override
-  String get diveLog_health_atSurfacing => 'At surfacing';
+  String get diveLog_health_atSurfacing => '出水时';
 
   @override
-  String get diveLog_health_average => 'Average';
+  String get diveLog_health_average => '平均';
 
   @override
   String diveLog_health_bpm(int value) {
@@ -5141,7 +5141,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_health_maximum => 'Maximum';
+  String get diveLog_health_maximum => '最高';
 
   @override
   String diveLog_health_ms(int value) {
@@ -5149,30 +5149,28 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_health_noneFound =>
-      'Apple Health has no readings for this dive';
+  String get diveLog_health_noneFound => 'Apple Health 中没有这次潜水的读数';
 
   @override
-  String get diveLog_health_overnightHrv =>
-      'Heart rate variability the night after';
+  String get diveLog_health_overnightHrv => '潜水后当晚的心率变异性';
 
   @override
-  String get diveLog_health_readFailed => 'Could not read Apple Health';
+  String get diveLog_health_readFailed => '无法读取 Apple Health';
 
   @override
-  String get diveLog_health_recovery => 'Recovery';
+  String get diveLog_health_recovery => '恢复';
 
   @override
   String get diveLog_health_recoveryExplain =>
-      'Heart rate at surfacing and 5 and 15 minutes later, from Apple Health.';
+      '出水时以及 5 分钟和 15 分钟后的心率，来自 Apple Health。';
 
   @override
   String diveLog_health_sleepBefore(int hours, int minutes) {
-    return 'Slept $hours h $minutes min the night before';
+    return '前一晚睡了 $hours 小时 $minutes 分钟';
   }
 
   @override
-  String get diveLog_health_title => 'Heart rate and recovery';
+  String get diveLog_health_title => '心率与恢复';
 
   @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist => '开始潜前检查清单';
@@ -6051,8 +6049,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_homeCards_card_recentSitesMap => '最近潜点地图';
 
   @override
-  String get settings_homeCards_card_waitingForDownload =>
-      'Waiting for download';
+  String get settings_homeCards_card_waitingForDownload => '等待下载';
 
   @override
   String get dashboard_allHidden_message => '所有主页卡片均已隐藏。';
@@ -6265,15 +6262,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_semantics_greetingBanner => '仪表盘问候横幅';
 
   @override
-  String get dashboard_waitingForDownload_download => 'Download now';
+  String get dashboard_waitingForDownload_download => '立即下载';
 
   @override
   String dashboard_waitingForDownload_title(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives waiting for your dive computer',
-      one: '1 dive waiting for your dive computer',
+      other: '$count 次潜水正在等待您的潜水电脑',
     );
     return '$_temp0';
   }
@@ -9480,7 +9476,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteSuggestion_titleDiveComputer => '来自潜水电脑的位置';
 
   @override
-  String get siteSuggestion_titleDraft => 'Location where you went in';
+  String get siteSuggestion_titleDraft => '您入水的位置';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -21419,7 +21415,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveDetailSection_health_description =>
-      'Heart rate, recovery and sleep from Apple Health';
+      '来自 Apple Health 的心率、恢复和睡眠';
 
   @override
   String get diveDetailSection_equipment_description => '潜水中使用的装备';
@@ -23210,7 +23206,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => '为导入的潜水添加标签';
 
   @override
-  String get settings_conflict_field_avgHeartRate => 'Average heart rate';
+  String get settings_conflict_field_avgHeartRate => '平均心率';
 
   @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
@@ -23998,20 +23994,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => '航向修正（度）';
 
   @override
-  String get settings_conflict_field_heartRateAtExit =>
-      'Heart rate at surfacing';
+  String get settings_conflict_field_heartRateAtExit => '出水时心率';
 
   @override
-  String get settings_conflict_field_heartRateExitPlus15 =>
-      'Heart rate 15 min after surfacing';
+  String get settings_conflict_field_heartRateExitPlus15 => '出水 15 分钟后心率';
 
   @override
-  String get settings_conflict_field_heartRateExitPlus5 =>
-      'Heart rate 5 min after surfacing';
+  String get settings_conflict_field_heartRateExitPlus5 => '出水 5 分钟后心率';
 
   @override
-  String get settings_conflict_field_heartRateSamples =>
-      'Heart rate from Apple Health';
+  String get settings_conflict_field_heartRateSamples => '来自 Apple Health 的心率';
 
   @override
   String get settings_conflict_field_scaleFactor => '轨迹缩放系数';
@@ -24104,7 +24096,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_isDone => '已完成';
 
   @override
-  String get settings_conflict_field_isDraft => 'Draft dive';
+  String get settings_conflict_field_isDraft => '潜水草稿';
 
   @override
   String get settings_conflict_field_isOrphaned => '文件缺失';
@@ -24246,7 +24238,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_maxDescentRate => '最大下潜速度';
 
   @override
-  String get settings_conflict_field_maxHeartRate => 'Maximum heart rate';
+  String get settings_conflict_field_maxHeartRate => '最高心率';
 
   @override
   String get settings_conflict_field_maxSpeed => '最高速度';
@@ -24315,8 +24307,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_overdueServices => '逾期保养';
 
   @override
-  String get settings_conflict_field_overnightHrvMs =>
-      'Overnight heart rate variability';
+  String get settings_conflict_field_overnightHrvMs => '夜间心率变异性';
 
   @override
   String get settings_conflict_field_params => '详情';
@@ -24794,8 +24785,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_size => '尺码';
 
   @override
-  String get settings_conflict_field_sleepBeforeMinutes =>
-      'Sleep the night before';
+  String get settings_conflict_field_sleepBeforeMinutes => '前一晚的睡眠';
 
   @override
   String get settings_conflict_field_sortOrder => '排序';
@@ -24864,8 +24854,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_settingOverrides => '仅适用于本次潜水的设置';
 
   @override
-  String get settings_conflict_field_settled =>
-      'Apple Health readings complete';
+  String get settings_conflict_field_settled => 'Apple Health 读数已完整';
 
   @override
   String get settings_conflict_field_startTime => '开始时间';
@@ -25649,12 +25638,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get notifications_draftReminder_body =>
-      'Download your dive computer to fill in the draft.';
+  String get notifications_draftReminder_body => '下载您的潜水电脑以完成草稿。';
 
   @override
-  String get notifications_draftReminder_title =>
-      'A dive is waiting for your dive computer';
+  String get notifications_draftReminder_title => '有一次潜水正在等待您的潜水电脑';
 
   @override
   String get notifications_document_expiresToday_body => '请在下次潜水前续期。';
@@ -27338,12 +27325,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_notifications_disabled_title => '通知已禁用';
 
   @override
-  String get settings_notifications_draftReminder =>
-      'Remind me about draft dives';
+  String get settings_notifications_draftReminder => '提醒我处理潜水草稿';
 
   @override
   String get settings_notifications_draftReminder_subtitle =>
-      'Three days after a draft dive\'s exit, if it is still waiting for a download';
+      '潜水草稿出水三天后，如果仍在等待下载';
 
   @override
   String get settings_notifications_enableServiceReminders => '启用维护提醒';
@@ -33951,25 +33937,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_compare_fillPlannedSubtitle => '将此下载附加到您计划的潜水';
 
   @override
-  String get universalImport_label_fillDraft => 'Fill draft';
+  String get universalImport_label_fillDraft => '填充草稿';
 
   @override
-  String get universalImport_compare_fillDraftSubtitle =>
-      'Attach this download to the dive you marked at the site';
+  String get universalImport_compare_fillDraftSubtitle => '将此下载关联到您在潜点标记的潜水';
 
   @override
   String universalImport_fillDraft_target(String label) {
-    return 'Fills draft: $label';
+    return '填充草稿：$label';
   }
 
   @override
   String universalImport_fillDraft_window(String start, String end) {
-    return 'Draft from $start to $end';
+    return '草稿：$start 至 $end';
   }
 
   @override
   String universalImport_fillDraft_windowOpen(String start) {
-    return 'Draft from $start';
+    return '草稿：自 $start 起';
   }
 
   @override
@@ -35047,35 +35032,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpsLogger_stopButton => '停止记录';
 
   @override
-  String get gpsLogger_enteredWater => 'Entered water';
+  String get gpsLogger_enteredWater => '已入水';
 
   @override
-  String get gpsLogger_surfaced => 'Surfaced';
+  String get gpsLogger_surfaced => '已出水';
 
   @override
-  String get gpsLogger_surfaceOnStop_title => 'Still in the water?';
+  String get gpsLogger_surfaceOnStop_title => '仍在水中？';
 
   @override
   String gpsLogger_surfaceOnStop_body(String time) {
-    return 'You entered the water at $time. Mark the dive surfaced now, or leave it open and tap Surfaced later.';
+    return '您于 $time 入水。现在将潜水标记为已出水，或保持打开，稍后点按“已出水”。';
   }
 
   @override
-  String get gpsLogger_surfaceOnStop_surfaceNow => 'Surface now';
+  String get gpsLogger_surfaceOnStop_surfaceNow => '立即出水';
 
   @override
-  String get gpsLogger_surfaceOnStop_leaveOpen => 'Leave open';
+  String get gpsLogger_surfaceOnStop_leaveOpen => '保持打开';
 
   @override
-  String get gpsLogger_markNotification_title => 'Recording your GPS track';
+  String get gpsLogger_markNotification_title => '正在记录您的 GPS 轨迹';
 
   @override
-  String get gpsLogger_markNotification_bodyEnter =>
-      'Tap Entered water when you go in.';
+  String get gpsLogger_markNotification_bodyEnter => '入水时点按“已入水”。';
 
   @override
-  String get gpsLogger_markNotification_bodySurface =>
-      'In the water. Tap Surfaced when you are out.';
+  String get gpsLogger_markNotification_bodySurface => '已在水中。出水后点按“已出水”。';
 
   @override
   String gpsLogger_stripStatus(num count) {
@@ -35772,53 +35755,47 @@ class AppLocalizationsZh extends AppLocalizations {
       '通过 HealthKit 从 Apple Watch 导入潜水';
 
   @override
-  String get healthAutoImport_newDive_title => 'New dive from your Apple Watch';
+  String get healthAutoImport_newDive_title => '来自您 Apple Watch 的新潜水';
 
   @override
   String healthAutoImport_newDives_title(int count) {
-    return '$count new dives from your Apple Watch';
+    return '来自您 Apple Watch 的 $count 次新潜水';
   }
 
   @override
-  String get healthAutoImport_newDive_body => 'Add details?';
+  String get healthAutoImport_newDive_body => '添加详细信息？';
 
   @override
-  String get healthAutoImport_addDetails => 'Add details';
+  String get healthAutoImport_addDetails => '添加详细信息';
 
   @override
-  String get healthAutoImport_review_title =>
-      'An Apple Watch dive needs a look';
+  String get healthAutoImport_review_title => '有一次 Apple Watch 潜水需要查看';
 
   @override
-  String get healthAutoImport_review_body =>
-      'It could belong to more than one dive. Choose in the Apple Health import.';
+  String get healthAutoImport_review_body => '它可能属于多次潜水。请在 Apple Health 导入中选择。';
 
   @override
-  String get healthAutoImport_planReview_body =>
-      'This dive may be one you planned. Review it to fill the plan.';
+  String get healthAutoImport_planReview_body => '这次潜水可能是您计划的潜水。查看它以填充计划。';
 
   @override
-  String get healthAutoImport_review => 'Review';
+  String get healthAutoImport_review => '查看';
 
   @override
-  String get settings_appleHealth_autoImport_title =>
-      'Import Apple Watch dives automatically';
+  String get settings_appleHealth_autoImport_title => '自动导入 Apple Watch 潜水';
 
   @override
-  String get settings_appleHealth_autoImport_subtitle =>
-      'New dives from your watch appear when you open the app.';
+  String get settings_appleHealth_autoImport_subtitle => '打开应用时会显示来自手表的新潜水。';
 
   @override
-  String get settings_appleHealth_metrics_title =>
-      'Heart rate, recovery and sleep';
+  String get settings_appleHealth_metrics_title => '心率、恢复和睡眠';
 
   @override
   String get settings_appleHealth_metrics_subtitle =>
-      'Adds heart rate during and after each dive, overnight HRV and the sleep before it.';
+      '添加每次潜水期间和之后的心率、夜间 HRV 以及潜水前的睡眠。';
 
   @override
   String settings_appleHealth_boundDiver(String name) {
-    return 'For: $name';
+    return '用于：$name';
   }
 
   @override
@@ -39397,52 +39374,50 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_planned_chip => '计划中';
 
   @override
-  String get diveLog_draft_chip => 'Waiting for download';
+  String get diveLog_draft_chip => '等待下载';
 
   @override
-  String get diveLog_draft_inWaterChip => 'In the water';
+  String get diveLog_draft_inWaterChip => '在水中';
 
   @override
-  String get diveLog_draft_title => 'Draft dive';
+  String get diveLog_draft_title => '潜水草稿';
 
   @override
   String diveLog_draft_bannerBody(int minutes) {
-    return 'About $minutes min from your taps. Download your dive computer to fill in depth and time.';
+    return '根据您的点按约 $minutes 分钟。下载您的潜水电脑以填写深度和时间。';
   }
 
   @override
-  String get diveLog_draft_bannerBodyOpen =>
-      'Tap Surfaced when you are out of the water.';
+  String get diveLog_draft_bannerBodyOpen => '出水后点按“已出水”。';
 
   @override
-  String get diveLog_draft_downloadNow => 'Download now';
+  String get diveLog_draft_downloadNow => '立即下载';
 
   @override
-  String get diveLog_draft_markComplete => 'Mark as complete';
+  String get diveLog_draft_markComplete => '标记为完成';
 
   @override
-  String get diveLog_draft_surfaced => 'Surfaced';
+  String get diveLog_draft_surfaced => '已出水';
 
   @override
-  String get diveLog_draft_markedComplete => 'Marked as complete';
+  String get diveLog_draft_markedComplete => '已标记为完成';
 
   @override
-  String get diveLog_draft_markCompleteFailed =>
-      'Couldn\'t mark the dive as complete.';
+  String get diveLog_draft_markCompleteFailed => '无法将潜水标记为完成。';
 
   @override
-  String get diveLog_draft_stale_title => 'Did you surface?';
+  String get diveLog_draft_stale_title => '您出水了吗？';
 
   @override
   String diveLog_draft_stale_body(String time) {
-    return 'You entered the water at $time and the dive is still open.';
+    return '您于 $time 入水，潜水仍未结束。';
   }
 
   @override
-  String get diveLog_draft_stale_stillIn => 'Still in the water';
+  String get diveLog_draft_stale_stillIn => '仍在水中';
 
   @override
-  String get diveLog_draft_stale_setTime => 'Set surfacing time';
+  String get diveLog_draft_stale_setTime => '设置出水时间';
 
   @override
   String get diveLog_planned_bannerTitle => '计划的潜水';
@@ -39504,8 +39479,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_loggedWithPlanned => '等待其潜水电脑';
 
   @override
-  String get diveLog_detail_menu_addHeartRate =>
-      'Add heart rate from Apple Health';
+  String get diveLog_detail_menu_addHeartRate => '从 Apple Health 添加心率';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -47971,7 +47945,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
-    return 'Draft dive at $siteName';
+    return '$siteName 的潜水草稿';
   }
 
   @override
