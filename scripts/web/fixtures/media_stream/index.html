@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- The test rewrites this to the folder it serves the page from, as a
+       sub-path build of the app does. -->
+  <base href="/">
+  <title>Media stream worker fixture</title>
+</head>
+<body>
+<video id="player" muted playsinline></video>
+<script>
+// Stands in for the app's page side (MediaStreamRelay): answers the
+// worker's relayed requests for ticket t1 from sample.webm, at most CHUNK
+// bytes per answer so the browser has to stitch playback from many short
+// 206 responses, as the app's 2 MiB chunks make it do on a real video.
+const CHUNK = 16 * 1024;
+let sample = null;
+
+async function sampleBytes() {
+  if (sample === null) {
+    const response = await fetch('sample.webm', {cache: 'no-store'});
+    sample = new Uint8Array(await response.arrayBuffer());
+  }
+  return sample;
+}
+
+function parseRange(header, total) {
+  const match = /^bytes=(\d+)-(\d*)$/.exec(header || 'bytes=0-');
+  if (!match) return null;
+  const start = Number(match[1]);
+  const asked = match[2] === '' ? total - 1 : Number(match[2]);
+  return {start, end: Math.min(asked, start + CHUNK - 1, total - 1)};
+}
+
+async function answer(ticket, range) {
+  if (ticket !== 't1') return {status: 404, headers: {}, body: null};
+  const bytes = await sampleBytes();
+  const total = bytes.length;
+  const wanted = parseRange(range, total);
+  if (wanted === null || wanted.start >= total) {
+    return {status: 416, headers: {'Content-Range': 'bytes */' + total}, body: null};
+  }
+  const body = bytes.slice(wanted.start, wanted.end + 1).buffer;
+  return {
+    status: 206,
+    headers: {
+      'Content-Type': 'video/webm',
+      'Content-Range': 'bytes ' + wanted.start + '-' + wanted.end + '/' + total,
+      'Content-Length': String(body.byteLength),
+      'Accept-Ranges': 'bytes',
+    },
+    body,
+  };
+}
+
+navigator.serviceWorker.addEventListener('message', async (event) => {
+  const data = event.data;
+  if (!data || data.type !== 'media-stream-request') return;
+  const port = event.ports[0];
+  const reply = await answer(data.ticket, data.range);
+  port.postMessage(reply, reply.body ? [reply.body] : []);
+});
+
+window.workerReady = (async () => {
+  await navigator.serviceWorker.register('media_stream_worker.js', {scope: './'});
+  await navigator.serviceWorker.ready;
+  if (!navigator.serviceWorker.controller) {
+    await new Promise((resolve) =>
+      navigator.serviceWorker.addEventListener('controllerchange', resolve, {once: true}));
+  }
+  return true;
+})();
+
+// Playwright's evaluate has no deadline of its own: a stalled player must
+// fail the test, not hang the job.
+function withinSeconds(promise, seconds, what) {
+  return Promise.race([promise, new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(what + ' timed out')), seconds * 1000))]);
+}
+
+function playUntil(seconds) {
+  const player = document.getElementById('player');
+  return new Promise((resolve, reject) => {
+    const check = () => {
+      if (player.currentTime > seconds) {
+        player.removeEventListener('timeupdate', check);
+        resolve(player.currentTime);
+      }
+    };
+    player.addEventListener('timeupdate', check);
+    player.addEventListener('error', () => reject(new Error(
+      'media error ' + (player.error && player.error.code))), {once: true});
+    player.play().catch(reject);
+  });
+}
+
+window.playSource = async (src) => {
+  await window.workerReady;
+  const player = document.getElementById('player');
+  player.src = src;
+  return withinSeconds(playUntil(1), 20, 'playing ' + src);
+};
+
+window.playTicket = (ticket) => window.playSource('media-stream/' + ticket);
+
+window.seekTo = (seconds) => {
+  const player = document.getElementById('player');
+  return withinSeconds(new Promise((resolve, reject) => {
+    player.addEventListener('seeked', () => resolve(player.currentTime), {once: true});
+    player.addEventListener('error', () => reject(new Error('seek failed')), {once: true});
+    player.currentTime = seconds;
+  }), 20, 'seeking');
+};
+</script>
+</body>
+</html>

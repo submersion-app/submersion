@@ -1206,7 +1206,9 @@ jobs:
       - name: Install Playwright, Firefox and WebKit
         run: |
           python3 -m pip install -r scripts/web/requirements-smoke.txt
-          python3 -m playwright install --with-deps firefox webkit
+          # Chromium only for the stream worker test below; the smoke itself
+          # runs in Firefox and WebKit.
+          python3 -m playwright install --with-deps firefox webkit chromium
 
       - name: Serve the bundle with the hosting headers
         run: |
@@ -1235,6 +1237,19 @@ jobs:
             --junitxml="$RUNNER_TEMP/smoke.xml"
           # A run that tested nothing, or skipped, must not pass.
           python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); s = [r] if r.tag == 'testsuite' else list(r); t = sum(int(x.get('tests', 0)) for x in s); k = sum(int(x.get('skipped', 0)) for x in s); print('smoke tests', t, 'skipped', k); sys.exit(1 if t == 0 or k else 0)" "$RUNNER_TEMP/smoke.xml"
+
+      - name: Play video through the stream worker in three browsers
+        env:
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: ${{ env.MINIO_ROOT_USER }}
+          MINIO_SECRET_KEY: ${{ env.MINIO_ROOT_PASSWORD }}
+        # Issue #4162: Drive and WebDAV videos stream through
+        # web/media_stream_worker.js, S3 videos from a presigned link.
+        run: |
+          xvfb-run -a python3 -m pytest scripts/web/media_stream_worker_test.py -v -rP \
+            --junitxml="$RUNNER_TEMP/stream.xml"
+          # MinIO is up here, so nothing may skip.
+          python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); s = [r] if r.tag == 'testsuite' else list(r); t = sum(int(x.get('tests', 0)) for x in s); k = sum(int(x.get('skipped', 0)) for x in s); print('stream tests', t, 'skipped', k); sys.exit(1 if t == 0 or k else 0)" "$RUNNER_TEMP/stream.xml"
 
       - name: Keep the server log
         if: failure()
