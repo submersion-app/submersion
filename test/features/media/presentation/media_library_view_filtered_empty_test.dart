@@ -15,7 +15,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _EmptyLibraryNotifier extends StateNotifier<MediaLibraryState>
     implements MediaLibraryNotifier {
-  _EmptyLibraryNotifier() : super(const MediaLibraryState());
+  _EmptyLibraryNotifier([super.state = const MediaLibraryState()]);
 
   @override
   Future<void> loadFirstPage() async {}
@@ -39,12 +39,16 @@ class _FakeSettingsRepo extends AppSettingsRepository {
 /// library is empty (issue #4148): with the cleanup filters, an emptied
 /// view is the finished state.
 void main() {
-  Future<void> pumpEmpty(WidgetTester tester, MediaLibraryFilter filter) async {
+  Future<void> pumpEmpty(
+    WidgetTester tester,
+    MediaLibraryFilter filter, {
+    MediaLibraryState state = const MediaLibraryState(),
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           mediaLibraryNotifierProvider.overrideWith(
-            (ref) => _EmptyLibraryNotifier(),
+            (ref) => _EmptyLibraryNotifier(state),
           ),
           mediaLibraryFilterProvider.overrideWith((ref) => filter),
           appSettingsRepositoryProvider.overrideWithValue(_FakeSettingsRepo()),
@@ -84,4 +88,18 @@ void main() {
       expect(find.text('No media yet'), findsNothing);
     });
   }
+
+  testWidgets('a failed load says so, never that nothing matches', (
+    tester,
+  ) async {
+    // An emptied cleanup filter means "done", so a read that failed must
+    // not pass for one.
+    await pumpEmpty(
+      tester,
+      const MediaLibraryFilter(noPeople: true),
+      state: MediaLibraryState(error: StateError('disk')),
+    );
+    expect(find.text('Error loading media'), findsOneWidget);
+    expect(find.text('No media matches these filters'), findsNothing);
+  });
 }

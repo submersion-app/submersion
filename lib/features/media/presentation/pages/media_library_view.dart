@@ -123,14 +123,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
             if (showingMissing)
               MediaMissingBanner(isEmpty: state.entries.isEmpty),
             Expanded(
-              child: _buildBody(
-                context,
-                state,
-                mode,
-                showingMissing,
-                !filter.isEmpty,
-                selection,
-              ),
+              child: _buildBody(context, state, mode, filter, selection),
             ),
           ],
         ),
@@ -142,8 +135,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     BuildContext context,
     MediaLibraryState state,
     MediaLibraryViewMode mode,
-    bool showingMissing,
-    bool filtered,
+    MediaLibraryFilter filter,
     SelectionState selection,
   ) {
     // The map runs its own unpaged query and owns its loading, empty and
@@ -153,18 +145,17 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
       return const Center(child: CircularProgressIndicator());
     }
     if (state.entries.isEmpty) {
-      return Center(
-        // Under a filter, empty means nothing matches it, not an empty
-        // library; with the cleanup filters (issue #4148) it is the
-        // finished state.
-        child: Text(
-          showingMissing
-              ? context.l10n.media_missing_empty
-              : filtered
-              ? context.l10n.media_library_emptyFiltered
-              : context.l10n.media_library_empty,
-        ),
-      );
+      // Under a filter, empty means nothing matches it, not an empty
+      // library; with the cleanup filters (issue #4148) it is the finished
+      // state. So a read that failed must not pass for either.
+      final message = state.error != null
+          ? context.l10n.media_diveMediaSection_errorLoading
+          : filter.health == MediaHealthFilter.missing
+          ? context.l10n.media_missing_empty
+          : filter.isEmpty
+          ? context.l10n.media_library_empty
+          : context.l10n.media_library_emptyFiltered;
+      return Center(child: Text(message));
     }
     void loadMore() =>
         ref.read(mediaLibraryNotifierProvider.notifier).loadMore();
