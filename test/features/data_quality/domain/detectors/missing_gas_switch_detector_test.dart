@@ -284,6 +284,30 @@ void main() {
     expect(switches[1]['t'] as int, closeTo(600, 30));
   });
 
+  test('a bottle falling from its first reading never starts the dive', () {
+    // Back gas carries no transmitter; the EAN50's reading falls from the
+    // start as it cools. It must not put the diver on EAN50 at the surface.
+    final ctx = makeContext(
+      dive: makeTestDive(
+        tanks: [
+          tank(id: 'back', order: 0),
+          tank(id: 'deco', order: 1, o2: 50, role: TankRole.deco),
+        ],
+      ),
+      samples: profile(3000, (t) => t < 1800 ? 30 : 21),
+      pressures: {
+        'deco': pressure(end: 3000, startBar: 200, falling: (t) => t <= 600),
+      },
+    );
+
+    final finding = missingSwitchFinding(det.detect(ctx));
+    final switches = [
+      for (final s in (finding?.params['missingSwitches'] as List?) ?? [])
+        s as Map,
+    ];
+    expect(switches.where((s) => s['t'] == 0), isEmpty);
+  });
+
   test('one-sided sidemount: every hand-over to the other cylinder', () {
     // Only the right cylinder carries a transmitter. It is breathed from
     // 10:00 to 20:00 and again from 30:00 to 40:00, so the diver was on the

@@ -326,6 +326,19 @@ void main() {
   });
 
   group('replaceGlitchedEndpoint', () {
+    test('a start taken from a reading above any fill is replaced', () {
+      // Issue #4335: the 564.7 bar "no reading" value at the head.
+      final series = withValues(draining(), {0: 564.7});
+      expect(
+        replaceGlitchedEndpoint(
+          reportedBar: 564.7,
+          readings: series,
+          atStart: true,
+        ),
+        closeTo(199.7, 1e-9),
+      );
+    });
+
     test('a reported start taken from a lead-in glitch is replaced', () {
       final series = withValues(draining(start: 141.2), {0: 3.9});
       expect(

@@ -12,6 +12,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// again, as with the time chips' `cylinderBreathStartsProvider`.
 final detectedGasSwitchesProvider = FutureProvider.autoDispose
     .family<MissedSwitches?, String>((ref, diveId) async {
+      final ppO2MaxBar = ref.watch(ppO2MaxDecoProvider);
       final dive = await ref.watch(diveProvider(diveId).future);
       if (dive == null || dive.diveMode != DiveMode.oc) return null;
       final pressures = await ref.watch(tankPressuresProvider(diveId).future);
@@ -30,7 +31,7 @@ final detectedGasSwitchesProvider = FutureProvider.autoDispose
           for (final point in profile)
             QualitySample(t: point.timestamp, depth: point.depth),
         ],
-        ppO2MaxBar: ref.watch(ppO2MaxDecoProvider),
+        ppO2MaxBar: ppO2MaxBar,
         environment: dive.environment,
       );
     });

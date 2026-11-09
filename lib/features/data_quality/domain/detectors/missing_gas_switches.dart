@@ -185,12 +185,24 @@ MissedSwitches inferredGasSwitches({
     switches: const [],
     diveStart: firstSampleT,
   )!.id;
-  final pressureStart = cylinderBreathedFromStart(
+  // Only between cylinders of one mix, where the timeline's start was a
+  // guess: a bottle cooling from its first reading falls like one being
+  // breathed, and must never take a dive onto its gas at the surface.
+  final timelineMix = ordered.firstWhere((t) => t.id == timelineStart).gasMix;
+  final pressureStart = switch (cylinderBreathedFromStart(
     cylinderIds: [for (final tank in openCircuit) tank.id],
     readingsById: readingsById,
     turnsById: turnsById,
     diveStart: firstSampleT,
-  );
+  )) {
+    final id?
+        when _sameMix(
+          openCircuit.firstWhere((t) => t.id == id).gasMix,
+          timelineMix,
+        ) =>
+      id,
+    _ => null,
+  };
   var inUse = pressureStart ?? timelineStart;
 
   // [missed] as a start deeper than its gas's MOD, or null when it is not.
@@ -287,6 +299,8 @@ MissedSwitches inferredGasSwitches({
     startingTankId: pressureStart,
   );
 }
+
+bool _sameMix(GasMix a, GasMix b) => a.o2 == b.o2 && a.he == b.he;
 
 /// [missed] as a JSON-safe map for a finding's params.
 Map<String, Object?> missedSwitchParams(MissedSwitch missed, {double? mod}) => {
