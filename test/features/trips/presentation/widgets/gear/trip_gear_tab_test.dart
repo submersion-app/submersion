@@ -44,6 +44,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
+import '../../../../../helpers/folded_groups.dart';
 
 final _now = DateTime.now();
 final _t0 = DateTime(2025, 1, 1);
@@ -346,11 +347,16 @@ Future<void> _openPicker(WidgetTester tester) async {
   await _openAdd(tester);
   await tester.tap(find.text('From my equipment'));
   await tester.pumpAndSettle();
+  // The picker opens with its groups folded (#3364).
+  await openFoldedGroups(tester);
 }
 
 /// Ticks each named row in turn, then presses Add N.
 Future<void> _tickAndAdd(WidgetTester tester, List<String> names) async {
   for (final name in names) {
+    // Taller group headings (#3364) can push a row below the sheet's fold.
+    await tester.ensureVisible(find.text(name).last);
+    await tester.pumpAndSettle();
     await tester.tap(find.text(name).last);
     await tester.pumpAndSettle();
   }

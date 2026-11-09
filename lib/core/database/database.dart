@@ -1622,10 +1622,14 @@ class AppDatabase extends _$AppDatabase {
     // count (issue #4337). Nullable, no backfill; raises the sync floor to
     // 350. Numbered 350: main holds 349 and open PR #4327 is to take 348.
     350,
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). A nullable column an older peer
+    // omits, so the floor does not move.
+    351,
     // v353: dive_profile_series.is_edit, the synced mark that a series is
     // the diver's manual edit (issue #4386). A nullable column an older peer
     // omits, with no backfill, so the floor does not move. Numbered 353
-    // because main holds 350 and open PRs claim 351 and 352.
+    // because main holds 351 and an open PR claims 352.
     353,
   ];
 

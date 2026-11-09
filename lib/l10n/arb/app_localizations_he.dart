@@ -16579,6 +16579,44 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיפולים נדרשים',
+      one: 'טיפול אחד נדרש',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ועוד $count',
+      one: 'ועוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected מתוך $total נבחרו';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'הרחב הכול';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'כווץ הכול';
+
+  @override
   String get equipment_location_activeFilter => 'מיקום';
 
   @override
@@ -24028,6 +24066,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'ציוד מקובץ לפי מיקום';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'קבוצות ציוד מקופלות';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';

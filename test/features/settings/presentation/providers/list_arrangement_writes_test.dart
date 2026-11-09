@@ -125,6 +125,28 @@ void main() {
     expect(a.diveSort, isNull);
   });
 
+  test(
+    'updateEquipmentCollapsedGroups saves the folded keys as JSON',
+    () async {
+      final notifier = await loaded();
+      await notifier.updateEquipmentCollapsedGroups(
+        (_) => ['loc:a', 'type:bcd'],
+      );
+      expect(
+        (await stored()).listArrangements.equipmentCollapsedGroups,
+        '["loc:a","type:bcd"]',
+      );
+    },
+  );
+
+  test('unfolding everything saves an empty list, never null', () async {
+    // A list the diver changed stays changed (ListArrangements.copyWith).
+    final notifier = await loaded();
+    await notifier.updateEquipmentCollapsedGroups((_) => ['loc:a']);
+    await notifier.updateEquipmentCollapsedGroups((_) => const []);
+    expect((await stored()).listArrangements.equipmentCollapsedGroups, '[]');
+  });
+
   test('a list save leaves the device-local preferences alone', () async {
     // A sort is one of the most frequent taps in the app; it saves one
     // diver-settings column and has no business rewriting every
