@@ -49,25 +49,41 @@ class EquipmentFoldsNotifier extends Notifier<List<String>> {
   }
 
   /// Folds [key] if it is open, opens it if it is folded.
-  void toggle(String key) => _set(toggleFoldKey(state, key));
+  void toggle(String key) {
+    final fold = !state.contains(key);
+    _apply(
+      (keys) => switch ((fold, keys.contains(key))) {
+        (true, false) || (false, true) => toggleFoldKey(keys, key),
+        _ => keys,
+      },
+    );
+  }
 
   /// Opens every group.
-  void expandAll() => _set(const []);
+  void expandAll() => _apply((_) => const []);
 
   /// Folds every outermost group on screen, keeping the inner folds.
   void collapseAll() {
-    var next = state;
-    for (final key in ref.read(equipmentOuterGroupKeysProvider)) {
-      if (!next.contains(key)) next = toggleFoldKey(next, key);
-    }
-    _set(next);
+    final outer = ref.read(equipmentOuterGroupKeysProvider);
+    _apply((keys) {
+      var next = keys;
+      for (final key in outer) {
+        if (!next.contains(key)) next = toggleFoldKey(next, key);
+      }
+      return next;
+    });
   }
 
-  void _set(List<String> next) {
-    state = next;
+  /// Applies [change] to the folds on screen now, and, unless a filter is
+  /// on, to the saved folds once they have loaded: a change, not a result,
+  /// so a tap during the load never replaces what loads.
+  void _apply(List<String> Function(List<String> keys) change) {
+    state = change(state);
     if (_sessionOnly) return;
     unawaited(
-      ref.read(settingsProvider.notifier).setEquipmentCollapsedGroups(next),
+      ref
+          .read(settingsProvider.notifier)
+          .updateEquipmentCollapsedGroups(change),
     );
   }
 }

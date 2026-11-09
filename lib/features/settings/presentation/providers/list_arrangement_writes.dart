@@ -78,9 +78,21 @@ extension ListArrangementWrites on SettingsNotifier {
   /// list is saved as `[]`, never null: a list the diver changed stays
   /// changed.
   Future<void> setEquipmentCollapsedGroups(List<String> keys) =>
-      updateListArrangements(
-        (a) => a.copyWith(equipmentCollapsedGroups: encodeFoldKeys(keys)),
-      );
+      updateEquipmentCollapsedGroups((_) => keys);
+
+  /// Applies [change] to the Equipment page's saved folded keys (issue
+  /// #4184). The change runs against the diver's saved keys once their
+  /// settings have loaded, so a fold tapped during the load adds to them
+  /// rather than replacing them.
+  Future<void> updateEquipmentCollapsedGroups(
+    List<String> Function(List<String> current) change,
+  ) => updateListArrangements(
+    (a) => a.copyWith(
+      equipmentCollapsedGroups: encodeFoldKeys(
+        change(decodeFoldKeys(a.equipmentCollapsedGroups)),
+      ),
+    ),
+  );
 
   /// Applies [change] to the diver's gear arrangement and saves it.
   ///

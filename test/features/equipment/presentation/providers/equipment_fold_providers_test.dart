@@ -11,6 +11,27 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 import '../../../../helpers/mock_providers.dart';
 
+/// Holds the diver's saved arrangement back until the first write, as a
+/// settings load that lands after a launch tap does: the write then runs
+/// against what loaded.
+class _LateLoadSettings extends MockSettingsNotifier {
+  _LateLoadSettings(this.loaded) : super(const AppSettings());
+
+  final ListArrangements loaded;
+  bool _landed = false;
+
+  @override
+  Future<void> updateListArrangements(
+    ListArrangements Function(ListArrangements current) change,
+  ) async {
+    if (!_landed) {
+      _landed = true;
+      state = state.copyWith(listArrangements: loaded);
+    }
+    state = state.copyWith(listArrangements: change(state.listArrangements));
+  }
+}
+
 /// The Equipment page's folds (issue #4184): saved per diver, except while a
 /// filter is on, when every group shows open and folds live in memory only.
 void main() {
@@ -95,5 +116,49 @@ void main() {
     container.read(equipmentFoldsProvider.notifier).expandAll();
     expect(container.read(equipmentFoldsProvider), isEmpty);
     expect(stored(), '[]');
+  });
+
+  test('a fold tapped before settings load keeps the saved folds', () {
+    final late = _LateLoadSettings(
+      const ListArrangements(equipmentCollapsedGroups: '["loc:a"]'),
+    );
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => late),
+        hasMultipleDiversProvider.overrideWithValue(false),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.listen(equipmentFoldsProvider, (_, _) {});
+    expect(c.read(equipmentFoldsProvider), isEmpty);
+
+    c.read(equipmentFoldsProvider.notifier).toggle('type:bcd');
+
+    expect(
+      late.state.listArrangements.equipmentCollapsedGroups,
+      '["loc:a","type:bcd"]',
+    );
+  });
+
+  test('collapse all before settings load keeps the saved folds', () {
+    final late = _LateLoadSettings(
+      const ListArrangements(equipmentCollapsedGroups: '["loc:a/type:bcd"]'),
+    );
+    final c = ProviderContainer(
+      overrides: [
+        settingsProvider.overrideWith((ref) => late),
+        hasMultipleDiversProvider.overrideWithValue(false),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.listen(equipmentFoldsProvider, (_, _) {});
+    c.read(equipmentOuterGroupKeysProvider.notifier).state = const ['loc:a'];
+
+    c.read(equipmentFoldsProvider.notifier).collapseAll();
+
+    expect(
+      late.state.listArrangements.equipmentCollapsedGroups,
+      '["loc:a/type:bcd","loc:a"]',
+    );
   });
 }
