@@ -16661,6 +16661,7 @@
   "transmitters_apply_reading": "Lendo as posições dos transmissores dos seus mergulhos",
   "transmitters_apply_bySerial": "{dives} mergulhos pelo número de série",
   "transmitters_apply_bySlot": "{dives} mergulhos pela posição em {computer}",
+  "transmitters_apply_unknownComputer": "um computador de mergulho",
   "transmitters_apply_olderNote": "{older} deles são anteriores ao seu primeiro download em {date}, supondo que o transmissor estava então na mesma posição",
   "transmitters_apply_includeOlder": "Incluir mergulhos anteriores ao primeiro download",
   "transmitters_apply_changedHands": "{dives} mergulhos ignorados: outro transmissor usava esta posição nessa altura",

@@ -16661,6 +16661,7 @@
   "transmitters_apply_reading": "جارٍ قراءة فتحات أجهزة الإرسال من غطساتك",
   "transmitters_apply_bySerial": "{dives} غطسة حسب الرقم التسلسلي",
   "transmitters_apply_bySlot": "{dives} غطسة حسب الفتحة على {computer}",
+  "transmitters_apply_unknownComputer": "حاسوب غوص",
   "transmitters_apply_olderNote": "{older} منها من قبل أول تنزيل لك في {date}، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك",
   "transmitters_apply_includeOlder": "تضمين الغطسات من قبل أول تنزيل",
   "transmitters_apply_changedHands": "تُخطّيت {dives} غطسة: استخدم جهاز إرسال آخر هذه الفتحة في ذلك الوقت تقريبًا",

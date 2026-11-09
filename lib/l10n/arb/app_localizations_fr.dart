@@ -56114,6 +56114,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'un ordinateur de plongée';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '$older d\'entre elles datent d\'avant votre premier téléchargement du $date, en supposant que l\'émetteur occupait alors le même emplacement';
   }

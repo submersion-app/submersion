@@ -16661,6 +16661,7 @@
   "transmitters_apply_reading": "Zenderposities uit je duiken lezen",
   "transmitters_apply_bySerial": "{dives} duiken op serienummer",
   "transmitters_apply_bySlot": "{dives} duiken op positie op {computer}",
+  "transmitters_apply_unknownComputer": "een duikcomputer",
   "transmitters_apply_olderNote": "{older} daarvan zijn van vóór je eerste download op {date}, aangenomen dat de zender toen op dezelfde positie zat",
   "transmitters_apply_includeOlder": "Duiken van vóór de eerste download meenemen",
   "transmitters_apply_changedHands": "{dives} duiken overgeslagen: rond die tijd gebruikte een andere zender deze positie",

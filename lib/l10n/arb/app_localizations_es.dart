@@ -56033,6 +56033,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'un ordenador de buceo';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '$older de ellas son anteriores a tu primera descarga del $date, suponiendo que el transmisor estaba entonces en la misma ranura';
   }

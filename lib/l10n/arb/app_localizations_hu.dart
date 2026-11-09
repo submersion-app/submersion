@@ -55687,6 +55687,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'egy búvárkomputer';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return 'Ebből $older az első, $date napi letöltés előtti, feltételezve, hogy a jeladó akkor is ugyanazon a helyen volt';
   }

@@ -16661,6 +16661,7 @@
   "transmitters_apply_reading": "קורא את חריצי המשדרים מהצלילות שלך",
   "transmitters_apply_bySerial": "{dives} צלילות לפי מספר סידורי",
   "transmitters_apply_bySlot": "{dives} צלילות לפי חריץ ב-{computer}",
+  "transmitters_apply_unknownComputer": "מחשב צלילה",
   "transmitters_apply_olderNote": "{older} מהן קודמות להורדה הראשונה שלך ב-{date}, בהנחה שהמשדר היה אז באותו חריץ",
   "transmitters_apply_includeOlder": "לכלול צלילות שלפני ההורדה הראשונה",
   "transmitters_apply_changedHands": "{dives} צלילות דולגו: משדר אחר השתמש בחריץ הזה בסביבות אותו זמן",

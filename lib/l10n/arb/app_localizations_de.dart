@@ -55869,6 +55869,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'einem Tauchcomputer';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '$older davon stammen aus der Zeit vor dem ersten Download am $date; dabei wird angenommen, dass der Sender damals auf demselben Platz war';
   }

@@ -43,21 +43,36 @@ class TransmitterSlotBackfill {
 
   AppDatabase get _db => _database ?? DatabaseService.instance.database;
 
+  /// How many sources and dives on [computerIds] [run] would parse, so a
+  /// caller shows progress only when there is work.
+  Future<int> pendingCount(Set<String> computerIds) async {
+    final (:sources, :dives) = await _pending(computerIds);
+    return sources.length + dives.length;
+  }
+
+  Future<({List<String> sources, List<String> dives})> _pending(
+    Set<String> computerIds,
+  ) async {
+    if (computerIds.isEmpty) return (sources: <String>[], dives: <String>[]);
+    final done = await _memo.load();
+    return (
+      sources: [
+        for (final id in await _rawSourceIds(computerIds))
+          if (!done.contains('raw:$id')) id,
+      ],
+      dives: [
+        for (final id in await _fileDiveIds(computerIds))
+          if (!done.contains('file:$id')) id,
+      ],
+    );
+  }
+
   /// Backfills the dives on [computerIds]. Returns the tanks written.
   Future<int> run(
     Set<String> computerIds, {
     void Function(int done, int total)? onProgress,
   }) async {
-    if (computerIds.isEmpty) return 0;
-    final done = await _memo.load();
-    final sources = [
-      for (final id in await _rawSourceIds(computerIds))
-        if (!done.contains('raw:$id')) id,
-    ];
-    final dives = [
-      for (final id in await _fileDiveIds(computerIds))
-        if (!done.contains('file:$id')) id,
-    ];
+    final (:sources, :dives) = await _pending(computerIds);
     final total = sources.length + dives.length;
     if (total == 0) return 0;
     final sync = SyncRepository(database: _db);

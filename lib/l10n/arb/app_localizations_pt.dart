@@ -55976,6 +55976,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'um computador de mergulho';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '$older deles são anteriores ao seu primeiro download em $date, supondo que o transmissor estava então na mesma posição';
   }

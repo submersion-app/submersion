@@ -98,15 +98,7 @@ class _SectionCard extends ConsumerWidget {
                     onPressed: () => context.push(addKey),
                     child: Text(l10n.transmitters_section_addKey),
                   ),
-                  if (setup.isSetUp)
-                    TextButton(
-                      onPressed: () => applyTransmitterSetupToExistingDives(
-                        context,
-                        ref,
-                        keys,
-                      ),
-                      child: Text(l10n.transmitters_action_apply),
-                    ),
+                  if (setup.isSetUp) _ApplyButton(keys: keys),
                 ],
               ),
             ],
@@ -164,4 +156,35 @@ class _CylinderRow extends ConsumerWidget {
       onTap: () => context.push('/equipment/$cylinderId'),
     );
   }
+}
+
+/// "Apply to existing dives", disabled while its flow runs: a second tap
+/// during the first's database reads would start a second backfill beside
+/// it (issue #4347).
+class _ApplyButton extends ConsumerStatefulWidget {
+  const _ApplyButton({required this.keys});
+
+  final List<Transmitter> keys;
+
+  @override
+  ConsumerState<_ApplyButton> createState() => _ApplyButtonState();
+}
+
+class _ApplyButtonState extends ConsumerState<_ApplyButton> {
+  var _running = false;
+
+  Future<void> _apply() async {
+    setState(() => _running = true);
+    try {
+      await applyTransmitterSetupToExistingDives(context, ref, widget.keys);
+    } finally {
+      if (mounted) setState(() => _running = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => TextButton(
+    onPressed: _running ? null : _apply,
+    child: Text(context.l10n.transmitters_action_apply),
+  );
 }

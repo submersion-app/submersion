@@ -55991,6 +55991,9 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'un computer subacqueo';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '$older di queste sono precedenti al primo scaricamento del $date, supponendo che il trasmettitore fosse allora nello stesso slot';
   }

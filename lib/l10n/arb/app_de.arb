@@ -16815,6 +16815,7 @@
   "transmitters_apply_reading": "Senderplätze werden aus den Tauchgängen gelesen",
   "transmitters_apply_bySerial": "{dives} Tauchgänge über die Seriennummer",
   "transmitters_apply_bySlot": "{dives} Tauchgänge über den Platz auf {computer}",
+  "transmitters_apply_unknownComputer": "einem Tauchcomputer",
   "transmitters_apply_olderNote": "{older} davon stammen aus der Zeit vor dem ersten Download am {date}; dabei wird angenommen, dass der Sender damals auf demselben Platz war",
   "transmitters_apply_includeOlder": "Tauchgänge vor dem ersten Download einbeziehen",
   "transmitters_apply_changedHands": "{dives} Tauchgänge übersprungen: Um diese Zeit nutzte ein anderer Sender diesen Platz",

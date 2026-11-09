@@ -124,6 +124,7 @@ void main() {
           find.textContaining('3 cylinders on 3 dives carry this transmitter'),
           findsOneWidget,
         );
+        expect(find.text('1 dives by slot on Perdix 2'), findsOneWidget);
       },
     );
     expect(result, {'a-t'});
@@ -146,6 +147,18 @@ void main() {
       },
     );
     expect(result, isEmpty);
+  });
+
+  testWidgets('a computer with no name gets a generic label, never its id',
+      (tester) async {
+    await open(
+      tester,
+      slots: TransmitterSlotPreview(candidates: [candidate('a')]),
+      interact: (tester) async {
+        expect(find.text('1 dives by slot on a dive computer'), findsOneWidget);
+        expect(find.textContaining('perdix'), findsNothing);
+      },
+    );
   });
 
   testWidgets('cancel returns nothing', (tester) async {

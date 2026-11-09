@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_slot_backfill.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter_slot_preview.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -82,8 +83,9 @@ Future<void> applyTransmitterSetupToExistingDives(
       if (normalizeTransmitterSerial(key.transmitterSerial) case final serial?)
         ...await repo.computersForSerial(serial),
   };
-  if (computers.isNotEmpty && context.mounted) {
-    await _learnSlots(context, ref, computers);
+  final backfill = ref.read(transmitterSlotBackfillProvider);
+  if (await backfill.pendingCount(computers) > 0 && context.mounted) {
+    await _learnSlots(context, backfill, computers);
   }
   // Preview the counts with a dry run: the repository's matchers are the
   // same ones the write uses, so the numbers cannot disagree.
@@ -143,10 +145,12 @@ Future<void> applyTransmitterSetupToExistingDives(
 /// effort: a failure leaves the slots it could not learn unmatched.
 Future<void> _learnSlots(
   BuildContext context,
-  WidgetRef ref,
+  TransmitterSlotBackfill backfill,
   Set<String> computers,
 ) async {
-  final navigator = Navigator.of(context);
+  // showDialog pushes onto the root navigator, above the app's ShellRoute,
+  // so the pop must go there too, not to the page's own navigator.
+  final navigator = Navigator.of(context, rootNavigator: true);
   final progress = ValueNotifier<double?>(null);
   unawaited(
     showDialog<void>(
@@ -171,12 +175,10 @@ Future<void> _learnSlots(
     ),
   );
   try {
-    await ref
-        .read(transmitterSlotBackfillProvider)
-        .run(
-          computers,
-          onProgress: (done, total) => progress.value = done / total,
-        );
+    await backfill.run(
+      computers,
+      onProgress: (done, total) => progress.value = done / total,
+    );
   } catch (e, stackTrace) {
     _log.warning(
       'Transmitter slot backfill failed',

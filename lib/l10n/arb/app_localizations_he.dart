@@ -54800,6 +54800,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'מחשב צלילה';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '$older מהן קודמות להורדה הראשונה שלך ב-$date, בהנחה שהמשדר היה אז באותו חריץ';
   }

@@ -88270,6 +88270,12 @@ abstract class AppLocalizations {
   /// **'{dives} dives by slot on {computer}'**
   String transmitters_apply_bySlot(int dives, String computer);
 
+  /// Fills {computer} in transmitters_apply_bySlot when the dive computer has no name
+  ///
+  /// In en, this message translates to:
+  /// **'a dive computer'**
+  String get transmitters_apply_unknownComputer;
+
   /// No description provided for @transmitters_apply_olderNote.
   ///
   /// In en, this message translates to:

@@ -16661,6 +16661,7 @@
   "transmitters_apply_reading": "Lecture des emplacements d'émetteur dans vos plongées",
   "transmitters_apply_bySerial": "{dives} plongées par numéro de série",
   "transmitters_apply_bySlot": "{dives} plongées par emplacement sur {computer}",
+  "transmitters_apply_unknownComputer": "un ordinateur de plongée",
   "transmitters_apply_olderNote": "{older} d'entre elles datent d'avant votre premier téléchargement du {date}, en supposant que l'émetteur occupait alors le même emplacement",
   "transmitters_apply_includeOlder": "Inclure les plongées antérieures au premier téléchargement",
   "transmitters_apply_changedHands": "{dives} plongées ignorées : un autre émetteur utilisait cet emplacement à cette période",

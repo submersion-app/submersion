@@ -16661,6 +16661,7 @@
   "transmitters_apply_reading": "Lettura degli slot dei trasmettitori dalle immersioni",
   "transmitters_apply_bySerial": "{dives} immersioni per numero di serie",
   "transmitters_apply_bySlot": "{dives} immersioni per slot su {computer}",
+  "transmitters_apply_unknownComputer": "un computer subacqueo",
   "transmitters_apply_olderNote": "{older} di queste sono precedenti al primo scaricamento del {date}, supponendo che il trasmettitore fosse allora nello stesso slot",
   "transmitters_apply_includeOlder": "Includi le immersioni precedenti al primo scaricamento",
   "transmitters_apply_changedHands": "{dives} immersioni saltate: in quel periodo un altro trasmettitore usava questo slot",

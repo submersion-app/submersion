@@ -56704,6 +56704,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'حاسوب غوص';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '$older منها من قبل أول تنزيل لك في $date، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك';
   }

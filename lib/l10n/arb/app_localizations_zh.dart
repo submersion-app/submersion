@@ -52495,6 +52495,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => '一台潜水电脑';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '其中 $older 次早于 $date 的首次下载，假定当时发射器位于同一插槽';
   }

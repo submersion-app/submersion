@@ -55103,6 +55103,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_unknownComputer => 'a dive computer';
+
+  @override
   String transmitters_apply_olderNote(int older, String date) {
     return '$older of them are from before your first download on $date, assuming the transmitter sat in the same slot then';
   }

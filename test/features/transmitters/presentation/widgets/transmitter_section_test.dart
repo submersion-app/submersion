@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -31,10 +33,17 @@ class _FakeApplyRepository extends TransmitterRepository {
   final applied = <String>[];
   final slotTankIdsApplied = <Set<String>>[];
 
+  var serialLookups = 0;
+
+  /// Holds lookups open until completed, as a slow database would.
+  Completer<void>? gate;
+
   @override
-  Future<Set<String>> computersForSerial(String serial) async => {
-    for (final c in slots.candidates) c.computerId,
-  };
+  Future<Set<String>> computersForSerial(String serial) async {
+    serialLookups++;
+    await gate?.future;
+    return {for (final c in slots.candidates) c.computerId};
+  }
 
   @override
   Future<TransmitterSlotPreview> previewSlotMatches(Transmitter t) async =>
@@ -59,10 +68,14 @@ class _FakeApplyRepository extends TransmitterRepository {
 
 /// Records the computers the Apply flow backfills, and writes nothing.
 class _FakeBackfill extends TransmitterSlotBackfill {
-  _FakeBackfill()
+  _FakeBackfill({this.pending = 1})
     : super(parseRaw: (v, p, m, raw) => throw UnimplementedError());
 
+  final int pending;
   final runs = <Set<String>>[];
+
+  @override
+  Future<int> pendingCount(Set<String> computerIds) async => pending;
 
   @override
   Future<int> run(
@@ -103,29 +116,38 @@ void main() {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
+    // One ShellRoute, as the app has (issue #4347): a dialog the flow
+    // shows lives on the root navigator, not the page's.
     final router = GoRouter(
       initialLocation: '/equipment/tx-gear',
       routes: [
-        GoRoute(
-          path: '/equipment/cyl',
-          builder: (_, _) => const Scaffold(body: Text('CYLINDER PAGE')),
-        ),
-        GoRoute(
-          path: '/equipment/:id',
-          builder: (_, s) => Scaffold(
-            body: SingleChildScrollView(
-              child: TransmitterSection(equipmentId: s.pathParameters['id']!),
-            ),
-          ),
+        ShellRoute(
+          builder: (_, _, child) => child,
           routes: [
             GoRoute(
-              path: 'transmitter',
-              builder: (_, _) => const Scaffold(body: Text('ADD KEY')),
+              path: '/equipment/cyl',
+              builder: (_, _) => const Scaffold(body: Text('CYLINDER PAGE')),
+            ),
+            GoRoute(
+              path: '/equipment/:id',
+              builder: (_, s) => Scaffold(
+                body: SingleChildScrollView(
+                  child: TransmitterSection(
+                    equipmentId: s.pathParameters['id']!,
+                  ),
+                ),
+              ),
               routes: [
                 GoRoute(
-                  path: ':k',
-                  builder: (_, s) =>
-                      Scaffold(body: Text('EDIT ${s.pathParameters['k']}')),
+                  path: 'transmitter',
+                  builder: (_, _) => const Scaffold(body: Text('ADD KEY')),
+                  routes: [
+                    GoRoute(
+                      path: ':k',
+                      builder: (_, s) =>
+                          Scaffold(body: Text('EDIT ${s.pathParameters['k']}')),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -314,6 +336,68 @@ void main() {
         {'a-t'},
       ]);
       expect(find.text('Updated 1 cylinders on 1 dives'), findsOneWidget);
+    });
+
+    testWidgets('nothing left to learn runs no backfill and shows no '
+        'progress', (tester) async {
+      final repo = _FakeApplyRepository(
+        preview: (tanksUpdated: 1, divesUpdated: 1, mixesKept: 0),
+        slots: const TransmitterSlotPreview(
+          candidates: [
+            SlotCandidate(tankId: 'a-t', diveId: 'a', computerId: 'pd'),
+          ],
+        ),
+      );
+      final backfill = _FakeBackfill(pending: 0);
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Apply to existing dives'));
+      await tester.pump();
+      expect(
+        find.text('Reading transmitter slots from your dives'),
+        findsNothing,
+      );
+      await tester.pumpAndSettle();
+      expect(backfill.runs, isEmpty);
+      expect(find.text('Apply to existing dives?'), findsOneWidget);
+    });
+
+    testWidgets('a second tap while the first is running starts nothing', (
+      tester,
+    ) async {
+      final repo = _FakeApplyRepository(
+        preview: (tanksUpdated: 1, divesUpdated: 1, mixesKept: 0),
+        slots: const TransmitterSlotPreview(
+          candidates: [
+            SlotCandidate(tankId: 'a-t', diveId: 'a', computerId: 'pd'),
+          ],
+        ),
+      );
+      final backfill = _FakeBackfill();
+      repo.gate = Completer<void>();
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Apply to existing dives'));
+      await tester.pump();
+      await tester.tap(find.text('Apply to existing dives'));
+      await tester.pump();
+      repo.gate!.complete();
+      await tester.pumpAndSettle();
+      expect(repo.serialLookups, 1);
+      expect(backfill.runs, hasLength(1));
+      expect(find.text('Apply to existing dives?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('a failed apply says so', (tester) async {

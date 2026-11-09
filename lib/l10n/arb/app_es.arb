@@ -16661,6 +16661,7 @@
   "transmitters_apply_reading": "Leyendo las ranuras de los transmisores de tus inmersiones",
   "transmitters_apply_bySerial": "{dives} inmersiones por número de serie",
   "transmitters_apply_bySlot": "{dives} inmersiones por ranura en {computer}",
+  "transmitters_apply_unknownComputer": "un ordenador de buceo",
   "transmitters_apply_olderNote": "{older} de ellas son anteriores a tu primera descarga del {date}, suponiendo que el transmisor estaba entonces en la misma ranura",
   "transmitters_apply_includeOlder": "Incluir inmersiones anteriores a la primera descarga",
   "transmitters_apply_changedHands": "{dives} inmersiones omitidas: otro transmisor usaba esta ranura por entonces",

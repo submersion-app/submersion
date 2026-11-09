@@ -66,7 +66,8 @@ class _TransmitterApplyDialogState
                 Text(
                   l10n.transmitters_apply_bySlot(
                     group.dives,
-                    slots.computerNames[group.computerId] ?? group.computerId,
+                    slots.computerNames[group.computerId] ??
+                        l10n.transmitters_apply_unknownComputer,
                   ),
                 ),
                 if (group.olderDives > 0)
@@ -118,7 +119,9 @@ class _TransmitterApplyDialogState
     );
   }
 
-  /// The slot matches per computer, in the order they first appear.
+  /// The slot matches per computer, in the order they first appear. The
+  /// dive count follows the switch; the older count always says what the
+  /// switch controls.
   List<_ComputerGroup> _byComputer(TransmitterSlotPreview slots) {
     final groups = <String, _ComputerGroup>{};
     for (final c in slots.candidates) {
@@ -126,7 +129,7 @@ class _TransmitterApplyDialogState
         c.computerId,
         () => _ComputerGroup(c.computerId),
       );
-      g.diveIds.add(c.diveId);
+      if (_includeOlder || !c.olderThanFirstDownload) g.diveIds.add(c.diveId);
       if (c.olderThanFirstDownload) {
         g.olderDiveIds.add(c.diveId);
         final first = c.firstDownload;
