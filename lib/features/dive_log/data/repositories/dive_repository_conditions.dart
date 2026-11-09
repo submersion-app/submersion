@@ -55,13 +55,17 @@ extension DiveConditionsQueries on DiveRepository {
     return null;
   }
 
-  /// Dives with at least one empty weather column, narrowed to [diverId] and
-  /// to [diveIds] when given.
+  /// Logged dives with at least one empty weather column, narrowed to
+  /// [diverId] and to [diveIds] when given.
+  ///
+  /// Planned dives are left out: one in the future has no archive weather
+  /// yet, so it could only ever come back as "no data available".
   ///
   /// Shared by the candidate list and both counts so they can never disagree
   /// about what "missing conditions" means.
   Expression<bool> _conditionsScope({String? diverId, List<String>? diveIds}) {
-    var condition = _hasConditionsGap(_db.dives);
+    var condition =
+        _hasConditionsGap(_db.dives) & _db.dives.isPlanned.equals(false);
     if (diverId != null) {
       condition = condition & _db.dives.diverId.equals(diverId);
     }

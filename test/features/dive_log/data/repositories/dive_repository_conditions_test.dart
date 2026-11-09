@@ -372,6 +372,38 @@ void main() {
     });
   });
 
+  group('planned dives are left out of conditions fetches', () {
+    test('a planned dive is neither a candidate nor counted', () async {
+      await insertSite('s1', latitude: 12.5, longitude: -68.25);
+      final now = DateTime.now().millisecondsSinceEpoch;
+      for (final (id, siteId) in [('planned', 's1'), ('planned-bare', null)]) {
+        await db
+            .into(db.dives)
+            .insert(
+              DivesCompanion.insert(
+                id: id,
+                diveDateTime: now,
+                createdAt: now,
+                updatedAt: now,
+                siteId: Value(siteId),
+                isPlanned: const Value(true),
+              ),
+            );
+      }
+      await insertDive('logged', siteId: 's1');
+
+      final candidates = await repository.getDivesNeedingConditions();
+
+      expect(candidates.map((c) => c.id), ['logged']);
+      expect(await repository.countDivesNeedingConditions(), 1);
+      expect(
+        await repository.countDivesNeedingConditions(diveIds: {'planned'}),
+        0,
+      );
+      expect(await repository.countDivesMissingConditionsWithoutLocation(), 0);
+    });
+  });
+
   group('DiveRepository.countDivesMissingConditionsWithoutLocation', () {
     test('counts dives with a gap and no usable location', () async {
       await insertSite('s1', latitude: 12.5, longitude: -68.25);
