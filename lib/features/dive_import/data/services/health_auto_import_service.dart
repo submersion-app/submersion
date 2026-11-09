@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
 import 'package:submersion/features/dive_import/data/services/health_dive_writer.dart';
@@ -114,9 +115,11 @@ class HealthAutoImportService {
     final handled = _readIds(_handledKey, end);
     final announced = _readIds(SettingsKeys.healthReviewAnnounced, end);
     final workouts = await _health.fetchDives(startDate: start, endDate: end);
+    // Health reads by true instant; dives store a wall clock flagged UTC,
+    // so the dive query takes the same window on the diver's clock.
     final nearby = await _dives.getDivesInRange(
-      start.subtract(const Duration(hours: 6)),
-      end.add(const Duration(hours: 6)),
+      asWallClockUtc(start.toLocal()).subtract(const Duration(hours: 6)),
+      asWallClockUtc(end.toLocal()).add(const Duration(hours: 6)),
       diverId: diverId,
     );
     final fresh = <ImportedDive>[];

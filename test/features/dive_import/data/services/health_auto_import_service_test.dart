@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
 import 'package:submersion/features/dive_import/data/services/health_auto_import_service.dart';
@@ -25,9 +26,11 @@ class _Health extends Fake implements HealthImportService {
     required DateTime endDate,
   }) async {
     fetches++;
+    // HealthKit reads by true instant and hands back wall-clock times.
     return [
       for (final w in workouts)
-        if (!w.startTime.isBefore(startDate) && !w.startTime.isAfter(endDate))
+        if (!fromWallClockUtc(w.startTime).isBefore(startDate) &&
+            !fromWallClockUtc(w.startTime).isAfter(endDate))
           w,
     ];
   }
@@ -47,7 +50,8 @@ void main() {
   String? bound = 'a';
   // Wall clock flagged UTC, as dive times are.
   final ten = DateTime.utc(2026, 7, 17, 10);
-  final now = DateTime.utc(2026, 7, 17, 13);
+  // A true instant, as the app's clock is: 13:00 on the device.
+  final now = DateTime(2026, 7, 17, 13);
   final created = DateTime.utc(2026, 7, 1).millisecondsSinceEpoch;
 
   ImportedDive workout(String id, DateTime start) => ImportedDive(
@@ -173,6 +177,31 @@ void main() {
       expect((await dives.getDiveById(downloaded.id))!.maxDepth, 18.2);
     },
   );
+
+  test('a dive downloaded two hours ago is found east of UTC too, with the '
+      'app\'s own clock (run this file under TZ=Australia/Sydney)', () async {
+    final start = asWallClockUtc(
+      DateTime.now().subtract(const Duration(hours: 2)),
+    );
+    final downloaded = await dives.createDive(
+      Dive(
+        id: '',
+        diverId: 'a',
+        dateTime: start,
+        entryTime: start,
+        exitTime: start.add(const Duration(minutes: 45)),
+        runtime: const Duration(minutes: 45),
+        maxDepth: 18.2,
+        diveNumber: 1,
+      ),
+    );
+    health.workouts = [workout('w1', start)];
+
+    final result = await service().run();
+
+    expect(result.consolidatedIds, [downloaded.id]);
+    expect(result.newDiveIds, isEmpty);
+  });
 
   test('a workout that fits two drafts is reported, not written', () async {
     for (final (entry, exit) in [
