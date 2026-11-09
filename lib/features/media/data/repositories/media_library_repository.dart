@@ -235,6 +235,16 @@ class MediaLibraryRepository {
     if (filter.hasPeople) {
       where = where & _peopleFacet(diverId, filter);
     }
+    // The cleanup facets (issue #4148) negate the tile markers' own SQL, so
+    // a row shows under each exactly when its tile lacks that marker.
+    if (filter.noPeople) {
+      where = where & LibraryTileMarkers.hasPeople.not();
+    }
+    if (filter.notPlacedInDive) {
+      // Only dive rows: a row with no dive cannot be placed in one.
+      where =
+          where & m.diveId.isNotNull() & LibraryTileMarkers.hasTimeInDive.not();
+    }
     // taken_at is stored as wall-clock-as-UTC millis, so a bound picked in
     // local time has to be normalised the same way before it can be
     // compared -- otherwise the window slides by the host's UTC offset.

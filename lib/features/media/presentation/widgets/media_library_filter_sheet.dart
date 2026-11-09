@@ -63,6 +63,8 @@ class _MediaLibraryFilterSheetState
   Set<String> _tagIds = const {};
   Set<String> _buddyIds = const {};
   bool _includeMe = false;
+  bool _noPeople = false;
+  bool _notPlacedInDive = false;
 
   @override
   void initState() {
@@ -79,6 +81,8 @@ class _MediaLibraryFilterSheetState
     _tagIds = filter.tagIds;
     _buddyIds = filter.buddyIds;
     _includeMe = filter.includeMe;
+    _noPeople = filter.noPeople;
+    _notPlacedInDive = filter.notPlacedInDive;
   }
 
   void _clearAll() {
@@ -94,6 +98,8 @@ class _MediaLibraryFilterSheetState
       _tagIds = const {};
       _buddyIds = const {};
       _includeMe = false;
+      _noPeople = false;
+      _notPlacedInDive = false;
     });
   }
 
@@ -114,6 +120,8 @@ class _MediaLibraryFilterSheetState
       tagIds: _tagIds,
       buddyIds: _buddyIds,
       includeMe: _includeMe,
+      noPeople: _noPeople,
+      notPlacedInDive: _notPlacedInDive,
     );
     Navigator.of(context).pop();
   }
@@ -219,6 +227,10 @@ class _MediaLibraryFilterSheetState
   /// the diver's buddies tagged somewhere (an untagged one would only match
   /// nothing) and any already selected. A selected buddy no longer listed
   /// (deleted since an album was saved) still shows, so it can be cleared.
+  ///
+  /// "No one tagged" (issue #4148) leads the row and excludes the rest:
+  /// together with a person it could only match nothing, so picking it
+  /// clears the people and picking a person clears it.
   Widget _buildPeopleSection() {
     final l10n = context.l10n;
     final all = ref.watch(allBuddiesProvider).value;
@@ -260,12 +272,19 @@ class _MediaLibraryFilterSheetState
             spacing: 8,
             runSpacing: 8,
             children: [
-              person(
-                'me',
-                l10n.media_people_me,
-                _includeMe,
-                (v) => _includeMe = v,
-              ),
+              person('none', l10n.media_library_filter_noPeople, _noPeople, (
+                v,
+              ) {
+                _noPeople = v;
+                if (v) {
+                  _includeMe = false;
+                  _buddyIds = const {};
+                }
+              }),
+              person('me', l10n.media_people_me, _includeMe, (v) {
+                _includeMe = v;
+                if (v) _noPeople = false;
+              }),
               for (final b in buddies)
                 person(
                   b.id,
@@ -288,6 +307,7 @@ class _MediaLibraryFilterSheetState
   }
 
   void _toggleBuddy(String id, bool selected) {
+    if (selected) _noPeople = false;
     _buddyIds = selected
         ? {..._buddyIds, id}
         : _buddyIds.where((b) => b != id).toSet();
@@ -328,6 +348,8 @@ class _MediaLibraryFilterSheetState
                     _tagIds = album.filter.tagIds;
                     _buddyIds = album.filter.buddyIds;
                     _includeMe = album.filter.includeMe;
+                    _noPeople = album.filter.noPeople;
+                    _notPlacedInDive = album.filter.notPlacedInDive;
                   });
                 },
               ),
@@ -560,6 +582,17 @@ class _MediaLibraryFilterSheetState
                         ),
                         value: _missingOnly,
                         onChanged: (on) => setState(() => _missingOnly = on),
+                      ),
+                      // Dive items with no time in their dive (issue #4148),
+                      // the ones the profile chart draws no marker for.
+                      SwitchListTile(
+                        key: const ValueKey('media_filter_not_placed'),
+                        contentPadding: EdgeInsets.zero,
+                        secondary: const Icon(Icons.schedule_outlined),
+                        title: Text(l10n.media_library_filter_notPlacedInDive),
+                        value: _notPlacedInDive,
+                        onChanged: (on) =>
+                            setState(() => _notPlacedInDive = on),
                       ),
                     ],
                   ),
