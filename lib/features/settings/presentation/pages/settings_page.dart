@@ -11,6 +11,7 @@ import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
+import 'package:submersion/features/settings/presentation/widgets/apple_health_settings_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/manage_section_content.dart';
@@ -1973,6 +1974,9 @@ class _DataSourcesSectionContent extends ConsumerWidget {
               onTap: () => context.push('/settings/wearable-import'),
             ),
           ),
+          // Automatic import and per-dive health readings (issue #637), iOS
+          // only; it brings its own spacing, so it leaves no gap elsewhere.
+          const AppleHealthSettingsSection(),
           const SizedBox(height: 16),
           // Privacy and attribution
           Card(

@@ -37985,6 +37985,27 @@ class AppLocalizationsFr extends AppLocalizations {
       'Importer des plongées depuis l\'Apple Watch via HealthKit';
 
   @override
+  String get settings_appleHealth_autoImport_title =>
+      'Import Apple Watch dives automatically';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'New dives from your watch appear when you open the app.';
+
+  @override
+  String get settings_appleHealth_metrics_title =>
+      'Heart rate, recovery and sleep';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'Adds heart rate during and after each dive, overnight HRV and the sleep before it.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'For: $name';
+  }
+
+  @override
   String get settings_dataSources_appleHealth_privacy =>
       'Vos données de santé sont stockées localement sur cet appareil et ne sont jamais partagées avec des tiers. Submersion lit uniquement les données d\'Apple HealthKit et n\'écrit aucune donnée dans HealthKit.';
 

@@ -59640,6 +59640,36 @@ abstract class AppLocalizations {
   /// **'Import Dives from Apple Watch via HealthKit'**
   String get settings_dataSources_appleHealth_importAction;
 
+  /// No description provided for @settings_appleHealth_autoImport_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Apple Watch dives automatically'**
+  String get settings_appleHealth_autoImport_title;
+
+  /// No description provided for @settings_appleHealth_autoImport_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New dives from your watch appear when you open the app.'**
+  String get settings_appleHealth_autoImport_subtitle;
+
+  /// No description provided for @settings_appleHealth_metrics_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate, recovery and sleep'**
+  String get settings_appleHealth_metrics_title;
+
+  /// No description provided for @settings_appleHealth_metrics_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds heart rate during and after each dive, overnight HRV and the sleep before it.'**
+  String get settings_appleHealth_metrics_subtitle;
+
+  /// Under an Apple Health switch: the diver whose dives it writes to
+  ///
+  /// In en, this message translates to:
+  /// **'For: {name}'**
+  String settings_appleHealth_boundDiver(String name);
+
   /// No description provided for @settings_dataSources_appleHealth_privacy.
   ///
   /// In en, this message translates to:

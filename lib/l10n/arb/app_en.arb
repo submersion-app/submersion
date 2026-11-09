@@ -22733,6 +22733,19 @@
   "settings_dataSources_appleHealth_permissionNotGranted": "HealthKit access not granted",
   "settings_dataSources_appleHealth_permissionChecking": "Checking HealthKit access...",
   "settings_dataSources_appleHealth_importAction": "Import Dives from Apple Watch via HealthKit",
+  "settings_appleHealth_autoImport_title": "Import Apple Watch dives automatically",
+  "settings_appleHealth_autoImport_subtitle": "New dives from your watch appear when you open the app.",
+  "settings_appleHealth_metrics_title": "Heart rate, recovery and sleep",
+  "settings_appleHealth_metrics_subtitle": "Adds heart rate during and after each dive, overnight HRV and the sleep before it.",
+  "settings_appleHealth_boundDiver": "For: {name}",
+  "@settings_appleHealth_boundDiver": {
+    "description": "Under an Apple Health switch: the diver whose dives it writes to",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally on this device and is never shared with third parties. Submersion only reads data from Apple HealthKit and does not write any data back to HealthKit.",
   "settings_dataSources_appleHealth_poweredBy": "Powered by Apple HealthKit",
   "diveLog_edit_subsection_autofill": "Auto-fill",

@@ -72,6 +72,11 @@ enum UnitPreset {
 
 /// Keys for SharedPreferences
 class SettingsKeys {
+  // Apple Health (issue #637), device-local: the diver each switch is bound
+  // to, and the last automatic import.
+  static const String healthAutoImportDiver = 'health_auto_import_diver';
+  static const String healthMetricsDiver = 'health_metrics_diver';
+  static const String healthImportWatermark = 'health_import_watermark_ms';
   static const String depthUnit = 'depth_unit';
   static const String temperatureUnit = 'temperature_unit';
   static const String pressureUnit = 'pressure_unit';

@@ -35646,6 +35646,27 @@ class AppLocalizationsZh extends AppLocalizations {
       '通过 HealthKit 从 Apple Watch 导入潜水';
 
   @override
+  String get settings_appleHealth_autoImport_title =>
+      'Import Apple Watch dives automatically';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'New dives from your watch appear when you open the app.';
+
+  @override
+  String get settings_appleHealth_metrics_title =>
+      'Heart rate, recovery and sleep';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'Adds heart rate during and after each dive, overnight HRV and the sleep before it.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'For: $name';
+  }
+
+  @override
   String get settings_dataSources_appleHealth_privacy =>
       '您的健康数据存储在本设备上，绝不会与第三方共享。Submersion 仅从 Apple HealthKit 读取数据，不会向 HealthKit 写入任何数据。';
 

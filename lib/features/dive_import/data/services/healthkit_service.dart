@@ -86,6 +86,13 @@ class HealthKitService implements HealthImportService {
     HealthDataType.WATER_TEMPERATURE,
   ];
 
+  /// Read for heart rate, recovery and sleep on dives (issue #637).
+  static const List<HealthDataType> _metricsTypes = [
+    HealthDataType.HEART_RATE,
+    HealthDataType.HEART_RATE_VARIABILITY_SDNN,
+    HealthDataType.SLEEP_ASLEEP,
+  ];
+
   /// Types used to probe permission state.
   ///
   /// Deliberately narrower than [_readTypes]. Where `requestAuthorization`
@@ -136,6 +143,22 @@ class HealthKitService implements HealthImportService {
   @override
   Future<bool> hasPermissions() async =>
       await permissionStatus() == HealthPermissionStatus.granted;
+
+  @override
+  Future<bool> requestMetricsPermissions() async {
+    if (!_isPlatformSupported || !await _healthKitExists) {
+      return false;
+    }
+    try {
+      await _health.configure();
+      return await _health.requestAuthorization(
+        _metricsTypes,
+        permissions: _metricsTypes.map((_) => HealthDataAccess.READ).toList(),
+      );
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   Future<bool> requestPermissions() async {

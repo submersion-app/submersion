@@ -55,6 +55,11 @@ abstract class HealthImportService {
   /// may call this on every visit rather than gating it behind a check.
   Future<bool> requestPermissions();
 
+  /// Request read access to heart rate, heart rate variability and sleep,
+  /// for the per-dive health record (issue #637). Like [requestPermissions],
+  /// true means the request completed, not that anything was granted.
+  Future<bool> requestMetricsPermissions();
+
   /// What the platform will tell us about read access.
   Future<HealthPermissionStatus> permissionStatus();
 
