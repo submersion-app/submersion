@@ -55,6 +55,7 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
       mergeIntoBatchProfileCache(
         ref.read(batchProfileCacheProvider.notifier),
         profiles,
+        requested: uncached,
       );
     }
   }

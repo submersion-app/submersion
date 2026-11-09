@@ -379,18 +379,32 @@ final batchProfileCacheProvider =
 /// fresh map that runs every card's selector for no change; and the list and
 /// the dashboard can ask for the same dive at once, so an older empty answer
 /// landing after a newer profile must not replace it.
+///
+/// A dive in [requested] that the answer leaves out (its series is
+/// unreadable, or the read failed) is unknown again: an empty entry for it
+/// is dropped, so its card stops drawing an estimate for a dive that may
+/// well have samples. An entry with samples stays.
 void mergeIntoBatchProfileCache(
   StateController<Map<String, List<domain.DiveProfilePoint>>> cache,
-  Map<String, List<domain.DiveProfilePoint>> profiles,
-) {
+  Map<String, List<domain.DiveProfilePoint>> profiles, {
+  Iterable<String> requested = const [],
+}) {
   final current = cache.state;
   final changed = {
     for (final entry in profiles.entries)
       if (entry.value.isNotEmpty || !current.containsKey(entry.key))
         entry.key: entry.value,
   };
-  if (changed.isEmpty) return;
-  cache.state = {...current, ...changed};
+  final forgotten = {
+    for (final id in requested)
+      if (!profiles.containsKey(id) && (current[id]?.isEmpty ?? false)) id,
+  };
+  if (changed.isEmpty && forgotten.isEmpty) return;
+  cache.state = {
+    for (final entry in current.entries)
+      if (!forgotten.contains(entry.key)) entry.key: entry.value,
+    ...changed,
+  };
 }
 
 /// Statistics provider (filtered by current diver).

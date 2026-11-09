@@ -60,7 +60,9 @@ do not refetch. A list page load or reload (and the dashboard's recent dives)
 asks again for dives cached as empty, as it did before they were cached at
 all, so a dive that later gains a profile replaces its estimate with the
 real sparkline. An empty answer only fills a dive with no entry yet, so an
-older empty read landing after a newer profile cannot replace it.
+older empty read landing after a newer profile cannot replace it. A dive
+cached as empty that a later read leaves out (its new series is unreadable,
+or the read failed) loses its entry and stops drawing the estimate.
 
 ## Unreadable stored profiles
 

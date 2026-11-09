@@ -61,6 +61,7 @@ class DiveProfileBatcher {
       mergeIntoBatchProfileCache(
         _ref.read(batchProfileCacheProvider.notifier),
         profiles,
+        requested: ids,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -68,8 +69,16 @@ class DiveProfileBatcher {
         error: e,
         stackTrace: stackTrace,
       );
-      // Not fetched, so a card built again may ask again.
+      // Not fetched, so a card built again may ask again, and a dive cached
+      // as having no samples is unknown again.
       _requested.removeAll(ids);
+      if (!_disposed) {
+        mergeIntoBatchProfileCache(
+          _ref.read(batchProfileCacheProvider.notifier),
+          const {},
+          requested: ids,
+        );
+      }
     } finally {
       _inFlight.removeAll(ids);
     }

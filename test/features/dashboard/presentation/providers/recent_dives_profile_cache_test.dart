@@ -30,6 +30,9 @@ class _GatedProfileRepository implements DiveRepository {
   final Completer<void> started = Completer<void>();
   final Completer<void> release = Completer<void>();
 
+  /// Dives the batch leaves out, as it does a dive with an unreadable series.
+  final Set<String> leftOut = {};
+
   @override
   Stream<void> watchDivesChangesWithBuddyLinks() =>
       _inner.watchDivesChangesWithBuddyLinks();
@@ -59,7 +62,10 @@ class _GatedProfileRepository implements DiveRepository {
   }) async {
     started.complete();
     await release.future;
-    return {for (final id in diveIds) id: _point};
+    return {
+      for (final id in diveIds)
+        if (!leftOut.contains(id)) id: _point,
+    };
   }
 
   @override
@@ -139,6 +145,18 @@ void main() {
 
       expect(repo.started.isCompleted, isTrue);
       expect(container.read(batchProfileCacheProvider)['d1'], _point);
+    });
+
+    test('loses an empty entry when the batch leaves it out', () async {
+      final (repo, container) = await setUpRecent(const []);
+      repo.leftOut.add('d1');
+
+      await container.read(recentDivesProvider.future);
+
+      expect(
+        container.read(batchProfileCacheProvider).containsKey('d1'),
+        isFalse,
+      );
     });
 
     test('is not asked again when cached with samples', () async {

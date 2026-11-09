@@ -10,10 +10,12 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 const _profile = [DiveProfilePoint(timestamp: 0, depth: 10)];
 
 /// Answers profile batches itself; ids in [withoutProfile] have none, which
-/// the repository reports as an empty list (#4112).
+/// the repository reports as an empty list (#4112), and ids in [unreadable]
+/// have a series it cannot read, which it leaves out.
 class _ProfileRepository implements DiveRepository {
   final calls = <List<String>>[];
   final withoutProfile = <String>{};
+  final unreadable = <String>{};
   Completer<void>? hold;
   bool fail = false;
 
@@ -27,7 +29,10 @@ class _ProfileRepository implements DiveRepository {
     if (fail) throw StateError('profiles failed');
     return {
       for (final id in diveIds)
-        id: withoutProfile.contains(id) ? const <DiveProfilePoint>[] : _profile,
+        if (!unreadable.contains(id))
+          id: withoutProfile.contains(id)
+              ? const <DiveProfilePoint>[]
+              : _profile,
     };
   }
 
@@ -134,6 +139,57 @@ void main() {
 
     expect(cache()['a'], _profile);
   });
+
+  // A dive cached as having no samples that a later read leaves out (its new
+  // series is unreadable, or the read failed) may well have samples now, so
+  // it must stop drawing the estimate.
+  test('a dive cached without samples that a load leaves out loses its '
+      'entry', () async {
+    container.read(batchProfileCacheProvider.notifier).state = {
+      'a': const [],
+      'b': const [],
+    };
+    repo.unreadable.add('a');
+
+    await batcher().load(['a', 'b']);
+
+    expect(cache().containsKey('a'), isFalse);
+    expect(cache()['b'], _profile);
+  });
+
+  test('a dive cached without samples loses its entry when the load '
+      'throws', () async {
+    container.read(batchProfileCacheProvider.notifier).state = {
+      'a': const [],
+      'z': const [],
+    };
+    repo.fail = true;
+
+    await batcher().load(['a']);
+
+    expect(cache().keys, ['z']);
+  });
+
+  test(
+    'a load that leaves out a dive cached with samples keeps them',
+    () async {
+      container.read(batchProfileCacheProvider.notifier).state = {
+        'a': const [],
+      };
+      repo
+        ..unreadable.add('a')
+        ..hold = Completer<void>();
+      final stale = batcher().load(['a']);
+      await flush();
+      container.read(batchProfileCacheProvider.notifier).state = {
+        'a': _profile,
+      };
+      repo.hold!.complete();
+      await stale;
+
+      expect(cache()['a'], _profile);
+    },
+  );
 
   test('a request for a dive being loaded waits for that load', () async {
     repo.hold = Completer<void>();
