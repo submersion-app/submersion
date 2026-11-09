@@ -326,6 +326,7 @@ class MediaRepository {
               diveId: Value(item.diveId),
               siteId: Value(item.siteId),
               equipmentId: Value(item.equipmentId),
+              observationId: Value(item.observationId),
               filePath: Value(item.filePath ?? ''),
               fileType: Value(mediaTypeToDbString(item.mediaType)),
               platformAssetId: Value(item.platformAssetId),
@@ -2590,9 +2591,12 @@ class MediaRepository {
       _unlinkColumns(mediaIds, MediaCompanion(siteId: Value(siteId)));
 
   /// Same mechanic for the equipment link, for media a dive or site still
-  /// needs.
-  Future<void> unlinkFromEquipment(List<String> mediaIds) =>
-      _unlinkColumns(mediaIds, const MediaCompanion(equipmentId: Value(null)));
+  /// needs. The check-in link goes with it: a photo off its item backs up
+  /// none of that item's check-ins (issue #3355).
+  Future<void> unlinkFromEquipment(List<String> mediaIds) => _unlinkColumns(
+    mediaIds,
+    const MediaCompanion(equipmentId: Value(null), observationId: Value(null)),
+  );
 
   /// Attaches the equipment link, same sync-safe shape.
   Future<void> linkMediaToEquipment(
