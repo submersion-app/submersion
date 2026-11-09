@@ -168,7 +168,8 @@ void main() {
         ],
       });
 
-      final atDefaults = await ttsOf(await deep());
+      final atDefaultsId = await deep();
+      final atDefaults = await ttsOf(atDefaultsId);
       await DiverSettingsRepository().createSettingsForDiver(
         kDiverA,
         settings: const AppSettings(gfLow: 20, gfHigh: 50),
@@ -182,6 +183,11 @@ void main() {
         updateOp('dive_plans', strict, {'name': 'Deeper'}),
       ]);
       expect(await ttsOf(strict), greaterThan(atDefaults));
+
+      // A bare copy works it out again too, rather than keeping the
+      // summary its source was saved with.
+      final copy = await make('dive_plans', {'duplicate_of': atDefaultsId});
+      expect(await ttsOf(copy), await ttsOf(strict));
     },
   );
 }

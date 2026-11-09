@@ -249,7 +249,9 @@ class DivePlanWrites extends WritableEntry {
             details: {'id': from},
           ));
       final rest = {...values}..remove(_copy);
-      if (rest.isNotEmpty) await _save(copy, rest, ownerId: diverId);
+      // Saved again even with nothing else to set: the copy keeps the
+      // summary its source was saved with, which may be another diver's.
+      await _save(copy, rest, ownerId: diverId, summarize: true);
       return copy.id;
     }
     final now = DateTime.now();
@@ -291,15 +293,18 @@ class DivePlanWrites extends WritableEntry {
 
   /// Saves [plan] with [values] over it, with the summary the planner works
   /// out for [ownerId] from their planner settings, then moves its dive
-  /// link, which the save leaves as stored.
+  /// link, which the save leaves as stored. A change to the link alone
+  /// leaves the summary as it is, unless [summarize] asks for it anyway.
   Future<DivePlan> _save(
     DivePlan plan,
     Map<String, Object?> values, {
     required String? ownerId,
+    bool summarize = false,
   }) async {
     final link = values.containsKey('linked_dive_id');
     final next = _applied(plan, values);
-    final changesPlan = values.keys.any((k) => k != 'linked_dive_id');
+    final changesPlan =
+        summarize || values.keys.any((k) => k != 'linked_dive_id');
     var saved = plan;
     if (changesPlan) {
       final outcome = PlanEngine(
