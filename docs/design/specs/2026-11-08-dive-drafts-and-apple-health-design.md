@@ -130,10 +130,19 @@ entry and exit times and positions, plus anything the diver adds.
     readings (consolidation). This lifts the "HealthKit consolidation"
     non-goal in
     `docs/design/specs/2026-07-02-multi-computer-consolidation-completion-design.md`.
+  - **Falls on the day of a plan** (decided in chat), with no draft or
+    downloaded dive to match: the background import never fills the plan
+    on its own, because a plan's day is much weaker evidence than a
+    draft's taps. It imports nothing and sends the review notification,
+    worded for a plan. In the Health import review, and in the manual
+    import wizard, that row defaults to filling the plan, as a dive
+    computer download does today; the diver can import it as new instead.
+    Drafts are tried first, then downloaded dives, then plans.
   - **No match:** a new dive, as today.
   - **Ambiguous** (two candidates, or a partial overlap): nothing is merged.
     The diver gets a notification that opens the Health import review for
     that workout.
+  - A workout held for review is announced once, not on every app open.
 - After each new or filled dive, a local notification "New dive from your
   Apple Watch: add details?" opens that dive. In the foreground a SnackBar
   replaces the notification (my call).

@@ -270,12 +270,12 @@ Heart rate, recovery and sleep live in a new synced per-dive table
 - Rename: `test/features/dive_computer/domain/services/planned_dive_matcher_test.dart` to `fill_target_matcher_test.dart` (`git mv`); its existing cases keep their expectations, with the new call shape
 
 **Interfaces:**
-- Produces: `class FillTargetMatcher { const FillTargetMatcher({Duration draftTolerance = const Duration(minutes: 10)}); Map<int, String> pair({required List<({DateTime start, DateTime end})> incoming, required List<Dive> targets}); }`. `targets` holds plans and drafts together (from `getUnfilledDives`); each keeps its own rule:
+- Produces: `class FillTargetMatcher { const FillTargetMatcher({Duration draftTolerance = const Duration(minutes: 10)}); FillPairing match({required List<({DateTime start, DateTime end})> incoming, required List<Dive> targets}); Map<int, String> pair({...same}) => match(...).pairs; }` and `class FillPairing { final Map<int, String> pairs; final Map<int, List<String>> ambiguous; }` (`ambiguous` maps a download index to the draft ids it fitted, so a caller can say "two candidates" instead of "no match"; the review step reads only `pairs`, Task 16 reads both). `targets` holds plans and drafts together (from `getUnfilledDives`); each keeps its own rule:
   - **Drafts first.** A download fits a draft when `[start, end]` overlaps `[entryTime - draftTolerance, (exitTime ?? entryTime + 3 h) + draftTolerance]`. A download with two or more fitting drafts, or a draft with two or more fitting downloads, is left out (ambiguous), and an ambiguous download is not offered to plans either: it belongs to one of those drafts.
   - **Then plans,** for the downloads no draft fitted: today's rule unchanged (same wall-clock day or the day before, smallest start gap first, each download and each plan once, ties to the earlier download then the earlier plan).
   - A target with both flags is treated as a draft. Times are wall clock.
 
-- [ ] **Step 1: Failing tests:** `pairsOverlappingDownload`; `pairsWithinClockDrift` (download starts 8 min before the tap); `rejectsOutsideTolerance` (12 min gap); `twoCandidatesIsAmbiguous` (two drafts 15 min apart, one download overlapping both windows); `pairsAcrossMidnight` (draft 23:50 to 00:40, download 23:52 to 00:38); `openDraftUsesThreeHourWindow`; `draftBeatsPlan` (a download fitting today's draft and yesterday's plan fills the draft; the plan stays unfilled); `ambiguousDownloadIsNotOfferedToPlans`; `plansAndDraftsInOneBatch` (two downloads, one draft, one plan on another dive's time: each gets its own target). The moved planned cases stay green.
+- [ ] **Step 1: Failing tests:** `pairsOverlappingDownload`; `pairsWithinClockDrift` (download starts 8 min before the tap); `rejectsOutsideTolerance` (12 min gap); `twoCandidatesIsAmbiguous` (two drafts 15 min apart, one download overlapping both windows); `pairsAcrossMidnight` (draft 23:50 to 00:40, download 23:52 to 00:38); `openDraftUsesThreeHourWindow`; `draftBeatsPlan` (a download fitting today's draft and yesterday's plan fills the draft; the plan stays unfilled); `ambiguousDownloadIsNotOfferedToPlans` (and `match().ambiguous` lists both draft ids); `plansAndDraftsInOneBatch` (two downloads, one draft, one plan on another dive's time: each gets its own target). The moved planned cases stay green.
 - [ ] **Step 2: Run** `flutter test test/features/dive_computer/domain/services/fill_target_matcher_test.dart`. Expected: FAIL.
 - [ ] **Step 3: Implement** the rename and the draft rule ahead of the existing plan rule.
 - [ ] **Step 4: Run.** Expected: PASS.
@@ -364,9 +364,14 @@ Heart rate, recovery and sleep live in a new synced per-dive table
 - Test: `test/features/dive_import/domain/services/health_dive_classifier_test.dart`
 
 **Interfaces:**
-- Produces: `sealed class HealthDiveRoute` with `FillDraft(String diveId)`, `Consolidate(String diveId)`, `ImportNew()`, `NeedsReview(List<String> candidateIds)`; `HealthDiveRoute classifyHealthDive(ImportedDive workout, {required List<Dive> drafts, required List<Dive> loggedNear, DiveMatcher matcher = const DiveMatcher()})`. Drafts go through `FillTargetMatcher` (Task 11) with the drafts as its only targets (one fit fills, an ambiguous pair is review); logged dives use `matcher.calculateMatchScore` with 0.85 for consolidate and 0.5 to 0.85 for review; planned dives are never candidates.
+- Produces: `sealed class HealthDiveRoute` with `FillDraft(String diveId)`, `FillPlan(String diveId)`, `Consolidate(String diveId)`, `ImportNew()`, `NeedsReview(List<String> candidateIds)`; `List<HealthDiveRoute> classifyHealthDives(List<ImportedDive> workouts, {required List<Dive> unfilled, required List<Dive> loggedNear, DiveMatcher matcher = const DiveMatcher()})`, one route per workout in order. It works on the whole batch so several workouts on one day pair with plans the way a download batch does. Three passes, each taking only the workouts the one before left:
+  1. **Drafts:** `FillTargetMatcher.match` with the drafts of `unfilled` as targets. A pair is `FillDraft`; an entry in `ambiguous` is `NeedsReview` with those draft ids.
+  2. **Logged dives:** `matcher.calculateMatchScore`, at least 0.85 is `Consolidate`, 0.5 up to 0.85 is `NeedsReview`.
+  3. **Plans:** `FillTargetMatcher.match` with the plans of `unfilled` as targets (today's same-day-or-day-before rule). A pair is `FillPlan`.
+  4. Anything left is `ImportNew`.
+  The classifier only names the route; whether a `FillPlan` is written or held is the caller's call (Tasks 17 and 19).
 
-- [ ] **Step 1: Failing tests:** `oneDraftFills`; `twoDraftsNeedReview`; `strongMatchConsolidates`; `weakMatchNeedsReview`; `nothingNearImportsNew`; `draftBeatsLoggedDive` (a draft and a logged dive both fit: fills the draft).
+- [ ] **Step 1: Failing tests:** `oneDraftFills`; `twoDraftsNeedReview`; `strongMatchConsolidates`; `weakMatchNeedsReview`; `nothingNearImportsNew`; `draftBeatsLoggedDive` (a draft and a logged dive both fit: fills the draft); `planOnTheDayIsFillPlan`; `loggedDiveBeatsPlan` (a strong logged match and a same-day plan: consolidates, the plan is left); `draftBeatsPlan`; `twoWorkoutsTwoPlansPairNearest` (dives at 09:00 and 14:00, plans at 09:30 and 13:30).
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run.** Expected: PASS.
@@ -376,18 +381,19 @@ Heart rate, recovery and sleep live in a new synced per-dive table
 
 **Files:**
 - Create: `lib/features/dive_import/data/services/health_dive_writer.dart` (the per-dive create extracted from `HealthKitAdapter.performImport` :305-422, shared by both paths)
-- Create: `lib/features/dive_import/data/services/health_draft_fill_service.dart`
+- Create: `lib/features/dive_import/data/services/health_fill_service.dart`
 - Create: `lib/features/dive_import/data/services/health_auto_import_service.dart`
 - Modify: `lib/features/import_wizard/data/adapters/healthkit_adapter.dart` (use `HealthDiveWriter`)
-- Test: `test/features/dive_import/data/services/health_auto_import_service_test.dart`, `test/features/dive_import/data/services/health_draft_fill_service_test.dart`
+- Modify: `lib/features/settings/presentation/providers/settings_providers.dart` (`SettingsKeys.healthReviewAnnounced = 'health_review_announced'`)
+- Test: `test/features/dive_import/data/services/health_auto_import_service_test.dart`, `test/features/dive_import/data/services/health_fill_service_test.dart`
 
 **Interfaces:**
-- Consumes: Tasks 14 to 16; `DiveConsolidationService.apply(targetDiveId:, secondaryDiveIds:)`; `DiveDraftRepository.promoteToLoggedDive`.
+- Consumes: Tasks 14 to 16; `DiveRepository.getUnfilledDives` (Task 3); `DiveConsolidationService.apply(targetDiveId:, secondaryDiveIds:)`; `DiveDraftRepository.promoteToLoggedDive`.
 - Produces:
   - `HealthDiveWriter.importAsNew(ImportedDive, {required String diverId}) -> Future<String>` (attributes the watch computer).
-  - `HealthDraftFillService.fill({required String draftId, required ImportedDive workout, required String computerId}) -> Future<void>`: writes the watch series as primary, sets the measured fields in `kMeasuredDiveFields` from the converted dive, keeps typed fields and tap positions, promotes.
-  - `HealthAutoImportService.run({DateTime? now}) -> Future<HealthAutoImportResult>` where `HealthAutoImportResult { List<String> newDiveIds; List<String> filledDraftIds; List<String> consolidatedIds; List<String> reviewWorkoutIds; }`. Reads workouts from `watermark - 24 h` (or the last 7 days on first run) to now, skips workout UUIDs already imported for the bound diver, routes each, then sets the watermark to now. Does nothing when `autoImportDiverId` is null or permission is not granted. Consolidation: import as new, then `apply(targetDiveId: existing, secondaryDiveIds: [new])`.
-- [ ] **Step 1: Failing tests:** `offDoesNothing`; `importsNewWorkout`; `skipsWorkoutAlreadyImported`; `fillsDraft` (draft keeps notes; profile from the watch is primary; isDraft false; dive number assigned); `consolidatesIntoDownloadedDive` (downloaded profile stays primary); `ambiguousIsReportedNotWritten`; `advancesWatermark`; `wizardStillImportsThroughWriter` (existing `healthkit_adapter` tests stay green).
+  - `HealthFillService.fill({required String targetDiveId, required ImportedDive workout, required String computerId}) -> Future<void>` for any unfilled dive, plan or draft: writes the watch series as primary, sets the measured fields in `kMeasuredDiveFields` from the converted dive, keeps typed fields and a draft's tap positions, promotes. On a plan it first removes the planned profile and gas switches, as `PlannedDiveFillService` does (`planned_dive_fill_service.dart:85-86`).
+  - `HealthAutoImportService.run({DateTime? now}) -> Future<HealthAutoImportResult>` where `HealthAutoImportResult { List<String> newDiveIds; List<String> filledDraftIds; List<String> consolidatedIds; List<String> reviewWorkoutIds; List<String> planReviewWorkoutIds; }`. Reads workouts from `watermark - 24 h` (or the last 7 days on first run) to now, skips workout UUIDs already imported for the bound diver, routes the batch with `classifyHealthDives`, then sets the watermark to now. Does nothing when `autoImportDiverId` is null or permission is not granted. Consolidation: import as new, then `apply(targetDiveId: existing, secondaryDiveIds: [new])`. **`FillPlan` is never written in the background:** the workout goes to `planReviewWorkoutIds`, nothing is imported, and the plan is untouched, because a plan's day is much weaker evidence than a draft's taps. Each workout held for review (`NeedsReview` or `FillPlan`) is reported once: its UUID goes in the device-local list `health_review_announced`, entries older than 7 days are pruned, and a later run skips reporting it again.
+- [ ] **Step 1: Failing tests:** `offDoesNothing`; `importsNewWorkout`; `skipsWorkoutAlreadyImported`; `fillsDraft` (draft keeps notes; profile from the watch is primary; isDraft false; dive number assigned); `consolidatesIntoDownloadedDive` (downloaded profile stays primary); `ambiguousIsReportedNotWritten`; `planFitIsHeldNotWritten` (the plan keeps `isPlanned == true` and its planned profile; no new dive; the workout is in `planReviewWorkoutIds`); `heldWorkoutIsReportedOnce` (a second run inside 24 h reports nothing new); `advancesWatermark`; `wizardStillImportsThroughWriter` (existing `healthkit_adapter` tests stay green); in `health_fill_service_test.dart`: `fillsPlanReplacingPlannedProfile`, `fillsDraftKeepingTapPositions`.
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run** the tests and `flutter test test/features/dive_import/ test/features/import_wizard/`. Expected: PASS.
@@ -403,9 +409,9 @@ Heart rate, recovery and sleep live in a new synced per-dive table
 
 **Interfaces:**
 - Consumes: `HealthAutoImportService.run` (Task 17).
-- Strings: `healthAutoImport_newDive_title` ("New dive from your Apple Watch"), `healthAutoImport_newDive_body` ("Add details?"), `healthAutoImport_review_title/body`, `healthAutoImport_snackbar`, `healthAutoImport_addDetails`.
+- Strings: `healthAutoImport_newDive_title` ("New dive from your Apple Watch"), `healthAutoImport_newDive_body` ("Add details?"), `healthAutoImport_review_title/body`, `healthAutoImport_planReview_body` ("This dive may be one you planned. Review it to fill the plan."), `healthAutoImport_snackbar`, `healthAutoImport_addDetails`.
 
-- [ ] **Step 1: Failing tests:** `diveAndReviewPayloadsRoute` (and the existing `document:` and equipment payloads still route); `foregroundShowsSnackBar`; `backgroundShowsNotification`; `oneMessageForSeveralDives` ("3 new dives" body, routes to the dive list).
+- [ ] **Step 1: Failing tests:** `diveAndReviewPayloadsRoute` (and the existing `document:` and equipment payloads still route); `foregroundShowsSnackBar`; `backgroundShowsNotification`; `oneMessageForSeveralDives` ("3 new dives" body, routes to the dive list); `planReviewUsesPlanWording` (a `planReviewWorkoutIds` result shows `healthAutoImport_planReview_body` and routes to the Health import review).
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run** the tests and `flutter test test/core/services/`. Expected: PASS.
@@ -414,10 +420,10 @@ Heart rate, recovery and sleep live in a new synced per-dive table
 ### Task 19: Fill and merge choices in the Health import wizard
 
 **Files:**
-- Modify: `lib/features/import_wizard/data/adapters/healthkit_adapter.dart:131, :191-302, :305-422` (supported actions add `consolidate` and `fillPlanned`; duplicate check routes through `classifyHealthDive`; apply branch uses `HealthDraftFillService` and the consolidation path from Task 17; planned dives are no longer fuzzy candidates)
+- Modify: `lib/features/import_wizard/data/adapters/healthkit_adapter.dart:131, :191-302, :305-422` (supported actions add `consolidate` and `fillPlanned`; duplicate check routes the batch through `classifyHealthDives`; `FillDraft` and `FillPlan` rows default to `fillPlanned` with a `FillTarget` of their kind, so the review step's picker from Task 12 works unchanged; apply branch uses `HealthFillService` and the consolidation path from Task 17; planned dives are no longer fuzzy candidates)
 - Test: `test/features/import_wizard/data/adapters/healthkit_adapter_fill_test.dart`
 
-- [ ] **Step 1: Failing tests:** `wizardDefaultsDraftToFill`; `wizardOffersConsolidateForDownloadedDive` (defaulted when the score is at least 0.85); `planIsNotAFuzzyDuplicate`.
+- [ ] **Step 1: Failing tests:** `wizardDefaultsDraftToFill`; `wizardDefaultsPlanToFill` (a workout on a plan's day: `fillPlanned`, `fillTarget.kind == FillTargetKind.plan`; switching the row to import as new leaves the plan alone); `wizardOffersConsolidateForDownloadedDive` (defaulted when the score is at least 0.85); `planIsNotAFuzzyDuplicate`; `heldPlanWorkoutDefaultsToFillInWizard` (a workout the background run held opens in the wizard with the plan preselected).
 - [ ] **Step 2: Run.** Expected: FAIL.
 - [ ] **Step 3: Implement.**
 - [ ] **Step 4: Run** `flutter test test/features/import_wizard/`. Expected: PASS.
