@@ -1,6 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+
+import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
 
 /// Pin size on the places view: 32 at one species, growing by 8 for each
 /// doubling, capped at 52 so a rich site never swallows its neighbours.
@@ -133,6 +136,51 @@ class _FilledCircle extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The key a species-mode marker carries, so a cluster can tell logged pins
+/// from expected ones.
+ValueKey<String> speciesPinMarkerKey(SpeciesPinKind kind, String siteId) =>
+    ValueKey('${kind.name}:$siteId');
+
+bool _isExpectedPin(Marker marker) {
+  final key = marker.key;
+  return key is ValueKey<String> &&
+      key.value.startsWith('${SpeciesPinKind.expected.name}:');
+}
+
+/// A cluster of pins, labelled with how many it holds. Hollow when every
+/// pin in it is an expected one, so a group of "expected here" marks never
+/// reads as sightings; filled otherwise.
+class SpeciesMapClusterMarker extends StatelessWidget {
+  final List<Marker> markers;
+
+  const SpeciesMapClusterMarker({super.key, required this.markers});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final expectedOnly = markers.every(_isExpectedPin);
+    return Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: expectedOnly ? scheme.surface : scheme.secondaryContainer,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: expectedOnly ? scheme.primary : scheme.secondary,
+          width: 2,
+        ),
+        boxShadow: _shadow,
+      ),
+      child: Text(
+        '${markers.length}',
+        style: TextStyle(
+          color: expectedOnly ? scheme.primary : scheme.onSecondaryContainer,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

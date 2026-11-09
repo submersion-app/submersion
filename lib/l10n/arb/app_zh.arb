@@ -5856,6 +5856,7 @@
   "speciesMap_unplaced": "{count, plural, other{{count} 次目击所在的潜水没有地图上的潜点}}",
   "speciesMap_noPublicRecords": "无法显示该物种的公开记录：需要 GBIF 能识别的学名。",
   "speciesMap_publicUnavailable": "无法加载公开记录。",
+  "speciesMap_error_loading": "无法加载物种地图。",
   "speciesMap_suggestPublic": "你尚未在地图上的任何潜点记录过该物种。开启公开记录，查看其他人在哪里见过它。",
   "speciesMap_attribution": "记录：GBIF.org",
   "speciesMap_semantics_sitePin": "{site}，{count, plural, other{{count} 个物种}}",

@@ -19422,6 +19422,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Openbare waarnemingen konden niet worden geladen.';
 
   @override
+  String get speciesMap_error_loading =>
+      'De soortenkaart kon niet worden geladen.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'Je hebt deze soort niet op een locatie op de kaart gelogd. Zet openbare waarnemingen aan om te zien waar anderen hem zagen.';
 

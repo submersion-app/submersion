@@ -5612,6 +5612,7 @@
   "speciesMap_unplaced": "{count, plural, one{תצפית אחת נמצאת בצלילה ללא אתר במפה} other{{count} תצפיות נמצאות בצלילות ללא אתר במפה}}",
   "speciesMap_noPublicRecords": "לא ניתן להציג רשומות ציבוריות למין זה: נדרש לו שם מדעי ש-GBIF מכיר.",
   "speciesMap_publicUnavailable": "לא ניתן היה לטעון את הרשומות הציבוריות.",
+  "speciesMap_error_loading": "לא ניתן היה לטעון את מפת המינים.",
   "speciesMap_suggestPublic": "לא תיעדת מין זה באף אתר במפה. הפעל רשומות ציבוריות כדי לראות היכן אחרים ראו אותו.",
   "speciesMap_attribution": "רשומות: GBIF.org",
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{מין אחד} other{{count} מינים}}",

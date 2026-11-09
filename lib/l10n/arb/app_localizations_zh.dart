@@ -18581,6 +18581,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get speciesMap_publicUnavailable => '无法加载公开记录。';
 
   @override
+  String get speciesMap_error_loading => '无法加载物种地图。';
+
+  @override
   String get speciesMap_suggestPublic =>
       '你尚未在地图上的任何潜点记录过该物种。开启公开记录，查看其他人在哪里见过它。';
 

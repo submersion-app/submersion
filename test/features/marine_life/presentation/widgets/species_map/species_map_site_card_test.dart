@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -54,6 +57,8 @@ Future<void> _pump(
   WidgetTester tester, {
   bool publicOn = false,
   List<SiteSpeciesEntry> expected = const [],
+  Future<List<LoggedSpeciesAtSite>>? logged,
+  bool settle = true,
 }) async {
   await tester.pumpWidget(
     await speciesMapHarness(
@@ -61,10 +66,12 @@ Future<void> _pump(
       overrides: [
         allSpeciesProvider.overrideWith((ref) async => _catalog),
         speciesMapLoggedAtSiteProvider('site-1').overrideWith(
-          (ref) async => const [
-            LoggedSpeciesAtSite(speciesId: 'shark', sightingCount: 14),
-            LoggedSpeciesAtSite(speciesId: 'wrasse', sightingCount: 9),
-          ],
+          (ref) =>
+              logged ??
+              Future.value(const [
+                LoggedSpeciesAtSite(speciesId: 'shark', sightingCount: 14),
+                LoggedSpeciesAtSite(speciesId: 'wrasse', sightingCount: 9),
+              ]),
         ),
         siteExpectedSpeciesProvider(
           'site-1',
@@ -83,7 +90,11 @@ Future<void> _pump(
       child: SpeciesMapSiteCard(pin: _pin, onClose: () {}),
     ),
   );
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  } else {
+    await tester.pump();
+  }
 }
 
 void main() {
@@ -141,5 +152,18 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('page:/sites/site-1'), findsOneWidget);
+  });
+
+  testWidgets('shows progress, not "nothing logged", while loading', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      logged: Completer<List<LoggedSpeciesAtSite>>().future,
+      settle: false,
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.text('Nothing logged here yet'), findsNothing);
   });
 }

@@ -5713,6 +5713,7 @@
   "speciesMap_unplaced": "{count, plural, one{{count} avistamento está num mergulho sem local no mapa} other{{count} avistamentos estão em mergulhos sem local no mapa}}",
   "speciesMap_noPublicRecords": "Não é possível mostrar registos públicos desta espécie: precisa de um nome científico que o GBIF reconheça.",
   "speciesMap_publicUnavailable": "Não foi possível carregar os registos públicos.",
+  "speciesMap_error_loading": "Não foi possível carregar o mapa de espécies.",
   "speciesMap_suggestPublic": "Não registou esta espécie em nenhum local do mapa. Ative os registos públicos para ver onde outros a viram.",
   "speciesMap_attribution": "Registos: GBIF.org",
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} espécie} other{{count} espécies}}",

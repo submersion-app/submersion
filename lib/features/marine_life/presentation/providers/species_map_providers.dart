@@ -12,9 +12,11 @@ final speciesMapRepositoryProvider = Provider<SpeciesMapRepository>(
   (ref) => SpeciesMapRepository(),
 );
 
-final gbifSpeciesMapServiceProvider = Provider<GbifSpeciesMapService>(
-  (ref) => GbifSpeciesMapService(),
-);
+final gbifSpeciesMapServiceProvider = Provider<GbifSpeciesMapService>((ref) {
+  final service = GbifSpeciesMapService();
+  ref.onDispose(service.close);
+  return service;
+});
 
 /// The ticks every species map read shares: a sighting added or removed, a
 /// dive's site, diver or date edited (or the dive deleted), and a site moved
@@ -83,10 +85,11 @@ final speciesMapLoggedAtSiteProvider =
     });
 
 /// A species' GBIF taxon key for the public layer, or null when there is
-/// none to draw. Read only while the public layer is on.
+/// none to draw. Read only while the public layer is on. Errors (as
+/// [GbifUnavailableException]) when GBIF cannot be reached.
 // no-tick: a remote lookup keyed by species id. The species row is watched
-// through speciesProvider, so a scientific-name edit re-resolves; the answer
-// itself is cached for the session in GbifSpeciesMapService.
+// through speciesProvider, so a scientific-name edit re-resolves, and the
+// service caches name matches by name, so the edited name is asked afresh.
 final speciesGbifTaxonKeyProvider = FutureProvider.autoDispose
     .family<int?, String>((ref, speciesId) async {
       final species = await ref.watch(speciesProvider(speciesId).future);
@@ -98,3 +101,9 @@ final speciesGbifTaxonKeyProvider = FutureProvider.autoDispose
             scientificName: species.scientificName,
           );
     });
+
+/// Set when a public-layer tile for a species fails to load (offline, rate
+/// limited), so the map can say the records did not load rather than show
+/// nothing. Reset when the map closes.
+final speciesMapPublicTilesFailedProvider = StateProvider.autoDispose
+    .family<bool, String>((ref, speciesId) => false);

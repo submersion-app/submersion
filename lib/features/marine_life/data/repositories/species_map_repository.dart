@@ -194,7 +194,8 @@ class SpeciesMapRepository {
   /// "All visible" is the app's visibility rule
   /// ([VisibilityFilter.applyToDiveSites]) plus the "mine" sites, so it is
   /// never narrower: a site the diver dived but does not own and nobody
-  /// shared is theirs to see on this map.
+  /// shared is theirs to see on this map. A site the diver hid is left out
+  /// of both.
   Future<Set<String>> _allowedSiteIds(
     List<String> siteIds, {
     required String? diverId,
@@ -220,12 +221,17 @@ class SpeciesMapRepository {
         )
         .get();
     final mine = {for (final row in mineRows) row.read<String>('id')};
-    if (scope == ExpectedSiteScope.mine) return mine;
+    final hiddenRows = await (_db.select(
+      _db.siteHides,
+    )..where((t) => t.diverId.equals(diverId) & t.siteId.isIn(siteIds))).get();
+    final hidden = {for (final row in hiddenRows) row.siteId};
+    if (scope == ExpectedSiteScope.mine) return mine.difference(hidden);
 
     final query = _db.select(_db.diveSites)..where((t) => t.id.isIn(siteIds));
     VisibilityFilter.applyToDiveSites(_db, query, diverId);
     final visible = await query.get();
-    return {...mine, for (final site in visible) site.id};
+    // A site the diver hid stays hidden here even if they dived it.
+    return {...mine, for (final site in visible) site.id}.difference(hidden);
   }
 
   static String _diverClause(String? diverId) =>

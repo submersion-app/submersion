@@ -31247,6 +31247,12 @@ abstract class AppLocalizations {
   /// **'Public records could not be loaded.'**
   String get speciesMap_publicUnavailable;
 
+  /// No description provided for @speciesMap_error_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the species map.'**
+  String get speciesMap_error_loading;
+
   /// No description provided for @speciesMap_suggestPublic.
   ///
   /// In en, this message translates to:

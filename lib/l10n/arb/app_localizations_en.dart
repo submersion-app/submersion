@@ -19256,6 +19256,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Public records could not be loaded.';
 
   @override
+  String get speciesMap_error_loading => 'Could not load the species map.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'You have not logged this species at a mapped site. Turn on public records to see where others have.';
 

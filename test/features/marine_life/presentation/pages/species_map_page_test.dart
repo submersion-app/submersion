@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/data/services/gbif_species_map_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/seen_species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
@@ -91,6 +92,11 @@ Future<void> _pump(
   int? taxonKey,
   List<SpeciesSitePin> mantaPins = _mantaPins,
   List<SpeciesSitePin> turtlePins = const [],
+  Object? taxonKeyError,
+  bool tileFailed = false,
+  GbifSpeciesMapService? service,
+  Duration catalogDelay = Duration.zero,
+  bool sitePinsFail = false,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -124,9 +130,22 @@ Future<void> _pump(
       locale: const Locale('en'),
       overrides: [
         ...base,
-        allSpeciesProvider.overrideWith((ref) async => [_manta, _turtle]),
+        allSpeciesProvider.overrideWith((ref) async {
+          if (catalogDelay > Duration.zero) {
+            await Future<void>.delayed(catalogDelay);
+          }
+          return [_manta, _turtle];
+        }),
         seenSpeciesProvider.overrideWith((ref) async => _seen),
-        speciesMapSitePinsProvider.overrideWith((ref) async => _sitePins),
+        speciesMapSitePinsProvider.overrideWith(
+          (ref) async => sitePinsFail ? throw StateError('db') : _sitePins,
+        ),
+        speciesMapSpeciesPinsProvider(
+          'no-such-species',
+        ).overrideWith((ref) async => const []),
+        speciesMapUnplacedCountProvider(
+          'no-such-species',
+        ).overrideWith((ref) async => 0),
         speciesMapSpeciesPinsProvider(
           'manta',
         ).overrideWith((ref) async => mantaPins),
@@ -142,12 +161,20 @@ Future<void> _pump(
         speciesMapUnplacedCountProvider(
           null,
         ).overrideWith((ref) async => unplaced),
-        speciesGbifTaxonKeyProvider(
+        if (service != null)
+          gbifSpeciesMapServiceProvider.overrideWithValue(service)
+        else ...[
+          speciesGbifTaxonKeyProvider('manta').overrideWith(
+            (ref) async =>
+                taxonKeyError != null ? throw taxonKeyError : taxonKey,
+          ),
+          speciesGbifTaxonKeyProvider(
+            'turtle',
+          ).overrideWith((ref) async => taxonKey),
+        ],
+        speciesMapPublicTilesFailedProvider(
           'manta',
-        ).overrideWith((ref) async => taxonKey),
-        speciesGbifTaxonKeyProvider(
-          'turtle',
-        ).overrideWith((ref) async => taxonKey),
+        ).overrideWith((ref) => tileFailed),
       ],
     ),
   );
@@ -224,6 +251,62 @@ void main() {
       find.textContaining('No public records can be shown'),
       findsOneWidget,
     );
+    // The diver's own pins still draw.
+    expect(_pin('Manta Point, 6 sightings'), findsOneWidget);
+  });
+
+  testWidgets('public on and GBIF unreachable says records did not load', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      initialSpeciesId: 'manta',
+      publicOn: true,
+      taxonKeyError: const GbifUnavailableException('offline'),
+    );
+
+    expect(find.text('Public records could not be loaded.'), findsOneWidget);
+    expect(find.textContaining('No public records can be shown'), findsNothing);
+  });
+
+  testWidgets('a failed public tile says records did not load', (tester) async {
+    await _pump(
+      tester,
+      initialSpeciesId: 'manta',
+      publicOn: true,
+      taxonKey: 9241141,
+      tileFailed: true,
+    );
+
+    expect(find.text('Public records could not be loaded.'), findsOneWidget);
+  });
+
+  testWidgets('with the public layer off the page sends nothing to GBIF', (
+    tester,
+  ) async {
+    final service = _CountingService();
+    await _pump(tester, initialSpeciesId: 'manta', service: service);
+
+    expect(service.calls, 0);
+  });
+
+  testWidgets('an unknown id frames the places pins once the catalog loads', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      initialSpeciesId: 'no-such-species',
+      catalogDelay: const Duration(milliseconds: 300),
+    );
+
+    expect(_pin('Blue Corner, 3 species'), findsOneWidget);
+  });
+
+  testWidgets('a failed read shows an error with a retry', (tester) async {
+    await _pump(tester, sitePinsFail: true);
+
+    expect(find.text('Could not load the species map.'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'Retry'), findsOneWidget);
   });
 
   testWidgets('public on with a key shows no note and credits GBIF', (
@@ -269,4 +352,17 @@ void main() {
     expect(find.byType(SpeciesMapListPane), findsNothing);
     expect(_pin('Manta Point, 6 sightings'), findsOneWidget);
   });
+}
+
+class _CountingService extends GbifSpeciesMapService {
+  int calls = 0;
+
+  @override
+  Future<int?> resolveTaxonKey({
+    required String speciesId,
+    String? scientificName,
+  }) async {
+    calls++;
+    return 1;
+  }
 }

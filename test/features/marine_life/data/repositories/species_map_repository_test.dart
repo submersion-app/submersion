@@ -305,6 +305,33 @@ void main() {
       expect(pins.map((p) => p.siteId), isNot(contains('s7')));
     });
 
+    test('a hidden site stays hidden in either scope, even if dived', () async {
+      await _site(
+        's7',
+        'Shared Reef',
+        lat: 14,
+        lng: 24,
+        diverId: 'diver-b',
+        shared: true,
+      );
+      await _dive('d9', diverId: 'diver-a', siteId: 's7');
+      await _expected('s7', 'sp-turtle');
+      await _hide('s7', 'diver-a');
+
+      for (final scope in ExpectedSiteScope.values) {
+        final pins = await repository.getPinsForSpecies(
+          'sp-turtle',
+          diverId: 'diver-a',
+          scope: scope,
+        );
+        expect(
+          pins.map((p) => p.siteId),
+          isNot(contains('s7')),
+          reason: '$scope',
+        );
+      }
+    });
+
     test('expected pins skip sites without valid coordinates', () async {
       await _expected('s4', 'sp-turtle');
       await _expected('s5', 'sp-turtle');

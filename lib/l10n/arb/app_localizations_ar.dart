@@ -19814,6 +19814,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get speciesMap_publicUnavailable => 'تعذّر تحميل السجلات العامة.';
 
   @override
+  String get speciesMap_error_loading => 'تعذّر تحميل خريطة الأنواع.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'لم تسجّل هذا النوع في أي موقع على الخريطة. شغّل السجلات العامة لترى أين شاهده الآخرون.';
 

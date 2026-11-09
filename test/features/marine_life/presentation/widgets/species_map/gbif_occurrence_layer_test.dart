@@ -63,6 +63,14 @@ void main() {
 
     final layer = tester.widget<TileLayer>(find.byType(TileLayer));
     expect(layer.urlTemplate, GbifSpeciesMapService.tileUrlTemplate(42));
+    // Identified like the app's other GBIF requests, not as flutter_map.
+    final provider = layer.tileProvider as NetworkTileProvider;
+    expect(
+      provider.headers['User-Agent'],
+      'Submersion/1.0 (https://submersion.app)',
+    );
+    // A failed tile is reported, so the page can say records did not load.
+    expect(layer.errorTileCallback, isNotNull);
   });
 
   testWidgets('with the layer on and no key draws nothing', (tester) async {

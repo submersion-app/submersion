@@ -11657,6 +11657,7 @@
   },
   "speciesMap_noPublicRecords": "No public records can be shown for this species: it needs a scientific name GBIF recognises.",
   "speciesMap_publicUnavailable": "Public records could not be loaded.",
+  "speciesMap_error_loading": "Could not load the species map.",
   "speciesMap_suggestPublic": "You have not logged this species at a mapped site. Turn on public records to see where others have.",
   "speciesMap_attribution": "Records: GBIF.org",
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} species} other{{count} species}}",

@@ -5612,6 +5612,7 @@
   "speciesMap_unplaced": "{count, plural, one{{count} avvistamento è su un'immersione senza sito sulla mappa} other{{count} avvistamenti sono su immersioni senza sito sulla mappa}}",
   "speciesMap_noPublicRecords": "Per questa specie non si possono mostrare dati pubblici: serve un nome scientifico riconosciuto da GBIF.",
   "speciesMap_publicUnavailable": "Impossibile caricare i dati pubblici.",
+  "speciesMap_error_loading": "Impossibile caricare la mappa delle specie.",
   "speciesMap_suggestPublic": "Non hai registrato questa specie in nessun sito sulla mappa. Attiva i dati pubblici per vedere dove l'hanno vista altri.",
   "speciesMap_attribution": "Dati: GBIF.org",
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} specie} other{{count} specie}}",

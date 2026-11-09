@@ -19549,6 +19549,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível carregar os registos públicos.';
 
   @override
+  String get speciesMap_error_loading =>
+      'Não foi possível carregar o mapa de espécies.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'Não registou esta espécie em nenhum local do mapa. Ative os registos públicos para ver onde outros a viram.';
 

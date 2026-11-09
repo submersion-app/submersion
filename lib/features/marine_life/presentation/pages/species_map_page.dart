@@ -60,10 +60,17 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
 
   String? _speciesId;
 
-  /// Set when the pick changes, cleared once the camera has framed the new
-  /// pins, so data refreshes (a sighting added elsewhere) never yank the
-  /// camera away from where the diver panned.
+  /// Set when the resolved pick changes, cleared once the camera has framed
+  /// the new pins, so data refreshes (a sighting added elsewhere) never yank
+  /// the camera away from where the diver panned.
   bool _fitPending = false;
+
+  /// The pick the camera last framed for. Compared with the RESOLVED pick,
+  /// not [_speciesId]: a deep-linked id the catalog turns out not to hold
+  /// resolves to places mode once the catalog loads, and those pins need
+  /// framing too.
+  String? _framedPick;
+  bool _framedOnce = false;
 
   @override
   void initState() {
@@ -80,10 +87,7 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
   void _pick(String? speciesId) {
     if (speciesId == _speciesId) return;
     ref.read(mapListSelectionProvider(_sectionKey).notifier).deselect();
-    setState(() {
-      _speciesId = speciesId;
-      _fitPending = true;
-    });
+    setState(() => _speciesId = speciesId);
   }
 
   Future<void> _openPicker(String? pickedId) => showModalBottomSheet<void>(
@@ -117,6 +121,13 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     final picked = pickedId == null
         ? null
         : catalog?.where((s) => s.id == pickedId).firstOrNull;
+    if (!_framedOnce || pickedId != _framedPick) {
+      // The first build frames through initialCameraFit; later changes of
+      // the resolved pick frame through [_fitPending].
+      _fitPending = _framedOnce;
+      _framedOnce = true;
+      _framedPick = pickedId;
+    }
     final selectedSiteId = ref
         .watch(mapListSelectionProvider(_sectionKey))
         .selectedId;
@@ -180,6 +191,7 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     final pins = ref.watch(speciesMapSitePinsProvider);
     return _loaded(
       pins,
+      () => ref.invalidate(speciesMapSitePinsProvider),
       (pins) => _map(
         context,
         points: [for (final p in pins) LatLng(p.latitude, p.longitude)],
@@ -213,46 +225,56 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     final l10n = context.l10n;
     final pins = ref.watch(speciesMapSpeciesPinsProvider(speciesId));
     final publicOn = ref.watch(speciesMapPublicLayerProvider);
-    return _loaded(pins, (pins) {
-      final taxonKey = publicOn
-          ? ref.watch(speciesGbifTaxonKeyProvider(speciesId))
-          : null;
-      return _map(
-        context,
-        points: [for (final p in pins) LatLng(p.latitude, p.longitude)],
-        markers: [
-          for (final pin in pins)
-            _marker(
-              point: LatLng(pin.latitude, pin.longitude),
-              size: 40,
-              label: pin.kind == SpeciesPinKind.logged
-                  ? l10n.speciesMap_semantics_loggedPin(
-                      pin.siteName,
-                      pin.sightingCount,
-                    )
-                  : l10n.speciesMap_semantics_expectedPin(pin.siteName),
-              siteId: pin.siteId,
-              child: pin.kind == SpeciesPinKind.logged
-                  ? LoggedSpeciesMarker(
-                      sightingCount: pin.sightingCount,
-                      selected: pin.siteId == selectedSiteId,
-                    )
-                  : ExpectedSpeciesMarker(
-                      selected: pin.siteId == selectedSiteId,
-                    ),
-            ),
-        ],
-        speciesId: speciesId,
-        notes: [
-          _unplacedNote(speciesId),
-          if (publicOn && taxonKey?.hasValue == true && taxonKey!.value == null)
-            l10n.speciesMap_noPublicRecords,
-          if (publicOn && taxonKey?.hasError == true)
-            l10n.speciesMap_publicUnavailable,
-          if (!publicOn && pins.isEmpty) l10n.speciesMap_suggestPublic,
-        ],
-      );
-    });
+    return _loaded(
+      pins,
+      () => ref.invalidate(speciesMapSpeciesPinsProvider(speciesId)),
+      (pins) {
+        final taxonKey = publicOn
+            ? ref.watch(speciesGbifTaxonKeyProvider(speciesId))
+            : null;
+        final tilesFailed =
+            publicOn &&
+            ref.watch(speciesMapPublicTilesFailedProvider(speciesId));
+        return _map(
+          context,
+          points: [for (final p in pins) LatLng(p.latitude, p.longitude)],
+          markers: [
+            for (final pin in pins)
+              _marker(
+                point: LatLng(pin.latitude, pin.longitude),
+                size: 40,
+                label: pin.kind == SpeciesPinKind.logged
+                    ? l10n.speciesMap_semantics_loggedPin(
+                        pin.siteName,
+                        pin.sightingCount,
+                      )
+                    : l10n.speciesMap_semantics_expectedPin(pin.siteName),
+                siteId: pin.siteId,
+                key: speciesPinMarkerKey(pin.kind, pin.siteId),
+                child: pin.kind == SpeciesPinKind.logged
+                    ? LoggedSpeciesMarker(
+                        sightingCount: pin.sightingCount,
+                        selected: pin.siteId == selectedSiteId,
+                      )
+                    : ExpectedSpeciesMarker(
+                        selected: pin.siteId == selectedSiteId,
+                      ),
+              ),
+          ],
+          speciesId: speciesId,
+          notes: [
+            _unplacedNote(speciesId),
+            if (publicOn &&
+                taxonKey?.hasValue == true &&
+                taxonKey!.value == null)
+              l10n.speciesMap_noPublicRecords,
+            if (publicOn && (taxonKey?.hasError == true || tilesFailed))
+              l10n.speciesMap_publicUnavailable,
+            if (!publicOn && pins.isEmpty) l10n.speciesMap_suggestPublic,
+          ],
+        );
+      },
+    );
   }
 
   String? _unplacedNote(String? speciesId) {
@@ -261,12 +283,34 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     return count > 0 ? context.l10n.speciesMap_unplaced(count) : null;
   }
 
-  Widget _loaded<T>(AsyncValue<T> value, Widget Function(T data) builder) =>
-      value.when(
-        data: builder,
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text(error.toString())),
-      );
+  Widget _loaded<T>(
+    AsyncValue<T> value,
+    VoidCallback retry,
+    Widget Function(T data) builder,
+  ) => value.when(
+    data: builder,
+    loading: () => const Center(child: CircularProgressIndicator()),
+    // Like the Sites map: a localized message and a way to try again.
+    error: (_, _) => Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 48,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(context.l10n.speciesMap_error_loading),
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: retry,
+            child: Text(context.l10n.marineLife_speciesPage_retry),
+          ),
+        ],
+      ),
+    ),
+  );
 
   Marker _marker({
     required LatLng point,
@@ -274,7 +318,9 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     required String label,
     required String siteId,
     required Widget child,
+    Key? key,
   }) => Marker(
+    key: key,
     point: point,
     width: size,
     height: size,
@@ -313,7 +359,6 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     }
     final publicOn = ref.watch(speciesMapPublicLayerProvider);
     final shownNotes = notes.whereType<String>().toList();
-    final scheme = Theme.of(context).colorScheme;
 
     return Stack(
       children: [
@@ -350,21 +395,8 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
                   markers: markers,
                   zoomToBoundsOnClick: false,
                   onClusterTap: (node) => _camera.animateToBounds(node.bounds),
-                  builder: (context, clustered) => Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: scheme.secondaryContainer,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: scheme.secondary, width: 2),
-                    ),
-                    child: Text(
-                      '${clustered.length}',
-                      style: TextStyle(
-                        color: scheme.onSecondaryContainer,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+                  builder: (context, clustered) =>
+                      SpeciesMapClusterMarker(markers: clustered),
                 ),
               ),
               const MapAttribution(),

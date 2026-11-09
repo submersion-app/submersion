@@ -154,7 +154,7 @@ void main() {
       );
     });
 
-    test('returns null on HTTP 500 and does not cache the failure', () async {
+    test('throws on HTTP 500 and does not cache the failure', () async {
       var calls = 0;
       final client = MockClient((_) async {
         calls++;
@@ -166,18 +166,18 @@ void main() {
       );
 
       for (var i = 0; i < 2; i++) {
-        expect(
-          await service.resolveTaxonKey(
+        await expectLater(
+          service.resolveTaxonKey(
             speciesId: 'custom-1',
             scientificName: 'Mobula alfredi',
           ),
-          isNull,
+          throwsA(isA<GbifUnavailableException>()),
         );
       }
       expect(calls, 2);
     });
 
-    test('returns null on a timeout', () async {
+    test('throws on a timeout', () async {
       final client = MockClient((_) => Completer<http.Response>().future);
       final service = GbifSpeciesMapService(
         client: client,
@@ -185,13 +185,64 @@ void main() {
         timeout: const Duration(milliseconds: 10),
       );
 
+      await expectLater(
+        service.resolveTaxonKey(
+          speciesId: 'custom-1',
+          scientificName: 'Mobula alfredi',
+        ),
+        throwsA(isA<GbifUnavailableException>()),
+      );
+    });
+
+    test('throws when the network call itself fails', () async {
+      final client = MockClient((_) async => throw http.ClientException('x'));
+      final service = GbifSpeciesMapService(
+        client: client,
+        matcher: _matcher(),
+      );
+
+      await expectLater(
+        service.resolveTaxonKey(
+          speciesId: 'custom-1',
+          scientificName: 'Mobula alfredi',
+        ),
+        throwsA(isA<GbifUnavailableException>()),
+      );
+    });
+
+    test('a corrected scientific name asks again', () async {
+      final names = <String?>[];
+      final client = MockClient((request) async {
+        names.add(request.url.queryParameters['name']);
+        return request.url.queryParameters['name'] == 'Mobula alfredi'
+            ? _match({
+                'usageKey': 9241141,
+                'rank': 'SPECIES',
+                'matchType': 'EXACT',
+                'status': 'ACCEPTED',
+              })
+            : _match({'matchType': 'NONE'});
+      });
+      final service = GbifSpeciesMapService(
+        client: client,
+        matcher: _matcher(),
+      );
+
+      expect(
+        await service.resolveTaxonKey(
+          speciesId: 'custom-1',
+          scientificName: 'Mobula alfredy',
+        ),
+        isNull,
+      );
       expect(
         await service.resolveTaxonKey(
           speciesId: 'custom-1',
           scientificName: 'Mobula alfredi',
         ),
-        isNull,
+        9241141,
       );
+      expect(names, ['Mobula alfredy', 'Mobula alfredi']);
     });
 
     test('caches an answer per species id', () async {
@@ -260,4 +311,22 @@ void main() {
       expect(url, contains('hasGeospatialIssue=false'));
     });
   });
+
+  test('close closes the HTTP client', () {
+    final client = _ClosingClient();
+    GbifSpeciesMapService(client: client, matcher: _matcher()).close();
+
+    expect(client.closed, isTrue);
+  });
+}
+
+class _ClosingClient extends http.BaseClient {
+  bool closed = false;
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) =>
+      throw UnimplementedError();
+
+  @override
+  void close() => closed = true;
 }

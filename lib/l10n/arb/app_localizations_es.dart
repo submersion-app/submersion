@@ -19541,6 +19541,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudieron cargar los registros públicos.';
 
   @override
+  String get speciesMap_error_loading =>
+      'No se pudo cargar el mapa de especies.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'No has registrado esta especie en ningún sitio del mapa. Activa los registros públicos para ver dónde la han visto otros.';
 

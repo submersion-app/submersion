@@ -38,6 +38,7 @@ Future<void> _pump(
   WidgetTester tester,
   List<SpeciesSitePin> pins, {
   bool publicOn = false,
+  bool fail = false,
 }) async {
   await tester.pumpWidget(
     await speciesMapHarness(
@@ -45,7 +46,7 @@ Future<void> _pump(
       overrides: [
         speciesMapSpeciesPinsProvider(
           'manta',
-        ).overrideWith((ref) async => pins),
+        ).overrideWith((ref) async => fail ? throw StateError('db') : pins),
       ],
       child: const SingleChildScrollView(
         child: SpeciesWhereSeenSection(speciesId: 'manta'),
@@ -99,5 +100,12 @@ void main() {
 
     expect(find.byType(GbifOccurrenceLayer), findsNothing);
     expect(find.byType(TileLayer), findsOneWidget);
+  });
+
+  testWidgets('a failed read says so instead of "not logged"', (tester) async {
+    await _pump(tester, const [], fail: true);
+
+    expect(find.text('Could not load the species map.'), findsOneWidget);
+    expect(find.text('Not logged at a mapped site yet.'), findsNothing);
   });
 }

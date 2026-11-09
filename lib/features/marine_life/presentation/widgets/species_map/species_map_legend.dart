@@ -5,9 +5,9 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Names what each mark on the species map means.
 ///
-/// Public records are named only in species mode with the layer on: the
-/// places view draws no public tiles, so naming them there would describe
-/// something that is not on the map.
+/// The public records swatch shows only in species mode with the layer on:
+/// the places view draws no public tiles. The GBIF credit shows in either
+/// mode while the layer is on.
 class SpeciesMapLegend extends StatelessWidget {
   final bool speciesMode;
   final bool publicOn;
@@ -53,22 +53,23 @@ class SpeciesMapLegend extends StatelessWidget {
             ),
             l10n.speciesMap_legend_publicRecords,
           ),
-        // GBIF asks to be credited wherever its records are shown; the reef
-        // sources sheet already names it and its licence filter.
-        if (publicOn)
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: const Size(0, 28),
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            onPressed: () => showModalBottomSheet<void>(
-              context: context,
-              builder: (_) => const ReefAttributionSheet(),
-            ),
-            child: Text(l10n.speciesMap_attribution),
-          ),
       ],
+      // GBIF asks to be credited wherever its records are shown: the public
+      // tiles in species mode, the site cards' nearby lists in places mode.
+      // The reef sources sheet already names it and its licence filter.
+      if (publicOn)
+        TextButton(
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(0, 28),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          onPressed: () => showModalBottomSheet<void>(
+            context: context,
+            builder: (_) => const ReefAttributionSheet(),
+          ),
+          child: Text(l10n.speciesMap_attribution),
+        ),
     ];
     return Card(
       margin: EdgeInsets.zero,

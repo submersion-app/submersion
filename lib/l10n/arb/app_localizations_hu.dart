@@ -19486,6 +19486,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A nyilvános adatokat nem sikerült betölteni.';
 
   @override
+  String get speciesMap_error_loading =>
+      'A fajtérképet nem sikerült betölteni.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'Ezt a fajt egyetlen térképen szereplő merülőhelyen sem rögzítetted. Kapcsold be a nyilvános adatokat, hogy lásd, hol látták mások.';
 

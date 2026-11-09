@@ -5612,6 +5612,7 @@
   "speciesMap_unplaced": "{count, plural, one{{count} észlelés térképen nem szereplő merülőhelyű merülésen van} other{{count} észlelés térképen nem szereplő merülőhelyű merüléseken van}}",
   "speciesMap_noPublicRecords": "Ehhez a fajhoz nem jeleníthetők meg nyilvános adatok: olyan tudományos név kell hozzá, amelyet a GBIF ismer.",
   "speciesMap_publicUnavailable": "A nyilvános adatokat nem sikerült betölteni.",
+  "speciesMap_error_loading": "A fajtérképet nem sikerült betölteni.",
   "speciesMap_suggestPublic": "Ezt a fajt egyetlen térképen szereplő merülőhelyen sem rögzítetted. Kapcsold be a nyilvános adatokat, hogy lásd, hol látták mások.",
   "speciesMap_attribution": "Adatok: GBIF.org",
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} faj} other{{count} faj}}",

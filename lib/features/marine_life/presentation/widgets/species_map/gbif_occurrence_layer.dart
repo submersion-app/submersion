@@ -33,9 +33,20 @@ class GbifOccurrenceLayer extends ConsumerWidget {
         // GBIF draws records up to its own detail level; beyond it the
         // hexagons only get bigger.
         maxNativeZoom: 14,
-        // A tile that fails (offline, rate limited) is simply not drawn: the
-        // diver's own pins are what matters on this map.
-        tileProvider: NetworkTileProvider(silenceExceptions: true),
+        // A tile that fails (offline, rate limited) is not drawn, and the
+        // page says the records did not load.
+        tileProvider: NetworkTileProvider(
+          // Not const: flutter_map writes its own entries into this map.
+          headers: {'User-Agent': GbifSpeciesMapService.userAgent},
+          silenceExceptions: true,
+        ),
+        errorTileCallback: (tile, error, stackTrace) {
+          if (!context.mounted) return;
+          final failed = ref.read(
+            speciesMapPublicTilesFailedProvider(speciesId).notifier,
+          );
+          if (!failed.state) failed.state = true;
+        },
       ),
     );
   }

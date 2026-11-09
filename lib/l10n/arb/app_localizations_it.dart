@@ -19555,6 +19555,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile caricare i dati pubblici.';
 
   @override
+  String get speciesMap_error_loading =>
+      'Impossibile caricare la mappa delle specie.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'Non hai registrato questa specie in nessun sito sulla mappa. Attiva i dati pubblici per vedere dove l\'hanno vista altri.';
 

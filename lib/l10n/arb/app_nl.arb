@@ -5713,6 +5713,7 @@
   "speciesMap_unplaced": "{count, plural, one{{count} waarneming hoort bij een duik zonder locatie op de kaart} other{{count} waarnemingen horen bij duiken zonder locatie op de kaart}}",
   "speciesMap_noPublicRecords": "Voor deze soort kunnen geen openbare waarnemingen worden getoond: er is een wetenschappelijke naam nodig die GBIF kent.",
   "speciesMap_publicUnavailable": "Openbare waarnemingen konden niet worden geladen.",
+  "speciesMap_error_loading": "De soortenkaart kon niet worden geladen.",
   "speciesMap_suggestPublic": "Je hebt deze soort niet op een locatie op de kaart gelogd. Zet openbare waarnemingen aan om te zien waar anderen hem zagen.",
   "speciesMap_attribution": "Waarnemingen: GBIF.org",
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} soort} other{{count} soorten}}",

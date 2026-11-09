@@ -19120,6 +19120,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לטעון את הרשומות הציבוריות.';
 
   @override
+  String get speciesMap_error_loading => 'לא ניתן היה לטעון את מפת המינים.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'לא תיעדת מין זה באף אתר במפה. הפעל רשומות ציבוריות כדי לראות היכן אחרים ראו אותו.';
 

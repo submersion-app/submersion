@@ -36,9 +36,8 @@ class SpeciesMapSiteCard extends ConsumerWidget {
       for (final s in ref.watch(allSpeciesProvider).value ?? const <Species>[])
         s.id: s,
     };
-    final logged =
-        ref.watch(speciesMapLoggedAtSiteProvider(pin.siteId)).value ??
-        const <LoggedSpeciesAtSite>[];
+    final loggedAsync = ref.watch(speciesMapLoggedAtSiteProvider(pin.siteId));
+    final logged = loggedAsync.value ?? const <LoggedSpeciesAtSite>[];
     final loggedIds = {for (final l in logged) l.speciesId};
     final expected = [
       for (final entry
@@ -61,7 +60,20 @@ class SpeciesMapSiteCard extends ConsumerWidget {
           style: theme.textTheme.labelLarge,
         ),
         const SizedBox(height: 6),
-        if (logged.isEmpty)
+        // While loading, a spinner: the pin already says species were
+        // logged here, so "nothing logged" would contradict it.
+        if (!loggedAsync.hasValue && !loggedAsync.hasError)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 4),
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          )
+        else if (loggedAsync.hasError)
+          Text(l10n.speciesMap_error_loading)
+        else if (logged.isEmpty)
           Text(l10n.speciesMap_card_nothingLogged)
         else
           Wrap(

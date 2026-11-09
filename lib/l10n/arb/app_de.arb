@@ -5839,6 +5839,7 @@
   "speciesMap_unplaced": "{count, plural, one{{count} Sichtung liegt auf einem Tauchgang ohne kartierten Tauchplatz} other{{count} Sichtungen liegen auf Tauchgängen ohne kartierten Tauchplatz}}",
   "speciesMap_noPublicRecords": "Für diese Art können keine öffentlichen Nachweise angezeigt werden: Sie braucht einen wissenschaftlichen Namen, den GBIF kennt.",
   "speciesMap_publicUnavailable": "Öffentliche Nachweise konnten nicht geladen werden.",
+  "speciesMap_error_loading": "Die Artenkarte konnte nicht geladen werden.",
   "speciesMap_suggestPublic": "Du hast diese Art an keinem kartierten Tauchplatz erfasst. Schalte öffentliche Nachweise ein, um zu sehen, wo andere sie gesehen haben.",
   "speciesMap_attribution": "Nachweise: GBIF.org",
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} Art} other{{count} Arten}}",

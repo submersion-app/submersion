@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_map/species_map_markers.dart';
 
 import '../../../../../helpers/l10n_test_helpers.dart';
@@ -72,5 +75,52 @@ void main() {
     expect(decoration.color, scheme.surface);
     expect((decoration.border! as Border).top.color, scheme.primary);
     expect((decoration.border! as Border).top.width, 2);
+  });
+
+  group('species pin clusters', () {
+    Marker pin(SpeciesPinKind kind) => Marker(
+      key: speciesPinMarkerKey(kind, 's'),
+      point: const LatLng(0, 0),
+      child: const SizedBox(),
+    );
+
+    testWidgets('a cluster of expected pins only is hollow', (tester) async {
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          home: Center(
+            child: SpeciesMapClusterMarker(
+              markers: [
+                pin(SpeciesPinKind.expected),
+                pin(SpeciesPinKind.expected),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final context = tester.element(find.byType(SpeciesMapClusterMarker));
+      final decoration = _circle(tester, find.byType(SpeciesMapClusterMarker));
+      expect(decoration.color, Theme.of(context).colorScheme.surface);
+      expect(find.text('2'), findsOneWidget);
+    });
+
+    testWidgets('a cluster holding a logged pin is filled', (tester) async {
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          home: Center(
+            child: SpeciesMapClusterMarker(
+              markers: [
+                pin(SpeciesPinKind.expected),
+                pin(SpeciesPinKind.logged),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      final context = tester.element(find.byType(SpeciesMapClusterMarker));
+      final decoration = _circle(tester, find.byType(SpeciesMapClusterMarker));
+      expect(decoration.color, isNot(Theme.of(context).colorScheme.surface));
+    });
   });
 }

@@ -19530,6 +19530,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Öffentliche Nachweise konnten nicht geladen werden.';
 
   @override
+  String get speciesMap_error_loading =>
+      'Die Artenkarte konnte nicht geladen werden.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'Du hast diese Art an keinem kartierten Tauchplatz erfasst. Schalte öffentliche Nachweise ein, um zu sehen, wo andere sie gesehen haben.';
 

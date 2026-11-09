@@ -19607,6 +19607,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les données publiques n\'ont pas pu être chargées.';
 
   @override
+  String get speciesMap_error_loading =>
+      'Impossible de charger la carte des espèces.';
+
+  @override
   String get speciesMap_suggestPublic =>
       'Vous n\'avez pas noté cette espèce sur un site cartographié. Activez les données publiques pour voir où d\'autres l\'ont vue.';
 

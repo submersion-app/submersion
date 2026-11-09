@@ -44,5 +44,17 @@ void main() {
     expect(find.text('My sightings'), findsNothing);
     // Places mode draws no public tiles, so the legend does not name them.
     expect(find.text('Public records'), findsNothing);
+    // But the site cards show GBIF records, so GBIF is still credited.
+    expect(find.text('Records: GBIF.org'), findsOneWidget);
+  });
+
+  testWidgets('no GBIF credit while the public layer is off', (tester) async {
+    await tester.pumpWidget(
+      localizedMaterialApp(
+        home: const SpeciesMapLegend(speciesMode: true, publicOn: false),
+      ),
+    );
+
+    expect(find.text('Records: GBIF.org'), findsNothing);
   });
 }

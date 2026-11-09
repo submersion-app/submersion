@@ -30,9 +30,8 @@ class SpeciesWhereSeenSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final pins =
-        ref.watch(speciesMapSpeciesPinsProvider(speciesId)).value ??
-        const <SpeciesSitePin>[];
+    final pinsAsync = ref.watch(speciesMapSpeciesPinsProvider(speciesId));
+    final pins = pinsAsync.value ?? const <SpeciesSitePin>[];
     final logged = pins.where((p) => p.kind == SpeciesPinKind.logged).toList()
       ..sort((a, b) {
         final byCount = b.sightingCount.compareTo(a.sightingCount);
@@ -76,7 +75,11 @@ class SpeciesWhereSeenSection extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        topSites.isEmpty
+                        // A failed read says so; "not logged" would be a
+                        // claim the page cannot make.
+                        pinsAsync.hasError
+                            ? l10n.speciesMap_error_loading
+                            : topSites.isEmpty
                             ? l10n.speciesMap_whereSeen_empty
                             : topSites,
                         style: theme.textTheme.bodyMedium,
