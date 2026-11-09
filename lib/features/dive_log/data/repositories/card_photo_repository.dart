@@ -3,8 +3,11 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/domain/card_photo/card_photo.dart';
 import 'package:submersion/features/dive_log/domain/card_photo/focus_box.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 
 /// Reads which photos can stand behind each dive's card.
 ///
@@ -16,6 +19,30 @@ class CardPhotoRepository {
 
   /// The tags a diver owns, as MediaPeopleRepository scopes them: its own
   /// Me tags and the tags of its own buddies.
+  /// The media rows a card may draw, as `m`: on a dive, a photo by every
+  /// file_type spelling the app reads as one ([kNonPhotoFileTypes] lists the
+  /// others, as for every photo count kept in SQL), and not known to be
+  /// missing. Both queries share it, so they cannot disagree on which
+  /// photos count.
+  static final _photoWhere =
+      'm.dive_id IS NOT NULL AND m.is_orphaned = 0 '
+      'AND m.file_type NOT IN '
+      '(${List.filled(kNonPhotoFileTypes.length, '?').join(', ')})';
+
+  static List<Variable<Object>> get _photoVariables => [
+    for (final type in kNonPhotoFileTypes) Variable.withString(type),
+  ];
+
+  /// Ticks when anything [getCardPhotosByDive] reads changes: a media row, a
+  /// tagged person's box (written to `media_people` alone), or a buddy, whose
+  /// owner decides whether its tags count. Nothing else, so enrichment and
+  /// species writes do not rerun the whole-log queries.
+  Stream<void> watchChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([_db.media, _db.mediaPeople, _db.buddies]),
+      )
+      .debounce(MediaRepository.changeTickDebounce);
+
   static const _ownedByDiver =
       ' AND (p.diver_id = ? OR p.buddy_id IN '
       '(SELECT id FROM buddies WHERE diver_id = ?))';
@@ -33,9 +60,8 @@ class CardPhotoRepository {
     try {
       final photoRows = await _db
           .customSelect(
-            'SELECT id, dive_id FROM media '
-            "WHERE dive_id IS NOT NULL AND file_type = 'photo' "
-            'AND is_orphaned = 0',
+            'SELECT m.id, m.dive_id FROM media m WHERE $_photoWhere',
+            variables: _photoVariables,
             readsFrom: {_db.media},
           )
           .get();
@@ -45,12 +71,13 @@ class CardPhotoRepository {
           .customSelect(
             'SELECT p.media_id, p.bbox_x, p.bbox_y, p.bbox_width, p.bbox_height '
             'FROM media_people p JOIN media m ON m.id = p.media_id '
-            "WHERE m.dive_id IS NOT NULL AND m.file_type = 'photo' "
+            'WHERE $_photoWhere '
             'AND p.bbox_x IS NOT NULL AND p.bbox_y IS NOT NULL '
             'AND p.bbox_width IS NOT NULL AND p.bbox_height IS NOT NULL '
             'AND (p.buddy_id IS NOT NULL OR p.diver_id IS NOT NULL)'
             '${diverId == null ? '' : _ownedByDiver}',
             variables: [
+              ..._photoVariables,
               if (diverId != null) ...[
                 Variable.withString(diverId),
                 Variable.withString(diverId),

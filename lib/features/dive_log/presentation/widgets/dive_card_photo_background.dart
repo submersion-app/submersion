@@ -186,6 +186,12 @@ class _DiveCardPhotoBackgroundState
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final card = constraints.biggest;
+                // A card with no width to show (a pane collapsing) or none
+                // bounded draws no photo: a 0 px decode trips ResizeImage,
+                // and an infinite one cannot be bucketed.
+                if (!card.width.isFinite || card.width <= 0) {
+                  return const SizedBox.shrink();
+                }
                 final decodeWidth =
                     (card.width / _decodeStep).ceil() * _decodeStep;
                 return AnimatedOpacity(

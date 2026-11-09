@@ -327,10 +327,13 @@ class DiverSettings extends Table {
   BoolColumn get showPhotoBackgroundOnDiveCards =>
       boolean().withDefault(const Constant(false))();
 
-  /// Opacity (0..1) of the overlay over a dive card's photo, per theme
-  /// (v347): black on the dark theme, white on the light one.
+  /// Opacity (0..1) of the black overlay over a dive card's photo on the
+  /// dark theme (v347).
   RealColumn get cardPhotoOverlayDark =>
       real().withDefault(const Constant(0.6))();
+
+  /// Opacity (0..1) of the white overlay over a dive card's photo on the
+  /// light theme (v347).
   RealColumn get cardPhotoOverlayLight =>
       real().withDefault(const Constant(0.6))();
   BoolColumn get showMapBackgroundOnSiteCards =>

@@ -3200,14 +3200,20 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setCardPhotoOverlayDark(double value) async {
-    state = state.copyWith(cardPhotoOverlayDark: value.clamp(0.0, 1.0));
+    state = state.copyWith(cardPhotoOverlayDark: _overlayOpacity(value));
     await _saveSettings();
   }
 
   Future<void> setCardPhotoOverlayLight(double value) async {
-    state = state.copyWith(cardPhotoOverlayLight: value.clamp(0.0, 1.0));
+    state = state.copyWith(cardPhotoOverlayLight: _overlayOpacity(value));
     await _saveSettings();
   }
+
+  /// [value] clamped to 0..1 and rounded to a whole percent. A slider's
+  /// steps carry float noise (65% arrives as 0.6499999999999999), which
+  /// would otherwise be stored, synced and shown as "65.0%" in a conflict.
+  static double _overlayOpacity(double value) =>
+      (value.clamp(0.0, 1.0) * 100).round() / 100;
 
   Future<void> setShowMapBackgroundOnSiteCards(bool value) async {
     state = state.copyWith(showMapBackgroundOnSiteCards: value);

@@ -92,6 +92,25 @@ void main() {
       expect(analyzer.hasAnswer('c'), isTrue);
     });
 
+    test(
+      'keeps the answers a card asked for again past its capacity',
+      () async {
+        final analyzer = CardFocusAnalyzer(
+          decode: (_) async => _small(),
+          capacity: 2,
+        );
+        await analyzer.rowScoresFor('a', _source);
+        await analyzer.rowScoresFor('b', _source);
+        // 'a' is read again, so 'b' is now the one no card has asked for
+        // longest.
+        await analyzer.rowScoresFor('a', _source);
+        await analyzer.rowScoresFor('c', _source);
+        expect(analyzer.hasAnswer('a'), isTrue);
+        expect(analyzer.hasAnswer('b'), isFalse);
+        expect(analyzer.hasAnswer('c'), isTrue);
+      },
+    );
+
     test('runs at most two decodes at once', () async {
       var running = 0;
       var peak = 0;

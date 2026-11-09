@@ -159,4 +159,58 @@ void main() {
       expect(await boxes(diverId: null), [focus]);
     });
   });
+
+  test('offers a photo by any spelling the app reads as a photo', () async {
+    // parseMediaType reads every file_type outside kNonPhotoFileTypes as a
+    // photo, so the gallery shows this row; the card offers it too.
+    await insertTestMedia(id: 'legacy', diveId: 'd1', fileType: 'image');
+    await insertTestMedia(
+      id: 'buddy',
+      diveId: 'd1',
+      fileType: 'buddy_signature',
+    );
+
+    final byDive = await repository.getCardPhotosByDive(diverId: 'A');
+
+    expect(byDive['d1']!.single.mediaId, 'legacy');
+  });
+
+  test('reads no boxes for a photo whose file is missing', () async {
+    await insertTestMedia(id: 'p1', diveId: 'd1');
+    await insertTestMedia(id: 'gone', diveId: 'd1');
+    await MediaPeopleRepository().addTag(
+      mediaId: 'gone',
+      buddyId: 'alex',
+      box: const FaceBox(x: 0.2, y: 0.3, width: 0.1, height: 0.2),
+    );
+    await (db().update(db().media)..where((t) => t.id.equals('gone'))).write(
+      const MediaCompanion(isOrphaned: Value(true)),
+    );
+
+    final byDive = await repository.getCardPhotosByDive(diverId: 'A');
+
+    expect(byDive['d1']!.single, const CardPhoto(mediaId: 'p1'));
+  });
+
+  test(
+    'ticks when a person is tagged, which writes only media_people',
+    () async {
+      await insertTestMedia(id: 'p1', diveId: 'd1');
+      var ticks = 0;
+      final sub = repository.watchChanges().listen((_) => ticks++);
+      addTearDown(sub.cancel);
+      // Let the media insert's own tick land first.
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      final before = ticks;
+
+      await MediaPeopleRepository().addTag(
+        mediaId: 'p1',
+        buddyId: 'alex',
+        box: const FaceBox(x: 0.2, y: 0.3, width: 0.1, height: 0.2),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+
+      expect(ticks, greaterThan(before));
+    },
+  );
 }

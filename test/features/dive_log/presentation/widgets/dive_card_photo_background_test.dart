@@ -99,6 +99,7 @@ void main() {
     required CardFocusAnalyzer analyzer,
     Brightness brightness = Brightness.dark,
     bool hasMedia = true,
+    Size size = _cardSize,
   }) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -122,7 +123,7 @@ void main() {
             theme: ThemeData(brightness: brightness),
             home: Center(
               child: SizedBox.fromSize(
-                size: _cardSize,
+                size: size,
                 child: ValueListenableBuilder<CardPhoto>(
                   valueListenable: photo,
                   builder: (context, value, _) => DiveCardPhotoBackground(
@@ -417,6 +418,19 @@ void main() {
       await settle(tester);
     });
     expect(opacity(tester), 1);
+  });
+
+  testWidgets('a card with no width draws no photo', (tester) async {
+    await pumpCard(
+      tester,
+      photo: ValueNotifier(const CardPhoto(mediaId: 'm1')),
+      analyzer: CardFocusAnalyzer(decode: (_) async => null),
+      size: const Size(0, 120),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(Image), findsNothing);
+    expect(find.text('card'), findsOneWidget);
   });
 
   testWidgets('the dark theme draws its own overlay', (tester) async {

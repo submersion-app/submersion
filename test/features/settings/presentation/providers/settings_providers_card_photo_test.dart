@@ -100,4 +100,19 @@ void main() {
     expect(container.read(cardPhotoOverlayProvider).dark, 0.0);
     expect(container.read(cardPhotoOverlayProvider).light, 0.0);
   });
+
+  test(
+    'a slider step is saved as its whole percent, without float noise',
+    () async {
+      // 0.2 + 0.75 * 9 / 15, the 65% step of the slider, is 0.6499999999999999.
+      await notifier().setCardPhotoOverlayDark(0.2 + (0.95 - 0.2) * 9 / 15);
+      await notifier().setCardPhotoOverlayLight(0.2 + (0.95 - 0.2) * 2 / 15);
+
+      expect(container.read(cardPhotoOverlayProvider).dark, 0.65);
+      expect(container.read(cardPhotoOverlayProvider).light, 0.3);
+      final row = await storedRow();
+      expect(row['card_photo_overlay_dark'], 0.65);
+      expect(row['card_photo_overlay_light'], 0.3);
+    },
+  );
 }

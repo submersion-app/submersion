@@ -9,10 +9,6 @@ import 'package:submersion/features/dive_log/domain/card_photo/card_photo_picker
 import 'package:submersion/features/dive_log/domain/card_photo/focus_box.dart';
 import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/media/data/repositories/media_people_repository.dart';
-import 'package:submersion/features/media/data/repositories/media_repository.dart';
-import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
-import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 
 class _FakeCardPhotoRepository extends CardPhotoRepository {
   _FakeCardPhotoRepository(this.photos);
@@ -20,6 +16,10 @@ class _FakeCardPhotoRepository extends CardPhotoRepository {
   Map<String, List<CardPhoto>> photos;
   int reads = 0;
   final diverIds = <String?>[];
+  final changes = StreamController<void>.broadcast();
+
+  @override
+  Stream<void> watchChanges() => changes.stream;
 
   @override
   Future<Map<String, List<CardPhoto>>> getCardPhotosByDive({
@@ -31,22 +31,8 @@ class _FakeCardPhotoRepository extends CardPhotoRepository {
   }
 }
 
-class _FakePeopleRepository extends MediaPeopleRepository {
-  final changes = StreamController<void>.broadcast();
-
-  @override
-  Stream<void> watchTagChanges() => changes.stream;
-}
-
 /// The diver the list is shown for, as a test can change it.
 final _diver = StateProvider<String?>((ref) => 'me');
-
-class _FakeMediaRepository extends MediaRepository {
-  final changes = StreamController<void>.broadcast();
-
-  @override
-  Stream<void> watchMediaChanges() => changes.stream;
-}
 
 const _a = CardPhoto(mediaId: 'a');
 const _b = CardPhoto(
@@ -59,8 +45,6 @@ const _e = CardPhoto(mediaId: 'e');
 
 void main() {
   late _FakeCardPhotoRepository photos;
-  late _FakeMediaRepository media;
-  late _FakePeopleRepository people;
   late ProviderContainer container;
 
   setUp(() {
@@ -69,13 +53,9 @@ void main() {
       'd2': const [_b, _c],
       'd5': const [_a, _b, _c, _d, _e],
     });
-    media = _FakeMediaRepository();
-    people = _FakePeopleRepository();
     container = ProviderContainer(
       overrides: [
         cardPhotoRepositoryProvider.overrideWithValue(photos),
-        mediaRepositoryProvider.overrideWithValue(media),
-        mediaPeopleRepositoryProvider.overrideWithValue(people),
         validatedCurrentDiverIdProvider.overrideWith(
           (ref) async => ref.watch(_diver),
         ),
@@ -85,8 +65,7 @@ void main() {
 
   tearDown(() async {
     container.dispose();
-    await media.changes.close();
-    await people.changes.close();
+    await photos.changes.close();
   });
 
   /// Waits until [cardPhotosByDiveProvider] has read [reads] times and
@@ -126,7 +105,7 @@ void main() {
     expect(photos.reads, 1);
   });
 
-  test('a media change reads the photos again', () async {
+  test('a photo change reads the photos again', () async {
     final sub = container.listen(cardPhotosByDiveProvider, (_, _) {});
     addTearDown(sub.close);
     await loaded();
@@ -134,7 +113,7 @@ void main() {
     photos.photos = {
       'd3': const [_c],
     };
-    media.changes.add(null);
+    photos.changes.add(null);
 
     final map = await loaded(reads: 2);
     expect(map.keys, ['d3']);
@@ -156,7 +135,7 @@ void main() {
     photos.photos = {
       'd1': const [_b],
     };
-    people.changes.add(null);
+    photos.changes.add(null);
 
     final map = await loaded(reads: 2);
     expect(map['d1'], [_b]);

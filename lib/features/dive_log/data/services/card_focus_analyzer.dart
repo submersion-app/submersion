@@ -46,13 +46,19 @@ class CardFocusAnalyzer {
   /// Whether [key] was analysed (to scores, or to nothing usable).
   bool hasAnswer(String key) => _cache.containsKey(key);
 
-  /// The cached scores for [key], without decoding. Null when not analysed
-  /// yet or when the image had nothing usable.
-  List<double>? peek(String key) => _cache[key];
+  /// The cached scores for [key], without decoding, and marks them recently
+  /// used so the capacity drops the answers no card has asked for longest.
+  /// Null when not analysed yet or when the image had nothing usable.
+  List<double>? peek(String key) {
+    if (!_cache.containsKey(key)) return null;
+    final rows = _cache.remove(key);
+    _cache[key] = rows;
+    return rows;
+  }
 
   /// The row scores for [key], decoding [source] when not known yet.
   Future<List<double>?> rowScoresFor(String key, ImageProvider source) {
-    if (_cache.containsKey(key)) return Future.value(_cache[key]);
+    if (_cache.containsKey(key)) return Future.value(peek(key));
     return _pending[key] ??= _schedule(key, source);
   }
 
