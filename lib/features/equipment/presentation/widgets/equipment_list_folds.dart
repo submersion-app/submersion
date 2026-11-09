@@ -29,6 +29,10 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
   /// Whether the last build had a filter on, so its clearing is noticed.
   bool _wasFiltered = false;
 
+  /// The open item when the filter came on: only a different one, opened
+  /// during the filter, is revealed when it clears.
+  String? _openWhenFiltered;
+
   /// The outermost fold keys last published to
   /// [equipmentOuterGroupKeysProvider], so it is written only on change.
   List<String> _publishedOuterKeys = const [];
@@ -53,17 +57,19 @@ mixin _EquipmentListFolds on ConsumerState<EquipmentListContent> {
       _listSelectedId = null;
     }
     // A row opened while a filter showed every group open would vanish
-    // into a saved fold when the filter clears, so it is revealed then.
+    // into a saved fold when the filter clears, so it is revealed then. The
+    // item open before the filter keeps whatever the diver folded.
     final filtered = ref.watch(
       effectiveEquipmentFilterProvider.select((f) => f.hasActiveFilters),
     );
-    if (_wasFiltered && !filtered) {
-      final open =
-          widget.selectedId ?? ref.read(highlightedEquipmentIdProvider);
-      if (open != null) {
-        _revealTarget = open;
-        _dismissed = const {};
-      }
+    final open = widget.selectedId ?? ref.read(highlightedEquipmentIdProvider);
+    if (!_wasFiltered && filtered) _openWhenFiltered = open;
+    if (_wasFiltered &&
+        !filtered &&
+        open != null &&
+        open != _openWhenFiltered) {
+      _revealTarget = open;
+      _dismissed = const {};
     }
     _wasFiltered = filtered;
     EquipmentRowLayout layOut(Set<String> revealed) => layoutEquipmentRows(

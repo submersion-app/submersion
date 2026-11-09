@@ -125,20 +125,25 @@ void main() {
     expect(a.diveSort, isNull);
   });
 
-  test('setEquipmentCollapsedGroups saves the folded keys as JSON', () async {
-    final notifier = await loaded();
-    await notifier.setEquipmentCollapsedGroups(['loc:a', 'type:bcd']);
-    expect(
-      (await stored()).listArrangements.equipmentCollapsedGroups,
-      '["loc:a","type:bcd"]',
-    );
-  });
+  test(
+    'updateEquipmentCollapsedGroups saves the folded keys as JSON',
+    () async {
+      final notifier = await loaded();
+      await notifier.updateEquipmentCollapsedGroups(
+        (_) => ['loc:a', 'type:bcd'],
+      );
+      expect(
+        (await stored()).listArrangements.equipmentCollapsedGroups,
+        '["loc:a","type:bcd"]',
+      );
+    },
+  );
 
   test('unfolding everything saves an empty list, never null', () async {
     // A list the diver changed stays changed (ListArrangements.copyWith).
     final notifier = await loaded();
-    await notifier.setEquipmentCollapsedGroups(['loc:a']);
-    await notifier.setEquipmentCollapsedGroups(const []);
+    await notifier.updateEquipmentCollapsedGroups((_) => ['loc:a']);
+    await notifier.updateEquipmentCollapsedGroups((_) => const []);
     expect((await stored()).listArrangements.equipmentCollapsedGroups, '[]');
   });
 

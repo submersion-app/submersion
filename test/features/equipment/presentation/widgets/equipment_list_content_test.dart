@@ -2961,6 +2961,25 @@ void main() {
       expect(stored(), '["type:regulator"]');
     });
 
+    testWidgets('clearing a filter keeps a fold the diver made before it', (
+      tester,
+    ) async {
+      await pumpDesktop(tester);
+      await tester.tap(find.text('Reg A'));
+      await tester.pumpAndSettle();
+      await tester.tap(placeHeader('garage'));
+      await tester.pumpAndSettle();
+      expect(rowNames(tester), ['BCD B', 'Reg B']);
+
+      final filter = containerOf(tester).read(equipmentFilterProvider.notifier);
+      filter.state = const EquipmentFilterState(status: EquipmentStatus.active);
+      await tester.pumpAndSettle();
+      filter.state = const EquipmentFilterState();
+      await tester.pumpAndSettle();
+
+      expect(rowNames(tester), ['BCD B', 'Reg B']);
+    });
+
     testWidgets('clearing a filter reveals the item opened during it', (
       tester,
     ) async {

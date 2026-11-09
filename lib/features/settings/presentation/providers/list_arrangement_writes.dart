@@ -74,12 +74,6 @@ extension ListArrangementWrites on SettingsNotifier {
         (a) => a.copyWith(equipmentGroupByLocation: value),
       );
 
-  /// Saves the Equipment page's folded group [keys] (issue #4184). An empty
-  /// list is saved as `[]`, never null: a list the diver changed stays
-  /// changed.
-  Future<void> setEquipmentCollapsedGroups(List<String> keys) =>
-      updateEquipmentCollapsedGroups((_) => keys);
-
   /// Applies [change] to the Equipment page's saved folded keys (issue
   /// #4184). The change runs against the diver's saved keys once their
   /// settings have loaded, so a fold tapped during the load adds to them
