@@ -66,9 +66,8 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
   Widget build(BuildContext context) {
     final state = ref.watch(mediaLibraryNotifierProvider);
     final mode = ref.watch(mediaLibraryViewModeProvider);
-    final showingMissing =
-        ref.watch(mediaLibraryFilterProvider).health ==
-        MediaHealthFilter.missing;
+    final filter = ref.watch(mediaLibraryFilterProvider);
+    final showingMissing = filter.health == MediaHealthFilter.missing;
 
     final visibleIds = state.entries.map((e) => e.item.id).toList();
     // Drop checked ids that a filter or sort change pushed off screen, so a
@@ -129,6 +128,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
                 state,
                 mode,
                 showingMissing,
+                !filter.isEmpty,
                 selection,
               ),
             ),
@@ -143,6 +143,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     MediaLibraryState state,
     MediaLibraryViewMode mode,
     bool showingMissing,
+    bool filtered,
     SelectionState selection,
   ) {
     // The map runs its own unpaged query and owns its loading, empty and
@@ -153,9 +154,14 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     }
     if (state.entries.isEmpty) {
       return Center(
+        // Under a filter, empty means nothing matches it, not an empty
+        // library; with the cleanup filters (issue #4148) it is the
+        // finished state.
         child: Text(
           showingMissing
               ? context.l10n.media_missing_empty
+              : filtered
+              ? context.l10n.media_library_emptyFiltered
               : context.l10n.media_library_empty,
         ),
       );
