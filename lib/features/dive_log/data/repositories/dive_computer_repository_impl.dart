@@ -2319,8 +2319,11 @@ class DiveComputerRepository {
       // The dive takes the water temperature its source rows measured when it
       // holds none, so the query field, the dive table and the agent read it
       // as the detail page does (issue #4333). Before the stamp below, so a
-      // matched dive syncs the filled value.
-      await fillDiveWaterTempsFromSources(_db, diveIds: [diveId]);
+      // matched dive syncs the filled value. Raw SQL, which Drift's streams
+      // do not see, and a new dive has no later write that would tell them.
+      if (await fillDiveWaterTempsFromSources(_db, diveIds: [diveId]) > 0) {
+        _db.notifyUpdates({TableUpdate.onTable(_db.dives)});
+      }
 
       if (!isNewDive) {
         // The primary reading owns the snapshot, so its re-import writes what

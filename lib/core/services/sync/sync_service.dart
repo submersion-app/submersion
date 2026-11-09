@@ -1493,10 +1493,13 @@ class SyncService {
       final db = DatabaseService.instance.database;
       await repairWeatherFetchedAtSeconds(db);
       await repairCombinedDiveSummaries(db, diveIds: touchedDiveIds);
-      await fillDiveWaterTempsFromSources(db, diveIds: touchedDiveIds);
       await moveComputerTissueScalars(db);
       // Raw SQL, which Drift's streams do not see; tell open screens, as the
       // base-file path runs this after its apply has committed.
+      if (await fillDiveWaterTempsFromSources(db, diveIds: touchedDiveIds) >
+          0) {
+        db.notifyUpdates({TableUpdate.onTable(db.dives)});
+      }
       if (await repairLastServiceDates(db) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.equipment)});
       }

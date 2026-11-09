@@ -127,8 +127,9 @@ class DiveWrites extends WritableEntry {
       'and a runtime_s that disagrees with the exit is refused. bottom_time_s '
       'stands alone. surface_interval_s reads as the stored interval, else '
       'the gap from the previous dive\'s exit, as the app shows it; a write '
-      'stores it, and null clears it back to that gap. A dive holds one visibility: a band (visibility), a '
-      'measurement (visibility_m) or a range (visibility_min_m, '
+      'stores it, and null clears it back to that gap. A dive holds one '
+      'visibility: a band (visibility), a measurement (visibility_m) or a '
+      'range (visibility_min_m, '
       'visibility_max_m, either end open), and setting one clears the '
       'others. A create without dive_number takes the next free number.';
 

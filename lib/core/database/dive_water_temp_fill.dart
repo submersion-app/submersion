@@ -68,16 +68,16 @@ const _plausible = 's.water_temp BETWEEN -3 AND 45';
 
 /// Fills the empty dives among [ids], or every one when null.
 Future<int> _fill(DatabaseConnectionUser db, List<String>? ids) {
-  String fromSources(String extra) =>
-      '(SELECT MIN(s.water_temp) FROM dive_data_sources s '
-      'WHERE s.dive_id = dives.id AND $_plausible$extra)';
+  const sources =
+      'FROM dive_data_sources s WHERE s.dive_id = dives.id AND $_plausible';
   final scoped = ids == null
       ? ''
       : ' AND id IN (${List.filled(ids.length, '?').join(', ')})';
   return db.customUpdate(
     'UPDATE dives SET water_temp = COALESCE('
-    '${fromSources(' AND s.is_primary = 1')}, ${fromSources('')}) '
-    'WHERE water_temp IS NULL AND ${fromSources('')} IS NOT NULL$scoped',
+    '(SELECT MIN(s.water_temp) $sources AND s.is_primary = 1), '
+    '(SELECT MIN(s.water_temp) $sources)) '
+    'WHERE water_temp IS NULL AND EXISTS (SELECT 1 $sources)$scoped',
     variables: [
       if (ids != null)
         for (final id in ids) Variable<String>(id),
