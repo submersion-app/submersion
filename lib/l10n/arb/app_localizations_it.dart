@@ -22600,11 +22600,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_appearance_photoOverlayDark =>
-      'Velo sulla foto, tema scuro';
+      'Opacità del velo sulla foto, tema scuro';
 
   @override
   String get settings_appearance_photoOverlayLight =>
-      'Velo sulla foto, tema chiaro';
+      'Opacità del velo sulla foto, tema chiaro';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>

@@ -22104,11 +22104,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_photoOverlayDark =>
-      'שכבה מעל התמונה, ערכת נושא כהה';
+      'אטימות השכבה מעל התמונה, ערכת נושא כהה';
 
   @override
   String get settings_appearance_photoOverlayLight =>
-      'שכבה מעל התמונה, ערכת נושא בהירה';
+      'אטימות השכבה מעל התמונה, ערכת נושא בהירה';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>

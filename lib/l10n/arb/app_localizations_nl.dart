@@ -22453,10 +22453,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon een van de foto\'s van de duik als achtergrond op duikkaarten (zonder foto\'s wordt de kaart of kleur gebruikt)';
 
   @override
-  String get settings_appearance_photoOverlayDark => 'Fotolaag, donker thema';
+  String get settings_appearance_photoOverlayDark =>
+      'Dekking van de fotolaag, donker thema';
 
   @override
-  String get settings_appearance_photoOverlayLight => 'Fotolaag, licht thema';
+  String get settings_appearance_photoOverlayLight =>
+      'Dekking van de fotolaag, licht thema';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>

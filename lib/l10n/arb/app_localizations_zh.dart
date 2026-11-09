@@ -21464,10 +21464,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '在潜水卡片上以该次潜水的一张照片作为背景（没有照片时使用地图或颜色）';
 
   @override
-  String get settings_appearance_photoOverlayDark => '照片遮罩（深色主题）';
+  String get settings_appearance_photoOverlayDark => '照片遮罩不透明度（深色主题）';
 
   @override
-  String get settings_appearance_photoOverlayLight => '照片遮罩（浅色主题）';
+  String get settings_appearance_photoOverlayLight => '照片遮罩不透明度（浅色主题）';
 
   @override
   String get settings_appearance_photoOverlay_subtitle => '数值越高文字越清晰，越低照片显示越多';

@@ -22267,11 +22267,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_photoOverlayDark =>
-      'Photo overlay, dark theme';
+      'Photo overlay opacity, dark theme';
 
   @override
   String get settings_appearance_photoOverlayLight =>
-      'Photo overlay, light theme';
+      'Photo overlay opacity, light theme';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>

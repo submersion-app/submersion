@@ -22662,11 +22662,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_appearance_photoOverlayDark =>
-      'Voile sur la photo, thème sombre';
+      'Opacité du voile sur la photo, thème sombre';
 
   @override
   String get settings_appearance_photoOverlayLight =>
-      'Voile sur la photo, thème clair';
+      'Opacité du voile sur la photo, thème clair';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>

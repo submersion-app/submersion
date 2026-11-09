@@ -22526,11 +22526,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_photoOverlayDark =>
-      'Fotó fedőréteg, sötét téma';
+      'Fotó fedőréteg átlátszatlansága, sötét téma';
 
   @override
   String get settings_appearance_photoOverlayLight =>
-      'Fotó fedőréteg, világos téma';
+      'Fotó fedőréteg átlátszatlansága, világos téma';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>

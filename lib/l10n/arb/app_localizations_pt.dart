@@ -22596,11 +22596,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_appearance_photoOverlayDark =>
-      'Camada sobre a foto, tema escuro';
+      'Opacidade da camada sobre a foto, tema escuro';
 
   @override
   String get settings_appearance_photoOverlayLight =>
-      'Camada sobre a foto, tema claro';
+      'Opacidade da camada sobre a foto, tema claro';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>

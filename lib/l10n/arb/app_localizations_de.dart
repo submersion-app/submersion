@@ -22571,11 +22571,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_photoOverlayDark =>
-      'Fotoüberlagerung, dunkles Design';
+      'Deckkraft der Fotoüberlagerung, dunkles Design';
 
   @override
   String get settings_appearance_photoOverlayLight =>
-      'Fotoüberlagerung, helles Design';
+      'Deckkraft der Fotoüberlagerung, helles Design';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>

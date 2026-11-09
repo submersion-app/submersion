@@ -508,13 +508,13 @@ void main() {
         'Photo background on dive cards',
       );
       expect(tile, findsOneWidget);
-      expect(find.text('Photo overlay, dark theme'), findsNothing);
+      expect(find.text('Photo overlay opacity, dark theme'), findsNothing);
 
       await tester.tap(tile);
       await tester.pumpAndSettle();
       expect(notifier.state.showPhotoBackgroundOnDiveCards, isTrue);
-      expect(find.text('Photo overlay, dark theme'), findsOneWidget);
-      expect(find.text('Photo overlay, light theme'), findsOneWidget);
+      expect(find.text('Photo overlay opacity, dark theme'), findsOneWidget);
+      expect(find.text('Photo overlay opacity, light theme'), findsOneWidget);
       expect(find.text('60%'), findsNWidgets(2));
     });
 
@@ -534,8 +534,8 @@ void main() {
         'Higher keeps the text readable, lower shows more of the photo',
       );
 
-      expect(hint, left('Photo overlay, light theme'));
-      expect(hint, left('Photo overlay, dark theme'));
+      expect(hint, left('Photo overlay opacity, light theme'));
+      expect(hint, left('Photo overlay opacity, dark theme'));
       // And with the other settings' subtitles.
       expect(hint, left('Photo background on dive cards'));
     });

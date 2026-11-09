@@ -35928,13 +35928,13 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_photoOverlayDark.
   ///
   /// In en, this message translates to:
-  /// **'Photo overlay, dark theme'**
+  /// **'Photo overlay opacity, dark theme'**
   String get settings_appearance_photoOverlayDark;
 
   /// No description provided for @settings_appearance_photoOverlayLight.
   ///
   /// In en, this message translates to:
-  /// **'Photo overlay, light theme'**
+  /// **'Photo overlay opacity, light theme'**
   String get settings_appearance_photoOverlayLight;
 
   /// No description provided for @settings_appearance_photoOverlay_subtitle.

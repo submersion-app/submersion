@@ -22920,11 +22920,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_photoOverlayDark =>
-      'طبقة فوق الصورة، السمة الداكنة';
+      'عتامة الطبقة فوق الصورة، السمة الداكنة';
 
   @override
   String get settings_appearance_photoOverlayLight =>
-      'طبقة فوق الصورة، السمة الفاتحة';
+      'عتامة الطبقة فوق الصورة، السمة الفاتحة';
 
   @override
   String get settings_appearance_photoOverlay_subtitle =>
