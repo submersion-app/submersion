@@ -21,6 +21,7 @@ import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/core/services/export/uddf/uddf_operator_centers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_sighting_species.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
+import 'package:submersion/core/services/export/uddf/uddf_tank_ref_router.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -2463,12 +2464,9 @@ class UddfFullImportService {
         tankRefToIndex[uddfTankId] = i;
       }
     }
-    final fallbackTankIndices = <int>[
-      for (var i = 0; i < tanks.length; i++)
-        if (tanks[i]['uddfTankId'] == null) i,
-    ];
-    final fallbackRefToIndex = <String, int>{};
-    var nextFallbackTankIndex = 0;
+    // Refs that name no tank id (Shearwater Cloud's T1 to T4) are tied to
+    // their cylinder by begin pressure, then by order (issue #4347).
+    final refRouter = UddfTankRefRouter(tanks);
 
     if (tanks.isNotEmpty) {
       diveData['tanks'] = tanks;
@@ -2606,20 +2604,16 @@ class UddfFullImportService {
             if (tankRef != null && tankRefToIndex.containsKey(tankRef)) {
               tankIdx = tankRefToIndex[tankRef]!;
             } else if (tankRef != null) {
-              final fallbackTankIndex = fallbackRefToIndex[tankRef];
-              if (fallbackTankIndex != null) {
-                tankIdx = fallbackTankIndex;
-              } else if (nextFallbackTankIndex < fallbackTankIndices.length) {
-                tankIdx = fallbackTankIndices[nextFallbackTankIndex++];
-                fallbackRefToIndex[tankRef] = tankIdx;
-              } else {
+              final routed = refRouter.indexFor(tankRef, pressure);
+              if (routed == null) {
                 _logger.debug(
-                  'UDDF import: ${tanks.length} tank records but '
-                  '${fallbackRefToIndex.length + 1} unique unmatched tank refs; '
-                  'dropping ref "$tankRef" from import.',
+                  'UDDF import: ${tanks.length} tank records but more '
+                  'unique unmatched tank refs; dropping ref "$tankRef" from '
+                  'import.',
                 );
                 continue;
               }
+              tankIdx = routed;
             } else {
               // Default to primary tank (index 0) when no ref attribute
               tankIdx = 0;
@@ -2811,6 +2805,7 @@ class UddfFullImportService {
       if (profile.isNotEmpty) {
         diveData['profile'] = profile;
       }
+      refRouter.writeSlots();
       // Only fills the gap: an explicit dive-level mode always wins.
       if (waypointDiveMode != null && diveData['diveMode'] == null) {
         diveData['diveMode'] = waypointDiveMode;

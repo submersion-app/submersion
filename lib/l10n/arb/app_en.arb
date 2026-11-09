@@ -33123,7 +33123,7 @@
   "transmitters_section_setUp": "Set up",
   "transmitters_action_apply": "Apply to existing dives",
   "transmitters_apply_title": "Apply to existing dives?",
-  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
+  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
   "@transmitters_apply_content": {
     "placeholders": {
       "tanks": { "type": "int" },
@@ -33137,7 +33137,23 @@
       "dives": { "type": "int" }
     }
   },
-  "transmitters_apply_nothing": "No cylinders carry this transmitter",
+  "transmitters_apply_slot_label": "Slot on {computer}",
+  "@transmitters_apply_slot_label": {
+    "placeholders": { "computer": { "type": "String" } }
+  },
+  "transmitters_apply_slot_none": "Don't match by slot",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}",
+  "@transmitters_apply_slot_option": {
+    "placeholders": { "slot": { "type": "int" }, "dives": { "type": "int" } }
+  },
+  "transmitters_apply_slot_reading": "Reading imported files",
+  "transmitters_apply_slot_intro": "Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.",
+  "transmitters_apply_summary": "Dives filled by serial: {serialDives}, by slot: {slotDives}",
+  "@transmitters_apply_summary": {
+    "placeholders": { "serialDives": { "type": "int" }, "slotDives": { "type": "int" } }
+  },
+  "transmitters_apply_nothing_to_fill": "No cylinder needs this transmitter's setup",
+  "transmitters_apply_slot_read_failed": "The imported files could not be read, so cylinders cannot be matched by slot",
   "transmitters_channel": "{computer}, channel {channel}",
   "@transmitters_channel": {
     "placeholders": {

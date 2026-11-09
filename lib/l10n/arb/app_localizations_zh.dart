@@ -52518,7 +52518,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$dives 次潜水中的 $tanks 个气瓶带有此发射器。空白的容量、材质、名称和装备字段将被填充，仍为背气或根据发射器名称识别的用途将被替换。';
+    return '$dives 次潜水中带有此发射器的 $tanks 个气瓶需要其设置。空白的容量、材质、名称和装备字段将被填充，仍为背气或根据发射器名称识别的用途将被替换。';
   }
 
   @override
@@ -52527,7 +52527,40 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => '没有气瓶带有此发射器';
+  String transmitters_apply_slot_label(String computer) {
+    return '$computer 上的插槽';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => '不按插槽匹配';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives 次潜水',
+    );
+    return 'T$slot：$_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => '正在读取导入的文件';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      '从文件导入的气瓶没有序列号。可以按此发射器在潜水电脑上所占的插槽来填充它们。';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return '按序列号填充的潜水：$serialDives，按插槽：$slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill => '没有气瓶需要此发射器的设置';
+
+  @override
+  String get transmitters_apply_slot_read_failed => '无法读取导入的文件，因此无法按插槽匹配气瓶';
 
   @override
   String transmitters_channel(String computer, int channel) {

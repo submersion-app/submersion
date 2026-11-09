@@ -55656,7 +55656,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks flessen in $dives duiken dragen deze zender. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.';
+    return '$tanks flessen in $dives duiken met deze zender hebben de instellingen ervan nodig. Lege velden voor inhoud, materiaal, naam en uitrusting worden ingevuld, en een rol die nog op Ruggas staat of uit de zendernaam is afgeleid wordt vervangen.';
   }
 
   @override
@@ -55665,8 +55665,43 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Geen enkele fles draagt deze zender';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Positie op $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Niet koppelen op positie';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken',
+      one: '$dives duik',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Geïmporteerde bestanden lezen';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Flessen die uit een bestand zijn geïmporteerd hebben geen serienummer. Ze kunnen worden ingevuld op basis van de positie die deze zender op de duikcomputer innam.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Duiken ingevuld via serienummer: $serialDives, via positie: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Geen enkele fles heeft de instellingen van deze zender nodig';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'De geïmporteerde bestanden konden niet worden gelezen, dus flessen kunnen niet op slot worden gekoppeld';
 
   @override
   String transmitters_channel(String computer, int channel) {
