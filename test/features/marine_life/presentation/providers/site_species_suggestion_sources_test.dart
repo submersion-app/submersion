@@ -102,4 +102,30 @@ void main() {
       ], reason: 'a write to the expected list must refresh the suggestions');
     },
   );
+
+  test(
+    'a dive kept out of the statistics still suggests what it saw',
+    () async {
+      await _insertSiteAndDives();
+      final db = DatabaseService.instance.database;
+      await (db.update(db.dives)..where((d) => d.id.equals('d1'))).write(
+        const DivesCompanion(excludedFromStats: Value(true)),
+      );
+      final repository = container.read(speciesRepositoryProvider);
+      final manta = await repository.createSpecies(
+        commonName: 'Test Manta',
+        category: SpeciesCategory.ray,
+      );
+      await repository.addSighting(diveId: 'd1', speciesId: manta.id);
+
+      final sources = await container.read(
+        siteSpeciesSuggestionSourcesProvider((
+          siteId: _siteId,
+          excludeDiveId: 'd2',
+        )).future,
+      );
+
+      expect(sources.spotted.map((s) => s.speciesId), [manta.id]);
+    },
+  );
 }

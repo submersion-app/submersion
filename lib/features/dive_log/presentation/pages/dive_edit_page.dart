@@ -6221,6 +6221,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // is no one site to suggest from.
           if (!widget.isBulk && _selectedSite != null)
             SiteSpeciesSuggestionChips(
+              // A new site starts collapsed rather than inheriting "Show all".
+              key: ValueKey(_selectedSite!.id),
               siteId: _selectedSite!.id,
               siteName: _selectedSite!.name,
               excludeDiveId: widget.diveId,
