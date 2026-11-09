@@ -35714,5 +35714,16 @@
   "settings_conflict_field_twinPassportId": "Twin set partner passport",
   "equipment_photos_deleteCheckInWithPhotos": "Delete this check-in? Its {count, plural, =1{photo} other{{count} photos}} will be removed from Submersion. The files themselves are not touched.",
   "@equipment_photos_deleteCheckInWithPhotos": {"placeholders": {"count": {"type": "int"}}},
-  "media_import_review_linkToGear": "Link to gear"
+  "media_import_review_linkToGear": "Link to gear",
+  "equipment_photos_title": "Photos",
+  "equipment_photos_add": "Add photos",
+  "equipment_photos_empty": "Add photos of this item, its serial number label or markings, for reference.",
+  "equipment_photos_setCover": "Use as cover photo",
+  "equipment_photos_clearCover": "Remove cover photo",
+  "equipment_photos_remove": "Remove",
+  "equipment_photos_removeConfirmTitle": "Remove {count, plural, =1{1 photo} other{{count} photos}}?",
+  "@equipment_photos_removeConfirmTitle": {"placeholders": {"count": {"type": "int"}}},
+  "equipment_photos_removeConfirmContent": "The photos are removed from Submersion. The files themselves are not touched.",
+  "equipment_photos_photoLabel": "Gear photo",
+  "equipment_photos_coverLabel": "Cover photo"
 }

@@ -54,6 +54,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/cylinder_configs/presentation/widgets/unit_configurations_card.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_documents_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_photos_section.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
@@ -282,6 +283,10 @@ class _EquipmentDetailContent extends ConsumerWidget {
             const SizedBox(height: 24),
             ChildrenCard(equipment: equipment),
           ],
+          const SizedBox(height: 24),
+          // Reference photos of the item (issue #3355), above the check-ins
+          // that carry the condition photos.
+          EquipmentPhotosSection(equipment: equipment),
           const SizedBox(height: 24),
           ObservationsCard(equipment: equipment),
           const SizedBox(height: 24),

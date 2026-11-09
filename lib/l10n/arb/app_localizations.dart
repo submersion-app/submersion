@@ -96281,6 +96281,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Link to gear'**
   String get media_import_review_linkToGear;
+
+  /// No description provided for @equipment_photos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get equipment_photos_title;
+
+  /// No description provided for @equipment_photos_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos'**
+  String get equipment_photos_add;
+
+  /// No description provided for @equipment_photos_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos of this item, its serial number label or markings, for reference.'**
+  String get equipment_photos_empty;
+
+  /// No description provided for @equipment_photos_setCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Use as cover photo'**
+  String get equipment_photos_setCover;
+
+  /// No description provided for @equipment_photos_clearCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove cover photo'**
+  String get equipment_photos_clearCover;
+
+  /// No description provided for @equipment_photos_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get equipment_photos_remove;
+
+  /// No description provided for @equipment_photos_removeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {count, plural, =1{1 photo} other{{count} photos}}?'**
+  String equipment_photos_removeConfirmTitle(int count);
+
+  /// No description provided for @equipment_photos_removeConfirmContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The photos are removed from Submersion. The files themselves are not touched.'**
+  String get equipment_photos_removeConfirmContent;
+
+  /// No description provided for @equipment_photos_photoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear photo'**
+  String get equipment_photos_photoLabel;
+
+  /// No description provided for @equipment_photos_coverLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover photo'**
+  String get equipment_photos_coverLabel;
 }
 
 class _AppLocalizationsDelegate
