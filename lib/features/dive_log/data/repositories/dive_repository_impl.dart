@@ -2217,6 +2217,15 @@ class DiveRepository {
     }
   }
 
+  /// Whether [diveId] has any stored profile series, readable or not.
+  ///
+  /// [getDiveById] reads an unreadable series as an empty profile, which
+  /// looks like a dive logged without samples; this tells the two apart,
+  /// so only the second gets an estimated outline (#4112). It counts rows
+  /// without reading a blob.
+  Future<bool> hasProfileSeries(String diveId) =>
+      _profileSeries.hasAnySeries(diveId);
+
   /// Create a new dive
   Future<domain.Dive> createDive(domain.Dive dive) async {
     try {

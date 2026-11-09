@@ -59,7 +59,17 @@ An empty entry is an answer for a card's own request, so profile-less cards
 do not refetch. A list page load or reload (and the dashboard's recent dives)
 asks again for dives cached as empty, as it did before they were cached at
 all, so a dive that later gains a profile replaces its estimate with the
-real sparkline.
+real sparkline. An empty answer only fills a dive with no entry yet, so an
+older empty read landing after a newer profile cannot replace it.
+
+## Unreadable stored profiles
+
+A full dive read turns an unreadable series into an empty profile, which
+looks the same as a dive logged without samples. The table strip and the
+detail page therefore draw the estimate only when
+`DiveRepository.hasProfileSeries` (a row count, no blob read) confirms the
+dive has no stored series at all. A dive with a damaged recording keeps its
+"No profile data" state.
 
 ## Not in scope
 

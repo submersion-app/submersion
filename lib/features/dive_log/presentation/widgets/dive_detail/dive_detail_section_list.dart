@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_lab/domain/dive_lab_eligibility.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/compare_providers.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/compare_section.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_altitude_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
@@ -197,7 +198,12 @@ class DiveDetailSectionList extends ConsumerWidget {
         // No recorded profile: an estimated outline when the depth and times
         // allow one (#4112), else nothing.
         return dive.profile.isEmpty
-            ? DiveDetailEstimatedProfileSection.forDive(dive)
+            ? DiveDetailEstimatedProfileSection.forDive(
+                dive,
+                hasStoredSeries: ref
+                    .watch(diveHasProfileSeriesProvider(dive.id))
+                    .value,
+              )
             : profileSection;
       case DiveDetailSectionId.decoStatus:
         if (dive.profile.isEmpty) return null;

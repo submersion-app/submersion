@@ -233,12 +233,18 @@ class _DiveProfilePanelContentState
     }
     if (dive.profile.isEmpty) {
       // A dive logged by hand or imported without samples (#4112): an
-      // outline from its depth and times, drawn only, never stored.
-      final estimate = EstimatedProfile.estimate(
-        maxDepth: dive.maxDepth,
-        runtime: dive.measuredRuntime,
-        bottomTime: dive.bottomTime,
-      );
+      // outline from its depth and times, drawn only, never stored. Not for
+      // a dive whose stored series is unreadable: it reads empty too.
+      final hasStoredSeries = ref
+          .watch(diveHasProfileSeriesProvider(dive.id))
+          .value;
+      final estimate = hasStoredSeries == false
+          ? EstimatedProfile.estimate(
+              maxDepth: dive.maxDepth,
+              runtime: dive.measuredRuntime,
+              bottomTime: dive.bottomTime,
+            )
+          : null;
       if (estimate != null) {
         return Container(
           decoration: BoxDecoration(

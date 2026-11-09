@@ -294,11 +294,41 @@ void main() {
       expect(find.byType(EstimatedProfileChart), findsNothing);
     });
 
+    testWidgets('draws no estimate for a dive whose stored series is '
+        'unreadable (#4112)', (tester) async {
+      // An unreadable series reads as an empty profile too.
+      final dive = _makeDiveNoProfile(id: 'no-profile');
+      await tester.pumpWidget(
+        _buildPanel(
+          highlightedDiveId: 'no-profile',
+          diveToReturn: dive,
+          extraOverrides: [
+            diveHasProfileSeriesProvider(
+              'no-profile',
+            ).overrideWith((ref) async => true),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(EstimatedProfileChart), findsNothing);
+      expect(find.text('No profile data for this dive'), findsOneWidget);
+    });
+
     testWidgets('draws an estimated outline for a dive without samples that '
         'has a depth and times (#4112)', (tester) async {
       final dive = _makeDiveNoProfile(id: 'no-profile');
       await tester.pumpWidget(
-        _buildPanel(highlightedDiveId: 'no-profile', diveToReturn: dive),
+        _buildPanel(
+          highlightedDiveId: 'no-profile',
+          diveToReturn: dive,
+          extraOverrides: [
+            diveHasProfileSeriesProvider(
+              'no-profile',
+            ).overrideWith((ref) async => false),
+          ],
+        ),
       );
       await tester.pump();
       await tester.pump();

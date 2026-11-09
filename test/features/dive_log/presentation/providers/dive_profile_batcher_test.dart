@@ -119,6 +119,22 @@ void main() {
     expect(identical(cache(), before), isTrue);
   });
 
+  test('an empty answer landing after a profile does not replace it', () async {
+    // The list and the dashboard can both be asking for a dive cached as
+    // empty; the older read must not undo the newer one's profile.
+    container.read(batchProfileCacheProvider.notifier).state = {'a': const []};
+    repo
+      ..withoutProfile.add('a')
+      ..hold = Completer<void>();
+    final stale = batcher().load(['a']);
+    await flush();
+    container.read(batchProfileCacheProvider.notifier).state = {'a': _profile};
+    repo.hold!.complete();
+    await stale;
+
+    expect(cache()['a'], _profile);
+  });
+
   test('a request for a dive being loaded waits for that load', () async {
     repo.hold = Completer<void>();
     unawaited(batcher().load(['a', 'b']));

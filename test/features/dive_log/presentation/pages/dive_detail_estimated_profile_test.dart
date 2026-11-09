@@ -22,7 +22,11 @@ import '../../../../helpers/mock_providers.dart';
 /// A dive with no recorded profile shows a Dive Profile card with an
 /// estimated outline in place of hiding the section (issue #4112).
 void main() {
-  Future<void> pumpDetail(WidgetTester tester, Dive dive) async {
+  Future<void> pumpDetail(
+    WidgetTester tester,
+    Dive dive, {
+    bool hasStoredSeries = false,
+  }) async {
     final base = await getBaseOverrides(
       settingsNotifier: MockSettingsNotifier(const AppSettings()),
     );
@@ -54,6 +58,9 @@ void main() {
             dive.id,
           ).overrideWith((ref) async => <String, SourceProfile>{}),
           weeklyOtuProvider(dive.id).overrideWith((ref) async => 0.0),
+          diveHasProfileSeriesProvider(
+            dive.id,
+          ).overrideWith((ref) async => hasStoredSeries),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -111,6 +118,20 @@ void main() {
 
     expect(find.byType(DiveDetailProfileSection), findsOneWidget);
     expect(find.byType(DiveDetailEstimatedProfileSection), findsNothing);
+  });
+
+  testWidgets('a dive whose stored series is unreadable shows no estimate', (
+    tester,
+  ) async {
+    // getDiveById reads an unreadable series as an empty profile.
+    await pumpDetail(
+      tester,
+      createTestDiveWithBottomTime(),
+      hasStoredSeries: true,
+    );
+
+    expect(find.byType(DiveDetailEstimatedProfileSection), findsNothing);
+    expect(find.byType(DiveDetailProfileSection), findsNothing);
   });
 
   testWidgets('a dive without samples or a depth shows no profile card', (

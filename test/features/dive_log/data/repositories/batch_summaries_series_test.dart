@@ -180,6 +180,20 @@ void main() {
       expect(summaries.keys.toSet(), {'dive-2'});
     });
 
+    // #4112: getDiveById hands back an empty profile for it, so the detail
+    // page and the profile strip ask this before drawing an estimate.
+    test('still counts as a stored profile', () async {
+      final badId = await series.insertSeries(
+        diveId: 'dive-1',
+        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+        now: now,
+      );
+      await corrupt(badId);
+
+      expect(await dives.hasProfileSeries('dive-1'), isTrue);
+      expect(await dives.hasProfileSeries('dive-2'), isFalse);
+    });
+
     test('still lets getDiveById return the dive', () async {
       final badId = await series.insertSeries(
         diveId: 'dive-1',
