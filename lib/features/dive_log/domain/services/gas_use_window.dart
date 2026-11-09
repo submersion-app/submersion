@@ -8,7 +8,13 @@
 /// metrics engine on its decoded samples, so both report the same window.
 library;
 
+import 'dart:math' as math;
+
 import 'package:submersion/core/utils/time_weighted_mean.dart';
+import 'package:submersion/features/dive_log/domain/services/surface_breathing.dart';
+
+export 'package:submersion/features/dive_log/domain/services/surface_breathing.dart'
+    show SurfaceBreathing;
 
 /// A sample deeper than this, in metres, is underwater; one at or above it
 /// is at the surface. Matches the buoyancy twin analyzer's surface depth.
@@ -66,10 +72,15 @@ class GasUseWindow {
 /// fewer than two samples, with none underwater, or when the window would be
 /// the whole recording, so a dive with no surface time keeps exactly the rate
 /// it has today.
+///
+/// [surfaceBreathing] stretches the window back over surface time a cylinder
+/// was breathed in (see `surfaceBreathingOf`): to the sample at or before its
+/// `from`, and to the sample at or after its `until`. It never shrinks it.
 GasUseWindow? gasUseWindowOf<T>(
   Iterable<T> samples, {
   required int Function(T sample) time,
   required double Function(T sample) depth,
+  SurfaceBreathing? surfaceBreathing,
 }) {
   final ordered = [for (final s in samples) (t: time(s), d: depth(s))]
     ..sort((a, b) => a.t.compareTo(b.t));
@@ -79,8 +90,18 @@ GasUseWindow? gasUseWindowOf<T>(
   if (first < 0) return null;
   final last = ordered.lastIndexWhere((s) => s.d > kGasUseSurfaceDepthM);
 
-  final startIndex = first > 0 ? first - 1 : first;
-  final endIndex = last < ordered.length - 1 ? last + 1 : last;
+  var startIndex = first > 0 ? first - 1 : first;
+  var endIndex = last < ordered.length - 1 ? last + 1 : last;
+  final from = surfaceBreathing?.from;
+  if (from != null) {
+    final at = ordered.lastIndexWhere((s) => s.t <= from);
+    startIndex = math.min(startIndex, math.max(at, 0));
+  }
+  final until = surfaceBreathing?.until;
+  if (until != null) {
+    final at = ordered.indexWhere((s) => s.t >= until);
+    endIndex = math.max(endIndex, at < 0 ? ordered.length - 1 : at);
+  }
   if (startIndex == 0 && endIndex == ordered.length - 1) return null;
 
   final inside = ordered.sublist(startIndex, endIndex + 1);

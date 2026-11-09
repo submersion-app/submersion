@@ -397,6 +397,7 @@ class GasAnalysisService {
         profile: profile,
         gasSwitches: gasSwitches,
         diveEnd: diveEnd,
+        tankPressures: tankPressures,
       );
       if (usage == null) continue;
       final usageWindows = usage.windows;
