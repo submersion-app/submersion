@@ -369,6 +369,7 @@ void main() {
         await repository.addSighting(
           diveId: diveId,
           speciesId: species2.id,
+          abundance: SightingAbundance.exact,
           count: 2,
         );
 
