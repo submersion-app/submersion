@@ -5766,6 +5766,27 @@ class DiveRepository {
   /// [diverId] still waiting for its dive computer readings, newest first,
   /// scoped as [getPlannedDives] is. The fill pass reads its targets only
   /// through this.
+  /// The drafts (issue #637) of [diverId], every diver's when null, newest
+  /// entry first. Only `is_draft` rows, read without their samples: the
+  /// draft listings (the Home card, the reminders, the conditions fill, the
+  /// open dive) run on every dive change and draw no profile.
+  Future<List<domain.Dive>> getDraftDives({String? diverId}) async {
+    final query = _db.selectOnly(_db.dives)
+      ..addColumns([_db.dives.id])
+      ..where(_db.dives.isDraft.equals(true))
+      ..orderBy([
+        OrderingTerm.desc(
+          coalesce([_db.dives.entryTime, _db.dives.diveDateTime]),
+        ),
+      ]);
+    if (diverId != null) query.where(_db.dives.diverId.equals(diverId));
+    final ids = [for (final row in await query.get()) row.read(_db.dives.id)!];
+    final byId = {
+      for (final dive in await getDivesByIdsWithoutSamples(ids)) dive.id: dive,
+    };
+    return [for (final id in ids) ?byId[id]];
+  }
+
   Future<List<domain.Dive>> getUnfilledDives({String? diverId}) async {
     try {
       final query = _db.select(_db.dives)

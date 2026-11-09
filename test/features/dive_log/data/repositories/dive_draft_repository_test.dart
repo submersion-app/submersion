@@ -331,6 +331,34 @@ void main() {
     expect(() => drafts.markDraftComplete('logged'), throwsStateError);
   });
 
+  test(
+    'the drafts are read on their own, newest first, without the plans',
+    () async {
+      await insertDive(
+        'plan',
+        start: DateTime.utc(2026, 7, 17, 8),
+        isPlanned: true,
+      );
+      final early = await drafts.createDraft(
+        diverId: 'me',
+        entryTime: DateTime.utc(2026, 7, 16, 9),
+      );
+      final late = await drafts.createDraft(
+        diverId: 'me',
+        entryTime: DateTime.utc(2026, 7, 17, 15),
+      );
+      await drafts.createDraft(
+        diverId: 'other',
+        entryTime: DateTime.utc(2026, 7, 17, 16),
+      );
+
+      final mine = await dives.getDraftDives(diverId: 'me');
+
+      expect(mine.map((d) => d.id), [late.id, early.id]);
+      expect((await dives.getDraftDives()).length, 3);
+    },
+  );
+
   test('the unfilled dives are the diver\'s plans and drafts', () async {
     await insertDive('logged', start: DateTime.utc(2026, 7, 1), diveNumber: 1);
     await insertDive(

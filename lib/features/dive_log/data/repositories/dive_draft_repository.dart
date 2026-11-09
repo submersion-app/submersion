@@ -138,13 +138,8 @@ class DiveDraftRepository {
   }
 
   /// Every draft of [diverId] (all divers when null), newest entry first.
-  Future<List<Dive>> getDrafts({String? diverId}) async {
-    final unfilled = await _dives.getUnfilledDives(diverId: diverId);
-    return [
-      for (final dive in unfilled)
-        if (dive.isDraft) dive,
-    ];
-  }
+  Future<List<Dive>> getDrafts({String? diverId}) =>
+      _dives.getDraftDives(diverId: diverId);
 
   /// Makes the plan or draft [diveId] an ordinary logged dive with the next
   /// free number. See [DiveRepository.promoteToLoggedDive].
