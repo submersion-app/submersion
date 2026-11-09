@@ -396,6 +396,211 @@ void main() {
     expect(marker.depth, stop.depthMeters);
   });
 
+  group('every gas switch the table lists is on the chart (issue #4078)', () {
+    domain.DivePlan plan({
+      required List<DiveTank> tanks,
+      required List<PlanSegment> segments,
+    }) => domain.DivePlan(
+      id: 'switches',
+      name: 'Switches',
+      gfLow: 50,
+      gfHigh: 80,
+      tanks: tanks,
+      segments: segments,
+      createdAt: DateTime(2026, 11, 9),
+      updatedAt: DateTime(2026, 11, 9),
+    );
+
+    PlanCanvasSeries seriesFor(domain.DivePlan plan, PlanOutcome outcome) =>
+        buildCanvasSeries(
+          plan: plan,
+          outcome: outcome,
+          config: const PlanEngine().config,
+        );
+
+    // The gases the table highlights as switches, in order: every line
+    // whose gas differs from the line before, past the first.
+    List<String> tableSwitches(PlanOutcome outcome) => [
+      for (final row in outcome.schedule.skip(1))
+        if (row.gasSwitch)
+          GasMix(o2: row.gasFO2 * 100, he: row.gasFHe * 100).name,
+    ];
+
+    test('a switch on the way up to the first stop is flagged where it '
+        'happens, as well as the one at the stop', () {
+      // The plan in the report: air at 39 m, EAN40 on the fly from 30 m
+      // on the way up to a shallow first stop, and EAN80 at 6 m.
+      const air = GasMix();
+      final p = plan(
+        tanks: const [
+          DiveTank(id: 'back', volume: 24, startPressure: 232, gasMix: air),
+          DiveTank(
+            id: 'ean40',
+            volume: 11,
+            startPressure: 200,
+            gasMix: GasMix(o2: 40),
+            role: TankRole.deco,
+          ),
+          DiveTank(
+            id: 'ean80',
+            volume: 11,
+            startPressure: 200,
+            gasMix: GasMix(o2: 80),
+            role: TankRole.deco,
+          ),
+        ],
+        segments: [
+          PlanSegment.travel(
+            id: 'down',
+            fromDepth: 0,
+            targetDepth: 39,
+            ratePerMinute: 18,
+            tankId: 'back',
+            gasMix: air,
+            order: 0,
+          ),
+          PlanSegment.hold(
+            id: 'bottom',
+            depth: 39,
+            durationMinutes: 14,
+            tankId: 'back',
+            gasMix: air,
+            order: 1,
+          ),
+        ],
+      );
+      final outcome = const PlanEngine().compute(p);
+      // The EAN40 stretch holds no stop of its own: it is breathed only on
+      // the leg up to the first stop, which is what used to go unmarked.
+      expect(
+        outcome.stops.where((s) => s.tankId == 'ean40'),
+        isEmpty,
+        reason: 'the fixture must switch to EAN40 on the fly',
+      );
+
+      final series = seriesFor(p, outcome);
+
+      expect(series.gasSwitches.map((m) => m.label), tableSwitches(outcome));
+      expect(series.gasSwitches.map((m) => m.label), ['EAN40', 'EAN80']);
+      final ean40 = series.gasSwitches.first;
+      expect(ean40.depth, closeTo(30, 0.5));
+      expect(series.depthAt(ean40.timeSeconds), closeTo(ean40.depth, 0.1));
+    });
+
+    test('a switch inside the authored segments is flagged too', () {
+      const air = GasMix();
+      const travel = GasMix(o2: 32);
+      final p = plan(
+        tanks: const [
+          DiveTank(
+            id: 'travel',
+            volume: 11,
+            startPressure: 200,
+            gasMix: travel,
+            role: TankRole.stage,
+          ),
+          DiveTank(id: 'back', volume: 24, startPressure: 232, gasMix: air),
+        ],
+        segments: [
+          PlanSegment.travel(
+            id: 'down',
+            fromDepth: 0,
+            targetDepth: 20,
+            ratePerMinute: 18,
+            tankId: 'travel',
+            gasMix: travel,
+            order: 0,
+          ),
+          PlanSegment.hold(
+            id: 'bottom',
+            depth: 20,
+            durationMinutes: 20,
+            tankId: 'back',
+            gasMix: air,
+            order: 1,
+          ),
+        ],
+      );
+      final outcome = const PlanEngine().compute(p);
+
+      final series = seriesFor(p, outcome);
+
+      // Air at the bottom, then back onto the travel gas on the ascent.
+      expect(series.gasSwitches.map((m) => m.label), tableSwitches(outcome));
+      final marker = series.gasSwitches.first;
+      expect(marker.label, air.name);
+      expect(marker.depth, 20);
+      expect(marker.timeSeconds, outcome.schedule.first.runtimeSeconds);
+    });
+
+    test('a CCR plan flags the diluent switch it authored, and nothing on '
+        'its computed ascent (#3131)', () {
+      const shallow = GasMix(o2: 21);
+      const deep = GasMix(o2: 18, he: 45);
+      final p = plan(
+        tanks: const [
+          DiveTank(
+            id: 'dil-air',
+            volume: 3,
+            startPressure: 200,
+            gasMix: shallow,
+            role: TankRole.diluent,
+          ),
+          DiveTank(
+            id: 'dil-tx',
+            volume: 3,
+            startPressure: 200,
+            gasMix: deep,
+            role: TankRole.diluent,
+          ),
+          DiveTank(
+            id: 'o2',
+            volume: 3,
+            startPressure: 200,
+            gasMix: GasMix(o2: 100),
+            role: TankRole.oxygenSupply,
+          ),
+        ],
+        segments: [
+          PlanSegment.travel(
+            id: 'down',
+            fromDepth: 0,
+            targetDepth: 30,
+            ratePerMinute: 18,
+            tankId: 'dil-air',
+            gasMix: shallow,
+            order: 0,
+          ),
+          PlanSegment.travel(
+            id: 'deeper',
+            fromDepth: 30,
+            targetDepth: 60,
+            ratePerMinute: 18,
+            tankId: 'dil-tx',
+            gasMix: deep,
+            order: 1,
+          ),
+          PlanSegment.hold(
+            id: 'bottom',
+            depth: 60,
+            durationMinutes: 25,
+            tankId: 'dil-tx',
+            gasMix: deep,
+            order: 2,
+          ),
+        ],
+      ).copyWith(mode: domain.PlanMode.ccr);
+      final outcome = const PlanEngine().compute(p);
+      expect(outcome.stops, isNotEmpty);
+
+      final series = seriesFor(p, outcome);
+
+      final authoredSeconds = outcome.runtimeSeconds - outcome.ttsAtBottom;
+      expect(series.gasSwitches.map((m) => m.label), [deep.name]);
+      expect(series.gasSwitches.single.timeSeconds, lessThan(authoredSeconds));
+    });
+  });
+
   test('planEngineConfig reflects settings defaults', () {
     final container = _container();
     final config = container.read(planEngineConfigProvider);

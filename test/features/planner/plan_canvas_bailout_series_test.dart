@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/deco_model.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/bailout_solver.dart';
+import 'package:submersion/features/planner/domain/services/plan_gas_switches.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 
 BailoutPoint _worstCase({int ttsSeconds = 0}) => BailoutPoint(
@@ -139,6 +141,69 @@ void main() {
       series.profile.map((p) => (p.timeSeconds, p.depth)),
       contains((600.0, 40.0)),
     );
+  });
+
+  test('every bailout gas is flagged where it is picked up: at the bailout, '
+      'on the way up, between two stops and at a stop (issue #4078)', () {
+    const bottom = GasMix(o2: 21, he: 35);
+    const ean50 = GasMix(o2: 50);
+    const oxygen = GasMix(o2: 100);
+    PlanBreathingStretch from(int at, double depth, GasMix gas) => (
+      startSeconds: at,
+      startDepthMeters: depth,
+      tankId: null,
+      fO2: gas.o2 / 100,
+      fHe: gas.he / 100,
+    );
+    PlanStop stop(double depth, int arrival, GasMix gas) => PlanStop(
+      depthMeters: depth,
+      durationSeconds: 60,
+      gasFO2: gas.o2 / 100,
+      gasFHe: gas.he / 100,
+      arrivalRuntimeSeconds: arrival,
+    );
+    final bailout = BailoutOutcome(
+      points: [_worstCase(ttsSeconds: 220)],
+      worstCase: _worstCase(ttsSeconds: 220),
+      availableLiters: 1200,
+      ccrRows: const [
+        PlanScheduleRow(
+          kind: PlanScheduleRowKind.descent,
+          depthMeters: 40,
+          durationSeconds: 600,
+          runtimeSeconds: 600,
+          gasFO2: 0.18,
+          gasFHe: 0.45,
+          tankId: 'dil',
+          gasSwitch: true,
+        ),
+      ],
+      // The table folds the travel between stops into them, so it is not
+      // what the flags are read from.
+      worstCaseRows: const [],
+      // Bailing out at 40 m onto 21/35 and EAN50 from 21 m on the way up to
+      // a first stop at 12 m, then oxygen from 9 m on the way to 6 m: one
+      // ascent rate, 30 m/min.
+      ocStops: [stop(12, 656, ean50), stop(6, 728, oxygen)],
+      ocTravel: [
+        from(600, 40, bottom),
+        from(638, 21, ean50),
+        from(716, 12, ean50),
+        from(722, 9, oxygen),
+        from(788, 6, oxygen),
+      ],
+      bailoutTanks: const [],
+      bailoutTankUsages: const [],
+      ceilingTrace: const [],
+    );
+
+    final series = buildBailoutCanvasSeries(bailout);
+
+    expect(series.gasSwitches.map((m) => (m.timeSeconds, m.depth, m.label)), [
+      (600.0, 40.0, bottom.name),
+      (638.0, 21.0, ean50.name),
+      (722.0, 9.0, oxygen.name),
+    ]);
   });
 
   test('no CCR rows and no stops yields a single surface point', () {
