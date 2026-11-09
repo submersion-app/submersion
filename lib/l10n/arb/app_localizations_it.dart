@@ -9219,6 +9219,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotazioni';
 
   @override
+  String get diveLog_legend_label_plan => 'Piano';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Eventi calcolati';
 
   @override

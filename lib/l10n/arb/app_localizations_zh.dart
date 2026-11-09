@@ -8741,6 +8741,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_annotations => '标注';
 
   @override
+  String get diveLog_legend_label_plan => '计划';
+
+  @override
   String get diveLog_legend_label_computedEvents => '计算的事件';
 
   @override

@@ -9198,6 +9198,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Jelölések';
 
   @override
+  String get diveLog_legend_label_plan => 'Terv';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Számított események';
 
   @override

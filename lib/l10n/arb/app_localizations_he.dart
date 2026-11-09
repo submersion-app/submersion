@@ -9015,6 +9015,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'סימונים';
 
   @override
+  String get diveLog_legend_label_plan => 'תוכנית';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'אירועים מחושבים';
 
   @override

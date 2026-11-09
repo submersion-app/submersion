@@ -3144,6 +3144,7 @@
   "diveLog_legend_label_depth": "深度",
   "diveLog_legend_label_events": "事件",
   "diveLog_legend_label_annotations": "标注",
+  "diveLog_legend_label_plan": "计划",
   "diveLog_legend_label_computedEvents": "计算的事件",
   "diveLog_legend_label_gasDensity": "气体密度",
   "diveLog_legend_label_lateGasSwitches": "延迟换气",

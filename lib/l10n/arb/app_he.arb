@@ -2930,6 +2930,7 @@
   "diveLog_legend_label_depth": "עומק",
   "diveLog_legend_label_events": "אירועים",
   "diveLog_legend_label_annotations": "סימונים",
+  "diveLog_legend_label_plan": "תוכנית",
   "diveLog_legend_label_computedEvents": "אירועים מחושבים",
   "diveLog_legend_label_gasDensity": "צפיפות גז",
   "diveLog_legend_label_lateGasSwitches": "החלפות גז מאוחרות",

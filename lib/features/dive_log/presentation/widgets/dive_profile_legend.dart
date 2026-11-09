@@ -261,6 +261,7 @@ class DiveProfileLegend extends ConsumerWidget {
       config.hasPressureData ||
       config.hasEvents ||
       config.hasAnnotations ||
+      config.hasPlannedProfile ||
       config.hasSecondaryToggles;
 }
 

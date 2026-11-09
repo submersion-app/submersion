@@ -2930,6 +2930,7 @@
   "diveLog_legend_label_depth": "Mélység",
   "diveLog_legend_label_events": "Események",
   "diveLog_legend_label_annotations": "Jelölések",
+  "diveLog_legend_label_plan": "Terv",
   "diveLog_legend_label_computedEvents": "Számított események",
   "diveLog_legend_label_gasDensity": "Gáz sűrűség",
   "diveLog_legend_label_lateGasSwitches": "Késői gázváltások",

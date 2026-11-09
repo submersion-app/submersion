@@ -9339,6 +9339,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'التعليقات';
 
   @override
+  String get diveLog_legend_label_plan => 'الخطة';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'الأحداث المحسوبة';
 
   @override

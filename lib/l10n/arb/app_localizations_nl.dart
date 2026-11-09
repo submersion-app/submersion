@@ -9161,6 +9161,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotaties';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Berekende gebeurtenissen';
 
   @override
