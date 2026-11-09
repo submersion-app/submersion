@@ -149,8 +149,9 @@ void main() {
     expect(result, isEmpty);
   });
 
-  testWidgets('a computer with no name gets a generic label, never its id',
-      (tester) async {
+  testWidgets('a computer with no name gets a generic label, never its id', (
+    tester,
+  ) async {
     await open(
       tester,
       slots: TransmitterSlotPreview(candidates: [candidate('a')]),

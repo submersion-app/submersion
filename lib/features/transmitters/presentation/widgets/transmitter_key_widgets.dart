@@ -84,6 +84,9 @@ Future<void> applyTransmitterSetupToExistingDives(
         ...await repo.computersForSerial(serial),
   };
   final backfill = ref.read(transmitterSlotBackfillProvider);
+  // A Cloud database's dives gain serials from their file, so its computers
+  // join the scope even before any of their tanks carries this serial.
+  computers.addAll(await backfill.dbImportComputers());
   if (await backfill.pendingCount(computers) > 0 && context.mounted) {
     await _learnSlots(context, backfill, computers);
   }

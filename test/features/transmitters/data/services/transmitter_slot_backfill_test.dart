@@ -10,14 +10,38 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
+import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/transmitters/data/services/transmitter_slot_backfill.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_slot_backfill_memo.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_options.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 
 import '../../../../helpers/test_database.dart';
+
+class _FakeParser implements ImportParser {
+  _FakeParser(this.dive);
+
+  final Map<String, dynamic> dive;
+
+  @override
+  Future<ImportPayload> parse(
+    Uint8List fileBytes, {
+    ImportOptions? options,
+  }) async => ImportPayload(
+    entities: {
+      ImportEntityType.dives: [dive],
+    },
+  );
+
+  @override
+  List<ImportFormat> get supportedFormats => [ImportFormat.shearwaterDb];
+}
 
 class _MemoryMemo implements TransmitterSlotBackfillMemo {
   final done = <String>{};
@@ -108,6 +132,8 @@ void main() {
     String? serial,
     int order = 0,
     int? sourceIndex,
+    double? start,
+    double? end,
   }) async {
     await db
         .into(db.diveTanks)
@@ -116,6 +142,8 @@ void main() {
             id: Value(id),
             diveId: Value(diveId),
             transmitterSerial: Value(serial),
+            startPressure: Value(start),
+            endPressure: Value(end),
             tankOrder: Value(order),
             sourceTankIndex: Value(sourceIndex),
             tankRole: const Value('backGas'),
@@ -153,7 +181,7 @@ void main() {
 
   /// The Shearwater Cloud fixture's dive, stored as a file import with two
   /// slot-less tanks written in file order, as the importer leaves them.
-  Future<void> cloudDive({int tanks = 2}) async {
+  Future<void> cloudDive({int tanks = 2, bool reordered = false}) async {
     final content = File(fixture).readAsStringSync();
     final entry = (await UddfFullImportService().importAllDataFromUddf(
       content,
@@ -175,8 +203,19 @@ void main() {
       fileId: fileId,
       fileFormat: 'uddf',
     );
+    // The rows carry the file's pressures, as the import wrote them; a
+    // reorder (or a delete plus an add) leaves them out of file order.
+    final fileTanks = (entry['tanks'] as List).cast<Map<String, dynamic>>();
     for (var i = 0; i < tanks; i++) {
-      await tank('cloud-t$i', 'cloud');
+      final from = i < fileTanks.length
+          ? fileTanks[reordered ? fileTanks.length - 1 - i : i]
+          : const <String, dynamic>{};
+      await tank(
+        'cloud-t$i',
+        'cloud',
+        start: (from['startPressure'] as num?)?.toDouble(),
+        end: (from['endPressure'] as num?)?.toDouble(),
+      );
     }
   }
 
@@ -223,6 +262,92 @@ void main() {
     expect(written, 0);
     expect((await slots()).values, everyElement(isNull));
   });
+
+  test('a Cloud dive whose tanks no longer line up with the file is left '
+      'alone', () async {
+    await cloudDive(reordered: true);
+    final written = await backfill().run({'petrel'});
+    expect(written, 0);
+    expect((await slots()).values, everyElement(isNull));
+  });
+
+  test('a stored file not yet on this device is tried again later', () async {
+    await dive('cloud', 'petrel');
+    await source(
+      'cloud',
+      computerId: 'petrel',
+      fileId: 'not-synced-yet',
+      fileFormat: 'uddf',
+    );
+    await tank('cloud-t0', 'cloud', start: 200, end: 100);
+
+    await backfill().run({'petrel'});
+    expect(memo.done, isNot(contains('file:cloud')));
+  });
+
+  test('a Shearwater Cloud database dive gains the serial and slot its file '
+      'names', () async {
+    await dive('db', 'petrel', maxDepth: 30, runtimeSeconds: 3000);
+    final fileId = await ImportedFileRepository().store(
+      bytes: Uint8List.fromList([1, 2, 3]),
+      fileName: 'cloud.db',
+    );
+    await source(
+      'db',
+      computerId: 'petrel',
+      fileId: fileId,
+      fileFormat: 'shearwaterDb',
+    );
+    await tank('db-t0', 'db', start: 200, end: 100);
+    final files = DiveResyncOrchestrator(
+      db: db,
+      parserFor: (_) => _FakeParser({
+        'dateTime': DateTime.utc(2026, 3, 12, 9),
+        'maxDepth': 30.0,
+        'runtime': const Duration(seconds: 3000),
+        'tanks': [
+          {
+            'startPressure': 200.0,
+            'endPressure': 100.0,
+            'transmitterSlot': 1,
+            'transmitterSerial': '109623',
+          },
+        ],
+      }),
+    );
+
+    await TransmitterSlotBackfill(
+      parseRaw: fakeParse,
+      memo: memo,
+      files: files,
+    ).run({'petrel'});
+    final row = await (db.select(
+      db.diveTanks,
+    )..where((t) => t.id.equals('db-t0'))).getSingle();
+    expect(row.transmitterSlot, 1);
+    expect(row.transmitterSerial, '109623');
+  });
+
+  test(
+    'computers with a stored Shearwater Cloud database are in scope',
+    () async {
+      await dive('db', 'teric');
+      await source(
+        'db',
+        computerId: 'teric',
+        fileId: 'f',
+        fileFormat: 'shearwaterDb',
+      );
+      await dive('cloud', 'petrel');
+      await source(
+        'cloud',
+        computerId: 'petrel',
+        fileId: 'g',
+        fileFormat: 'uddf',
+      );
+      expect(await backfill().dbImportComputers(), {'teric'});
+    },
+  );
 
   test('a second run parses nothing again', () async {
     await dive('bt', 'perdix');

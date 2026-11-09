@@ -10,6 +10,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/parsed_tank_resolver.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_batch_service.dart';
 import 'package:submersion/features/dive_import/data/services/dive_resync_orchestrator.dart';
+import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_slot_backfill_memo.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
@@ -42,6 +43,23 @@ class TransmitterSlotBackfill {
   final AppDatabase? _database;
 
   AppDatabase get _db => _database ?? DatabaseService.instance.database;
+
+  /// Computers with a dive whose primary source is a stored Shearwater
+  /// Cloud database. Its tanks gain serials from the file, which no other
+  /// computer's downloads would bring into scope.
+  Future<Set<String>> dbImportComputers() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT d.computer_id AS c FROM dives d '
+          'JOIN dive_data_sources s ON s.dive_id = d.id AND s.is_primary = 1 '
+          'WHERE s.imported_file_id IS NOT NULL '
+          'AND s.source_file_format = ? AND d.computer_id IS NOT NULL',
+          variables: [Variable<String>(ImportFormat.shearwaterDb.name)],
+          readsFrom: {_db.dives, _db.diveDataSources},
+        )
+        .get();
+    return {for (final r in rows) r.read<String>('c')};
+  }
 
   /// How many sources and dives on [computerIds] [run] would parse, so a
   /// caller shows progress only when there is work.
@@ -110,8 +128,13 @@ class TransmitterSlotBackfill {
     final payloads = <String, ImportPayload>{};
     for (final id in dives) {
       try {
-        written += await _fromFile(id, files, payloads, sync);
-        finished.add('file:$id');
+        final count = await _fromFile(id, files, payloads, sync);
+        // Null: the stored file has not reached this device yet; try again
+        // on a later run.
+        if (count != null) {
+          written += count;
+          finished.add('file:$id');
+        }
       } on MissingPluginException {
         // A `.db` file needs the native parser; leave it for a device that
         // has one.
@@ -226,13 +249,14 @@ class TransmitterSlotBackfill {
     return written;
   }
 
-  Future<int> _fromFile(
+  Future<int?> _fromFile(
     String diveId,
     DiveResyncOrchestrator files,
     Map<String, ImportPayload> payloads,
     SyncRepository sync,
   ) async {
     final found = await files.sourceEntryFor(diveId, payloads: payloads);
+    if (found.failure == DiveResyncFailure.storedFileMissing) return null;
     final tanksData =
         (found.entry?['tanks'] as List?)?.cast<Map<String, dynamic>>() ??
         const <Map<String, dynamic>>[];
@@ -247,6 +271,11 @@ class TransmitterSlotBackfill {
               ]))
             .get();
     if (tanksData.isEmpty || rows.length != tanksData.length) return 0;
+    // An edit can reorder the rows or swap one for a hand-added tank while
+    // the count still matches, so each pair must show the same readings.
+    for (var i = 0; i < rows.length; i++) {
+      if (!_sameReadings(rows[i], tanksData[i])) return 0;
+    }
     var written = 0;
     for (var i = 0; i < rows.length; i++) {
       final row = rows[i];
@@ -268,6 +297,22 @@ class TransmitterSlotBackfill {
       written++;
     }
     return written;
+  }
+
+  /// Whether stored [row] and the file's [tank] report the same start and
+  /// end pressure (within 1 bar), with at least one of the two present on
+  /// both sides.
+  static bool _sameReadings(DiveTank row, Map<String, dynamic> tank) {
+    var compared = 0;
+    for (final (stored, filed) in [
+      (row.startPressure, tank['startPressure']),
+      (row.endPressure, tank['endPressure']),
+    ]) {
+      if (stored == null || filed is! num) continue;
+      if ((stored - filed.toDouble()).abs() > 1.0) return false;
+      compared++;
+    }
+    return compared > 0;
   }
 
   Future<void> _write(

@@ -68,11 +68,15 @@ class _FakeApplyRepository extends TransmitterRepository {
 
 /// Records the computers the Apply flow backfills, and writes nothing.
 class _FakeBackfill extends TransmitterSlotBackfill {
-  _FakeBackfill({this.pending = 1})
+  _FakeBackfill({this.pending = 1, this.dbComputers = const {}})
     : super(parseRaw: (v, p, m, raw) => throw UnimplementedError());
 
   final int pending;
+  final Set<String> dbComputers;
   final runs = <Set<String>>[];
+
+  @override
+  Future<Set<String>> dbImportComputers() async => dbComputers;
 
   @override
   Future<int> pendingCount(Set<String> computerIds) async => pending;
@@ -396,6 +400,28 @@ void main() {
       expect(repo.serialLookups, 1);
       expect(backfill.runs, hasLength(1));
       expect(find.text('Apply to existing dives?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a Cloud database computer is backfilled before any of its '
+        'tanks carries the serial', (tester) async {
+      final repo = _FakeApplyRepository(
+        preview: (tanksUpdated: 1, divesUpdated: 1, mixesKept: 0),
+      );
+      final backfill = _FakeBackfill(dbComputers: const {'teric'});
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Apply to existing dives'));
+      await tester.pumpAndSettle();
+      expect(backfill.runs, [
+        {'teric'},
+      ]);
       await tester.tap(find.text('Cancel'));
       await tester.pumpAndSettle();
     });
