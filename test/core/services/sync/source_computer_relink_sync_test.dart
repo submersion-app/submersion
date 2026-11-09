@@ -129,4 +129,35 @@ void main() {
     final source = (await serializer.fetchRecord('diveDataSources', 's2'))!;
     expect(source['computerSerial'], '8629AC48');
   });
+
+  test('resolving a row of an unrelated type leaves the align step out, '
+      'and a computer row brings it back', () async {
+    await seedDetachedSource();
+    await DatabaseService.instance.database.customStatement(
+      "UPDATE dive_data_sources SET computer_id = 'teric', "
+      "computer_serial = '2250878024' WHERE id = 's1'",
+    );
+
+    await serializer.applyInDeferredFkTransaction(
+      () => serializer.repairAfterRowWrite('diveTanks'),
+    );
+    expect(
+      (await serializer.fetchRecord(
+        'diveDataSources',
+        's1',
+      ))!['computerSerial'],
+      '2250878024',
+    );
+
+    await serializer.applyInDeferredFkTransaction(
+      () => serializer.repairAfterRowWrite('diveComputers'),
+    );
+    expect(
+      (await serializer.fetchRecord(
+        'diveDataSources',
+        's1',
+      ))!['computerSerial'],
+      '8629AC48',
+    );
+  });
 }

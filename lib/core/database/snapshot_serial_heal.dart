@@ -147,7 +147,7 @@ Future<int> _healLinked(
         'JOIN dive_computers c ON c.id = s.computer_id '
         'WHERE ${copies.where} '
         "AND TRIM(COALESCE(c.serial_number, '')) <> '' "
-        'AND ($column IS NULL OR $column <> c.serial_number)'
+        'AND ($column IS NULL OR $column <> TRIM(c.serial_number))'
         '${computerId == null ? '' : ' AND c.id = ?'}',
         variables: [if (computerId != null) Variable<String>(computerId)],
       )
@@ -203,7 +203,8 @@ Future<int> _convertDecimal(
     FROM $table s
     WHERE $where AND ${decimalSerialCandidateSql('s.$column')}
       AND NOT EXISTS (SELECT 1 FROM dive_computers c
-        WHERE c.id = s.computer_id AND c.serial_number = s.$column)
+        WHERE c.id = s.computer_id
+          AND TRIM(c.serial_number) = TRIM(s.$column))
   ''').get();
   var changed = 0;
   for (final row in rows) {

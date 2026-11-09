@@ -46,8 +46,12 @@ Future<int> relinkDiveAttributedSources(DatabaseConnectionUser db) async {
     return 0;
   }
 
+  final product = sourceCols.contains('descriptor_product')
+      ? 's.descriptor_product'
+      : 'NULL';
   final rows = await db.customSelect('''
     SELECT s.id, s.dive_id, s.computer_model, s.computer_serial,
+      $product AS descriptor_product,
       c.id AS computer_id, c.manufacturer, c.model, c.serial_number
     FROM dive_data_sources s
     JOIN dives d ON d.id = s.dive_id
@@ -72,13 +76,11 @@ Future<int> relinkDiveAttributedSources(DatabaseConnectionUser db) async {
     final row = candidates.single;
     final computerId = row.read<String>('computer_id');
     final sourceId = row.read<String>('id');
-    // An empty serial copy takes the computer's at once: a source relinked
-    // while a conflict is resolved sees no serial heal until the next open.
+    // Its serial copy is left to healDownloadedSnapshotSerials, which both
+    // callers run right after this.
     await db.customStatement(
-      'UPDATE dive_data_sources SET computer_id = ?, computer_serial = '
-      "COALESCE(NULLIF(TRIM(computer_serial), ''), ?, computer_serial) "
-      'WHERE id = ?',
-      [computerId, row.readNullable<String>('serial_number'), sourceId],
+      'UPDATE dive_data_sources SET computer_id = ? WHERE id = ?',
+      [computerId, sourceId],
     );
     // The same repair cleared the link on the source's recorded series,
     // which say whose they are only through it.
@@ -107,19 +109,27 @@ Future<List<String>> _seriesTablesWithSource(DatabaseConnectionUser db) async {
   ];
 }
 
-/// Whether the source's snapshots describe the dive's computer.
+/// Whether the source's snapshots describe the dive's computer. The model
+/// snapshot names the computer as it was labeled at the download; the
+/// descriptor's product names what the device reported, which is the label
+/// a computer relabeled since (issue #422) carries now.
 bool _fits(QueryRow row) {
   final manufacturer = row.readNullable<String>('manufacturer');
   final model = row.readNullable<String>('model');
-  final snapshot = normalizeComputerIdentityPart(
-    row.readNullable<String>('computer_model'),
-  );
   final modelKey = normalizeComputerIdentityPart(model);
-  if (snapshot.isEmpty || modelKey.isEmpty) return false;
+  if (modelKey.isEmpty) return false;
   final fullKey = normalizeComputerIdentityPart(
     manufacturer == null ? model : '$manufacturer $model',
   );
-  if (snapshot != modelKey && snapshot != fullKey) return false;
+  final snapshot = normalizeComputerIdentityPart(
+    row.readNullable<String>('computer_model'),
+  );
+  final product = normalizeComputerIdentityPart(
+    row.readNullable<String>('descriptor_product'),
+  );
+  final namesModel =
+      snapshot == modelKey || snapshot == fullKey || product == modelKey;
+  if (!namesModel) return false;
 
   final serial = row.readNullable<String>('computer_serial')?.trim() ?? '';
   if (serial.isEmpty) return true;

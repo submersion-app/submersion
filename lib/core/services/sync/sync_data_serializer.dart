@@ -2852,18 +2852,18 @@ class SyncDataSerializer {
           _db,
           await _exportDiveComputers(hlcSince),
           hlcSince: hlcSince,
-          referencing: [
-            (rows: dives, key: 'computerId'),
-            (rows: diveDataSources, key: 'computerId'),
-            (rows: diveTanks, key: 'computerId'),
-            (rows: qualityFindings, key: 'computerId'),
-            (rows: transmitters, key: 'diveComputerId'),
-            (rows: diveProfileEvents, key: 'computerId'),
-            (rows: gasSwitches, key: 'computerId'),
-            (rows: diveComputerConnections, key: 'computerId'),
-            (rows: diveProfileSeries, key: 'computerId'),
-            (rows: tankPressureSeries, key: 'computerId'),
-          ],
+          referencing: {
+            'dives': dives,
+            'diveDataSources': diveDataSources,
+            'diveTanks': diveTanks,
+            'qualityFindings': qualityFindings,
+            'transmitters': transmitters,
+            'diveProfileEvents': diveProfileEvents,
+            'gasSwitches': gasSwitches,
+            'diveComputerConnections': diveComputerConnections,
+            'diveProfileSeries': diveProfileSeries,
+            'tankPressureSeries': tankPressureSeries,
+          },
         ),
       ),
       transmitters: transmitters,
@@ -3216,16 +3216,29 @@ class SyncDataSerializer {
         .customSelect('PRAGMA foreign_key_check("$table")')
         .get();
     if (dangling.isNotEmpty) await _repairDanglingReferences();
-    await _rederivePeerValues();
+    await _rederivePeerValues(writtenEntityType: entityType);
   }
 
   /// The values a peer's row may not carry, derived again after every apply.
-  Future<void> _rederivePeerValues() async {
+  /// [writtenEntityType] names the one row type a conflict resolution wrote,
+  /// so steps that cannot be affected by it are skipped; null after a batch.
+  Future<void> _rederivePeerValues({String? writtenEntityType}) async {
     await alignLinkedRouteOwners();
     await seedRepresentativeCourseLinks();
     await anchorTankInspectionClocks();
-    await alignDownloadedSourcesWithComputers();
+    if (writtenEntityType == null ||
+        _sourceComputerAlignInputs.contains(writtenEntityType)) {
+      await alignDownloadedSourcesWithComputers();
+    }
   }
+
+  /// The row types [alignDownloadedSourcesWithComputers] reads: a write to
+  /// any other leaves nothing new for it to do.
+  static const _sourceComputerAlignInputs = {
+    'dives',
+    'diveDataSources',
+    'diveComputers',
+  };
 
   /// The foreign-key repair above clears a data source's computer link when
   /// an apply ends without that computer's row, and a peer below the fix

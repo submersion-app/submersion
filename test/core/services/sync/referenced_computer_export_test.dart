@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/services/sync/referenced_computer_export.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -132,5 +133,18 @@ void main() {
 
     expect(data.dives.map((d) => d['id']), ['d1']);
     expect(data.diveComputers, isEmpty);
+  });
+
+  test('every table that links to a dive computer is followed', () async {
+    final db = DatabaseService.instance.database;
+    final rows = await db.customSelect('''
+      SELECT m.name AS tbl FROM sqlite_master m
+      JOIN pragma_foreign_key_list(m.name) f
+      WHERE m.type = 'table' AND f."table" = 'dive_computers'
+    ''').get();
+    final linked = {for (final row in rows) row.read<String>('tbl')};
+
+    expect(linked, isNotEmpty);
+    expect({for (final r in computerReferences) r.table}, linked);
   });
 }

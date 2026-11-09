@@ -507,7 +507,7 @@ class DiveComputerRepository {
         });
       }
     } catch (e, stackTrace) {
-      _log.error(
+      _log.warning(
         'Failed to update serial copies for dive computer: $computerId',
         error: e,
         stackTrace: stackTrace,

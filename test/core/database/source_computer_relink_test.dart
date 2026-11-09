@@ -63,6 +63,7 @@ void main() {
     String? model = 'Shearwater Teric',
     String? serial,
     String sourceFormat = 'dive_computer',
+    String? descriptorProduct,
   }) async {
     await db
         .into(db.diveDataSources)
@@ -74,6 +75,7 @@ void main() {
             computerModel: Value(model),
             computerSerial: Value(serial),
             sourceFormat: Value(sourceFormat),
+            descriptorProduct: Value(descriptorProduct),
             hlc: const Value('source-hlc'),
             importedAt: now,
             createdAt: now,
@@ -102,8 +104,8 @@ void main() {
     expect((await source('s2')).computerId, 'sw');
   });
 
-  test('the source\'s profile and tank pressure series follow it, and an '
-      'empty serial copy takes the computer\'s', () async {
+  test('the source\'s profile and tank pressure series follow it, and its '
+      'serial copy is left to the serial heal', () async {
     await insertComputer('sw');
     await insertDive('d1', computerId: 'sw');
     await insertSource('s1', diveId: 'd1');
@@ -132,7 +134,7 @@ void main() {
             .read<String?>('computer_id');
     expect(await seriesComputer('dive_profile_series', 'p1'), 'sw');
     expect(await seriesComputer('tank_pressure_series', 'tp1'), 'sw');
-    expect((await source('s1')).computerSerial, '8629AC48');
+    expect((await source('s1')).computerSerial, isNull);
   });
 
   test('the every-open heal relinks first, so the source takes its '
@@ -146,6 +148,26 @@ void main() {
     final s1 = await source('s1');
     expect(s1.computerId, 'sw');
     expect(s1.computerSerial, '8629AC48');
+  });
+
+  test('a computer relabeled since the download is found by the product '
+      'the device reported', () async {
+    // Issue #422: a later download relabeled the computer to the product
+    // the device reported, so the old snapshot names the old model.
+    await insertComputer('sw', model: 'Perdix 2');
+    await insertDive('d1', computerId: 'sw');
+    await insertSource(
+      's1',
+      diveId: 'd1',
+      model: 'Shearwater Perdix',
+      descriptorProduct: 'Perdix 2',
+    );
+    await insertDive('d2', computerId: 'sw');
+    await insertSource('s2', diveId: 'd2', model: 'Shearwater Perdix');
+
+    expect(await relinkDiveAttributedSources(db), 1);
+    expect((await source('s1')).computerId, 'sw');
+    expect((await source('s2')).computerId, isNull);
   });
 
   test('a dive with no computer of its own is never guessed at', () async {

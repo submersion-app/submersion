@@ -226,6 +226,25 @@ void main() {
       expect((await source('s1')).computerSerial, '8629AC48');
       expect((await source('s2')).computerSerial, isNull);
     });
+
+    test('a computer serial stored with spaces settles its copies once, and '
+        'never as a Shearwater conversion', () async {
+      await insertComputer(
+        'ratio',
+        manufacturer: 'Ratio',
+        model: 'iX3M 2',
+        serial: ' 74691 ',
+      );
+      await insertDive('d1');
+      // The model snapshot reads as a Shearwater, as a mislabeled download
+      // could: only the linked computer's own serial keeps it from being
+      // converted by its characters.
+      await insertSource('s1', diveId: 'd1', computerId: 'ratio');
+
+      expect(await healDownloadedSnapshotSerials(db), 1);
+      expect(await healDownloadedSnapshotSerials(db), 0);
+      expect((await source('s1')).computerSerial, '74691');
+    });
   });
 
   group('sources with no computer to compare against', () {
