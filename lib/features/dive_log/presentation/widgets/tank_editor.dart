@@ -475,6 +475,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // the right one after an edit (issue #3021).
       sourceId: widget.tank.sourceId,
       sourceTankIndex: widget.tank.sourceTankIndex,
+      transmitterSlot: widget.tank.transmitterSlot,
       sharedComputerIds: widget.tank.sharedComputerIds,
       // Only the trip cylinder picker changes the link; every other edit
       // carries it, or updateDive would wipe it on the next save.

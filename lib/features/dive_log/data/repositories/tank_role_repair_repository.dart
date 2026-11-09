@@ -139,6 +139,7 @@ class TankRoleRepairRepository {
     transmitterSerial: row.transmitterSerial,
     equipmentId: row.equipmentId,
     sourceTankIndex: row.sourceTankIndex,
+    transmitterSlot: row.transmitterSlot,
   );
 
   Future<void> _pending(String entityType, String id, int now) =>

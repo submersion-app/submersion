@@ -762,6 +762,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       computerId: original?.computerId,
       transmitterSerial: original?.transmitterSerial,
       sourceTankIndex: original?.sourceTankIndex,
+      transmitterSlot: original?.transmitterSlot,
       regulatorEquipmentId: original?.regulatorEquipmentId,
       extraRegulatorIds: original?.extraRegulatorIds ?? const [],
       equipmentId: original?.equipmentId,

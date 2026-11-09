@@ -55,6 +55,12 @@ class DiveTank extends Equatable {
   /// user edits never rewrite it.
   final int? sourceTankIndex;
 
+  /// The physical transmitter slot this tank's pressures came from, 0 based
+  /// (Shearwater T1 = 0 to T4 = 3), as the computer or its own logbook export
+  /// reported it (v348, issue #4347). Computer-owned like
+  /// [transmitterSerial]: user edits never rewrite it.
+  final int? transmitterSlot;
+
   /// The other computers on a consolidated dive that logged this same
   /// cylinder (v260): consolidation keeps one row per physical cylinder,
   /// attributed to [computerId], and lists here the computers merged into
@@ -139,6 +145,7 @@ class DiveTank extends Equatable {
     this.transmitterSerial,
     this.sourceId,
     this.sourceTankIndex,
+    this.transmitterSlot,
     this.sharedComputerIds,
     this.regulatorEquipmentId,
     this.extraRegulatorIds = const [],
@@ -204,6 +211,8 @@ class DiveTank extends Equatable {
     String? sourceId,
     int? sourceTankIndex,
     bool clearSourceTankIndex = false,
+    int? transmitterSlot,
+    bool clearTransmitterSlot = false,
     List<String>? sharedComputerIds,
     String? regulatorEquipmentId,
     List<String>? extraRegulatorIds,
@@ -243,6 +252,9 @@ class DiveTank extends Equatable {
       sourceTankIndex: clearSourceTankIndex
           ? null
           : (sourceTankIndex ?? this.sourceTankIndex),
+      transmitterSlot: clearTransmitterSlot
+          ? null
+          : (transmitterSlot ?? this.transmitterSlot),
       sharedComputerIds: sharedComputerIds ?? this.sharedComputerIds,
       regulatorEquipmentId: clearRegulatorEquipmentId
           ? null
@@ -284,6 +296,7 @@ class DiveTank extends Equatable {
     transmitterSerial,
     sourceId,
     sourceTankIndex,
+    transmitterSlot,
     sharedComputerIds,
     regulatorEquipmentId,
     extraRegulatorIds,

@@ -180,6 +180,7 @@ DiveTank _fold(DiveTank earlier, DiveTank later) => earlier
           normalizeTransmitterSerial(earlier.transmitterSerial) ??
           normalizeTransmitterSerial(later.transmitterSerial),
       sourceTankIndex: earlier.sourceTankIndex ?? later.sourceTankIndex,
+      transmitterSlot: earlier.transmitterSlot ?? later.transmitterSlot,
       tripCylinderId: earlier.tripCylinderId ?? later.tripCylinderId,
       passportId: earlier.passportId ?? later.passportId,
       // The twin cylinder goes with the cylinder it was picked with.

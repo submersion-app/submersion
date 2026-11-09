@@ -2426,6 +2426,7 @@ class DiveRepository {
                 passportId: Value(tank.passportId),
                 twinPassportId: Value(tank.twinPassportId),
                 sourceTankIndex: Value(tank.sourceTankIndex),
+                transmitterSlot: Value(tank.transmitterSlot),
                 sharedComputerIds: Value(
                   encodeSharedComputerIds(tank.sharedComputerIds),
                 ),
@@ -2807,6 +2808,7 @@ class DiveRepository {
                     passportId: Value(tank.passportId),
                     twinPassportId: Value(tank.twinPassportId),
                     sourceTankIndex: Value(tank.sourceTankIndex),
+                    transmitterSlot: Value(tank.transmitterSlot),
                     sharedComputerIds: Value(
                       encodeSharedComputerIds(tank.sharedComputerIds),
                     ),
@@ -5127,6 +5129,7 @@ class DiveRepository {
               twinPassportId: t.twinPassportId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
+              transmitterSlot: t.transmitterSlot,
               sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),
               usageDuration: t.usageDuration != null
                   ? Duration(seconds: t.usageDuration!)
@@ -5590,6 +5593,7 @@ class DiveRepository {
           twinPassportId: t.twinPassportId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
+          transmitterSlot: t.transmitterSlot,
           sharedComputerIds: decodeSharedComputerIds(t.sharedComputerIds),
           usageDuration: t.usageDuration != null
               ? Duration(seconds: t.usageDuration!)
@@ -8500,6 +8504,7 @@ class DiveRepository {
       regulatorEquipmentId: regs.first,
       extraRegulatorIds: regs.extras,
       sourceTankIndex: Value(t.sourceTankIndex),
+      transmitterSlot: Value(t.transmitterSlot),
     );
   }
 

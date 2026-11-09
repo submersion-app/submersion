@@ -356,6 +356,7 @@ class TankPressureRepository {
       DiveTanksCompanion(
         sourceTankIndex: Value(bIndex),
         transmitterSerial: Value(b.transmitterSerial),
+        transmitterSlot: Value(b.transmitterSlot),
         roleSource: const Value(null),
         startPressure: Value(b.startPressure),
         endPressure: Value(b.endPressure),
@@ -367,6 +368,7 @@ class TankPressureRepository {
       DiveTanksCompanion(
         sourceTankIndex: Value(aIndex),
         transmitterSerial: Value(a.transmitterSerial),
+        transmitterSlot: Value(a.transmitterSlot),
         roleSource: const Value(null),
         startPressure: Value(a.startPressure),
         endPressure: Value(a.endPressure),

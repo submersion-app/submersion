@@ -164,6 +164,7 @@ void main() {
       order: 2,
       sourceId: 'source-2',
       sourceTankIndex: 0,
+      transmitterSlot: 2,
       sharedComputerIds: ['dc3'],
     );
     final l10n = await pump(
@@ -181,6 +182,7 @@ void main() {
 
     expect(changed!.sourceId, 'source-2');
     expect(changed!.sourceTankIndex, 0);
+    expect(changed!.transmitterSlot, 2);
     expect(changed!.sharedComputerIds, ['dc3']);
   });
 
