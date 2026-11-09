@@ -1,5 +1,6 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fl_chart/fl_chart.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -96,7 +97,7 @@ class EstimatedProfileChart extends ConsumerWidget {
                           return SideTitleWidget(
                             meta: meta,
                             child: Text(
-                              '${(-value).round()}',
+                              '${(-value).toInt()}',
                               style: labelStyle,
                               maxLines: 1,
                             ),
