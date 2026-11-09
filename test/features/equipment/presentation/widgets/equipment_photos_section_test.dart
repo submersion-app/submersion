@@ -53,6 +53,7 @@ void main() {
   );
 
   Future<Widget> host({
+    Object? error,
     List<MediaItem> photos = const [],
     String? cover,
     GearPhotoRepository? gearPhotos,
@@ -60,7 +61,10 @@ void main() {
     DeviceCapabilities? capabilities,
   }) => mediaTestApp(
     overrides: [
-      identificationPhotosProvider('reg-1').overrideWith((ref) async => photos),
+      identificationPhotosProvider('reg-1').overrideWith((ref) async {
+        if (error != null) throw error;
+        return photos;
+      }),
       if (gearPhotos != null)
         gearPhotoRepositoryProvider.overrideWithValue(gearPhotos),
       if (unlinkCalls != null)
@@ -83,6 +87,14 @@ void main() {
 
     expect(find.text('Photos'), findsOneWidget);
     expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
+  });
+
+  testWidgets('a failed read says so', (tester) async {
+    await tester.pumpWidget(await host(error: StateError('disk gone')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Error loading media'), findsOneWidget);
+    expect(find.byType(MediaThumbnailTile), findsNothing);
   });
 
   testWidgets('empty state text', (tester) async {

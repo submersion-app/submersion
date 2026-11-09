@@ -129,6 +129,14 @@ void main() {
     verifyNever(repository.createMedia(any));
   });
 
+  testWidgets('a failed import says so and links nothing', (tester) async {
+    when(repository.createMedia(any)).thenThrow(StateError('disk full'));
+    final imported = await runLink(tester, selected: [_asset('a1')]);
+
+    // Each failed asset is recorded, so nothing was imported.
+    expect(imported, isFalse);
+  });
+
   testWidgets('an empty selection links nothing', (tester) async {
     expect(await runLink(tester, selected: const []), isFalse);
     verifyNever(repository.createMedia(any));

@@ -45,12 +45,16 @@ void main() {
   ];
 
   Future<Widget> host({
+    Object? error,
     List<GearPhotoGroup> data = const [],
     List<List<String>>? unlinkCalls,
     void Function(String)? onOpenItem,
   }) => mediaTestApp(
     overrides: [
-      gearGalleryProvider.overrideWith((ref) async => data),
+      gearGalleryProvider.overrideWith((ref) async {
+        if (error != null) throw error;
+        return data;
+      }),
       if (unlinkCalls != null)
         mediaUnlinkServiceProvider.overrideWithValue(
           _RecordingUnlink(unlinkCalls),
@@ -104,6 +108,42 @@ void main() {
     expect(calls, [
       ['m2'],
     ]);
+  });
+
+  testWidgets('a failed read says so', (tester) async {
+    await tester.pumpWidget(await host(error: StateError('disk gone')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MediaThumbnailTile), findsNothing);
+    expect(find.textContaining('rror'), findsOneWidget);
+  });
+
+  testWidgets('an unnamed item gets the untitled name', (tester) async {
+    await tester.pumpWidget(
+      await host(
+        data: [
+          GearPhotoGroup(equipmentId: 'x', name: '', items: [photo('m1')]),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Untitled equipment'), findsOneWidget);
+  });
+
+  testWidgets('a tap in selection mode toggles the photo', (tester) async {
+    await tester.pumpWidget(await host(data: groups));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(MediaThumbnailTile).first);
+    await tester.pumpAndSettle();
+    expect(find.text('1 selected'), findsOneWidget);
+
+    await tester.tap(find.byType(MediaThumbnailTile).first);
+    await tester.pumpAndSettle();
+    expect(find.text('1 selected'), findsNothing);
   });
 
   testWidgets('empty state', (tester) async {
