@@ -142,6 +142,15 @@ only Seen gives the name alone.
   matches Exact sightings only, since Seen and the groups have no number.
   *(Builder's call.)*
 
+### Follow-up: exports carry marine life
+
+Found while building (2026-11-09): no production code loaded a dive's
+sightings into the `Dive` the PDF logbook and the UDDF export write, so both
+always left marine life out. The maintainer chose to fix it in this PR. The
+UDDF chunk loader (every UDDF export goes through it) and the detailed PDF
+logbook (both its entry points) now read each dive's sightings in one
+batched query, and the PDF prints built-in species names in its language.
+
 ## Data model (constraints for the builder)
 
 - `sightings.count` stays as it is (non-null integer, default 1).
