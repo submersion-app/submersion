@@ -8,11 +8,17 @@ later, automatic Apple Health import, and heart rate, recovery and sleep from
 Apple Health on any dive.
 
 **Architecture:** A new `is_draft` flag on `dives` marks a dive with times
-and positions but no readings. Drafts reuse the planned-dive fill path
-(`PlannedDiveFillService`, `DuplicateAction.fillPlanned`) for downloads, and
-a new Health classifier routes each Apple Health workout to fill a draft,
-consolidate into a logged dive, import as new, or wait for review. Heart
-rate, recovery and sleep live in a new synced per-dive table
+and positions but no readings. The flag stays separate from `is_planned`,
+because the app reads `is_planned = 0` as "this dive happened" and a draft
+did; but plans and drafts share the code around them. Both are "unfilled
+dives": one SQL helper (`diveUnfilledSql`) keeps them out of numbering and
+matching, one matcher (`FillTargetMatcher`) pairs a download with either,
+one review-step pass and one match field (`DiveMatchResult.fillTarget`)
+carry the pairing, one chip (`UnfilledDiveChip`) marks them in the list, and
+one fill path (`PlannedDiveFillService`, `DuplicateAction.fillPlanned`)
+fills them. A new Health classifier routes each Apple Health workout to fill
+a draft, consolidate into a logged dive, import as new, or wait for review.
+Heart rate, recovery and sleep live in a new synced per-dive table
 `dive_health_records`, modelled on `tide_records`.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, `health` 13.3.2,
@@ -27,6 +33,8 @@ rate, recovery and sleep live in a new synced per-dive table
 - Dive times are wall clock stored as UTC: build tap times with `asWallClockUtc(DateTime.now())` (`lib/core/util/wall_clock_utc.dart:65`); GPS points are wall-clock-as-UTC seconds.
 - A draft stores `entryTime`, `exitTime`, `entryLocation`, `exitLocation` and leaves `runtime`, `bottomTime`, `maxDepth` null, so its estimated length reaches no total, SAC, gear hours or CNS/OTU.
 - Drafts: not in totals or statistics, no dive number until filled, counted for no-fly (as a deco dive) and surface interval.
+- A dive is never both planned and a draft. Saving one with both flags keeps the draft and clears `is_planned` (it happened), and `diveUndivedSql` counts a row that still reaches both (two devices' edits merged by sync) as dived, so the failure is always the safe one.
+- Shared vocabulary: an "unfilled dive" is a plan or a draft; the dive a download fills is its "fill target". New code uses these names; `DuplicateAction.fillPlanned` and `PlannedDiveFillService` keep theirs (the enum name is pinned by `duplicate_action_test.dart`) and their docs say they cover both kinds.
 - Every Health feature is iOS only; drafts and lock screen actions are Android and iOS.
 - Health switches are device-local SharedPreferences, bound to the diver who turned them on; nothing from Health is written to another diver's dives.
 - The first readings to reach a dive stay its main profile; merges never change the primary.
@@ -77,15 +85,15 @@ rate, recovery and sleep live in a new synced per-dive table
 
 **Files:**
 - Modify: `lib/core/database/dive_stats_scope.dart:76-81` (add `'$alias.is_draft = 0'`)
-- Modify: `lib/core/database/dive_times_sql.dart:215` (`diveMatchCandidatesSql` excludes drafts), `:306` (`latestEndedDiveSql` keeps drafts: they happened)
-- Modify: `lib/features/dive_log/data/repositories/dive_repository_impl.dart` (`getNoFlyDiveInputs` :6407, `_renumberAllDivesInner` :7232, `getDiveNumberingInfo` :7137, `getNextDive` :6628 keeps drafts)
-- Modify: `lib/features/dive_log/presentation/providers/dive_providers.dart:653, :1306` (skip `assignMissingDiveNumbers` for drafts)
-- Modify: `lib/features/insights/data/repositories/insights_repository.dart:3070` (`countLogbookDives` excludes drafts)
+- Modify: `lib/features/dive_log/data/repositories/dive_times_sql.dart` (new `diveUnfilledSql` beside `diveUndivedSql` :155; `diveUndivedSql` gains `AND $alias.is_draft = 0`; `diveMatchCandidatesSql` :215 uses `NOT diveUnfilledSql`; `latestEndedDiveSql` :306 keeps drafts: they happened)
+- Modify: `lib/features/dive_log/data/repositories/dive_repository_impl.dart` (`createDive` :2348 and `updateDive` :2678 write `is_planned = isPlanned && !isDraft`; `getNoFlyDiveInputs` :6407; `_renumberAllDivesInner` :7232 and `getDiveNumberingInfo` :7137 use `diveUnfilledSql`; `getNextDive` :6628 keeps drafts)
+- Modify: `lib/features/dive_log/presentation/providers/dive_providers.dart:653, :1306` (skip `assignMissingDiveNumbers` for any unfilled dive: `dive.isPlanned || dive.isDraft`)
+- Modify: `lib/features/insights/data/repositories/insights_repository.dart:3070` (`countLogbookDives` uses `NOT diveUnfilledSql`)
 - Test: `test/core/database/dive_stats_scope_test.dart` (update pinned strings), `test/features/dive_log/data/repositories/dive_drafts_queries_test.dart`
 
 **Interfaces:**
 - Consumes: `dives.is_draft` (Task 1).
-- Produces: `DiveStatsScope.predicate()` now `'d.excluded_from_stats = 0 AND d.is_planned = 0 AND d.is_draft = 0'`.
+- Produces: `String diveUnfilledSql(String alias)` returning `'($alias.is_planned = 1 OR $alias.is_draft = 1)'`, the one place "plan or draft" is spelled in SQL; `DiveStatsScope.predicate()` now `'d.excluded_from_stats = 0 AND d.is_planned = 0 AND d.is_draft = 0'` (kept as separate parts so its census test still reads each rule).
 
 - [ ] **Step 1: Write failing tests** in `dive_drafts_queries_test.dart`:
   - `draftIsLeftOutOfStatistics`: one logged dive (maxDepth 20) and one draft; `getStatistics()` reports `totalDives == 1`.
@@ -94,6 +102,9 @@ rate, recovery and sleep live in a new synced per-dive table
   - `openDraftEndsNow`: a draft with no exit time gives `endTime` within 5 s of now.
   - `draftIsNotAFuzzyMatchCandidate`: `diveMatchCandidatesSql` returns no draft row.
   - `draftCountsForSurfaceInterval`: `getSurfaceIntervals` treats the draft as dived (`is_undived = 0`).
+  - `bothFlagsSavesAsDraft`: `createDive` and `updateDive` with `isPlanned: true, isDraft: true` read back `isPlanned == false, isDraft == true`.
+  - `bothFlagsRowCountsAsDived`: a row written with both flags by raw SQL (as a sync merge could) still gives a `NoFlyDiveInput` and counts for surface interval.
+  - `unfilledSqlMatchesPlansAndDrafts`: `diveUnfilledSql('d')` selects a plan and a draft, not a logged dive.
   - Update `dive_stats_scope_test.dart` expected strings.
 - [ ] **Step 2: Run.** `flutter test test/features/dive_log/data/repositories/dive_drafts_queries_test.dart test/core/database/dive_stats_scope_test.dart`. Expected: FAIL.
 - [ ] **Step 3: Implement.** In `getNoFlyDiveInputs`, `had_deco` gains `OR d.is_draft = 1`, and `endMs` uses `CASE WHEN d.is_draft = 1 AND d.exit_time IS NULL THEN ? ELSE <existing> END` bound to now (wall clock UTC millis).
@@ -104,7 +115,7 @@ rate, recovery and sleep live in a new synced per-dive table
 
 **Files:**
 - Create: `lib/features/dive_log/data/repositories/dive_draft_repository.dart` (extension or small class over `AppDatabase` + `DiveRepository`, to keep `dive_repository_impl.dart` from growing)
-- Modify: `lib/features/dive_log/data/repositories/dive_repository_impl.dart:5784` (`convertPlanToActualDive` delegates to `promoteToLoggedDive`)
+- Modify: `lib/features/dive_log/data/repositories/dive_repository_impl.dart:5784` (`convertPlanToActualDive` delegates to `promoteToLoggedDive`), `:5742` (add `getUnfilledDives` beside `getPlannedDives`)
 - Create: `lib/features/dive_log/presentation/providers/dive_draft_providers.dart`
 - Test: `test/features/dive_log/data/repositories/dive_draft_repository_test.dart`
 
@@ -117,9 +128,10 @@ rate, recovery and sleep live in a new synced per-dive table
   - `Future<List<Dive>> getDrafts({String? diverId})`, `Stream<List<DiveSummary>> watchDrafts({String? diverId})`
   - `Future<String> promoteToLoggedDive(String diveId, {DateTime? actualDateTime})`: works for planned or draft; clears both flags; assigns `getNextDiveNumber(diverId)`; marks pending; notifies sync.
   - `Future<void> markDraftComplete(String diveId)`: `promoteToLoggedDive` with no readings.
+- Produces on `DiveRepository`: `Future<List<Dive>> getUnfilledDives({String? diverId})`, the plans and drafts a download may fill (`WHERE diveUnfilledSql`), same ordering and diver scoping as `getPlannedDives`. Tasks 12 and 16 read fill targets only through this.
 - Produces providers: `draftDivesProvider` (`StreamProvider<List<DiveSummary>>` for the current diver), `openDraftProvider` (`FutureProvider.family<Dive?, String>` by diver id).
 
-- [ ] **Step 1: Write failing tests:** `createsDraftWithEntryAndNoReadings` (isDraft true, diveNumber null, runtime null, maxDepth null); `adoptsPlanWithinTwoHoursSameDay` (plan at 10:00, tap at 11:30 adopts, keeps siteId); `doesNotAdoptPlanOnAnotherDay`; `adoptsNearestOfTwoPlans`; `closeDraftSetsExitAndPosition`; `promoteAssignsNextNumberAndClearsFlag` (existing max 41 gives 42); `promotePlannedStillWorks` (the old `convertPlanToActualDive` tests stay green); `markCompleteKeepsTimes`.
+- [ ] **Step 1: Write failing tests:** `createsDraftWithEntryAndNoReadings` (isDraft true, diveNumber null, runtime null, maxDepth null); `adoptsPlanWithinTwoHoursSameDay` (plan at 10:00, tap at 11:30 adopts, keeps siteId); `doesNotAdoptPlanOnAnotherDay`; `adoptsNearestOfTwoPlans`; `closeDraftSetsExitAndPosition`; `promoteAssignsNextNumberAndClearsFlag` (existing max 41 gives 42); `promotePlannedStillWorks` (the old `convertPlanToActualDive` tests stay green); `markCompleteKeepsTimes`; `unfilledDivesListsPlansAndDrafts` (a plan and a draft of the diver, not a logged dive, not another diver's draft).
 - [ ] **Step 2: Run.** `flutter test test/features/dive_log/data/repositories/dive_draft_repository_test.dart`. Expected: FAIL.
 - [ ] **Step 3: Implement** the class and providers above.
 - [ ] **Step 4: Run** the new tests and `flutter test test/features/dive_log/data/repositories/ test/features/dive_computer/`. Expected: PASS.
@@ -143,32 +155,32 @@ rate, recovery and sleep live in a new synced per-dive table
 ### Task 5: List chip
 
 **Files:**
-- Create: `lib/features/dive_log/presentation/widgets/draft_dive_chip.dart`
-- Modify: `lib/features/dive_log/presentation/pages/dive_list_page.dart:676, :795, :851, :1115`, `lib/features/dive_log/presentation/widgets/compact_dive_list_tile.dart:231, :332, :381`
+- Rename: `lib/features/dive_log/presentation/widgets/planned_dive_chip.dart` to `unfilled_dive_chip.dart` (`git mv`), `PlannedDiveChip` becomes `UnfilledDiveChip`
+- Modify: `lib/features/dive_log/presentation/pages/dive_list_page.dart:676, :795, :851, :1115`, `lib/features/dive_log/presentation/widgets/compact_dive_list_tile.dart:231, :332, :381` (the `isPlannedDive` locals become `unfilledState`, from `unfilledDiveStateOf`; they drive the chip, the avatar icon and the semantics label)
 - Modify: `lib/features/dive_log/domain/entities/dive_summary.dart` (expose `exitTime` presence as `bool isOpenDraft` if the summary lacks exit time)
-- Test: `test/features/dive_log/presentation/widgets/draft_dive_chip_test.dart`
+- Test: `test/features/dive_log/presentation/widgets/unfilled_dive_chip_test.dart`; `test/features/dive_log/presentation/pages/dive_list_planned_chip_test.dart` stays green with the renamed widget
 
 **Interfaces:**
-- Produces: `DraftDiveChip({required bool inWater})`; strings `diveLog_draft_chip` ("Waiting for download"), `diveLog_draft_inWaterChip` ("In the water"), semantics `diveLog_draft_semantics`.
+- Produces: `enum UnfilledDiveState { planned, inWater, awaitingDownload }`; `UnfilledDiveState? unfilledDiveStateOf({required bool isPlanned, required bool isDraft, required bool isOpenDraft})` (null for a logged dive; draft wins if both flags are set); `UnfilledDiveChip({required UnfilledDiveState state})`. Looks: `planned` unchanged (tertiaryContainer, `diveLog_planned_chip`, avatar `Icons.event_available_outlined`); `awaitingDownload` and `inWater` use secondaryContainer and avatar `Icons.hourglass_top_outlined`. Strings `diveLog_draft_chip` ("Waiting for download"), `diveLog_draft_inWaterChip` ("In the water"), semantics `diveLog_listPage_semanticsDraftDiveAtSite` ("Draft dive at {site}", beside the planned one).
 
-- [ ] **Step 1: Failing widget tests:** `showsWaitingChipForClosedDraft`; `showsInTheWaterForOpenDraft`; `avatarShowsDraftIconNotNumber` (no `#` text, icon `Icons.hourglass_top_outlined`) in both the detailed and compact tiles.
-- [ ] **Step 2: Run** `flutter test test/features/dive_log/presentation/widgets/draft_dive_chip_test.dart`. Expected: FAIL.
-- [ ] **Step 3: Implement** the chip (secondaryContainer pill, same shape as `PlannedDiveChip`) and wire it into both tiles.
-- [ ] **Step 4: Run** the test and `flutter test test/features/dive_log/presentation/`. Expected: PASS.
+- [ ] **Step 1: Failing widget tests:** `plannedLookUnchanged` (text "Planned", tertiaryContainer); `showsWaitingChipForClosedDraft`; `showsInTheWaterForOpenDraft`; `avatarShowsDraftIconNotNumber` (no `#` text, icon `Icons.hourglass_top_outlined`) in both the detailed and compact tiles; `loggedDiveHasNoChip`; `bothFlagsShowsDraft`.
+- [ ] **Step 2: Run** `flutter test test/features/dive_log/presentation/widgets/unfilled_dive_chip_test.dart`. Expected: FAIL.
+- [ ] **Step 3: Implement** the rename, the state function and the two draft looks, and wire them into both tiles.
+- [ ] **Step 4: Run** the test, `dive_list_planned_chip_test.dart` and `flutter test test/features/dive_log/presentation/`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(dive-log): show drafts in the dive list`.
 
 ### Task 6: Detail banner and menu
 
 **Files:**
 - Create: `lib/features/dive_log/presentation/widgets/draft_dive_banner.dart`
-- Modify: `lib/features/dive_log/presentation/pages/dive_detail_page.dart:451-457`, `lib/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart:137`, `lib/features/dive_log/presentation/widgets/dive_detail_overflow_menu.dart:124`, `lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart:162` (add `_markDraftComplete`, invalidating the same providers as `_markAsLogged`)
-- Test: `test/features/dive_log/presentation/widgets/draft_dive_banner_test.dart`
+- Modify: `lib/features/dive_log/presentation/pages/dive_detail_page.dart:451-457`, `lib/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart:137`, `lib/features/dive_log/presentation/widgets/dive_detail_overflow_menu.dart:124`, `lib/features/dive_log/presentation/pages/dive_detail_page_actions.dart:162` (add `_markDraftComplete`, invalidating the same providers as `_markAsLogged`), `lib/features/dive_log/presentation/pages/dive_edit_page.dart:1336` (hide the "Planned" switch while editing a draft, so the editor cannot set both flags)
+- Test: `test/features/dive_log/presentation/widgets/draft_dive_banner_test.dart`, `test/features/dive_log/presentation/pages/dive_edit_page_draft_test.dart`
 
 **Interfaces:**
 - Consumes: `DiveDraftRepository.markDraftComplete`, `closeDraft` (Task 3); `downloadTargetComputerProvider` (Task 24) for "Download now" (until Task 24 lands, route to `/dive-computers`).
 - Produces: `DraftDiveBanner({required Dive dive, required VoidCallback onMarkComplete, required VoidCallback onDownload, VoidCallback? onSurfaced})`. Body text shows the estimated length: `diveLog_draft_bannerBody` with `{minutes}` from `exitTime - entryTime` ("About {minutes} min from your taps. Download your dive computer to fill in depth and time.").
 
-- [ ] **Step 1: Failing tests:** `bannerShowsEstimatedMinutes` (entry 10:00, exit 10:52 shows "About 52 min"); `openDraftOffersSurfaced`; `markCompleteCallsRepository`; `menuShowsMarkCompleteOnlyForDrafts`.
+- [ ] **Step 1: Failing tests:** `bannerShowsEstimatedMinutes` (entry 10:00, exit 10:52 shows "About 52 min"); `openDraftOffersSurfaced`; `markCompleteCallsRepository`; `menuShowsMarkCompleteOnlyForDrafts`; `editPageHidesPlannedSwitchForDraft` (and a draft saved from the editor keeps `isDraft == true`).
 - [ ] **Step 2: Run** `flutter test test/features/dive_log/presentation/widgets/draft_dive_banner_test.dart`. Expected: FAIL.
 - [ ] **Step 3: Implement** the banner, menu item and action.
 - [ ] **Step 4: Run** the test and `flutter test test/features/dive_log/presentation/`. Expected: PASS.
@@ -251,38 +263,41 @@ rate, recovery and sleep live in a new synced per-dive table
 
 ## Phase D: The cable download fills drafts
 
-### Task 11: Draft matcher
+### Task 11: One matcher for plans and drafts
 
 **Files:**
-- Create: `lib/features/dive_computer/domain/services/draft_dive_matcher.dart`
-- Test: `test/features/dive_computer/domain/services/draft_dive_matcher_test.dart`
+- Rename: `lib/features/dive_computer/domain/services/planned_dive_matcher.dart` to `fill_target_matcher.dart` (`git mv`), `PlannedDiveMatcher` becomes `FillTargetMatcher`
+- Rename: `test/features/dive_computer/domain/services/planned_dive_matcher_test.dart` to `fill_target_matcher_test.dart` (`git mv`); its existing cases keep their expectations, with the new call shape
 
 **Interfaces:**
-- Produces: `class DraftDiveMatcher { const DraftDiveMatcher({Duration tolerance = const Duration(minutes: 10)}); Map<int, String> pair({required List<({DateTime start, DateTime end})> incoming, required List<Dive> drafts}); }`. A download fits a draft when `[start, end]` overlaps `[entryTime - tolerance, (exitTime ?? entryTime + 3 h) + tolerance]`. A download with two or more fitting drafts, or a draft with two or more fitting downloads, is left out (ambiguous). Times are wall clock.
+- Produces: `class FillTargetMatcher { const FillTargetMatcher({Duration draftTolerance = const Duration(minutes: 10)}); Map<int, String> pair({required List<({DateTime start, DateTime end})> incoming, required List<Dive> targets}); }`. `targets` holds plans and drafts together (from `getUnfilledDives`); each keeps its own rule:
+  - **Drafts first.** A download fits a draft when `[start, end]` overlaps `[entryTime - draftTolerance, (exitTime ?? entryTime + 3 h) + draftTolerance]`. A download with two or more fitting drafts, or a draft with two or more fitting downloads, is left out (ambiguous), and an ambiguous download is not offered to plans either: it belongs to one of those drafts.
+  - **Then plans,** for the downloads no draft fitted: today's rule unchanged (same wall-clock day or the day before, smallest start gap first, each download and each plan once, ties to the earlier download then the earlier plan).
+  - A target with both flags is treated as a draft. Times are wall clock.
 
-- [ ] **Step 1: Failing tests:** `pairsOverlappingDownload`; `pairsWithinClockDrift` (download starts 8 min before the tap); `rejectsOutsideTolerance` (12 min gap); `twoCandidatesIsAmbiguous` (two drafts 15 min apart, one download overlapping both windows); `pairsAcrossMidnight` (draft 23:50 to 00:40, download 23:52 to 00:38); `openDraftUsesThreeHourWindow`.
-- [ ] **Step 2: Run** `flutter test test/features/dive_computer/domain/services/draft_dive_matcher_test.dart`. Expected: FAIL.
-- [ ] **Step 3: Implement.**
+- [ ] **Step 1: Failing tests:** `pairsOverlappingDownload`; `pairsWithinClockDrift` (download starts 8 min before the tap); `rejectsOutsideTolerance` (12 min gap); `twoCandidatesIsAmbiguous` (two drafts 15 min apart, one download overlapping both windows); `pairsAcrossMidnight` (draft 23:50 to 00:40, download 23:52 to 00:38); `openDraftUsesThreeHourWindow`; `draftBeatsPlan` (a download fitting today's draft and yesterday's plan fills the draft; the plan stays unfilled); `ambiguousDownloadIsNotOfferedToPlans`; `plansAndDraftsInOneBatch` (two downloads, one draft, one plan on another dive's time: each gets its own target). The moved planned cases stay green.
+- [ ] **Step 2: Run** `flutter test test/features/dive_computer/domain/services/fill_target_matcher_test.dart`. Expected: FAIL.
+- [ ] **Step 3: Implement** the rename and the draft rule ahead of the existing plan rule.
 - [ ] **Step 4: Run.** Expected: PASS.
-- [ ] **Step 5: Commit** `feat(dive-computer): pair downloads with drafts by time`.
+- [ ] **Step 5: Commit** `feat(dive-computer): pair downloads with plans and drafts in one matcher`.
 
 ### Task 12: Fill drafts from a download
 
 **Files:**
-- Modify: `lib/features/import_wizard/data/adapters/dive_computer_adapter.dart:746` (draft pass before the planned pass, after the fingerprint, fuzzy and contained passes; `getDrafts(diverId)`)
-- Modify: `lib/features/dive_import/domain/services/dive_matcher.dart:144` (`DiveMatchResult.fillsDraft` bool; `isPlannedFill` stays true for draft fills so the wizard defaults to `fillPlanned`)
-- Modify: `lib/features/dive_computer/data/services/planned_dive_fill_service.dart:63` (accept `isPlanned || isDraft`; promote through `promoteToLoggedDive`; never overwrite the dives-row entry/exit GPS when the draft has them)
-- Modify: `lib/features/import_wizard/presentation/widgets/duplicate_action_card.dart:172, :280` and `lib/core/presentation/widgets/dive_comparison_card.dart:587` (wording "Fill draft" when `fillsDraft`)
-- Modify: `lib/features/import_wizard/presentation/providers/import_wizard_providers.dart:269, :511, :898` (fill targets list planned and draft dives)
-- Test: `test/features/import_wizard/data/adapters/dive_computer_adapter_draft_fill_test.dart`, `test/features/dive_computer/data/services/planned_dive_fill_service_draft_test.dart`
+- Modify: `lib/features/import_wizard/data/adapters/dive_computer_adapter.dart:746-775` (the planned pass becomes the fill pass: same place, after the fingerprint, fuzzy and contained passes; reads `getUnfilledDives`, pairs with `FillTargetMatcher`, passes each download's start and end), `:908-943` (the apply step reads `fillTarget`)
+- Modify: `lib/features/dive_import/domain/services/dive_matcher.dart:136-185` (`plannedDiveId` becomes `FillTarget? fillTarget`; `isPlannedFill` becomes `isFill`; `withPlannedDive` becomes `withFillTarget`)
+- Modify: `lib/features/dive_computer/data/services/planned_dive_fill_service.dart:63` (accept any unfilled dive, `isPlanned || isDraft`; parameter `plannedDiveId` becomes `targetDiveId`; promote through `promoteToLoggedDive`; never overwrite the dives-row entry/exit GPS when the draft has them), `lib/features/dive_computer/data/services/dive_import_service.dart:1036-1106` (same parameter rename)
+- Modify: `lib/features/import_wizard/presentation/providers/import_wizard_providers.dart:262-270` (`plannedFillCandidatesProvider` becomes `fillCandidatesProvider`, reading `getUnfilledDives`), `:511`, `:898-926` (`setPlannedFillTarget` becomes `setFillTarget`)
+- Modify: `lib/features/import_wizard/presentation/widgets/review_step.dart:505-545` (the picker lists plans and drafts; `plannedDiveLabel` labels a draft by its tap times), `duplicate_action_card.dart:172, :280` and `lib/core/presentation/widgets/dive_comparison_card.dart:587` (wording "Fill draft" when `fillTarget.kind == FillTargetKind.draft`, today's wording otherwise)
+- Test: `test/features/import_wizard/data/adapters/dive_computer_adapter_draft_fill_test.dart`, `test/features/dive_computer/data/services/planned_dive_fill_service_draft_test.dart`; every existing planned-fill test (adapter, wizard providers, review step, duplicate card, fill service) stays green after the renames
 
 **Interfaces:**
-- Consumes: `DraftDiveMatcher` (Task 11), `DiveDraftRepository.getDrafts`, `promoteToLoggedDive` (Task 3).
-- Produces: `DiveMatchResult({..., bool fillsDraft = false})`.
+- Consumes: `FillTargetMatcher` (Task 11), `DiveRepository.getUnfilledDives`, `DiveDraftRepository.promoteToLoggedDive` (Task 3).
+- Produces: `enum FillTargetKind { plan, draft }`; `class FillTarget { const FillTarget({required String diveId, required FillTargetKind kind}); factory FillTarget.of(Dive dive); }` (in `dive_matcher.dart`, `==` and `hashCode` by both fields; `of` reads the dive's flags, draft winning); `DiveMatchResult({..., FillTarget? fillTarget})`, `bool get isFill`, `DiveMatchResult withFillTarget(FillTarget target)`; `ImportWizardNotifier.setFillTarget(int index, FillTarget? target)`; `fillCandidatesProvider`. There is one fill pass and one field: no separate draft flag on the match. Strings `universalImport_fillDraft` ("Fill draft"), `universalImport_fillDraft_label` ("Draft, {start} to {end}"; open draft "Draft, from {start}").
 
-- [ ] **Step 1: Failing tests:** `downloadDefaultsToFillDraft` (`duplicateActions[index] == DuplicateAction.fillPlanned`, `fillsDraft == true`); `fillKeepsTypedFieldsAndTapPositions` (notes, buddy, siteId, entryLocation unchanged; maxDepth, runtime from the download); `fillMakesDownloadPrimaryAndAssignsNumber`; `fillClearsDraftFlag`; `ambiguousDraftsStayPending`; `realDuplicateNeverBecomesDraftFill` (a re-download of an already logged dive is still skipped); `undoRestoresDraft`.
+- [ ] **Step 1: Failing tests:** `downloadDefaultsToFillDraft` (`duplicateActions[index] == DuplicateAction.fillPlanned`, `fillTarget.kind == FillTargetKind.draft`); `downloadStillDefaultsToFillPlan` (`fillTarget.kind == FillTargetKind.plan`, as before); `pickerListsPlansAndDrafts`; `fillKeepsTypedFieldsAndTapPositions` (notes, buddy, siteId, entryLocation unchanged; maxDepth, runtime from the download); `fillMakesDownloadPrimaryAndAssignsNumber`; `fillClearsDraftFlag`; `ambiguousDraftsStayPending`; `realDuplicateNeverBecomesDraftFill` (a re-download of an already logged dive is still skipped); `undoRestoresDraft`.
 - [ ] **Step 2: Run** both test files. Expected: FAIL.
-- [ ] **Step 3: Implement.**
+- [ ] **Step 3: Implement** the renames first (analyzer clean, existing tests green), then the draft kind.
 - [ ] **Step 4: Run** the tests and `flutter test test/features/import_wizard/ test/features/dive_computer/`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(dive-computer): fill drafts from a dive computer download`.
 
@@ -349,7 +364,7 @@ rate, recovery and sleep live in a new synced per-dive table
 - Test: `test/features/dive_import/domain/services/health_dive_classifier_test.dart`
 
 **Interfaces:**
-- Produces: `sealed class HealthDiveRoute` with `FillDraft(String diveId)`, `Consolidate(String diveId)`, `ImportNew()`, `NeedsReview(List<String> candidateIds)`; `HealthDiveRoute classifyHealthDive(ImportedDive workout, {required List<Dive> drafts, required List<Dive> loggedNear, DiveMatcher matcher = const DiveMatcher()})`. Drafts use `DraftDiveMatcher` rules (one fit fills, two is review); logged dives use `matcher.calculateMatchScore` with 0.85 for consolidate and 0.5 to 0.85 for review; planned dives are never candidates.
+- Produces: `sealed class HealthDiveRoute` with `FillDraft(String diveId)`, `Consolidate(String diveId)`, `ImportNew()`, `NeedsReview(List<String> candidateIds)`; `HealthDiveRoute classifyHealthDive(ImportedDive workout, {required List<Dive> drafts, required List<Dive> loggedNear, DiveMatcher matcher = const DiveMatcher()})`. Drafts go through `FillTargetMatcher` (Task 11) with the drafts as its only targets (one fit fills, an ambiguous pair is review); logged dives use `matcher.calculateMatchScore` with 0.85 for consolidate and 0.5 to 0.85 for review; planned dives are never candidates.
 
 - [ ] **Step 1: Failing tests:** `oneDraftFills`; `twoDraftsNeedReview`; `strongMatchConsolidates`; `weakMatchNeedsReview`; `nothingNearImportsNew`; `draftBeatsLoggedDive` (a draft and a logged dive both fit: fills the draft).
 - [ ] **Step 2: Run.** Expected: FAIL.

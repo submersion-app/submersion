@@ -42,6 +42,13 @@ entry and exit times and positions, plus anything the diver adds.
   flag on the dive. Planned dives are left out of surface interval and no-fly
   (`diveUndivedSql`), and a draft really happened, so reusing `isPlanned`
   would drop today's dives from the no-fly countdown.
+- **Plans and drafts share their code** (decided in chat). The two flags
+  stay apart, but both are "unfilled dives" to the code: one matcher pairs a
+  download with either, one review-step pass and one match field carry the
+  pairing, one list chip marks both (with a look for each), and one fill
+  path fills both. A dive is never both: saving one with both flags keeps
+  the draft, and a row that still reaches both (two devices' edits merged by
+  sync) counts as dived for no-fly and surface interval.
 - **Counts for no-fly** (decided in chat), and for surface interval and "last
   dive" everywhere. With no depth or deco data, today's no-fly code would
   give a draft the shortest wait (12 h single, 18 h repetitive on the
@@ -66,9 +73,9 @@ entry and exit times and positions, plus anything the diver adds.
   time, CNS or OTU.
 - **Editing:** the normal dive editor works on a draft (site, buddies, gear,
   notes, rating, sightings, tags, conditions).
-- **List:** the dive card shows a "Waiting for download" chip, built like
-  `PlannedDiveChip`. An open draft (entered, not surfaced) shows "In the
-  water" instead (my call).
+- **List:** the dive card shows a "Waiting for download" chip, a second
+  look of the chip that marks planned dives today (`PlannedDiveChip`). An
+  open draft (entered, not surfaced) shows "In the water" instead (my call).
 - **Detail page:** a banner like `PlannedDiveBanner` with two actions:
   "Download now" (opens the dive computer download, as in goal 5) and "Mark
   as complete" (clears the flag for a dive that will never be downloaded, for
@@ -151,6 +158,11 @@ entry and exit times and positions, plus anything the diver adds.
   fill, as it does for planned dives today. Rows with two candidates, or no
   clear overlap, are left for the diver. The builder chooses a tolerance for
   computer clock drift.
+- Drafts and plans are paired in the same pass. Drafts are tried first,
+  because a tap window is stronger evidence than a plan's day; a download
+  that fits two drafts is left for the diver and is not offered to a plan.
+  The diver can point any row at another plan or draft, as they can pick
+  another plan today.
 - Filling reuses the planned-dive fill path (`PlannedDiveFillService`): the
   download becomes the primary profile and sets the measured fields; what the
   diver typed stays; the draft's tap positions stay; the draft flag clears.
