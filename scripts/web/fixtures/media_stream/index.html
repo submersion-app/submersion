@@ -47,6 +47,17 @@ async function answer(ticket, range) {
       body: new ArrayBuffer(0),
     };
   }
+  if (ticket === 'shifted') {
+    // An answer for the wrong offset: one byte past where it was asked.
+    const bytes = await sampleBytes();
+    const start = Number(/^bytes=(\d+)-/.exec(range || 'bytes=0-')[1]) + 1;
+    const body = bytes.slice(start, start + 100).buffer;
+    return {
+      status: 206,
+      headers: {'Content-Range': 'bytes ' + start + '-' + (start + 99) + '/' + bytes.length},
+      body,
+    };
+  }
   if (ticket !== 't1' && ticket !== 'empty') return {status: 404, headers: {}, body: null};
   const bytes = await sampleBytes();
   const total = bytes.length;

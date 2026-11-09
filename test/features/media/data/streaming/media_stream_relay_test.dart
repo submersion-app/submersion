@@ -119,6 +119,12 @@ void main() {
     expect(store.reads, 0);
   });
 
+  test('answers 416 for a range that ends before it starts', () async {
+    final answer = await relay.answer(ticket, 'bytes=500-100');
+    expect(answer.status, 416);
+    expect(store.reads, 0);
+  });
+
   test('answers 404 for an unknown or released ticket', () async {
     expect((await relay.answer('nope', 'bytes=0-')).status, 404);
     relay.release(Uri.parse('https://app.test/sub/media-stream/ticket1'));

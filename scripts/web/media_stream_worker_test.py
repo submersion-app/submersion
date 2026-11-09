@@ -149,6 +149,28 @@ def test_a_page_can_ask_the_worker_to_take_control(page, site):
     assert reply == "claimed"
 
 
+def test_a_request_without_range_gets_the_whole_file(page, site):
+    _open(page, site + "/index.html")
+    total = os.path.getsize(os.path.join(FIXTURE, "sample.webm"))
+    got = page.evaluate(
+        """async () => {
+          const r = await fetch('media-stream/t1');
+          const body = await r.arrayBuffer();
+          return [r.status, r.headers.get('Content-Range'),
+                  r.headers.get('Content-Length'), body.byteLength];
+        }"""
+    )
+    assert got == [200, None, str(total), total]
+
+
+def test_a_piece_for_the_wrong_offset_is_refused(page, site):
+    _open(page, site + "/index.html")
+    status = page.evaluate(
+        "fetch('media-stream/shifted', {headers: {Range: 'bytes=10-'}}).then(r => r.status)"
+    )
+    assert status == 502
+
+
 def test_unknown_ticket_answers_404(page, site):
     _open(page, site + "/index.html")
     assert page.evaluate("fetch('media-stream/nope').then(r => r.status)") == 404

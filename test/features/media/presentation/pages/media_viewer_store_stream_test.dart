@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
@@ -20,6 +21,11 @@ import '../../../../helpers/test_database.dart';
 class _FakeVideoPlatform extends VideoPlayerPlatform {
   final List<String> sources = [];
   final Map<int, StreamController<VideoEvent>> _events = {};
+
+  /// Reports a playback error on player [id] after it started.
+  void failAfterStart(int id) => _events[id]!.addError(
+    PlatformException(code: 'VideoError', message: 'link expired'),
+  );
 
   Future<int?> _create(DataSource source) async {
     sources.add(source.uri ?? source.asset ?? '');
@@ -188,5 +194,54 @@ void main() {
     expect(find.byKey(const ValueKey('player-1')), findsOneWidget);
     expect(find.byTooltip('Adjust color'), findsNothing);
     expect(find.text('Pick white'), findsNothing);
+  });
+
+  StreamPlayback freshLinks() {
+    var opened = 0;
+    return StreamPlayback([
+      StreamCandidate(
+        tier: ServedTier.original,
+        open: () async =>
+            Uri.parse('https://store.test/clip.mp4?sig=${++opened}'),
+        close: (_) {},
+      ),
+    ]);
+  }
+
+  testWidgets(
+    'a streamed video whose link fails is reopened from a fresh one',
+    (tester) async {
+      await pump(tester, freshLinks());
+      await tester.runAsync(() async {
+        platform.failAfterStart(1);
+        for (var i = 0; i < 3; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 100));
+          await tester.pump();
+        }
+      });
+      expect(platform.sources, [
+        'https://store.test/clip.mp4?sig=1',
+        'https://store.test/clip.mp4?sig=2',
+      ]);
+      expect(find.byKey(const ValueKey('player-2')), findsOneWidget);
+      expect(find.text('Failed to load video'), findsNothing);
+    },
+  );
+
+  testWidgets('a second failure in a row shows the error', (tester) async {
+    await pump(tester, freshLinks());
+    await tester.runAsync(() async {
+      platform.failAfterStart(1);
+      for (var i = 0; i < 3; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pump();
+      }
+      platform.failAfterStart(2);
+      for (var i = 0; i < 3; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+        await tester.pump();
+      }
+    });
+    expect(find.text('Failed to load video'), findsOneWidget);
   });
 }

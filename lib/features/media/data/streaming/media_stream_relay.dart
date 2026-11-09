@@ -101,6 +101,12 @@ class MediaStreamRelay {
       final asked = match!.group(2)!.isEmpty
           ? total - 1
           : int.parse(match.group(2)!);
+      if (asked < start) {
+        return RelayAnswer(
+          status: 416,
+          headers: {'Content-Range': 'bytes */$total'},
+        );
+      }
       final end = min(min(asked, total - 1), start + chunkBytes - 1);
       final body = await entry.reader.readRange(
         entry.key,

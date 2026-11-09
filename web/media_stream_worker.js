@@ -73,6 +73,12 @@ function parseContentRange(value) {
   return match ? {start: Number(match[1]), end: Number(match[2]), total: Number(match[3])} : null;
 }
 
+// The start the browser asked for: 0 for an open range or no Range.
+function askedStart(range) {
+  const match = /^bytes=(\d+)-/.exec(range || '');
+  return match ? Number(match[1]) : 0;
+}
+
 // The end the browser asked for, or null for an open range or no Range.
 function askedEnd(range) {
   const match = /^bytes=\d+-(\d+)$/.exec(range || '');
@@ -117,9 +123,11 @@ async function answerRelay(event, ticket, range, finished) {
     return new Response(null, {status: 504, statusText: 'The page did not answer'});
   }
   const piece = first.status === 206 ? parseContentRange(header(first.headers, 'Content-Range')) : null;
-  if (!piece || piece.end < piece.start) {
+  // A piece naming no bytes, or not starting where the browser asked,
+  // cannot be the start of the answer.
+  if (!piece || piece.end < piece.start || piece.start !== askedStart(range)) {
     finished();
-    if (piece) return new Response(null, {status: 502, statusText: 'The page sent no bytes'});
+    if (piece) return new Response(null, {status: 502, statusText: 'The page sent the wrong bytes'});
     return new Response(first.body, {status: first.status, headers: first.headers || {}});
   }
   const asked = askedEnd(range);
@@ -129,8 +137,12 @@ async function answerRelay(event, ticket, range, finished) {
     const lower = key.toLowerCase();
     if (lower === 'content-range' || lower === 'content-length') delete headers[key];
   }
-  headers['Content-Range'] = 'bytes ' + piece.start + '-' + end + '/' + piece.total;
   headers['Content-Length'] = String(end - piece.start + 1);
+  // Asked for no range: the whole file, as a plain 200.
+  const whole = range === null;
+  if (!whole) {
+    headers['Content-Range'] = 'bytes ' + piece.start + '-' + end + '/' + piece.total;
+  }
 
   let next = piece.end + 1;
   let firstBody = first.body;
@@ -170,5 +182,5 @@ async function answerRelay(event, ticket, range, finished) {
       finished();
     },
   });
-  return new Response(body, {status: 206, headers: headers});
+  return new Response(body, {status: whole ? 200 : 206, headers: headers});
 }

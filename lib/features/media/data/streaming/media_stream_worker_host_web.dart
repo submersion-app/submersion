@@ -57,11 +57,17 @@ Future<MediaStreamWorkerHost?> _start() async {
         if (!controlled.isCompleted) controlled.complete();
       }
 
-      container.addEventListener('controllerchange', onChange.toJS);
+      // One JS function for both calls, so the remove finds the add.
+      final listener = onChange.toJS;
+      container.addEventListener('controllerchange', listener);
       // A hard reload leaves the page uncontrolled with the worker already
       // active, so no activation will claim it: ask the worker to.
       registration.active?.postMessage({'type': 'media-stream-claim'}.jsify());
-      await controlled.future.timeout(_controlTimeout);
+      try {
+        await controlled.future.timeout(_controlTimeout);
+      } finally {
+        container.removeEventListener('controllerchange', listener);
+      }
     }
     final host = _WebHost(base);
     container.addEventListener('message', host._onMessage.toJS);
