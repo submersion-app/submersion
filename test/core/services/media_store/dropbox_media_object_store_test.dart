@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -246,5 +247,42 @@ void main() {
       await build().reapStaleUploadSessions(olderThan: DateTime.utc(2026)),
       0,
     );
+  });
+
+  group('directLink', () {
+    test('directLink reuses a link until ten minutes before expiry', () async {
+      var now = DateTime.utc(2026, 6, 9, 12);
+      var links = 0;
+      final store = DropboxMediaObjectStore(
+        client: DropboxApiClient(
+          getAccessToken: () async => 't',
+          onAccessTokenRejected: () {},
+          httpClient: MockClient((request) async {
+            links++;
+            return http.Response(
+              jsonEncode({'link': 'https://dl.example/$links'}),
+              200,
+              headers: {'content-type': 'application/json'},
+            );
+          }),
+        ),
+        now: () => now,
+      );
+      final first = await store.directLink('smv1/objects/ab/abc.mp4');
+      expect(first.url, Uri.parse('https://dl.example/1'));
+      expect(first.expiresAt, DateTime.utc(2026, 6, 9, 16));
+
+      now = DateTime.utc(2026, 6, 9, 15, 49);
+      expect(
+        (await store.directLink('smv1/objects/ab/abc.mp4')).url,
+        first.url,
+      );
+      expect(links, 1);
+
+      now = DateTime.utc(2026, 6, 9, 15, 51);
+      final renewed = await store.directLink('smv1/objects/ab/abc.mp4');
+      expect(renewed.url, Uri.parse('https://dl.example/2'));
+      expect(renewed.expiresAt, DateTime.utc(2026, 6, 9, 19, 51));
+    });
   });
 }

@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/dropbox/dropbox_api_client.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/media_streaming.dart';
 
 /// Dropbox-backed media object store (design spec section 8.2).
 ///
@@ -16,12 +17,14 @@ import 'package:submersion/core/services/media_store/media_object_store.dart';
 /// through upload sessions with resume state {sessionId, offset}; resume
 /// validation is optimistic - a session error on resume restarts fresh
 /// (Dropbox has no ListParts equivalent).
-class DropboxMediaObjectStore implements MediaObjectStore {
+class DropboxMediaObjectStore implements MediaObjectStore, DirectLinkStore {
   DropboxMediaObjectStore({
     required DropboxApiClient client,
     this.rootPath = '/submersion-media',
     this.chunkSizeBytes = 8 * 1024 * 1024,
-  }) : _client = client;
+    DateTime Function()? now,
+  }) : _client = client,
+       _now = now ?? DateTime.now;
 
   final DropboxApiClient _client;
   final String rootPath;
@@ -30,6 +33,40 @@ class DropboxMediaObjectStore implements MediaObjectStore {
   final int chunkSizeBytes;
 
   String _path(String key) => '$rootPath/$key';
+
+  final DateTime Function() _now;
+
+  /// Temporary links handed out, by key, reused while fresh.
+  final Map<String, DirectLink> _links = {};
+
+  /// How long Dropbox keeps a temporary link working.
+  static const Duration temporaryLinkLifetime = Duration(hours: 4);
+
+  /// A link is renewed this long before it expires, so a player opened
+  /// just before expiry is not handed a link about to die.
+  static const Duration temporaryLinkMargin = Duration(minutes: 10);
+
+  /// A temporary link a browser's video player streams from (issue #4162),
+  /// reused until [temporaryLinkMargin] before it expires.
+  @override
+  Future<DirectLink> directLink(String key) async {
+    final kept = _links[key];
+    if (kept != null &&
+        _now().isBefore(kept.expiresAt.subtract(temporaryLinkMargin))) {
+      return kept;
+    }
+    final issuedAt = _now();
+    try {
+      final link = DirectLink(
+        url: Uri.parse(await _client.getTemporaryLink(_path(key))),
+        expiresAt: issuedAt.add(temporaryLinkLifetime),
+      );
+      _links[key] = link;
+      return link;
+    } on CloudStorageException catch (e) {
+      throw _map('link', key, e);
+    }
+  }
 
   String _key(String pathLower) => pathLower.startsWith('$rootPath/')
       ? pathLower.substring(rootPath.length + 1)
