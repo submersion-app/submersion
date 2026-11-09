@@ -700,6 +700,44 @@ void main() {
       expect(git.allStoredFiles().single.name, record.filename);
     });
 
+    // Review of #4328: a path-based account (Git) overwrites the plaintext
+    // copy in place under the same id, and its history still holds the old
+    // bytes until it is reset.
+    test('a plaintext copy replaced in place is pushed and reset', () async {
+      await enableBackupEncryption();
+      final record = await service(
+        extras: [ExtraCopyDestination('git-row', git)],
+      ).performBackup();
+      final copy = record.extraCloudCopies.single;
+      await git.uploadFile(
+        Uint8List.fromList([1, 2, 3]),
+        record.filename,
+        folderId: _folder,
+      );
+      await preferences.updateRecord(
+        record.copyWith(
+          extraCloudCopies: [
+            ExtraCloudCopy(
+              accountId: copy.accountId,
+              fileId: copy.fileId,
+              plaintext: true,
+            ),
+          ],
+        ),
+      );
+      final flushesBefore = git.flushes;
+
+      final result = await service(
+        extras: [ExtraCopyDestination('git-row', git)],
+      ).reencryptExistingBackups();
+
+      expect(result.reencrypted, 1);
+      expect(SyncEnvelope.hasMagic(git.allStoredFiles().single.bytes), isTrue);
+      expect(git.deleted, isEmpty);
+      expect(git.flushes, flushesBefore + 1);
+      expect(git.resets, 1);
+    });
+
     test('a fully encrypted record is skipped', () async {
       await service().performBackup();
       await enableBackupEncryption();

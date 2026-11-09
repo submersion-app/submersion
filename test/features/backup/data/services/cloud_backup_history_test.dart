@@ -225,6 +225,38 @@ void main() {
       expect(merged, [record]);
     });
 
+    // Review of #4328: Git, S3 and WebDAV ids are paths, unique only within
+    // one account.
+    test('an id in another account does not hide a listed file', () {
+      final merged = mergeCloudBackups(
+        [record],
+        [
+          CloudFileInfo(
+            id: 'extra-id',
+            name: 'submersion_backup_2026-10-20_101500.db',
+            modifiedTime: DateTime(2026, 10, 20),
+          ),
+        ],
+        accountId: 'acct-c',
+      );
+      expect(merged.map((r) => r.cloudFileId), ['extra-id', 'main-id']);
+    });
+
+    test("a main copy's id in another account does not hide one either", () {
+      final merged = mergeCloudBackups(
+        [record],
+        [
+          CloudFileInfo(
+            id: 'main-id',
+            name: 'submersion_backup_2026-10-20_101500.db',
+            modifiedTime: DateTime(2026, 10, 20),
+          ),
+        ],
+        accountId: 'acct-c',
+      );
+      expect(merged, hasLength(2));
+    });
+
     test('is not listed again by name', () {
       final merged = mergeCloudBackups(
         [record],

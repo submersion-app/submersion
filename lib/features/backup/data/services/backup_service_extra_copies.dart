@@ -226,6 +226,11 @@ extension _ExtraCopies on BackupService {
   /// [residual], since a plaintext copy then stays in that account.
   /// [replaced] holds the old copies to delete once the record is committed.
   /// With [onlyPlaintext], only the copies so marked are uploaded again.
+  ///
+  /// Every account uploaded to is noted in [touched] with [record], even
+  /// when the upload overwrote the old copy in place under the same id (a
+  /// path-based backend such as Git): the upload is pushed, and the old
+  /// bytes dropped from the account's history, by [_resetExtraHistories].
   Future<
     ({
       List<ExtraCloudCopy> copies,
@@ -237,6 +242,7 @@ extension _ExtraCopies on BackupService {
     BackupRecord record,
     String newPath,
     String newName, {
+    required Map<CloudStorageProvider, Set<String>> touched,
     bool onlyPlaintext = false,
   }) async {
     final copies = <ExtraCloudCopy>[];
@@ -271,6 +277,7 @@ extension _ExtraCopies on BackupService {
         );
         continue;
       }
+      touched.putIfAbsent(provider!, () => {}).add(record.id);
       copies.add(ExtraCloudCopy(accountId: copy.accountId, fileId: fileId));
       // Path-based providers reuse the id for the same name: deleting it
       // would remove the copy just uploaded.
@@ -292,6 +299,7 @@ extension _ExtraCopies on BackupService {
       record,
       record.localPath!,
       record.filename,
+      touched: touched,
       onlyPlaintext: true,
     );
     await _preferences.updateRecord(

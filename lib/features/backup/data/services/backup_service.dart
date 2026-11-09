@@ -666,7 +666,12 @@ class BackupService {
 
         // The extra copies (issue #3782) are replaced the same way: the new
         // .sbe goes up before the record is committed.
-        final extras = await _reuploadExtras(record, newPath, newName);
+        final extras = await _reuploadExtras(
+          record,
+          newPath,
+          newName,
+          touched: extraDeletesByAccount,
+        );
 
         // Commit the record to the on-disk .sbe (which now exists) BEFORE
         // deleting the old plaintext/cloud artifacts. A failed delete below is
