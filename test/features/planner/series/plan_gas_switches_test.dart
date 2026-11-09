@@ -259,6 +259,49 @@ void main() {
     });
   });
 
+  group('planGasChanges (issue #4078)', () {
+    test('a change of cylinder holding the same mix is not a switch', () {
+      final stretches = planBreathingStretches(
+        [
+          _row(30, 600, 600, .21, tankId: 'p-air', gasSwitch: true),
+          _row(9, 120, 720, .50, tankId: 'stage-a', gasSwitch: true),
+          _row(6, 120, 840, .50, tankId: 'stage-b'),
+        ],
+        planTanks: const [
+          DiveTank(id: 'p-air', gasMix: _air),
+          DiveTank(id: 'stage-a', gasMix: GasMix(o2: 50)),
+          DiveTank(id: 'stage-b', gasMix: GasMix(o2: 50)),
+        ],
+      );
+
+      expect(planGasChanges(stretches).map((s) => s.tankId), ['stage-a']);
+    });
+
+    test('a folded leg on a cylinder the plan does not carry is skipped', () {
+      final stretches = planBreathingStretches(const [
+        PlanScheduleRow(
+          kind: PlanScheduleRowKind.stop,
+          depthMeters: 6,
+          durationSeconds: 60,
+          runtimeSeconds: 120,
+          gasFO2: .21,
+          gasFHe: 0,
+          tankId: 'p-air',
+          foldedTravel: [
+            PlanFoldedTravel(
+              fromDepthMeters: 9,
+              toDepthMeters: 6,
+              seconds: 60,
+              tankId: 'gone',
+            ),
+          ],
+        ),
+      ], planTanks: _planTanks);
+
+      expect(stretches.map((s) => (s.startSeconds, s.tankId)), [(60, 'p-air')]);
+    });
+  });
+
   test('a dive descending on a travel gas starts on it in the log', () {
     const trimix = GasMix(o2: 10, he: 70);
     const travel = GasMix(o2: 32);

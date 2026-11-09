@@ -121,5 +121,23 @@ void main() {
 
       expect(rects.map((r) => r.top).toSet(), {14.0, 34.0, 54.0});
     });
+
+    test('a short plot keeps fewer rows', () {
+      final rects = gasFlagPills(
+        xs: const [100, 105, 110],
+        sizes: const [pill, pill, pill],
+        plot: const Rect.fromLTWH(40, 10, 400, 80),
+      );
+
+      // 30 % of 80 px holds one 20 px row.
+      expect(rects.map((r) => r.top).toSet(), {14.0});
+    });
+  });
+
+  test('gasFlagRows keeps one row however few it is allowed', () {
+    expect(
+      gasFlagRows([(left: 0, right: 50), (left: 10, right: 60)], maxRows: 0),
+      [0, 0],
+    );
   });
 }
