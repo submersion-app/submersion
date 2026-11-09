@@ -53310,6 +53310,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di profilo per questa immersione';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Stimato da profondità massima e tempo, non è un profilo registrato';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Esportazione delle immersioni in CSV...';
 

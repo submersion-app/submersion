@@ -15815,6 +15815,7 @@
   "diveLog_detail_errorLoadingSignature": "שגיאה בטעינת החתימה: {error}",
   "diveLog_profilePanel_selectDive": "בחרו צלילה כדי לראות את הפרופיל שלה",
   "diveLog_profilePanel_noProfileData": "אין נתוני פרופיל לצלילה זו",
+  "diveLog_estimatedProfile_caption": "הערכה לפי עומק מרבי וזמן, לא פרופיל מוקלט",
   "settings_export_progress_divesCsv": "מייצא צלילות ל-CSV...",
   "settings_export_progress_sitesCsv": "מייצא אתרים ל-CSV...",
   "settings_export_progress_equipmentCsv": "מייצא ציוד ל-CSV...",

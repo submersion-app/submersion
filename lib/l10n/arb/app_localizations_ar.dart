@@ -54039,6 +54039,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات ملف لهذه الغوصة';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'تقدير من أقصى عمق والوقت، وليس ملفًا مسجلًا';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'جارٍ تصدير الغوصات إلى CSV...';
 

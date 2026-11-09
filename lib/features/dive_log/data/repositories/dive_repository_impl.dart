@@ -2269,10 +2269,13 @@ class DiveRepository {
   /// smoothing flattening short features.
   ///
   /// Summarises a dive's primary series only when it has any, every series
-  /// otherwise; a dive with no series is absent from the result. The blobs
-  /// are decoded, merged and downsampled on a background isolate
-  /// ([summarizeSparklinesInBackground]), since a page's worth on the UI
-  /// isolate dropped frames mid-scroll (#3506).
+  /// otherwise. A dive with no series maps to an empty list, so the list can
+  /// tell it has no samples from not fetched yet and draw an estimated
+  /// outline (#4112); a dive whose every series is unreadable, and every
+  /// dive when the read fails, is absent instead, since it may well have
+  /// samples. The blobs are decoded, merged and downsampled on a background
+  /// isolate ([summarizeSparklinesInBackground]), since a page's worth on
+  /// the UI isolate dropped frames mid-scroll (#3506).
   Future<Map<String, List<domain.DiveProfilePoint>>> getBatchProfileSummaries(
     List<String> diveIds, {
     int maxSamples = 120,
@@ -2286,7 +2289,12 @@ class DiveRepository {
           maxSamples: maxSamples,
         );
         _logUnreadableSeries(summaries.unreadable);
-        return summaries.result;
+        final withSeries = {for (final row in rows) row.diveId};
+        return {
+          ...summaries.result,
+          for (final id in diveIds)
+            if (!withSeries.contains(id)) id: const <domain.DiveProfilePoint>[],
+        };
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -2295,6 +2303,25 @@ class DiveRepository {
         stackTrace: stackTrace,
       );
       return {};
+    }
+  }
+
+  /// Whether [diveId] has any stored profile series, readable or not.
+  ///
+  /// [getDiveById] reads an unreadable series as an empty profile, which
+  /// looks like a dive logged without samples; this tells the two apart,
+  /// so only the second gets an estimated outline (#4112). It counts rows
+  /// without reading a blob.
+  Future<bool> hasProfileSeries(String diveId) async {
+    try {
+      return await _profileSeries.hasAnySeries(diveId);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to check for stored profile series: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 

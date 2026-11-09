@@ -53290,6 +53290,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem dados de perfil para este mergulho';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Estimado a partir da profundidade máxima e do tempo, não é um perfil registrado';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'Exportando mergulhos para CSV...';
 

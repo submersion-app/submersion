@@ -52477,6 +52477,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No profile data for this dive';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'Estimated from max depth and time, not a recorded profile';
+
+  @override
   String get settings_export_progress_divesCsv => 'Exporting dives to CSV...';
 
   @override

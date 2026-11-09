@@ -50002,6 +50002,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_profilePanel_noProfileData => '此次潜水没有轮廓数据';
 
   @override
+  String get diveLog_estimatedProfile_caption => '根据最大深度和时间估算，并非记录的轮廓';
+
+  @override
   String get settings_export_progress_divesCsv => '正在将潜水记录导出为 CSV...';
 
   @override

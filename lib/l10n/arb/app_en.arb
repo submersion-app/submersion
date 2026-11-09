@@ -31017,6 +31017,8 @@
   "diveLog_detail_errorLoadingSignature": "Error loading signature: {error}",
   "diveLog_profilePanel_selectDive": "Select a dive to view its profile",
   "diveLog_profilePanel_noProfileData": "No profile data for this dive",
+  "diveLog_estimatedProfile_caption": "Estimated from max depth and time, not a recorded profile",
+  "@diveLog_estimatedProfile_caption": {"description": "Caption under the dashed outline drawn for a dive with no recorded profile"},
   "@lock_startFresh_body": {
     "description": "Body of the start-fresh confirmation dialog. {token} is the untranslated ASCII confirmation word the diver must type.",
     "placeholders": {

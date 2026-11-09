@@ -15815,6 +15815,7 @@
   "diveLog_detail_errorLoadingSignature": "Hiba az aláírás betöltésekor: {error}",
   "diveLog_profilePanel_selectDive": "Válasszon egy merülést a profil megtekintéséhez",
   "diveLog_profilePanel_noProfileData": "Ehhez a merüléshez nincs profiladat",
+  "diveLog_estimatedProfile_caption": "Becslés a maximális mélység és az idő alapján, nem rögzített profil",
   "settings_export_progress_divesCsv": "Merülések exportálása CSV-be...",
   "settings_export_progress_sitesCsv": "Merülőhelyek exportálása CSV-be...",
   "settings_export_progress_equipmentCsv": "Felszerelés exportálása CSV-be...",

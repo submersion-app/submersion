@@ -15815,6 +15815,7 @@
   "diveLog_detail_errorLoadingSignature": "خطأ في تحميل التوقيع: {error}",
   "diveLog_profilePanel_selectDive": "اختر غوصة لعرض ملفها",
   "diveLog_profilePanel_noProfileData": "لا توجد بيانات ملف لهذه الغوصة",
+  "diveLog_estimatedProfile_caption": "تقدير من أقصى عمق والوقت، وليس ملفًا مسجلًا",
   "settings_export_progress_divesCsv": "جارٍ تصدير الغوصات إلى CSV...",
   "settings_export_progress_sitesCsv": "جارٍ تصدير المواقع إلى CSV...",
   "settings_export_progress_equipmentCsv": "جارٍ تصدير المعدات إلى CSV...",

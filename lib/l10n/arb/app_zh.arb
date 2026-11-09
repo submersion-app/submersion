@@ -15815,6 +15815,7 @@
   "diveLog_detail_errorLoadingSignature": "加载签名出错：{error}",
   "diveLog_profilePanel_selectDive": "选择一次潜水以查看其轮廓",
   "diveLog_profilePanel_noProfileData": "此次潜水没有轮廓数据",
+  "diveLog_estimatedProfile_caption": "根据最大深度和时间估算，并非记录的轮廓",
   "settings_export_progress_divesCsv": "正在将潜水记录导出为 CSV...",
   "settings_export_progress_sitesCsv": "正在将潜水点导出为 CSV...",
   "settings_export_progress_equipmentCsv": "正在将装备导出为 CSV...",
