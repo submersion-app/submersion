@@ -54,6 +54,9 @@ final speciesMapSpeciesPinsProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(
         ref.watch(speciesRepositoryProvider).watchSiteSpeciesChanges(),
       );
+      if (scope == ExpectedSiteScope.allVisible) {
+        ref.invalidateSelfWhen(repository.watchLibraryMembershipChanges());
+      }
       return repository.getPinsForSpecies(
         speciesId,
         diverId: diverId,

@@ -59,6 +59,7 @@ Future<void> _pump(
   List<SiteSpeciesEntry> expected = const [],
   Future<List<LoggedSpeciesAtSite>>? logged,
   Future<List<Species>>? catalog,
+  bool expectedFails = false,
   bool settle = true,
 }) async {
   await tester.pumpWidget(
@@ -76,9 +77,9 @@ Future<void> _pump(
                 LoggedSpeciesAtSite(speciesId: 'wrasse', sightingCount: 9),
               ]),
         ),
-        siteExpectedSpeciesProvider(
-          'site-1',
-        ).overrideWith((ref) async => expected),
+        siteExpectedSpeciesProvider('site-1').overrideWith(
+          (ref) async => expectedFails ? throw StateError('db') : expected,
+        ),
         reefNearbySpeciesProvider(const GeoPoint(7.13, 134.22)).overrideWith(
           (ref) async => const ReefPart<NearbySpecies>.ok(
             NearbySpecies(
@@ -182,5 +183,14 @@ void main() {
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.text('Nothing logged here yet'), findsNothing);
+  });
+
+  testWidgets('a failed expected read says so, keeping the logged list', (
+    tester,
+  ) async {
+    await _pump(tester, expectedFails: true);
+
+    expect(find.textContaining('Grey Reef Shark'), findsOneWidget);
+    expect(find.text('Could not load the species map.'), findsOneWidget);
   });
 }

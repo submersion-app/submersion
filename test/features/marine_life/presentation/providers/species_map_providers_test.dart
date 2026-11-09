@@ -247,6 +247,64 @@ void main() {
     });
   });
 
+  group('speciesMapSpeciesPinsProvider under all visible sites', () {
+    test('re-queries when the diver joins a shared site library', () async {
+      await _diver('a');
+      await _site('lib-site');
+      await (_db.update(_db.diveSites)..where((t) => t.id.equals('lib-site')))
+          .write(const DiveSitesCompanion(sharedLibraryId: Value('lib1')));
+      await _species('fish');
+      await _db
+          .into(_db.siteSpecies)
+          .insert(
+            SiteSpeciesCompanion(
+              id: const Value('ss1'),
+              siteId: const Value('lib-site'),
+              speciesId: const Value('fish'),
+              createdAt: Value(_now),
+            ),
+          );
+      final container = makeContainer();
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver('a');
+      await container
+          .read(speciesMapExpectedScopeProvider.notifier)
+          .set(ExpectedSiteScope.allVisible);
+      final sub = container.listen(
+        speciesMapSpeciesPinsProvider('fish'),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+      expect(
+        await container.read(speciesMapSpeciesPinsProvider('fish').future),
+        isEmpty,
+      );
+
+      await _db
+          .into(_db.sharedLibraryMemberships)
+          .insert(
+            SharedLibraryMembershipsCompanion.insert(
+              id: 'm1',
+              diverId: 'a',
+              libraryId: 'lib1',
+              memberId: 'member-1',
+              displayName: 'A',
+              libraryName: 'Club',
+              backendKind: 's3',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+
+      final pins = await _eventually(
+        () => container.read(speciesMapSpeciesPinsProvider('fish').future),
+        (v) => v.isNotEmpty,
+      );
+      expect(pins.single.siteId, 'lib-site');
+    });
+  });
+
   group('per-species and per-site reads', () {
     test('are dropped once nothing watches them', () async {
       final container = makeContainer();

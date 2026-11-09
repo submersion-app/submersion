@@ -234,6 +234,11 @@ class SpeciesMapRepository {
     return {...mine, for (final site in visible) site.id}.difference(hidden);
   }
 
+  /// Joining or leaving a shared site library changes which sites the "all
+  /// visible" scope admits, and site changes do not cover it.
+  Stream<void> watchLibraryMembershipChanges() =>
+      _db.tableUpdates(TableUpdateQuery.onTable(_db.sharedLibraryMemberships));
+
   static String _diverClause(String? diverId) =>
       diverId == null ? '' : 'AND d.diver_id = ?';
 

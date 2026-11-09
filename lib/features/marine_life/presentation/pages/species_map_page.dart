@@ -301,8 +301,11 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
   }
 
   String? _unplacedNote(String? speciesId) {
-    final count =
-        ref.watch(speciesMapUnplacedCountProvider(speciesId)).value ?? 0;
+    final unplaced = ref.watch(speciesMapUnplacedCountProvider(speciesId));
+    // A failed count says so: reading it as zero would hide sightings the
+    // map cannot draw.
+    if (unplaced.hasError) return context.l10n.speciesMap_error_loading;
+    final count = unplaced.value ?? 0;
     return count > 0 ? context.l10n.speciesMap_unplaced(count) : null;
   }
 

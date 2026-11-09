@@ -103,6 +103,7 @@ Future<void> _pump(
   Duration catalogDelay = Duration.zero,
   bool sitePinsFail = false,
   String? leftOpenSiteId,
+  bool unplacedFails = false,
 }) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = size;
@@ -158,9 +159,9 @@ Future<void> _pump(
         speciesMapSpeciesPinsProvider(
           'turtle',
         ).overrideWith((ref) async => turtlePins),
-        speciesMapUnplacedCountProvider(
-          'manta',
-        ).overrideWith((ref) async => unplaced),
+        speciesMapUnplacedCountProvider('manta').overrideWith(
+          (ref) async => unplacedFails ? throw StateError('db') : unplaced,
+        ),
         speciesMapUnplacedCountProvider(
           'turtle',
         ).overrideWith((ref) async => 0),
@@ -292,6 +293,14 @@ void main() {
       find.text('2 sightings are on dives without a mapped site'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a failed unplaced count says so instead of nothing', (
+    tester,
+  ) async {
+    await _pump(tester, initialSpeciesId: 'manta', unplacedFails: true);
+
+    expect(find.text('Could not load the species map.'), findsOneWidget);
   });
 
   testWidgets('public on with no taxon key explains there are no records', (

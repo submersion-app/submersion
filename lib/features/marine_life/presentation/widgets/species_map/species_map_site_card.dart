@@ -42,10 +42,9 @@ class SpeciesMapSiteCard extends ConsumerWidget {
     final loading = !loggedAsync.hasValue || !catalogAsync.hasValue;
     final logged = loggedAsync.value ?? const <LoggedSpeciesAtSite>[];
     final loggedIds = {for (final l in logged) l.speciesId};
+    final expectedAsync = ref.watch(siteExpectedSpeciesProvider(pin.siteId));
     final expected = [
-      for (final entry
-          in ref.watch(siteExpectedSpeciesProvider(pin.siteId)).value ??
-              const <SiteSpeciesEntry>[])
+      for (final entry in expectedAsync.value ?? const <SiteSpeciesEntry>[])
         if (!loggedIds.contains(entry.speciesId)) entry,
     ];
     final publicOn = ref.watch(speciesMapPublicLayerProvider);
@@ -94,7 +93,17 @@ class SpeciesMapSiteCard extends ConsumerWidget {
                   ),
             ],
           ),
-        if (expected.isNotEmpty) ...[
+        // A failed expected read says so under its heading; the logged
+        // list above stands on its own read.
+        if (expectedAsync.hasError) ...[
+          const SizedBox(height: 12),
+          Text(
+            l10n.speciesMap_card_expectedNotLogged,
+            style: theme.textTheme.labelLarge,
+          ),
+          const SizedBox(height: 6),
+          Text(l10n.speciesMap_error_loading),
+        ] else if (expected.isNotEmpty) ...[
           const SizedBox(height: 12),
           Text(
             l10n.speciesMap_card_expectedNotLogged,
