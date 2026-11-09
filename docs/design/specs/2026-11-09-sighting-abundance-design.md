@@ -82,9 +82,13 @@ already sits beside it, so (maintainer's decision) the duplicate goes:
   and "Sites".
 - Seen-species rows (`seen_species_tile.dart`) drop "N sightings" and keep
   "N dives" and "last seen".
-- The seen-species "Most sightings" sort (`seen_species_filter.dart`) goes,
-  since it would equal sorting by dives. A saved sort that pointed at it
-  falls back to the by-dives sort.
+- The seen-species "Most sightings" sort (`seen_species_filter.dart`), which
+  is the Species page's default and its only count-based sort, becomes
+  "Most dives": still the default, ordered by the number of dives
+  (maintainer's decision, 2026-11-09).
+- The Species page header ("N species · N sightings") keeps its wording; N
+  sightings becomes the number of logged sightings (one per species per
+  dive) rather than an animal total. *(Builder's call.)*
 - Strings that only those removed parts used are deleted.
 
 ### Trip story day card
@@ -119,7 +123,8 @@ only Seen gives the name alone.
   a write gives neither).
 - **Bulk edit, dive merge and consolidation** carry the value through.
   **Merging two sightings of the same species** (dive merge sums counts
-  today): both Exact, the counts add up as today; otherwise the result is the
+  today): both Exact, the counts add up as today; Seen adds nothing, so
+  Seen with anything gives the other value; otherwise the result is the
   larger of the two, ordering Seen < Single < Few < Many < Abundant and
   placing an Exact number in its REEF group first. *(Builder's call, flagged
   for review.)*
