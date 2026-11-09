@@ -472,6 +472,9 @@ class Dive extends Equatable {
   /// 3. calculateRuntimeFromProfile() (from profile data), else [profileSpan]
   ///    for a dive read without its samples
   Duration? get measuredRuntime {
+    // A draft's times are taps at the site, and a runtime it carries came
+    // from the plan it adopted: neither is a reading (issue #637).
+    if (isDraft) return null;
     if (runtime != null) return runtime;
 
     if (entryTime != null && exitTime != null) {
@@ -489,7 +492,17 @@ class Dive extends Equatable {
   /// intervals, tissue loading), where a table-era log has nothing better.
   /// Never report it as a runtime. `effectiveRuntimeSecondsSql` is the SQL
   /// form.
-  Duration? get effectiveRuntime => measuredRuntime ?? bottomTime;
+  Duration? get effectiveRuntime {
+    // A draft's window is its taps, or nothing yet while it is open.
+    if (isDraft) return _tapSpan;
+    return measuredRuntime ?? bottomTime;
+  }
+
+  Duration? get _tapSpan {
+    if (entryTime == null || exitTime == null) return null;
+    final span = exitTime!.difference(entryTime!);
+    return span > Duration.zero ? span : null;
+  }
 
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);

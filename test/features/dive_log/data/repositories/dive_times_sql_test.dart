@@ -138,4 +138,29 @@ void main() {
     expect(timestamps.measured, 52 * 60);
     expect(timestamps.effective, 52 * 60);
   });
+
+  test('a draft has no measured runtime; its taps are only a window '
+      'estimate (#637)', () async {
+    await repository.createDive(
+      domain.Dive(
+        id: 'draft',
+        dateTime: DateTime.utc(2026, 4, 5, 10),
+        entryTime: DateTime.utc(2026, 4, 5, 10),
+        exitTime: DateTime.utc(2026, 4, 5, 10, 52),
+        runtime: const Duration(minutes: 45),
+        isDraft: true,
+      ),
+    );
+
+    final row = await db
+        .customSelect(
+          "SELECT ${measuredRuntimeSecondsSql('d')} AS measured, "
+          "${effectiveRuntimeSecondsSql('d')} AS effective "
+          "FROM dives d WHERE d.id = 'draft'",
+        )
+        .getSingle();
+
+    expect(row.readNullable<int>('measured'), isNull);
+    expect(row.readNullable<int>('effective'), 52 * 60);
+  });
 }

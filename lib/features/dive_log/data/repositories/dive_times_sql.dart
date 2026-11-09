@@ -103,11 +103,15 @@ String _supersededOriginalSql(String s) {
 /// only executed for the dives that actually reach that step. A dive with an
 /// explicit `runtime` never touches `dive_profile_series`, which is what keeps this
 /// usable in aggregates that scan the whole dive table.
+///
+/// NULL for a draft (issue #637): its times are taps at the site and any
+/// runtime it holds came from the plan it adopted, so neither is a reading
+/// to report; [effectiveRuntimeSecondsSql] still spans its taps.
 String measuredRuntimeSecondsSql(String alias) =>
-    'COALESCE('
+    'CASE WHEN $alias.is_draft = 1 THEN NULL ELSE COALESCE('
     '$alias.runtime, '
     '${timestampRuntimeSecondsSql(alias)}, '
-    '${profileSpanSecondsSql(alias)})';
+    '${profileSpanSecondsSql(alias)}) END';
 
 /// What [measuredRuntimeSecondsSql] reads beyond the dive row, by SQL name:
 /// the tables a query or a tick over a measured runtime has to follow. The
@@ -122,8 +126,13 @@ const Set<String> measuredRuntimeTables = {
 /// seconds, NULL only for a dive that carries no duration in any form: the
 /// [measuredRuntimeSecondsSql] steps, then `bottom_time`. An estimate for a
 /// time window, never a value to report as a runtime.
+///
+/// A draft's window is its taps, NULL while it is still open (issue #637).
 String effectiveRuntimeSecondsSql(String alias) =>
-    'COALESCE(${measuredRuntimeSecondsSql(alias)}, $alias.bottom_time)';
+    'CASE WHEN $alias.is_draft = 1 '
+    'THEN ${timestampRuntimeSecondsSql(alias)} '
+    'ELSE COALESCE(${measuredRuntimeSecondsSql(alias)}, $alias.bottom_time) '
+    'END';
 
 /// When the dive started, in epoch milliseconds: `entry_time`, else the dive
 /// date.
