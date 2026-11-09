@@ -126,6 +126,8 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'sac_mean_bar_min': 'Bar per minute at surface pressure',
     'sac_trend': '`SacTrend.name`',
     'source_updated_at': 'The dive\'s `updated_at` this row was built from',
+    'surface_breathed_from_s': 'Where, in the recording\'s seconds, the gas-use window was stretched back to over surface time a cylinder\'s pressure says was breathed before the descent',
+    'surface_breathed_until_s': 'Where the gas-use window was stretched on to over surface time after the ascent: a switch logged on the surface, or a pressure still falling there',
     'unsupported_reason': '`UnsupportedReason.name` when a metric could not be derived',
   },
   'dive_equipment': {

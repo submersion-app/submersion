@@ -75,6 +75,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series_revi
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/dive_surface_breathing.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
@@ -856,7 +857,8 @@ class DiveRepository {
             buddies: buddiesByDive[row.id] ?? const [],
             weights: weightsByDive[row.id] ?? const [],
             profileSpan: profileSpans[row.id],
-            storedGasUse: gasUses[row.id],
+            storedGasUse: gasUses[row.id]?.use,
+            surfaceBreathing: gasUses[row.id]?.breathing,
           ),
         )
         .toList();
@@ -904,24 +906,39 @@ class DiveRepository {
   /// works out from the profile. Only dives with surface time at the ends of
   /// their recording have a window.
   // stats-scope-exempt: hydrates the dives of a list, and aggregates nothing
-  Future<Map<String, GasUse>> _gasUsesFor(List<String> diveIds) async {
-    final uses = <String, GasUse>{};
+  Future<Map<String, ({GasUse? use, SurfaceBreathing? breathing})>> _gasUsesFor(
+    List<String> diveIds,
+  ) async {
+    final uses = <String, ({GasUse? use, SurfaceBreathing? breathing})>{};
     for (final chunk in seriesIdChunks(diveIds)) {
       final placeholders = List.filled(chunk.length, '?').join(', ');
       final result = await _db
           .customSelect(
-            'SELECT dive_id, gas_use_s, gas_use_avg_depth_m '
+            'SELECT dive_id, gas_use_s, gas_use_avg_depth_m, '
+            'surface_breathed_from_s, surface_breathed_until_s '
             'FROM dive_derived_metrics '
             'WHERE dive_id IN ($placeholders) '
-            'AND gas_use_s > 0 AND gas_use_avg_depth_m IS NOT NULL',
+            'AND ((gas_use_s > 0 AND gas_use_avg_depth_m IS NOT NULL) '
+            'OR surface_breathed_from_s IS NOT NULL '
+            'OR surface_breathed_until_s IS NOT NULL)',
             variables: [for (final id in chunk) Variable<String>(id)],
             readsFrom: {_db.diveDerivedMetricsRows},
           )
           .get();
       for (final row in result) {
-        uses[row.read<String>('dive_id')] = GasUse(
-          seconds: row.read<int>('gas_use_s'),
-          avgDepth: row.read<double>('gas_use_avg_depth_m'),
+        final seconds = row.read<int?>('gas_use_s');
+        final depth = row.read<double?>('gas_use_avg_depth_m');
+        final from = row.read<int?>('surface_breathed_from_s');
+        final until = row.read<int?>('surface_breathed_until_s');
+        uses[row.read<String>('dive_id')] = (
+          use: seconds != null && seconds > 0 && depth != null
+              ? GasUse(seconds: seconds, avgDepth: depth)
+              : null,
+          // A profile attached to this dive later stretches its own window
+          // alike (see [domain.Dive.gasUse]).
+          breathing: from == null && until == null
+              ? null
+              : SurfaceBreathing(from: from, until: until),
         );
       }
     }
@@ -4940,6 +4957,7 @@ class DiveRepository {
     List<domain.DiveWeight> weights = const [],
     Duration? profileSpan,
     GasUse? storedGasUse,
+    SurfaceBreathing? surfaceBreathing,
   }) {
     // Map site if exists
     final domainSite = site == null ? null : mapDiveSiteRow(site);
@@ -5014,6 +5032,7 @@ class DiveRepository {
       runtime: row.runtime != null ? Duration(seconds: row.runtime!) : null,
       profileSpan: profileSpan,
       storedGasUse: storedGasUse,
+      surfaceBreathing: surfaceBreathing,
       maxDepth: row.maxDepth,
       avgDepth: row.avgDepth,
       entryLocation: row.entryLatitude != null && row.entryLongitude != null
@@ -5274,11 +5293,20 @@ class DiveRepository {
     final startPressureByTank = <String, double>{};
     final endPressureByTank = <String, double>{};
     final byTank = <String, List<dynamic>>{};
+    final pressuresByTank = <String, List<domain.TankPressurePoint>>{};
     for (final s in tankSeries) {
       byTank.putIfAbsent(s.tankId, () => []).add(s);
     }
     for (final entry in byTank.entries) {
       final merged = mergeTankSeriesPoints(entry.value.cast());
+      pressuresByTank[entry.key] = [
+        for (final p in merged)
+          domain.TankPressurePoint(
+            tankId: entry.key,
+            timestamp: p.timestamp,
+            pressure: p.pressure,
+          ),
+      ];
       final endpoints = cleanSeriesEndpoints([
         for (final p in merged) (t: p.timestamp, bar: p.pressure),
       ]);
@@ -5459,7 +5487,7 @@ class DiveRepository {
     // imports populate per-sample temperature but miss the dive-level field.
     final effectiveWaterTemp = row.waterTemp ?? _minProfileTemp(seriesProfile);
 
-    return domain.Dive(
+    final dive = domain.Dive(
       id: row.id,
       diverId: row.diverId,
       diveNumber: row.diveNumber,
@@ -5679,6 +5707,24 @@ class DiveRepository {
       importId: row.importId,
       // User-defined custom fields
       customFields: customFields,
+    );
+
+    // Surface time a switch logged on the surface or a pressure still falling
+    // there says a cylinder was breathed in, worked out from the same series
+    // and switches the dive page reads so SAC by cylinder agrees (#2930).
+    final switchRows = await (_db.select(
+      _db.gasSwitches,
+    )..where((t) => t.diveId.equals(row.id))).get();
+    return dive.copyWith(
+      surfaceBreathing: diveSurfaceBreathing(
+        profile: dive.profile,
+        tanks: dive.tanks,
+        switches: [
+          for (final sw in switchRows)
+            (tankId: sw.tankId, timestamp: sw.timestamp),
+        ],
+        tankPressures: pressuresByTank,
+      ),
     );
   }
 

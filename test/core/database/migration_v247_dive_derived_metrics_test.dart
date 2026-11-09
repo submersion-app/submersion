@@ -33,6 +33,8 @@ const _expectedColumns = {
   // v347: the gas-use window (issue #2930).
   'gas_use_s',
   'gas_use_avg_depth_m',
+  'surface_breathed_from_s',
+  'surface_breathed_until_s',
   'unsupported_reason',
 };
 

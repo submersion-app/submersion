@@ -102,6 +102,11 @@ class DiveDerivedMetrics {
   final int? gasUseSeconds;
   final double? gasUseAvgDepthMeters;
 
+  /// Where surface time a cylinder was breathed in stretched the gas-use
+  /// window (see `surfaceBreathingOf`), for a dive read with its profile to
+  /// stretch its own window alike. Null when nothing stretched it.
+  final SurfaceBreathing? surfaceBreathing;
+
   final UnsupportedReason? unsupportedReason;
 
   /// The engine's buckets. Empty when read back from storage.
@@ -123,6 +128,7 @@ class DiveDerivedMetrics {
     this.runtimeSeconds,
     this.gasUseSeconds,
     this.gasUseAvgDepthMeters,
+    this.surfaceBreathing,
     this.unsupportedReason,
     this.sacBuckets = const [],
   });
@@ -165,14 +171,18 @@ class DiveDerivedMetrics {
     runtimeSeconds: runtimeSeconds ?? this.runtimeSeconds,
     gasUseSeconds: gasUseSeconds ?? this.gasUseSeconds,
     gasUseAvgDepthMeters: gasUseAvgDepthMeters ?? this.gasUseAvgDepthMeters,
+    surfaceBreathing: surfaceBreathing,
     unsupportedReason: unsupportedReason ?? this.unsupportedReason,
     sacBuckets: sacBuckets ?? this.sacBuckets,
   );
 
-  /// These metrics with [window] as the gas-use window, null for none.
-  /// [copyWith] cannot clear a field, and a rebuilt dive may have lost its
-  /// surface tail.
-  DiveDerivedMetrics withGasUse(GasUseWindow? window) => DiveDerivedMetrics(
+  /// These metrics with [window] as the gas-use window, null for none, and
+  /// [breathing] as what stretched it. [copyWith] cannot clear a field, and a
+  /// rebuilt dive may have lost its surface tail.
+  DiveDerivedMetrics withGasUse(
+    GasUseWindow? window, {
+    SurfaceBreathing? breathing,
+  }) => DiveDerivedMetrics(
     diveId: diveId,
     engineVersion: engineVersion,
     sourceUpdatedAt: sourceUpdatedAt,
@@ -188,6 +198,7 @@ class DiveDerivedMetrics {
     runtimeSeconds: runtimeSeconds,
     gasUseSeconds: window?.seconds,
     gasUseAvgDepthMeters: window?.avgDepth,
+    surfaceBreathing: breathing,
     unsupportedReason: unsupportedReason,
     sacBuckets: sacBuckets,
   );

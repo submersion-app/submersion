@@ -27,8 +27,9 @@ class TankPressureSeries {
 abstract final class DerivedMetricsService {
   /// Bump whenever a rule below changes; every stored row with a lower
   /// version is rebuilt by the sweep. 4 added the gas-use window (#2930),
-  /// which `DerivedMetricsRepository` works out from the merged profile.
-  static const int version = 4;
+  /// which `DerivedMetricsRepository` works out from the merged profile; 5
+  /// stretched it over surface time a cylinder was breathed in.
+  static const int version = 5;
 
   /// Depth under which a level run counts as a final stop.
   static const double finalStopMaxDepthMeters = 7.0;

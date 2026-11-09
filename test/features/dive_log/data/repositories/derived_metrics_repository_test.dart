@@ -591,6 +591,33 @@ void main() {
     },
   );
 
+  test('a gas switch added later makes the row stale (#2930)', () async {
+    // A switch logged on the surface stretches the gas-use window, and a
+    // synced switch never re-stamps its dive.
+    await insertDive('d1', updatedAt: now);
+    final r = repo();
+    await r.ensureCurrent('d1');
+    expect(await r.staleDiveIds(), isEmpty);
+
+    await db
+        .into(db.diveTanks)
+        .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1'));
+    await r.ensureCurrent('d1');
+    expect(await r.staleDiveIds(), isEmpty);
+    await db
+        .into(db.gasSwitches)
+        .insert(
+          GasSwitchesCompanion.insert(
+            id: 'sw',
+            diveId: 'd1',
+            timestamp: 2100,
+            tankId: 't1',
+            createdAt: now,
+          ),
+        );
+    expect(await r.staleDiveIds(), ['d1']);
+  });
+
   test('a synced tank row change makes the row stale', () async {
     // A tank's volume and identity live on dive_tanks, whose own clock is
     // the only thing a synced copy of it moves.

@@ -65,6 +65,12 @@ class Dive extends Equatable {
   /// stored. See [gasUse].
   final GasUse? storedGasUse;
 
+  /// Where surface time a cylinder was breathed in stretched the gas-use
+  /// window, from the derived metrics cache: the sweep reads the gas switches
+  /// and pressure series a dive entity does not carry (issue #2930). [gasUse]
+  /// stretches its own window from [profile] alike. Read, never stored.
+  final SurfaceBreathing? surfaceBreathing;
+
   /// The gear on this dive, one link per junction row with the item and
   /// where it came from (issue #1487). [equipment] is the flat view.
   final List<GearLink> gear;
@@ -279,6 +285,7 @@ class Dive extends Equatable {
     this.profile = const [],
     this.profileSpan,
     this.storedGasUse,
+    this.surfaceBreathing,
     this.gear = const [],
     this.notes = '',
     this.photoIds = const [],
@@ -600,30 +607,34 @@ class Dive extends Equatable {
   }
 
   /// The underwater part of the recording, which [sac] and [rmvFor] divide by
-  /// (issue #2930): from the profile when this dive carries one, else
-  /// [storedGasUse]. Null when there is no surface time at either end to
-  /// leave out, and then the rates use [measuredRuntime] and [avgDepth] as
-  /// they are. `gasUseSecondsSql` and `gasUseAvgDepthSql` are the SQL forms.
+  /// (issue #2930), stretched over the [surfaceBreathing] the cache found:
+  /// from the profile when this dive carries one, else [storedGasUse]. Null
+  /// when there is no surface time at either end to leave out, and then the
+  /// rates use [measuredRuntime] and [avgDepth] as they are.
+  /// `gasUseSecondsSql` and `gasUseAvgDepthSql` are the SQL forms.
   GasUse? get gasUse {
     if (profile.length < 2) return storedGasUse;
-    // Worked out once per profile list: the detail page asks on every build,
-    // and copies of this dive share the list.
+    // Worked out once per profile list and stretch: the detail page asks on
+    // every build, and copies of this dive share the list.
     final cached = _gasUseByProfile[profile];
-    if (cached != null) return cached.use;
+    if (cached != null && cached.breathing == surfaceBreathing) {
+      return cached.use;
+    }
     final use = gasUseWindowOf(
       profile,
       time: (p) => p.timestamp,
       depth: (p) => p.depth,
+      surfaceBreathing: surfaceBreathing,
     )?.use;
-    _gasUseByProfile[profile] = (use: use);
+    _gasUseByProfile[profile] = (breathing: surfaceBreathing, use: use);
     return use;
   }
 
-  /// [gasUse] by profile list identity. An entity never mutates its profile,
-  /// so a list's window cannot change once worked out.
-  static final Expando<({GasUse? use})> _gasUseByProfile = Expando(
-    'gasUseByProfile',
-  );
+  /// [gasUse] by profile list identity, with the stretch it was worked out
+  /// for. An entity never mutates its profile, so a list's window cannot
+  /// change once worked out.
+  static final Expando<({SurfaceBreathing? breathing, GasUse? use})>
+  _gasUseByProfile = Expando('gasUseByProfile');
 
   /// The minutes and ambient pressure a whole-dive rate divides by: the
   /// [measuredRuntime], cut to [gasUse] when that is shorter (a runtime
@@ -793,6 +804,7 @@ class Dive extends Equatable {
     List<DiveProfilePoint>? profile,
     Duration? profileSpan,
     GasUse? storedGasUse,
+    SurfaceBreathing? surfaceBreathing,
     List<GearLink>? gear,
     String? notes,
     List<String>? photoIds,
@@ -904,6 +916,7 @@ class Dive extends Equatable {
       profile: profile ?? this.profile,
       profileSpan: profileSpan ?? this.profileSpan,
       storedGasUse: storedGasUse ?? this.storedGasUse,
+      surfaceBreathing: surfaceBreathing ?? this.surfaceBreathing,
       gear: gear ?? this.gear,
       notes: notes ?? this.notes,
       photoIds: photoIds ?? this.photoIds,
@@ -1015,6 +1028,7 @@ class Dive extends Equatable {
     profile,
     profileSpan,
     storedGasUse,
+    surfaceBreathing,
     gear,
     notes,
     photoIds,

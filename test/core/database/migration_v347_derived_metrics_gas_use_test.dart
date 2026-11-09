@@ -33,6 +33,13 @@ void main() {
     expect(byName['gas_use_s']!.read<int>('notnull'), 0);
     expect(byName['gas_use_avg_depth_m']!.read<String>('type'), 'REAL');
     expect(byName['gas_use_avg_depth_m']!.read<int>('notnull'), 0);
+    for (final column in [
+      'surface_breathed_from_s',
+      'surface_breathed_until_s',
+    ]) {
+      expect(byName[column]!.read<String>('type'), 'INTEGER');
+      expect(byName[column]!.read<int>('notnull'), 0);
+    }
   });
 
   /// The rung and the beforeOpen backstop share one idempotent helper, so

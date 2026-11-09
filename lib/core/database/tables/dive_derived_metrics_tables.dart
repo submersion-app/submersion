@@ -61,6 +61,16 @@ class DiveDerivedMetricsRows extends Table {
   /// their ambient pressure. Null with `gas_use_s` (issue #2930).
   RealColumn get gasUseAvgDepthM => real().nullable()();
 
+  /// Where, in the recording's seconds, the gas-use window was stretched back
+  /// to over surface time a cylinder's pressure says was breathed before the
+  /// descent. Null when nothing stretched it (issue #2930).
+  IntColumn get surfaceBreathedFromS => integer().nullable()();
+
+  /// Where the gas-use window was stretched on to over surface time after the
+  /// ascent: a switch logged on the surface, or a pressure still falling
+  /// there. Null when nothing stretched it (issue #2930).
+  IntColumn get surfaceBreathedUntilS => integer().nullable()();
+
   /// `UnsupportedReason.name` when a metric could not be derived.
   TextColumn get unsupportedReason => text().nullable()();
 
