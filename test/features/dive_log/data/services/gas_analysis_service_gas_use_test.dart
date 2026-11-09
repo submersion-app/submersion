@@ -72,6 +72,39 @@ void main() {
     expect(rows.single.sacRate, closeTo(d.sac!, d.sac! * 0.005));
   });
 
+  test('a recorded duration is cut to the underwater window', () {
+    // The source log says the cylinder was breathed for the whole 40-minute
+    // recording, ten minutes of it on the surface.
+    final d = dive(profile).copyWith(
+      tanks: const [
+        DiveTank(
+          id: 't',
+          startPressure: 200,
+          endPressure: 110,
+          usageDuration: Duration(minutes: 40),
+        ),
+      ],
+    );
+    final row = service.calculateCylinderSac(dive: d, profile: profile).single;
+    expect(row.usageDuration, Duration(seconds: d.gasUse!.seconds));
+    expect(row.sacRate, closeTo(d.sac!, 1e-9));
+  });
+
+  test('a recorded duration shorter than the window is kept', () {
+    final d = dive(profile).copyWith(
+      tanks: const [
+        DiveTank(
+          id: 't',
+          startPressure: 200,
+          endPressure: 110,
+          usageDuration: Duration(minutes: 20),
+        ),
+      ],
+    );
+    final row = service.calculateCylinderSac(dive: d, profile: profile).single;
+    expect(row.usageDuration, const Duration(minutes: 20));
+  });
+
   test('a dive with no surface tail is unchanged', () {
     final noTail = [
       for (final p in profile)

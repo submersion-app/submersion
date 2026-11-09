@@ -249,11 +249,11 @@ double? _perCorrectedMinute(
   final surface = rows.map((r) => r.surfaceSeconds).sum;
   if (rows.any((r) => r.usageFromRecordedDuration)) {
     // An unrecorded cylinder alongside carries the whole dive, and one diver
-    // cannot breathe for longer than the dive lasted.
-    final diveSeconds = rows
-        .expand((r) => r.usageWindows)
-        .map((w) => w.end)
-        .max;
+    // cannot breathe for longer than the dive lasted: its window, which
+    // starts after any surface run the gas-use window leaves out.
+    final diveSeconds = unionOfWindows(
+      rows.expand((r) => r.usageWindows),
+    ).breathedSeconds;
     seconds = math.min(_recordedSeconds(rows, tanks), diveSeconds) + surface;
     ambient = rows.first.rateAmbientBar;
   } else {
@@ -291,7 +291,13 @@ int _recordedSeconds(List<CylinderSac> rows, Map<String, DiveTank> tanks) {
       clusters.add([row]);
     }
   }
+  // A row's time includes the surface minutes the diver entered, which the
+  // caller adds on its own (issue #2930).
   return clusters
-      .map((c) => c.map((r) => r.usageDuration?.inSeconds ?? 0).max)
+      .map(
+        (c) => c
+            .map((r) => (r.usageDuration?.inSeconds ?? 0) - r.surfaceSeconds)
+            .max,
+      )
       .sum;
 }

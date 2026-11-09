@@ -96,9 +96,16 @@ CylinderUsage? cylinderUsage({
         );
   if (windows.isEmpty) return null;
 
+  // A duration the source recorded may include the surface runs the window
+  // leaves out, so it never runs past the window, as the dive's own SAC
+  // divides by the window (issue #2930). With no window it stands as is.
+  final recorded = hasRecordedUsage && gasUse != null
+      ? math.min(recordedSeconds, windows.breathedSeconds)
+      : recordedSeconds;
+
   return (
     windows: windows,
-    seconds: hasRecordedUsage ? recordedSeconds : windows.breathedSeconds,
+    seconds: hasRecordedUsage ? recorded! : windows.breathedSeconds,
     fromRecordedDuration: hasRecordedUsage,
     avgDepth: timeWeightedMeanAcross(
       profile,

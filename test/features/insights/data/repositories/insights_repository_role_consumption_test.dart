@@ -59,6 +59,7 @@ void main() {
     int order = 0,
     String? computerId,
     int? surfaceBreathingSeconds,
+    int? usageSeconds,
   }) => db
       .into(db.diveTanks)
       .insert(
@@ -74,6 +75,7 @@ void main() {
           tankOrder: Value(order),
           computerId: Value(computerId),
           surfaceBreathingDuration: Value(surfaceBreathingSeconds),
+          usageDuration: Value(usageSeconds),
         ),
       );
 
@@ -197,6 +199,27 @@ void main() {
 
     final value = trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value;
     expect(value, closeTo(back.rmv!, 1e-9));
+  });
+
+  test('a recorded duration counts entered minutes once (#2930)', () async {
+    // The log recorded 30 minutes on the back gas, and the diver entered ten
+    // more on the boat.
+    await insertDive('rec');
+    await insertTank(
+      'rec',
+      'rec-back',
+      'backGas',
+      usageSeconds: 1800,
+      surfaceBreathingSeconds: 600,
+    );
+    final back = (await detailRows('rec')).single;
+
+    final trend = await repository.getRoleConsumptionPerDive();
+
+    expect(
+      trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value,
+      closeTo(back.rmv!, 1e-9),
+    );
   });
 
   test('a surface tail is left out of the last cylinder (#2930)', () async {
