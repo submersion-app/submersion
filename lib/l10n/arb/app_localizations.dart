@@ -27010,6 +27010,42 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} item} other{{count} items}}'**
   String equipment_location_groupCount(int count);
 
+  /// One type and its item count in a folded location heading's summary, e.g. BCD 2
+  ///
+  /// In en, this message translates to:
+  /// **'{type} {count}'**
+  String equipment_group_foldedTypeCount(int count, String type);
+
+  /// Second line of a folded type heading on the Equipment list: how many items inside need service
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} service due} other{{count} service due}}'**
+  String equipment_group_foldedServiceDue(int count);
+
+  /// Ends a folded location heading's summary when it lists only the first three types
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{and {count} more} other{and {count} more}}'**
+  String equipment_group_foldedMoreTypes(int count);
+
+  /// Second line of a folded group heading in selection mode: ticked items inside it of all its items
+  ///
+  /// In en, this message translates to:
+  /// **'{selected} of {total} selected'**
+  String equipment_group_foldedSelected(int selected, int total);
+
+  /// Equipment list overflow menu: open every folded group
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all'**
+  String get equipment_list_expandAllGroups;
+
+  /// Equipment list overflow menu: fold every outermost group
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all'**
+  String get equipment_list_collapseAllGroups;
+
   /// Chip in the active filters bar when the list is filtered by location
   ///
   /// In en, this message translates to:

@@ -16615,6 +16615,44 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count service due',
+      one: '$count service due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'and $count more',
+      one: 'and $count more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected of $total selected';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Expand all';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Collapse all';
+
+  @override
   String get equipment_location_activeFilter => 'Location';
 
   @override

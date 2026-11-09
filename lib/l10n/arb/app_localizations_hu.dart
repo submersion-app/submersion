@@ -16800,6 +16800,44 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count szerviz esedékes',
+      one: '$count szerviz esedékes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'és még $count',
+      one: 'és még $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected / $total kiválasztva';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Összes kibontása';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Összes összecsukása';
+
+  @override
   String get equipment_location_activeFilter => 'Hely';
 
   @override
