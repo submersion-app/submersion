@@ -52482,6 +52482,37 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading => '正在从潜水记录中读取发射器插槽';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '按序列号匹配 $dives 次潜水';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '按 $computer 上的插槽匹配 $dives 次潜水';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '其中 $older 次早于 $date 的首次下载，假定当时发射器位于同一插槽';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder => '包括首次下载之前的潜水';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '已跳过 $dives 次潜水：当时另一个发射器使用了此插槽';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives 次潜水没有插槽信息';
+  }
+
+  @override
   String get transmitters_apply_nothing => '没有气瓶带有此发射器';
 
   @override

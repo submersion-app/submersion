@@ -55673,6 +55673,39 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading =>
+      'Jeladóhelyek beolvasása a merülésekből';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives merülés sorozatszám alapján';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives merülés hely alapján ezen: $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return 'Ebből $older az első, $date napi letöltés előtti, feltételezve, hogy a jeladó akkor is ugyanazon a helyen volt';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'Az első letöltés előtti merülések is';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives merülés kimaradt: akkoriban egy másik jeladó használta ezt a helyet';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives merülésnél nincs helyadat';
+  }
+
+  @override
   String get transmitters_apply_nothing =>
       'Egyetlen palack sem viseli ezt a jeladót';
 

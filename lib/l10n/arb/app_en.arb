@@ -33114,6 +33114,57 @@
       "dives": { "type": "int" }
     }
   },
+  "transmitters_apply_reading": "Reading transmitter slots from your dives",
+  "@transmitters_apply_reading": {
+    "description": "Shown while the app reads transmitter slots from stored dives before the Apply to existing dives dialog (issue #4347)"
+  },
+  "transmitters_apply_bySerial": "{dives} dives by serial number",
+  "@transmitters_apply_bySerial": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "transmitters_apply_bySlot": "{dives} dives by slot on {computer}",
+  "@transmitters_apply_bySlot": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      },
+      "computer": {
+        "type": "String"
+      }
+    }
+  },
+  "transmitters_apply_olderNote": "{older} of them are from before your first download on {date}, assuming the transmitter sat in the same slot then",
+  "@transmitters_apply_olderNote": {
+    "placeholders": {
+      "older": {
+        "type": "int"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "transmitters_apply_includeOlder": "Include dives from before the first download",
+  "transmitters_apply_changedHands": "{dives} dives skipped: another transmitter used this slot around then",
+  "@transmitters_apply_changedHands": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
+  "transmitters_apply_noSlotInfo": "{dives} dives have no slot information",
+  "@transmitters_apply_noSlotInfo": {
+    "placeholders": {
+      "dives": {
+        "type": "int"
+      }
+    }
+  },
   "transmitters_apply_nothing": "No cylinders carry this transmitter",
   "transmitters_channel": "{computer}, channel {channel}",
   "@transmitters_channel": {

@@ -45,6 +45,22 @@ class TransmitterSlotPreview {
 
   static const empty = TransmitterSlotPreview();
 
+  /// The previews of one transmitter's keys as one, each tank once.
+  factory TransmitterSlotPreview.merge(Iterable<TransmitterSlotPreview> all) {
+    final byTank = <String, SlotCandidate>{};
+    for (final p in all) {
+      for (final c in p.candidates) {
+        byTank.putIfAbsent(c.tankId, () => c);
+      }
+    }
+    return TransmitterSlotPreview(
+      candidates: byTank.values.toList(),
+      changedHandsDiveIds: {for (final p in all) ...p.changedHandsDiveIds},
+      noSlotDiveIds: {for (final p in all) ...p.noSlotDiveIds},
+      computerNames: {for (final p in all) ...p.computerNames},
+    );
+  }
+
   Iterable<SlotCandidate> _included(bool includeOlder) =>
       candidates.where((c) => includeOlder || !c.olderThanFirstDownload);
 

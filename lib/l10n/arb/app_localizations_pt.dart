@@ -55962,6 +55962,39 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading =>
+      'Lendo as posições dos transmissores dos seus mergulhos';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives mergulhos pelo número de série';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives mergulhos pela posição em $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older deles são anteriores ao seu primeiro download em $date, supondo que o transmissor estava então na mesma posição';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'Incluir mergulhos anteriores ao primeiro download';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives mergulhos ignorados: outro transmissor usava esta posição nessa altura';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives mergulhos não têm informação de posição';
+  }
+
+  @override
   String get transmitters_apply_nothing =>
       'Nenhum cilindro carrega este transmissor';
 

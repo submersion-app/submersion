@@ -55977,6 +55977,39 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading =>
+      'Lettura degli slot dei trasmettitori dalle immersioni';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives immersioni per numero di serie';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives immersioni per slot su $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older di queste sono precedenti al primo scaricamento del $date, supponendo che il trasmettitore fosse allora nello stesso slot';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'Includi le immersioni precedenti al primo scaricamento';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives immersioni saltate: in quel periodo un altro trasmettitore usava questo slot';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives immersioni non hanno informazioni sullo slot';
+  }
+
+  @override
   String get transmitters_apply_nothing =>
       'Nessuna bombola porta questo trasmettitore';
 

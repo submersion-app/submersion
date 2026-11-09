@@ -7,7 +7,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_slot_backfill.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter_slot_preview.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/transmitters/presentation/widgets/transmitter_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -17,11 +19,26 @@ import '../../../../helpers/mock_providers.dart';
 /// Answers the apply preview with fixed counts and records each key applied;
 /// [failApply] makes the write fail, as a closed database would.
 class _FakeApplyRepository extends TransmitterRepository {
-  _FakeApplyRepository({required this.preview, this.failApply = false});
+  _FakeApplyRepository({
+    required this.preview,
+    this.failApply = false,
+    this.slots = TransmitterSlotPreview.empty,
+  });
 
   final ApplyToExistingResult preview;
   final bool failApply;
+  final TransmitterSlotPreview slots;
   final applied = <String>[];
+  final slotTankIdsApplied = <Set<String>>[];
+
+  @override
+  Future<Set<String>> computersForSerial(String serial) async => {
+    for (final c in slots.candidates) c.computerId,
+  };
+
+  @override
+  Future<TransmitterSlotPreview> previewSlotMatches(Transmitter t) async =>
+      slots;
 
   @override
   Future<ApplyToExistingResult> previewApplyToExistingDives(
@@ -35,7 +52,25 @@ class _FakeApplyRepository extends TransmitterRepository {
   }) async {
     if (failApply) throw StateError('database closed');
     applied.add(t.id);
+    slotTankIdsApplied.add(slotTankIds);
     return preview;
+  }
+}
+
+/// Records the computers the Apply flow backfills, and writes nothing.
+class _FakeBackfill extends TransmitterSlotBackfill {
+  _FakeBackfill()
+    : super(parseRaw: (v, p, m, raw) => throw UnimplementedError());
+
+  final runs = <Set<String>>[];
+
+  @override
+  Future<int> run(
+    Set<String> computerIds, {
+    void Function(int done, int total)? onProgress,
+  }) async {
+    runs.add(computerIds);
+    return 0;
   }
 }
 
@@ -63,6 +98,7 @@ void main() {
     WidgetTester tester,
     List<Transmitter> keys, {
     TransmitterRepository? repository,
+    TransmitterSlotBackfill? backfill,
   }) async {
     tester.view.physicalSize = const Size(900, 1600);
     tester.view.devicePixelRatio = 1;
@@ -106,6 +142,9 @@ void main() {
           ).overrideWith((ref) async => keys),
           if (repository != null)
             transmitterRepositoryProvider.overrideWithValue(repository),
+          transmitterSlotBackfillProvider.overrideWithValue(
+            backfill ?? _FakeBackfill(),
+          ),
           equipmentItemProvider('cyl').overrideWith(
             (ref) async => const EquipmentItem(
               id: 'cyl',
@@ -232,6 +271,49 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.applied, isEmpty);
+    });
+
+    testWidgets('slot matches are backfilled first and applied as the dialog '
+        'showed them (#4347)', (tester) async {
+      final repo = _FakeApplyRepository(
+        preview: (tanksUpdated: 1, divesUpdated: 1, mixesKept: 0),
+        slots: TransmitterSlotPreview(
+          candidates: [
+            const SlotCandidate(tankId: 'a-t', diveId: 'a', computerId: 'pd'),
+            SlotCandidate(
+              tankId: 'b-t',
+              diveId: 'b',
+              computerId: 'pd',
+              olderThanFirstDownload: true,
+              firstDownload: DateTime.utc(2026, 3, 12),
+            ),
+          ],
+          computerNames: const {'pd': 'Perdix 2'},
+        ),
+      );
+      final backfill = _FakeBackfill();
+      await pump(
+        tester,
+        [key(cylinder: 'cyl')],
+        repository: repo,
+        backfill: backfill,
+      );
+
+      await tester.tap(find.text('Apply to existing dives'));
+      await tester.pumpAndSettle();
+      expect(backfill.runs, [
+        {'pd'},
+      ]);
+      expect(find.text('2 dives by slot on Perdix 2'), findsOneWidget);
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+      await tester.pumpAndSettle();
+
+      expect(repo.slotTankIdsApplied, [
+        {'a-t'},
+      ]);
+      expect(find.text('Updated 1 cylinders on 1 dives'), findsOneWidget);
     });
 
     testWidgets('a failed apply says so', (tester) async {

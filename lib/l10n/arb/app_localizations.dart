@@ -88252,6 +88252,48 @@ abstract class AppLocalizations {
   /// **'Updated {tanks} cylinders on {dives} dives'**
   String transmitters_apply_done(int tanks, int dives);
 
+  /// Shown while the app reads transmitter slots from stored dives before the Apply to existing dives dialog (issue #4347)
+  ///
+  /// In en, this message translates to:
+  /// **'Reading transmitter slots from your dives'**
+  String get transmitters_apply_reading;
+
+  /// No description provided for @transmitters_apply_bySerial.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives} dives by serial number'**
+  String transmitters_apply_bySerial(int dives);
+
+  /// No description provided for @transmitters_apply_bySlot.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives} dives by slot on {computer}'**
+  String transmitters_apply_bySlot(int dives, String computer);
+
+  /// No description provided for @transmitters_apply_olderNote.
+  ///
+  /// In en, this message translates to:
+  /// **'{older} of them are from before your first download on {date}, assuming the transmitter sat in the same slot then'**
+  String transmitters_apply_olderNote(int older, String date);
+
+  /// No description provided for @transmitters_apply_includeOlder.
+  ///
+  /// In en, this message translates to:
+  /// **'Include dives from before the first download'**
+  String get transmitters_apply_includeOlder;
+
+  /// No description provided for @transmitters_apply_changedHands.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives} dives skipped: another transmitter used this slot around then'**
+  String transmitters_apply_changedHands(int dives);
+
+  /// No description provided for @transmitters_apply_noSlotInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives} dives have no slot information'**
+  String transmitters_apply_noSlotInfo(int dives);
+
   /// No description provided for @transmitters_apply_nothing.
   ///
   /// In en, this message translates to:

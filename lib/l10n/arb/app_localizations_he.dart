@@ -54787,6 +54787,38 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading => 'קורא את חריצי המשדרים מהצלילות שלך';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives צלילות לפי מספר סידורי';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives צלילות לפי חריץ ב-$computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older מהן קודמות להורדה הראשונה שלך ב-$date, בהנחה שהמשדר היה אז באותו חריץ';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'לכלול צלילות שלפני ההורדה הראשונה';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives צלילות דולגו: משדר אחר השתמש בחריץ הזה בסביבות אותו זמן';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return 'ל-$dives צלילות אין מידע על חריץ';
+  }
+
+  @override
   String get transmitters_apply_nothing => 'אף מיכל אינו נושא משדר זה';
 
   @override

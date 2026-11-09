@@ -56100,6 +56100,39 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading =>
+      'Lecture des emplacements d\'émetteur dans vos plongées';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives plongées par numéro de série';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives plongées par emplacement sur $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older d\'entre elles datent d\'avant votre premier téléchargement du $date, en supposant que l\'émetteur occupait alors le même emplacement';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'Inclure les plongées antérieures au premier téléchargement';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives plongées ignorées : un autre émetteur utilisait cet emplacement à cette période';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives plongées n\'ont aucune information d\'emplacement';
+  }
+
+  @override
   String get transmitters_apply_nothing =>
       'Aucune bouteille ne porte cet émetteur';
 

@@ -55612,6 +55612,38 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading => 'Zenderposities uit je duiken lezen';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives duiken op serienummer';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives duiken op positie op $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older daarvan zijn van vóór je eerste download op $date, aangenomen dat de zender toen op dezelfde positie zat';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'Duiken van vóór de eerste download meenemen';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives duiken overgeslagen: rond die tijd gebruikte een andere zender deze positie';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives duiken hebben geen positie-informatie';
+  }
+
+  @override
   String get transmitters_apply_nothing =>
       'Geen enkele fles draagt deze zender';
 

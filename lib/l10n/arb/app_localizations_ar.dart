@@ -56690,6 +56690,39 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading =>
+      'جارٍ قراءة فتحات أجهزة الإرسال من غطساتك';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives غطسة حسب الرقم التسلسلي';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives غطسة حسب الفتحة على $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older منها من قبل أول تنزيل لك في $date، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'تضمين الغطسات من قبل أول تنزيل';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return 'تُخطّيت $dives غطسة: استخدم جهاز إرسال آخر هذه الفتحة في ذلك الوقت تقريبًا';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives غطسة بلا معلومات عن الفتحة';
+  }
+
+  @override
   String get transmitters_apply_nothing =>
       'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
 

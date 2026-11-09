@@ -55089,6 +55089,39 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading =>
+      'Reading transmitter slots from your dives';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives dives by serial number';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives dives by slot on $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older of them are from before your first download on $date, assuming the transmitter sat in the same slot then';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'Include dives from before the first download';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives dives skipped: another transmitter used this slot around then';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives dives have no slot information';
+  }
+
+  @override
   String get transmitters_apply_nothing =>
       'No cylinders carry this transmitter';
 

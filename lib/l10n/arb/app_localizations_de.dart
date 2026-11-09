@@ -55855,6 +55855,39 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading =>
+      'Senderplätze werden aus den Tauchgängen gelesen';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives Tauchgänge über die Seriennummer';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives Tauchgänge über den Platz auf $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older davon stammen aus der Zeit vor dem ersten Download am $date; dabei wird angenommen, dass der Sender damals auf demselben Platz war';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'Tauchgänge vor dem ersten Download einbeziehen';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives Tauchgänge übersprungen: Um diese Zeit nutzte ein anderer Sender diesen Platz';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives Tauchgänge haben keine Platzangabe';
+  }
+
+  @override
   String get transmitters_apply_nothing => 'Keine Flasche trägt diesen Sender';
 
   @override

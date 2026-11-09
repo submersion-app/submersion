@@ -56019,6 +56019,39 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get transmitters_apply_reading =>
+      'Leyendo las ranuras de los transmisores de tus inmersiones';
+
+  @override
+  String transmitters_apply_bySerial(int dives) {
+    return '$dives inmersiones por número de serie';
+  }
+
+  @override
+  String transmitters_apply_bySlot(int dives, String computer) {
+    return '$dives inmersiones por ranura en $computer';
+  }
+
+  @override
+  String transmitters_apply_olderNote(int older, String date) {
+    return '$older de ellas son anteriores a tu primera descarga del $date, suponiendo que el transmisor estaba entonces en la misma ranura';
+  }
+
+  @override
+  String get transmitters_apply_includeOlder =>
+      'Incluir inmersiones anteriores a la primera descarga';
+
+  @override
+  String transmitters_apply_changedHands(int dives) {
+    return '$dives inmersiones omitidas: otro transmisor usaba esta ranura por entonces';
+  }
+
+  @override
+  String transmitters_apply_noSlotInfo(int dives) {
+    return '$dives inmersiones no tienen información de ranura';
+  }
+
+  @override
   String get transmitters_apply_nothing =>
       'Ninguna botella lleva este transmisor';
 
