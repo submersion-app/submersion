@@ -89,7 +89,8 @@ class _TagColorPickerState extends State<TagColorPicker> {
     Widget hueColumn(int hue) => Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        for (final entry in tagPalette.where((e) => e.hue == hue))
+        // The palette lists light, base and dark for each hue in turn.
+        for (final entry in tagPalette.sublist(hue * 3, hue * 3 + 3))
           paletteDot(entry),
       ],
     );
@@ -275,7 +276,7 @@ class _BandGeometry {
   final double slot;
   final int lead;
 
-  static const int _hues = 20;
+  static final int _hues = tagLightShades.length;
 
   /// The layout at [width]. A band holds the most of 10, 5, 4, 2 or 1 hue
   /// columns that fit (each divides the 20 hues, so every band is full):
