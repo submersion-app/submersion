@@ -9995,6 +9995,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get siteSuggestion_titleDiveComputer => 'Standort vom Tauchcomputer';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return '$name zuweisen';
   }

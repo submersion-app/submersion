@@ -81,6 +81,7 @@ class SiteSuggestionCard extends ConsumerWidget {
 
     return SiteSuggestionBanner(
       pointSource: suggestion.pointSource,
+      fromDraft: proposal.dive.isDraft,
       coordinates: units.formatCoordinates(
         suggestion.point.latitude,
         suggestion.point.longitude,

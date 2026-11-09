@@ -10001,6 +10001,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ubicación del ordenador de buceo';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return 'Asignar $name';
   }

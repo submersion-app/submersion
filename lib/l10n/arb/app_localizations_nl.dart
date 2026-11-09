@@ -9936,6 +9936,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get siteSuggestion_titleDiveComputer => 'Locatie van duikcomputer';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return '$name toewijzen';
   }

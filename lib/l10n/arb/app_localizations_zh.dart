@@ -9480,6 +9480,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteSuggestion_titleDiveComputer => '来自潜水电脑的位置';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return '指定 $name';
   }

@@ -10001,6 +10001,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Posizione dal computer subacqueo';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return 'Assegna $name';
   }

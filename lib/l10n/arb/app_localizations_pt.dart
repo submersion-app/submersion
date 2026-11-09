@@ -9998,6 +9998,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Localização do computador de mergulho';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return 'Atribuir $name';
   }

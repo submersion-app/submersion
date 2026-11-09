@@ -15829,6 +15829,12 @@ abstract class AppLocalizations {
   /// **'Location from dive computer'**
   String get siteSuggestion_titleDiveComputer;
 
+  /// No description provided for @siteSuggestion_titleDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Location where you went in'**
+  String get siteSuggestion_titleDraft;
+
   /// No description provided for @siteSuggestion_assignButton.
   ///
   /// In en, this message translates to:

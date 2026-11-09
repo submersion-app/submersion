@@ -10032,6 +10032,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Position de l\'ordinateur de plongée';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return 'Attribuer $name';
   }

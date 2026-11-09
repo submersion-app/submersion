@@ -5799,6 +5799,7 @@
   "siteMatchReview_empty": "Nothing to match.",
   "siteSuggestion_titlePhoto": "Location found in photos",
   "siteSuggestion_titleDiveComputer": "Location from dive computer",
+  "siteSuggestion_titleDraft": "Location where you went in",
   "siteSuggestion_assignButton": "Assign {name}",
   "@siteSuggestion_assignButton": {
     "placeholders": {

@@ -6,6 +6,7 @@ import 'package:submersion/core/services/dive_mark_actions.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/draft_conditions_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/data/services/dive_mark_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
@@ -64,12 +65,11 @@ final _log = LoggerService.forClass(DiveMarkService);
 /// mark service, and the notification follows the recording and the open
 /// draft. Cancel the returned subscription on dispose.
 StreamSubscription<void> startDiveMarkActionBridge(WidgetRef ref) {
-  // The drafts these marks make get their download reminders (issue #637).
-  ref.listenManual<AsyncValue<void>>(
-    draftReminderSyncProvider,
-    (_, _) {},
-    fireImmediately: true,
-  );
+  // The drafts these marks make get their download reminders, and their
+  // weather and tide from where the diver went in (issue #637).
+  for (final sync in [draftReminderSyncProvider, draftConditionsSyncProvider]) {
+    ref.listenManual<AsyncValue<void>>(sync, (_, _) {}, fireImmediately: true);
+  }
   ref.listenManual<DiveMarkAction?>(diveMarkNotificationActionProvider, (
     _,
     action,

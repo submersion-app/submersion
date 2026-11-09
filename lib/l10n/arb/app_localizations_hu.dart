@@ -9976,6 +9976,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get siteSuggestion_titleDiveComputer => 'Helyszín a búvárkomputerből';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return '$name hozzárendelése';
   }

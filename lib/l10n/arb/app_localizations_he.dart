@@ -9781,6 +9781,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get siteSuggestion_titleDiveComputer => 'מיקום ממחשב הצלילה';
 
   @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
+
+  @override
   String siteSuggestion_assignButton(Object name) {
     return 'שיוך $name';
   }
