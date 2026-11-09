@@ -323,4 +323,18 @@ void main() {
       3: ['t3'],
     });
   });
+
+  test('a stored cylinder without pressures never pairs', () async {
+    await seedDive('dl', importedFileId: null);
+    await seedTank('dl-t', 'dl', serial: '180777', computer: 'c1');
+    await seedDive('u1');
+    await seedTank('a', 'u1');
+    await seedTank('b', 'u1', start: 219.5, end: 142.4);
+
+    final resolved = await matcher().resolve(_entry());
+
+    expect(resolved.single.tankIdsBySlot, {
+      3: ['b'],
+    });
+  });
 }

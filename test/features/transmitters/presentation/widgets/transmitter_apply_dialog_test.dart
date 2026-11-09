@@ -79,6 +79,15 @@ class _FailingMatcher extends _Matcher {
       Future.error(StateError('database closed'));
 }
 
+/// Offers a computer, then fails to read its files.
+class _UnreadableMatcher extends _Matcher {
+  _UnreadableMatcher() : super(computers: [_perdix]);
+
+  @override
+  Future<List<SlotCandidates>> resolve(Transmitter t) =>
+      Future.error(StateError('database closed'));
+}
+
 const _perdix = SlotComputer(computerId: 'c1', computerName: 'Perdix');
 
 /// T2 fills cylinders a and b on two dives; T3 fills c on one.
@@ -409,5 +418,22 @@ void main() {
       'k1': ['a'],
       'k2': <String>[],
     });
+  });
+
+  testWidgets('files that cannot be read leave the serial apply', (
+    tester,
+  ) async {
+    await openApply(
+      tester,
+      repo: _Repo(someSerial),
+      matcher: _UnreadableMatcher(),
+    );
+
+    expect(find.textContaining('1 cylinders on 1 dives'), findsOneWidget);
+    expect(find.textContaining('Slot on'), findsNothing);
+    final apply = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Apply'),
+    );
+    expect(apply.onPressed, isNotNull);
   });
 }

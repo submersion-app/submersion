@@ -20,6 +20,22 @@ class _FakeImportedFiles extends ImportedFileRepository {
   Future<Uint8List?> read(String id) async => files[id];
 }
 
+class _ThrowingParser implements ImportParser {
+  var parses = 0;
+
+  @override
+  List<ImportFormat> get supportedFormats => [ImportFormat.uddf];
+
+  @override
+  Future<ImportPayload> parse(
+    Uint8List fileBytes, {
+    ImportOptions? options,
+  }) async {
+    parses++;
+    throw const FormatException('not UDDF');
+  }
+}
+
 class _CountingParser implements ImportParser {
   final ImportPayload payload;
   var parses = 0;
@@ -53,6 +69,7 @@ void main() {
   Future<void> seedDive(
     String id, {
     DateTime? dateTime,
+    String? diverKey,
     String? importedFileId = 'file-uddf',
     String sourceFileFormat = 'uddf',
   }) async {
@@ -81,6 +98,7 @@ void main() {
             createdAt: at,
             sourceFileFormat: Value(sourceFileFormat),
             importedFileId: Value(importedFileId),
+            sourceDiverKey: Value(diverKey),
           ),
         );
   }
@@ -191,5 +209,50 @@ void main() {
     expect(parser.parses, 1);
     expect(found.keys, unorderedEquals(['d1', 'd2']));
     expect(found['d2']!['dateTime'], second);
+  });
+
+  test(
+    'a stored diver key picks that diver\'s copy of a shared dive',
+    () async {
+      await seedDive('d1', diverKey: 'b');
+
+      final lookup = await finder([
+        {...parsedAt(when, diverKey: 'a'), 'maxDepth': 30.0},
+        parsedAt(when, diverKey: 'b'),
+      ]).find('d1');
+
+      expect(lookup.parsedDive![SourceDiver.mapKey], 'b');
+    },
+  );
+
+  test('findMany skips the dives of a file that fails to parse, parsing it '
+      'once', () async {
+    await seedDive('d1');
+    await seedDive('d2', dateTime: when.add(const Duration(days: 1)));
+    final parser = _ThrowingParser();
+
+    final found = await StoredSourceDiveFinder(
+      db: db,
+      importedFiles: _FakeImportedFiles({'file-uddf': Uint8List(0)}),
+      parserFor: (_) => parser,
+    ).findMany(['d1', 'd2']);
+
+    expect(found, isEmpty);
+    expect(parser.parses, 1);
+  });
+
+  test('findMany skips a dive it cannot look up at all', () async {
+    final closed = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    await closed.close();
+
+    final found = await StoredSourceDiveFinder(
+      db: closed,
+      importedFiles: _FakeImportedFiles(const {}),
+      parserFor: (_) => throw StateError('must not be called'),
+    ).findMany(['d1']);
+
+    expect(found, isEmpty);
   });
 }
