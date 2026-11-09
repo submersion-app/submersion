@@ -52486,12 +52486,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '按序列号匹配 $dives 次潜水';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '按序列号匹配 $dives 次潜水',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '按 $computer 上的插槽匹配 $dives 次潜水';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '按 $computer 上的插槽匹配 $dives 次潜水',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -52499,7 +52509,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '其中 $older 次早于 $date 的首次下载，假定当时发射器位于同一插槽';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other: '其中 $older 次早于 $date 的首次下载，假定当时发射器位于同一插槽',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -52507,12 +52522,22 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '已跳过 $dives 次潜水：当时另一个发射器使用了此插槽';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '已跳过 $dives 次潜水：当时另一个发射器使用了此插槽',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives 次潜水没有插槽信息';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives 次潜水没有插槽信息',
+    );
+    return '$_temp0';
   }
 
   @override

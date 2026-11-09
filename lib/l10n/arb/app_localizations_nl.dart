@@ -55616,12 +55616,24 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives duiken op serienummer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken op serienummer',
+      one: '1 duik op serienummer',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives duiken op positie op $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken op positie op $computer',
+      one: '1 duik op positie op $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55629,7 +55641,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older daarvan zijn van vóór je eerste download op $date, aangenomen dat de zender toen op dezelfde positie zat';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older daarvan zijn van vóór je eerste download op $date, aangenomen dat de zender toen op dezelfde positie zat',
+      one:
+          '1 daarvan is van vóór je eerste download op $date, aangenomen dat de zender toen op dezelfde positie zat',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55638,12 +55658,26 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives duiken overgeslagen: rond die tijd gebruikte een andere zender deze positie';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          '$dives duiken overgeslagen: rond die tijd gebruikte een andere zender deze positie',
+      one:
+          '1 duik overgeslagen: rond die tijd gebruikte een andere zender deze positie',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives duiken hebben geen positie-informatie';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives duiken hebben geen positie-informatie',
+      one: '1 duik heeft geen positie-informatie',
+    );
+    return '$_temp0';
   }
 
   @override

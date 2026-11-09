@@ -55982,12 +55982,24 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives immersioni per numero di serie';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives immersioni per numero di serie',
+      one: '1 immersione per numero di serie',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives immersioni per slot su $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives immersioni per slot su $computer',
+      one: '1 immersione per slot su $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55995,7 +56007,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older di queste sono precedenti al primo scaricamento del $date, supponendo che il trasmettitore fosse allora nello stesso slot';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older di queste sono precedenti al primo scaricamento del $date, supponendo che il trasmettitore fosse allora nello stesso slot',
+      one:
+          '1 di queste è precedente al primo scaricamento del $date, supponendo che il trasmettitore fosse allora nello stesso slot',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -56004,12 +56024,26 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives immersioni saltate: in quel periodo un altro trasmettitore usava questo slot';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          '$dives immersioni saltate: in quel periodo un altro trasmettitore usava questo slot',
+      one:
+          '1 immersione saltata: in quel periodo un altro trasmettitore usava questo slot',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives immersioni non hanno informazioni sullo slot';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives immersioni non hanno informazioni sullo slot',
+      one: '1 immersione non ha informazioni sullo slot',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -92,7 +92,7 @@ void main() {
         );
         expect(find.textContaining('2026'), findsOneWidget);
         expect(
-          find.textContaining('1 dives skipped: another transmitter'),
+          find.textContaining('1 dive skipped: another transmitter'),
           findsOneWidget,
         );
         expect(find.text('2 dives have no slot information'), findsOneWidget);
@@ -124,7 +124,7 @@ void main() {
           find.textContaining('3 cylinders on 3 dives carry this transmitter'),
           findsOneWidget,
         );
-        expect(find.text('1 dives by slot on Perdix 2'), findsOneWidget);
+        expect(find.text('1 dive by slot on Perdix 2'), findsOneWidget);
       },
     );
     expect(result, {'a-t'});
@@ -156,7 +156,7 @@ void main() {
       tester,
       slots: TransmitterSlotPreview(candidates: [candidate('a')]),
       interact: (tester) async {
-        expect(find.text('1 dives by slot on a dive computer'), findsOneWidget);
+        expect(find.text('1 dive by slot on a dive computer'), findsOneWidget);
         expect(find.textContaining('perdix'), findsNothing);
       },
     );

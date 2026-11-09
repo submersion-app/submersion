@@ -56695,12 +56695,30 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives غطسة حسب الرقم التسلسلي';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة حسب الرقم التسلسلي',
+      many: '$dives غطسة حسب الرقم التسلسلي',
+      few: '$dives غطسات حسب الرقم التسلسلي',
+      two: 'غطستان حسب الرقم التسلسلي',
+      one: 'غطسة واحدة حسب الرقم التسلسلي',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives غطسة حسب الفتحة على $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة حسب الفتحة على $computer',
+      many: '$dives غطسة حسب الفتحة على $computer',
+      few: '$dives غطسات حسب الفتحة على $computer',
+      two: 'غطستان حسب الفتحة على $computer',
+      one: 'غطسة واحدة حسب الفتحة على $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -56708,7 +56726,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older منها من قبل أول تنزيل لك في $date، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older منها من قبل أول تنزيل لك في $date، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك',
+      many:
+          '$older منها من قبل أول تنزيل لك في $date، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك',
+      few:
+          '$older منها من قبل أول تنزيل لك في $date، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك',
+      two:
+          'اثنتان منها من قبل أول تنزيل لك في $date، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك',
+      one:
+          'واحدة منها من قبل أول تنزيل لك في $date، على افتراض أن جهاز الإرسال كان في الفتحة نفسها آنذاك',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -56717,12 +56749,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return 'تُخطّيت $dives غطسة: استخدم جهاز إرسال آخر هذه الفتحة في ذلك الوقت تقريبًا';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          'تُخطّيت $dives غطسة: استخدم جهاز إرسال آخر هذه الفتحة في ذلك الوقت تقريبًا',
+      many:
+          'تُخطّيت $dives غطسة: استخدم جهاز إرسال آخر هذه الفتحة في ذلك الوقت تقريبًا',
+      few:
+          'تُخطّيت $dives غطسات: استخدم جهاز إرسال آخر هذه الفتحة في ذلك الوقت تقريبًا',
+      two:
+          'تُخطّيت غطستان: استخدم جهاز إرسال آخر هذه الفتحة في ذلك الوقت تقريبًا',
+      one:
+          'تُخطّيت غطسة واحدة: استخدم جهاز إرسال آخر هذه الفتحة في ذلك الوقت تقريبًا',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives غطسة بلا معلومات عن الفتحة';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة بلا معلومات عن الفتحة',
+      many: '$dives غطسة بلا معلومات عن الفتحة',
+      few: '$dives غطسات بلا معلومات عن الفتحة',
+      two: 'غطستان بلا معلومات عن الفتحة',
+      one: 'غطسة واحدة بلا معلومات عن الفتحة',
+    );
+    return '$_temp0';
   }
 
   @override

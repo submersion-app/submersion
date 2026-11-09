@@ -55967,12 +55967,24 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives mergulhos pelo número de série';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos pelo número de série',
+      one: '$dives mergulho pelo número de série',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives mergulhos pela posição em $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos pela posição em $computer',
+      one: '$dives mergulho pela posição em $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55980,7 +55992,15 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older deles são anteriores ao seu primeiro download em $date, supondo que o transmissor estava então na mesma posição';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older deles são anteriores ao seu primeiro download em $date, supondo que o transmissor estava então na mesma posição',
+      one:
+          '$older deles é anterior ao seu primeiro download em $date, supondo que o transmissor estava então na mesma posição',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55989,12 +56009,26 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives mergulhos ignorados: outro transmissor usava esta posição nessa altura';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          '$dives mergulhos ignorados: outro transmissor usava esta posição nessa altura',
+      one:
+          '$dives mergulho ignorado: outro transmissor usava esta posição nessa altura',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives mergulhos não têm informação de posição';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos não têm informação de posição',
+      one: '$dives mergulho não tem informação de posição',
+    );
+    return '$_temp0';
   }
 
   @override

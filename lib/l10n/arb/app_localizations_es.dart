@@ -56024,12 +56024,24 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives inmersiones por número de serie';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives inmersiones por número de serie',
+      one: '1 inmersión por número de serie',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives inmersiones por ranura en $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives inmersiones por ranura en $computer',
+      one: '1 inmersión por ranura en $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -56037,7 +56049,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older de ellas son anteriores a tu primera descarga del $date, suponiendo que el transmisor estaba entonces en la misma ranura';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older de ellas son anteriores a tu primera descarga del $date, suponiendo que el transmisor estaba entonces en la misma ranura',
+      one:
+          '1 de ellas es anterior a tu primera descarga del $date, suponiendo que el transmisor estaba entonces en la misma ranura',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -56046,12 +56066,26 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives inmersiones omitidas: otro transmisor usaba esta ranura por entonces';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          '$dives inmersiones omitidas: otro transmisor usaba esta ranura por entonces',
+      one:
+          '1 inmersión omitida: otro transmisor usaba esta ranura por entonces',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives inmersiones no tienen información de ranura';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives inmersiones no tienen información de ranura',
+      one: '1 inmersión no tiene información de ranura',
+    );
+    return '$_temp0';
   }
 
   @override

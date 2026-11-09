@@ -55094,12 +55094,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives dives by serial number';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives by serial number',
+      one: '1 dive by serial number',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives dives by slot on $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives by slot on $computer',
+      one: '1 dive by slot on $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55107,7 +55119,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older of them are from before your first download on $date, assuming the transmitter sat in the same slot then';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older of them are from before your first download on $date, assuming the transmitter sat in the same slot then',
+      one:
+          '1 of them is from before your first download on $date, assuming the transmitter sat in the same slot then',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55116,12 +55136,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives dives skipped: another transmitter used this slot around then';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          '$dives dives skipped: another transmitter used this slot around then',
+      one: '1 dive skipped: another transmitter used this slot around then',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives dives have no slot information';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives have no slot information',
+      one: '1 dive has no slot information',
+    );
+    return '$_temp0';
   }
 
   @override

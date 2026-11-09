@@ -56105,12 +56105,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives plongées par numéro de série';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées par numéro de série',
+      one: '$dives plongée par numéro de série',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives plongées par emplacement sur $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées par emplacement sur $computer',
+      one: '$dives plongée par emplacement sur $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -56118,7 +56130,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older d\'entre elles datent d\'avant votre premier téléchargement du $date, en supposant que l\'émetteur occupait alors le même emplacement';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older d\'entre elles datent d\'avant votre premier téléchargement du $date, en supposant que l\'émetteur occupait alors le même emplacement',
+      one:
+          '$older d\'entre elles date d\'avant votre premier téléchargement du $date, en supposant que l\'émetteur occupait alors le même emplacement',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -56127,12 +56147,26 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives plongées ignorées : un autre émetteur utilisait cet emplacement à cette période';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          '$dives plongées ignorées : un autre émetteur utilisait cet emplacement à cette période',
+      one:
+          '$dives plongée ignorée : un autre émetteur utilisait cet emplacement à cette période',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives plongées n\'ont aucune information d\'emplacement';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives plongées n\'ont aucune information d\'emplacement',
+      one: '$dives plongée n\'a aucune information d\'emplacement',
+    );
+    return '$_temp0';
   }
 
   @override

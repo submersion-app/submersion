@@ -55860,12 +55860,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives Tauchgänge über die Seriennummer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge über die Seriennummer',
+      one: '1 Tauchgang über die Seriennummer',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives Tauchgänge über den Platz auf $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge über den Platz auf $computer',
+      one: '1 Tauchgang über den Platz auf $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55873,7 +55885,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older davon stammen aus der Zeit vor dem ersten Download am $date; dabei wird angenommen, dass der Sender damals auf demselben Platz war';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older davon stammen aus der Zeit vor dem ersten Download am $date; dabei wird angenommen, dass der Sender damals auf demselben Platz war',
+      one:
+          '1 davon stammt aus der Zeit vor dem ersten Download am $date; dabei wird angenommen, dass der Sender damals auf demselben Platz war',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55882,12 +55902,26 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives Tauchgänge übersprungen: Um diese Zeit nutzte ein anderer Sender diesen Platz';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          '$dives Tauchgänge übersprungen: Um diese Zeit nutzte ein anderer Sender diesen Platz',
+      one:
+          '1 Tauchgang übersprungen: Um diese Zeit nutzte ein anderer Sender diesen Platz',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives Tauchgänge haben keine Platzangabe';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge haben keine Platzangabe',
+      one: '1 Tauchgang hat keine Platzangabe',
+    );
+    return '$_temp0';
   }
 
   @override

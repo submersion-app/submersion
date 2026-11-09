@@ -88261,13 +88261,13 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_apply_bySerial.
   ///
   /// In en, this message translates to:
-  /// **'{dives} dives by serial number'**
+  /// **'{dives, plural, one{1 dive by serial number} other{{dives} dives by serial number}}'**
   String transmitters_apply_bySerial(int dives);
 
   /// No description provided for @transmitters_apply_bySlot.
   ///
   /// In en, this message translates to:
-  /// **'{dives} dives by slot on {computer}'**
+  /// **'{dives, plural, one{1 dive by slot on {computer}} other{{dives} dives by slot on {computer}}}'**
   String transmitters_apply_bySlot(int dives, String computer);
 
   /// Fills {computer} in transmitters_apply_bySlot when the dive computer has no name
@@ -88279,7 +88279,7 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_apply_olderNote.
   ///
   /// In en, this message translates to:
-  /// **'{older} of them are from before your first download on {date}, assuming the transmitter sat in the same slot then'**
+  /// **'{older, plural, one{1 of them is from before your first download on {date}, assuming the transmitter sat in the same slot then} other{{older} of them are from before your first download on {date}, assuming the transmitter sat in the same slot then}}'**
   String transmitters_apply_olderNote(int older, String date);
 
   /// No description provided for @transmitters_apply_includeOlder.
@@ -88291,13 +88291,13 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_apply_changedHands.
   ///
   /// In en, this message translates to:
-  /// **'{dives} dives skipped: another transmitter used this slot around then'**
+  /// **'{dives, plural, one{1 dive skipped: another transmitter used this slot around then} other{{dives} dives skipped: another transmitter used this slot around then}}'**
   String transmitters_apply_changedHands(int dives);
 
   /// No description provided for @transmitters_apply_noSlotInfo.
   ///
   /// In en, this message translates to:
-  /// **'{dives} dives have no slot information'**
+  /// **'{dives, plural, one{1 dive has no slot information} other{{dives} dives have no slot information}}'**
   String transmitters_apply_noSlotInfo(int dives);
 
   /// No description provided for @transmitters_apply_nothing.

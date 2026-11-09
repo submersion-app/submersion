@@ -55678,12 +55678,22 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives merülés sorozatszám alapján';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés sorozatszám alapján',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives merülés hely alapján ezen: $computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés hely alapján ezen: $computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55691,7 +55701,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return 'Ebből $older az első, $date napi letöltés előtti, feltételezve, hogy a jeladó akkor is ugyanazon a helyen volt';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          'Ebből $older az első, $date napi letöltés előtti, feltételezve, hogy a jeladó akkor is ugyanazon a helyen volt',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -55700,12 +55716,23 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives merülés kimaradt: akkoriban egy másik jeladó használta ezt a helyet';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other:
+          '$dives merülés kimaradt: akkoriban egy másik jeladó használta ezt a helyet',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return '$dives merülésnél nincs helyadat';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülésnél nincs helyadat',
+    );
+    return '$_temp0';
   }
 
   @override

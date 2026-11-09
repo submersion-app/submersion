@@ -54791,12 +54791,26 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_apply_bySerial(int dives) {
-    return '$dives צלילות לפי מספר סידורי';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות לפי מספר סידורי',
+      two: 'שתי צלילות לפי מספר סידורי',
+      one: 'צלילה אחת לפי מספר סידורי',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_bySlot(int dives, String computer) {
-    return '$dives צלילות לפי חריץ ב-$computer';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות לפי חריץ ב-$computer',
+      two: 'שתי צלילות לפי חריץ ב-$computer',
+      one: 'צלילה אחת לפי חריץ ב-$computer',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -54804,7 +54818,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_apply_olderNote(int older, String date) {
-    return '$older מהן קודמות להורדה הראשונה שלך ב-$date, בהנחה שהמשדר היה אז באותו חריץ';
+    String _temp0 = intl.Intl.pluralLogic(
+      older,
+      locale: localeName,
+      other:
+          '$older מהן קודמות להורדה הראשונה שלך ב-$date, בהנחה שהמשדר היה אז באותו חריץ',
+      one:
+          'אחת מהן קודמת להורדה הראשונה שלך ב-$date, בהנחה שהמשדר היה אז באותו חריץ',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -54813,12 +54835,26 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_apply_changedHands(int dives) {
-    return '$dives צלילות דולגו: משדר אחר השתמש בחריץ הזה בסביבות אותו זמן';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות דולגו: משדר אחר השתמש בחריץ הזה בסביבות אותו זמן',
+      two: 'שתי צלילות דולגו: משדר אחר השתמש בחריץ הזה בסביבות אותו זמן',
+      one: 'צלילה אחת דולגה: משדר אחר השתמש בחריץ הזה בסביבות אותו זמן',
+    );
+    return '$_temp0';
   }
 
   @override
   String transmitters_apply_noSlotInfo(int dives) {
-    return 'ל-$dives צלילות אין מידע על חריץ';
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: 'ל-$dives צלילות אין מידע על חריץ',
+      two: 'לשתי צלילות אין מידע על חריץ',
+      one: 'לצלילה אחת אין מידע על חריץ',
+    );
+    return '$_temp0';
   }
 
   @override
