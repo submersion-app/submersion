@@ -236,7 +236,11 @@ final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
   final diverId = ref.watch(currentDiverIdProvider);
 
   final (topBuddies, countries, speciesCount) = await (
-    _quickStat('top buddy', () => repository.getTopBuddies(diverId: diverId)),
+    // Only the first row is shown, so only the first row is read.
+    _quickStat(
+      'top buddy',
+      () => repository.getTopBuddies(diverId: diverId, limit: 1),
+    ),
     // A count, not the top of the ranking: without a null limit (every row)
     // the ranking's default of 10 capped the count.
     _quickStat(

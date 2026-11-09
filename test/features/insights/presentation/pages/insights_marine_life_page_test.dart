@@ -150,4 +150,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('DETAIL sp_whale_shark'), findsOneWidget);
   });
+
+  // Issue #4385: a long ranking shows ten rows and opens the rest behind
+  // Show all instead of dropping everything past the tenth.
+  testWidgets('a long sightings ranking opens the rest behind Show all', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      sightings: [
+        for (var i = 0; i < 14; i++)
+          RankingItem(id: 'sp$i', name: 'Species $i', count: 30 - i),
+      ],
+    );
+
+    expect(find.text('Species 9'), findsOneWidget);
+    expect(find.text('Species 10'), findsNothing);
+
+    await tester.ensureVisible(find.text('Show all'));
+    await tester.tap(find.text('Show all'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Species 13'), findsOneWidget);
+    expect(find.text('Show less'), findsOneWidget);
+  });
 }
