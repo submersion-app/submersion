@@ -135,10 +135,14 @@ class PlanChartSeriesPainter extends CustomPainter {
           ),
         ),
     ];
-    final flagRows = gasFlagRows([
-      for (final flag in flags)
-        (left: flag.x + 4, right: flag.x + 4 + flag.label.width + 12),
-    ]);
+    final pills = gasFlagPills(
+      xs: [for (final flag in flags) flag.x],
+      sizes: [
+        for (final flag in flags)
+          Size(flag.label.width + 12, flag.label.height + 6),
+      ],
+      plot: plot,
+    );
     for (var i = 0; i < flags.length; i++) {
       final (:marker, :x, :label) = flags[i];
       final stem = Path()
@@ -151,16 +155,7 @@ class PlanChartSeriesPainter extends CustomPainter {
           ..strokeWidth = 1.1
           ..style = PaintingStyle.stroke,
       );
-      final pillHeight = label.height + 6;
-      final pill = RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          x + 4,
-          plot.top + 4 + flagRows[i] * (pillHeight + 4),
-          label.width + 12,
-          pillHeight,
-        ),
-        const Radius.circular(8),
-      );
+      final pill = RRect.fromRectAndRadius(pills[i], const Radius.circular(8));
       canvas.drawRRect(pill, Paint()..color = palette.gasFlagBackground);
       label.paint(canvas, Offset(pill.left + 6, pill.top + 3));
     }

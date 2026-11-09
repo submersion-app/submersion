@@ -272,9 +272,9 @@ PlanCanvasSeries buildBailoutCanvasSeries(BailoutOutcome bailout) {
     profile.add(CanvasPoint(row.runtimeSeconds.toDouble(), row.depthMeters));
     if (row.depthMeters > maxDepth) maxDepth = row.depthMeters;
     // From the row's own START (time and depth): depthMeters is its END
-    // depth, which for a depth-changing leg (a descent/ascent, not a flat
-    // hold) is not where the leg -- and so the switch into its gas --
-    // actually begins, landing the marker off the drawn line entirely.
+    // depth, which for a depth-changing leg (a descent or ascent, not a flat
+    // hold) is not where the leg, and so the switch into its gas, begins.
+    // Marking it there would land the flag off the drawn line entirely.
     stretches.add(stretchOf(row, legStartDepth));
     legStartDepth = row.depthMeters;
   }

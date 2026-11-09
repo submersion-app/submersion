@@ -73,5 +73,53 @@ void main() {
         [0, 1, 1],
       );
     });
+
+    test('past the last row a flag shares the row that frees up first', () {
+      expect(
+        gasFlagRows([
+          (left: 0, right: 100),
+          (left: 10, right: 60),
+          (left: 20, right: 70),
+        ], maxRows: 2),
+        [0, 1, 1],
+      );
+    });
+  });
+
+  group('gasFlagPills (issue #4078)', () {
+    const plot = Rect.fromLTWH(40, 10, 400, 300);
+    const pill = Size(50, 16);
+
+    test('a pill sits just right of its stem, on its row', () {
+      final rects = gasFlagPills(
+        xs: const [100, 120],
+        sizes: const [pill, pill],
+        plot: plot,
+      );
+
+      expect(rects[0], const Rect.fromLTWH(104, 14, 50, 16));
+      expect(rects[1], const Rect.fromLTWH(124, 34, 50, 16));
+    });
+
+    test('a switch near the end of the dive stays inside the plot', () {
+      final rects = gasFlagPills(
+        xs: const [430],
+        sizes: const [pill],
+        plot: plot,
+      );
+
+      expect(rects.single.right, plot.right);
+    });
+
+    test('a run of switches never goes past the last row', () {
+      final rects = gasFlagPills(
+        xs: const [100, 105, 110, 115, 120],
+        sizes: const [pill, pill, pill, pill, pill],
+        plot: plot,
+        maxRows: 3,
+      );
+
+      expect(rects.map((r) => r.top).toSet(), {14.0, 34.0, 54.0});
+    });
   });
 }

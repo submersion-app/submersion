@@ -2,6 +2,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// The gas switches a planned dive makes, for its entry in the log (issue
 /// #3565): wherever the breathed cylinder changes, on the fly during an
@@ -137,17 +138,19 @@ List<PlanBreathingStretch> planBreathingStretches(
   return stretches;
 }
 
-/// The stretches of [stretches] that start on a different gas from the one
-/// before, past the first, whose gas is the one the dive starts on: every
-/// switch a plan's table highlights (issue #4078), at the time and depth it
-/// happens rather than at the line it is printed on.
+/// The stretches of [stretches] that start on a different gas from the
+/// stretch before them: every switch a plan's table highlights (issue
+/// #4078), at the time and depth it happens rather than at the line it is
+/// printed on. The first stretch is the gas the dive starts on, so it is
+/// never one.
 ///
-/// Gases are compared as the table compares them, so a change of cylinder
-/// holding the same mix is not a switch.
+/// Gases are compared as the table compares them
+/// ([PlanEngine.gasFractionEpsilon]), so a change of cylinder holding the
+/// same mix is not a switch.
 List<PlanBreathingStretch> planGasChanges(
   Iterable<PlanBreathingStretch> stretches,
 ) {
-  const epsilon = 0.0005;
+  const epsilon = PlanEngine.gasFractionEpsilon;
   final changes = <PlanBreathingStretch>[];
   PlanBreathingStretch? previous;
   for (final stretch in stretches) {
