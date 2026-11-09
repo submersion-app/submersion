@@ -450,4 +450,89 @@ void main() {
     );
     expect(index.refs(QuerySubject.certifications), isNotEmpty);
   });
+
+  // Issue #4338: built-in dive and site types are stored with English names,
+  // so the rules editor, Explore and the typed language showed them in
+  // English under every locale.
+  group('built-in dive and site types in the diver\'s language (#4338)', () {
+    final fr = l10nForLocaleTag('fr');
+    Future<NameIndex> loadFr() =>
+        NameIndexLoader(db).load(diverId: 'me', l10n: fr);
+
+    test('a built-in dive type is named in the diver\'s language', () async {
+      final index = await loadFr();
+      const types = QuerySubject.diveTypes;
+      final french = fr.diveType_builtin_wreck;
+      expect(french, isNot('Wreck'));
+      expect(index.labelOf(types, 'wreck'), french);
+      expect(index.refs(types), contains(RefValue('wreck', french)));
+      // The stored English name still resolves, to the translated label.
+      expect(index.resolve(types, 'Wreck'), RefValue('wreck', french));
+      expect(index.resolve(types, french), RefValue('wreck', french));
+    });
+
+    test('a built-in site type is named in the diver\'s language', () async {
+      final index = await loadFr();
+      const types = QuerySubject.siteTypes;
+      final french = fr.siteType_builtin_reef;
+      expect(french, isNot('Reef'));
+      expect(index.labelOf(types, 'reef'), french);
+      expect(index.refs(types), contains(RefValue('reef', french)));
+      expect(index.resolve(types, 'reef'), RefValue('reef', french));
+    });
+
+    test('the English name is an alternate, never a second row', () async {
+      final index = await loadFr();
+      final wreck = index
+          .forSubject(QuerySubject.diveTypes)
+          .where((e) => e.ids.contains('wreck'))
+          .toList();
+      expect(wreck.where((e) => e.primary).map((e) => e.label), [
+        fr.diveType_builtin_wreck,
+      ]);
+      expect(wreck.where((e) => !e.primary).map((e) => e.label), ['Wreck']);
+      expect(
+        index.refs(QuerySubject.diveTypes).where((r) => r.id == 'wreck'),
+        hasLength(1),
+      );
+    });
+
+    test('in English a built-in type has one entry', () async {
+      final index = await load();
+      final wreck = index
+          .forSubject(QuerySubject.diveTypes)
+          .where((e) => e.ids.contains('wreck'));
+      expect(wreck.map((e) => e.label), ['Wreck']);
+      expect(wreck.single.primary, isTrue);
+    });
+
+    test('a diver\'s own type on a built-in slug keeps its name', () async {
+      // A pre-v93 database can hold a custom row on a built-in slug (see
+      // DiveTypeDisplay.localizedName); the diver's label wins there.
+      await db.customStatement("DELETE FROM dive_types WHERE id = 'wreck'");
+      await db.customStatement(
+        "INSERT INTO dive_types (id, diver_id, name, is_built_in, "
+        "sort_order, created_at, updated_at) "
+        "VALUES ('wreck', 'me', 'My Wrecks', 0, 0, 0, 0)",
+      );
+      final index = await loadFr();
+      expect(index.labelOf(QuerySubject.diveTypes, 'wreck'), 'My Wrecks');
+      expect(index.resolve(QuerySubject.diveTypes, 'Wreck'), isNull);
+    });
+
+    test(
+      'a diver\'s own site type on a built-in slug keeps its name',
+      () async {
+        await db.customStatement("DELETE FROM site_types WHERE id = 'reef'");
+        await db.customStatement(
+          "INSERT INTO site_types (id, diver_id, name, is_built_in, "
+          "sort_order, created_at, updated_at) "
+          "VALUES ('reef', 'me', 'House Reef', 0, 0, 0, 0)",
+        );
+        final index = await loadFr();
+        expect(index.labelOf(QuerySubject.siteTypes, 'reef'), 'House Reef');
+        expect(index.resolve(QuerySubject.siteTypes, 'Reef'), isNull);
+      },
+    );
+  });
 }
