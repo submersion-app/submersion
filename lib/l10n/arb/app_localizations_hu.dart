@@ -19361,106 +19361,108 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'Újra';
 
   @override
-  String get speciesMap_title => 'Species Map';
+  String get speciesMap_title => 'Fajtérkép';
 
   @override
-  String get speciesMap_openTooltip => 'Species map';
+  String get speciesMap_openTooltip => 'Fajtérkép';
 
   @override
-  String get speciesMap_pickSpeciesTooltip => 'Pick a species';
+  String get speciesMap_pickSpeciesTooltip => 'Faj kiválasztása';
 
   @override
-  String get speciesMap_list_searchHint => 'Search all species';
+  String get speciesMap_list_searchHint => 'Keresés az összes faj között';
 
   @override
-  String get speciesMap_list_allSites => 'All sites';
+  String get speciesMap_list_allSites => 'Minden merülőhely';
 
   @override
-  String get speciesMap_list_allSitesSubtitle => 'What you have logged where';
+  String get speciesMap_list_allSitesSubtitle => 'Mit hol rögzítettél';
 
   @override
-  String get speciesMap_list_notSeen => 'Not seen yet';
+  String get speciesMap_list_notSeen => 'Még nem láttad';
 
   @override
   String speciesMap_list_counts(int sightings, int sites) {
     String _temp0 = intl.Intl.pluralLogic(
       sightings,
       locale: localeName,
-      other: '$sightings sightings',
-      one: '$sightings sighting',
+      other: '$sightings észlelés',
+      one: '$sightings észlelés',
     );
     String _temp1 = intl.Intl.pluralLogic(
       sites,
       locale: localeName,
-      other: '$sites sites',
-      one: '$sites site',
+      other: '$sites merülőhely',
+      one: '$sites merülőhely',
     );
     return '$_temp0, $_temp1';
   }
 
   @override
-  String get speciesMap_legend_mySightings => 'My sightings';
+  String get speciesMap_legend_mySightings => 'Saját észleléseim';
 
   @override
-  String get speciesMap_legend_expected => 'Expected, not logged';
+  String get speciesMap_legend_expected => 'Várható, nincs rögzítve';
 
   @override
-  String get speciesMap_legend_publicRecords => 'Public records';
+  String get speciesMap_legend_publicRecords => 'Nyilvános adatok';
 
   @override
-  String get speciesMap_legend_speciesLogged => 'Species logged at a site';
+  String get speciesMap_legend_speciesLogged =>
+      'Egy merülőhelyen rögzített fajok';
 
   @override
-  String get speciesMap_layers_tooltip => 'Map layers';
+  String get speciesMap_layers_tooltip => 'Térképrétegek';
 
   @override
-  String get speciesMap_layers_public => 'Public records (GBIF)';
+  String get speciesMap_layers_public => 'Nyilvános adatok (GBIF)';
 
   @override
   String get speciesMap_layers_publicHint =>
-      'Sends the picked species, or the tapped site\'s location, to GBIF.';
+      'Elküldi a GBIF-nek a kiválasztott fajt vagy a megérintett merülőhely helyét.';
 
   @override
-  String get speciesMap_layers_expectedHeading => 'Expected species from';
+  String get speciesMap_layers_expectedHeading => 'Várható fajok forrása';
 
   @override
-  String get speciesMap_layers_scopeMine => 'My sites';
+  String get speciesMap_layers_scopeMine => 'Saját merülőhelyeim';
 
   @override
-  String get speciesMap_layers_scopeAllVisible => 'All sites I can see';
+  String get speciesMap_layers_scopeAllVisible =>
+      'Minden általam látható merülőhely';
 
   @override
-  String get speciesMap_card_loggedHere => 'Logged here';
+  String get speciesMap_card_loggedHere => 'Itt rögzítve';
 
   @override
-  String get speciesMap_card_expectedNotLogged => 'Expected, not logged yet';
+  String get speciesMap_card_expectedNotLogged => 'Várható, még nincs rögzítve';
 
   @override
-  String get speciesMap_card_expectedPin => 'Expected here, not logged yet';
+  String get speciesMap_card_expectedPin => 'Itt várható, még nincs rögzítve';
 
   @override
-  String get speciesMap_card_nothingLogged => 'Nothing logged here yet';
+  String get speciesMap_card_nothingLogged => 'Itt még semmi nincs rögzítve';
 
   @override
-  String get speciesMap_card_close => 'Close';
+  String get speciesMap_card_close => 'Bezárás';
 
   @override
-  String get speciesMap_card_openSite => 'Open site';
+  String get speciesMap_card_openSite => 'Merülőhely megnyitása';
 
   @override
   String speciesMap_card_speciesCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count species',
-      one: '$count species',
+      other: '$count faj',
+      one: '$count faj',
     );
     return '$_temp0';
   }
 
   @override
   String speciesMap_card_sightingRow(String date, String number, int count) {
-    return '$date, dive $number, ×$count';
+    return '$date, $number. merülés, ×$count';
   }
 
   @override
@@ -19468,34 +19470,35 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sightings are on dives without a mapped site',
-      one: '$count sighting is on a dive without a mapped site',
+      other:
+          '$count észlelés térképen nem szereplő merülőhelyű merüléseken van',
+      one: '$count észlelés térképen nem szereplő merülőhelyű merülésen van',
     );
     return '$_temp0';
   }
 
   @override
   String get speciesMap_noPublicRecords =>
-      'No public records can be shown for this species: it needs a scientific name GBIF recognises.';
+      'Ehhez a fajhoz nem jeleníthetők meg nyilvános adatok: olyan tudományos név kell hozzá, amelyet a GBIF ismer.';
 
   @override
   String get speciesMap_publicUnavailable =>
-      'Public records could not be loaded.';
+      'A nyilvános adatokat nem sikerült betölteni.';
 
   @override
   String get speciesMap_suggestPublic =>
-      'You have not logged this species at a mapped site. Turn on public records to see where others have.';
+      'Ezt a fajt egyetlen térképen szereplő merülőhelyen sem rögzítetted. Kapcsold be a nyilvános adatokat, hogy lásd, hol látták mások.';
 
   @override
-  String get speciesMap_attribution => 'Records: GBIF.org';
+  String get speciesMap_attribution => 'Adatok: GBIF.org';
 
   @override
   String speciesMap_semantics_sitePin(String site, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count species',
-      one: '$count species',
+      other: '$count faj',
+      one: '$count faj',
     );
     return '$site, $_temp0';
   }
@@ -19505,25 +19508,26 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sightings',
-      one: '$count sighting',
+      other: '$count észlelés',
+      one: '$count észlelés',
     );
     return '$site, $_temp0';
   }
 
   @override
   String speciesMap_semantics_expectedPin(String site) {
-    return '$site, expected';
+    return '$site, várható';
   }
 
   @override
-  String get speciesMap_whereSeen_title => 'Where seen';
+  String get speciesMap_whereSeen_title => 'Hol láttad';
 
   @override
-  String get speciesMap_whereSeen_openFullMap => 'Open full map';
+  String get speciesMap_whereSeen_openFullMap => 'Teljes térkép megnyitása';
 
   @override
-  String get speciesMap_whereSeen_empty => 'Not logged at a mapped site yet.';
+  String get speciesMap_whereSeen_empty =>
+      'Még nincs rögzítve térképen szereplő merülőhelyen.';
 
   @override
   String speciesMap_whereSeen_siteWithCount(String site, int count) {

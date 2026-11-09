@@ -19677,106 +19677,118 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'إعادة المحاولة';
 
   @override
-  String get speciesMap_title => 'Species Map';
+  String get speciesMap_title => 'خريطة الأنواع';
 
   @override
-  String get speciesMap_openTooltip => 'Species map';
+  String get speciesMap_openTooltip => 'خريطة الأنواع';
 
   @override
-  String get speciesMap_pickSpeciesTooltip => 'Pick a species';
+  String get speciesMap_pickSpeciesTooltip => 'اختر نوعًا';
 
   @override
-  String get speciesMap_list_searchHint => 'Search all species';
+  String get speciesMap_list_searchHint => 'البحث في كل الأنواع';
 
   @override
-  String get speciesMap_list_allSites => 'All sites';
+  String get speciesMap_list_allSites => 'كل المواقع';
 
   @override
-  String get speciesMap_list_allSitesSubtitle => 'What you have logged where';
+  String get speciesMap_list_allSitesSubtitle => 'ما سجّلته وأين';
 
   @override
-  String get speciesMap_list_notSeen => 'Not seen yet';
+  String get speciesMap_list_notSeen => 'لم يُشاهد بعد';
 
   @override
   String speciesMap_list_counts(int sightings, int sites) {
     String _temp0 = intl.Intl.pluralLogic(
       sightings,
       locale: localeName,
-      other: '$sightings sightings',
-      one: '$sightings sighting',
+      other: '$sightings مشاهدة',
+      many: '$sightings مشاهدة',
+      few: '$sightings مشاهدات',
+      two: 'مشاهدتان',
+      one: 'مشاهدة واحدة',
+      zero: 'لا مشاهدات',
     );
     String _temp1 = intl.Intl.pluralLogic(
       sites,
       locale: localeName,
-      other: '$sites sites',
-      one: '$sites site',
+      other: '$sites موقع',
+      many: '$sites موقعًا',
+      few: '$sites مواقع',
+      two: 'موقعان',
+      one: 'موقع واحد',
+      zero: 'لا مواقع',
     );
-    return '$_temp0, $_temp1';
+    return '$_temp0، $_temp1';
   }
 
   @override
-  String get speciesMap_legend_mySightings => 'My sightings';
+  String get speciesMap_legend_mySightings => 'مشاهداتي';
 
   @override
-  String get speciesMap_legend_expected => 'Expected, not logged';
+  String get speciesMap_legend_expected => 'متوقع، غير مسجّل';
 
   @override
-  String get speciesMap_legend_publicRecords => 'Public records';
+  String get speciesMap_legend_publicRecords => 'سجلات عامة';
 
   @override
-  String get speciesMap_legend_speciesLogged => 'Species logged at a site';
+  String get speciesMap_legend_speciesLogged => 'الأنواع المسجّلة في موقع';
 
   @override
-  String get speciesMap_layers_tooltip => 'Map layers';
+  String get speciesMap_layers_tooltip => 'طبقات الخريطة';
 
   @override
-  String get speciesMap_layers_public => 'Public records (GBIF)';
+  String get speciesMap_layers_public => 'سجلات عامة (GBIF)';
 
   @override
   String get speciesMap_layers_publicHint =>
-      'Sends the picked species, or the tapped site\'s location, to GBIF.';
+      'يرسل إلى GBIF النوع المختار، أو موقع الموقع الذي نقرت عليه.';
 
   @override
-  String get speciesMap_layers_expectedHeading => 'Expected species from';
+  String get speciesMap_layers_expectedHeading => 'الأنواع المتوقعة من';
 
   @override
-  String get speciesMap_layers_scopeMine => 'My sites';
+  String get speciesMap_layers_scopeMine => 'مواقعي';
 
   @override
-  String get speciesMap_layers_scopeAllVisible => 'All sites I can see';
+  String get speciesMap_layers_scopeAllVisible => 'كل المواقع التي أراها';
 
   @override
-  String get speciesMap_card_loggedHere => 'Logged here';
+  String get speciesMap_card_loggedHere => 'مسجّلة هنا';
 
   @override
-  String get speciesMap_card_expectedNotLogged => 'Expected, not logged yet';
+  String get speciesMap_card_expectedNotLogged => 'متوقعة، لم تُسجّل بعد';
 
   @override
-  String get speciesMap_card_expectedPin => 'Expected here, not logged yet';
+  String get speciesMap_card_expectedPin => 'متوقع هنا، لم يُسجّل بعد';
 
   @override
-  String get speciesMap_card_nothingLogged => 'Nothing logged here yet';
+  String get speciesMap_card_nothingLogged => 'لم يُسجّل شيء هنا بعد';
 
   @override
-  String get speciesMap_card_close => 'Close';
+  String get speciesMap_card_close => 'إغلاق';
 
   @override
-  String get speciesMap_card_openSite => 'Open site';
+  String get speciesMap_card_openSite => 'فتح الموقع';
 
   @override
   String speciesMap_card_speciesCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count species',
-      one: '$count species',
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+      zero: 'لا أنواع',
     );
     return '$_temp0';
   }
 
   @override
   String speciesMap_card_sightingRow(String date, String number, int count) {
-    return '$date, dive $number, ×$count';
+    return '$date، الغطسة $number، ×$count';
   }
 
   @override
@@ -19784,36 +19796,43 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sightings are on dives without a mapped site',
-      one: '$count sighting is on a dive without a mapped site',
+      other: '$count مشاهدة في غطسات بلا موقع على الخريطة',
+      many: '$count مشاهدة في غطسات بلا موقع على الخريطة',
+      few: '$count مشاهدات في غطسات بلا موقع على الخريطة',
+      two: 'مشاهدتان في غطسات بلا موقع على الخريطة',
+      one: 'مشاهدة واحدة في غطسة بلا موقع على الخريطة',
+      zero: 'لا مشاهدات في غطسات بلا موقع على الخريطة',
     );
     return '$_temp0';
   }
 
   @override
   String get speciesMap_noPublicRecords =>
-      'No public records can be shown for this species: it needs a scientific name GBIF recognises.';
+      'لا يمكن عرض سجلات عامة لهذا النوع: يحتاج إلى اسم علمي يعرفه GBIF.';
 
   @override
-  String get speciesMap_publicUnavailable =>
-      'Public records could not be loaded.';
+  String get speciesMap_publicUnavailable => 'تعذّر تحميل السجلات العامة.';
 
   @override
   String get speciesMap_suggestPublic =>
-      'You have not logged this species at a mapped site. Turn on public records to see where others have.';
+      'لم تسجّل هذا النوع في أي موقع على الخريطة. شغّل السجلات العامة لترى أين شاهده الآخرون.';
 
   @override
-  String get speciesMap_attribution => 'Records: GBIF.org';
+  String get speciesMap_attribution => 'السجلات: GBIF.org';
 
   @override
   String speciesMap_semantics_sitePin(String site, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count species',
-      one: '$count species',
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+      zero: 'لا أنواع',
     );
-    return '$site, $_temp0';
+    return '$site، $_temp0';
   }
 
   @override
@@ -19821,25 +19840,29 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count sightings',
-      one: '$count sighting',
+      other: '$count مشاهدة',
+      many: '$count مشاهدة',
+      few: '$count مشاهدات',
+      two: 'مشاهدتان',
+      one: 'مشاهدة واحدة',
+      zero: 'لا مشاهدات',
     );
-    return '$site, $_temp0';
+    return '$site، $_temp0';
   }
 
   @override
   String speciesMap_semantics_expectedPin(String site) {
-    return '$site, expected';
+    return '$site، متوقع';
   }
 
   @override
-  String get speciesMap_whereSeen_title => 'Where seen';
+  String get speciesMap_whereSeen_title => 'أين شوهد';
 
   @override
-  String get speciesMap_whereSeen_openFullMap => 'Open full map';
+  String get speciesMap_whereSeen_openFullMap => 'فتح الخريطة كاملة';
 
   @override
-  String get speciesMap_whereSeen_empty => 'Not logged at a mapped site yet.';
+  String get speciesMap_whereSeen_empty => 'لم يُسجّل بعد في موقع على الخريطة.';
 
   @override
   String speciesMap_whereSeen_siteWithCount(String site, int count) {
