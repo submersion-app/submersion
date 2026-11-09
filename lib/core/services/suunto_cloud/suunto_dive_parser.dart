@@ -180,6 +180,9 @@ class SuuntoDiveParser {
 
     final dive = DownloadedDive(
       startTime: startTime,
+      // Neither a timed sample nor a header time: the import moment stands
+      // in, and nothing is placed by it (issue #3022).
+      startTimeReported: diveStartMs != null || headerStart != null,
       durationSeconds: durationSeconds,
       maxDepth: maxDepth,
       avgDepth: avgDepth,
