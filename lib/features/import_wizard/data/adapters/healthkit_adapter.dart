@@ -9,8 +9,12 @@ import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart'
     show ImportTripResolver;
+import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
+    show DiveComputerRepository;
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
@@ -51,6 +55,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     required DiveMatcher diveMatcher,
     required ImportedDiveConverter converter,
     required DiveRepository diveRepository,
+    DiveComputerRepository? computerRepository,
     required String diverId,
     WidgetRef? ref,
     UnitFormatterSettings settings = const AppSettings(),
@@ -61,6 +66,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
        _diveMatcher = diveMatcher,
        _converter = converter,
        _diveRepository = diveRepository,
+       _computerRepository = computerRepository ?? DiveComputerRepository(),
        _diverId = diverId,
        _ref = ref,
        _settings = settings,
@@ -74,6 +80,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
   final DiveMatcher _diveMatcher;
   final ImportedDiveConverter _converter;
   final DiveRepository _diveRepository;
+  final DiveComputerRepository _computerRepository;
   final String _diverId;
   final WidgetRef? _ref;
   final UnitFormatterSettings _settings;
@@ -376,6 +383,7 @@ class HealthKitAdapter implements ImportSourceAdapter {
     final altitudeEnricher = DiveAltitudeEnricher();
     final checklistLinker = _checklistLinker ?? ChecklistDiveLinker();
 
+    DiveComputer? watch;
     for (var i = 0; i < sortedIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
 
@@ -396,6 +404,22 @@ class HealthKitAdapter implements ImportSourceAdapter {
           ? converted
           : converted.copyWith(tripId: tripId);
       await _diveRepository.createDive(dive);
+      // The diver's Apple Watch computer (issue #637), before the gear
+      // linkers below, which follow the dive's computer. Best effort, as
+      // the trip lookup is: a failed lookup must not lose the dive.
+      try {
+        watch ??= await appleWatchComputerFor(_computerRepository, _diverId);
+        await _computerRepository.attributeDiveToComputer(
+          diveId: dive.id,
+          computerId: watch.id,
+        );
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not attribute ${dive.id} to the Apple Watch computer',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
       await DiveEquipmentDefaulter().applyForImportedDive(dive);
       await checklistLinker.applyForImportedDive(dive);
       await altitudeEnricher.applyForImportedDive(dive);
