@@ -346,7 +346,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   void _showEditDialog(TagStatistic stat) {
     final tag = stat.tag;
     final controller = TextEditingController(text: tag.name);
-    String selectedColor = tag.colorHex ?? TagColors.predefined.first;
+    // The stored value, untouched: a tag an import created has none, and
+    // saving without touching the colour must leave it with none (#4384).
+    String? selectedColor = tag.colorHex;
     Set<TagScope> scopes = tag.scopes;
     bool saving = false;
     bool failed = false;

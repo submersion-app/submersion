@@ -131,6 +131,9 @@ class _MockTagRepository extends TagRepository {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/// A palette dot in a tag dialog's colour picker.
+Finder _dot(String hex) => find.byKey(ValueKey('tag-color-$hex'));
+
 List<Tag> _tagsFromStats(List<TagStatistic> stats) =>
     stats.map((s) => s.tag).toList();
 
@@ -872,7 +875,8 @@ void main() {
       await tester.pumpAndSettle();
 
       await openCreate(tester, 'To try');
-      await tester.tap(find.bySemanticsLabel('Select color #22C55E'));
+      await tester.ensureVisible(_dot('#22C55E'));
+      await tester.tap(_dot('#22C55E'));
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
       await tester.pump();
@@ -1020,7 +1024,8 @@ void main() {
       await tester.pump();
 
       // Mid-save edits the confirmation never saw.
-      await tester.tap(find.bySemanticsLabel('Select color #22C55E'));
+      await tester.ensureVisible(_dot('#22C55E'));
+      await tester.tap(_dot('#22C55E'));
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
       await tester.pump();
 
@@ -1121,7 +1126,8 @@ void main() {
         find.widgetWithText(TextField, 'Photography'),
         'Macro Photography',
       );
-      await tester.tap(find.bySemanticsLabel('Select color #22C55E'));
+      await tester.ensureVisible(_dot('#22C55E'));
+      await tester.tap(_dot('#22C55E'));
       await tester.pump();
       await tester.tap(find.byKey(const ValueKey('tag_edit_delete')));
       await tester.pumpAndSettle();
@@ -1324,7 +1330,12 @@ void main() {
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).last, 'Rental');
-      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      final useForDives = find.widgetWithText(
+        CheckboxListTile,
+        'Use for dives',
+      );
+      await tester.ensureVisible(useForDives);
+      await tester.tap(useForDives);
       final useForEquipment = find.widgetWithText(
         CheckboxListTile,
         'Use for equipment',
@@ -1398,6 +1409,80 @@ void main() {
       );
     });
   });
+  group('the edit dialog keeps the stored color (#4384)', () {
+    TagStatistic stat(String? colorHex) => TagStatistic(
+      tag: Tag(
+        id: 'tag1',
+        diverId: 'diver1',
+        name: 'Night Dive',
+        colorHex: colorHex,
+        createdAt: DateTime(2024),
+        updatedAt: DateTime(2024),
+      ),
+      counts: const {TagScope.dives: 3},
+    );
+
+    Future<_MockTagListNotifier> openEditOn(
+      WidgetTester tester,
+      String? colorHex,
+    ) async {
+      final stats = [stat(colorHex)];
+      final notifier = _MockTagListNotifier(_tagsFromStats(stats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: stats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('tag_edit_tag1')));
+      await tester.pumpAndSettle();
+      return notifier;
+    }
+
+    Future<void> save(WidgetTester tester) async {
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('renaming a tag with no color leaves it with none', (
+      tester,
+    ) async {
+      final notifier = await openEditOn(tester, null);
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Night Dive'),
+        'Night',
+      );
+      await save(tester);
+      expect(notifier.updated.single.name, 'Night');
+      expect(notifier.updated.single.colorHex, isNull);
+    });
+
+    testWidgets('a palette color in another casing is saved as it was', (
+      tester,
+    ) async {
+      final notifier = await openEditOn(tester, '#3b82f6');
+      await save(tester);
+      expect(notifier.updated.single.colorHex, '#3b82f6');
+    });
+
+    testWidgets('an imported code off the palette is saved as it was', (
+      tester,
+    ) async {
+      final notifier = await openEditOn(tester, 'FF0000');
+      await save(tester);
+      expect(notifier.updated.single.colorHex, 'FF0000');
+    });
+
+    testWidgets('choosing Blue for a tag with no color saves Blue', (
+      tester,
+    ) async {
+      final notifier = await openEditOn(tester, null);
+      await tester.ensureVisible(_dot('#3B82F6'));
+      await tester.tap(_dot('#3B82F6'));
+      await tester.pump();
+      await save(tester);
+      expect(notifier.updated.single.colorHex, '#3B82F6');
+    });
+  });
+
   group('a row shows the tag as the app shows it', () {
     // The row's leading dot used to be a solid CircleAvatar of the stored
     // hex, which is the exact spot issue #2254 measured as disagreeing with
