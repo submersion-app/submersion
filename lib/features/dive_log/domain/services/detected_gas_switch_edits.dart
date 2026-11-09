@@ -20,8 +20,8 @@ int gasSwitchEditCount(GasSwitchEdits edits) =>
 /// cylinder pressures [detected] (from [inferredGasSwitches]) show, on a
 /// dive with [tanks] whose profile begins at [diveStart].
 ///
-/// A row in the dive's first [startingSwitchGraceSeconds] is the starting
-/// gas a computer logs. A computer logs a gas, not a cylinder, so when that
+/// The last row by [startingSwitchGraceSeconds] after [diveStart] is the
+/// starting gas a computer logs, as the gas timeline reads it. A computer logs a gas, not a cylinder, so when that
 /// row names a cylinder carrying the same mix as the one the pressures show
 /// the dive began on, it was a guess between them and is re-pointed. A row
 /// on another gas is the computer's own word and stays. With such a row, a
@@ -40,9 +40,13 @@ GasSwitchEdits detectedGasSwitchEdits({
   final tankById = {for (final t in tanks) t.id: t};
   final ordered = [...switches]
     ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+  // The last row by then, as the timeline reads it (`activeTankAt` takes
+  // the latest switch at or before a moment): a 0:00 row overrides one a
+  // second computer logged before the start, and a lone pre-start row is
+  // still what the dive began on.
   final startRow = ordered
       .where((s) => s.timestamp <= diveStart + startingSwitchGraceSeconds)
-      .firstOrNull;
+      .lastOrNull;
 
   final retanked = <String, String>{};
   final pressureStart = tankById[detected.startingTankId];

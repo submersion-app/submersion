@@ -100,6 +100,32 @@ void main() {
       expect([for (final a in edits.added) a.t], [944]);
     });
 
+    test('a 0:00 row, not one logged before the start, is re-pointed', () {
+      // A second computer logged -1:43; the 0:00 row is what the timeline
+      // has in use from the start (#4335 review).
+      final edits = detectedGasSwitchEdits(
+        switches: [_sw('early', -103, 't2'), _sw('start', 0, 't2')],
+        tanks: [left, right],
+        detected: _detected([_at('t1', 0), _at('t2', 944)], start: 't1'),
+        diveStart: 0,
+      );
+
+      expect(edits.retanked, {'start': 't1'});
+      expect([for (final a in edits.added) a.t], [944]);
+    });
+
+    test('a lone row logged before the start is the starting row', () {
+      final edits = detectedGasSwitchEdits(
+        switches: [_sw('early', -103, 't2')],
+        tanks: [left, right],
+        detected: _detected([_at('t1', 0), _at('t2', 944)], start: 't1'),
+        diveStart: 0,
+      );
+
+      expect(edits.retanked, {'early': 't1'});
+      expect([for (final a in edits.added) a.t], [944]);
+    });
+
     test('a profile that starts late still has its starting row', () {
       // The computer's first sample, and its logged start, at 1:30.
       final edits = detectedGasSwitchEdits(
