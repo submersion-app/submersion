@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
+import 'package:submersion/features/dive_log/domain/services/estimated_profile.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/estimated_profile_chart.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
@@ -74,12 +76,15 @@ Dive _makeDiveWithProfile({
   );
 }
 
-Dive _makeDiveNoProfile({String id = 'dive-no-profile'}) {
+Dive _makeDiveNoProfile({
+  String id = 'dive-no-profile',
+  double? maxDepth = 15.0,
+}) {
   return Dive(
     id: id,
     diveNumber: 2,
     dateTime: DateTime(2026, 3, 29, 14, 0),
-    maxDepth: 15.0,
+    maxDepth: maxDepth,
     bottomTime: const Duration(minutes: 30),
     runtime: const Duration(minutes: 35),
     tanks: const [],
@@ -274,10 +279,9 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
 
-    testWidgets('shows no profile data message when dive has empty profile', (
-      tester,
-    ) async {
-      final dive = _makeDiveNoProfile(id: 'no-profile');
+    testWidgets('shows no profile data message when a dive without samples '
+        'has no depth to estimate from', (tester) async {
+      final dive = _makeDiveNoProfile(id: 'no-profile', maxDepth: null);
       await tester.pumpWidget(
         _buildPanel(highlightedDiveId: 'no-profile', diveToReturn: dive),
       );
@@ -287,6 +291,38 @@ void main() {
       await tester.pump();
 
       expect(find.text('No profile data for this dive'), findsOneWidget);
+      expect(find.byType(EstimatedProfileChart), findsNothing);
+    });
+
+    testWidgets('draws an estimated outline for a dive without samples that '
+        'has a depth and times (#4112)', (tester) async {
+      final dive = _makeDiveNoProfile(id: 'no-profile');
+      await tester.pumpWidget(
+        _buildPanel(highlightedDiveId: 'no-profile', diveToReturn: dive),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final chart = tester.widget<EstimatedProfileChart>(
+        find.byType(EstimatedProfileChart),
+      );
+      expect(
+        chart.profile,
+        EstimatedProfile.estimate(
+          maxDepth: 15,
+          runtime: const Duration(minutes: 35),
+          bottomTime: const Duration(minutes: 30),
+        ),
+      );
+      expect(
+        find.text('Estimated from max depth and time, not a recorded profile'),
+        findsOneWidget,
+      );
+      // The recorded chart and its message are both gone; the header stays.
+      expect(find.byType(DiveProfileChart), findsNothing);
+      expect(find.text('No profile data for this dive'), findsNothing);
+      expect(find.text('#2'), findsOneWidget);
+      expect(find.text('35 min'), findsOneWidget);
     });
 
     testWidgets('renders profile chart when dive has profile data', (

@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_deco_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_estimated_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_equipment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_gas_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_sac_segments_section.dart';
@@ -193,7 +194,11 @@ class DiveDetailSectionList extends ConsumerWidget {
   ) {
     switch (id) {
       case DiveDetailSectionId.profile:
-        return dive.profile.isEmpty ? null : profileSection;
+        // No recorded profile: an estimated outline when the depth and times
+        // allow one (#4112), else nothing.
+        return dive.profile.isEmpty
+            ? DiveDetailEstimatedProfileSection.forDive(dive)
+            : profileSection;
       case DiveDetailSectionId.decoStatus:
         if (dive.profile.isEmpty) return null;
         return DiveDecoStatusSection(

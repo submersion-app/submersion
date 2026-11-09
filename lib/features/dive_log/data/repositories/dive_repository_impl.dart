@@ -2179,7 +2179,11 @@ class DiveRepository {
   /// smoothing flattening short features.
   ///
   /// Summarises a dive's primary series only when it has any, every series
-  /// otherwise; a dive with no series is absent from the result. The blobs
+  /// otherwise. A dive with no series maps to an empty list, so the list can
+  /// tell it has no samples from not fetched yet and draw an estimated
+  /// outline (#4112); a dive whose every series is unreadable, and every
+  /// dive when the read fails, is absent instead, since it may well have
+  /// samples. The blobs
   /// are decoded, merged and downsampled on a background isolate
   /// ([summarizeSparklinesInBackground]), since a page's worth on the UI
   /// isolate dropped frames mid-scroll (#3506).
@@ -2196,7 +2200,12 @@ class DiveRepository {
           maxSamples: maxSamples,
         );
         _logUnreadableSeries(summaries.unreadable);
-        return summaries.result;
+        final withSeries = {for (final row in rows) row.diveId};
+        return {
+          ...summaries.result,
+          for (final id in diveIds)
+            if (!withSeries.contains(id)) id: const <domain.DiveProfilePoint>[],
+        };
       });
     } catch (e, stackTrace) {
       _log.error(

@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_badge.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/domain/services/estimated_profile.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
@@ -43,6 +44,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_cont
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/estimated_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_card_photo_background.dart';
@@ -666,6 +668,15 @@ class DiveListTile extends ConsumerWidget {
     );
     if (cached == null) ref.read(diveProfileBatcherProvider).request(diveId);
     final profile = cached ?? const <DiveProfilePoint>[];
+    // A faded outline for a dive known to have no samples (#4112); not while
+    // they load, or a recorded dive would flash an estimate first.
+    final estimate = cached != null && cached.isEmpty
+        ? EstimatedProfile.estimate(
+            maxDepth: summary?.maxDepth,
+            runtime: summary?.runtime,
+            bottomTime: summary?.bottomTime,
+          )
+        : null;
 
     // Check if attribute-colored cards are enabled
     final colorAttribute = ref.watch(cardColorAttributeProvider);
@@ -971,6 +982,19 @@ class DiveListTile extends ConsumerWidget {
                           height: 50,
                           child: DiveProfileMiniChart(
                             profile: profile,
+                            height: 50,
+                            color: accentColor,
+                          ),
+                        ),
+                      )
+                    else if (estimate != null)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(start: 8),
+                        child: SizedBox(
+                          width: chartWidth,
+                          height: 50,
+                          child: EstimatedProfileMiniChart(
+                            profile: estimate,
                             height: 50,
                             color: accentColor,
                           ),

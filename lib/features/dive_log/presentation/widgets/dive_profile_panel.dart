@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/estimated_profile.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_trac
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/estimated_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -230,6 +232,33 @@ class _DiveProfilePanelContentState
       );
     }
     if (dive.profile.isEmpty) {
+      // A dive logged by hand or imported without samples (#4112): an
+      // outline from its depth and times, drawn only, never stored.
+      final estimate = EstimatedProfile.estimate(
+        maxDepth: dive.maxDepth,
+        runtime: dive.measuredRuntime,
+        bottomTime: dive.bottomTime,
+      );
+      if (estimate != null) {
+        return Container(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeaderBar(context, dive),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 0, 12, 8),
+                child: EstimatedProfileChart(profile: estimate, height: 160),
+              ),
+            ],
+          ),
+        );
+      }
       return SizedBox(
         height: 100,
         child: Center(
@@ -288,7 +317,6 @@ class _DiveProfilePanelContentState
         .value;
     // Chart-only: real pressures augmented with linear estimates (#197).
     final chartTankPressures = watchChartTankSeries(ref, widget.diveId);
-    final units = ref.watch(unitFormatterProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final trackingIndex = ref.watch(
       profileTrackingIndexProvider(widget.diveId),
@@ -320,14 +348,6 @@ class _DiveProfilePanelContentState
       }
     }
 
-    final siteName = dive.site?.name ?? 'Unknown Site';
-    final diveNumber = dive.diveNumber;
-    final depthText = units.formatDepth(dive.maxDepth);
-    final durationText = dive.effectiveRuntime != null
-        ? '${dive.effectiveRuntime!.inMinutes} min'
-        : '--';
-    final dateText = units.formatDateTime(dive.dateTime, l10n: null);
-
     return Container(
       decoration: BoxDecoration(
         border: Border(
@@ -338,52 +358,7 @@ class _DiveProfilePanelContentState
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Row(
-              children: [
-                if (diveNumber != null)
-                  Text(
-                    '#$diveNumber',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                if (diveNumber != null) const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    siteName,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  dateText,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  depthText,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  durationText,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-                ),
-              ],
-            ),
-          ),
+          _buildHeaderBar(context, dive),
           // Chart with cursor tracking
           MouseRegion(
             onExit: (_) {
@@ -481,6 +456,56 @@ class _DiveProfilePanelContentState
           ),
           // Tiny spacer
           const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+
+  /// The dive number, site, date, max depth and runtime above the chart.
+  Widget _buildHeaderBar(BuildContext context, Dive dive) {
+    final units = ref.watch(unitFormatterProvider);
+    final textTheme = Theme.of(context).textTheme;
+    final diveNumber = dive.diveNumber;
+    final runtime = dive.effectiveRuntime;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Row(
+        children: [
+          if (diveNumber != null) ...[
+            Text(
+              '#$diveNumber',
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Expanded(
+            child: Text(
+              dive.site?.name ?? 'Unknown Site',
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            units.formatDateTime(dive.dateTime, l10n: null),
+            style: textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            units.formatDepth(dive.maxDepth),
+            style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            runtime != null ? '${runtime.inMinutes} min' : '--',
+            style: textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );

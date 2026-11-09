@@ -9,7 +9,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 
 const _profile = [DiveProfilePoint(timestamp: 0, depth: 10)];
 
-/// Answers profile batches itself; ids in [withoutProfile] have none.
+/// Answers profile batches itself; ids in [withoutProfile] have none, which
+/// the repository reports as an empty list (#4112).
 class _ProfileRepository implements DiveRepository {
   final calls = <List<String>>[];
   final withoutProfile = <String>{};
@@ -26,7 +27,7 @@ class _ProfileRepository implements DiveRepository {
     if (fail) throw StateError('profiles failed');
     return {
       for (final id in diveIds)
-        if (!withoutProfile.contains(id)) id: _profile,
+        id: withoutProfile.contains(id) ? const <DiveProfilePoint>[] : _profile,
     };
   }
 
@@ -83,6 +84,24 @@ void main() {
     expect(repo.calls, [
       ['b'],
     ]);
+  });
+
+  // #4112: a dive cached as having no samples shows an estimated outline. A
+  // list load or reload asks again, so a dive that has since gained a
+  // profile (computer data imported onto a hand-logged dive) draws it; a
+  // card's own request does not, or every profile-less card would refetch.
+  test('a load asks again for a dive cached without samples', () async {
+    container.read(batchProfileCacheProvider.notifier).state = {
+      'a': _profile,
+      'b': const [],
+    };
+
+    await batcher().load(['a', 'b']);
+
+    expect(repo.calls, [
+      ['b'],
+    ]);
+    expect(cache()['b'], _profile);
   });
 
   test('a request for a dive being loaded waits for that load', () async {
