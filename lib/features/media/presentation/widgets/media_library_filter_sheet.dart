@@ -272,15 +272,12 @@ class _MediaLibraryFilterSheetState
             spacing: 8,
             runSpacing: 8,
             children: [
-              person('none', l10n.media_library_filter_noPeople, _noPeople, (
-                v,
-              ) {
-                _noPeople = v;
-                if (v) {
-                  _includeMe = false;
-                  _buddyIds = const {};
-                }
-              }),
+              person(
+                'none',
+                l10n.media_library_filter_noPeople,
+                _noPeople,
+                _toggleNoPeople,
+              ),
               person('me', l10n.media_people_me, _includeMe, (v) {
                 _includeMe = v;
                 if (v) _noPeople = false;
@@ -304,6 +301,13 @@ class _MediaLibraryFilterSheetState
         ],
       ),
     );
+  }
+
+  void _toggleNoPeople(bool selected) {
+    _noPeople = selected;
+    if (!selected) return;
+    _includeMe = false;
+    _buddyIds = const {};
   }
 
   void _toggleBuddy(String id, bool selected) {

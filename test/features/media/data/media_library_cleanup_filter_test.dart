@@ -149,4 +149,37 @@ void main() {
       expect(await ids(filter), isNot(contains('bare')));
     });
   });
+
+  group('on the map', () {
+    setUp(() async {
+      // Every row gets its own fix, so each one is a map point.
+      await DatabaseService.instance.database.customStatement(
+        'UPDATE media SET latitude = 10, longitude = 20',
+      );
+    });
+
+    Future<Set<String>> mapIds(MediaLibraryFilter filter) async => {
+      for (final p in await repo.getMapPoints(diverId: 'A', filter: filter))
+        p.item.id,
+    };
+
+    test('each facet narrows the points like the grid', () async {
+      for (final filter in const [
+        MediaLibraryFilter(noPeople: true),
+        MediaLibraryFilter(notPlacedInDive: true),
+        MediaLibraryFilter(noPeople: true, notPlacedInDive: true),
+      ]) {
+        expect(await mapIds(filter), await ids(filter));
+      }
+    });
+
+    test('watchMapChanges ticks when a time in the dive is set', () async {
+      final ticks = <void>[];
+      final sub = repo.watchMapChanges().listen(ticks.add);
+      addTearDown(sub.cancel);
+      await enrich('bare', diveId: 'd1', confidence: 'manual');
+      await Future<void>.delayed(const Duration(seconds: 2));
+      expect(ticks, isNotEmpty);
+    });
+  });
 }

@@ -665,7 +665,8 @@ class MediaLibraryRepository {
   /// Emits whenever anything that can move a map point, or change which
   /// points are in scope, changes: the media row itself, a dive's entry fix,
   /// a site's coordinates, or a species, tag or people tag (each filter is
-  /// an EXISTS over its link table). Built and debounced exactly like
+  /// an EXISTS over its link table), or a time in the dive (the "not placed"
+  /// facet's EXISTS over `media_enrichment`). Built and debounced exactly like
   /// [watchMediaChanges]; see its notes on why a `tableUpdates` stream and
   /// not a watched query.
   Stream<void> watchMapChanges() => _db
@@ -677,6 +678,7 @@ class MediaLibraryRepository {
           _db.mediaSpecies,
           _db.mediaTags,
           _db.mediaPeople,
+          _db.mediaEnrichment,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
