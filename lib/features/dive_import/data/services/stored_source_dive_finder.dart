@@ -113,7 +113,19 @@ class StoredSourceDiveFinder {
 
     final parsed = await (parsedFiles == null
         ? parse()
-        : parsedFiles.putIfAbsent('$storedFileId/${format.name}', parse));
+        : parsedFiles.putIfAbsent(
+            '$storedFileId/${format.name}',
+            // A file that fails to parse is logged once and then reads as
+            // missing for every dive it holds, not once per dive.
+            () => parse().catchError((Object e, StackTrace st) {
+              _log.warning(
+                'Could not parse stored file $storedFileId',
+                error: e,
+                stackTrace: st,
+              );
+              return null;
+            }),
+          ));
     if (parsed == null) {
       return const StoredSourceLookup.failed(
         DiveResyncFailure.storedFileMissing,

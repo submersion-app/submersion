@@ -113,10 +113,9 @@ class _TransmitterApplyDialogState
     if (resolved == null) return widget.slotOffers;
     return [
       for (final offer in widget.slotOffers)
-        if (resolved[offer.computer.computerId] case final candidates?
-            when candidates.tankIdsBySlot.keys.any(
-              (slot) => candidates.divesFor(slot) > 0,
-            ))
+        // The matcher lists a slot only when it has a cylinder to fill.
+        if (resolved[offer.computer.computerId]?.tankIdsBySlot.isNotEmpty ??
+            false)
           offer,
     ];
   }
