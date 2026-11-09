@@ -18105,9 +18105,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => '热门潜水点';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => '总目击次数';
-
-  @override
   String get marineLife_speciesEdit_addTitle => '添加物种';
 
   @override
@@ -18399,7 +18396,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => '排序';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => '目击次数最多';
+  String get marineLife_speciesPage_sort_mostDives => '潜水次数最多';
+
+  @override
+  String get marineLife_abundance_label => '数量';
+
+  @override
+  String get marineLife_abundance_seen => '已见到';
+
+  @override
+  String get marineLife_abundance_single => '单只';
+
+  @override
+  String get marineLife_abundance_few => '少量';
+
+  @override
+  String get marineLife_abundance_many => '较多';
+
+  @override
+  String get marineLife_abundance_abundant => '大量';
+
+  @override
+  String get marineLife_abundance_exact => '精确';
+
+  @override
+  String get marineLife_abundance_ranges => '少量 2 至 10，较多 11 至 100，大量 100 以上';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => '最近见到';

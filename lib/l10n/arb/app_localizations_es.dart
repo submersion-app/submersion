@@ -19036,10 +19036,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Mejores puntos';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Total de avistamientos';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Agregar especie';
 
   @override
@@ -19347,7 +19343,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Ordenar';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Más avistamientos';
+  String get marineLife_speciesPage_sort_mostDives => 'Más inmersiones';
+
+  @override
+  String get marineLife_abundance_label => 'Cuántos';
+
+  @override
+  String get marineLife_abundance_seen => 'Visto';
+
+  @override
+  String get marineLife_abundance_single => 'Uno solo';
+
+  @override
+  String get marineLife_abundance_few => 'Pocos';
+
+  @override
+  String get marineLife_abundance_many => 'Muchos';
+
+  @override
+  String get marineLife_abundance_abundant => 'Abundantes';
+
+  @override
+  String get marineLife_abundance_exact => 'Exacto';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Pocos de 2 a 10, Muchos de 11 a 100, Abundantes más de 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Vistas recientemente';

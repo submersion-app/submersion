@@ -18628,9 +18628,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'אתרים מובילים';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'סה\"כ תצפיות';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'הוסף מין';
 
   @override
@@ -18930,7 +18927,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'מיון';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'הכי הרבה תצפיות';
+  String get marineLife_speciesPage_sort_mostDives => 'הכי הרבה צלילות';
+
+  @override
+  String get marineLife_abundance_label => 'כמה';
+
+  @override
+  String get marineLife_abundance_seen => 'נצפה';
+
+  @override
+  String get marineLife_abundance_single => 'יחיד';
+
+  @override
+  String get marineLife_abundance_few => 'מעטים';
+
+  @override
+  String get marineLife_abundance_many => 'רבים';
+
+  @override
+  String get marineLife_abundance_abundant => 'בשפע';
+
+  @override
+  String get marineLife_abundance_exact => 'מדויק';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'מעטים 2 עד 10, רבים 11 עד 100, בשפע מעל 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'נראו לאחרונה';

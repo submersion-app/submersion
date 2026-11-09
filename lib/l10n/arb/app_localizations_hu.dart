@@ -18981,9 +18981,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Legjobb merülőhelyek';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'Összes észlelés';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Faj hozzáadása';
 
   @override
@@ -19292,7 +19289,32 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Rendezés';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Legtöbb észlelés';
+  String get marineLife_speciesPage_sort_mostDives => 'Legtöbb merülés';
+
+  @override
+  String get marineLife_abundance_label => 'Hány';
+
+  @override
+  String get marineLife_abundance_seen => 'Látott';
+
+  @override
+  String get marineLife_abundance_single => 'Egy';
+
+  @override
+  String get marineLife_abundance_few => 'Néhány';
+
+  @override
+  String get marineLife_abundance_many => 'Sok';
+
+  @override
+  String get marineLife_abundance_abundant => 'Rengeteg';
+
+  @override
+  String get marineLife_abundance_exact => 'Pontos';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Néhány 2 és 10 között, Sok 11 és 100 között, Rengeteg 100 felett';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Nemrég látott';

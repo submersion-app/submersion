@@ -224,13 +224,15 @@ void main() {
       });
     });
 
-    test('sums sighting counts separately from the dive count', () async {
+    test('counts sightings, not the animals in them', () async {
+      // Issue #4337: counts of 2, 1 and 3 are three sightings; a sighting
+      // may be Seen or a REEF group, so the counts are never added up.
       final entries = await repository.getSeenSpecies(diverId: 'diver-a');
       final whale = entries.singleWhere(
         (e) => e.species.id == 'sp_whale_shark',
       );
 
-      expect(whale.totalSightings, 6);
+      expect(whale.totalSightings, 3);
       expect(whale.diveCount, 3);
     });
 
@@ -281,7 +283,7 @@ void main() {
       final entries = await repository.getSeenSpecies();
       final custom = entries.singleWhere((e) => e.species.id == 'c1');
 
-      expect(custom.totalSightings, 5);
+      expect(custom.totalSightings, 2);
       expect(custom.diveCount, 2);
       expect(custom.siteCount, 2);
       expect(custom.lastSeen, DateTime.utc(2024, 5, 1));

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 
@@ -25,6 +26,7 @@ void main() {
     diveId: '',
     speciesId: speciesId,
     speciesName: '',
+    abundance: SightingAbundance.exact,
     count: count,
   );
 

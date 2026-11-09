@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 
@@ -344,6 +345,7 @@ void main() {
           final sighting = await repository.addSighting(
             diveId: diveId,
             speciesId: testSpecies.id,
+            abundance: SightingAbundance.exact,
             count: 3,
             notes: 'Spotted near coral',
           );
