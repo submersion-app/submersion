@@ -7,6 +7,7 @@ import 'package:submersion/features/insights/domain/observations/observation.dar
 import 'package:submersion/features/insights/domain/observations/observation_facts.dart';
 import 'package:submersion/features/insights/domain/observations/observation_rule_id.dart';
 import 'package:submersion/features/insights/domain/observations/observation_thresholds.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 String _pct(TrendFacts t) => formatFixedForDisplay(t.percentChange.abs(), 0);
@@ -131,7 +132,10 @@ String observationSentence(
         units.formatDate(c.date),
       ),
     (ObservationRuleId.newSpecies, final NewSpeciesFacts s) =>
-      l10n.insights_observations_newSpecies(s.count, s.newestSpeciesName),
+      l10n.insights_observations_newSpecies(
+        s.count,
+        localizedSpeciesName(l10n, s.newestSpeciesId, s.newestSpeciesName),
+      ),
     (ObservationRuleId.diveGap, final DiveGapFacts g) =>
       switch (formatElapsedDays(l10n, g.days)) {
         final span? => l10n.insights_observations_diveGapSpan(span),

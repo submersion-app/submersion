@@ -222,6 +222,32 @@ void main() {
     });
   });
 
+  // Issue #4339: the stored category key went into the subtitle, which the
+  // page rendered as text ("fish") in every language. It belongs in `kind`,
+  // the field the page names in the viewer's language.
+  group('getMostCommonSightings', () {
+    test('carries the category as a kind, not as display text', () async {
+      final species = await speciesRepository.createSpecies(
+        commonName: 'Test Perch',
+        category: SpeciesCategory.fish,
+      );
+      await insertTestDive(id: 'dive-1');
+      await speciesRepository.addSighting(
+        diveId: 'dive-1',
+        speciesId: species.id,
+        count: 2,
+      );
+
+      final items = await statsRepository.getMostCommonSightings();
+
+      expect(items, hasLength(1));
+      expect(items.single.name, 'Test Perch');
+      expect(items.single.count, 2);
+      expect(items.single.kind, 'fish');
+      expect(items.single.subtitle, isNull);
+    });
+  });
+
   group('SpeciesInsights entity', () {
     test('empty constant has expected defaults', () {
       expect(SpeciesInsights.empty.isEmpty, true);
