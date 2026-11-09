@@ -18,9 +18,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// those positions are not checked.
 void main() {
   late AppLocalizations de;
+  late Map<String, dynamic> arb;
 
   setUpAll(() {
     de = lookupAppLocalizations(const Locale('de'));
+    arb =
+        json.decode(File('lib/l10n/arb/app_de.arb').readAsStringSync())
+            as Map<String, dynamic>;
   });
 
   final formal = RegExp(r'\b(Sie|Ihnen|Ihr|Ihre|Ihren|Ihrem|Ihrer|Ihres)\b');
@@ -36,10 +40,6 @@ void main() {
   }
 
   test('no German string addresses the user formally', () {
-    final arb =
-        json.decode(File('lib/l10n/arb/app_de.arb').readAsStringSync())
-            as Map<String, dynamic>;
-
     final offenders = <String>[];
     arb.forEach((key, value) {
       if (key.startsWith('@') || value is! String) return;
@@ -109,10 +109,6 @@ void main() {
     // The mid-sentence check above cannot tell "Sie haben" (you have) from
     // "Sie haben" (they have), so every sentence-initial capital must be in
     // a key a person has read.
-    final arb =
-        json.decode(File('lib/l10n/arb/app_de.arb').readAsStringSync())
-            as Map<String, dynamic>;
-
     final unreviewed = <String>[];
     arb.forEach((key, value) {
       if (key.startsWith('@') || value is! String) return;
