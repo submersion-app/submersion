@@ -101,6 +101,12 @@ void main() {
 
       expect(spotted.map((s) => s.speciesId), [turtle.id]);
       expect(spotted.single.diveCount, 1);
+      expect(spotted.single.sightingCount, 1);
+      expect(
+        spotted.single.animalCount,
+        3,
+        reason: 'animals sum each sighting count; sightings count rows',
+      );
     });
 
     test('statsScope false keeps dives excluded from statistics, '

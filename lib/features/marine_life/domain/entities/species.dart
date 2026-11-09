@@ -73,6 +73,7 @@ class SiteSpeciesSummary extends Equatable {
   final String speciesName;
   final SpeciesCategory category;
   final int sightingCount; // Total times spotted across all dives at site
+  final int animalCount; // Animals recorded: the sum of each sighting's count
   final int diveCount; // Number of dives where spotted
 
   const SiteSpeciesSummary({
@@ -80,6 +81,7 @@ class SiteSpeciesSummary extends Equatable {
     required this.speciesName,
     required this.category,
     required this.sightingCount,
+    required this.animalCount,
     required this.diveCount,
   });
 
@@ -89,6 +91,7 @@ class SiteSpeciesSummary extends Equatable {
     speciesName,
     category,
     sightingCount,
+    animalCount,
     diveCount,
   ];
 }

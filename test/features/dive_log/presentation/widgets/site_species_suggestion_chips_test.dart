@@ -13,6 +13,7 @@ SiteSpeciesSummary _spotted(String name, int dives) => SiteSpeciesSummary(
   speciesName: name,
   category: SpeciesCategory.fish,
   sightingCount: dives,
+  animalCount: dives,
   diveCount: dives,
 );
 

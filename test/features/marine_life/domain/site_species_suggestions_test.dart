@@ -6,13 +6,14 @@ import 'package:submersion/features/marine_life/domain/site_species_suggestions.
 SiteSpeciesSummary _spotted(
   String id, {
   required int dives,
-  int? sightings,
+  int? animals,
   String? name,
 }) => SiteSpeciesSummary(
   speciesId: id,
   speciesName: name ?? id,
   category: SpeciesCategory.fish,
-  sightingCount: sightings ?? dives,
+  sightingCount: dives,
+  animalCount: animals ?? dives,
   diveCount: dives,
 );
 
@@ -33,10 +34,10 @@ void main() {
     test('orders sighted species by dives, then animals, then name', () {
       final suggestions = buildSiteSpeciesSuggestions(
         spotted: [
-          _spotted('wrasse', dives: 2, sightings: 2),
+          _spotted('wrasse', dives: 2, animals: 2),
           _spotted('shark', dives: 5),
-          _spotted('jack', dives: 2, sightings: 40),
-          _spotted('Angelfish', dives: 2, sightings: 2),
+          _spotted('jack', dives: 2, animals: 40),
+          _spotted('Angelfish', dives: 2, animals: 2),
         ],
         expected: const [],
         displayName: _plainName,

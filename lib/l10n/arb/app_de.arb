@@ -2833,7 +2833,7 @@
   "diveLog_edit_noMarineLife": "Keine Arten erfasst",
   "diveLog_edit_suggestions_title": "Vorschläge für {siteName}",
   "diveLog_edit_suggestions_add": "{species} hinzufügen",
-  "diveLog_edit_suggestions_seenOnDives": "{count, plural, one{Bei {count} anderen Tauchgang hier gesichtet} other{Bei {count} anderen Tauchgängen hier gesichtet}}",
+  "diveLog_edit_suggestions_seenOnDives": "{count, plural, one{Bei {count} anderem Tauchgang hier gesichtet} other{Bei {count} anderen Tauchgängen hier gesichtet}}",
   "diveLog_edit_suggestions_expected": "Auf der Liste der erwarteten Arten dieses Tauchplatzes",
   "diveLog_edit_suggestions_showAll": "Alle anzeigen ({count})",
   "diveLog_edit_suggestions_showFewer": "Weniger anzeigen",

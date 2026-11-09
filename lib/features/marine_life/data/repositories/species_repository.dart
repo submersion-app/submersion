@@ -794,6 +794,7 @@ class SpeciesRepository {
         sp.common_name,
         sp.category,
         COUNT(*) as sighting_count,
+        COALESCE(SUM(s.count), 0) as animal_count,
         COUNT(DISTINCT d.id) as dive_count
       FROM sightings s
       JOIN species sp ON s.species_id = sp.id
@@ -819,6 +820,7 @@ class SpeciesRepository {
           orElse: () => SpeciesCategory.other,
         ),
         sightingCount: row.data['sighting_count'] as int,
+        animalCount: row.data['animal_count'] as int,
         diveCount: row.data['dive_count'] as int,
       );
     }).toList();

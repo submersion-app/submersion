@@ -18,15 +18,15 @@ class SiteSpeciesSuggestion extends Equatable {
   /// the site's expected list names.
   final int diveCount;
 
-  /// Animals counted across those dives.
-  final int sightingCount;
+  /// Animals recorded across those dives: the sum of each sighting's count.
+  final int animalCount;
 
   const SiteSpeciesSuggestion({
     required this.speciesId,
     required this.speciesName,
     required this.category,
     required this.diveCount,
-    required this.sightingCount,
+    required this.animalCount,
   });
 
   /// Named by the site's expected list but never logged there.
@@ -38,7 +38,7 @@ class SiteSpeciesSuggestion extends Equatable {
     speciesName,
     category,
     diveCount,
-    sightingCount,
+    animalCount,
   ];
 }
 
@@ -73,12 +73,12 @@ List<SiteSpeciesSuggestion> buildSiteSpeciesSuggestions({
               speciesName: s.speciesName,
               category: s.category,
               diveCount: s.diveCount,
-              sightingCount: s.sightingCount,
+              animalCount: s.animalCount,
             ),
       ]..sort((a, b) {
         final byDives = b.diveCount.compareTo(a.diveCount);
         if (byDives != 0) return byDives;
-        final byAnimals = b.sightingCount.compareTo(a.sightingCount);
+        final byAnimals = b.animalCount.compareTo(a.animalCount);
         if (byAnimals != 0) return byAnimals;
         return byName(a, b);
       });
@@ -93,7 +93,7 @@ List<SiteSpeciesSuggestion> buildSiteSpeciesSuggestions({
           speciesName: e.speciesName,
           category: e.category,
           diveCount: 0,
-          sightingCount: 0,
+          animalCount: 0,
         ),
   ]..sort(byName);
 

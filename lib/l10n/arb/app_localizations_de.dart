@@ -8380,7 +8380,7 @@ class AppLocalizationsDe extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Bei $count anderen Tauchgängen hier gesichtet',
-      one: 'Bei $count anderen Tauchgang hier gesichtet',
+      one: 'Bei $count anderem Tauchgang hier gesichtet',
     );
     return '$_temp0';
   }
