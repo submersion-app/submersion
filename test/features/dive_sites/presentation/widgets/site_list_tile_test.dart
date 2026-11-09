@@ -464,6 +464,29 @@ void main() {
       );
     });
 
+    testWidgets('badges stay on the first stat line when the stats wrap', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(300, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pumpTyped(tester);
+
+      final firstStat = tester.getRect(find.text('5-50m'));
+      final secondStat = tester.getRect(find.text('3 dives'));
+      expect(
+        secondStat.top,
+        greaterThan(firstStat.bottom),
+        reason: 'the narrow card wraps the stats onto two lines',
+      );
+      final badge = tester.getRect(find.byType(DiveTypeBadge).first);
+      expect(
+        badge.center.dy,
+        moreOrLessEquals(firstStat.center.dy, epsilon: 2),
+        reason: 'the badges sit on the first stat line, not between lines',
+      );
+    });
+
     testWidgets('identity chips use the muted outline, not the accent', (
       tester,
     ) async {

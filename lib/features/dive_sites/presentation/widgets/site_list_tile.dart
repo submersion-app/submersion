@@ -433,7 +433,12 @@ class _SiteStatRow extends StatelessWidget {
         final statMax = constraints.maxWidth.isFinite
             ? math.max(0.0, constraints.maxWidth - badgeReserve)
             : double.infinity;
+        // Baseline, not centre: a Wrap reports its first run's baseline, so
+        // when the stats wrap onto a second line the badges stay on the
+        // first one instead of floating between the two.
         return Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
           children: [
             ConstrainedBox(
               constraints: BoxConstraints(maxWidth: statMax),
