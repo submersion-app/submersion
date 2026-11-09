@@ -62848,6 +62848,89 @@ class AppLocalizationsAr extends AppLocalizations {
       'عدد الروابط بعيدًا عن النقطة المختارة التي يصل إليها العرض. قفزة واحدة تعرض اتصالاتها المباشرة فقط.';
 
   @override
+  String get info_term_lastStop_label => 'التوقف الأخير';
+
+  @override
+  String get info_term_lastStop_body =>
+      'عمق أقل توقفات إزالة الضغط عمقًا. التوقف الأخير الأعمق أسهل في الثبات مع الأمواج لكنه يستغرق وقتًا أطول.';
+
+  @override
+  String get info_term_ascentStages_label => 'مراحل الصعود';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'يمكن للخطة استخدام سرعة مختلفة لكل جزء من الصعود: حتى التوقف الأول، وبين التوقفات، وقرب السطح.';
+
+  @override
+  String get info_term_reserveGas_label => 'الاحتياطي';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'غاز تحجزه الخطة في كل أسطوانة ولا تحتسبه قابلًا للاستخدام أبدًا.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'عمق تبديل نقطة الضبط';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'العمق الذي تنتقل عنده الخطة من نقطة الضبط المنخفضة إلى المرتفعة أثناء النزول، والعكس أثناء الصعود.';
+
+  @override
+  String get info_term_pscrRatio_label => 'نسبة pSCR';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'حصة كل زفير يتخلص منها جهاز إعادة التنفس شبه المغلق السلبي. وهي تحدد مقدار انخفاض أكسجين الدائرة عن غاز الإمداد.';
+
+  @override
+  String get info_term_turnFraction_label => 'نسبة الالتفاف';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'حصة الغاز الأولي التي تستخدمها الخطة قبل الالتفاف. الثلث هو القاعدة الشائعة للكهوف والغطسات المغطاة الأخرى.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (دراجة مائية)';
+
+  @override
+  String get info_term_dpv_body =>
+      'مركبة دفع للغواص. تغطي خطة المهمة البطارية والمسافة المقطوعة والسباحة عائدًا إذا تعطلت الدراجة.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'تجاوزات السقف';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'عدد المرات ومدى صعود نسخة من الغطسة أعلى من سقف النموذج.';
+
+  @override
+  String get info_term_deepestStop_label => 'أعمق توقف';
+
+  @override
+  String get info_term_deepestStop_body => 'عمق أول توقف مطلوب لإزالة الضغط.';
+
+  @override
+  String get info_term_minGasMargin_label => 'هامش الحد الأدنى من الغاز';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'مقدار الغاز المتبقي فوق الحد الأدنى عند النقطة التي حدث فيها التغيير.';
+
+  @override
+  String get info_term_gasOutTime_label => 'وقت نفاد الغاز';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'متى ستفرغ الأسطوانة بمعدل التنفس الذي تستخدمه إعادة التشغيل.';
+
+  @override
+  String get info_term_whatIf_label => 'الفعلي وماذا لو';
+
+  @override
+  String get info_term_whatIf_body =>
+      'الفعلي يعيد تشغيل الغطسة المسجلة عبر النموذج، وماذا لو يعيد تشغيلها مع التغييرات المضافة في مختبر الغوص.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'العمق عبر الزمن للغطسة كلها، مع رسم كل طبقة مفعّلة على محور الزمن نفسه.';
 
@@ -63101,4 +63184,128 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       'اضغط على نقطة للتركيز عليها وعلى روابطها. تختار اللوحة الألوان ونمط الخطوط ومدى وصول العرض.';
+
+  @override
+  String get info_planner_results_summary =>
+      'الأرقام الرئيسية للخطة بوضعها الحالي، وتتحدث مع تغير الخطة.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'الصعود الذي يخططه النموذج، صف لكل توقف أو تبديل غاز، مع العمق والوقت والوقت التراكمي والغاز.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'مقدار ما تستخدمه الخطة من كل أسطوانة، مع ضغط الالتفاف والحد الأدنى من الغاز حيث يُعرف ضغط البداية.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'الصعود بالدائرة المفتوحة من أسوأ نقطة في الغطسة إذا فُقدت الدائرة، وهل يكفيه غاز الطوارئ المحمول.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'إعادة حساب الخطة لما قد يجري بشكل مختلف: غطسة أعمق أو أطول، أو فقدان غاز.';
+
+  @override
+  String get info_planner_range_summary =>
+      'كيف يتغير الجدول إذا كانت الغطسة أعمق أو أطول مما هو مخطط.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'خطة الدراجات المائية للفريق: استخدام البطارية والمسافة والسباحة عائدًا إذا تعطلت دراجة.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'ما تتركه هذه الغطسة للغطسة التالية: الفاصل السطحي ونسبة CNS المتبقية وOTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'مدى تحفظ الجدول وموضع التوقف الأخير.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'خفض GF Low يجعل التوقف الأول أعمق، وخفض GF High يطيل التوقفات الضحلة. تتحدث النتائج مع تغير كل قيمة.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'مدى سرعة نزول الخطة وصعودها في كل جزء من الغطسة.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'ينطبق كل معدل على جزئه من الغطسة. تتحدث النتائج مع تغير القيمة.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'معدل التنفس والاحتياطي اللذان تستخدمهما الخطة لتقدير الغاز.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'أدخل معدل تنفس القاع أو خذه من الغطسات المسجلة، والاحتياطي الذي يُحتفظ به في كل أسطوانة.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'نوع الماء والارتفاع، وهما يحددان ضغط السطح الذي يبدأ منه النموذج.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'اختر نوع الماء وأدخل ارتفاع الموقع.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'نقاط الضبط التي يحافظ عليها جهاز إعادة التنفس المغلق خلال الخطة.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'اضبط نقطتي الضبط المنخفضة والمرتفعة والعمق الذي تنتقل عنده الخطة بينهما.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'كيف يُنمذج جهاز إعادة التنفس شبه المغلق السلبي في الخطة.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'أدخل نسبة التصريف التي يحددها صانع جهاز إعادة التنفس.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'مدى خطط الطوارئ والقاعدة التي تلتف عندها خطة الغاز.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'حدد مدى العمق والطول الإضافيين لخطط الطوارئ، ثم اختر قاعدة الالتفاف ونسبته.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'الفريق والدراجات المائية والظروف التي تقوم عليها خطة المهمة.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'أدخل الغواصين والدراجات واحتياطي البطارية والتيار وسرعة السباحة.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'المعدات والأوزان في الخطة، وتُستخدم للتنبؤ بالطفو خلال الغطسة.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'أضف البدلة والأسطوانات والأوزان لرؤية الطفو المتوقع.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'النتائج الرئيسية لإعادة تشغيل ماذا لو، ملونة حسب ما إذا تحسنت كل منها أو ساءت مقارنة بالغطسة الفعلية.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'كل مقياس للغطسة الفعلية ونسخة ماذا لو جنبًا إلى جنب، مع الفرق.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'تحميل الحجيرات عند وصول كل نسخة إلى السطح، الفعلية وماذا لو.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'الطفو عند التوقف الأخير لكل نسخة من الغطسة.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'تغييرات للتجربة على هذه الغطسة، يُعاد تشغيل كل منها عبر النموذج نفسه من لحظة تطبيقه.';
 }

@@ -62142,6 +62142,91 @@ class AppLocalizationsFr extends AppLocalizations {
       'Combien de liens à partir du point choisi la vue atteint. Un saut montre seulement ses connexions directes.';
 
   @override
+  String get info_term_lastStop_label => 'Dernier palier';
+
+  @override
+  String get info_term_lastStop_body =>
+      'La profondeur du palier le moins profond. Un dernier palier plus profond se tient plus facilement avec la houle mais dure plus longtemps.';
+
+  @override
+  String get info_term_ascentStages_label => 'Étapes de la remontée';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'Le plan peut utiliser une vitesse différente pour chaque partie de la remontée : jusqu\'au premier palier, entre paliers et près de la surface.';
+
+  @override
+  String get info_term_reserveGas_label => 'Réserve';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gaz que le plan garde dans chaque bloc et ne compte jamais comme utilisable.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label =>
+      'Profondeur de changement de setpoint';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'La profondeur où le plan passe du setpoint bas au haut à la descente, et inversement à la remontée.';
+
+  @override
+  String get info_term_pscrRatio_label => 'Ratio pSCR';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'La part de chaque expiration qu\'un recycleur semi-fermé passif rejette. Elle fixe l\'écart entre l\'oxygène de la boucle et le gaz d\'alimentation.';
+
+  @override
+  String get info_term_turnFraction_label => 'Fraction de demi-tour';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'La part du gaz de départ que le plan utilise avant de faire demi-tour. Un tiers est la règle courante en grotte et autres milieux fermés.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (scooter)';
+
+  @override
+  String get info_term_dpv_body =>
+      'Un propulseur sous-marin. Le plan de mission couvre la batterie, la distance parcourue et le retour à la nage si un scooter tombe en panne.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Dépassements du plafond';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'Combien de fois et de combien une version de la plongée est passée au-dessus du plafond du modèle.';
+
+  @override
+  String get info_term_deepestStop_label => 'Palier le plus profond';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'La profondeur du premier palier obligatoire.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Marge de gaz minimum';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'Combien de gaz restait au-dessus du gaz minimum au moment du changement.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Heure de panne de gaz';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'Quand un bloc serait vide au rythme respiratoire utilisé par la relecture.';
+
+  @override
+  String get info_term_whatIf_label => 'Réel et et si';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Réel rejoue la plongée enregistrée dans le modèle, et et si la rejoue avec les changements ajoutés dans le labo de plongée.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Profondeur dans le temps sur toute la plongée, avec chaque superposition activée tracée sur le même axe du temps.';
 
@@ -62396,4 +62481,128 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       'Touchez un point pour le mettre en avant avec ses liens. Le panneau choisit les couleurs, le style des lignes et la portée de la vue.';
+
+  @override
+  String get info_planner_results_summary =>
+      'Les chiffres principaux du plan actuel, mis à jour à chaque changement.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'La remontée planifiée par le modèle, une ligne par palier ou changement de gaz, avec profondeur, durée, temps cumulé et gaz.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'Ce que le plan utilise de chaque bloc, avec la pression de demi-tour et le gaz minimum quand la pression de départ est connue.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'La remontée en circuit ouvert depuis le pire point de la plongée si la boucle est perdue, et si le gaz de bailout emporté suffit.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'Le plan recalculé si les choses changent : plongée plus profonde ou plus longue, ou perte d\'un gaz.';
+
+  @override
+  String get info_planner_range_summary =>
+      'Comment le profil change si la plongée va plus profond ou dure plus que prévu.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'Le plan scooter de l\'équipe : batterie, distance et retour à la nage si un scooter tombe en panne.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'Ce que cette plongée laisse à la suivante : l\'intervalle de surface, le CNS encore présent et les OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'La prudence du profil et la place du dernier palier.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Un GF Low plus bas rend le premier palier plus profond et un GF High plus bas allonge les paliers peu profonds. Les résultats se mettent à jour à chaque changement.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'Les vitesses de descente et de remontée du plan dans chaque partie de la plongée.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Chaque vitesse s\'applique à sa propre partie de la plongée. Les résultats se mettent à jour à chaque changement.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'Le rythme respiratoire et la réserve que le plan utilise pour dimensionner le gaz.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Saisissez un rythme respiratoire au fond, ou reprenez celui des plongées enregistrées, et la réserve à garder dans chaque bloc.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'Le type d\'eau et l\'altitude, qui fixent la pression de surface de départ du modèle.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Choisissez le type d\'eau et saisissez l\'altitude du site.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'Les setpoints que le recycleur en circuit fermé maintient pendant le plan.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Réglez les setpoints bas et haut et la profondeur où le plan passe de l\'un à l\'autre.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'Comment le recycleur semi-fermé passif est modélisé dans le plan.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Saisissez le ratio de rejet indiqué par le fabricant du recycleur.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'Jusqu\'où vont les plans de secours et la règle de demi-tour du plan de gaz.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Réglez de combien les plans de secours vont plus profond et plus longtemps, puis choisissez la règle et la fraction de demi-tour.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'L\'équipe, les scooters et les conditions du plan de mission.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Saisissez les plongeurs et scooters, la réserve de batterie, le courant et la vitesse de nage.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'Le matériel et le lest du plan, utilisés pour prédire la flottabilité pendant la plongée.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Ajoutez la combinaison, les blocs et le lest pour voir la flottabilité prévue.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'Les principaux résultats de la relecture et si, teintés selon qu\'ils sont meilleurs ou pires que la plongée réelle.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Chaque mesure de la plongée réelle et de la version et si, côte à côte, avec l\'écart.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'La charge des compartiments quand chaque version arrive en surface, réelle et et si.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'La flottabilité au dernier palier pour chaque version de la plongée.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Changements à essayer sur cette plongée, chacun rejoué dans le même modèle à partir du moment où il s\'applique.';
 }

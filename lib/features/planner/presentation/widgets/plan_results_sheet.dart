@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/planner/presentation/info/plan_results_info.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
@@ -27,6 +28,9 @@ import 'package:submersion/features/planner/presentation/widgets/plan_status_chi
 import 'package:submersion/features/planner/presentation/widgets/plan_warnings_section.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The results content: runtime table, per-tank gas plan, and the
 /// severity-sorted issue list. The page owns the sheet chrome and passes the
@@ -93,7 +97,11 @@ class PlanResultsSheet extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _grip(theme),
-          PlanSectionHeader(context.l10n.divePlanner_label_decoSchedule),
+          PlanSectionHeader(
+            context.l10n.divePlanner_label_decoSchedule,
+            info: (context) =>
+                planDecoScheduleInfo(context.l10n, infoUnits(context)),
+          ),
           PlanRuntimeTable(
             outcome: outcome,
             units: units,
@@ -101,7 +109,10 @@ class PlanResultsSheet extends ConsumerWidget {
             editable: !ref.watch(planLockedProvider),
           ),
           const SizedBox(height: 20),
-          PlanSectionHeader(context.l10n.divePlanner_label_gasConsumption),
+          PlanSectionHeader(
+            context.l10n.divePlanner_label_gasConsumption,
+            info: (context) => planGasInfo(context.l10n, infoUnits(context)),
+          ),
           for (final usage in loopTankUsages)
             PlanGasRow(
               usage: usage,
@@ -112,12 +123,30 @@ class PlanResultsSheet extends ConsumerWidget {
             divePlanNotifierProvider.select((s) => s.mission != null),
           )) ...[
             const SizedBox(height: 20),
-            PlanSectionHeader(context.l10n.plannerMission_results_title),
+            PlanSectionHeader(
+              context.l10n.plannerMission_results_title,
+              info: (context) => planSectionInfo(
+                context.l10n,
+                infoUnits(context),
+                title: context.l10n.plannerMission_results_title,
+                summary: context.l10n.info_planner_mission_summary,
+                terms: const [DiveTerm.dpv],
+              ),
+            ),
             const MissionResultsSection(),
           ],
           if (bailout != null && !bailout.isFinishedEmpty) ...[
             const SizedBox(height: 20),
-            PlanSectionHeader(context.l10n.plannerCanvas_bailout_title),
+            PlanSectionHeader(
+              context.l10n.plannerCanvas_bailout_title,
+              info: (context) => planSectionInfo(
+                context.l10n,
+                infoUnits(context),
+                title: context.l10n.plannerCanvas_bailout_title,
+                summary: context.l10n.info_planner_bailout_summary,
+                terms: const [DiveTerm.bailout],
+              ),
+            ),
             PlanResultSection<BailoutOutcome>(
               view: bailout,
               builder: (outcome) =>
@@ -127,7 +156,16 @@ class PlanResultsSheet extends ConsumerWidget {
           ...?_contingencySections(context, ref, units),
           if (rangeTable != null && !rangeTable.isFinishedEmpty) ...[
             const SizedBox(height: 20),
-            PlanSectionHeader(context.l10n.plannerCanvas_range_title),
+            PlanSectionHeader(
+              context.l10n.plannerCanvas_range_title,
+              info: (context) => planSectionInfo(
+                context.l10n,
+                infoUnits(context),
+                title: context.l10n.plannerCanvas_range_title,
+                summary: context.l10n.info_planner_range_summary,
+                terms: const [],
+              ),
+            ),
             const RangeTableSection(),
           ],
           const SizedBox(height: 20),
@@ -278,6 +316,16 @@ class PlanResultsSheet extends ConsumerWidget {
           children: [
             PlanSectionHeader(context.l10n.plannerCanvas_contingency_title),
             const Spacer(),
+            HeaderInfoButton(
+              title: context.l10n.plannerCanvas_contingency_title,
+              content: (context) => planSectionInfo(
+                context.l10n,
+                infoUnits(context),
+                title: context.l10n.plannerCanvas_contingency_title,
+                summary: context.l10n.info_planner_contingencies_summary,
+                terms: const [DiveTerm.turnPressure, DiveTerm.thirds],
+              ),
+            ),
             Icon(
               expanded ? Icons.expand_less : Icons.expand_more,
               size: 20,

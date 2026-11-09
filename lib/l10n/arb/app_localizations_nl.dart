@@ -61618,6 +61618,90 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoeveel verbanden ver vanaf het gekozen punt de weergave reikt. Eén stap toont alleen de directe verbanden.';
 
   @override
+  String get info_term_lastStop_label => 'Laatste stop';
+
+  @override
+  String get info_term_lastStop_body =>
+      'De diepte van de ondiepste decostop. Een diepere laatste stop is bij deining makkelijker vast te houden, maar duurt langer.';
+
+  @override
+  String get info_term_ascentStages_label => 'Opstijgfases';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'Het plan kan voor elk deel van de opstijging een eigen snelheid gebruiken: tot de eerste stop, tussen stops en bij de oppervlakte.';
+
+  @override
+  String get info_term_reserveGas_label => 'Reserve';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gas dat het plan in elke fles achterhoudt en nooit als bruikbaar telt.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'Setpoint-wisseldiepte';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'De diepte waarop het plan bij het afdalen van het lage naar het hoge setpoint gaat, en bij het opstijgen terug.';
+
+  @override
+  String get info_term_pscrRatio_label => 'pSCR-verhouding';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'Het deel van elke uitademing dat een passieve halfgesloten rebreather afvoert. Dat bepaalt hoe ver de zuurstof in de lus onder het voedingsgas zakt.';
+
+  @override
+  String get info_term_turnFraction_label => 'Keerfractie';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'Het deel van het startgas dat het plan gebruikt voordat het omkeert. Een derde is de gangbare regel in grotten en andere overheadduiken.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (scooter)';
+
+  @override
+  String get info_term_dpv_body =>
+      'Een onderwaterscooter. Het missieplan houdt rekening met de accu, de afgelegde afstand en het terugzwemmen als een scooter uitvalt.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Plafondoverschrijdingen';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'Hoe vaak en hoe ver een versie van de duik ondieper was dan het plafond van het model.';
+
+  @override
+  String get info_term_deepestStop_label => 'Diepste stop';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'De diepte van de eerste vereiste decostop.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Minimumgasmarge';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'Hoeveel gas er boven het minimumgas over was op het punt waar de verandering plaatsvond.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Gas-op-tijd';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'Wanneer een fles leeg zou zijn bij de ademfrequentie die de herhaling gebruikt.';
+
+  @override
+  String get info_term_whatIf_label => 'Werkelijk en wat als';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Werkelijk speelt de gelogde duik opnieuw af door het model, en wat als doet dat met de in het Duiklab toegevoegde wijzigingen.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Diepte door de tijd voor de hele duik, met elke ingeschakelde laag op dezelfde tijdas.';
 
@@ -61872,4 +61956,128 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       'Tik op een punt om het met zijn verbanden uit te lichten. Het paneel kiest kleuren, lijnstijl en hoe ver de weergave reikt.';
+
+  @override
+  String get info_planner_results_summary =>
+      'De belangrijkste getallen van het plan zoals het nu is, bijgewerkt bij elke wijziging.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'De opstijging die het model plant, één regel per stop of gaswissel, met diepte, tijd, looptijd en gas.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'Hoeveel het plan van elke fles gebruikt, met keerdruk en minimumgas waar de begindruk bekend is.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'De opstijging op open circuit vanaf het slechtste punt als de lus uitvalt, en of het meegenomen bailoutgas volstaat.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'Het plan opnieuw doorgerekend voor afwijkingen: een diepere of langere duik, of een verloren gas.';
+
+  @override
+  String get info_planner_range_summary =>
+      'Hoe het schema verandert als de duik dieper of langer is dan gepland.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'Het scooterplan van het team: accugebruik, afstand en terugzwemmen als een scooter uitvalt.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'Wat deze duik voor de volgende achterlaat: het oppervlakte-interval, de resterende CNS en de OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'Hoe conservatief het schema is en waar de laatste stop ligt.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Een lagere GF Low legt de eerste stop dieper, een lagere GF High maakt de ondiepe stops langer. De resultaten werken bij elke wijziging bij.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'Hoe snel het plan in elk deel van de duik afdaalt en opstijgt.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Elke snelheid geldt voor zijn eigen deel van de duik. De resultaten werken bij als een waarde verandert.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'De ademfrequentie en reserve waarmee het plan het gas berekent.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Vul een bodemademfrequentie in, of neem die uit gelogde duiken, en de reserve per fles.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'Het watertype en de hoogte, die de oppervlaktedruk bepalen waarmee het model begint.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Kies het watertype en vul de hoogte van de locatie in.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'De setpoints die de gesloten rebreather tijdens het plan aanhoudt.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Stel het lage en hoge setpoint in en de diepte waarop het plan ertussen wisselt.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'Hoe de passieve halfgesloten rebreather in het plan wordt gemodelleerd.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Vul de afvoerverhouding in die de fabrikant van de rebreather opgeeft.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'Hoe ver de noodplannen gaan en volgens welke regel het gasplan omkeert.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Stel in hoeveel dieper en langer de noodplannen gaan en kies daarna keerregel en keerfractie.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'Het team, de scooters en de omstandigheden achter het missieplan.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Vul de duikers en scooters, de accureserve, de stroming en de zwemsnelheid in.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'De uitrusting en gewichten van het plan, waarmee het drijfvermogen tijdens de duik wordt voorspeld.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Voeg pak, flessen en gewichten toe om het voorspelde drijfvermogen te zien.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'De belangrijkste uitkomsten van de wat-als-herhaling, gekleurd naar of ze beter of slechter zijn dan de werkelijke duik.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Elke maat voor de werkelijke duik en de wat-als-versie naast elkaar, met het verschil.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'De compartimentbelasting als elke versie de oppervlakte bereikt, werkelijk en wat als.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'Het drijfvermogen bij de laatste stop voor elke versie van de duik.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Wijzigingen om op deze duik uit te proberen, elk door hetzelfde model afgespeeld vanaf het moment dat ze gelden.';
 }

@@ -60719,6 +60719,90 @@ class AppLocalizationsHe extends AppLocalizations {
       'לכמה קשרים מהנקודה שנבחרה התצוגה מגיעה. קפיצה אחת מציגה רק את הקשרים הישירים שלה.';
 
   @override
+  String get info_term_lastStop_label => 'העצירה האחרונה';
+
+  @override
+  String get info_term_lastStop_body =>
+      'עומק עצירת הדקומפרסיה הרדודה ביותר. עצירה אחרונה עמוקה יותר קלה יותר להחזקה בגלים אך נמשכת יותר זמן.';
+
+  @override
+  String get info_term_ascentStages_label => 'שלבי העלייה';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'התוכנית יכולה להשתמש במהירות שונה לכל חלק בעלייה: עד העצירה הראשונה, בין עצירות וליד פני המים.';
+
+  @override
+  String get info_term_reserveGas_label => 'רזרבה';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'גז שהתוכנית שומרת בכל מיכל ולעולם אינה סופרת כזמין.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'עומק החלפת נקודת הכיוון';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'העומק שבו התוכנית עוברת מנקודת הכיוון הנמוכה לגבוהה בירידה, ובחזרה בעלייה.';
+
+  @override
+  String get info_term_pscrRatio_label => 'יחס pSCR';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'החלק מכל נשיפה שמכשיר מחזור חצי-סגור פסיבי משליך. הוא קובע כמה החמצן בלולאה נמוך מגז האספקה.';
+
+  @override
+  String get info_term_turnFraction_label => 'שבר החזרה';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'החלק מהגז ההתחלתי שהתוכנית מנצלת לפני החזרה. שליש הוא הכלל המקובל במערות ובצלילות סגורות אחרות.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (סקוטר)';
+
+  @override
+  String get info_term_dpv_body =>
+      'רכב הנעה לצוללים. תוכנית המשימה מכסה את הסוללה, המרחק שנעבר והשחייה חזרה אם סקוטר מתקלקל.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'חציות תקרה';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'כמה פעמים ועד כמה גרסה של הצלילה הייתה רדודה מתקרת המודל.';
+
+  @override
+  String get info_term_deepestStop_label => 'העצירה העמוקה ביותר';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'עומק עצירת הדקומפרסיה הנדרשת הראשונה.';
+
+  @override
+  String get info_term_minGasMargin_label => 'מרווח גז מינימלי';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'כמה גז נותר מעל הגז המינימלי בנקודה שבה קרה השינוי.';
+
+  @override
+  String get info_term_gasOutTime_label => 'זמן אזילת גז';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'מתי מיכל היה מתרוקן בקצב הנשימה שבו ההרצה החוזרת משתמשת.';
+
+  @override
+  String get info_term_whatIf_label => 'בפועל ומה אם';
+
+  @override
+  String get info_term_whatIf_body =>
+      'בפועל מריץ מחדש את הצלילה שנרשמה דרך המודל, ומה אם מריץ אותה עם השינויים שהוספו במעבדת הצלילה.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'עומק לאורך זמן לכל הצלילה, כשכל שכבה מופעלת מצוירת על אותו ציר זמן.';
 
@@ -60971,4 +61055,128 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       'הקשה על נקודה מתמקדת בה ובקשרים שלה. הלוח בוחר צבעים, סגנון קו ועד כמה התצוגה מגיעה.';
+
+  @override
+  String get info_planner_results_summary =>
+      'המספרים העיקריים של התוכנית במצבה הנוכחי, מתעדכנים כשהתוכנית משתנה.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'העלייה שהמודל מתכנן, שורה לכל עצירה או החלפת גז, עם עומק, זמן, זמן ריצה וגז.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'כמה מכל מיכל התוכנית מנצלת, עם לחץ החזרה והגז המינימלי היכן שלחץ ההתחלה ידוע.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'העלייה במעגל פתוח מהנקודה הגרועה ביותר בצלילה אם הלולאה אובדת, והאם גז החילוץ שנישא מספיק לה.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'התוכנית מחושבת מחדש למקרה שדברים יתנהלו אחרת: צלילה עמוקה או ארוכה יותר, או אובדן גז.';
+
+  @override
+  String get info_planner_range_summary =>
+      'איך לוח הזמנים משתנה אם הצלילה עמוקה יותר או ארוכה יותר מהמתוכנן.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'תוכנית הסקוטרים של הצוות: שימוש בסוללה, מרחק ושחייה חזרה אם סקוטר מתקלקל.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'מה הצלילה הזו משאירה לבאה: מרווח השטח, ה-CNS שעדיין נישא וה-OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'עד כמה לוח הזמנים שמרני והיכן נמצאת העצירה האחרונה.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'הורדת GF Low מעמיקה את העצירה הראשונה, והורדת GF High מאריכה את העצירות הרדודות. התוצאות מתעדכנות עם כל שינוי.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'באיזו מהירות התוכנית יורדת ועולה בכל חלק של הצלילה.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'כל קצב חל על החלק שלו בצלילה. התוצאות מתעדכנות כשערך משתנה.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'קצב הנשימה והרזרבה שהתוכנית משתמשת בהם כדי לחשב את הגז.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'הזינו קצב נשימה בקרקעית, או קחו אותו מצלילות שנרשמו, ואת הרזרבה לשמירה בכל מיכל.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'סוג המים והגובה, שקובעים את לחץ פני המים שממנו המודל מתחיל.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'בחרו את סוג המים והזינו את גובה האתר.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'נקודות הכיוון שמכשיר המחזור הסגור מחזיק במהלך התוכנית.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'קבעו את נקודות הכיוון הנמוכה והגבוהה ואת העומק שבו התוכנית מחליפה ביניהן.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'איך מכשיר המחזור החצי-סגור הפסיבי ממודל בתוכנית.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'הזינו את יחס ההשלכה שיצרן מכשיר המחזור מציין.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'עד כמה מגיעות תוכניות החירום והכלל שלפיו תוכנית הגז חוזרת.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'קבעו בכמה עמוק וארוך יותר תוכניות החירום מגיעות, ואז בחרו כלל חזרה ושבר.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'הצוות, הסקוטרים והתנאים שמאחורי תוכנית המשימה.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'הזינו את הצוללים והסקוטרים, רזרבת הסוללה, הזרם ומהירות השחייה.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'הציוד והמשקולות בתוכנית, שמשמשים לחיזוי הציפה לאורך הצלילה.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'הוסיפו חליפה, מיכלים ומשקולות כדי לראות את הציפה החזויה.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'התוצאות העיקריות של הרצת מה אם, צבועות לפי האם השתפרו או הורעו לעומת הצלילה בפועל.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'כל מדד לצלילה בפועל ולגרסת מה אם זה לצד זה, עם ההפרש.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'העומס בתאים כשכל גרסה מגיעה לפני המים, בפועל ומה אם.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'הציפה בעצירה האחרונה לכל גרסה של הצלילה.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'שינויים לניסוי על הצלילה הזו, שכל אחד מהם מורץ מחדש דרך אותו מודל מהרגע שבו הוא חל.';
 }

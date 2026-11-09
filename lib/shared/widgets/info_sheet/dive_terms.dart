@@ -116,6 +116,18 @@ enum DiveTerm {
   colourBy,
   weightedEdges,
   hops,
+  lastStop,
+  ascentStages,
+  reserveGas,
+  setpointSwitchDepth,
+  pscrRatio,
+  turnFraction,
+  dpv,
+  ceilingViolation,
+  deepestStop,
+  minGasMargin,
+  gasOutTime,
+  whatIf,
 }
 
 /// The term's name and short definition, with any depth figure in the
@@ -253,6 +265,18 @@ String _label(AppLocalizations l10n, DiveTerm term) {
     DiveTerm.colourBy => l10n.info_term_colourBy_label,
     DiveTerm.weightedEdges => l10n.info_term_weightedEdges_label,
     DiveTerm.hops => l10n.info_term_hops_label,
+    DiveTerm.lastStop => l10n.info_term_lastStop_label,
+    DiveTerm.ascentStages => l10n.info_term_ascentStages_label,
+    DiveTerm.reserveGas => l10n.info_term_reserveGas_label,
+    DiveTerm.setpointSwitchDepth => l10n.info_term_setpointSwitchDepth_label,
+    DiveTerm.pscrRatio => l10n.info_term_pscrRatio_label,
+    DiveTerm.turnFraction => l10n.info_term_turnFraction_label,
+    DiveTerm.dpv => l10n.info_term_dpv_label,
+    DiveTerm.ceilingViolation => l10n.info_term_ceilingViolation_label,
+    DiveTerm.deepestStop => l10n.info_term_deepestStop_label,
+    DiveTerm.minGasMargin => l10n.info_term_minGasMargin_label,
+    DiveTerm.gasOutTime => l10n.info_term_gasOutTime_label,
+    DiveTerm.whatIf => l10n.info_term_whatIf_label,
   };
 }
 
@@ -376,5 +400,17 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.colourBy => l10n.info_term_colourBy_body,
     DiveTerm.weightedEdges => l10n.info_term_weightedEdges_body,
     DiveTerm.hops => l10n.info_term_hops_body,
+    DiveTerm.lastStop => l10n.info_term_lastStop_body,
+    DiveTerm.ascentStages => l10n.info_term_ascentStages_body,
+    DiveTerm.reserveGas => l10n.info_term_reserveGas_body,
+    DiveTerm.setpointSwitchDepth => l10n.info_term_setpointSwitchDepth_body,
+    DiveTerm.pscrRatio => l10n.info_term_pscrRatio_body,
+    DiveTerm.turnFraction => l10n.info_term_turnFraction_body,
+    DiveTerm.dpv => l10n.info_term_dpv_body,
+    DiveTerm.ceilingViolation => l10n.info_term_ceilingViolation_body,
+    DiveTerm.deepestStop => l10n.info_term_deepestStop_body,
+    DiveTerm.minGasMargin => l10n.info_term_minGasMargin_body,
+    DiveTerm.gasOutTime => l10n.info_term_gasOutTime_body,
+    DiveTerm.whatIf => l10n.info_term_whatIf_body,
   };
 }

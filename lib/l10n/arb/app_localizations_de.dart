@@ -61873,6 +61873,90 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wie viele Verbindungen vom gewählten Punkt aus die Ansicht reicht. Ein Schritt zeigt nur die direkten Verbindungen.';
 
   @override
+  String get info_term_lastStop_label => 'Letzter Stopp';
+
+  @override
+  String get info_term_lastStop_body =>
+      'Die Tiefe des flachsten Dekostopps. Ein tieferer letzter Stopp lässt sich bei Dünung leichter halten, dauert aber länger.';
+
+  @override
+  String get info_term_ascentStages_label => 'Aufstiegsabschnitte';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'Der Plan kann für jeden Teil des Aufstiegs eine eigene Geschwindigkeit nutzen: bis zum ersten Stopp, zwischen Stopps und nahe der Oberfläche.';
+
+  @override
+  String get info_term_reserveGas_label => 'Reserve';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gas, das der Plan in jeder Flasche zurückhält und nie als nutzbar zählt.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'Setpoint-Wechseltiefe';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'Die Tiefe, in der der Plan beim Abstieg vom niedrigen auf den hohen Setpoint wechselt und beim Aufstieg zurück.';
+
+  @override
+  String get info_term_pscrRatio_label => 'pSCR-Verhältnis';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'Der Anteil jedes Ausatemzugs, den ein passiver halbgeschlossener Rebreather verwirft. Er bestimmt, wie weit der Sauerstoff im Kreislauf unter dem Versorgungsgas liegt.';
+
+  @override
+  String get info_term_turnFraction_label => 'Umkehranteil';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'Der Anteil des Startgases, den der Plan vor der Umkehr nutzt. Ein Drittel ist die übliche Regel für Höhlen und andere Overhead-Tauchgänge.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (Scooter)';
+
+  @override
+  String get info_term_dpv_body =>
+      'Ein Unterwasserscooter. Der Missionsplan berücksichtigt Akku, zurückgelegte Strecke und das Zurückschwimmen, falls ein Scooter ausfällt.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Ceiling-Verletzungen';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'Wie oft und wie weit eine Version des Tauchgangs flacher als das Ceiling des Modells war.';
+
+  @override
+  String get info_term_deepestStop_label => 'Tiefster Stopp';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'Die Tiefe des ersten nötigen Dekostopps.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Mindestgas-Reserve';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'Wie viel Gas an dem Punkt, an dem die Änderung eintrat, über dem Mindestgas übrig war.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Gas-leer-Zeit';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'Wann eine Flasche bei der Atemrate der Wiedergabe leer wäre.';
+
+  @override
+  String get info_term_whatIf_label => 'Tatsächlich und Was-wäre-wenn';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Tatsächlich rechnet den geloggten Tauchgang durch das Modell, Was-wäre-wenn rechnet ihn mit den im Tauchlabor hinzugefügten Änderungen.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Tiefe über die Zeit für den ganzen Tauchgang, mit jeder eingeschalteten Überlagerung auf derselben Zeitachse.';
 
@@ -62127,4 +62211,128 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       'Einen Punkt antippen, um ihn und seine Verbindungen hervorzuheben. Das Panel wählt Farben, Linienstil und Reichweite der Ansicht.';
+
+  @override
+  String get info_planner_results_summary =>
+      'Die wichtigsten Zahlen des aktuellen Plans, aktualisiert bei jeder Änderung.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'Der vom Modell geplante Aufstieg, eine Zeile je Stopp oder Gaswechsel, mit Tiefe, Dauer, Laufzeit und Gas.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'Wie viel jeder Flasche der Plan nutzt, mit Umkehrdruck und Mindestgas, wo der Anfangsdruck bekannt ist.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'Der Aufstieg im offenen System vom ungünstigsten Punkt, falls der Kreislauf ausfällt, und ob das mitgeführte Bailoutgas reicht.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'Der Plan neu gerechnet für Abweichungen: ein tieferer oder längerer Tauchgang oder ein verlorenes Gas.';
+
+  @override
+  String get info_planner_range_summary =>
+      'Wie sich der Plan ändert, wenn der Tauchgang tiefer oder länger als geplant ist.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'Der Scooterplan des Teams: Akkuverbrauch, Strecke und Zurückschwimmen, falls ein Scooter ausfällt.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'Was dieser Tauchgang dem nächsten hinterlässt: Oberflächenpause, verbleibender CNS-Wert und OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'Wie konservativ der Plan ist und wo der letzte Stopp liegt.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Ein niedrigerer GF Low verlegt den ersten Stopp tiefer, ein niedrigerer GF High verlängert die flachen Stopps. Die Ergebnisse aktualisieren sich bei jeder Änderung.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'Wie schnell der Plan in jedem Teil des Tauchgangs ab- und auftaucht.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Jede Rate gilt für ihren eigenen Teil des Tauchgangs. Die Ergebnisse aktualisieren sich bei jeder Änderung.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'Atemrate und Reserve, mit denen der Plan das Gas bemisst.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Eine Atemrate für den Grund eingeben oder aus geloggten Tauchgängen übernehmen, dazu die Reserve je Flasche.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'Wasserart und Höhe, die den Oberflächendruck festlegen, mit dem das Modell beginnt.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Wasserart wählen und die Höhe des Tauchplatzes eingeben.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'Die Setpoints, die der geschlossene Rebreather im Plan hält.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Niedrigen und hohen Setpoint sowie die Tiefe festlegen, in der der Plan zwischen ihnen wechselt.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'Wie der passive halbgeschlossene Rebreather im Plan modelliert wird.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Das vom Hersteller des Rebreathers angegebene Abgabeverhältnis eingeben.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'Wie weit die Notfallpläne gehen und nach welcher Regel der Gasplan umkehrt.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Festlegen, wie viel tiefer und länger die Notfallpläne gehen, dann Umkehrregel und -anteil wählen.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'Team, Scooter und Bedingungen hinter dem Missionsplan.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Taucher und Scooter, Akkureserve, Strömung und Schwimmgeschwindigkeit eingeben.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'Ausrüstung und Gewichte des Plans, mit denen der Auftrieb im Tauchgang vorhergesagt wird.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Anzug, Flaschen und Gewichte hinzufügen, um den vorhergesagten Auftrieb zu sehen.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'Die wichtigsten Ergebnisse der Was-wäre-wenn-Wiedergabe, eingefärbt danach, ob sie besser oder schlechter als der tatsächliche Tauchgang sind.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Jede Messgröße für den tatsächlichen Tauchgang und die Was-wäre-wenn-Version nebeneinander, mit der Differenz.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'Kompartimentbeladung beim Auftauchen jeder Version, tatsächlich und was wäre wenn.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'Der Auftrieb am letzten Stopp für jede Version des Tauchgangs.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Änderungen zum Ausprobieren an diesem Tauchgang, jede ab dem Zeitpunkt ihres Eintretens durch dasselbe Modell gerechnet.';
 }

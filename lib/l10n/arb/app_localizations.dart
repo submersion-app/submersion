@@ -97632,6 +97632,150 @@ abstract class AppLocalizations {
   /// **'How many links away from the chosen point the view reaches. One hop shows its direct connections only.'**
   String get info_term_hops_body;
 
+  /// No description provided for @info_term_lastStop_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Last stop'**
+  String get info_term_lastStop_label;
+
+  /// No description provided for @info_term_lastStop_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth of the shallowest decompression stop. A deeper last stop is easier to hold in swell but takes longer.'**
+  String get info_term_lastStop_body;
+
+  /// No description provided for @info_term_ascentStages_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascent stages'**
+  String get info_term_ascentStages_label;
+
+  /// No description provided for @info_term_ascentStages_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan can use a different speed for each part of the ascent: to the first stop, between stops and near the surface.'**
+  String get info_term_ascentStages_body;
+
+  /// No description provided for @info_term_reserveGas_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve'**
+  String get info_term_reserveGas_label;
+
+  /// No description provided for @info_term_reserveGas_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas the plan holds back in each cylinder and never counts as usable.'**
+  String get info_term_reserveGas_body;
+
+  /// No description provided for @info_term_setpointSwitchDepth_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint switch depth'**
+  String get info_term_setpointSwitchDepth_label;
+
+  /// No description provided for @info_term_setpointSwitchDepth_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth at which the plan moves from the low to the high setpoint on the way down, and back on the way up.'**
+  String get info_term_setpointSwitchDepth_body;
+
+  /// No description provided for @info_term_pscrRatio_label.
+  ///
+  /// In en, this message translates to:
+  /// **'pSCR ratio'**
+  String get info_term_pscrRatio_label;
+
+  /// No description provided for @info_term_pscrRatio_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The share of each exhaled breath a passive semi-closed rebreather discards. It sets how far the loop oxygen falls below the supply gas.'**
+  String get info_term_pscrRatio_body;
+
+  /// No description provided for @info_term_turnFraction_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn fraction'**
+  String get info_term_turnFraction_label;
+
+  /// No description provided for @info_term_turnFraction_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The share of the starting gas the plan uses before turning back. A third is the common rule for caves and other overhead dives.'**
+  String get info_term_turnFraction_body;
+
+  /// No description provided for @info_term_dpv_label.
+  ///
+  /// In en, this message translates to:
+  /// **'DPV (scooter)'**
+  String get info_term_dpv_label;
+
+  /// No description provided for @info_term_dpv_body.
+  ///
+  /// In en, this message translates to:
+  /// **'A diver propulsion vehicle. The mission plan covers the battery, the distance covered and the swim back if a scooter fails.'**
+  String get info_term_dpv_body;
+
+  /// No description provided for @info_term_ceilingViolation_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Ceiling violations'**
+  String get info_term_ceilingViolation_label;
+
+  /// No description provided for @info_term_ceilingViolation_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How often and how far a version of the dive went shallower than the model\'s ceiling.'**
+  String get info_term_ceilingViolation_body;
+
+  /// No description provided for @info_term_deepestStop_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepest stop'**
+  String get info_term_deepestStop_label;
+
+  /// No description provided for @info_term_deepestStop_body.
+  ///
+  /// In en, this message translates to:
+  /// **'The depth of the first required decompression stop.'**
+  String get info_term_deepestStop_body;
+
+  /// No description provided for @info_term_minGasMargin_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Min gas margin'**
+  String get info_term_minGasMargin_label;
+
+  /// No description provided for @info_term_minGasMargin_body.
+  ///
+  /// In en, this message translates to:
+  /// **'How much gas was left above the minimum gas at the point where the change happened.'**
+  String get info_term_minGasMargin_body;
+
+  /// No description provided for @info_term_gasOutTime_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas out time'**
+  String get info_term_gasOutTime_label;
+
+  /// No description provided for @info_term_gasOutTime_body.
+  ///
+  /// In en, this message translates to:
+  /// **'When a cylinder would run empty at the breathing rate the replay uses.'**
+  String get info_term_gasOutTime_body;
+
+  /// No description provided for @info_term_whatIf_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual and what if'**
+  String get info_term_whatIf_label;
+
+  /// No description provided for @info_term_whatIf_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual replays the logged dive through the model, and what if replays it with the changes added in the Dive Lab.'**
+  String get info_term_whatIf_body;
+
   /// No description provided for @info_diveLog_profile_summary.
   ///
   /// In en, this message translates to:
@@ -98015,6 +98159,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap a point to focus on it and its links. The panel chooses the colours, the line style and how far the view reaches.'**
   String get info_connections_display_howToUse;
+
+  /// No description provided for @info_planner_results_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The headline numbers for the plan as it stands, updated as the plan changes.'**
+  String get info_planner_results_summary;
+
+  /// No description provided for @info_planner_decoSchedule_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The ascent the model plans, one row per stop or gas switch, with its depth, time, running time and gas.'**
+  String get info_planner_decoSchedule_summary;
+
+  /// No description provided for @info_planner_gas_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How much of each cylinder the plan uses, with its turn pressure and minimum gas where the start pressure is known.'**
+  String get info_planner_gas_summary;
+
+  /// No description provided for @info_planner_bailout_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The open-circuit ascent from the worst point of the dive if the loop is lost, and whether the bailout gas carried covers it.'**
+  String get info_planner_bailout_summary;
+
+  /// No description provided for @info_planner_contingencies_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The plan worked again for things going differently: a deeper or longer dive, or a lost gas.'**
+  String get info_planner_contingencies_summary;
+
+  /// No description provided for @info_planner_range_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How the schedule changes if the dive goes deeper or stays longer than planned.'**
+  String get info_planner_range_summary;
+
+  /// No description provided for @info_planner_mission_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The scooter plan for the team: battery use, distance and the swim back if a scooter fails.'**
+  String get info_planner_mission_summary;
+
+  /// No description provided for @info_planner_carry_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'What this dive leaves for the next one: the surface interval, the CNS still carried and the OTU.'**
+  String get info_planner_carry_summary;
+
+  /// No description provided for @info_plannerSetup_deco_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How conservative the schedule is and where the last stop sits.'**
+  String get info_plannerSetup_deco_summary;
+
+  /// No description provided for @info_plannerSetup_deco_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Lower GF Low moves the first stop deeper, and lower GF High lengthens the shallow stops. The results update as each value changes.'**
+  String get info_plannerSetup_deco_howToUse;
+
+  /// No description provided for @info_plannerSetup_rates_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How fast the plan descends and ascends in each part of the dive.'**
+  String get info_plannerSetup_rates_summary;
+
+  /// No description provided for @info_plannerSetup_rates_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Each rate applies to its own part of the dive. The results update as a value changes.'**
+  String get info_plannerSetup_rates_howToUse;
+
+  /// No description provided for @info_plannerSetup_gas_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The breathing rate and reserve the plan uses to size the gas.'**
+  String get info_plannerSetup_gas_summary;
+
+  /// No description provided for @info_plannerSetup_gas_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a bottom breathing rate, or take it from logged dives, and the reserve to keep in each cylinder.'**
+  String get info_plannerSetup_gas_howToUse;
+
+  /// No description provided for @info_plannerSetup_environment_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The water type and altitude, which set the surface pressure the model starts from.'**
+  String get info_plannerSetup_environment_summary;
+
+  /// No description provided for @info_plannerSetup_environment_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the water type and enter the site\'s altitude.'**
+  String get info_plannerSetup_environment_howToUse;
+
+  /// No description provided for @info_plannerSetup_ccr_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The setpoints the closed-circuit rebreather holds during the plan.'**
+  String get info_plannerSetup_ccr_summary;
+
+  /// No description provided for @info_plannerSetup_ccr_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the low and high setpoints and the depth where the plan switches between them.'**
+  String get info_plannerSetup_ccr_howToUse;
+
+  /// No description provided for @info_plannerSetup_pscr_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How the passive semi-closed rebreather is modelled in the plan.'**
+  String get info_plannerSetup_pscr_summary;
+
+  /// No description provided for @info_plannerSetup_pscr_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the discard ratio given by the rebreather\'s maker.'**
+  String get info_plannerSetup_pscr_howToUse;
+
+  /// No description provided for @info_plannerSetup_contingencies_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'How far the contingency plans go and the rule the gas plan turns on.'**
+  String get info_plannerSetup_contingencies_summary;
+
+  /// No description provided for @info_plannerSetup_contingencies_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Set how much deeper and longer the contingency plans go, then pick a turn rule and fraction.'**
+  String get info_plannerSetup_contingencies_howToUse;
+
+  /// No description provided for @info_plannerSetup_dpvTeam_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The team, scooters and conditions behind the mission plan.'**
+  String get info_plannerSetup_dpvTeam_summary;
+
+  /// No description provided for @info_plannerSetup_dpvTeam_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the divers and scooters, the battery reserve, the current and the swim speed.'**
+  String get info_plannerSetup_dpvTeam_howToUse;
+
+  /// No description provided for @info_plannerSetup_gear_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The gear and weights on the plan, used to predict buoyancy through the dive.'**
+  String get info_plannerSetup_gear_summary;
+
+  /// No description provided for @info_plannerSetup_gear_howToUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the suit, cylinders and weights to see the predicted buoyancy.'**
+  String get info_plannerSetup_gear_howToUse;
+
+  /// No description provided for @info_diveLab_tiles_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'The main results of the what if replay, tinted by whether each got better or worse than the actual dive.'**
+  String get info_diveLab_tiles_summary;
+
+  /// No description provided for @info_diveLab_delta_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Each measure for the actual dive and the what if version side by side, with the difference.'**
+  String get info_diveLab_delta_summary;
+
+  /// No description provided for @info_diveLab_tissues_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Compartment loads as each version reaches the surface, actual and what if.'**
+  String get info_diveLab_tissues_summary;
+
+  /// No description provided for @info_diveLab_buoyancy_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy at the last stop for each version of the dive.'**
+  String get info_diveLab_buoyancy_summary;
+
+  /// No description provided for @info_diveLab_interventions_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes to try against this dive, each replayed through the same model from the moment it applies.'**
+  String get info_diveLab_interventions_summary;
 }
 
 class _AppLocalizationsDelegate

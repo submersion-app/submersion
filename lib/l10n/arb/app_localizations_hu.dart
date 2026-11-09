@@ -61655,6 +61655,90 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hány kapcsolatnyira terjed a nézet a kiválasztott ponttól. Egy lépés csak a közvetlen kapcsolatait mutatja.';
 
   @override
+  String get info_term_lastStop_label => 'Utolsó megálló';
+
+  @override
+  String get info_term_lastStop_body =>
+      'A legsekélyebb dekómegálló mélysége. A mélyebb utolsó megálló hullámzásban könnyebben tartható, de tovább tart.';
+
+  @override
+  String get info_term_ascentStages_label => 'Emelkedési szakaszok';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'A terv az emelkedés minden részéhez más sebességet használhat: az első megállóig, a megállók között és a felszín közelében.';
+
+  @override
+  String get info_term_reserveGas_label => 'Tartalék';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gáz, amelyet a terv minden palackban visszatart, és sosem számít felhasználhatónak.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'Setpoint-váltási mélység';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'Az a mélység, ahol a terv lefelé az alacsony setpointról a magasra vált, felfelé pedig vissza.';
+
+  @override
+  String get info_term_pscrRatio_label => 'pSCR-arány';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'Az egyes kilégzések azon része, amelyet a passzív félig zárt rebreather kienged. Ez szabja meg, mennyivel marad a hurok oxigénje a táplálógáz alatt.';
+
+  @override
+  String get info_term_turnFraction_label => 'Visszafordulási hányad';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'A kezdeti gáz azon része, amelyet a terv a visszafordulás előtt felhasznál. Az egyharmad a szokásos szabály barlangban és más zárt terekben.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (robogó)';
+
+  @override
+  String get info_term_dpv_body =>
+      'Búvárrobogó. A küldetésterv számol az akkumulátorral, a megtett távval és a visszaúszással, ha egy robogó meghibásodik.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Plafonsértések';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'Milyen gyakran és mennyivel ment a merülés egy változata a modell plafonja fölé.';
+
+  @override
+  String get info_term_deepestStop_label => 'Legmélyebb megálló';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'Az első kötelező dekómegálló mélysége.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Minimális gáz tartaléka';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'Mennyi gáz maradt a minimális gáz fölött abban a pontban, ahol a változás történt.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Gázkifogyás ideje';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'Mikor ürülne ki egy palack az újrajátszás légzési ütemével.';
+
+  @override
+  String get info_term_whatIf_label => 'Tényleges és mi lenne, ha';
+
+  @override
+  String get info_term_whatIf_body =>
+      'A tényleges a naplózott merülést játssza újra a modellel, a mi lenne, ha pedig a Merülési laborban hozzáadott változásokkal.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'A mélység az idő függvényében az egész merülésre, minden bekapcsolt réteggel ugyanazon az időtengelyen.';
 
@@ -61909,4 +61993,128 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       'Egy pontra koppintva az kerül fókuszba a kapcsolataival. A panelen választhatók a színek, a vonalstílus és a nézet hatóköre.';
+
+  @override
+  String get info_planner_results_summary =>
+      'A terv fő számai a jelenlegi állapotában, a terv módosításakor frissülve.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'A modell által tervezett emelkedés, megállónként vagy gázváltásonként egy sor, mélységgel, idővel, futóidővel és gázzal.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'Mennyit használ a terv az egyes palackokból, visszafordulási nyomással és minimális gázzal, ahol a kezdőnyomás ismert.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'A nyitott rendszerű emelkedés a merülés legrosszabb pontjáról, ha a hurok kiesik, és hogy elég-e hozzá a vitt bailout-gáz.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'A terv újraszámolva eltérésekre: mélyebb vagy hosszabb merülés, vagy egy gáz elvesztése.';
+
+  @override
+  String get info_planner_range_summary =>
+      'Hogyan változik a menetrend, ha a merülés mélyebb vagy hosszabb a tervezettnél.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'A csapat robogóterve: akkumulátor-használat, táv és visszaúszás, ha egy robogó meghibásodik.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'Mit hagy ez a merülés a következőre: a felszíni időt, a még meglévő CNS-t és az OTU-t.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'Mennyire óvatos a menetrend, és hol van az utolsó megálló.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Alacsonyabb GF Low mélyebbre teszi az első megállót, alacsonyabb GF High hosszabbá teszi a sekély megállókat. Az eredmények minden változtatáskor frissülnek.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'Milyen gyorsan süllyed és emelkedik a terv a merülés egyes részeiben.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Minden sebesség a merülés saját részére vonatkozik. Az eredmények érték változásakor frissülnek.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'A légzési ütem és a tartalék, amellyel a terv a gázt méretezi.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Adja meg a fenéken mért légzési ütemet, vagy vegye át a naplózott merülésekből, és a palackonként megtartandó tartalékot.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'A víz típusa és a magasság, amelyek a modell kiinduló felszíni nyomását adják.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Válassza ki a víz típusát, és adja meg a hely magasságát.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'A setpointok, amelyeket a zárt rendszerű rebreather a terv során tart.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Adja meg az alacsony és a magas setpointot, valamint a mélységet, ahol a terv vált köztük.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'Hogyan modellezi a terv a passzív félig zárt rebreathert.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Adja meg a rebreather gyártója által megadott kibocsátási arányt.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'Meddig terjednek a vészhelyzeti tervek, és milyen szabály szerint fordul vissza a gázterv.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Adja meg, mennyivel mélyebbre és hosszabbra mennek a vészhelyzeti tervek, majd válasszon visszafordulási szabályt és hányadot.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'A küldetésterv mögötti csapat, robogók és körülmények.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Adja meg a búvárokat és robogókat, az akkumulátortartalékot, az áramlást és az úszási sebességet.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'A terv felszerelése és súlyai, amelyekből a felhajtóerő előre jelezhető a merülés során.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Adja hozzá a ruhát, a palackokat és a súlyokat az előre jelzett felhajtóerőhöz.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'A mi lenne, ha újrajátszás fő eredményei, színezve aszerint, hogy jobbak vagy rosszabbak a tényleges merülésnél.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Minden mérték a tényleges merülésre és a mi lenne, ha változatra egymás mellett, a különbséggel.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'A kompartmentek terhelése, amikor az egyes változatok a felszínre érnek, tényleges és mi lenne, ha.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'A felhajtóerő az utolsó megállónál a merülés minden változatára.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Kipróbálható változtatások erre a merülésre, mindegyik ugyanazzal a modellel újrajátszva attól a ponttól, ahol érvényes.';
 }

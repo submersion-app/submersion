@@ -58179,6 +58179,81 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_term_hops_body => '视图从所选点向外延伸的连线层数。一跳只显示其直接连接。';
 
   @override
+  String get info_term_lastStop_label => '最后停留';
+
+  @override
+  String get info_term_lastStop_body => '最浅减压停留的深度。较深的最后停留在涌浪中更容易保持，但耗时更长。';
+
+  @override
+  String get info_term_ascentStages_label => '上升阶段';
+
+  @override
+  String get info_term_ascentStages_body =>
+      '计划可为上升的每一段使用不同速度：到第一个停留、停留之间以及接近水面时。';
+
+  @override
+  String get info_term_reserveGas_label => '储备';
+
+  @override
+  String get info_term_reserveGas_body => '计划在每个气瓶中保留、从不计为可用的气体。';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => '设定点切换深度';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      '计划在下潜时由低设定点切换到高设定点、上升时切回的深度。';
+
+  @override
+  String get info_term_pscrRatio_label => 'pSCR 比例';
+
+  @override
+  String get info_term_pscrRatio_body => '被动式半闭路循环呼吸器每次呼气排出的比例。它决定回路中的氧比供气低多少。';
+
+  @override
+  String get info_term_turnFraction_label => '折返比例';
+
+  @override
+  String get info_term_turnFraction_body =>
+      '计划折返前使用的初始气体比例。三分之一是洞穴及其他顶部封闭潜水的常用规则。';
+
+  @override
+  String get info_term_dpv_label => 'DPV（水下推进器）';
+
+  @override
+  String get info_term_dpv_body => '潜水员推进器。任务计划涵盖电池、行进距离以及推进器故障时游回的情况。';
+
+  @override
+  String get info_term_ceilingViolation_label => '违反上限深度';
+
+  @override
+  String get info_term_ceilingViolation_body => '某个版本的潜水比模型上限深度更浅的次数和幅度。';
+
+  @override
+  String get info_term_deepestStop_label => '最深停留';
+
+  @override
+  String get info_term_deepestStop_body => '第一个必需减压停留的深度。';
+
+  @override
+  String get info_term_minGasMargin_label => '最低气量余量';
+
+  @override
+  String get info_term_minGasMargin_body => '变更发生时，气量高于最低气量的剩余部分。';
+
+  @override
+  String get info_term_gasOutTime_label => '气体耗尽时间';
+
+  @override
+  String get info_term_gasOutTime_body => '按照重放所用的呼吸速率，气瓶何时会耗尽。';
+
+  @override
+  String get info_term_whatIf_label => '实际与假设';
+
+  @override
+  String get info_term_whatIf_body => '实际是用模型重放记录的潜水，假设是在潜水实验室加入变更后再重放。';
+
+  @override
   String get info_diveLog_profile_summary =>
       '整次潜水的深度随时间变化，每个已开启的叠加层都绘制在同一时间轴上。';
 
@@ -58395,4 +58470,105 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       '点击一个点可聚焦该点及其连线。面板用于选择颜色、线型和视图范围。';
+
+  @override
+  String get info_planner_results_summary => '当前计划的主要数字，计划变化时随之更新。';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      '模型规划的上升过程，每个停留或换气一行，包含深度、时长、累计时间和气体。';
+
+  @override
+  String get info_planner_gas_summary => '计划使用每个气瓶的气量，以及已知起始压力时的折返压力和最低气量。';
+
+  @override
+  String get info_planner_bailout_summary =>
+      '若回路失效，从潜水最不利点开始的开路上升，以及携带的应急气体是否足够。';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      '针对不同情况重新计算的计划：更深或更长的潜水，或丢失某种气体。';
+
+  @override
+  String get info_planner_range_summary => '若潜水比计划更深或更久，时间表会如何变化。';
+
+  @override
+  String get info_planner_mission_summary => '团队的推进器计划：电池消耗、距离以及推进器故障时的游回。';
+
+  @override
+  String get info_planner_carry_summary =>
+      '本次潜水留给下一次的影响：水面休息时间、仍残留的 CNS 和 OTU。';
+
+  @override
+  String get info_plannerSetup_deco_summary => '时间表的保守程度以及最后停留的位置。';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      '降低 GF Low 会使第一个停留更深，降低 GF High 会延长浅处停留。每次修改后结果都会更新。';
+
+  @override
+  String get info_plannerSetup_rates_summary => '计划在潜水各阶段的下潜和上升速度。';
+
+  @override
+  String get info_plannerSetup_rates_howToUse => '每个速率适用于潜水的对应阶段。数值变化时结果会更新。';
+
+  @override
+  String get info_plannerSetup_gas_summary => '计划用于估算气量的呼吸速率和储备。';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      '输入水底呼吸速率，或从已记录的潜水中获取，并设置每个气瓶保留的储备。';
+
+  @override
+  String get info_plannerSetup_environment_summary => '水体类型和海拔，它们决定模型起算的水面气压。';
+
+  @override
+  String get info_plannerSetup_environment_howToUse => '选择水体类型并输入潜点海拔。';
+
+  @override
+  String get info_plannerSetup_ccr_summary => '计划中闭路循环呼吸器保持的设定点。';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse => '设置低、高设定点以及计划在两者之间切换的深度。';
+
+  @override
+  String get info_plannerSetup_pscr_summary => '计划中被动式半闭路循环呼吸器的建模方式。';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse => '输入循环呼吸器制造商给出的排放比例。';
+
+  @override
+  String get info_plannerSetup_contingencies_summary => '应急计划的范围以及气体计划的折返规则。';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      '设置应急计划再加深、加长多少，然后选择折返规则和比例。';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary => '任务计划所依据的团队、推进器和条件。';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse => '输入潜水员和推进器、电池储备、水流和游速。';
+
+  @override
+  String get info_plannerSetup_gear_summary => '计划中的装备和配重，用于预测整次潜水的浮力。';
+
+  @override
+  String get info_plannerSetup_gear_howToUse => '添加潜水服、气瓶和配重即可查看预测浮力。';
+
+  @override
+  String get info_diveLab_tiles_summary => '假设重放的主要结果，按比实际潜水更好或更差着色。';
+
+  @override
+  String get info_diveLab_delta_summary => '实际潜水与假设版本的各项数值并列，并显示差值。';
+
+  @override
+  String get info_diveLab_tissues_summary => '各版本到达水面时的舱室负荷：实际与假设。';
+
+  @override
+  String get info_diveLab_buoyancy_summary => '每个潜水版本在最后停留时的浮力。';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      '可在本次潜水上尝试的变更，每项都从其生效时刻起用同一模型重放。';
 }

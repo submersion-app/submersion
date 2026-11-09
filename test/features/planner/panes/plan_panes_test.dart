@@ -10,6 +10,7 @@ import 'package:submersion/features/planner/presentation/panes/plan_results_pane
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../helpers/planner_results.dart';
 import '../../../helpers/test_app.dart';
@@ -109,5 +110,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(PlanStatTile), findsNWidgets(4));
     expect(find.text('RUNTIME'), findsOneWidget);
+  });
+  testWidgets('the results tiles carry one info icon', (tester) async {
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: SizedBox(
+          width: 340,
+          height: 700,
+          child: PlanResultsPane(controller: controller),
+        ),
+      ),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanResultsPane)),
+    );
+    container
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoCorner), findsOneWidget);
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

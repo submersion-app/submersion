@@ -61983,6 +61983,91 @@ class AppLocalizationsPt extends AppLocalizations {
       'Quantas ligações a partir do ponto escolhido a vista alcança. Um salto mostra só as ligações diretas.';
 
   @override
+  String get info_term_lastStop_label => 'Última paragem';
+
+  @override
+  String get info_term_lastStop_body =>
+      'A profundidade da paragem de descompressão mais rasa. Uma última paragem mais funda é mais fácil de manter com ondulação, mas demora mais.';
+
+  @override
+  String get info_term_ascentStages_label => 'Fases da subida';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'O plano pode usar uma velocidade diferente para cada parte da subida: até à primeira paragem, entre paragens e perto da superfície.';
+
+  @override
+  String get info_term_reserveGas_label => 'Reserva';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gás que o plano guarda em cada garrafa e nunca conta como utilizável.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label =>
+      'Profundidade de troca de setpoint';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'A profundidade a que o plano passa do setpoint baixo para o alto na descida, e de volta na subida.';
+
+  @override
+  String get info_term_pscrRatio_label => 'Rácio pSCR';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'A parte de cada expiração que um rebreather semifechado passivo descarta. Define quanto o oxigénio do circuito fica abaixo do gás de alimentação.';
+
+  @override
+  String get info_term_turnFraction_label => 'Fração de retorno';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'A parte do gás inicial que o plano usa antes de voltar. Um terço é a regra comum em grutas e noutros ambientes fechados.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (scooter)';
+
+  @override
+  String get info_term_dpv_body =>
+      'Um veículo de propulsão para mergulhadores. O plano de missão cobre a bateria, a distância percorrida e o regresso a nado se uma scooter falhar.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Violações do teto';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'Quantas vezes e quanto uma versão do mergulho subiu acima do teto do modelo.';
+
+  @override
+  String get info_term_deepestStop_label => 'Paragem mais funda';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'A profundidade da primeira paragem de descompressão obrigatória.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Margem de gás mínimo';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'Quanto gás restava acima do gás mínimo no ponto em que a alteração aconteceu.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Momento sem gás';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'Quando uma garrafa ficaria vazia ao ritmo respiratório que a repetição usa.';
+
+  @override
+  String get info_term_whatIf_label => 'Real e e se';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Real repete o mergulho registado no modelo, e e se repete-o com as alterações acrescentadas no Laboratório de mergulho.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Profundidade ao longo do tempo para todo o mergulho, com cada camada ativa desenhada no mesmo eixo do tempo.';
 
@@ -62237,4 +62322,128 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       'Toque num ponto para o destacar com as suas ligações. O painel escolhe as cores, o estilo das linhas e o alcance da vista.';
+
+  @override
+  String get info_planner_results_summary =>
+      'Os números principais do plano tal como está, atualizados a cada alteração.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'A subida que o modelo planeia, uma linha por paragem ou troca de gás, com profundidade, tempo, tempo total e gás.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'Quanto o plano usa de cada garrafa, com a pressão de retorno e o gás mínimo onde a pressão inicial é conhecida.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'A subida em circuito aberto a partir do pior ponto do mergulho se o circuito falhar, e se o gás de bailout levado chega.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'O plano recalculado para o caso de as coisas mudarem: um mergulho mais fundo ou longo, ou a perda de um gás.';
+
+  @override
+  String get info_planner_range_summary =>
+      'Como o plano muda se o mergulho for mais fundo ou durar mais do que o previsto.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'O plano de scooters da equipa: uso da bateria, distância e regresso a nado se uma scooter falhar.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'O que este mergulho deixa para o seguinte: o intervalo de superfície, o CNS ainda presente e as OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'Quão conservador é o plano e onde fica a última paragem.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Baixar o GF Low torna a primeira paragem mais funda e baixar o GF High alonga as paragens rasas. Os resultados atualizam a cada alteração.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'A que velocidade o plano desce e sobe em cada parte do mergulho.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Cada velocidade aplica-se à sua parte do mergulho. Os resultados atualizam quando um valor muda.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'O ritmo respiratório e a reserva que o plano usa para calcular o gás.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Introduza um ritmo respiratório de fundo, ou use o dos mergulhos registados, e a reserva a manter em cada garrafa.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'O tipo de água e a altitude, que definem a pressão de superfície de que o modelo parte.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Escolha o tipo de água e introduza a altitude do local.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'Os setpoints que o rebreather de circuito fechado mantém durante o plano.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Defina os setpoints baixo e alto e a profundidade a que o plano troca entre eles.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'Como o rebreather semifechado passivo é modelado no plano.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Introduza o rácio de descarte indicado pelo fabricante do rebreather.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'Até onde vão os planos de contingência e a regra de retorno do plano de gás.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Defina quanto mais fundo e longo vão os planos de contingência e escolha a regra e a fração de retorno.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'A equipa, as scooters e as condições por trás do plano de missão.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Introduza os mergulhadores e scooters, a reserva da bateria, a corrente e a velocidade a nado.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'O equipamento e o lastro do plano, usados para prever a flutuabilidade ao longo do mergulho.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Adicione o fato, as garrafas e o lastro para ver a flutuabilidade prevista.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'Os resultados principais da repetição e se, coloridos conforme melhorem ou piorem face ao mergulho real.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Cada medida do mergulho real e da versão e se lado a lado, com a diferença.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'A carga dos compartimentos quando cada versão chega à superfície, real e e se.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'A flutuabilidade na última paragem para cada versão do mergulho.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Alterações a experimentar neste mergulho, cada uma repetida pelo mesmo modelo a partir do momento em que se aplica.';
 }

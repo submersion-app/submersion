@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_ma
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -152,5 +153,28 @@ void main() {
       find.byWidgetPredicate((w) => w is PlanStatTile && w.label == 'Back gas'),
     );
     expect(tile.value, const UnitFormatter(AppSettings()).formatPressure(back));
+  });
+  testWidgets('the tile grid has one info icon and no tile has its own', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    final inputs = _inputs();
+    final outcome = _outcome(inputs);
+    await tester.pumpWidget(
+      _harness(LabDeltaPanel(inputs: inputs, outcome: outcome)),
+    );
+    await tester.pump();
+
+    expect(find.byType(InfoCorner), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(PlanStatTile),
+        matching: find.byType(InfoButton),
+      ),
+      findsNothing,
+    );
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

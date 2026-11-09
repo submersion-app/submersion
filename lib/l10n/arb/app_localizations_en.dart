@@ -61032,6 +61032,90 @@ class AppLocalizationsEn extends AppLocalizations {
       'How many links away from the chosen point the view reaches. One hop shows its direct connections only.';
 
   @override
+  String get info_term_lastStop_label => 'Last stop';
+
+  @override
+  String get info_term_lastStop_body =>
+      'The depth of the shallowest decompression stop. A deeper last stop is easier to hold in swell but takes longer.';
+
+  @override
+  String get info_term_ascentStages_label => 'Ascent stages';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'The plan can use a different speed for each part of the ascent: to the first stop, between stops and near the surface.';
+
+  @override
+  String get info_term_reserveGas_label => 'Reserve';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gas the plan holds back in each cylinder and never counts as usable.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'Setpoint switch depth';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'The depth at which the plan moves from the low to the high setpoint on the way down, and back on the way up.';
+
+  @override
+  String get info_term_pscrRatio_label => 'pSCR ratio';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'The share of each exhaled breath a passive semi-closed rebreather discards. It sets how far the loop oxygen falls below the supply gas.';
+
+  @override
+  String get info_term_turnFraction_label => 'Turn fraction';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'The share of the starting gas the plan uses before turning back. A third is the common rule for caves and other overhead dives.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (scooter)';
+
+  @override
+  String get info_term_dpv_body =>
+      'A diver propulsion vehicle. The mission plan covers the battery, the distance covered and the swim back if a scooter fails.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Ceiling violations';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'How often and how far a version of the dive went shallower than the model\'s ceiling.';
+
+  @override
+  String get info_term_deepestStop_label => 'Deepest stop';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'The depth of the first required decompression stop.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Min gas margin';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'How much gas was left above the minimum gas at the point where the change happened.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Gas out time';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'When a cylinder would run empty at the breathing rate the replay uses.';
+
+  @override
+  String get info_term_whatIf_label => 'Actual and what if';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Actual replays the logged dive through the model, and what if replays it with the changes added in the Dive Lab.';
+
+  @override
   String get info_diveLog_profile_summary =>
       'Depth over time for the whole dive, with each overlay that is switched on drawn on the same time axis.';
 
@@ -61286,4 +61370,128 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_connections_display_howToUse =>
       'Tap a point to focus on it and its links. The panel chooses the colours, the line style and how far the view reaches.';
+
+  @override
+  String get info_planner_results_summary =>
+      'The headline numbers for the plan as it stands, updated as the plan changes.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'The ascent the model plans, one row per stop or gas switch, with its depth, time, running time and gas.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'How much of each cylinder the plan uses, with its turn pressure and minimum gas where the start pressure is known.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'The open-circuit ascent from the worst point of the dive if the loop is lost, and whether the bailout gas carried covers it.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'The plan worked again for things going differently: a deeper or longer dive, or a lost gas.';
+
+  @override
+  String get info_planner_range_summary =>
+      'How the schedule changes if the dive goes deeper or stays longer than planned.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'The scooter plan for the team: battery use, distance and the swim back if a scooter fails.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'What this dive leaves for the next one: the surface interval, the CNS still carried and the OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'How conservative the schedule is and where the last stop sits.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Lower GF Low moves the first stop deeper, and lower GF High lengthens the shallow stops. The results update as each value changes.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'How fast the plan descends and ascends in each part of the dive.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Each rate applies to its own part of the dive. The results update as a value changes.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'The breathing rate and reserve the plan uses to size the gas.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Enter a bottom breathing rate, or take it from logged dives, and the reserve to keep in each cylinder.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'The water type and altitude, which set the surface pressure the model starts from.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Pick the water type and enter the site\'s altitude.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'The setpoints the closed-circuit rebreather holds during the plan.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Set the low and high setpoints and the depth where the plan switches between them.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'How the passive semi-closed rebreather is modelled in the plan.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Enter the discard ratio given by the rebreather\'s maker.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'How far the contingency plans go and the rule the gas plan turns on.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Set how much deeper and longer the contingency plans go, then pick a turn rule and fraction.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'The team, scooters and conditions behind the mission plan.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Enter the divers and scooters, the battery reserve, the current and the swim speed.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'The gear and weights on the plan, used to predict buoyancy through the dive.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Add the suit, cylinders and weights to see the predicted buoyancy.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'The main results of the what if replay, tinted by whether each got better or worse than the actual dive.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Each measure for the actual dive and the what if version side by side, with the difference.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'Compartment loads as each version reaches the surface, actual and what if.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'Buoyancy at the last stop for each version of the dive.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Changes to try against this dive, each replayed through the same model from the moment it applies.';
 }
