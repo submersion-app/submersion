@@ -25,11 +25,15 @@ class _FakeApplyRepository extends TransmitterRepository {
 
   @override
   Future<ApplyToExistingResult> previewApplyToExistingDives(
-    Transmitter t,
-  ) async => preview;
+    Transmitter t, {
+    Iterable<String> slotTankIds = const [],
+  }) async => preview;
 
   @override
-  Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
+  Future<ApplyToExistingResult> applyToExistingDives(
+    Transmitter t, {
+    Iterable<String> slotTankIds = const [],
+  }) async {
     if (failApply) throw StateError('database closed');
     applied.add(t.id);
     return preview;
