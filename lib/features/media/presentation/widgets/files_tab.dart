@@ -232,7 +232,9 @@ class FilesTab extends ConsumerWidget {
 
   String _commitLabel(BuildContext context, FilesTabState state) {
     final count = _committableCount(state);
-    return _ownsEveryFile
+    // Only a site session names its destination; a gear session (issue
+    // #3355) uses the plain label.
+    return target is SiteAttachTarget
         ? context.l10n.media_photoPicker_files_attachToSiteButton(count)
         : context.l10n.media_photoPicker_files_linkButton(count);
   }
@@ -268,7 +270,7 @@ class FilesTab extends ConsumerWidget {
     messenger.showSnackBar(
       SnackBar(
         content: Text(
-          _ownsEveryFile
+          target is SiteAttachTarget
               ? l10n.media_photoPicker_files_attachedToSiteCount(created.length)
               : l10n.media_photoPicker_files_linkedCount(created.length),
         ),

@@ -203,6 +203,20 @@ void main() {
     });
   });
 
+  test('gearGallery drops a group whose item no longer exists', () async {
+    final reg = await createItem('Reg');
+    await addMedia(equipmentId: reg.id);
+    // A peer's delete can leave a row naming an item this device lacks.
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+    await db.customStatement(
+      "UPDATE media SET equipment_id = 'missing-item' WHERE equipment_id = ?",
+      [reg.id],
+    );
+    await db.customStatement('PRAGMA foreign_keys = ON');
+
+    expect(await repository.gearGallery({'missing-item'}), isEmpty);
+  });
+
   test('setCover stamps updatedAt and marks equipment pending', () async {
     final item = await createItem('Reg');
     final photo = await addMedia(equipmentId: item.id);

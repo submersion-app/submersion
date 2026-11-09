@@ -170,10 +170,13 @@ class GearPhotoRepository {
       )..where((t) => t.id.isIn(byItem.keys))).get())
         row.id: row.name,
     };
-    // Insertion order follows the photos' newest-first order.
+    // Insertion order follows the photos' newest-first order. A row naming
+    // an item this device lacks (a peer's delete not yet reconciled) has no
+    // page to open, so its group is left out.
     return [
       for (final MapEntry(:key, :value) in byItem.entries)
-        GearPhotoGroup(equipmentId: key, name: names[key] ?? '', items: value),
+        if (names[key] case final name?)
+          GearPhotoGroup(equipmentId: key, name: name, items: value),
     ];
   }
 
