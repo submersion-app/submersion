@@ -20,6 +20,8 @@
   Cache-Control: no-cache
 /compute_worker.js
   Cache-Control: no-cache
+/media_stream_worker.js
+  Cache-Control: no-cache
 /sqlite3.wasm
   Cache-Control: no-cache
 /flutter_bootstrap.js
