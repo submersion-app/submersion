@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
-import 'package:submersion/features/insights/presentation/widgets/equipment/gear_report_row.dart';
 import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
+import 'package:submersion/features/insights/presentation/widgets/show_all_toggle.dart';
 
-/// A [RankingList] that shows its first [gearReportRowLimit] rows and opens
+/// A [RankingList] that shows its first [showAllRowLimit] rows and opens
 /// the rest in place behind "Show all" (issue #4385).
 ///
 /// Give it the whole ranking: the button appears only when there is more
@@ -18,7 +18,7 @@ class ExpandableRankingList extends StatefulWidget {
   const ExpandableRankingList({
     super.key,
     required this.items,
-    this.countLabel = 'dives',
+    required this.countLabel,
     this.showMedals = true,
     this.onItemTap,
   });
@@ -40,7 +40,7 @@ class _ExpandableRankingListState extends State<ExpandableRankingList> {
           showMedals: widget.showMedals,
           onItemTap: widget.onItemTap,
         ),
-        GearReportShowAll(
+        ShowAllToggle(
           itemCount: widget.items.length,
           expanded: _expanded,
           onChanged: (value) => setState(() => _expanded = value),
