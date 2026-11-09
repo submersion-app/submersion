@@ -29,8 +29,9 @@ final RegExp _breakingWhitespace = RegExp(r'[^\S\u00A0\u2007\u202F]+');
 /// splits. Every label in the bar shares the one factor so the bar keeps a
 /// single type size.
 ///
-/// [styles] are the label styles the bar can draw (selected, unselected);
-/// the widest of them decides. The result never takes a style below
+/// [styles] are the label styles the bar can draw (selected, unselected),
+/// already merged over the ambient text style; the widest of them decides.
+/// [locale] is the one the labels are drawn in, which picks fallback fonts. The result never takes a style below
 /// [minFontSize], and never grows a style that already sits below it.
 double fitNavBarLabelScale({
   required Iterable<String> labels,
@@ -38,6 +39,7 @@ double fitNavBarLabelScale({
   required double slotWidth,
   required TextScaler textScaler,
   required TextDirection textDirection,
+  Locale? locale,
   double minFontSize = kNavBarLabelMinFontSize,
 }) {
   final available = slotWidth - _kSlack;
@@ -53,7 +55,13 @@ double fitNavBarLabelScale({
     // A style without a size cannot be scaled, so it has no say.
     final fontSize = style.fontSize;
     if (fontSize == null || fontSize <= 0) continue;
-    final widest = _widestWord(words, style, textScaler, textDirection);
+    final widest = _widestWord(
+      words,
+      style,
+      textScaler: textScaler,
+      textDirection: textDirection,
+      locale: locale,
+    );
     if (widest <= available) continue;
     final floor = math.min(fontSize, minFontSize);
     // Drawn width follows the scaled size, which a nonlinear scaler (Android
@@ -91,13 +99,15 @@ double _largestFontSizeWithin(
 
 double _widestWord(
   Set<String> words,
-  TextStyle style,
-  TextScaler textScaler,
-  TextDirection textDirection,
-) {
+  TextStyle style, {
+  required TextScaler textScaler,
+  required TextDirection textDirection,
+  Locale? locale,
+}) {
   final painter = TextPainter(
     textDirection: textDirection,
     textScaler: textScaler,
+    locale: locale,
     maxLines: 1,
   );
   var widest = 0.0;
@@ -149,25 +159,33 @@ WidgetStateProperty<TextStyle?>? fittedNavBarLabelTextStyle(
       navBarTheme.labelPadding?.resolve(textDirection).horizontal ?? 0;
   final slotWidth =
       (barWidth - safeArea.horizontal) / labels.length - labelPadding;
+  // The label Text merges its style over the ambient one, so measure the
+  // merged style it is drawn with.
+  final ambient = DefaultTextStyle.of(context).style;
   final scale = fitNavBarLabelScale(
     labels: labels,
     styles: [
-      styleFor(const {WidgetState.selected}),
-      styleFor(const <WidgetState>{}),
-    ].nonNulls,
+      for (final states in const [
+        {WidgetState.selected},
+        <WidgetState>{},
+      ])
+        ambient.merge(styleFor(states)),
+    ],
     slotWidth: slotWidth,
     textScaler: MediaQuery.textScalerOf(
       context,
     ).clamp(maxScaleFactor: kNavBarLabelMaxTextScaleFactor),
     textDirection: textDirection,
+    locale: Localizations.maybeLocaleOf(context),
   );
   if (scale >= 1) return null;
 
   return WidgetStateProperty.resolveWith((states) {
     final style = styleFor(states);
-    final fontSize = style?.fontSize;
-    return fontSize == null
+    // A style without a size draws at the ambient one, which was measured.
+    final fontSize = style?.fontSize ?? ambient.fontSize;
+    return style == null || fontSize == null
         ? style
-        : style!.copyWith(fontSize: fontSize * scale);
+        : style.copyWith(fontSize: fontSize * scale);
   });
 }

@@ -43,6 +43,7 @@ Future<WidgetStateProperty<TextStyle?>?> _fittedStyle(
   required double barWidth,
   ThemeData? theme,
   EdgeInsets padding = EdgeInsets.zero,
+  TextStyle ambient = const TextStyle(),
 }) async {
   WidgetStateProperty<TextStyle?>? result;
   await tester.pumpWidget(
@@ -50,15 +51,18 @@ Future<WidgetStateProperty<TextStyle?>?> _fittedStyle(
       theme: theme,
       home: MediaQuery(
         data: MediaQueryData(padding: padding),
-        child: Builder(
-          builder: (context) {
-            result = fittedNavBarLabelTextStyle(
-              context,
-              labels: labels,
-              barWidth: barWidth,
-            );
-            return const SizedBox();
-          },
+        child: DefaultTextStyle.merge(
+          style: ambient,
+          child: Builder(
+            builder: (context) {
+              result = fittedNavBarLabelTextStyle(
+                context,
+                labels: labels,
+                barWidth: barWidth,
+              );
+              return const SizedBox();
+            },
+          ),
         ),
       ),
     ),
@@ -305,6 +309,27 @@ void main() {
         style!.resolve(<WidgetState>{})!.fontSize,
         lessThanOrEqualTo(12 * 54 / 60),
       );
+    });
+
+    testWidgets('measures the label merged over the ambient style', (
+      tester,
+    ) async {
+      // The themed style leaves letter spacing to the ambient style, which
+      // widens "Dives" from 60 to 80, past the 74 a slot has to spare.
+      final style = await _fittedStyle(
+        tester,
+        labels: labels,
+        barWidth: 375,
+        ambient: const TextStyle(letterSpacing: 4),
+        theme: ThemeData(
+          navigationBarTheme: const NavigationBarThemeData(
+            labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 12)),
+          ),
+        ),
+      );
+
+      expect(style, isNotNull);
+      expect(style!.resolve(<WidgetState>{})!.fontSize, lessThan(12));
     });
   });
 }
