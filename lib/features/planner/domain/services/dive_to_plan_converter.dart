@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:uuid/uuid.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 /// A waypoint of the simplified profile: elapsed seconds from the first
 /// sample and the snapped depth in metres. Consecutive breakpoints become
@@ -92,6 +93,9 @@ class DiveToPlanConverter {
   }) {
     assert(levels >= minLevels && levels <= maxLevels);
     final newId = idGenerator ?? _defaultId;
+    // A plan holds breathing gas only (issue #4243): a switch to a suit
+    // inflation bottle counts against the breathing cylinder on its mix.
+    gasSwitches = breathingRawGasSwitches(gasSwitches, dive.tanks);
 
     final tanks = _mapTanks(dive, defaults, gasSwitches);
     final points = breakpoints(
@@ -147,14 +151,18 @@ class DiveToPlanConverter {
   /// into the water, every switch target, and any cylinder whose logged
   /// pressure dropped. A carried cylinder outside this set was never used, so
   /// the What-if plan marks it lost to follow what really happened.
+  ///
+  /// A suit inflation bottle is never one of them (issue #4243).
   static Set<String> usedTankIds(Dive dive, List<GasSwitch> gasSwitches) {
-    if (dive.tanks.isEmpty) return const {};
-    final ordered = [...dive.tanks]..sort((a, b) => a.order.compareTo(b.order));
+    final breathing = dive.breathingTanks;
+    if (breathing.isEmpty) return const {};
+    final breathingIds = {for (final t in breathing) t.id};
+    final ordered = [...breathing]..sort((a, b) => a.order.compareTo(b.order));
     final used = <String>{ordered.first.id};
-    for (final s in gasSwitches) {
-      used.add(s.tankId);
+    for (final s in breathingRawGasSwitches(gasSwitches, dive.tanks)) {
+      if (breathingIds.contains(s.tankId)) used.add(s.tankId);
     }
-    for (final t in dive.tanks) {
+    for (final t in breathing) {
       final start = t.startPressure;
       final end = t.endPressure;
       if (start != null && end != null && start - end > 0) used.add(t.id);
@@ -395,7 +403,7 @@ class DiveToPlanConverter {
     DivePlanState defaults,
     List<GasSwitch> gasSwitches,
   ) {
-    if (dive.tanks.isEmpty) {
+    if (dive.breathingTanks.isEmpty) {
       return defaults.tanks.isNotEmpty ? defaults.tanks : const [];
     }
     final used = usedTankIds(dive, gasSwitches);

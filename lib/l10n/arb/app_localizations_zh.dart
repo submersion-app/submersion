@@ -1365,6 +1365,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
 
   @override
+  String get equipment_setEdit_historyAsk => '也将这些更改应用到这些潜水，还是仅从现在起？';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此套装出现在 $count 次已记录的潜水中。',
+      one: '此套装出现在 1 次已记录的潜水中。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => '红色';
 
   @override
@@ -13622,6 +13636,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => '阶段';
+
+  @override
+  String get enum_tankRole_suitInflation => '干衣充气';
 
   @override
   String get enum_tankRole_twinSet => '双瓶';
@@ -37815,6 +37832,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_valve_type => '阀门';
 
   @override
+  String get attrLabel_cylinder_use => '气瓶用途';
+
+  @override
   String get attrLabel_tank_identifier => '标识';
 
   @override
@@ -38170,6 +38190,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => '两用式';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => '呼吸气体';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => '干衣充气';
 
   @override
   String get attrChoice_connection_din => 'DIN';

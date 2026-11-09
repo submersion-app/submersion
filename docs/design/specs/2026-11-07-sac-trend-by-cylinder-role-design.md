@@ -101,7 +101,10 @@ Each line is a role group. A cylinder joins a group by its `TankRole`:
 | Bailout | `bailout` on an open-circuit dive, and bailout time on a CCR dive | See Bailout. |
 
 `diluent` and `oxygenSupply` cylinders on an open-circuit dive (a mislabelled
-log) join no group.
+log) join no group. Neither does a `suitInflation` bottle (issue #4243, added
+on main while this was in review): it is not breathed, so the per-cylinder
+service gives it no row, it never counts toward leaving a dive out, and a
+dive is a multi-cylinder dive only when it has two breathing cylinders.
 
 Sidemount is folded into Bottom gas (my call). A sidemount pair is breathed in
 turns on one gas, and `tankUsageWindows` gives both cylinders one shared window

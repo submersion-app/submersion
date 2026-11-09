@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// One contiguous period during a dive when a single gas mix was breathed.
@@ -62,6 +63,11 @@ List<GasUsageSegment> buildGasUsageSegments({
   GasMix? loopGas,
   bool onLoop = true,
 }) {
+  // A suit inflation bottle is not breathed (issue #4243): it never takes
+  // the start, and a switch to it counts against the breathing cylinder on
+  // its mix.
+  gasSwitches = breathingGasSwitches(gasSwitches, tanks);
+  tanks = breathingTanks(tanks);
   if (tanks.isEmpty || diveDurationSeconds <= 0) {
     return const <GasUsageSegment>[];
   }
@@ -210,6 +216,11 @@ Map<String, List<({int start, int end})>> buildActiveTankIntervals({
   bool onLoop = true,
 }) {
   final result = <String, List<({int start, int end})>>{};
+  // A suit inflation bottle is not breathed (issue #4243): it never takes
+  // the start, and a switch to it counts against the breathing cylinder on
+  // its mix.
+  gasSwitches = breathingGasSwitches(gasSwitches, tanks);
+  tanks = breathingTanks(tanks);
   if (tanks.isEmpty || diveDurationSeconds <= 0) return result;
 
   final startingTank = _startingTankOf(tanks, onLoop: onLoop);

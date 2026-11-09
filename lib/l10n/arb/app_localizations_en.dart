@@ -1413,6 +1413,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Show diver figure';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'Apply the changes to those dives as well, or only from now on?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'This set is on $count logged dives.',
+      one: 'This set is on 1 logged dive.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Red';
 
   @override
@@ -14088,6 +14103,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Suit Inflation';
 
   @override
   String get enum_tankRole_twinSet => 'Twin Set';
@@ -39530,6 +39548,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_valve_type => 'Valve';
 
   @override
+  String get attrLabel_cylinder_use => 'Cylinder use';
+
+  @override
   String get attrLabel_tank_identifier => 'Identifier';
 
   @override
@@ -39886,6 +39907,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Breathing gas';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Suit inflation';
 
   @override
   String get attrChoice_connection_din => 'DIN';

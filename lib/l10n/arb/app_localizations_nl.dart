@@ -1418,6 +1418,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => 'Duikerfiguur tonen';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Deze set staat op $count gelogde duiken.',
+      one: 'Deze set staat op 1 gelogde duik.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rood';
 
   @override
@@ -14206,6 +14221,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stagefles';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Droogpakfles';
 
   @override
   String get enum_tankRole_twinSet => 'Dubbelset';
@@ -39941,6 +39959,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_valve_type => 'Kraan';
 
   @override
+  String get attrLabel_cylinder_use => 'Gebruik van de fles';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificatie';
 
   @override
@@ -40297,6 +40318,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Ombouwbaar';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Ademgas';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Droogpakfles';
 
   @override
   String get attrChoice_connection_din => 'DIN';

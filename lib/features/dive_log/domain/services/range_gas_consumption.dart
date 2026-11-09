@@ -30,7 +30,8 @@ typedef RangeGasConsumption = ({double? sac, double? rmv});
 /// `referencePressureDrop`, with a cylinder whose readings reach the range and
 /// did not fall measured at zero (#3974); RMV sums every cylinder with a
 /// volume under [model]. Neither exists on a rebreather ([isRebreather]), whose
-/// cylinders do not drain with the diver's breathing (issue #3673).
+/// cylinders do not drain with the diver's breathing (issue #3673). A suit
+/// inflation bottle adds nothing to either (issue #4243).
 RangeGasConsumption rangeGasConsumption({
   required List<DiveTank> tanks,
   required Map<String, List<TankPressurePoint>> tankPressures,
@@ -42,6 +43,8 @@ RangeGasConsumption rangeGasConsumption({
   DiveEnvironment environment = DiveEnvironment.standard,
 }) {
   const none = (sac: null, rmv: null);
+  // A suit inflation bottle is not breathed (issue #4243).
+  tanks = breathingTanks(tanks);
   final span = plottedSpan(profile);
   if (isRebreather || span == null || tanks.isEmpty) return none;
 

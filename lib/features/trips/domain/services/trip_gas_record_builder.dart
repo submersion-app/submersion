@@ -103,7 +103,8 @@ TripGasRecordRow _row(
     fillPressure: fill == null
         ? null
         : fill.pressure ?? cylinder.workingPressure,
-    litres: _litres(t, gasModel),
+    // A suit inflation bottle is not breathed (issue #4243).
+    litres: t.breathing ? _litres(t, gasModel) : null,
   );
 }
 
@@ -134,9 +135,10 @@ TripGasRecordSlotTotal _slotTotal(
     cylinder: cylinder,
     dives: {for (final r in rows) r.tank.diveId}.length,
     litres: figures.isEmpty ? null : figures.fold<double>(0, (a, b) => a + b),
+    // A suit inflation bottle has no figure to leave out (issue #4243).
     leftOut: {
       for (final r in rows)
-        if (r.litres == null) r.tank.diveId,
+        if (r.tank.breathing && r.litres == null) r.tank.diveId,
     }.length,
   );
 }

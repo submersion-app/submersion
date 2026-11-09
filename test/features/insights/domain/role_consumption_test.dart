@@ -125,6 +125,10 @@ void main() {
       expect(consumptionRoleGroupOf(TankRole.diluent), isNull);
       expect(consumptionRoleGroupOf(TankRole.oxygenSupply), isNull);
     });
+
+    test('a suit inflation bottle joins no group', () {
+      expect(consumptionRoleGroupOf(TankRole.suitInflation), isNull);
+    });
   });
 
   group('roleConsumptionForDive', () {
@@ -669,6 +673,57 @@ void main() {
 
       expect(run.result.leftOut, isFalse);
       expect(run.result.rmv.keys, [ConsumptionRoleGroup.bottomGas]);
+    });
+
+    group('a suit inflation bottle (issue #4243)', () {
+      // Argon, listed first and losing gas, as an import writes it.
+      const suit = DiveTank(
+        id: 'suit',
+        volume: 0.85,
+        startPressure: 200,
+        endPressure: 120,
+        gasMix: GasMix(o2: 21),
+        role: TankRole.suitInflation,
+        order: 0,
+      );
+
+      void expectSameAs(DiveRoleConsumption a, DiveRoleConsumption b) {
+        expect(a.leftOut, b.leftOut);
+        expect(a.rmv.keys, b.rmv.keys);
+        for (final group in b.rmv.keys) {
+          expect(a.rmv[group], closeTo(b.rmv[group]!, 1e-9));
+          expect(a.sac[group], closeTo(b.sac[group]!, 1e-9));
+        }
+      }
+
+      test('changes nothing beside back gas and a switched deco', () {
+        final back = _back.copyWith(order: 1);
+        final deco = _deco.copyWith(order: 2);
+        final switches = [_switchTo('deco', 3000)];
+
+        final withSuit = _run(_dive([suit, back, deco]), switches: switches);
+        final without = _run(_dive([back, deco]), switches: switches);
+
+        expect(without.result.rmv.keys, hasLength(2));
+        expectSameAs(withSuit.result, without.result);
+      });
+
+      test('does not make a lone timed pony a dive to leave out', () {
+        // Alone, the pony is the dive's only breathing gas and its recorded
+        // time is the dive's; the bottle beside it is not a second cylinder.
+        final pony = _deco.copyWith(
+          id: 'pony',
+          role: TankRole.pony,
+          order: 1,
+          usageDuration: const Duration(minutes: 40),
+        );
+
+        final withSuit = _run(_dive([suit, pony]));
+        final without = _run(_dive([pony]));
+
+        expect(without.result.rmv.keys, [ConsumptionRoleGroup.pony]);
+        expectSameAs(withSuit.result, without.result);
+      });
     });
   });
 }

@@ -362,4 +362,71 @@ void main() {
     await pick(tester, faber);
     expect(find.text(l10n.diveLog_tank_ownCylinderFailed), findsOneWidget);
   });
+
+  testWidgets('a cylinder marked for suit inflation sets the role (#4243)', (
+    tester,
+  ) async {
+    final argon = await EquipmentRepository().createEquipment(
+      const EquipmentItem(
+        id: '',
+        name: 'Argon 0.85',
+        type: EquipmentType.tank,
+        attributes: [
+          EquipmentAttribute(
+            id: '',
+            equipmentId: '',
+            key: EquipmentAttrKeys.volumeL,
+            valueNum: 0.85,
+          ),
+          EquipmentAttribute(
+            id: '',
+            equipmentId: '',
+            key: EquipmentAttrKeys.cylinderUse,
+            valueText: 'suit_inflation',
+          ),
+        ],
+      ),
+    );
+    DiveTank? changed;
+    await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+      gear: [faber, argon],
+    );
+    await pick(tester, argon);
+
+    expect(changed!.role, TankRole.suitInflation);
+    // A small bottle keeps its two decimals (#4243): 0.85 L, not 0.8 L.
+    expect(changed!.volume, 0.85);
+  });
+
+  testWidgets('a small bottle opens and saves at two decimals (#4243)', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      tank: const DiveTank(id: 'tank-1', volume: 0.85, workingPressure: 200),
+    );
+
+    expect(find.widgetWithText(TextFormField, '0.85'), findsOneWidget);
+    await tester.enterText(find.widgetWithText(TextFormField, '0.85'), '0.4');
+    await tester.pumpAndSettle();
+    expect(changed!.volume, 0.4);
+  });
+
+  testWidgets('an unmarked cylinder leaves the role alone', (tester) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      onChanged: (t) => changed = t,
+      onOwnCylinderUsed: (_) async {},
+      tank: const DiveTank(id: 'tank-1', role: TankRole.stage),
+    );
+    await pick(tester, faber);
+
+    expect(changed!.role, TankRole.stage);
+  });
 }

@@ -58,8 +58,10 @@ extension InsightsRepositoryFocus on InsightsRepository {
               WHEN MAX(t.o2_percent) > 21.5 THEN 'nitrox'
               ELSE 'air'
             END
-            FROM dive_tanks t WHERE t.dive_id = d.id) AS gas_class,
+            FROM dive_tanks t WHERE t.dive_id = d.id
+              AND ${breathingTankSql('t')}) AS gas_class,
           (SELECT t.volume FROM dive_tanks t WHERE t.dive_id = d.id
+            AND ${breathingTankSql('t')}
             ORDER BY t.tank_order LIMIT 1) AS first_tank_volume,
           ${recordedWeightKgSql('d')} AS weight_amount,
           (SELECT CASE

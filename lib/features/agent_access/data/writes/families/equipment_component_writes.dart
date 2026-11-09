@@ -1,13 +1,17 @@
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/planned_dive_rescan.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 
 /// The parts of an assembly, through the repository its components card
 /// uses: a part is added at the end, given a role, swapped for another item
 /// in its place, moved to a position the assembly holds and removed. A part
 /// that would make an item part of itself is refused, as the card refuses
 /// it.
-class EquipmentComponentWrites extends WritableEntry {
+class EquipmentComponentWrites extends WritableEntry with PlannedDiveRescan {
   EquipmentComponentWrites(this._r);
 
   final RecordRepositories _r;
@@ -132,20 +136,96 @@ class EquipmentComponentWrites extends WritableEntry {
     return false;
   }
 
+  /// A part change follows on the planned dives that carry the assembly
+  /// (issue #4283); an agent never rewrites logged dives.
   @override
-  Future<String> create(String diverId, Map<String, Object?> values) async =>
-      (await _r.equipmentComponents.addComponent(
-        parentId: values['parent_equipment_id']! as String,
-        componentId: values['component_equipment_id']! as String,
-        role: values['role'] as String? ?? '',
-      )).id;
+  Future<Map<String, int>> createTouched(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => _plannedTouched(values['parent_equipment_id'] as String?);
+
+  @override
+  Future<SideEffects> sideEffects(
+    String id,
+    String? ownerId,
+    RecordUpdate update,
+    Map<String, Object?> document,
+  ) async => update.values.containsKey('component_equipment_id')
+      ? SideEffects(
+          touched: await _plannedTouched(
+            document['parent_equipment_id'] as String?,
+          ),
+        )
+      : const SideEffects();
+
+  @override
+  Future<DeleteReach> deleteReach(
+    String id, {
+    Map<String, Set<String>> alongside = const {},
+  }) async => DeleteReach(
+    touched: await _plannedTouched(
+      (await _r.equipmentComponents.getComponentById(id))?.parentEquipmentId,
+    ),
+  );
+
+  Future<Map<String, int>> _plannedTouched(String? assemblyId) async {
+    if (assemblyId == null) return const {};
+    final n = await _r.dives.countPlannedDivesWithAssembly(assemblyId);
+    return {if (n > 0) 'dives': n};
+  }
+
+  /// The stored part [id]. An update refuses one that is gone, as a set's
+  /// does: a swap needs the part it replaces, a move the assembly it is in.
+  Future<EquipmentComponent> _existing(String id) async =>
+      await _r.equipmentComponents.getComponentById(id) ??
+      (throw AgentToolException(
+        AgentToolErrorCode.writeRefused,
+        'Equipment component $id no longer exists.',
+        details: {'id': id},
+      ));
+
+  /// Inside the apply's transaction, so a revert takes it back with the
+  /// part; the rescan waits for [afterApply], once the rows are committed.
+  Future<void> _followOnPlannedDives(
+    String assemblyId,
+    GearHistoryRewrite rewrite,
+  ) async => holdForRescan(
+    await _r.dives.rewriteAssemblyOnDives(
+      assemblyId,
+      [rewrite],
+      alsoLogged: false,
+      notify: false,
+    ),
+  );
+
+  @override
+  Future<String> create(String diverId, Map<String, Object?> values) async {
+    final parentId = values['parent_equipment_id']! as String;
+    final componentId = values['component_equipment_id']! as String;
+    final row = await _r.equipmentComponents.addComponent(
+      parentId: parentId,
+      componentId: componentId,
+      role: values['role'] as String? ?? '',
+    );
+    await _followOnPlannedDives(parentId, GearPartAdded(componentId));
+    return row.id;
+  }
 
   @override
   Future<void> update(String id, String? ownerId, RecordUpdate update) async {
     final components = _r.equipmentComponents;
     final v = update.values;
     if (v['component_equipment_id'] case final String componentId) {
+      // Read before the swap: the rewrite needs the part it replaces.
+      final before = await _existing(id);
       await components.replaceComponent(id, componentId);
+      await _followOnPlannedDives(
+        before.parentEquipmentId,
+        GearPartReplaced(
+          oldPartId: before.componentEquipmentId,
+          newPartId: componentId,
+        ),
+      );
     }
     if (v['role'] case final String role) {
       await components.updateRole(id, role);
@@ -153,9 +233,7 @@ class EquipmentComponentWrites extends WritableEntry {
     if (v['sort_order'] case final int slot) {
       // The assembly's parts trade places, so this one lands at [slot] and
       // the parts between shift by one, as a drag on the card does.
-      final row = (await components.getAllComponents()).firstWhere(
-        (c) => c.id == id,
-      );
+      final row = await _existing(id);
       final ordered = [
         for (final c in await components.getComponents(row.parentEquipmentId))
           if (c.id != id) c.id,
@@ -164,7 +242,17 @@ class EquipmentComponentWrites extends WritableEntry {
     }
   }
 
+  /// A part already gone, say with its assembly earlier in the same set,
+  /// has nothing left to replay on the dives.
   @override
-  Future<void> delete(String id, String? ownerId) =>
-      _r.equipmentComponents.removeComponent(id);
+  Future<void> delete(String id, String? ownerId) async {
+    final before = await _r.equipmentComponents.getComponentById(id);
+    await _r.equipmentComponents.removeComponent(id);
+    if (before != null) {
+      await _followOnPlannedDives(
+        before.parentEquipmentId,
+        GearPartRemoved(before.componentEquipmentId),
+      );
+    }
+  }
 }

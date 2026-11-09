@@ -2204,6 +2204,18 @@ abstract class AppLocalizations {
   /// **'Show diver figure'**
   String get equipment_setEdit_figureSwitch_title;
 
+  /// No description provided for @equipment_setEdit_historyAsk.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply the changes to those dives as well, or only from now on?'**
+  String get equipment_setEdit_historyAsk;
+
+  /// No description provided for @equipment_setEdit_historyOnDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{This set is on 1 logged dive.} other{This set is on {count} logged dives.}}'**
+  String equipment_setEdit_historyOnDives(num count);
+
   /// No description provided for @equipment_color_red.
   ///
   /// In en, this message translates to:
@@ -23100,6 +23112,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stage'**
   String get enum_tankRole_stage;
+
+  /// No description provided for @enum_tankRole_suitInflation.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit Inflation'**
+  String get enum_tankRole_suitInflation;
 
   /// No description provided for @enum_tankRole_twinSet.
   ///
@@ -63206,6 +63224,12 @@ abstract class AppLocalizations {
   /// **'Valve'**
   String get attrLabel_valve_type;
 
+  /// No description provided for @attrLabel_cylinder_use.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder use'**
+  String get attrLabel_cylinder_use;
+
   /// No description provided for @attrLabel_tank_identifier.
   ///
   /// In en, this message translates to:
@@ -63919,6 +63943,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Convertible'**
   String get attrChoice_valve_type_convertible;
+
+  /// No description provided for @attrChoice_cylinder_use_breathing_gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing gas'**
+  String get attrChoice_cylinder_use_breathing_gas;
+
+  /// No description provided for @attrChoice_cylinder_use_suit_inflation.
+  ///
+  /// In en, this message translates to:
+  /// **'Suit inflation'**
+  String get attrChoice_cylinder_use_suit_inflation;
 
   /// No description provided for @attrChoice_connection_din.
   ///

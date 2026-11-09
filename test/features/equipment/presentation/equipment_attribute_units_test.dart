@@ -300,6 +300,16 @@ void main() {
         ),
         '11.2',
       );
+      // A small cylinder keeps two (#4243): a 0.85 L argon bottle is not a
+      // 0.8 L one, the tank editor's rule.
+      expect(
+        formatAttributeNumberForEditing(
+          AttributeDimension.volumeL,
+          units,
+          0.85,
+        ),
+        '0.85',
+      );
     });
 
     test('a display value whole to one decimal drops the decimal', () {

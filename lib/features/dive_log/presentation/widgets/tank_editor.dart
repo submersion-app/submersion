@@ -204,7 +204,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             (widget.tank.volume! * widget.tank.workingPressure!) / 28.3168;
         volumeText = formatRoundedForInput(cuft, 1);
       } else {
-        volumeText = formatRoundedForInput(widget.tank.volume!, 1);
+        volumeText = formatRoundedForInput(
+          widget.tank.volume!,
+          UnitFormatter.tankVolumeLiterDecimals(widget.tank.volume!),
+        );
       }
     }
 
@@ -562,8 +565,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               _buildPressureRow(units),
             ],
 
-            // MOD display
-            _buildModInfo(gasMix, units, units.settings),
+            // MOD display: a suit inflation bottle is not breathed, so it
+            // has no MOD (issue #4243).
+            if (_role.isBreathingGas)
+              _buildModInfo(gasMix, units, units.settings),
           ],
         ),
       ),
@@ -1291,6 +1296,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         return;
       }
     }
+    // A cylinder marked as a suit inflation bottle sets the tank's role to
+    // match (issue #4243). The mark is a default for the pick, so a tank
+    // already in that role is left alone and nothing else is unset.
+    if (item.isSuitInflationCylinder && _role != TankRole.suitInflation) {
+      setState(() => _role = TankRole.suitInflation);
+      _notifyChange();
+    }
     final filled = _applyScannedSpec(
       passportId: passportId,
       volumeL: item.volumeL,
@@ -1417,15 +1429,21 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       if (sizeChanged && liters != null) {
         if (settings.volumeUnit == VolumeUnit.cubicFeet) {
           // Gas capacity needs a pressure. With none, the field is in
-          // liters, as _metricSpecs reads it.
+          // liters, as _metricSpecs reads it, and a small bottle keeps its
+          // two decimals there too (issue #4243).
+          final hasPressure = pressureBar != null && pressureBar > 0;
           final value =
               match?.volumeCuft ??
-              (pressureBar != null && pressureBar > 0
-                  ? liters * pressureBar / 28.3168
-                  : liters);
-          _volumeController.text = formatRoundedForInput(value, 1);
+              (hasPressure ? liters * pressureBar / 28.3168 : liters);
+          _volumeController.text = formatRoundedForInput(
+            value,
+            hasPressure ? 1 : UnitFormatter.tankVolumeLiterDecimals(liters),
+          );
         } else {
-          _volumeController.text = formatRoundedForInput(liters, 1);
+          _volumeController.text = formatRoundedForInput(
+            liters,
+            UnitFormatter.tankVolumeLiterDecimals(liters),
+          );
         }
       }
       if (workingPressureBar != null) {
@@ -1476,7 +1494,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       if (settings.volumeUnit == VolumeUnit.cubicFeet) {
         _volumeController.text = formatRoundedForInput(preset.volumeCuft, 1);
       } else {
-        _volumeController.text = formatRoundedForInput(preset.volumeLiters, 1);
+        _volumeController.text = formatRoundedForInput(
+          preset.volumeLiters,
+          UnitFormatter.tankVolumeLiterDecimals(preset.volumeLiters),
+        );
       }
       _workingPressureController.text = formatRoundedForInput(
         units.convertPressure(preset.workingPressureBar),

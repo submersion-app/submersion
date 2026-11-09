@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_consolidation_builder.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
@@ -446,6 +447,56 @@ void main() {
         expect(plan.tankMerges, isEmpty);
       },
     );
+
+    group('a suit inflation bottle (issue #4243)', () {
+      // Air in a suit bottle and air back gas with readings that agree: the
+      // gas mix alone cannot tell them apart.
+      const backGas = DiveTank(
+        id: 'p1',
+        gasMix: GasMix(o2: 21.0, he: 0.0),
+        startPressure: 200,
+      );
+      const suit = DiveTank(
+        id: 's1',
+        gasMix: GasMix(o2: 21.0, he: 0.0),
+        startPressure: 200,
+        role: TankRole.suitInflation,
+      );
+
+      Map<String, String> merges(DiveTank p, DiveTank s) => builder.build([
+        makeDive('p', entry: t, runtimeMin: 40, tanks: [p]),
+        makeDive(
+          's',
+          entry: t.add(const Duration(minutes: 10)),
+          runtimeMin: 30,
+          tanks: [s],
+        ),
+      ]).tankMerges;
+
+      test('never merges into breathing gas on its mix', () {
+        expect(merges(backGas, suit), isEmpty);
+        expect(
+          merges(suit.copyWith(id: 'p1'), backGas.copyWith(id: 's1')),
+          isEmpty,
+        );
+      });
+
+      test('merges with another suit bottle on its mix', () {
+        expect(merges(suit.copyWith(id: 'p1'), suit), {'s1': 'p1'});
+      });
+
+      test('still merges on a shared transmitter serial', () {
+        // One cylinder seen by two computers, one of which never learned
+        // its role: the transmitter is the identity.
+        expect(
+          merges(
+            backGas.copyWith(transmitterSerial: '180777'),
+            suit.copyWith(transmitterSerial: '180777'),
+          ),
+          {'s1': 'p1'},
+        );
+      });
+    });
 
     test('a zero sentinel serial on both sides is no identity at all', () {
       // "0" is libdivecomputer's "no transmitter"; two such tanks must fall

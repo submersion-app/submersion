@@ -173,7 +173,12 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
       _volumeController.text =
           settings.volumeUnit == VolumeUnit.cubicFeet && cuft != null
           ? formatRoundedForInput(cuft, 1)
-          : formatRoundedForInput(volumeL, 1);
+          // A small bottle keeps two decimals, as the tank editor does: a
+          // 0.85 L argon bottle must not save as 0.9 (issue #4243).
+          : formatRoundedForInput(
+              volumeL,
+              UnitFormatter.tankVolumeLiterDecimals(volumeL),
+            );
     } else {
       _volumeController.text = '';
     }
@@ -220,25 +225,31 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
           _workingPressureController.text.isEmpty;
     });
     if (_roleTouched) return;
+    // A cylinder marked as a suit inflation bottle says what the transmitter
+    // reads, ahead of any role its history suggests (issue #4243).
     final TankRole role;
-    try {
-      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
-      role = await ref
-          .read(transmitterRepositoryProvider)
-          .lastRoleForEquipment(item.id, diverId: diverId);
-    } catch (e, stackTrace) {
-      // The suggestion is a convenience: a failed lookup leaves Role as it
-      // is rather than blocking the pick.
-      _log.warning(
-        'Could not suggest a role from the cylinder history',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      return;
+    if (item.isSuitInflationCylinder) {
+      role = TankRole.suitInflation;
+    } else {
+      try {
+        final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+        role = await ref
+            .read(transmitterRepositoryProvider)
+            .lastRoleForEquipment(item.id, diverId: diverId);
+      } catch (e, stackTrace) {
+        // The suggestion is a convenience: a failed lookup leaves Role as it
+        // is rather than blocking the pick.
+        _log.warning(
+          'Could not suggest a role from the cylinder history',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return;
+      }
+      // The diver may have chosen a Role, or picked another cylinder, while
+      // the lookup ran; a late answer must not overwrite either.
+      if (!mounted || _roleTouched || _equipmentId != item.id) return;
     }
-    // The diver may have chosen a Role, or picked another cylinder, while
-    // the lookup ran; a late answer must not overwrite either.
-    if (!mounted || _roleTouched || _equipmentId != item.id) return;
     setState(() {
       _role = role;
       _roleFieldGeneration++;

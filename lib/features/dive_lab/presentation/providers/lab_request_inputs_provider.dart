@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/presentation/providers/gas_switch_p
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
 
 /// Everything the lab needs about a dive, assembled from the same providers
 /// the dive detail analysis uses, minus the scenario itself.
@@ -152,26 +153,35 @@ final labRequestInputsProvider = FutureProvider.autoDispose
             )
           : null;
 
+      final suitBottleIds = {
+        for (final t in dive.tanks)
+          if (!t.role.isBreathingGas) t.id,
+      };
       return LabRequestInputs(
         dive: dive,
         profile: profile,
         depths: depths,
         timestamps: timestamps,
         diveMode: dive.diveMode,
-        tanks: dive.tanks,
+        // A suit inflation bottle is not breathed (issue #4243): the lab plays
+        // what-ifs on breathing gas only, a switch to the bottle counts against
+        // the breathing cylinder on its mix, and its pressure series is left
+        // out, so nothing in the inputs names a cylinder they do not carry.
+        tanks: dive.breathingTanks,
         gasSwitches: [
-          for (final s in switches)
+          for (final s in breathingGasSwitches(switches, dive.tanks))
             ScenarioGasSwitch(timestamp: s.timestamp, tankId: s.tankId),
         ],
         tankPressures: {
           for (final entry in pressures.entries)
-            entry.key: [
-              for (final p in entry.value)
-                TankPressureSample(
-                  timestamp: p.timestamp,
-                  pressureBar: p.pressure,
-                ),
-            ],
+            if (!suitBottleIds.contains(entry.key))
+              entry.key: [
+                for (final p in entry.value)
+                  TankPressureSample(
+                    timestamp: p.timestamp,
+                    pressureBar: p.pressure,
+                  ),
+              ],
         },
         loopGasSegments: loopGas,
         rebreatherPpO2Curve: rebreather?.curve,

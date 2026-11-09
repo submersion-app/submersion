@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/features/dive_log/data/repositories/depth_bucket_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
+import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
@@ -98,6 +99,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_history_rewrite.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
 import 'package:submersion/features/equipment/domain/services/components_index.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -120,6 +122,7 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
 import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/gear_template_dive_queries.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_visibility_queries.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
@@ -3456,10 +3459,11 @@ class DiveRepository {
             // Correlated on d.id so SQLite reads only the kept dives' tanks
             // through idx_dive_tanks_dive_id, rather than grouping the whole
             // table for every diver.
+            // A suit inflation bottle is not the dive's gas (issue #4243).
             '(SELECT MAX(dt.o2_percent) FROM dive_tanks dt '
-            'WHERE dt.dive_id = d.id) AS max_o2, '
+            'WHERE dt.dive_id = d.id AND ${breathingTankSql('dt')}) AS max_o2, '
             '(SELECT MAX(dt.he_percent) FROM dive_tanks dt '
-            'WHERE dt.dive_id = d.id) AS max_he '
+            'WHERE dt.dive_id = d.id AND ${breathingTankSql('dt')}) AS max_he '
             'FROM dives d '
             'LEFT JOIN dive_sites s ON d.site_id = s.id '
             'LEFT JOIN trips t ON d.trip_id = t.id '
@@ -8098,55 +8102,172 @@ class DiveRepository {
     await _bumpDives([diveId], now);
   }
 
-  /// Ids of the dives that carry [equipmentId] as a gear row.
-  Future<List<String>> diveIdsWithEquipment(String equipmentId) async {
-    final rows =
-        await (_db.selectOnly(_db.diveEquipment, distinct: true)
-              ..addColumns([_db.diveEquipment.diveId])
-              ..where(_db.diveEquipment.equipmentId.equals(equipmentId)))
-            .get();
-    return [for (final r in rows) r.read(_db.diveEquipment.diveId)!];
-  }
+  /// How many logged dives carry [assemblyId] as a gear row: the dives
+  /// [rewriteAssemblyOnDives] visits with `alsoLogged`, so the "also update
+  /// N dives" question names the dives the answer changes (issue #4283).
+  Future<int> countLoggedDivesWithAssembly(String assemblyId) =>
+      _gearTemplates.countWithAssembly(assemblyId, planned: false);
 
-  /// Replays changes to an assembly's template on every past dive that
-  /// carries the assembly (issue #1487, "also update N past dives"). One
+  /// How many planned dives carry [assemblyId]: the ones every template
+  /// change reaches.
+  Future<int> countPlannedDivesWithAssembly(String assemblyId) =>
+      _gearTemplates.countWithAssembly(assemblyId, planned: true);
+
+  /// How many logged dives carry set [setId], through a gear row it put
+  /// there.
+  Future<int> countLoggedDivesWithSet(String setId) =>
+      _gearTemplates.countWithSet(setId, planned: false);
+
+  /// How many planned dives carry set [setId].
+  Future<int> countPlannedDivesWithSet(String setId) =>
+      _gearTemplates.countWithSet(setId, planned: true);
+
+  GearTemplateDiveQueries get _gearTemplates => GearTemplateDiveQueries(_db);
+
+  /// Replays changes to an assembly's template on the dives that carry the
+  /// assembly (issue #1487, "also update N past dives"): the planned ones
+  /// always, the logged ones only with [alsoLogged] (issue #4283). One
   /// transaction; each dive whose rows changed goes through the diff
   /// writer, so unchanged rows are neither tombstoned nor re-marked, and
-  /// is re-stamped so sync carries it. Returns how many dives changed.
+  /// is re-stamped so sync carries it. Returns the dives that changed.
   ///
-  /// [rewrites] are applied in order to each dive's rows and written once,
+  /// [rewrites] is the whole batch, replayed in order against each dive,
   /// so adding several parts at once costs one pass over the dives rather
   /// than one pass per part. The result is the same either way: the rules
   /// compose, and the diff writer compares against the rows on disk.
-  Future<int> rewriteAssemblyOnPastDives(
+  ///
+  /// A new part goes on a dive only as expanding the assembly fresh would
+  /// put it there: active, and usable by the dive's diver (an unowned dive:
+  /// the assembly owner's).
+  ///
+  /// With [notify] false the caller tells sync and queues the rescan of the
+  /// returned dives once its own transaction commits, as an agent apply
+  /// does: the entity rescans in `afterApply`, and `WriteApplier` tells
+  /// sync.
+  Future<List<String>> rewriteAssemblyOnDives(
     String assemblyId,
-    List<GearHistoryRewrite> rewrites,
-  ) async {
-    if (rewrites.isEmpty) return 0;
-    final diveIds = await diveIdsWithEquipment(assemblyId);
-    if (diveIds.isEmpty) return 0;
+    List<GearHistoryRewrite> rewrites, {
+    required bool alsoLogged,
+    bool notify = true,
+  }) async {
+    if (rewrites.isEmpty) return const [];
+    final templates = _gearTemplates;
+    final diveIds = await templates.diveIdsWithAssembly(
+      assemblyId,
+      alsoLogged: alsoLogged,
+    );
+    if (diveIds.isEmpty) return const [];
+    final incoming = {
+      for (final rewrite in rewrites)
+        ?switch (rewrite) {
+          GearPartAdded(:final partId) => partId,
+          GearPartReplaced(:final newPartId) => newPartId,
+          GearPartRemoved() => null,
+        },
+    };
+    final active = await _activeIdsAmong(incoming);
+    final usable = await templates.usableOnDives(
+      diveIds,
+      incoming,
+      fallbackDiverId: incoming.isEmpty
+          ? null
+          : await templates.ownerOfEquipment(assemblyId),
+    );
+    return _rewriteGearOn(diveIds, notify: notify, (rows, diveId) {
+      bool canAdd(String id) => active.contains(id) && usable(diveId, id);
+      var next = rows;
+      for (final rewrite in rewrites) {
+        next = rewrite.applyTo(next, assemblyId, canAdd: canAdd);
+      }
+      return next;
+    });
+  }
+
+  /// Replays changes to the members of set [setId] on the dives that carry
+  /// the set (issue #4283), planned ones always and logged ones only with
+  /// [alsoLogged], as [rewriteAssemblyOnDives] does, [notify] included. An
+  /// added member goes on a dive only when it is active and its diver may
+  /// use it, the filter applying the set already uses.
+  Future<List<String>> rewriteSetOnDives(
+    String setId,
+    List<SetHistoryRewrite> rewrites, {
+    required bool alsoLogged,
+    bool notify = true,
+  }) async {
+    if (rewrites.isEmpty) return const [];
+    final templates = _gearTemplates;
+    final diveIds = await templates.diveIdsWithSet(
+      setId,
+      alsoLogged: alsoLogged,
+    );
+    if (diveIds.isEmpty) return const [];
+    final members = await templates.membersOfSet(setId);
+    final added = [
+      for (final r in rewrites)
+        if (r is SetItemAdded) r.itemId,
+    ];
+    // A removal needs only the dive's rows and the members; what an
+    // addition puts on a dive is worked out only when there is one.
+    var index = ComponentsIndex.empty;
+    var active = const <String>{};
+    bool Function(String diveId, String id) usable = (_, _) => true;
+    if (added.isNotEmpty) {
+      index = await _loadComponentsIndex();
+      final candidates = {
+        for (final id in added) ...[id, ...index.descendantsOf(id)],
+      };
+      active = await _activeIdsAmong(candidates);
+      usable = await templates.usableOnDives(
+        diveIds,
+        candidates,
+        fallbackDiverId: await templates.ownerOfSet(setId),
+      );
+    }
+    return _rewriteGearOn(diveIds, notify: notify, (rows, diveId) {
+      var next = rows;
+      for (final rewrite in rewrites) {
+        next = rewrite.applyTo(
+          next,
+          setId,
+          index: index,
+          isActive: active.contains,
+          isUsable: (id) => usable(diveId, id),
+          isMember: members.contains,
+        );
+      }
+      return next;
+    });
+  }
+
+  /// Writes [change] of each of [diveIds]' gear rows in one transaction,
+  /// skipping the dives it leaves as they were. Returns the dives that
+  /// changed. With [notify] false, sync and the rescan are the caller's.
+  Future<List<String>> _rewriteGearOn(
+    List<String> diveIds,
+    List<GearProvenance> Function(List<GearProvenance> rows, String diveId)
+    change, {
+    required bool notify,
+  }) async {
+    if (diveIds.isEmpty) return const [];
     final now = DateTime.now().millisecondsSinceEpoch;
     final touched = <String>[];
     await _db.transaction(() async {
       for (final diveId in diveIds) {
         final rows = await _provenanceOf(diveId);
-        var next = rows;
-        for (final rewrite in rewrites) {
-          next = rewrite.applyTo(next, assemblyId);
-        }
+        final next = change(rows, diveId);
         if (_sameRows(rows, next)) continue;
         await _writeGearDiff(diveId, next, now);
         touched.add(diveId);
       }
       if (touched.isNotEmpty) await _bumpDives(touched, now);
     });
-    if (touched.isNotEmpty) {
+    if (notify && touched.isNotEmpty) {
       SyncEventBus.notifyLocalChange();
       // The gear changed without a save, so queue the rescan a save would
       // (issue #2853): a shared gear overlap can appear or go with it.
       scheduleQualityScan(touched);
     }
-    return touched.length;
+    return List.unmodifiable(touched);
   }
 
   static bool _sameRows(List<GearProvenance> a, List<GearProvenance> b) {

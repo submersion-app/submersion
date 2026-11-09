@@ -1425,6 +1425,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mostrar figura del buceador';
 
   @override
+  String get equipment_setEdit_historyAsk =>
+      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora?';
+
+  @override
+  String equipment_setEdit_historyOnDives(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Este conjunto de equipo está en $count inmersiones registradas.',
+      one: 'Este conjunto de equipo está en 1 inmersión registrada.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_color_red => 'Rojo';
 
   @override
@@ -14306,6 +14321,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get enum_tankRole_stage => 'Stage';
+
+  @override
+  String get enum_tankRole_suitInflation => 'Inflado del traje';
 
   @override
   String get enum_tankRole_twinSet => 'Bibotella';
@@ -40239,6 +40257,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_valve_type => 'Válvula';
 
   @override
+  String get attrLabel_cylinder_use => 'Uso de la botella';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificador';
 
   @override
@@ -40598,6 +40619,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrChoice_valve_type_convertible => 'Convertible';
+
+  @override
+  String get attrChoice_cylinder_use_breathing_gas => 'Gas respirable';
+
+  @override
+  String get attrChoice_cylinder_use_suit_inflation => 'Inflado del traje';
 
   @override
   String get attrChoice_connection_din => 'DIN';

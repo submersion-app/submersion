@@ -177,7 +177,8 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
     return (uses: uses, incomplete: incomplete);
   }
 
-  /// The dives in [scope] with at least one cylinder, with their primary
+  /// The dives in [scope] with at least one breathing cylinder (a suit
+  /// inflation bottle alone has no gas to rate, issue #4243), with their primary
   /// source and computer; only CCR dives when [ccrOnly].
   Future<List<_RoleConsumptionDiveRow>> _roleConsumptionDiveRows(
     String? diverId,
@@ -205,7 +206,8 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
           (SELECT computer_id FROM dive_data_sources
            WHERE dive_id = d.id AND is_primary = 1 LIMIT 1) AS primary_computer_id
         FROM dives d
-        WHERE EXISTS (SELECT 1 FROM dive_tanks t WHERE t.dive_id = d.id)
+        WHERE EXISTS (SELECT 1 FROM dive_tanks t
+            WHERE t.dive_id = d.id AND ${breathingTankSql('t')})
           $modeFilter $diverFilter ${scope.clause}
         ORDER BY d.dive_date_time
         ''',

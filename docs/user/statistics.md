@@ -178,6 +178,8 @@ the chart give each line's average. Tap a dot to open the dive.
 - A cylinder you only carried can still read a little lower at the end, as the
   fill cools to the water. A drop of up to 15 bar (about 220 psi), or 7% of the
   start pressure on a fuller fill, counts as carried, so the dive stays in.
+- A **Suit Inflation** cylinder is on no line and never leaves a dive out,
+  however much gas it lost: it inflates your drysuit, it is not breathed.
 - Open-circuit lines leave out CCR and SCR dives. A CCR dive counts only on the
   **Bailout** line, with the open-circuit rate while you were bailed out. The
   same rule applies there: a bailout, stage, deco or pony cylinder that lost

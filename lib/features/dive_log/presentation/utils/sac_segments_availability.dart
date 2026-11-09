@@ -31,7 +31,8 @@ bool sacSegmentsLackRecordedPressure(
   if (analysis == null || dive.isRebreather) return false;
   if (analysis.sacSegments?.isNotEmpty ?? false) return false;
   if (analysis.sacCurve != null) return false;
-  return dive.tanks.any((tank) {
+  // A suit inflation bottle's drop is not breathing (issue #4243).
+  return dive.breathingTanks.any((tank) {
     if (computerId != null &&
         tank.computerId != null &&
         tank.computerId != computerId) {

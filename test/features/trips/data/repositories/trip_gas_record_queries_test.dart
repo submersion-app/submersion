@@ -204,4 +204,23 @@ void main() {
     expect(await repository.getGasRecordTanksForTrip(tripId), isEmpty);
     expect(await repository.getUnlinkedTanksForTrip(tripId), isEmpty);
   });
+
+  // A suit inflation bottle is not breathed (issue #4243).
+  test('a suit inflation bottle is read as such and is no gap', () async {
+    await dive('d1', 9);
+    await tankOn('suit-linked', 'd1', slotId: slot.id, volume: 0.85);
+    await tankOn('suit-loose', 'd1', order: 1);
+    await tankOn('back-loose', 'd1', order: 2);
+    for (final id in ['suit-linked', 'suit-loose']) {
+      await (db.update(db.diveTanks)..where((t) => t.id.equals(id))).write(
+        const DiveTanksCompanion(tankRole: Value('suitInflation')),
+      );
+    }
+
+    final record = await repository.getGasRecordTanksForTrip(tripId);
+    expect(record.single.breathing, isFalse);
+
+    final gaps = await repository.getUnlinkedTanksForTrip(tripId);
+    expect(gaps.map((t) => t.tankId), ['back-loose']);
+  });
 }

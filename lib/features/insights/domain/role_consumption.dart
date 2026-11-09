@@ -16,7 +16,8 @@ enum ConsumptionRoleGroup { bottomGas, stage, deco, pony, bailout }
 /// The group a cylinder of [role] counts in on an open-circuit dive. The
 /// primary gas is one group however it is worn: a sidemount pair is breathed
 /// in turns on one gas, so a per-side rate would be about half the diver's.
-/// Null for the loop roles, which the Rebreather gas use card covers.
+/// Null for the loop roles, which the Rebreather gas use card covers, and for
+/// a suit inflation bottle, which is not breathed (issue #4243).
 ConsumptionRoleGroup? consumptionRoleGroupOf(TankRole role) => switch (role) {
   TankRole.backGas ||
   TankRole.twinSet ||
@@ -26,7 +27,7 @@ ConsumptionRoleGroup? consumptionRoleGroupOf(TankRole role) => switch (role) {
   TankRole.deco => ConsumptionRoleGroup.deco,
   TankRole.pony => ConsumptionRoleGroup.pony,
   TankRole.bailout => ConsumptionRoleGroup.bailout,
-  TankRole.diluent || TankRole.oxygenSupply => null,
+  TankRole.diluent || TankRole.oxygenSupply || TankRole.suitInflation => null,
 };
 
 /// One dive's consumption per role group: [rmv] in L/min and [sac] in bar/min
@@ -91,7 +92,8 @@ DiveRoleConsumption roleConsumptionForDive({
       if (tanks.containsKey(row.tankId)) row,
   ];
 
-  if (dive.tanks.length > 1 &&
+  // A suit inflation bottle is not a second cylinder of gas (issue #4243).
+  if (breathingTanks(dive.tanks).length > 1 &&
       _hasUntimedCylinder(dive, tanks.values, rows, tankPressures)) {
     return const DiveRoleConsumption(leftOut: true);
   }
