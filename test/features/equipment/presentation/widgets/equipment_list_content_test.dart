@@ -2882,6 +2882,103 @@ void main() {
       expect(rowNames(tester), ['BCD B', 'Reg B']);
     });
 
+    /// Master-detail: a row tap selects it, and the page hands the
+    /// selection back as selectedId.
+    Future<ValueNotifier<String?>> pumpDesktop(
+      WidgetTester tester, {
+      String? saved,
+      String? initial,
+      EquipmentFilterState? filter,
+    }) async {
+      tester.view.physicalSize = const Size(800, 1600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      settings = MockSettingsNotifier(
+        AppSettings(
+          listArrangements: ListArrangements(equipmentCollapsedGroups: saved),
+        ),
+      );
+      final selected = ValueNotifier<String?>(initial);
+      addTearDown(selected.dispose);
+      final overrides = await _buildPhoneOverrides(
+        items: gear,
+        settings: settings,
+        filter: filter,
+      );
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...overrides,
+            equipmentGroupByLocationProvider.overrideWith((ref) async => true),
+            currentEquipmentLocationsProvider.overrideWith(
+              (ref) async => places,
+            ),
+          ],
+          child: ValueListenableBuilder<String?>(
+            valueListenable: selected,
+            builder: (context, id, _) => EquipmentListContent(
+              showAppBar: false,
+              selectedId: id,
+              onItemSelected: (next) => selected.value = next,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return selected;
+    }
+
+    testWidgets('a tap in the list keeps an earlier reveal open', (
+      tester,
+    ) async {
+      await pumpDesktop(tester, saved: '["loc:garage"]', initial: 'reg0');
+      expect(rowNames(tester), ['BCD A', 'Reg A', 'BCD B', 'Reg B']);
+
+      await tester.tap(find.text('Reg B'));
+      await tester.pumpAndSettle();
+
+      // The garage stays open, so no row moves under the pointer.
+      expect(rowNames(tester), ['BCD A', 'Reg A', 'BCD B', 'Reg B']);
+    });
+
+    testWidgets('folds that land after the reveal still leave the item shown', (
+      tester,
+    ) async {
+      await pumpList(tester, groupByLocation: false, selectedId: 'reg0');
+      expect(rowNames(tester), contains('Reg A'));
+
+      settings.state = settings.state.copyWith(
+        listArrangements: const ListArrangements(
+          equipmentCollapsedGroups: '["type:regulator"]',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(rowNames(tester), contains('Reg A'));
+      // Opened for this visit only: the fold stays saved.
+      expect(stored(), '["type:regulator"]');
+    });
+
+    testWidgets('clearing a filter reveals the item opened during it', (
+      tester,
+    ) async {
+      await pumpDesktop(
+        tester,
+        saved: '["loc:garage"]',
+        filter: const EquipmentFilterState(status: EquipmentStatus.active),
+      );
+      await tester.tap(find.text('Reg A'));
+      await tester.pumpAndSettle();
+
+      containerOf(tester).read(equipmentFilterProvider.notifier).state =
+          const EquipmentFilterState();
+      await tester.pumpAndSettle();
+
+      expect(rowNames(tester), contains('Reg A'));
+      expect(stored(), '["loc:garage"]');
+    });
+
     testWidgets('keyboard: Left on an item folds its group, Right opens it', (
       tester,
     ) async {

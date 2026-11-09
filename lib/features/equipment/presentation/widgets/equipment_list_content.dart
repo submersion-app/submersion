@@ -188,18 +188,30 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   String? _restoreTargetId;
   bool _restoreTargetRead = false;
 
-  /// Folds opened for a selection that arrived from outside the list's own
-  /// rows (issue #4184): a deep link, a new item, a restored detail item.
-  /// Held here, never saved; it ends when the diver folds that group again
-  /// or a newer outside selection replaces it.
+  /// The item a selection from outside the list's own rows opened (issue
+  /// #4184): a deep link, a new item, the detail item restored at launch,
+  /// or the item open when a filter clears. Every build opens the folds
+  /// hiding it, so folds or places that land later cannot hide it either.
+  /// Held here, never saved.
+  String? _revealTarget;
+
+  /// Groups the diver folded or opened themselves since [_revealTarget] was
+  /// set: the reveal leaves those alone, so the diver can always fold the
+  /// group holding the open item.
+  Set<String> _dismissed = const {};
+
+  /// The folds opened for [_revealTarget] this build.
   Set<String> _revealed = const {};
 
-  /// The item [_revealed] was opened for, and the fold keys it sat under
-  /// then, so the reveal fires once per outside selection rather than on
-  /// every build, and again when the item moves to other groups (places and
-  /// the stored grouping can land after the first build, or the diver
-  /// regroups).
-  (String, String)? _revealedFor;
+  /// The selection the last build handled, so a new one is noticed once.
+  String? _seenSelection;
+
+  /// The item a tap or an arrow key in the list just selected: not an
+  /// outside selection, so it moves no reveal and no row under the pointer.
+  String? _listSelectedId;
+
+  /// Whether the last build had a filter on, so its clearing is noticed.
+  bool _wasFiltered = false;
 
   /// The outermost fold keys last published to
   /// [equipmentOuterGroupKeysProvider], so it is written only on change.
@@ -346,6 +358,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     forgetClosedPane(ref, RecordListSection.equipment);
     if (widget.onItemSelected != null) {
       _selectionFromList = true;
+      _listSelectedId = equipment.id;
       widget.onItemSelected!(equipment.id);
     } else {
       context.push('/equipment/${equipment.id}');
@@ -1106,11 +1119,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final folds = ref.read(equipmentFoldsProvider.notifier);
     switch (value) {
       case _expandAllValue:
-        setState(() => _revealed = const {});
+        _endReveal();
         folds.expandAll();
         return true;
       case _collapseAllValue:
-        setState(() => _revealed = const {});
+        _endReveal();
         folds.collapseAll();
         return true;
     }
@@ -1290,16 +1303,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   bool _isOpen(String foldKey, Set<String> folds) =>
       !folds.contains(foldKey) || _revealed.contains(foldKey);
 
-  /// Folds or opens [foldKey]. Folding a group that is only open for an
-  /// outside selection ends that reveal and writes nothing, since the saved
-  /// state already has it folded.
+  /// Folds or opens [foldKey], which the reveal then leaves alone. Folding
+  /// a group that is only open for an outside selection writes nothing,
+  /// since the saved state already has it folded.
   void _toggleFold(String foldKey, Set<String> folds) {
-    if (_revealed.contains(foldKey) && folds.contains(foldKey)) {
-      setState(() => _revealed = {..._revealed}..remove(foldKey));
-      return;
-    }
+    final revealedOnly = _revealed.contains(foldKey) && folds.contains(foldKey);
+    setState(() => _dismissed = {..._dismissed, foldKey});
+    if (revealedOnly) return;
     ref.read(equipmentFoldsProvider.notifier).toggle(foldKey);
   }
+
+  /// Ends the reveal: Expand all and Collapse all are the diver's own word
+  /// on every group.
+  void _endReveal() => setState(() {
+    _revealTarget = null;
+    _dismissed = const {};
+  });
 
   Widget _buildEquipmentList(
     BuildContext context,
@@ -1323,23 +1342,41 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         : const <String, EquipmentLocation>{};
 
     final folds = ref.watch(equipmentFoldsProvider).toSet();
-    EquipmentRowLayout layOut() => layoutEquipmentRows(
+    if (selectedId != _seenSelection) {
+      _seenSelection = selectedId;
+      if (selectedId != null && selectedId != _listSelectedId) {
+        _revealTarget = selectedId;
+        _dismissed = const {};
+      }
+      _listSelectedId = null;
+    }
+    // A row opened while a filter showed every group open would vanish
+    // into a saved fold when the filter clears, so it is revealed then.
+    final filtered = ref.watch(
+      effectiveEquipmentFilterProvider.select((f) => f.hasActiveFilters),
+    );
+    if (_wasFiltered && !filtered) {
+      final open =
+          widget.selectedId ?? ref.read(highlightedEquipmentIdProvider);
+      if (open != null) {
+        _revealTarget = open;
+        _dismissed = const {};
+      }
+    }
+    _wasFiltered = filtered;
+    EquipmentRowLayout layOut(Set<String> revealed) => layoutEquipmentRows(
       groups: groups,
       sections: locationSections,
-      collapsed: folds.difference(_revealed),
+      collapsed: folds.difference(revealed),
     );
-    var layout = layOut();
-    final selectedPath = layout.foldKeysByItem[selectedId];
-    final revealFor = selectedId == null || selectedPath == null
-        ? null
-        : (selectedId, selectedPath.join('|'));
-    if (revealFor != null && revealFor != _revealedFor && !_selectionFromList) {
-      _revealedFor = revealFor;
-      // Only what is folded now: a group the diver folds later, with the
-      // item in it, must fold.
-      _revealed = {...selectedPath!.where(folds.contains)};
-      layout = layOut();
-    }
+    var layout = layOut(const {});
+    // The target's path does not depend on the folds, so the first layout
+    // finds it; a second opens whatever on it is folded now.
+    _revealed = {
+      for (final key in layout.foldKeysByItem[_revealTarget] ?? const [])
+        if (folds.contains(key) && !_dismissed.contains(key)) key,
+    };
+    if (_revealed.isNotEmpty) layout = layOut(_revealed);
     final rows = layout.rows;
     if (!listEquals(layout.outerKeys, _publishedOuterKeys)) {
       _publishedOuterKeys = layout.outerKeys;
