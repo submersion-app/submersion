@@ -225,19 +225,43 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     _deleteTempDirs(superseded);
   }
 
+  /// Completes once every temp-directory deletion started before it was
+  /// read is done. A deletion started after that is not covered: read it
+  /// again, after the step whose cleanup is to be awaited.
+  ///
+  /// Nothing in the app waits on it: cleanup stays fire-and-forget. A test
+  /// awaits it to see a deletion land, instead of sleeping and hoping the
+  /// recursive delete was quick enough (issue #4343).
+  @visibleForTesting
+  Future<void> get pendingTempCleanup => _pendingTempCleanup;
+  Future<void> _pendingTempCleanup = Future<void>.value();
+
+  /// Deletes one extracted-ZIP temp directory. A test swaps in one that
+  /// holds a deletion open, to start another while it runs.
+  @visibleForTesting
+  Future<void> Function(Directory dir) deleteTempDir = _deleteRecursively;
+
+  static Future<void> _deleteRecursively(Directory dir) =>
+      dir.delete(recursive: true);
+
   /// Best-effort, fire-and-forget deletion of extracted-ZIP temp directories.
   void _deleteTempDirs(List<String> paths) {
     if (paths.isEmpty) return;
-    unawaited(() async {
+    final run = () async {
       for (final path in paths) {
         try {
-          final dir = Directory(path);
-          if (dir.existsSync()) await dir.delete(recursive: true);
+          await deleteTempDir(Directory(path));
         } catch (_) {
-          // Temp cleanup is best-effort; the OS reclaims systemTemp anyway.
+          // Temp cleanup is best-effort, and a folder already gone lands
+          // here too; the OS reclaims systemTemp anyway.
         }
       }
-    }());
+    }();
+    // Joined, not chained: each cleanup starts at once, as before, and the
+    // one future still covers every cleanup in flight. Neither side can
+    // fail, since each delete swallows its own error.
+    _pendingTempCleanup = Future.wait([_pendingTempCleanup, run]);
+    unawaited(_pendingTempCleanup);
   }
 
   /// Single-file load by path (used when a ZIP expands to exactly one
