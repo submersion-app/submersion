@@ -91,7 +91,17 @@ class HealthKitService implements HealthImportService {
   static const List<HealthDataType> _metricsTypes = [
     HealthDataType.HEART_RATE,
     HealthDataType.HEART_RATE_VARIABILITY_SDNN,
+    ..._sleepTypes,
+  ];
+
+  /// Asleep, however it was logged: since watchOS 9 the watch writes the
+  /// stages (core, deep, REM) and leaves "asleep" to older watches and other
+  /// apps. All four read under the one sleep permission.
+  static const List<HealthDataType> _sleepTypes = [
     HealthDataType.SLEEP_ASLEEP,
+    HealthDataType.SLEEP_LIGHT,
+    HealthDataType.SLEEP_DEEP,
+    HealthDataType.SLEEP_REM,
   ];
 
   /// Types used to probe permission state.
@@ -250,10 +260,13 @@ class HealthKitService implements HealthImportService {
     required DateTime start,
     required DateTime end,
   }) async {
-    final points = await _fetchType(HealthDataType.SLEEP_ASLEEP, start, end);
+    // One type at a time, so a type this device cannot read costs only its
+    // own samples. Overlaps (a phone and a watch both logging) are joined
+    // by the calculator.
     return [
-      for (final p in points)
-        SleepInterval(start: p.dateFrom.toUtc(), end: p.dateTo.toUtc()),
+      for (final type in _sleepTypes)
+        for (final p in await _fetchType(type, start, end))
+          SleepInterval(start: p.dateFrom.toUtc(), end: p.dateTo.toUtc()),
     ]..sort((a, b) => a.start.compareTo(b.start));
   }
 

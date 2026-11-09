@@ -90,6 +90,68 @@ void main() {
     expect(sleep.single.end, night.add(const Duration(hours: 4)));
   });
 
+  test(
+    'sleep the watch logs as stages is read too (watchOS 9 and later)',
+    () async {
+      final night = DateTime.utc(2026, 7, 16, 23);
+      answer(HealthDataType.SLEEP_ASLEEP, const []);
+      answer(HealthDataType.SLEEP_LIGHT, [
+        point(
+          HealthDataType.SLEEP_LIGHT,
+          night,
+          night.add(const Duration(hours: 2)),
+        ),
+      ]);
+      answer(HealthDataType.SLEEP_DEEP, [
+        point(
+          HealthDataType.SLEEP_DEEP,
+          night.add(const Duration(hours: 2)),
+          night.add(const Duration(hours: 3)),
+        ),
+      ]);
+      answer(HealthDataType.SLEEP_REM, const []);
+
+      final sleep = await service.fetchSleep(start: start, end: end);
+
+      expect(sleep.map((s) => s.start), [
+        night,
+        night.add(const Duration(hours: 2)),
+      ]);
+    },
+  );
+
+  test('asking for the readings asks for the sleep stages too', () async {
+    when(health.configure()).thenAnswer((_) async {});
+    when(
+      health.requestAuthorization(any, permissions: anyNamed('permissions')),
+    ).thenAnswer((_) async => true);
+    final withProbe = HealthKitService(
+      health: health,
+      isPlatformSupported: true,
+      healthDataAvailable: () async => true,
+    );
+
+    await withProbe.requestMetricsPermissions();
+
+    final types =
+        verify(
+              health.requestAuthorization(
+                captureAny,
+                permissions: anyNamed('permissions'),
+              ),
+            ).captured.single
+            as List<HealthDataType>;
+    expect(
+      types,
+      containsAll([
+        HealthDataType.SLEEP_ASLEEP,
+        HealthDataType.SLEEP_LIGHT,
+        HealthDataType.SLEEP_DEEP,
+        HealthDataType.SLEEP_REM,
+      ]),
+    );
+  });
+
   test('a refused read gives nothing rather than failing', () async {
     when(
       health.getHealthDataFromTypes(
