@@ -16,6 +16,10 @@ import 'package:submersion/features/equipment/domain/entities/equipment_observat
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_observation_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -79,7 +83,11 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
-  Future<void> pumpAndOpen(WidgetTester tester, {domain.Dive? withDive}) async {
+  Future<void> pumpAndOpen(
+    WidgetTester tester, {
+    domain.Dive? withDive,
+    List<Override> extra = const [],
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -91,6 +99,7 @@ void main() {
           // default diver, as the real provider does for a stale id.
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'kept'),
           equipmentObservationRepositoryProvider.overrideWithValue(repo),
+          ...extra,
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -288,6 +297,55 @@ void main() {
     await tester.tap(find.text('Delete').last);
     await tester.pumpAndSettle();
     expect(await repo.getForDive('d1'), isEmpty);
+  });
+
+  testWidgets('deleting a check-in unlinks its photos', (tester) async {
+    // Issue #3355: a check-in's photos go with it; the files stay.
+    final observation = await repo.create(
+      equipmentId: 'reg',
+      diveId: 'd1',
+      observedAt: DateTime.utc(2026),
+      status: ObservationStatus.ok,
+    );
+    final media = MediaRepository();
+    // Real database work outside the widget test's fake clock.
+    final photo = (await tester.runAsync(
+      () => media.createMedia(
+        MediaItem(
+          id: '',
+          equipmentId: 'reg',
+          observationId: observation.id,
+          filePath: '/photos/nick.jpg',
+          mediaType: MediaType.photo,
+          takenAt: DateTime.utc(2026),
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+        ),
+      ),
+    ))!;
+    await pumpAndOpen(
+      tester,
+      withDive: dive,
+      extra: [
+        mediaUnlinkServiceProvider.overrideWithValue(
+          MediaUnlinkService(
+            repository: media,
+            deleteMedia: media.deleteMultipleMedia,
+          ),
+        ),
+      ],
+    );
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Its photo will be removed'), findsOneWidget);
+    await tester.tap(find.text('Delete').last);
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 200)),
+    );
+    await tester.pumpAndSettle();
+
+    expect(await repo.getForDive('d1'), isEmpty);
+    expect(await tester.runAsync(() => media.getMediaById(photo.id)), isNull);
   });
 
   testWidgets('without a dive the editor offers a bench default', (

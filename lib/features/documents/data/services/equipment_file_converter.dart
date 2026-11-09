@@ -115,6 +115,10 @@ class EquipmentFileConverter {
       try {
         final item = await _media.getMediaById(mediaId);
         if (item == null) continue;
+        // A gear photo (issue #3355) is the Photos card's, never paperwork:
+        // judged by its media type, not by a file name that may mislead.
+        // Not a leftover either, so it does not count as remaining.
+        if (item.isGearPhoto) continue;
         final outcome = diverId != null && _acceptedKind(_fileName(item))
             ? await _convert(item, diverId, startedOn)
             : _Outcome.left;

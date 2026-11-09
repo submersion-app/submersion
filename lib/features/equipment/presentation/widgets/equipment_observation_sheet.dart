@@ -12,8 +12,10 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/services/observation_defaults.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_near_miss_action.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -55,10 +57,19 @@ Future<void> confirmDeleteObservation(
   EquipmentObservation observation,
 ) async {
   final l10n = context.l10n;
+  // The check-in's photos go with it (issue #3355); the files stay.
+  final photos = await ref
+      .read(gearPhotoRepositoryProvider)
+      .photosForObservation(observation.id);
+  if (!context.mounted) return;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      content: Text(l10n.equipmentObservation_sheet_deleteConfirm),
+      content: Text(
+        photos.isEmpty
+            ? l10n.equipmentObservation_sheet_deleteConfirm
+            : l10n.equipment_photos_deleteCheckInWithPhotos(photos.length),
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -73,6 +84,11 @@ Future<void> confirmDeleteObservation(
   );
   if (confirmed != true || !context.mounted) return;
   await ref.read(equipmentObservationRepositoryProvider).delete(observation.id);
+  if (photos.isNotEmpty) {
+    await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([
+      for (final m in photos) m.id,
+    ]);
+  }
   scheduleConditionFindingsRefresh([observation.equipmentId]);
 }
 

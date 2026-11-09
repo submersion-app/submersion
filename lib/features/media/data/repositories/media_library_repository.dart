@@ -75,8 +75,17 @@ class MediaLibraryRepository {
     mediaTypeToDbString(MediaType.document),
   ];
 
-  Expression<bool> get _galleryRow =>
-      _db.media.fileType.isNotIn(_nonGalleryFileTypes);
+  /// A library row: no signature or document (see [_nonGalleryFileTypes]).
+  ///
+  /// Gear photos stay out too (issue #3355): a row linked to a piece of gear
+  /// and to no dive or site lives only in the Gear gallery. A row a dive or
+  /// site also holds is that dive's or site's photo as well, so it stays.
+  Expression<bool> get _galleryRow {
+    final m = _db.media;
+    final gearOnly =
+        m.equipmentId.isNotNull() & m.diveId.isNull() & m.siteId.isNull();
+    return m.fileType.isNotIn(_nonGalleryFileTypes) & gearOnly.not();
+  }
 
   /// Dive-linked rows belong to their dive's diver; unlinked and site-only
   /// rows are diver-global. Needs `dives` joined on `media.dive_id`.

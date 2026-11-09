@@ -96269,6 +96269,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Twin set partner passport'**
   String get settings_conflict_field_twinPassportId;
+
+  /// No description provided for @equipment_photos_deleteCheckInWithPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this check-in? Its {count, plural, =1{photo} other{{count} photos}} will be removed from Submersion. The files themselves are not touched.'**
+  String equipment_photos_deleteCheckInWithPhotos(int count);
 }
 
 class _AppLocalizationsDelegate

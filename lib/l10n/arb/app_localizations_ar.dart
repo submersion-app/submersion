@@ -62015,4 +62015,15 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => 'جواز الأسطوانة الشريكة';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: 'photo',
+    );
+    return 'Delete this check-in? Its $_temp0 will be removed from Submersion. The files themselves are not touched.';
+  }
 }

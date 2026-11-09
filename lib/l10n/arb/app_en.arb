@@ -35711,5 +35711,7 @@
   "settings_conflict_field_pairedOn": "Paired since",
   "settings_conflict_field_unpairedOn": "Unlinked on",
   "settings_conflict_field_filledTogetherId": "Twin set fill",
-  "settings_conflict_field_twinPassportId": "Twin set partner passport"
+  "settings_conflict_field_twinPassportId": "Twin set partner passport",
+  "equipment_photos_deleteCheckInWithPhotos": "Delete this check-in? Its {count, plural, =1{photo} other{{count} photos}} will be removed from Submersion. The files themselves are not touched.",
+  "@equipment_photos_deleteCheckInWithPhotos": {"placeholders": {"count": {"type": "int"}}}
 }

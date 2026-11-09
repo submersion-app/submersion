@@ -128,6 +128,8 @@ class ConflictReferenceResolver {
     'speciesId': 'species',
     'sightingId': 'sightings',
     'mediaId': 'media',
+    // An item's cover photo (issue #3355).
+    'coverMediaId': 'media',
     'subscriptionId': 'mediaSubscriptions',
     'connectorAccountId': 'connectedAccounts',
     // Soft links with no Drift constraint (#694): the dialog would otherwise
