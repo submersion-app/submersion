@@ -145,7 +145,27 @@ Future<Map<String, int>> transmitterTouched(
       normalizeTransmitterSerial(item?.serialNumber) == null;
   var tanks = 0;
   if (applyToDives) {
-    for (final key in [entry, ...others]) {
+    // The save copies the entry's setup onto every other key before the
+    // apply (saveSetup), and the preview counts only what a fill would
+    // change (#4347), so preview each key with that setup, not its stored one.
+    final withSetup = [
+      for (final k in others)
+        k.copyWith(
+          role: entry.role,
+          equipmentId: entry.equipmentId,
+          clearEquipmentId: entry.equipmentId == null,
+          volumeL: entry.volumeL,
+          clearVolumeL: entry.volumeL == null,
+          workingPressureBar: entry.workingPressureBar,
+          clearWorkingPressureBar: entry.workingPressureBar == null,
+          material: entry.material,
+          clearMaterial: entry.material == null,
+          presetName: entry.presetName,
+          clearPresetName: entry.presetName == null,
+          isConfigured: true,
+        ),
+    ];
+    for (final key in [entry, ...withSetup]) {
       tanks += (await r.transmitters.previewApplyToExistingDives(
         key,
       )).tanksUpdated;
