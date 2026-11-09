@@ -590,7 +590,11 @@ class DiveImportService {
       }
     }
 
-    await _settleReplacedTransmitters(replacedDiveIds);
+    // The stored cylinders keep the diver's edits, so the registry match a
+    // new dive gets never reached them: a serial a Replace source just gave
+    // one gets its item (#3676) and that transmitter's setup, fill-only
+    // (issue #4388). Once for the batch.
+    await settleTransmittersForDives(replacedDiveIds);
 
     return ImportResult.success(
       imported: imported,
@@ -1075,16 +1079,6 @@ class DiveImportService {
     );
   }
 
-  /// After a Replace source: the stored cylinders keep the diver's edits,
-  /// so the registry match a new dive gets never reached them. A serial
-  /// importProfile just gave one gets its Transmitter item (#3676) and fills
-  /// that transmitter's setup in, fill-only (issue #4388). Once per batch.
-  Future<void> _settleReplacedTransmitters(List<String> diveIds) async {
-    if (diveIds.isEmpty) return;
-    await registerTransmittersForDives(diveIds);
-    await applyTransmitterSetupToDives(diveIds);
-  }
-
   /// Attach [dive]'s download to the planned dive [plannedDiveId] (issue
   /// #2002). Like [_updateExistingDive] but nothing is cleared first, since
   /// a planned dive holds no source for this computer, and the target is
@@ -1194,7 +1188,7 @@ class DiveImportService {
           descriptorModel: descriptorModel,
           libdivecomputerVersion: libdivecomputerVersion,
         );
-        await _settleReplacedTransmitters([conflict.existingDiveId]);
+        await settleTransmittersForDives([conflict.existingDiveId]);
         return conflict.existingDiveId;
 
       case ConflictResolution.importAsNew:

@@ -30,12 +30,14 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  /// [tanks] is (o2, serial) per cylinder, in order.
+  /// [tanks] is (o2, serial) per cylinder, in order; [starts] their start
+  /// pressures in bar, when given.
   Future<void> seedDive(
     String id,
     String computerId,
-    List<(double, String?)> tanks,
-  ) async {
+    List<(double, String?)> tanks, {
+    List<double>? starts,
+  }) async {
     final entry = DateTime.utc(2026, 8, 8, 10, 16);
     await diveRepo.createDive(
       domain.Dive(
@@ -52,6 +54,7 @@ void main() {
               gasMix: domain.GasMix(o2: o2),
               order: i,
               computerId: computerId,
+              startPressure: starts?[i],
             ),
         ],
         profile: const [
@@ -117,6 +120,33 @@ void main() {
 
     expect((await row('t-t0')).transmitterSerial, isNull);
     expect((await row('t-t1')).transmitterSerial, isNull);
+  });
+
+  test('near-identical mixes on one dive count as one mix, so a guessed '
+      'pairing takes no serial', () async {
+    await seedDive('t', 'file', [(21.0, null), (20.9, null)]);
+    await seedDive('s', 'perdix', [(21.0, '76287')]);
+
+    await consolidation.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+    expect((await row('t-t0')).transmitterSerial, isNull);
+    expect((await row('t-t1')).transmitterSerial, isNull);
+  });
+
+  test('twin cylinders on one mix take serials when start pressures single '
+      'out each pair', () async {
+    await seedDive('t', 'file', [(21, null), (21, null)], starts: [206, 190]);
+    await seedDive(
+      's',
+      'perdix',
+      [(21, '76287'), (21, '76290')],
+      starts: [206.4, 190.3],
+    );
+
+    await consolidation.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+    expect((await row('t-t0')).transmitterSerial, '76287');
+    expect((await row('t-t1')).transmitterSerial, '76290');
   });
 
   test('the merged dive takes the setup of a transmitter the diver set '

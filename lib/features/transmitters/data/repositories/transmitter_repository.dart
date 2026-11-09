@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_computer/data/services/transmitter_regi
 import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/services/bailout_mix_fixer.dart';
+import 'package:submersion/features/transmitters/data/services/dive_tank_serials.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_tank_fill.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
@@ -460,37 +461,28 @@ class TransmitterRepository {
   /// entry is left to that dialog, since a file's tank order need not be the
   /// computer's channel. What each cylinder gains is [transmitterFillFor]'s.
   Future<ApplyToExistingResult> applyToDives(Iterable<String> diveIds) async {
-    final ids = diveIds.toSet().toList();
-    if (ids.isEmpty) return _nothingFilled;
-    final diverByTank = <String, String?>{};
-    for (var i = 0; i < ids.length; i += 500) {
-      final chunk = ids.sublist(i, (i + 500).clamp(0, ids.length));
-      final rows = await _db
-          .customSelect(
-            'SELECT dt.id AS id, d.diver_id AS diver_id '
-            'FROM dive_tanks dt JOIN dives d ON d.id = dt.dive_id '
-            'WHERE dt.transmitter_serial IS NOT NULL AND d.id IN '
-            '(${List.filled(chunk.length, '?').join(', ')})',
-            variables: [for (final id in chunk) Variable<String>(id)],
-            readsFrom: {_db.diveTanks, _db.dives},
-          )
-          .get();
-      for (final r in rows) {
-        diverByTank[r.read<String>('id')] = r.read<String?>('diver_id');
-      }
-    }
-    if (diverByTank.isEmpty) return _nothingFilled;
+    final serialTanks = await serialTanksOfDives(_db, diveIds);
+    if (serialTanks.isEmpty) return _nothingFilled;
 
+    // Only divers with a transmitter they have set up can fill anything.
     final matchers = <String?, TransmitterMatcher>{};
-    for (final diverId in diverByTank.values.toSet()) {
-      final entries = await getForDiver(diverId);
-      matchers[diverId] = TransmitterMatcher.fromEntries([
-        for (final e in entries)
-          if (e.diverId == diverId) e,
-      ]);
+    for (final diverId in {for (final t in serialTanks) t.diverId}) {
+      final matcher = TransmitterMatcher.fromEntries(
+        await _entriesOfDiver(diverId),
+      );
+      if (!matcher.isEmpty) matchers[diverId] = matcher;
     }
+    if (matchers.isEmpty) return _nothingFilled;
 
-    final tankIds = diverByTank.keys.toList();
+    final entryByTank = <String, Transmitter>{
+      for (final t in serialTanks)
+        t.tankId: ?matchers[t.diverId]?.match(
+          serial: t.serial,
+          computerId: null,
+          index: 0,
+        ),
+    };
+    final tankIds = entryByTank.keys.toList();
     final pairs = <(DiveTank, Transmitter)>[];
     for (var i = 0; i < tankIds.length; i += 500) {
       final chunk = tankIds.sublist(i, (i + 500).clamp(0, tankIds.length));
@@ -503,15 +495,20 @@ class TransmitterRepository {
                 ]))
               .get();
       for (final row in rows) {
-        final entry = matchers[diverByTank[row.id]]?.match(
-          serial: row.transmitterSerial,
-          computerId: null,
-          index: row.tankOrder,
-        );
-        if (entry != null) pairs.add((row, entry));
+        pairs.add((row, entryByTank[row.id]!));
       }
     }
     return _fill(pairs);
+  }
+
+  /// [diverId]'s own registry rows; for a dive with no diver, the rows that
+  /// name none, rather than every diver's.
+  Future<List<Transmitter>> _entriesOfDiver(String? diverId) async {
+    if (diverId != null) return getForDiver(diverId);
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.diverId.isNull())).get();
+    return rows.map(_map).toList();
   }
 
   static const ApplyToExistingResult _nothingFilled = (

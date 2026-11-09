@@ -90,7 +90,9 @@ class DiveConsolidationPlan {
 class DiveConsolidationBuilder {
   const DiveConsolidationBuilder();
 
-  static const double _gasTolerancePct = 0.5;
+  /// How far apart, in percent, two cylinders' O2 and He may be and still
+  /// be the same gas: the tolerance the fold pairs cylinders by.
+  static const double gasTolerancePct = 0.5;
   static const double _pressureToleranceBar = 5.0;
 
   /// How far a strong profile fit may sit from the entry-time offset before
@@ -268,9 +270,9 @@ class DiveConsolidationBuilder {
       return false;
     }
     final o2Close =
-        (primary.gasMix.o2 - secondary.gasMix.o2).abs() <= _gasTolerancePct;
+        (primary.gasMix.o2 - secondary.gasMix.o2).abs() <= gasTolerancePct;
     final heClose =
-        (primary.gasMix.he - secondary.gasMix.he).abs() <= _gasTolerancePct;
+        (primary.gasMix.he - secondary.gasMix.he).abs() <= gasTolerancePct;
     if (!o2Close || !heClose) return false;
     // Pressures rarely agree across computers (different logging cadence,
     // missing air-integration, etc.), so gas mix alone identifies the same

@@ -205,8 +205,7 @@ class DiveReimportService {
     // A serial the resync just gave a cylinder gets its Transmitter item, as
     // an import's does (#3676), and may be one the diver has set up (issue
     // #4388). Best-effort, after the commit, like the computers.
-    await registerTransmittersForDives([diveId]);
-    await applyTransmitterSetupToDives([diveId]);
+    await settleTransmittersForDives([diveId]);
     final computersAdded = await _addMissingComputers(
       diveId: diveId,
       diveData: diveData,

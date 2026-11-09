@@ -118,6 +118,46 @@ void main() {
     expect(tanks.map((t) => t.transmitterSerial), ['76287', '76290']);
   });
 
+  test('a UDDF dive imported with every cylinder at order 0 pairs by start '
+      'pressure instead of growing a duplicate cylinder', () async {
+    final diveId = await download(const [
+      TankData(index: 0, o2Percent: 21, startPressure: 190.0),
+      TankData(index: 1, o2Percent: 21, startPressure: 206.8),
+    ]);
+    // Before #4363 a UDDF import stored every cylinder at order 0, with no
+    // computer or source index; the 190 bar cylinder sorts first.
+    await (db.update(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals(diveId))).write(
+      const DiveTanksCompanion(
+        computerId: Value(null),
+        sourceTankIndex: Value(null),
+        tankOrder: Value(0),
+      ),
+    );
+
+    await replaceWith(diveId, const [
+      TankData(
+        index: 0,
+        o2Percent: 21,
+        startPressure: 206.9,
+        transmitterSerial: '76287',
+      ),
+      TankData(
+        index: 1,
+        o2Percent: 21,
+        startPressure: 190.1,
+        transmitterSerial: '76290',
+      ),
+    ]);
+
+    final tanks = await tanksOf(diveId);
+    expect(tanks, hasLength(2), reason: 'no duplicate cylinder');
+    final byPressure = {for (final t in tanks) t.startPressure: t};
+    expect(byPressure[206.8]!.transmitterSerial, '76287');
+    expect(byPressure[190.0]!.transmitterSerial, '76290');
+  });
+
   test('start pressures that disagree leave the serial empty', () async {
     final diveId = await download(const [
       TankData(index: 0, o2Percent: 21, startPressure: 206.8),

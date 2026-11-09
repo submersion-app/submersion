@@ -3551,11 +3551,10 @@ class UddfEntityImporter {
     );
 
     // A transmitter serial the file brings in gets its Transmitter item and
-    // joins its dives, as a download's does (issue #3676).
-    await registerTransmittersForDives(importedDiveIds);
-    // A serial the diver has already set up arrives configured, filling
-    // what the file left empty, as a download's does (issue #4388).
-    await applyTransmitterSetupToDives(importedDiveIds);
+    // joins its dives (issue #3676), and one the diver has already set up
+    // arrives configured, filling what the file left empty (issue #4388),
+    // as a download's does.
+    await settleTransmittersForDives(importedDiveIds);
 
     return _DiveImportResult(
       count,

@@ -2073,9 +2073,16 @@ class DiveComputerRepository {
           // This computer's own reading again, so its rows are found the way
           // a re-parse finds them: by source index, which a diver's
           // reassignment moves, before falling back to the stored order.
-          final matches = matchStoredTanks(existingTanks, [
-            for (final tank in tanks) tank.index,
-          ], computerId: computerId);
+          final matches = pairFileTanksByPressure(
+            matchStoredTanks(existingTanks, [
+              for (final tank in tanks) tank.index,
+            ], computerId: computerId),
+            existingTanks,
+            [
+              for (final tank in tanks)
+                (index: tank.index, startPressure: tank.startPressure),
+            ],
+          );
           final serialNow = DateTime.now().millisecondsSinceEpoch;
           for (final MapEntry(key: index, value: row) in matches.entries) {
             tankIdsByIndex[index] = row.id;
