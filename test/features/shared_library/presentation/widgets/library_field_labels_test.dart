@@ -18,6 +18,19 @@ void main() {
     {'name': 'Mein Barsch', 'scientificName': null},
   ];
 
+  test('a custom species with a catalog name is not translated', () {
+    // The author's own species, not the catalog row: its scientific name
+    // tells them apart.
+    const custom = [
+      {'name': 'European Perch', 'scientificName': 'Perca flavescens'},
+      {'name': 'European Perch'},
+    ];
+    expect(
+      libraryFieldValue(de, units, 'species', custom),
+      'European Perch, European Perch',
+    );
+  });
+
   test('expected species name catalog rows in the active language', () {
     expect(
       libraryFieldValue(de, units, 'species', species),

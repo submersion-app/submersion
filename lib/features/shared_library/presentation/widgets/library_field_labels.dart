@@ -29,9 +29,14 @@ String libraryFieldValue(
           final text = v is Map
               ? (v['name'] ?? v['type'] ?? '').toString()
               : '$v';
-          // A species entry carries its stored English catalog name (#4339).
-          return field == 'species'
-              ? localizedCatalogSpeciesName(l10n, text)
+          // A species entry carries the names the author stored, English for a
+          // catalog species; its scientific name confirms which row it is (#4339).
+          return field == 'species' && v is Map
+              ? localizedCatalogSpeciesName(
+                  l10n,
+                  text,
+                  scientificName: v['scientificName'] as String?,
+                )
               : text;
         })
         .join(', ');

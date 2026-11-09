@@ -87,30 +87,80 @@ void main() {
   });
 
   // Issue #4339: a shared library document names its expected species by
-  // their English names, with no catalog id.
+  // their English and scientific names, with no catalog id.
   group('localizedCatalogSpeciesName', () {
-    test('a catalog English name is translated', () {
-      expect(localizedCatalogSpeciesName(de, 'European Perch'), 'Flussbarsch');
+    const perch = 'Perca fluviatilis';
+
+    test('a catalog English and scientific name pair is translated', () {
       expect(
-        localizedCatalogSpeciesName(en, 'European Perch'),
+        localizedCatalogSpeciesName(
+          de,
+          'European Perch',
+          scientificName: perch,
+        ),
+        'Flussbarsch',
+      );
+      expect(
+        localizedCatalogSpeciesName(
+          en,
+          'European Perch',
+          scientificName: perch,
+        ),
         'European Perch',
+      );
+    });
+
+    test('the scientific name matches ignoring case and spacing', () {
+      expect(
+        localizedCatalogSpeciesName(
+          de,
+          'European Perch',
+          scientificName: '  perca FLUVIATILIS ',
+        ),
+        'Flussbarsch',
       );
     });
 
     test('a name two catalog rows share is translated when they agree', () {
       expect(
-        localizedCatalogSpeciesName(de, 'Spotted Wobbegong'),
+        localizedCatalogSpeciesName(
+          de,
+          'Spotted Wobbegong',
+          scientificName: 'Orectolobus maculatus',
+        ),
         'Gefleckter Teppichhai',
       );
     });
 
+    test('a custom species with a catalog name keeps it', () {
+      expect(
+        localizedCatalogSpeciesName(
+          de,
+          'European Perch',
+          scientificName: 'Perca flavescens',
+        ),
+        'European Perch',
+      );
+      expect(
+        localizedCatalogSpeciesName(de, 'European Perch', scientificName: null),
+        'European Perch',
+      );
+    });
+
     test('a name outside the catalog is returned as given', () {
-      expect(localizedCatalogSpeciesName(de, 'Mein Barsch'), 'Mein Barsch');
+      expect(
+        localizedCatalogSpeciesName(de, 'Mein Barsch', scientificName: perch),
+        'Mein Barsch',
+      );
     });
 
     test('a catalog name in another case is not the catalog text', () {
       expect(
-        localizedCatalogSpeciesName(de, 'european perch'),
+        localizedCatalogSpeciesName(
+          de,
+          'european perch',
+          scientificName: perch,
+        ),
         'european perch',
       );
     });
