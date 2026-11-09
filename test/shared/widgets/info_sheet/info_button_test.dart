@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_sheet.dart';
 
 import '../../../helpers/test_app.dart';
 
@@ -114,5 +115,47 @@ void main() {
     await tester.tap(find.byType(InfoButton));
     await tester.pumpAndSettle();
     expect(calls, 1);
+  });
+
+  testWidgets('the desktop dialog uses its full reading width', (tester) async {
+    await _setSurface(tester, const Size(1200, 800));
+    await tester.pumpWidget(
+      testApp(
+        child: const InfoButton(title: 'Deco Status', content: _content),
+      ),
+    );
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    // 480 less the dialog's own padding: short content must not shrink the
+    // dialog into a narrow column.
+    expect(
+      tester.getSize(find.byType(InfoSheetBody)).width,
+      greaterThanOrEqualTo(400),
+    );
+  });
+
+  testWidgets('the bottom sheet opens above the shell, not inside it', (
+    tester,
+  ) async {
+    await _setSurface(tester, const Size(400, 800));
+    final shellNavigator = GlobalKey<NavigatorState>();
+    await tester.pumpWidget(
+      testAppInShell(
+        navigatorKey: shellNavigator,
+        child: const InfoButton(title: 'Deco Status', content: _content),
+      ),
+    );
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(shellNavigator),
+        matching: find.byType(BottomSheet),
+      ),
+      findsNothing,
+    );
   });
 }

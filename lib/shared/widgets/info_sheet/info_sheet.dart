@@ -11,6 +11,10 @@ Future<void> showInfoSheet(BuildContext context, InfoContent content) {
   if (width < ResponsiveBreakpoints.desktop) {
     return showModalBottomSheet<void>(
       context: context,
+      // Over the whole app, not inside the shell's page: the shell's
+      // navigator sits under the bottom navigation bar, which would cover
+      // the sheet's last lines.
+      useRootNavigator: true,
       isScrollControlled: true,
       useSafeArea: true,
       showDragHandle: true,
@@ -28,20 +32,18 @@ Future<void> showInfoSheet(BuildContext context, InfoContent content) {
   }
   return showDialog<void>(
     context: context,
-    builder: (dialogContext) => Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
-        child: AlertDialog(
-          scrollable: true,
-          content: InfoSheetBody(content: content),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(dialogContext.l10n.info_sheet_close),
-            ),
-          ],
+    builder: (dialogContext) => AlertDialog(
+      // Its own constraints rather than a box around it: the dialog's inset
+      // padding would otherwise eat into the 480 px reading width.
+      constraints: const BoxConstraints(minWidth: 480, maxWidth: 480),
+      scrollable: true,
+      content: InfoSheetBody(content: content),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: Text(dialogContext.l10n.info_sheet_close),
         ),
-      ),
+      ],
     ),
   );
 }
