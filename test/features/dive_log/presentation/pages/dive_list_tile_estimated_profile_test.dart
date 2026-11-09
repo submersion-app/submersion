@@ -12,15 +12,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/estimated_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
-
-class _TestSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _TestSettingsNotifier(super.initial);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
 
 class _TestCardConfigNotifier extends CardViewConfigNotifier {
   _TestCardConfigNotifier() : super.withMode(ListViewMode.detailed) {
@@ -43,9 +36,7 @@ void main() {
     await tester.pumpWidget(
       testApp(
         overrides: [
-          settingsProvider.overrideWith(
-            (ref) => _TestSettingsNotifier(const AppSettings()),
-          ),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           detailedCardConfigProvider.overrideWith(
             (ref) => _TestCardConfigNotifier(),
           ),

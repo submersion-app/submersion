@@ -361,12 +361,22 @@ final batchProfileCacheProvider =
 /// snapshot back would drop the newer page's entries and blank those cards'
 /// mini charts (#3506). Existing entries keep their list instances, which is
 /// what lets a card watching only its own entry skip the rebuild.
+///
+/// A dive still without samples, asked again on every list load (#4112),
+/// changes nothing, so it writes nothing: a fresh map would run every card's
+/// selector for no change.
 void mergeIntoBatchProfileCache(
   StateController<Map<String, List<domain.DiveProfilePoint>>> cache,
   Map<String, List<domain.DiveProfilePoint>> profiles,
 ) {
-  if (profiles.isEmpty) return;
-  cache.state = {...cache.state, ...profiles};
+  final current = cache.state;
+  final changed = {
+    for (final entry in profiles.entries)
+      if (!(entry.value.isEmpty && (current[entry.key]?.isEmpty ?? false)))
+        entry.key: entry.value,
+  };
+  if (changed.isEmpty) return;
+  cache.state = {...current, ...changed};
 }
 
 /// Statistics provider (filtered by current diver).

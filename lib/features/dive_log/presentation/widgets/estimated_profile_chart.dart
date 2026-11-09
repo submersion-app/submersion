@@ -133,7 +133,7 @@ class EstimatedProfileChart extends ConsumerWidget {
                     ),
                   ),
                   lineBarsData: [
-                    estimatedOutlineBar(
+                    _estimatedOutlineBar(
                       profile,
                       units.convertDepth,
                       color: lineColor.withValues(alpha: 0.8),
@@ -207,7 +207,7 @@ class EstimatedProfileMiniChart extends StatelessWidget {
             borderData: FlBorderData(show: false),
             lineTouchData: const LineTouchData(enabled: false),
             lineBarsData: [
-              estimatedOutlineBar(
+              _estimatedOutlineBar(
                 profile,
                 (meters) => meters,
                 color: chartColor.withValues(alpha: 0.45),
@@ -224,8 +224,7 @@ class EstimatedProfileMiniChart extends StatelessWidget {
 
 /// The dashed line for [profile], with depth converted by [toDisplay] and
 /// drawn downward from the surface at zero.
-@visibleForTesting
-LineChartBarData estimatedOutlineBar(
+LineChartBarData _estimatedOutlineBar(
   EstimatedProfile profile,
   double Function(double meters) toDisplay, {
   required Color color,

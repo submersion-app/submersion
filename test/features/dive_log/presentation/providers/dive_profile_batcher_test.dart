@@ -104,6 +104,21 @@ void main() {
     expect(cache()['b'], _profile);
   });
 
+  test('asking again for a dive still without samples leaves the cache '
+      'alone', () async {
+    repo.withoutProfile.add('b');
+    await batcher().load(['b']);
+    final before = cache();
+
+    await batcher().load(['b']);
+
+    expect(repo.calls, [
+      ['b'],
+      ['b'],
+    ]);
+    expect(identical(cache(), before), isTrue);
+  });
+
   test('a request for a dive being loaded waits for that load', () async {
     repo.hold = Completer<void>();
     unawaited(batcher().load(['a', 'b']));
