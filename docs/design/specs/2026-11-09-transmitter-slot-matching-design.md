@@ -179,9 +179,15 @@ Transmitters "Apply to existing dives") changes:
   counts every matching cylinder while the write counts only changed ones.
   It also means a slot already applied drops to zero instead of offering "40
   by slot T2" forever, since slot-filled cylinders never gain the serial.
-  When nothing would change on any route, the existing "nothing to apply"
-  SnackBar shows, worded so it is true for both "no cylinders carry it" and
-  "every cylinder already has this setup".
+  When neither the serial preview nor the SQL candidate check finds
+  anything, the "nothing to apply" SnackBar shows, worded so it is true for
+  both "no cylinders carry it" and "every cylinder already has this setup".
+  Once the files are read, a computer with no slot left to fill is hidden,
+  and if no serial work remains either the dialog says in place that no
+  cylinder needs the setup (the dialog is already open, so a SnackBar would
+  arrive behind it).
+- The serial sentence says how many cylinders carrying the transmitter
+  "need its setup", since the count is what the fill would change.
 - The summary line reflects the choice: for example "12 dives by serial, 40
   by slot T2 on your Perdix". With no slot chosen, it reads as today.
 - If the serial preview finds nothing but slot candidates exist, the dialog
