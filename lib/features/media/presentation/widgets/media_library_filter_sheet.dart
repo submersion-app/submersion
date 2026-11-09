@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/media/presentation/providers/media_people_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -16,6 +14,9 @@ import 'package:submersion/features/media/presentation/helpers/media_source_labe
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
+import 'package:submersion/features/media/presentation/widgets/people_filter/media_people_filter_picker.dart';
+import 'package:submersion/features/media/presentation/widgets/people_filter/media_people_selection.dart';
+import 'package:submersion/features/media/presentation/widgets/people_filter/media_people_summary.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
@@ -61,9 +62,7 @@ class _MediaLibraryFilterSheetState
   bool _missingOnly = false;
   MediaSourceType? _sourceType;
   Set<String> _tagIds = const {};
-  Set<String> _buddyIds = const {};
-  bool _includeMe = false;
-  bool _noPeople = false;
+  MediaPeopleSelection _people = MediaPeopleSelection.none;
   bool _notPlacedInDive = false;
 
   @override
@@ -79,9 +78,7 @@ class _MediaLibraryFilterSheetState
     _missingOnly = filter.health == MediaHealthFilter.missing;
     _sourceType = filter.sourceType;
     _tagIds = filter.tagIds;
-    _buddyIds = filter.buddyIds;
-    _includeMe = filter.includeMe;
-    _noPeople = filter.noPeople;
+    _people = _peopleOf(filter);
     _notPlacedInDive = filter.notPlacedInDive;
   }
 
@@ -96,9 +93,7 @@ class _MediaLibraryFilterSheetState
       _missingOnly = false;
       _sourceType = null;
       _tagIds = const {};
-      _buddyIds = const {};
-      _includeMe = false;
-      _noPeople = false;
+      _people = MediaPeopleSelection.none;
       _notPlacedInDive = false;
     });
   }
@@ -118,9 +113,9 @@ class _MediaLibraryFilterSheetState
       health: _missingOnly ? MediaHealthFilter.missing : null,
       sourceType: _sourceType,
       tagIds: _tagIds,
-      buddyIds: _buddyIds,
-      includeMe: _includeMe,
-      noPeople: _noPeople,
+      buddyIds: _people.buddyIds,
+      includeMe: _people.includeMe,
+      noPeople: _people.noPeople,
       notPlacedInDive: _notPlacedInDive,
     );
     Navigator.of(context).pop();
@@ -223,98 +218,49 @@ class _MediaLibraryFilterSheetState
     );
   }
 
-  /// People tagged on media (issue #1745), any-of: Me first, then by name
-  /// the diver's buddies tagged somewhere (an untagged one would only match
-  /// nothing) and any already selected. A selected buddy no longer listed
-  /// (deleted since an album was saved) still shows, so it can be cleared.
-  ///
-  /// "No one tagged" (issue #4148) leads the row and excludes the rest:
-  /// together with a person it could only match nothing, so picking it
-  /// clears the people and picking a person clears it.
-  Widget _buildPeopleSection() {
+  static MediaPeopleSelection _peopleOf(MediaLibraryFilter filter) =>
+      MediaPeopleSelection(
+        noPeople: filter.noPeople,
+        includeMe: filter.includeMe,
+        buddyIds: filter.buddyIds,
+      );
+
+  /// People tagged on media (issue #1745) and "No one tagged" (issue #4148),
+  /// as one row like Site and Trip: a diver may have hundreds of tagged
+  /// buddies, so they are picked in a searchable list rather than drawn here.
+  Widget _buildPeopleRow() {
     final l10n = context.l10n;
-    final all = ref.watch(allBuddiesProvider).value;
-    final tagged = ref.watch(taggedBuddyIdsProvider).value ?? const <String>{};
-    final buddies = [
-      for (final b in all ?? const <Buddy>[])
-        if (tagged.contains(b.id) || _buddyIds.contains(b.id)) b,
-    ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    final listed = {for (final b in buddies) b.id};
-    // Only once the buddy list has loaded: before that every selected id
-    // is unlisted, and would be drawn as a removed buddy.
-    final gone = all == null
-        ? const <String>[]
-        : _buddyIds.where((id) => !listed.contains(id)).toList();
-
-    Widget person(
-      String key,
-      String label,
-      bool selected,
-      ValueChanged<bool> onSelected,
-    ) => FilterChip(
-      key: ValueKey('media_filter_person_$key'),
-      label: Text(label),
-      selected: selected,
-      onSelected: (value) => setState(() => onSelected(value)),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return ListTile(
+      key: const ValueKey('media_filter_people'),
+      contentPadding: EdgeInsets.zero,
+      title: Text(l10n.media_people_filterSection),
+      subtitle: Text(
+        mediaPeopleSummary(l10n, _people, ref.watch(allBuddiesProvider).value),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            l10n.media_people_filterSection,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              person(
-                'none',
-                l10n.media_library_filter_noPeople,
-                _noPeople,
-                _toggleNoPeople,
-              ),
-              person('me', l10n.media_people_me, _includeMe, (v) {
-                _includeMe = v;
-                if (v) _noPeople = false;
-              }),
-              for (final b in buddies)
-                person(
-                  b.id,
-                  b.name,
-                  _buddyIds.contains(b.id),
-                  (v) => _toggleBuddy(b.id, v),
-                ),
-              for (final id in gone)
-                person(
-                  id,
-                  l10n.media_people_removedBuddy,
-                  true,
-                  (v) => _toggleBuddy(id, v),
-                ),
-            ],
-          ),
+          if (!_people.isEmpty)
+            IconButton(
+              key: const ValueKey('media_filter_people_clear'),
+              icon: const Icon(Icons.clear),
+              tooltip: l10n.media_library_filter_peopleClear,
+              onPressed: () =>
+                  setState(() => _people = MediaPeopleSelection.none),
+            ),
+          const Icon(Icons.chevron_right),
         ],
       ),
+      onTap: () async {
+        final picked = await showMediaPeopleFilterPicker(
+          context,
+          initial: _people,
+        );
+        if (picked != null && mounted) setState(() => _people = picked);
+      },
     );
-  }
-
-  void _toggleNoPeople(bool selected) {
-    _noPeople = selected;
-    if (!selected) return;
-    _includeMe = false;
-    _buddyIds = const {};
-  }
-
-  void _toggleBuddy(String id, bool selected) {
-    if (selected) _noPeople = false;
-    _buddyIds = selected
-        ? {..._buddyIds, id}
-        : _buddyIds.where((b) => b != id).toSet();
   }
 
   Future<void> _loadAlbum() async {
@@ -350,9 +296,7 @@ class _MediaLibraryFilterSheetState
                         album.filter.health == MediaHealthFilter.missing;
                     _sourceType = album.filter.sourceType;
                     _tagIds = album.filter.tagIds;
-                    _buddyIds = album.filter.buddyIds;
-                    _includeMe = album.filter.includeMe;
-                    _noPeople = album.filter.noPeople;
+                    _people = _peopleOf(album.filter);
                     _notPlacedInDive = album.filter.notPlacedInDive;
                   });
                 },
@@ -534,8 +478,8 @@ class _MediaLibraryFilterSheetState
                           anyLabel: anyLabel,
                         ),
                       ),
+                      _buildPeopleRow(),
                       _buildTagSection(),
-                      _buildPeopleSection(),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text(l10n.media_library_filter_source),

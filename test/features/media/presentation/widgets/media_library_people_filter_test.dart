@@ -16,8 +16,9 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// People in the library filter (issue #1745): Me and the diver's buddies
-/// in the sheet, and a removable chip for each in the strip.
+/// People in the library filter (issue #1745): one People row in the sheet
+/// that opens a searchable picker (issue #4148), and a removable chip for
+/// each person in the strip.
 void main() {
   final now = DateTime(2026);
   final alex = Buddy(id: 'alex', name: 'Alex', createdAt: now, updatedAt: now);
@@ -74,32 +75,84 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('the sheet offers Me, then buddies by name', (tester) async {
-    await openSheet(tester);
+  final peopleRow = find.byKey(const ValueKey('media_filter_people'));
 
+  String subtitle(WidgetTester tester) =>
+      ((tester.widget<ListTile>(peopleRow).subtitle! as Text).data)!;
+
+  /// Ticks [keys] in the People picker and closes it with Done.
+  Future<void> pickPeople(WidgetTester tester, List<String> keys) async {
+    await tester.tap(peopleRow);
+    await tester.pumpAndSettle();
+    for (final key in keys) {
+      await tester.tap(find.byKey(ValueKey('media_people_pick_$key')));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('People is one row that reads Any', (tester) async {
+    await openSheet(tester);
     expect(find.text('People'), findsOneWidget);
-    double x(String key) =>
-        tester.getTopLeft(find.byKey(ValueKey('media_filter_person_$key'))).dx;
-    expect(x('me'), lessThan(x('alex')));
-    expect(x('alex'), lessThan(x('bea')));
-  });
-
-  testWidgets('a buddy never tagged is not offered', (tester) async {
-    await openSheet(tester);
-    expect(find.byKey(const ValueKey('media_filter_person_cal')), findsNothing);
+    expect(subtitle(tester), 'Any');
+    // No buddy is drawn in the sheet itself, however many are tagged.
+    expect(find.text('Alex'), findsNothing);
   });
 
   testWidgets('selecting Me and a buddy applies both', (tester) async {
     await openSheet(tester);
-    await tester.tap(find.byKey(const ValueKey('media_filter_person_me')));
-    await tester.tap(find.byKey(const ValueKey('media_filter_person_alex')));
-    await tester.pumpAndSettle();
+    await pickPeople(tester, ['me', 'alex']);
+    expect(subtitle(tester), 'Me, Alex');
     await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
 
     final filter = container.read(mediaLibraryFilterProvider);
     expect(filter.includeMe, isTrue);
     expect(filter.buddyIds, {'alex'});
+  });
+
+  testWidgets('the row names two people and counts the rest', (tester) async {
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(includeMe: true, buddyIds: {'bea', 'alex'});
+    await openSheet(tester);
+    expect(subtitle(tester), 'Me, Alex +1');
+  });
+
+  testWidgets('one buddy reads as their name', (tester) async {
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(buddyIds: {'bea'});
+    await openSheet(tester);
+    expect(subtitle(tester), 'Bea');
+  });
+
+  testWidgets('dismissing the picker keeps the draft', (tester) async {
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(buddyIds: {'bea'});
+    await openSheet(tester);
+    await tester.tap(peopleRow);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('media_people_pick_alex')));
+    await tester.pumpAndSettle();
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+
+    expect(subtitle(tester), 'Bea');
+  });
+
+  testWidgets('the clear button empties the people', (tester) async {
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(includeMe: true, buddyIds: {'alex'});
+    await openSheet(tester);
+    final clear = find.byKey(const ValueKey('media_filter_people_clear'));
+    await tester.tap(clear);
+    await tester.pumpAndSettle();
+    expect(subtitle(tester), 'Any');
+    expect(clear, findsNothing);
+    await tester.tap(find.text('Apply'));
+    await tester.pumpAndSettle();
+
+    expect(container.read(mediaLibraryFilterProvider).hasPeople, isFalse);
   });
 
   testWidgets('Clear All clears people too', (tester) async {
@@ -183,6 +236,7 @@ void main() {
     testWidgets('the sheet shows no buddy as removed', (tester) async {
       await openSheet(tester);
       expect(find.text('Removed buddy'), findsNothing);
+      expect(find.text('1 person'), findsOneWidget);
     });
   });
 }

@@ -16,8 +16,8 @@ import 'package:submersion/features/tags/presentation/providers/tag_providers.da
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// The two cleanup facets in the library filter (issue #4148): a "No one
-/// tagged" chip that sits with the people chips and excludes them, and a
+/// The two cleanup facets in the library filter (issue #4148): "No one
+/// tagged" at the head of the People picker, excluding everyone else, and a
 /// "Not placed in the dive" switch beside Missing files.
 void main() {
   final now = DateTime(2026);
@@ -85,24 +85,36 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  final noOne = find.byKey(const ValueKey('media_filter_person_none'));
-  final me = find.byKey(const ValueKey('media_filter_person_me'));
-  final alexChip = find.byKey(const ValueKey('media_filter_person_alex'));
+  final peopleRow = find.byKey(const ValueKey('media_filter_people'));
   final notPlaced = find.byKey(const ValueKey('media_filter_not_placed'));
 
-  bool selected(WidgetTester tester, Finder chip) =>
-      tester.widget<FilterChip>(chip).selected;
+  String peopleSubtitle(WidgetTester tester) =>
+      ((tester.widget<ListTile>(peopleRow).subtitle! as Text).data)!;
 
-  testWidgets('"No one tagged" leads the people chips', (tester) async {
+  /// Ticks [keys] in the People picker and closes it with Done.
+  Future<void> pickPeople(WidgetTester tester, List<String> keys) async {
+    await tester.tap(peopleRow);
+    await tester.pumpAndSettle();
+    for (final key in keys) {
+      await tester.tap(find.byKey(ValueKey('media_people_pick_$key')));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the People row reads "No one tagged" when picked', (
+    tester,
+  ) async {
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(noPeople: true);
     await openSheet(tester);
-    expect(find.text('No one tagged'), findsOneWidget);
-    expect(tester.getTopLeft(noOne).dx, lessThan(tester.getTopLeft(me).dx));
+    expect(peopleSubtitle(tester), 'No one tagged');
   });
 
   testWidgets('picking "No one tagged" applies it alone', (tester) async {
     await openSheet(tester);
-    await tester.tap(noOne);
-    await tester.pumpAndSettle();
+    await pickPeople(tester, ['none']);
     await apply(tester);
 
     final filter = container.read(mediaLibraryFilterProvider);
@@ -116,12 +128,9 @@ void main() {
     container.read(mediaLibraryFilterProvider.notifier).state =
         const MediaLibraryFilter(includeMe: true, buddyIds: {'alex'});
     await openSheet(tester);
-    await tester.tap(noOne);
-    await tester.pumpAndSettle();
+    await pickPeople(tester, ['none']);
+    expect(peopleSubtitle(tester), 'No one tagged');
 
-    expect(selected(tester, noOne), isTrue);
-    expect(selected(tester, me), isFalse);
-    expect(selected(tester, alexChip), isFalse);
     await apply(tester);
     final filter = container.read(mediaLibraryFilterProvider);
     expect(filter.noPeople, isTrue);
@@ -133,22 +142,13 @@ void main() {
     container.read(mediaLibraryFilterProvider.notifier).state =
         const MediaLibraryFilter(noPeople: true);
     await openSheet(tester);
-    expect(selected(tester, noOne), isTrue);
+    await pickPeople(tester, ['alex']);
+    expect(peopleSubtitle(tester), 'Alex');
 
-    await tester.tap(alexChip);
-    await tester.pumpAndSettle();
-    expect(selected(tester, noOne), isFalse);
     await apply(tester);
     final filter = container.read(mediaLibraryFilterProvider);
     expect(filter.noPeople, isFalse);
     expect(filter.buddyIds, {'alex'});
-
-    container.read(mediaLibraryFilterProvider.notifier).state =
-        const MediaLibraryFilter(noPeople: true);
-    await openSheet(tester);
-    await tester.tap(me);
-    await tester.pumpAndSettle();
-    expect(selected(tester, noOne), isFalse);
   });
 
   testWidgets('the "Not placed in the dive" switch applies', (tester) async {
