@@ -580,6 +580,10 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_startTimestamp,
     FieldKind.durationSeconds,
   ),
+  'surfaceBreathingDuration': ConflictField(
+    (l) => l.settings_conflict_field_surfaceBreathingDuration,
+    FieldKind.durationSeconds,
+  ),
   'surfaceConditions': ConflictField(
     (l) => l.settings_conflict_field_surfaceConditions,
     FieldKind.shortText,

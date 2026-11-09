@@ -10386,6 +10386,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tank_label_endPressure => '结束压力';
 
   @override
+  String get diveLog_tank_label_surfaceBreathing => '水面呼吸';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      '潜水电脑停止记录后在水面使用此气瓶的分钟数，例如在船上吸氧';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => '分钟';
+
+  @override
   String get diveLog_tank_label_he => 'He';
 
   @override
@@ -24837,6 +24847,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_supersedesRuleId => '替换内置规则';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration => '水面呼吸时间';
 
   @override
   String get settings_conflict_field_surfaceConditions => '水面状况';

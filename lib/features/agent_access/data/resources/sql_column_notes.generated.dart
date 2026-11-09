@@ -120,10 +120,14 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   'dive_derived_metrics': {
     'final_stop_kind': '`FinalStopKind.name`, defaulting to none so a row always classifies',
     'final_stop_state': '`FinalStopState.name`',
+    'gas_use_avg_depth_m': 'Mean depth in metres over `gas_use_s`, where whole-dive SAC and RMV take their ambient pressure',
+    'gas_use_s': 'Seconds underwater, surface runs at the ends of the recording left out, that whole-dive SAC and RMV divide by',
     'sac_change_pct': 'Percent change of mean SAC from the dive\'s first half to its second',
     'sac_mean_bar_min': 'Bar per minute at surface pressure',
     'sac_trend': '`SacTrend.name`',
     'source_updated_at': 'The dive\'s `updated_at` this row was built from',
+    'surface_breathed_from_s': 'Where, in the recording\'s seconds, the gas-use window was stretched back to over surface time a cylinder\'s pressure says was breathed before the descent',
+    'surface_breathed_until_s': 'Where the gas-use window was stretched on to over surface time after the ascent: a switch logged on the surface, or a pressure still falling there',
     'unsupported_reason': '`UnsupportedReason.name` when a metric could not be derived',
   },
   'dive_equipment': {
@@ -264,6 +268,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'source_id': 'the data source this tank row came from',
     'source_tank_index': 'Which parsed tank index this row\'s computer-owned data (pressure series, serial, start and end pressure) comes from',
     'start_pressure': 'bar',
+    'surface_breathing_duration': 'seconds the diver breathed this cylinder at the surface after the computer stopped logging, as they entered it: oxygen on the boat after a deco dive',
     'tank_material': 'aluminum, steel, carbonFiber',
     'tank_name': 'user-friendly name like "Primary AL80"',
     'tank_role': 'backGas, stage, deco, bailout, etc.',

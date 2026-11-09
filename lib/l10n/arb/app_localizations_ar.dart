@@ -11091,6 +11091,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tank_label_endPressure => 'ضغط النهاية';
 
   @override
+  String get diveLog_tank_label_surfaceBreathing => 'التنفس على السطح';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'الدقائق على هذه الأسطوانة بعد توقف الكمبيوتر عن التسجيل، مثل الأكسجين على القارب';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'دقيقة';
+
+  @override
   String get diveLog_tank_label_he => 'He';
 
   @override
@@ -26582,6 +26592,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'يحل محل القاعدة المدمجة';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'وقت التنفس على السطح';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'الأحوال على السطح';

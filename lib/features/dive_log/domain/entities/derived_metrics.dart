@@ -5,6 +5,8 @@
 /// worker isolate can build them.
 library;
 
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
+
 /// The width of one SAC bucket. Five minutes is coarse enough that a single
 /// breath does not move a bucket and fine enough to see a trend.
 const int kSacBucketSeconds = 300;
@@ -91,6 +93,20 @@ class DiveDerivedMetrics {
   final double? sacChangePercent;
 
   final int? runtimeSeconds;
+
+  /// The dive's gas-use window (see `gasUseWindowOf`): how long the diver was
+  /// underwater, with surface runs at the ends left out, and the mean depth
+  /// over it. Null when there is nothing to leave out (issue #2930). Set by
+  /// `DerivedMetricsRepository` from the merged profile the dive page shows,
+  /// not by the engine, which reads the primary series alone.
+  final int? gasUseSeconds;
+  final double? gasUseAvgDepthMeters;
+
+  /// Where surface time a cylinder was breathed in stretched the gas-use
+  /// window (see `surfaceBreathingOf`), for a dive read with its profile to
+  /// stretch its own window alike. Null when nothing stretched it.
+  final SurfaceBreathing? surfaceBreathing;
+
   final UnsupportedReason? unsupportedReason;
 
   /// The engine's buckets. Empty when read back from storage.
@@ -110,10 +126,15 @@ class DiveDerivedMetrics {
     this.sacSlopeBarPerMinPerMin,
     this.sacChangePercent,
     this.runtimeSeconds,
+    this.gasUseSeconds,
+    this.gasUseAvgDepthMeters,
+    this.surfaceBreathing,
     this.unsupportedReason,
     this.sacBuckets = const [],
   });
 
+  /// Keeps [surfaceBreathing] as it is: [withGasUse] sets it together with
+  /// the window it stretched, so the two never disagree.
   DiveDerivedMetrics copyWith({
     String? diveId,
     int? engineVersion,
@@ -128,6 +149,8 @@ class DiveDerivedMetrics {
     double? sacSlopeBarPerMinPerMin,
     double? sacChangePercent,
     int? runtimeSeconds,
+    int? gasUseSeconds,
+    double? gasUseAvgDepthMeters,
     UnsupportedReason? unsupportedReason,
     List<SacBucket>? sacBuckets,
   }) => DiveDerivedMetrics(
@@ -148,8 +171,38 @@ class DiveDerivedMetrics {
         sacSlopeBarPerMinPerMin ?? this.sacSlopeBarPerMinPerMin,
     sacChangePercent: sacChangePercent ?? this.sacChangePercent,
     runtimeSeconds: runtimeSeconds ?? this.runtimeSeconds,
+    gasUseSeconds: gasUseSeconds ?? this.gasUseSeconds,
+    gasUseAvgDepthMeters: gasUseAvgDepthMeters ?? this.gasUseAvgDepthMeters,
+    surfaceBreathing: surfaceBreathing,
     unsupportedReason: unsupportedReason ?? this.unsupportedReason,
     sacBuckets: sacBuckets ?? this.sacBuckets,
+  );
+
+  /// These metrics with [window] as the gas-use window, null for none, and
+  /// [breathing] as what stretched it. [copyWith] cannot clear a field, and a
+  /// rebuilt dive may have lost its surface tail.
+  DiveDerivedMetrics withGasUse(
+    GasUseWindow? window, {
+    SurfaceBreathing? breathing,
+  }) => DiveDerivedMetrics(
+    diveId: diveId,
+    engineVersion: engineVersion,
+    sourceUpdatedAt: sourceUpdatedAt,
+    computedAt: computedAt,
+    finalStopKind: finalStopKind,
+    finalStopStartSeconds: finalStopStartSeconds,
+    finalStopDurationSeconds: finalStopDurationSeconds,
+    finalStopDepthStdDevMeters: finalStopDepthStdDevMeters,
+    finalStopMaxExcursionMeters: finalStopMaxExcursionMeters,
+    sacMeanBarPerMin: sacMeanBarPerMin,
+    sacSlopeBarPerMinPerMin: sacSlopeBarPerMinPerMin,
+    sacChangePercent: sacChangePercent,
+    runtimeSeconds: runtimeSeconds,
+    gasUseSeconds: window?.seconds,
+    gasUseAvgDepthMeters: window?.avgDepth,
+    surfaceBreathing: breathing,
+    unsupportedReason: unsupportedReason,
+    sacBuckets: sacBuckets,
   );
 
   bool get hasSac => sacMeanBarPerMin != null;

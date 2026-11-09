@@ -58,6 +58,8 @@ void main() {
     double o2 = 21,
     int order = 0,
     String? computerId,
+    int? surfaceBreathingSeconds,
+    int? usageSeconds,
   }) => db
       .into(db.diveTanks)
       .insert(
@@ -72,6 +74,8 @@ void main() {
           hePercent: const Value(0.0),
           tankOrder: Value(order),
           computerId: Value(computerId),
+          surfaceBreathingDuration: Value(surfaceBreathingSeconds),
+          usageDuration: Value(usageSeconds),
         ),
       );
 
@@ -177,6 +181,125 @@ void main() {
       closeTo(deco.sacRate!, deco.sacRate! * 0.02),
     );
     expect(trend.rmv[ConsumptionRoleGroup.deco]!.single.diveId, 'tech');
+  });
+
+  test('entered surface minutes reach a one-cylinder group (#2930)', () async {
+    // No profile: an hour at 20 m, plus ten minutes of the back gas breathed
+    // on the boat after the computer stopped.
+    await insertDive('boat');
+    await insertTank(
+      'boat',
+      'boat-back',
+      'backGas',
+      surfaceBreathingSeconds: 600,
+    );
+    final back = (await detailRows('boat')).single;
+
+    final trend = await repository.getRoleConsumptionPerDive();
+
+    final value = trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value;
+    expect(value, closeTo(back.rmv!, 1e-9));
+  });
+
+  test(
+    'a matched pair counts its shared surface minutes once (#2930)',
+    () async {
+      // Ten minutes entered on both sidemount cylinders is the same surface time
+      // as ten entered on one of them.
+      Future<void> pair(
+        String id, {
+        required int day,
+        required bool both,
+      }) async {
+        await insertDive(id, day: day);
+        await insertTank(
+          id,
+          '$id-l',
+          'sidemountLeft',
+          surfaceBreathingSeconds: 600,
+        );
+        await insertTank(
+          id,
+          '$id-r',
+          'sidemountRight',
+          order: 1,
+          surfaceBreathingSeconds: both ? 600 : null,
+        );
+      }
+
+      await pair('both', day: 1, both: true);
+      await pair('one', day: 2, both: false);
+
+      final trend = await repository.getRoleConsumptionPerDive();
+      double rmv(String id) => trend.rmv[ConsumptionRoleGroup.bottomGas]!
+          .singleWhere((p) => p.diveId == id)
+          .value;
+      expect(rmv('both'), closeTo(rmv('one'), 1e-9));
+    },
+  );
+
+  test('a recorded duration counts entered minutes once (#2930)', () async {
+    // The log recorded 30 minutes on the back gas, and the diver entered ten
+    // more on the boat.
+    await insertDive('rec');
+    await insertTank(
+      'rec',
+      'rec-back',
+      'backGas',
+      usageSeconds: 1800,
+      surfaceBreathingSeconds: 600,
+    );
+    final back = (await detailRows('rec')).single;
+
+    final trend = await repository.getRoleConsumptionPerDive();
+
+    expect(
+      trend.rmv[ConsumptionRoleGroup.bottomGas]!.single.value,
+      closeTo(back.rmv!, 1e-9),
+    );
+  });
+
+  test('a surface tail is left out of the last cylinder (#2930)', () async {
+    // Back gas then a stage from 30 minutes, at 6 m until the hour. The
+    // second dive's computer then logs ten more minutes at the surface.
+    Future<void> insertStageDive(
+      String id, {
+      required int day,
+      int? tail,
+    }) async {
+      final end = 60 * 60 + (tail ?? 0);
+      await insertDive(id, day: day, runtime: end, avgDepth: 6);
+      await insertTank(id, '$id-back', 'backGas', end: 150);
+      await insertTank(id, '$id-stage', 'stage', end: 120, order: 1);
+      await insertSwitch(id, '$id-back', 0);
+      await insertSwitch(id, '$id-stage', 30 * 60);
+      await ProfileSeriesRepository().insertSeries(
+        diveId: id,
+        samples: [
+          for (var t = 0; t <= end; t += 10)
+            ProfileSample(timestamp: t, depth: t <= 60 * 60 ? 6.0 : 0.3),
+        ],
+        now: 0,
+      );
+    }
+
+    await insertStageDive('plain', day: 1);
+    await insertStageDive('tail', day: 2, tail: 10 * 60);
+    final detail = (await detailRows(
+      'tail',
+    )).singleWhere((r) => r.tankId == 'tail-stage');
+
+    final trend = await repository.getRoleConsumptionPerDive();
+    double stageRmv(String id) => trend.rmv[ConsumptionRoleGroup.stage]!
+        .singleWhere((p) => p.diveId == id)
+        .value;
+
+    // Divided by its 30 underwater minutes, not 40.
+    expect(
+      stageRmv('tail'),
+      closeTo(stageRmv('plain'), stageRmv('plain') * 0.02),
+    );
+    expect(stageRmv('tail'), closeTo(detail.rmv!, detail.rmv! * 0.02));
   });
 
   test(

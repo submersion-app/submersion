@@ -10919,6 +10919,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tank_label_endPressure => 'Végnyomás';
 
   @override
+  String get diveLog_tank_label_surfaceBreathing => 'A felszínen belélegezve';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Percek ezen a palackon azután, hogy a komputer leállította a naplózást, például oxigén a hajón';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'perc';
+
+  @override
   String get diveLog_tank_label_he => 'He';
 
   @override
@@ -26212,6 +26222,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Beépített szabályt helyettesít';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'A felszínen belélegzett idő';
 
   @override
   String get settings_conflict_field_surfaceConditions =>

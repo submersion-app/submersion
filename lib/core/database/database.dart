@@ -1595,6 +1595,12 @@ class AppDatabase extends _$AppDatabase {
     // overlay opacity over it per theme. Additive and defaulted; the floor
     // does not move.
     347,
+    // v348: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, a dive's
+    // underwater time and depth for SAC and RMV, and where surface breathing
+    // stretched them (issue #2930): a device-local cache the sweep refills.
+    // Plus dive_tanks.surface_breathing_duration, a nullable synced column an
+    // older peer omits, with no backfill. The floor does not move.
+    348,
     // v349: an empty dives.water_temp takes the temperature its source rows
     // measured, which a download kept on the source row only (issue #4333).
     // Data only, filling a column every reader already holds, so the floor
