@@ -148,10 +148,11 @@ void main() {
     await service().refresh(d.id);
 
     final r = (await records.forDive(d.id))!;
+    int s(DateTime t) => t.millisecondsSinceEpoch ~/ 1000;
     expect(r.heartRateSamples, [
-      [0, 80],
-      [1200, 90],
-      [2700, 100],
+      [s(local(17, 10)), 80],
+      [s(local(17, 10, 20)), 90],
+      [s(local(17, 10, 45)), 100],
     ]);
     expect(r.avgHeartRate, 90);
     expect(r.maxHeartRate, 100);

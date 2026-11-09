@@ -1,8 +1,9 @@
 import 'package:equatable/equatable.dart';
 
 /// Heart rate, recovery and sleep from Apple Health for one dive (issue
-/// #637). Times are offsets from the dive's entry, so the record follows the
-/// dive if its times are corrected.
+/// #637). Heart rate samples keep their own true times, so the line stays
+/// where it was recorded when the dive's entry is corrected or a download
+/// fills it.
 class DiveHealthRecord extends Equatable {
   const DiveHealthRecord({
     required this.id,
@@ -22,7 +23,7 @@ class DiveHealthRecord extends Equatable {
   final String id;
   final String diveId;
 
-  /// `[offsetSeconds, bpm]` pairs from the entry, in time order.
+  /// `[epochSeconds, bpm]` pairs, true instants in time order.
   final List<List<int>> heartRateSamples;
   final int? avgHeartRate;
   final int? maxHeartRate;

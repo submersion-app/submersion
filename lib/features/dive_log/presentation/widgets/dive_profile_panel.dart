@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -269,6 +270,11 @@ class _DiveProfilePanelContentState
               .value
               ?.heartRateSamples ??
           const [],
+      entryEpochSeconds:
+          fromWallClockUtc(
+            dive.entryTime ?? dive.dateTime,
+          ).millisecondsSinceEpoch ~/
+          1000,
     );
     // AsyncValue.value, not the valueOrNull polyfill: it keeps the previous
     // value across a provider reload so the chart does not drop a series for

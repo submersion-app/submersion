@@ -103,18 +103,20 @@ void main() {
     });
   });
 
-  test('heart rate offsets are whole seconds from the entry', () {
+  test('the heart rate series keeps each sample\'s own time, from the entry '
+      'on', () {
     final entry = at(17, 10);
+    int s(DateTime t) => t.millisecondsSinceEpoch ~/ 1000;
 
     expect(
-      heartRateOffsets([
+      heartRateSeries([
         hr(at(17, 10, 1), 76.6),
         hr(at(17, 9, 59), 99),
         hr(entry, 82.4),
-      ], entry),
+      ], from: entry),
       [
-        [0, 82],
-        [60, 77],
+        [s(entry), 82],
+        [s(at(17, 10, 1)), 77],
       ],
     );
   });

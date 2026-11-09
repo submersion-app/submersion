@@ -133,7 +133,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'dive_health_records': {
     'heart_rate_at_exit': 'Recovery: the heart rate at the exit, and five and fifteen minutes on',
-    'heart_rate_samples': 'JSON `[[offsetSeconds, bpm], ...]` from the dive\'s entry',
+    'heart_rate_samples': 'JSON `[[epochSeconds, bpm], ...]`: each sample\'s true time, so the line stays where it was recorded when the dive\'s entry moves',
     'overnight_hrv_ms': 'The night before the dive: mean heart rate variability (SDNN, ms) and minutes asleep',
     'settled': 'True once every reading the dive can have is in (the recovery window has passed), so no later refresh asks Health again',
   },

@@ -15,6 +15,7 @@ void main() {
 
   test('each point takes the nearest sample within the gap', () {
     final merged = mergeHeartRate(
+      entryEpochSeconds: 0,
       [point(0), point(10), point(20)],
       const [
         [0, 80],
@@ -36,7 +37,7 @@ void main() {
 
     expect(
       identical(
-        mergeHeartRate(profile, const [
+        mergeHeartRate(entryEpochSeconds: 0, profile, const [
           [0, 80],
         ]),
         profile,
@@ -47,6 +48,7 @@ void main() {
 
   test('a point with no sample within the gap stays empty', () {
     final merged = mergeHeartRate(
+      entryEpochSeconds: 0,
       [point(0), point(100)],
       const [
         [0, 80],
@@ -65,16 +67,38 @@ void main() {
 
     expect(
       identical(
-        mergeHeartRate(profile, samples),
-        mergeHeartRate(profile, samples),
+        mergeHeartRate(entryEpochSeconds: 0, profile, samples),
+        mergeHeartRate(entryEpochSeconds: 0, profile, samples),
       ),
       isTrue,
     );
   });
 
+  test('samples stay at their own time when the dive starts later than '
+      'when they were read', () {
+    // Read from a tap at 1000 s; the download put the entry at 1060 s.
+    final merged = mergeHeartRate(
+      entryEpochSeconds: 1060,
+      [point(0), point(60)],
+      const [
+        [1000, 70],
+        [1060, 80],
+        [1120, 90],
+      ],
+    );
+
+    expect(merged.map((p) => p.heartRate), [80, 90]);
+  });
+
   test('no samples leaves the profile as it is', () {
     final profile = [point(0)];
 
-    expect(identical(mergeHeartRate(profile, const []), profile), isTrue);
+    expect(
+      identical(
+        mergeHeartRate(entryEpochSeconds: 0, profile, const []),
+        profile,
+      ),
+      isTrue,
+    );
   });
 }

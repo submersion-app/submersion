@@ -123,15 +123,20 @@ int? sleepBeforeMinutes(List<SleepInterval> sleep, DateTime firstEntryOfDay) {
   return seconds == 0 ? null : (seconds / 60).round();
 }
 
-/// `[offsetSeconds, bpm]` pairs from [entry], in time order; samples before
-/// the entry are left out.
-List<List<int>> heartRateOffsets(List<HealthSample> samples, DateTime entry) {
+/// `[epochSeconds, bpm]` pairs, true instants in time order, for the
+/// samples from [from] on. Kept as times rather than offsets, so the line
+/// stays where it was recorded when the dive's entry later moves.
+List<List<int>> heartRateSeries(
+  List<HealthSample> samples, {
+  required DateTime from,
+}) {
   final kept = [
     for (final s in samples)
-      if (!s.at.isBefore(entry)) s,
+      if (!s.at.isBefore(from)) s,
   ]..sort((a, b) => a.at.compareTo(b.at));
   return [
-    for (final s in kept) [s.at.difference(entry).inSeconds, s.value.round()],
+    for (final s in kept)
+      [s.at.millisecondsSinceEpoch ~/ 1000, s.value.round()],
   ];
 }
 

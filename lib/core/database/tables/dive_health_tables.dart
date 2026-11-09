@@ -23,7 +23,8 @@ class DiveHealthRecords extends Table {
   TextColumn get diveId =>
       text().references(Dives, #id, onDelete: KeyAction.cascade)();
 
-  /// JSON `[[offsetSeconds, bpm], ...]` from the dive's entry.
+  /// JSON `[[epochSeconds, bpm], ...]`: each sample's true time, so the line
+  /// stays where it was recorded when the dive's entry moves.
   TextColumn get heartRateSamples => text().nullable()();
   IntColumn get avgHeartRate => integer().nullable()();
   IntColumn get maxHeartRate => integer().nullable()();

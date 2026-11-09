@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
@@ -274,6 +275,11 @@ class DiveProfileChartHost extends ConsumerWidget {
       resolvedActive?.points ?? dive.profile,
       ref.watch(diveHealthRecordProvider(diveId)).value?.heartRateSamples ??
           const [],
+      entryEpochSeconds:
+          fromWallClockUtc(
+            dive.entryTime ?? dive.dateTime,
+          ).millisecondsSinceEpoch ~/
+          1000,
     );
 
     keepProfileExtentsOnDrawnSeries(

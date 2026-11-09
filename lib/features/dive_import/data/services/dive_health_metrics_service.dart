@@ -124,7 +124,7 @@ class DiveHealthMetricsService {
     final summary = ownHeartRate ? null : summarizeHeartRate(inDive);
     final offsets = ownHeartRate
         ? const <List<int>>[]
-        : heartRateOffsets(inDive, entry);
+        : heartRateSeries(inDive, from: entry);
     final recovery = recoveryAfter(heartRate, exit);
 
     final existing = await _records.forDive(diveId);
