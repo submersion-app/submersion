@@ -87,6 +87,22 @@ void main() {
     expect(find.byIcon(Icons.bookmark_border), findsOneWidget);
   });
 
+  testWidgets('orders expected species alphabetically', (tester) async {
+    await _pump(
+      tester,
+      spotted: const [],
+      expected: [_expected('Turtle'), _expected('Manta')],
+    );
+
+    final manta = tester.getTopLeft(find.text('Manta'));
+    final turtle = tester.getTopLeft(find.text('Turtle'));
+    expect(
+      manta.dx < turtle.dx || manta.dy < turtle.dy,
+      isTrue,
+      reason: 'Manta sorts before Turtle',
+    );
+  });
+
   testWidgets('tapping a chip reports that suggestion', (tester) async {
     final added = <SiteSpeciesSuggestion>[];
     await _pump(
