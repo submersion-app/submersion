@@ -162,7 +162,7 @@ void main() {
         await EquipmentRepository().createEquipment(
           const EquipmentItem(
             id: 'e1',
-            name: 'Regulator',
+            name: 'Apeks XTX50',
             type: EquipmentType.regulator,
           ),
         );
@@ -179,7 +179,7 @@ void main() {
         expect(find.byType(BulkMembershipEditor), findsNWidgets(5));
         expect(find.text('Nitrox'), findsOneWidget);
         expect(find.text('Alice'), findsOneWidget);
-        expect(find.text('Regulator'), findsOneWidget);
+        expect(find.text('Apeks XTX50'), findsOneWidget);
         // Each seeded item is on 1 of the 2 selected dives.
         expect(find.text('on 1 of 2'), findsNWidgets(4));
 

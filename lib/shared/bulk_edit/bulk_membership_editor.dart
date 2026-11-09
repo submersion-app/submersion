@@ -112,6 +112,7 @@ class BulkMembershipEditor extends StatefulWidget {
     this.secondaryAction,
     this.trailingBuilder,
     this.detailBuilder,
+    this.headerBuilder,
     this.ensureOn,
     this.absentStartsChecked = true,
   });
@@ -143,6 +144,14 @@ class BulkMembershipEditor extends StatefulWidget {
   /// label a sliver that wrapped one character per line (#2276). Returning
   /// null shows nothing for that row.
   final Widget? Function(BulkMembershipItem item)? detailBuilder;
+
+  /// Optional heading shown above a row, for a caller that groups its rows
+  /// into sections. The caller orders [items] so each section's rows are
+  /// adjacent and returns the heading for the first row of each section,
+  /// null for the rest. Equipment uses it for the type headings of the
+  /// diver's gear arrangement (#2274). Each row's choice is kept by id, so a
+  /// caller may reorder [items] between builds.
+  final Widget? Function(BulkMembershipItem item)? headerBuilder;
 
   /// A one-shot instruction to put [ids] on every selected entity, whatever
   /// their rows currently say. An update carrying the same [serial] changes
@@ -320,24 +329,31 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(widget.title, style: theme.textTheme.titleMedium),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ?widget.secondaryAction,
-                  TextButton.icon(
-                    onPressed: widget.onAdd,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(widget.labels.add),
-                  ),
-                ],
-              ),
-            ],
+          // Title and actions share a line when they fit. On a narrow phone
+          // in a language with long labels they do not (the equipment
+          // editor's Use Set, Sort and Add run wider than the screen in
+          // French, #2274), so the actions drop under the title, and wrap
+          // among themselves, rather than overflow.
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(widget.title, style: theme.textTheme.titleMedium),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ?widget.secondaryAction,
+                    TextButton.icon(
+                      onPressed: widget.onAdd,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(widget.labels.add),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           if (widget.items.isEmpty)
             Padding(
@@ -350,8 +366,14 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
               ),
             )
           else
-            for (final item in widget.items)
+            for (final item in widget.items) ...[
+              ?widget.headerBuilder?.call(item),
               ListTile(
+                // Keyed by item: a sorted list reorders its rows, or gains
+                // one in the middle (#2274), and a row matched by position
+                // would take over another item's checkbox, with its check
+                // animation, focus and hover.
+                key: ValueKey('membership-row-${item.id}'),
                 contentPadding: EdgeInsets.zero,
                 leading: Checkbox(
                   key: ValueKey('membership-toggle-${item.id}'),
@@ -374,6 +396,7 @@ class _BulkMembershipEditorState extends State<BulkMembershipEditor> {
                 trailing: widget.trailingBuilder?.call(item),
                 onTap: () => _cycle(item.id),
               ),
+            ],
         ],
       ),
     );
