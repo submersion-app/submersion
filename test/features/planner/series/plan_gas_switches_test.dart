@@ -226,6 +226,37 @@ void main() {
 
       expect(result, [(at: 1360, tank: 'e-40', depth: 6.0)]);
     });
+
+    test('a leg of no time split off at a switch depth moves nothing', () {
+      final result = switches([
+        ...bottom,
+        // The engine splits the leg at EAN80's exact switch depth, a hair
+        // above the stop, leaving a sliver no time is spent on.
+        stop(
+          6,
+          120,
+          1480,
+          .80,
+          'p-80',
+          folded: const [
+            PlanFoldedTravel(
+              fromDepthMeters: 9,
+              toDepthMeters: 6.02,
+              seconds: 30,
+              tankId: 'p-air',
+            ),
+            PlanFoldedTravel(
+              fromDepthMeters: 6.02,
+              toDepthMeters: 6,
+              seconds: 0,
+              tankId: 'p-80',
+            ),
+          ],
+        ),
+      ]);
+
+      expect(result, [(at: 1360, tank: 'e-80', depth: 6.0)]);
+    });
   });
 
   test('a dive descending on a travel gas starts on it in the log', () {

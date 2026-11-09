@@ -121,9 +121,26 @@ class PlanChartSeriesPainter extends CustomPainter {
     }
 
     // Gas-switch flags: dashed stem from the surface to the switch, pill on
-    // top with the gas name.
-    for (final marker in series.gasSwitches) {
-      final x = geometry.xFor(marker.timeSeconds);
+    // top with the gas name, dropped a row where it would print over an
+    // earlier one.
+    final flags = [
+      for (final marker in series.gasSwitches)
+        (
+          marker: marker,
+          x: geometry.xFor(marker.timeSeconds),
+          label: layoutLabel(
+            marker.label,
+            tagStyle.copyWith(color: palette.gasFlag),
+            textDirection,
+          ),
+        ),
+    ];
+    final flagRows = gasFlagRows([
+      for (final flag in flags)
+        (left: flag.x + 4, right: flag.x + 4 + flag.label.width + 12),
+    ]);
+    for (var i = 0; i < flags.length; i++) {
+      final (:marker, :x, :label) = flags[i];
       final stem = Path()
         ..moveTo(x, plot.top)
         ..lineTo(x, geometry.yFor(marker.depth));
@@ -134,13 +151,14 @@ class PlanChartSeriesPainter extends CustomPainter {
           ..strokeWidth = 1.1
           ..style = PaintingStyle.stroke,
       );
-      final label = layoutLabel(
-        marker.label,
-        tagStyle.copyWith(color: palette.gasFlag),
-        textDirection,
-      );
+      final pillHeight = label.height + 6;
       final pill = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x + 4, plot.top + 4, label.width + 12, label.height + 6),
+        Rect.fromLTWH(
+          x + 4,
+          plot.top + 4 + flagRows[i] * (pillHeight + 4),
+          label.width + 12,
+          pillHeight,
+        ),
         const Radius.circular(8),
       );
       canvas.drawRRect(pill, Paint()..color = palette.gasFlagBackground);

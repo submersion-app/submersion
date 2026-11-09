@@ -24,4 +24,54 @@ void main() {
     expect(painter.width, greaterThan(0));
     expect(painter.height, greaterThan(0));
   });
+
+  group('gasFlagRows (issue #4078)', () {
+    test('flags far apart all sit on the top row', () {
+      expect(
+        gasFlagRows([
+          (left: 0, right: 50),
+          (left: 100, right: 150),
+          (left: 200, right: 250),
+        ]),
+        [0, 0, 0],
+      );
+    });
+
+    test('a flag that would print over the one before drops a row', () {
+      expect(gasFlagRows([(left: 0, right: 50), (left: 30, right: 80)]), [
+        0,
+        1,
+      ]);
+    });
+
+    test('a flag goes back up to the first row it clears', () {
+      expect(
+        gasFlagRows([
+          (left: 0, right: 50),
+          (left: 30, right: 80),
+          (left: 60, right: 110),
+          (left: 90, right: 140),
+        ]),
+        [0, 1, 0, 1],
+      );
+    });
+
+    test('flags closer than the gap do not touch', () {
+      expect(
+        gasFlagRows([(left: 0, right: 50), (left: 52, right: 90)], gap: 4),
+        [0, 1],
+      );
+    });
+
+    test('a wide flag keeps its row taken past a narrower one after it', () {
+      expect(
+        gasFlagRows([
+          (left: 0, right: 200),
+          (left: 10, right: 40),
+          (left: 60, right: 90),
+        ]),
+        [0, 1, 1],
+      );
+    });
+  });
 }
