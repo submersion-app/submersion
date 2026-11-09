@@ -210,6 +210,9 @@ void main() {
         expect(plan.points, _planOverlay.points);
         expect(plan.color, _planOverlay.color);
         expect(plan.tintByMetric, isFalse);
+        // The legend entry the diver reads, not the plan's own name.
+        expect(find.text('Depth · Plan'), findsOneWidget);
+        expect(find.textContaining(_planOverlay.name), findsNothing);
       });
 
       testWidgets('switched off, hides the plan but keeps its switch', (
