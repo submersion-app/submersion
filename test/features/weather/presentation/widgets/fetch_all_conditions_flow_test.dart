@@ -12,6 +12,7 @@ import 'package:submersion/features/weather/data/services/bulk_conditions_servic
 import 'package:submersion/features/weather/data/services/weather_service.dart';
 import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -43,7 +44,7 @@ class _CountFailsService extends BulkConditionsService {
   });
 
   @override
-  Future<int> countCandidates({String? diverId}) async =>
+  Future<int> countCandidates({String? diverId, Set<String>? diveIds}) async =>
       throw StateError('count exploded');
 }
 
@@ -55,11 +56,13 @@ class _RunFailsService extends BulkConditionsService {
   });
 
   @override
-  Future<int> countCandidates({String? diverId}) async => 1;
+  Future<int> countCandidates({String? diverId, Set<String>? diveIds}) async =>
+      1;
 
   @override
   Future<BulkConditionsResult> run({
     String? diverId,
+    Set<String>? diveIds,
     void Function(BulkConditionsProgress)? onProgress,
     bool Function()? isCancelled,
   }) async => throw StateError('run exploded');
@@ -109,24 +112,53 @@ void main() {
         );
   }
 
-  /// A page whose only button starts the flow against [service].
+  /// A dive with no site and no GPS fix: nowhere to fetch conditions for.
+  Future<void> insertSitelessDive(String id) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diveDateTime: now,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+  }
+
+  /// A page whose only button starts the flow against [service], scoped to
+  /// [diveIds] when given; [onOutcome] receives what the flow reports.
   /// The locale is pinned so assertions read the English strings.
-  Widget hostFor(BulkConditionsService service) => MaterialApp(
+  Widget hostFor(
+    BulkConditionsService service, {
+    Set<String>? diveIds,
+    void Function(BulkActionOutcome)? onOutcome,
+  }) => MaterialApp(
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     locale: const Locale('en'),
     home: Scaffold(
       body: Builder(
         builder: (context) => ElevatedButton(
-          onPressed: () =>
-              showFetchAllConditionsFlow(context: context, service: service),
+          onPressed: () async {
+            final outcome = await showFetchAllConditionsFlow(
+              context: context,
+              service: service,
+              diveIds: diveIds,
+            );
+            onOutcome?.call(outcome);
+          },
           child: const Text('go'),
         ),
       ),
     ),
   );
 
-  ({Widget widget, List<Uri> requests}) harness() {
+  ({Widget widget, List<Uri> requests}) harness({
+    Set<String>? diveIds,
+    void Function(BulkActionOutcome)? onOutcome,
+  }) {
     final requests = <Uri>[];
     final client = MockClient((request) async {
       requests.add(request.url);
@@ -137,7 +169,10 @@ void main() {
       weatherService: WeatherService(client: client),
       requestDelay: Duration.zero,
     );
-    return (widget: hostFor(service), requests: requests);
+    return (
+      widget: hostFor(service, diveIds: diveIds, onOutcome: onOutcome),
+      requests: requests,
+    );
   }
 
   group('FetchConditionsProgressController', () {
@@ -409,5 +444,179 @@ void main() {
 
     expect(find.text('Conditions fetched'), findsNothing);
     expect(find.textContaining('run exploded'), findsOneWidget);
+  });
+  group('scoped to selected dives (#4329)', () {
+    testWidgets('confirm names the share of the selection and the skipped', (
+      tester,
+    ) async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', 's1', DateTime.utc(2024, 6, 15, 9));
+      await insertDive('d2', 's1', DateTime.utc(2024, 6, 16, 9));
+      await insertDive('other', 's1', DateTime.utc(2024, 6, 17, 9));
+      await insertSitelessDive('nowhere');
+
+      final (:widget, :requests) = harness(diveIds: {'d1', 'd2', 'nowhere'});
+      await tester.pumpWidget(widget);
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('2 of 3 selected dives are missing conditions.'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining(
+          '1 dive has no site location or GPS fix and will be skipped.',
+        ),
+        findsOneWidget,
+      );
+      expect(requests, isEmpty);
+    });
+
+    testWidgets('uses the plain count when every selected dive qualifies', (
+      tester,
+    ) async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', 's1', DateTime.utc(2024, 6, 15, 9));
+      await insertDive('d2', 's1', DateTime.utc(2024, 6, 16, 9));
+
+      final (:widget, :requests) = harness(diveIds: {'d1', 'd2'});
+      await tester.pumpWidget(widget);
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('2 dives are missing conditions.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('selected dives'), findsNothing);
+      expect(find.textContaining('will be skipped'), findsNothing);
+    });
+
+    testWidgets('fills only the selected dives and reports completed', (
+      tester,
+    ) async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', 's1', DateTime.utc(2024, 6, 15, 9));
+      await insertDive('other', 's1', DateTime.utc(2024, 6, 15, 9));
+      BulkActionOutcome? outcome;
+
+      final (:widget, :requests) = harness(
+        diveIds: {'d1'},
+        onOutcome: (o) => outcome = o,
+      );
+      await tester.pumpWidget(widget);
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fetch'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(outcome, BulkActionOutcome.completed);
+      Future<Dive> row(String id) =>
+          (db.select(db.dives)..where((t) => t.id.equals(id))).getSingle();
+      expect((await row('d1')).humidity, 70.0);
+      expect((await row('other')).humidity, isNull);
+    });
+
+    testWidgets('says none of the selection is missing conditions', (
+      tester,
+    ) async {
+      await insertSite('s1', 12.5, -68.25);
+      BulkActionOutcome? outcome;
+
+      final (:widget, :requests) = harness(
+        diveIds: {'missing-id'},
+        onOutcome: (o) => outcome = o,
+      );
+      await tester.pumpWidget(widget);
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Fetch conditions?'), findsNothing);
+      expect(
+        find.text('None of the selected dives are missing conditions.'),
+        findsOneWidget,
+      );
+      expect(outcome, BulkActionOutcome.cancelled);
+    });
+
+    testWidgets('says the selection has nowhere to fetch for', (tester) async {
+      await insertSitelessDive('nowhere');
+      BulkActionOutcome? outcome;
+
+      final (:widget, :requests) = harness(
+        diveIds: {'nowhere'},
+        onOutcome: (o) => outcome = o,
+      );
+      await tester.pumpWidget(widget);
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Fetch conditions?'), findsNothing);
+      expect(
+        find.text(
+          'The selected dives that are missing conditions have no site '
+          'location or GPS fix.',
+        ),
+        findsOneWidget,
+      );
+      expect(outcome, BulkActionOutcome.cancelled);
+      expect(requests, isEmpty);
+    });
+
+    testWidgets('backing out of the confirm reports cancelled', (tester) async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', 's1', DateTime.utc(2024, 6, 15, 9));
+      BulkActionOutcome? outcome;
+
+      final (:widget, :requests) = harness(
+        diveIds: {'d1'},
+        onOutcome: (o) => outcome = o,
+      );
+      await tester.pumpWidget(widget);
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(outcome, BulkActionOutcome.cancelled);
+    });
+
+    testWidgets('a failing count or run reports failed', (tester) async {
+      final weather = WeatherService(
+        client: MockClient((_) async => http.Response(_payload(), 200)),
+      );
+      final outcomes = <BulkActionOutcome>[];
+
+      await tester.pumpWidget(
+        hostFor(
+          _CountFailsService(
+            diveRepository: repository,
+            weatherService: weather,
+          ),
+          diveIds: {'d1'},
+          onOutcome: outcomes.add,
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(
+        hostFor(
+          _RunFailsService(diveRepository: repository, weatherService: weather),
+          diveIds: {'d1'},
+          onOutcome: outcomes.add,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('go'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Fetch'));
+      await tester.pumpAndSettle();
+
+      expect(outcomes, [BulkActionOutcome.failed, BulkActionOutcome.failed]);
+    });
   });
 }

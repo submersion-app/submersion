@@ -9331,6 +9331,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count of $total selected dives are missing conditions.',
+      one: '$count of $total selected dives is missing conditions.',
+    );
+    return '$_temp0 Only empty fields are filled, so nothing you have already entered will change.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives have no site location or GPS fix and will be skipped.',
+      one: '$count dive has no site location or GPS fix and will be skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'None of the selected dives are missing conditions.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'The selected dives that are missing conditions have no site location or GPS fix.';
+
+  @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37778,6 +37809,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'None of the selected dives have stored raw data to re-parse.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Fetch Conditions';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Re-parse';

@@ -2,43 +2,82 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/weather/data/services/bulk_conditions_service.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/selection/bulk_action.dart';
 
-/// Runs a "fetch conditions for all dives" pass: count, confirm, progress,
-/// summary.
+/// Runs a conditions fetch: count, confirm, progress, summary.
 ///
-/// Kept out of the dive list page so the page keeps its own size and the flow
-/// can be widget-tested against a [BulkConditionsService] built over a test
+/// Covers the whole logbook (for [diverId] when given), or only the dives in
+/// [diveIds] when the selection bar starts it (#4329). A selection is worded
+/// as such: "2 of 3 selected dives are missing conditions", plus a line for
+/// checked dives that have nowhere to fetch for.
+///
+/// Reports a [BulkActionOutcome] so the selection bar knows whether to leave
+/// selection mode: [BulkActionOutcome.completed] once a run happened, even a
+/// cancelled one (it may have written), [BulkActionOutcome.cancelled] when
+/// nothing was attempted, [BulkActionOutcome.failed] on an error.
+///
+/// Kept out of the dive list so the list keeps its own size and the flow can
+/// be widget-tested against a [BulkConditionsService] built over a test
 /// database, with no navigation or provider scaffolding.
-Future<void> showFetchAllConditionsFlow({
+Future<BulkActionOutcome> showFetchAllConditionsFlow({
   required BuildContext context,
   required BulkConditionsService service,
   String? diverId,
+  Set<String>? diveIds,
 }) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
 
   final int candidates;
+  final int unlocated;
   try {
-    candidates = await service.countCandidates(diverId: diverId);
-  } catch (e) {
-    if (!context.mounted) return;
-    messenger.showSnackBar(SnackBar(content: Text('$e')));
-    return;
-  }
-
-  if (!context.mounted) return;
-  if (candidates == 0) {
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.diveLog_fetchConditions_noneNeeded)),
+    candidates = await service.countCandidates(
+      diverId: diverId,
+      diveIds: diveIds,
     );
-    return;
+    // Only a selection says what it will skip: across the whole logbook the
+    // menu entry has always meant "whatever can be filled".
+    unlocated = diveIds == null
+        ? 0
+        : await service.countWithoutLocation(
+            diverId: diverId,
+            diveIds: diveIds,
+          );
+  } catch (e) {
+    if (context.mounted) {
+      messenger.showSnackBar(SnackBar(content: Text('$e')));
+    }
+    return BulkActionOutcome.failed;
   }
 
+  if (!context.mounted) return BulkActionOutcome.cancelled;
+  if (candidates == 0) {
+    final String message;
+    if (diveIds == null) {
+      message = l10n.diveLog_fetchConditions_noneNeeded;
+    } else if (unlocated > 0) {
+      message = l10n.diveLog_fetchConditions_noneLocatedSelected;
+    } else {
+      message = l10n.diveLog_fetchConditions_noneNeededSelected;
+    }
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+    return BulkActionOutcome.cancelled;
+  }
+
+  final selected = diveIds?.length;
+  final body = selected != null && candidates < selected
+      ? l10n.diveLog_fetchConditions_confirmBodySelected(candidates, selected)
+      : l10n.diveLog_fetchConditions_confirmBody(candidates);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
       title: Text(l10n.diveLog_fetchConditions_confirmTitle),
-      content: Text(l10n.diveLog_fetchConditions_confirmBody(candidates)),
+      content: Text(
+        unlocated > 0
+            ? '$body\n\n'
+                  '${l10n.diveLog_fetchConditions_skippedNoLocation(unlocated)}'
+            : body,
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(false),
@@ -51,7 +90,7 @@ Future<void> showFetchAllConditionsFlow({
       ],
     ),
   );
-  if (confirmed != true || !context.mounted) return;
+  if (confirmed != true || !context.mounted) return BulkActionOutcome.cancelled;
 
   final controller = FetchConditionsProgressController(total: candidates);
   final progressDialog = showDialog<void>(
@@ -65,6 +104,7 @@ Future<void> showFetchAllConditionsFlow({
   try {
     result = await service.run(
       diverId: diverId,
+      diveIds: diveIds,
       onProgress: controller.report,
       isCancelled: () => controller.cancelled,
     );
@@ -80,16 +120,19 @@ Future<void> showFetchAllConditionsFlow({
   }
   controller.dispose();
 
-  if (!context.mounted) return;
   if (failure != null) {
-    messenger.showSnackBar(SnackBar(content: Text('$failure')));
-    return;
+    if (context.mounted) {
+      messenger.showSnackBar(SnackBar(content: Text('$failure')));
+    }
+    return BulkActionOutcome.failed;
   }
+  if (!context.mounted) return BulkActionOutcome.completed;
 
   await showDialog<void>(
     context: context,
     builder: (ctx) => _SummaryDialog(result: result!),
   );
+  return BulkActionOutcome.completed;
 }
 
 /// Shared state between the run and its progress dialog: the dialog listens

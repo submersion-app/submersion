@@ -167,9 +167,87 @@ void main() {
       expect(await service.countCandidates(), 2);
       expect(requests, isEmpty, reason: 'counting must not hit the network');
     });
+
+    test('counts only the chosen dives when given a selection', () async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', siteId: 's1', at: DateTime.utc(2024, 6, 15, 10));
+      await insertDive('d2', siteId: 's1', at: DateTime.utc(2024, 6, 15, 10));
+
+      final (:service, :requests) = buildService();
+
+      expect(await service.countCandidates(diveIds: {'d2'}), 1);
+    });
+  });
+
+  group('BulkConditionsService.countWithoutLocation', () {
+    test('counts chosen dives with a gap and nowhere to fetch for', () async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', siteId: 's1', at: DateTime.utc(2024, 6, 15, 10));
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'siteless',
+              diveDateTime: now,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+
+      final (:service, :requests) = buildService();
+
+      expect(
+        await service.countWithoutLocation(diveIds: {'d1', 'siteless'}),
+        1,
+      );
+      expect(requests, isEmpty, reason: 'counting must not hit the network');
+    });
   });
 
   group('BulkConditionsService.run', () {
+    test('touches only the chosen dives when given a selection', () async {
+      await insertSite('s1', 12.5, -68.25);
+      await insertDive('d1', siteId: 's1', at: DateTime.utc(2024, 6, 15, 10));
+      await insertDive('d2', siteId: 's1', at: DateTime.utc(2024, 6, 15, 10));
+
+      final (:service, :requests) = buildService();
+      final result = await service.run(diveIds: {'d1'});
+
+      expect(result.total, 1);
+      expect(result.filled, 1);
+      expect((await readRow('d1')).airTemp, 27.0);
+      expect((await readRow('d2')).airTemp, isNull);
+    });
+
+    test('fetches a siteless dive at its own GPS fix', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'gps',
+              diveDateTime: DateTime.utc(
+                2024,
+                6,
+                15,
+                10,
+              ).millisecondsSinceEpoch,
+              createdAt: now,
+              updatedAt: now,
+              entryLatitude: const Value(21.1),
+              entryLongitude: const Value(-86.7),
+            ),
+          );
+
+      final (:service, :requests) = buildService();
+      final result = await service.run(diveIds: {'gps'});
+
+      expect(result.filled, 1);
+      expect(requests.single.queryParameters['latitude'], '21.1');
+      expect(requests.single.queryParameters['longitude'], '-86.7');
+    });
+
     test('fills conditions for every candidate dive', () async {
       await insertSite('s1', 12.5, -68.25);
       await insertDive('d1', siteId: 's1', at: DateTime.utc(2024, 6, 15, 10));

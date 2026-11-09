@@ -14953,6 +14953,30 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 dive had nothing to fill} other{{count} dives had nothing to fill}}'**
   String diveLog_fetchConditions_summaryUnchanged(int count);
 
+  /// Confirm text for fetching conditions on selected dives (issue #4329): how many of the checked dives can be filled
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} of {total} selected dives is missing conditions.} other{{count} of {total} selected dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.'**
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total);
+
+  /// Added to the confirm text when some checked dives have no location to fetch conditions for (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive has no site location or GPS fix and will be skipped.} other{{count} dives have no site location or GPS fix and will be skipped.}}'**
+  String diveLog_fetchConditions_skippedNoLocation(int count);
+
+  /// Snackbar when no checked dive is missing conditions (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'None of the selected dives are missing conditions.'**
+  String get diveLog_fetchConditions_noneNeededSelected;
+
+  /// Snackbar when the checked dives missing conditions all lack a location (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'The selected dives that are missing conditions have no site location or GPS fix.'**
+  String get diveLog_fetchConditions_noneLocatedSelected;
+
   /// No description provided for @diveLog_fetchConditions_summaryCancelled.
   ///
   /// In en, this message translates to:
@@ -60485,6 +60509,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None of the selected dives have stored raw data to re-parse.'**
   String get reparseBatch_noneWithRawData;
+
+  /// Selection bar action that fetches conditions for the checked dives (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Conditions'**
+  String get diveLog_selection_tooltip_fetchConditions;
 
   /// Bulk re-parse (issue #224)
   ///
