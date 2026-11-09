@@ -99,7 +99,12 @@ mixin _PickerFolds on ConsumerState<EquipmentPickerSheet> {
           },
         },
         _picked.keys.toSet(),
-        containers: {for (final a in arranged) ?a.ownerKey},
+        // An owner holds type groups only while gear groups by type;
+        // otherwise it holds its gear directly and is a group of gear.
+        containers: {
+          for (final a in arranged)
+            if (a.groups.any((g) => g.type != null)) ?a.ownerKey,
+        },
       );
     }
     bool isOpen(String key) => _isOpen(key, filtered: filtered);

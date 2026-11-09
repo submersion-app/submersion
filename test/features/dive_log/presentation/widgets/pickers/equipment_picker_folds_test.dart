@@ -9,7 +9,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_picker_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -48,6 +50,7 @@ void main() {
     bool multiSelect = true,
     bool twoDivers = false,
     Future<ComponentsIndex>? index,
+    EquipmentArrangement? arrangement,
   }) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -58,6 +61,8 @@ void main() {
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           activeEquipmentProvider.overrideWith((ref) async => gear),
           equipmentPickerFilterProvider.overrideWith((ref) => filter),
+          if (arrangement != null)
+            equipmentArrangementProvider.overrideWithValue(arrangement),
           if (index != null)
             equipmentComponentsIndexProvider.overrideWith((ref) => index),
           if (twoDivers) ...[
@@ -156,6 +161,27 @@ void main() {
   testWidgets('an owner with one type is one open group', (tester) async {
     await pumpPicker(tester, gear: const [shared], twoDivers: true);
     expect(find.text('Borrowed wing'), findsOneWidget);
+  });
+
+  testWidgets('ungrouped, an owner with all the gear is one open group', (
+    tester,
+  ) async {
+    // Without type groups the owner holds its gear directly, so it is a
+    // group of gear rather than a container of groups.
+    const sharedTank = EquipmentItem(
+      id: 's2',
+      name: 'Borrowed tank',
+      type: EquipmentType.tank,
+      diverId: 'd2',
+    );
+    await pumpPicker(
+      tester,
+      gear: const [shared, sharedTank],
+      twoDivers: true,
+      arrangement: EquipmentArrangement.defaults.copyWith(groupByType: false),
+    );
+    expect(find.text('Borrowed wing'), findsOneWidget);
+    expect(find.text('Borrowed tank'), findsOneWidget);
   });
 
   testWidgets('the open set waits for the parts index', (tester) async {
