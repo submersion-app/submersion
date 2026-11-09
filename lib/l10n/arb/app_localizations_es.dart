@@ -56051,6 +56051,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ninguna botella necesita la configuración de este transmisor';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'No se pudieron leer los archivos importados, por lo que las botellas no se pueden asociar por ranura';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, canal $channel';
   }

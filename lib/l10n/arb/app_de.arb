@@ -16818,6 +16818,7 @@
   "transmitters_apply_slot_intro": "Aus einer Datei importierte Flaschen haben keine Seriennummer. Sie lassen sich über den Steckplatz füllen, den dieser Sender am Tauchcomputer belegte.",
   "transmitters_apply_summary": "Über Seriennummer gefüllte Tauchgänge: {serialDives}, über Steckplatz: {slotDives}",
   "transmitters_apply_nothing_to_fill": "Keine Flasche braucht die Einrichtung dieses Senders",
+  "transmitters_apply_slot_read_failed": "Die importierten Dateien konnten nicht gelesen werden, daher können Flaschen nicht nach Steckplatz zugeordnet werden",
   "transmitters_channel": "{computer}, Kanal {channel}",
   "transmitters_serial": "Sender {serial}",
   "transmitters_edit_title": "Sender bearbeiten",

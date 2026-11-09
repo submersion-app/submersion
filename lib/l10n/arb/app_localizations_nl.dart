@@ -55644,6 +55644,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen enkele fles heeft de instellingen van deze zender nodig';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'De geïmporteerde bestanden konden niet worden gelezen, dus flessen kunnen niet op slot worden gekoppeld';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, kanaal $channel';
   }

@@ -55993,6 +55993,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum cilindro precisa da configuração deste transmissor';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'Não foi possível ler os arquivos importados, portanto os cilindros não podem ser associados por slot';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, canal $channel';
   }

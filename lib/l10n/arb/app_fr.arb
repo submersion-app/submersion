@@ -16664,6 +16664,7 @@
   "transmitters_apply_slot_intro": "Les bouteilles importées d'un fichier n'ont pas de numéro de série. Elles peuvent être remplies selon l'emplacement qu'occupait cet émetteur sur l'ordinateur de plongée.",
   "transmitters_apply_summary": "Plongées remplies par numéro de série : {serialDives}, par emplacement : {slotDives}",
   "transmitters_apply_nothing_to_fill": "Aucune bouteille n'a besoin de la configuration de cet émetteur",
+  "transmitters_apply_slot_read_failed": "Les fichiers importés n'ont pas pu être lus, les bouteilles ne peuvent donc pas être associées par emplacement",
   "transmitters_channel": "{computer}, canal {channel}",
   "transmitters_serial": "Émetteur {serial}",
   "transmitters_edit_title": "Modifier l'émetteur",

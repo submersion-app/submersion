@@ -16664,6 +16664,7 @@
   "transmitters_apply_slot_intro": "Cilindros importados de um arquivo não têm número de série. Podem ser preenchidos pela posição que este transmissor ocupava no computador de mergulho.",
   "transmitters_apply_summary": "Mergulhos preenchidos por número de série: {serialDives}, por posição: {slotDives}",
   "transmitters_apply_nothing_to_fill": "Nenhum cilindro precisa da configuração deste transmissor",
+  "transmitters_apply_slot_read_failed": "Não foi possível ler os arquivos importados, portanto os cilindros não podem ser associados por slot",
   "transmitters_channel": "{computer}, canal {channel}",
   "transmitters_serial": "Transmissor {serial}",
   "transmitters_edit_title": "Editar transmissor",

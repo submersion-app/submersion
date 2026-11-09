@@ -16664,6 +16664,7 @@
   "transmitters_apply_slot_intro": "Las botellas importadas de un archivo no tienen número de serie. Se pueden rellenar según la ranura que ocupaba este transmisor en el ordenador de buceo.",
   "transmitters_apply_summary": "Inmersiones rellenadas por número de serie: {serialDives}, por ranura: {slotDives}",
   "transmitters_apply_nothing_to_fill": "Ninguna botella necesita la configuración de este transmisor",
+  "transmitters_apply_slot_read_failed": "No se pudieron leer los archivos importados, por lo que las botellas no se pueden asociar por ranura",
   "transmitters_channel": "{computer}, canal {channel}",
   "transmitters_serial": "Transmisor {serial}",
   "transmitters_edit_title": "Editar transmisor",

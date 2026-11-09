@@ -33129,6 +33129,7 @@
     "placeholders": { "serialDives": { "type": "int" }, "slotDives": { "type": "int" } }
   },
   "transmitters_apply_nothing_to_fill": "No cylinder needs this transmitter's setup",
+  "transmitters_apply_slot_read_failed": "The imported files could not be read, so cylinders cannot be matched by slot",
   "transmitters_channel": "{computer}, channel {channel}",
   "@transmitters_channel": {
     "placeholders": {

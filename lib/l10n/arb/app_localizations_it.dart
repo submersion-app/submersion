@@ -56008,6 +56008,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna bombola ha bisogno della configurazione di questo trasmettitore';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'Non è stato possibile leggere i file importati, quindi le bombole non possono essere abbinate per slot';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, canale $channel';
   }

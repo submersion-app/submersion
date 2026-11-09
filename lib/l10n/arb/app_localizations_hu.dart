@@ -55705,6 +55705,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egyetlen palacknak sincs szüksége ennek a jeladónak a beállítására';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'Az importált fájlokat nem sikerült beolvasni, így a palackok nem párosíthatók foglalat szerint';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, $channel. csatorna';
   }

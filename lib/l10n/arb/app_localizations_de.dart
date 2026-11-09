@@ -55887,6 +55887,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Flasche braucht die Einrichtung dieses Senders';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'Die importierten Dateien konnten nicht gelesen werden, daher können Flaschen nicht nach Steckplatz zugeordnet werden';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, Kanal $channel';
   }

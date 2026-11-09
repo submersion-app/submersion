@@ -16664,6 +16664,7 @@
   "transmitters_apply_slot_intro": "A fájlból importált palackoknak nincs sorozatszáma. Kitölthetők annak a helynek az alapján, amelyet ez a jeladó a búvárkomputeren elfoglalt.",
   "transmitters_apply_summary": "Sorozatszám alapján kitöltött merülések: {serialDives}, hely alapján: {slotDives}",
   "transmitters_apply_nothing_to_fill": "Egyetlen palacknak sincs szüksége ennek a jeladónak a beállítására",
+  "transmitters_apply_slot_read_failed": "Az importált fájlokat nem sikerült beolvasni, így a palackok nem párosíthatók foglalat szerint",
   "transmitters_channel": "{computer}, {channel}. csatorna",
   "transmitters_serial": "{serial} jeladó",
   "transmitters_edit_title": "Jeladó szerkesztése",

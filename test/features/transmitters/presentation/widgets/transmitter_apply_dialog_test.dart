@@ -431,9 +431,30 @@ void main() {
 
     expect(find.textContaining('1 cylinders on 1 dives'), findsOneWidget);
     expect(find.textContaining('Slot on'), findsNothing);
+    expect(find.textContaining('could not be read'), findsOneWidget);
     final apply = tester.widget<FilledButton>(
       find.widgetWithText(FilledButton, 'Apply'),
     );
     expect(apply.onPressed, isNotNull);
+  });
+
+  testWidgets('files that cannot be read are not reported as nothing to fill', (
+    tester,
+  ) async {
+    await openApply(
+      tester,
+      repo: _Repo(noSerial),
+      matcher: _UnreadableMatcher(),
+    );
+
+    expect(find.textContaining('could not be read'), findsOneWidget);
+    expect(
+      find.text("No cylinder needs this transmitter's setup"),
+      findsNothing,
+    );
+    final apply = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Apply'),
+    );
+    expect(apply.onPressed, isNull);
   });
 }

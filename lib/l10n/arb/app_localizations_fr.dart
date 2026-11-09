@@ -56131,6 +56131,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune bouteille n\'a besoin de la configuration de cet émetteur';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'Les fichiers importés n\'ont pas pu être lus, les bouteilles ne peuvent donc pas être associées par emplacement';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, canal $channel';
   }

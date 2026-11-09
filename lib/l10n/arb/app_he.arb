@@ -16664,6 +16664,7 @@
   "transmitters_apply_slot_intro": "למיכלים שיובאו מקובץ אין מספר סידורי. אפשר למלא אותם לפי החריץ שבו ישב משדר זה במחשב הצלילה.",
   "transmitters_apply_summary": "צלילות שמולאו לפי מספר סידורי: {serialDives}, לפי חריץ: {slotDives}",
   "transmitters_apply_nothing_to_fill": "אף מיכל אינו צריך את הגדרות המשדר הזה",
+  "transmitters_apply_slot_read_failed": "לא ניתן היה לקרוא את הקבצים המיובאים, ולכן לא ניתן להתאים מיכלים לפי חריץ",
   "transmitters_channel": "{computer}, ערוץ {channel}",
   "transmitters_serial": "משדר {serial}",
   "transmitters_edit_title": "עריכת משדר",

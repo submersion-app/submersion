@@ -88288,6 +88288,12 @@ abstract class AppLocalizations {
   /// **'No cylinder needs this transmitter\'s setup'**
   String get transmitters_apply_nothing_to_fill;
 
+  /// No description provided for @transmitters_apply_slot_read_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The imported files could not be read, so cylinders cannot be matched by slot'**
+  String get transmitters_apply_slot_read_failed;
+
   /// No description provided for @transmitters_channel.
   ///
   /// In en, this message translates to:

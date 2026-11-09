@@ -16664,6 +16664,7 @@
   "transmitters_apply_slot_intro": "Le bombole importate da un file non hanno numero di serie. Possono essere compilate in base allo slot che questo trasmettitore occupava sul computer subacqueo.",
   "transmitters_apply_summary": "Immersioni compilate per numero di serie: {serialDives}, per slot: {slotDives}",
   "transmitters_apply_nothing_to_fill": "Nessuna bombola ha bisogno della configurazione di questo trasmettitore",
+  "transmitters_apply_slot_read_failed": "Non è stato possibile leggere i file importati, quindi le bombole non possono essere abbinate per slot",
   "transmitters_channel": "{computer}, canale {channel}",
   "transmitters_serial": "Trasmettitore {serial}",
   "transmitters_edit_title": "Modifica trasmettitore",

@@ -16664,6 +16664,7 @@
   "transmitters_apply_slot_intro": "لا تحمل الأسطوانات المستوردة من ملف رقمًا تسلسليًا. يمكن ملؤها حسب الفتحة التي شغلها جهاز الإرسال هذا في كمبيوتر الغوص.",
   "transmitters_apply_summary": "غطسات مُلئت حسب الرقم التسلسلي: {serialDives}، حسب الفتحة: {slotDives}",
   "transmitters_apply_nothing_to_fill": "لا توجد أسطوانة تحتاج إلى إعداد جهاز الإرسال هذا",
+  "transmitters_apply_slot_read_failed": "تعذّرت قراءة الملفات المستوردة، لذا لا يمكن مطابقة الأسطوانات حسب الفتحة",
   "transmitters_channel": "{computer}، القناة {channel}",
   "transmitters_serial": "جهاز الإرسال {serial}",
   "transmitters_edit_title": "تعديل جهاز الإرسال",

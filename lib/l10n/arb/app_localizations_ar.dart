@@ -56725,6 +56725,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد أسطوانة تحتاج إلى إعداد جهاز الإرسال هذا';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'تعذّرت قراءة الملفات المستوردة، لذا لا يمكن مطابقة الأسطوانات حسب الفتحة';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer، القناة $channel';
   }

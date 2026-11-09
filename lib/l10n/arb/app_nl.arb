@@ -16664,6 +16664,7 @@
   "transmitters_apply_slot_intro": "Flessen die uit een bestand zijn geïmporteerd hebben geen serienummer. Ze kunnen worden ingevuld op basis van de positie die deze zender op de duikcomputer innam.",
   "transmitters_apply_summary": "Duiken ingevuld via serienummer: {serialDives}, via positie: {slotDives}",
   "transmitters_apply_nothing_to_fill": "Geen enkele fles heeft de instellingen van deze zender nodig",
+  "transmitters_apply_slot_read_failed": "De geïmporteerde bestanden konden niet worden gelezen, dus flessen kunnen niet op slot worden gekoppeld",
   "transmitters_channel": "{computer}, kanaal {channel}",
   "transmitters_serial": "Zender {serial}",
   "transmitters_edit_title": "Zender bewerken",

@@ -54819,6 +54819,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'אף מיכל אינו צריך את הגדרות המשדר הזה';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'לא ניתן היה לקרוא את הקבצים המיובאים, ולכן לא ניתן להתאים מיכלים לפי חריץ';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, ערוץ $channel';
   }

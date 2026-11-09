@@ -52512,6 +52512,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get transmitters_apply_nothing_to_fill => '没有气瓶需要此发射器的设置';
 
   @override
+  String get transmitters_apply_slot_read_failed => '无法读取导入的文件，因此无法按插槽匹配气瓶';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer，通道 $channel';
   }

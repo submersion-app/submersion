@@ -43,6 +43,10 @@ class _TransmitterApplyDialogState
 
   /// Resolved candidates by computer id; null until the files are read.
   Map<String, SlotCandidates>? _resolved;
+
+  /// Whether reading the files failed, so an empty [_resolved] means "could
+  /// not tell", never "nothing to fill".
+  var _readFailed = false;
   final _picked = <String, int?>{};
 
   @override
@@ -54,6 +58,7 @@ class _TransmitterApplyDialogState
   Future<void> _resolve() async {
     final matcher = ref.read(transmitterSlotMatcherProvider);
     final resolved = <String, SlotCandidates>{};
+    var failed = false;
     try {
       final byKey = <String, ({Transmitter key, Set<String> computers})>{};
       for (final offer in widget.slotOffers) {
@@ -80,8 +85,16 @@ class _TransmitterApplyDialogState
         error: e,
         stackTrace: st,
       );
+      failed = true;
     }
-    if (mounted) setState(() => _resolved = resolved);
+    if (mounted) {
+      setState(() {
+        // A partial read is dropped: picking a slot on some computers but not
+        // others would read as the whole answer.
+        _resolved = failed ? const {} : resolved;
+        _readFailed = failed;
+      });
+    }
   }
 
   int get _slotDives => widget.slotOffers.fold(0, (sum, offer) {
@@ -141,8 +154,13 @@ class _TransmitterApplyDialogState
                   serial.divesUpdated,
                 ),
               ),
+            // The files could not be read, so the slot answer is unknown.
+            if (_readFailed) ...[
+              if (serial.tanksUpdated > 0) const SizedBox(height: 16),
+              Text(l10n.transmitters_apply_slot_read_failed),
+            ]
             // Every slot already applied and no serial work either.
-            if (offers.isEmpty && serial.tanksUpdated == 0)
+            else if (offers.isEmpty && serial.tanksUpdated == 0)
               Text(l10n.transmitters_apply_nothing_to_fill),
             if (offers.isNotEmpty) ...[
               if (serial.tanksUpdated > 0) const SizedBox(height: 16),

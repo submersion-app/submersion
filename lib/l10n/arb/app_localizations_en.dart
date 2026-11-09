@@ -55121,6 +55121,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No cylinder needs this transmitter\'s setup';
 
   @override
+  String get transmitters_apply_slot_read_failed =>
+      'The imported files could not be read, so cylinders cannot be matched by slot';
+
+  @override
   String transmitters_channel(String computer, int channel) {
     return '$computer, channel $channel';
   }
