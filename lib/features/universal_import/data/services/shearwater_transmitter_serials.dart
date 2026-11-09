@@ -1,10 +1,6 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
-/// How far apart, in bar, a metadata tank's start pressure and a parsed
-/// tank's may be and still describe one cylinder. Shearwater Cloud stores
-/// whole psi and the raw log 2 psi steps, so one reading never differs by
-/// more than a fraction of a bar.
-const double _pressureToleranceBar = 1.0;
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// [metaTanks] with the transmitter serial of the parsed tank each one pairs
 /// with (issue #4388): Shearwater Cloud's metadata names a dive's tanks but
@@ -34,7 +30,7 @@ List<Map<String, dynamic>> withTransmitterSerials(
 
   double? startOf(Map<String, dynamic> t) =>
       (t['startPressure'] as num?)?.toDouble();
-  bool close(double a, double b) => (a - b).abs() <= _pressureToleranceBar;
+  const close = sameCylinderStartPressure;
 
   // Index into candidates per metadata tank; null leaves it unpaired.
   final pairing = List<int?>.filled(metaTanks.length, null);

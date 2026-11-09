@@ -69,6 +69,31 @@ void main() {
     expect((await row('tank-a')).transmitterSerial, '76287');
   });
 
+  test(
+    'a cylinder paired only by position must agree on start pressure',
+    () async {
+      // The diver removed a cylinder, so the file's first tank now pairs by
+      // position with what was its second.
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'tank-b',
+              diveId: diveId,
+              tankOrder: const Value(0),
+              startPressure: const Value(150),
+            ),
+          );
+
+      await resync([
+        {'startPressure': 200.0, 'transmitterSerial': '76287'},
+        {'startPressure': 150.0, 'transmitterSerial': '76290'},
+      ]);
+
+      expect((await row('tank-b')).transmitterSerial, isNull);
+    },
+  );
+
   test('keeps a serial the cylinder already has', () async {
     await seedTank('tank-a', 0, serial: '11111');
 

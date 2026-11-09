@@ -82,6 +82,42 @@ void main() {
     expect(tanks.map((t) => t.transmitterSerial), ['76287', '76290']);
   });
 
+  test('cylinders a file import wrote, with no computer or source index, '
+      'take the serials too', () async {
+    final diveId = await download(const [
+      TankData(index: 0, o2Percent: 21, startPressure: 206.8),
+      TankData(index: 1, o2Percent: 21, startPressure: 190.0),
+    ]);
+    // A Shearwater Cloud UDDF import knows only each cylinder's order.
+    await (db.update(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals(diveId))).write(
+      const DiveTanksCompanion(
+        computerId: Value(null),
+        sourceTankIndex: Value(null),
+      ),
+    );
+
+    await replaceWith(diveId, const [
+      TankData(
+        index: 0,
+        o2Percent: 21,
+        startPressure: 206.9,
+        transmitterSerial: '76287',
+      ),
+      TankData(
+        index: 1,
+        o2Percent: 21,
+        startPressure: 190.1,
+        transmitterSerial: '76290',
+      ),
+    ]);
+
+    final tanks = await tanksOf(diveId);
+    expect(tanks, hasLength(2));
+    expect(tanks.map((t) => t.transmitterSerial), ['76287', '76290']);
+  });
+
   test('start pressures that disagree leave the serial empty', () async {
     final diveId = await download(const [
       TankData(index: 0, o2Percent: 21, startPressure: 206.8),

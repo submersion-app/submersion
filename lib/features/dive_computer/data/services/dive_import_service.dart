@@ -1070,7 +1070,9 @@ class DiveImportService {
     );
     // The stored cylinders keep the diver's edits, so the registry match a
     // new dive gets never reached them: a serial importProfile just gave one
-    // fills that transmitter's setup in, fill-only (issue #4388).
+    // gets its Transmitter item (#3676) and fills that transmitter's setup
+    // in, fill-only (issue #4388).
+    await registerTransmittersForDives([existingDiveId]);
     await applyTransmitterSetupToDives([existingDiveId]);
   }
 

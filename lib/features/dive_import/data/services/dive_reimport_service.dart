@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
+import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 
@@ -201,8 +202,10 @@ class DiveReimportService {
     });
 
     SyncEventBus.notifyLocalChange();
-    // A serial the resync just gave a cylinder may be one the diver has set
-    // up (issue #4388). Best-effort, after the commit, like the computers.
+    // A serial the resync just gave a cylinder gets its Transmitter item, as
+    // an import's does (#3676), and may be one the diver has set up (issue
+    // #4388). Best-effort, after the commit, like the computers.
+    await registerTransmittersForDives([diveId]);
     await applyTransmitterSetupToDives([diveId]);
     final computersAdded = await _addMissingComputers(
       diveId: diveId,
@@ -477,7 +480,8 @@ class DiveReimportService {
       final usageSeconds = (t['usageDuration'] as Duration?)?.inSeconds;
       // The file's transmitter serial fills a cylinder that has none, so a
       // dive imported before the parser read serials picks them up (issue
-      // #4388); a serial the cylinder has is never replaced.
+      // #4388); a serial the cylinder has is never replaced, and a cylinder
+      // paired only by position must agree on its start pressure.
       final serial = normalizeTransmitterSerial(
         t['transmitterSerial'] as String?,
       );
@@ -504,11 +508,14 @@ class DiveReimportService {
             usageDuration: usageSeconds != null
                 ? Value(usageSeconds)
                 : const Value.absent(),
-            transmitterSerial:
-                serial != null &&
-                    normalizeTransmitterSerial(row.transmitterSerial) == null
-                ? Value(serial)
-                : const Value.absent(),
+            transmitterSerial: switch (serialToFill(
+              row,
+              readingSerial: serial,
+              readingStartPressure: startPressure,
+            )) {
+              final fill? => Value(fill),
+              null => const Value.absent(),
+            },
           ),
         );
         await _syncRepository.markRecordPending(
