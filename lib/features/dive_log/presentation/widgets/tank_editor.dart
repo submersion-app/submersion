@@ -158,6 +158,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// Minutes breathed on the surface after the computer stopped (#2930).
   Duration? _surfaceBreathing;
 
+  /// Whether the minutes field shows: only on a breathing cylinder with no
+  /// transmitter log, whose end pressure was read off the gauge (#2930).
+  bool get _showsSurfaceBreathing =>
+      _role.isBreathingGas && !widget.tank.hasPressureSeries;
+
   /// The partner's passport id when this tank is a twin set (issue #4242).
   String? _twinPassportId;
 
@@ -490,8 +495,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
-      // Only a breathing cylinder shows the field, so only one keeps it.
-      surfaceBreathingDuration: _role.isBreathingGas ? _surfaceBreathing : null,
+      // Only a cylinder that shows the field keeps it.
+      surfaceBreathingDuration: _showsSurfaceBreathing
+          ? _surfaceBreathing
+          : null,
+      hasPressureSeries: widget.tank.hasPressureSeries,
     ).withRegulators(_regulatorIds);
   }
 
@@ -572,8 +580,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               _buildPressureRow(units),
 
               // Breathed after the computer stopped logging (issue #2930); a
-              // suit inflation bottle is not breathed.
-              if (_role.isBreathingGas) ...[
+              // suit inflation bottle is not breathed, and a transmitter's
+              // last reading holds none of that gas.
+              if (_showsSurfaceBreathing) ...[
                 const SizedBox(height: 12),
                 TankSurfaceBreathingField(
                   value: _surfaceBreathing,

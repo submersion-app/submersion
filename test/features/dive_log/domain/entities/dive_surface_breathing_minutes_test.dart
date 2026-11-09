@@ -50,6 +50,30 @@ void main() {
     expect(d.sac, closeTo(100 / 40 / d.environment.pressureAtDepth(18), 1e-9));
   });
 
+  test('a cylinder with a transmitter log adds no surface minutes', () {
+    // Its end pressure is the transmitter's last reading, taken before the
+    // computer stopped, so it holds none of the gas breathed after.
+    final d = dive(tanks: [tank.copyWith(hasPressureSeries: true)]);
+    expect(d.sac, closeTo(100 / 40 / d.environment.pressureAtDepth(18), 1e-9));
+    expect(
+      d.rmvFor(GasModel.ideal),
+      dive(
+        tanks: const [DiveTank(id: 't', startPressure: 200, endPressure: 100)],
+      ).rmvFor(GasModel.ideal),
+    );
+  });
+
+  test('a cylinder logged by a transmitter keeps no row minutes either', () {
+    // The transmitter showed no drop, so the row falls back to the logged
+    // pressures, whose end is still the transmitter's.
+    final d = dive(tanks: [tank.copyWith(hasPressureSeries: true)]);
+    final row = const GasAnalysisService()
+        .calculateCylinderSac(dive: d, profile: const [])
+        .single;
+    expect(row.surfaceSeconds, 0);
+    expect(row.usageDuration, const Duration(minutes: 40));
+  });
+
   test('a cylinder with no logged drop adds no surface minutes', () {
     // Its gas is not in the rate, so neither is its time.
     final d = dive(

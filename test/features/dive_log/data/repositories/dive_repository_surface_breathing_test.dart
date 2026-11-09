@@ -147,6 +147,45 @@ void main() {
     expect(listed.sac, closeTo(detail.sac!, 1e-9));
   });
 
+  test('both reads mark a cylinder that has a transmitter log', () async {
+    // Entered surface minutes count only on a cylinder without one, so the
+    // detail read and the list read must agree on which those are.
+    await createDive(const [
+      domain.DiveTank(
+        id: 'back',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 110,
+        role: TankRole.backGas,
+      ),
+      domain.DiveTank(
+        id: 'o2',
+        volume: 7,
+        startPressure: 200,
+        endPressure: 150,
+        gasMix: domain.GasMix(o2: 100),
+        role: TankRole.deco,
+        order: 1,
+      ),
+    ]);
+    await TankPressureRepository().insertTankPressures('d', {
+      'back': [
+        for (var t = 0; t <= 40 * 60; t += 60) (timestamp: t, pressure: 200.0),
+      ],
+    });
+    Map<String, bool> marks(domain.Dive dive) => {
+      for (final t in dive.tanks) t.id: t.hasPressureSeries,
+    };
+    expect(marks((await repository.getDiveById('d'))!), {
+      'back': true,
+      'o2': false,
+    });
+    expect(marks((await repository.getAllDives()).single), {
+      'back': true,
+      'o2': false,
+    });
+  });
+
   test('entered minutes survive a save, an edit and a clear', () async {
     // The editor writes an existing cylinder in place, so the minutes must
     // reach that update as well as a new dive's insert.

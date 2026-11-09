@@ -465,10 +465,13 @@ class GasAnalysisService {
         final effectiveAvgDepth = avgDepthDuringUse ?? dive.avgDepth!;
         final pressureUsed = tank.startPressure! - tank.endPressure!;
         if (pressureUsed > 0) {
-          // The logged end pressure includes gas breathed at the surface after
-          // the computer stopped, so the minutes the diver entered for it
-          // count here, at 0 m (issue #2930).
-          final entered = tank.surfaceBreathingDuration?.inSeconds ?? 0;
+          // An end pressure read off the gauge includes gas breathed at the
+          // surface after the computer stopped, so the minutes the diver
+          // entered for it count here, at 0 m (issue #2930). A transmitter's
+          // last reading holds none of it, as the dive's own SAC reads it.
+          final entered = tank.hasPressureSeries
+              ? 0
+              : tank.surfaceBreathingDuration?.inSeconds ?? 0;
           final totalSeconds = usageSeconds + entered;
           final durationMin = totalSeconds / 60.0;
           if (durationMin > 0) {

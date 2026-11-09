@@ -677,11 +677,13 @@ class Dive extends Equatable {
   /// computer stopped logging (issue #2930) that a rate counts: those of the
   /// breathing cylinders with a logged drop that [contributes] says add gas
   /// to it, a matched pair's shared time once (see [enteredSurfaceSeconds]).
-  /// A suit inflation bottle is not breathed.
+  /// A suit inflation bottle is not breathed, and a cylinder a transmitter
+  /// logged ends at its last reading, which holds none of that gas.
   int _surfaceSecondsWhere(bool Function(DiveTank tank) contributes) =>
       enteredSurfaceSeconds([
         for (final t in breathingTanks)
-          if (t.startPressure != null &&
+          if (!t.hasPressureSeries &&
+              t.startPressure != null &&
               t.endPressure != null &&
               t.startPressure! > t.endPressure!)
             t,
