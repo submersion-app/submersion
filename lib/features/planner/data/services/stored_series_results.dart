@@ -75,12 +75,33 @@ computeStoredSeries(
     followOf,
   );
   await Future.wait<Object?>([followRead, actualsRead]);
-  final follow = await followRead;
+  return computeSeriesFromStored(
+    stored,
+    follow: await followRead,
+    actuals: await actualsRead,
+    config: config,
+  );
+}
+
+/// [stored] computed as [computeStoredSeries] computes it, with what the
+/// log says already read: [follow], the dive it follows as that dive is
+/// now (null for none or gone), and [actuals], what each dived dive left,
+/// by plan id. For a series never saved, such as one an agent describes,
+/// whose follow is read before its tanks can be matched to that dive's.
+({PlanSeries series, List<SeriesDiveResult> results}) computeSeriesFromStored(
+  StoredSeries stored, {
+  required SeriesFollow? follow,
+  Map<String, SeriesFollow> actuals = const {},
+  required PlanEngineConfig config,
+}) {
+  if (stored.dives.isEmpty) {
+    throw ArgumentError.value(stored.id, 'stored', 'has no dives to compute');
+  }
   final series = seriesFromStored(
     stored,
     follow: follow == null ? null : withOwnPressures(follow, stored),
     selectedIndex: 0,
-  ).withActuals(await actualsRead);
+  ).withActuals(actuals);
   return (
     series: series,
     results: computeSeries(series.dives, config: config, follow: series.follow),

@@ -7,6 +7,7 @@ import 'package:submersion/features/agent_access/data/resources/schema_resource.
 import 'package:submersion/features/agent_access/data/resources/units_resource.dart';
 import 'package:submersion/features/agent_access/data/sql/sql_window_runner.dart';
 import 'package:submersion/features/agent_access/data/tools/apply_changes_tool.dart';
+import 'package:submersion/features/agent_access/data/tools/compute_plan_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/get_records_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/list_divers_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/list_records_tool.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/agent_access/data/writes/write_planner.dart'
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 
 /// The tools and resources one MCP session exposes.
@@ -47,7 +49,9 @@ class AgentToolRegistry {
   }
 
   /// Profiles, query, every record, the SQL window for whatever those miss,
-  /// and the write tools.
+  /// the planner, and the write tools. [followOf] reads a logged dive as a
+  /// plan following it does, and [planCaveat] is the planner's caveat in
+  /// the app's language.
   static AgentToolRegistry standard({
     required DiverContextLoader loader,
     required DiverRepository divers,
@@ -55,6 +59,8 @@ class AgentToolRegistry {
     required RecordRepositories records,
     required SqlWindowRunner sql,
     required AgentWriteServices writes,
+    required SeriesFollowReader followOf,
+    required String Function() planCaveat,
   }) {
     final catalog = RecordCatalog(records);
     return AgentToolRegistry(
@@ -64,6 +70,12 @@ class AgentToolRegistry {
         GetRecordsTool(loader: loader, catalog: catalog),
         ListRecordsTool(loader: loader, catalog: catalog),
         SqlQueryTool(runner: sql),
+        ComputePlanTool(
+          loader: loader,
+          settings: settings,
+          followOf: followOf,
+          caveat: planCaveat,
+        ),
         PreviewChangesTool(
           loader: loader,
           planner: WritePlanner(writes: writes.catalog, records: catalog),

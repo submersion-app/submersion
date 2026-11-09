@@ -22,6 +22,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -277,6 +278,13 @@ class AgentAccessController {
         settings: settings,
         records: records,
         sql: _sqlRunner,
+        // Read as the planner reads it, so a plan an agent computes after a
+        // logged dive carries in exactly what the planner's would.
+        followOf: (diveId) =>
+            _ref.container.awaitFuture(seriesFollowProvider(diveId).future),
+        planCaveat: () => l10nForLocaleTag(
+          _ref.read(localeProvider),
+        ).planning_disclaimer_dialog_body,
         writes: AgentWriteServices(
           records: records,
           plans: _ref.read(agentWritePlanStoreProvider),
