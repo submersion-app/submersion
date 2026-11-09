@@ -193,9 +193,10 @@ class ReparseService {
       // is there. A source with no computer shares the edit's null strand,
       // where a file import's own series has the same shape: liveEditIds,
       // the rule a resync keeps an edit by, tells them apart by the
-      // generation demoted beneath it.
+      // generation demoted beneath it. An edit that lost its source is kept
+      // too, whoever re-parses.
       final keptEdits = sourceRow.computerId == null
-          ? await _ownLiveEdits(diveId, sourceRow.id, sources)
+          ? await _keptLiveEdits(diveId, sourceRow.id, sources)
           : const <String>{};
       final beneathEdit =
           sourceRow.isPrimary &&
@@ -787,8 +788,9 @@ class ReparseService {
   /// its non-null computer or on the dive. A series another source wrote, or
   /// one that could be either's, is never touched. Matching on `computer_id`
   /// alone took every other null-computer source's series with it, a file
-  /// import's primary among them (issue #4367). [keptEdits] are this
-  /// source's manual edits on its null strand, which stay.
+  /// import's primary among them (issue #4367). [keptEdits] are the live
+  /// manual edits on this source's null strand, its own and any with no
+  /// source, which stay.
   Future<void> _replaceDiveProfiles({
     required String diveId,
     required String? computerId,
@@ -852,9 +854,13 @@ class ReparseService {
               sourceId ||
           (s.sourceId == null && sources.length == 1));
 
-  /// The live manual edits [sourceId] owns on the null strand, read by
-  /// [ProfileSeriesRepository.liveEditIds] (issue #3189).
-  Future<Set<String>> _ownLiveEdits(
+  /// The live manual edits on the null strand that a re-parse of [sourceId]
+  /// keeps, read by [ProfileSeriesRepository.liveEditIds] (issue #3189):
+  /// those it owns, and those with no source at all. `clearSource` strips
+  /// the source of an edit that outlives its row; on a dive with two sources
+  /// nobody owns it, so it is never deleted, and a fresh parse inserted live
+  /// beside it would leave the dive two live profiles.
+  Future<Set<String>> _keptLiveEdits(
     String diveId,
     String sourceId,
     List<({String id, String? computerId})> sources,
@@ -864,12 +870,13 @@ class ReparseService {
     return {
       for (final s in series)
         if (edits.contains(s.id) &&
-            _ownsSeries(
-              s,
-              sourceId: sourceId,
-              computerId: null,
-              sources: sources,
-            ))
+            (s.sourceId == null ||
+                _ownsSeries(
+                  s,
+                  sourceId: sourceId,
+                  computerId: null,
+                  sources: sources,
+                )))
           s.id,
     };
   }

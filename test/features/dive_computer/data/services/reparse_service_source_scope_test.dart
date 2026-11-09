@@ -298,6 +298,28 @@ void main() {
         isFalse,
       );
     });
+
+    test('that lost its source is kept, and the dive keeps one live '
+        'profile', () async {
+      // clearSource strips the source of an edit that outlives its row. With
+      // two sources nobody owns it, so it is not deleted, and the fresh parse
+      // inserted live beside it would leave the dive two live profiles.
+      await insertDive();
+      await insertSource(id: 'uddf', isPrimary: false, sourceFormat: 'uddf');
+      await insertSource(id: 'comp-a', isPrimary: true, withRawData: true);
+      final edit = await insertSeries(isPrimary: true, depth: 25.0);
+      await insertSeries(sourceId: 'comp-a', isPrimary: false, now: 500);
+
+      await reparse('comp-a');
+
+      final after = await seriesById();
+      expect(after[edit], (sourceId: null, isPrimary: true));
+      expect(after.values.where((v) => v.isPrimary), hasLength(1));
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('dive-1'))).getSingle();
+      expect(dive.maxDepth, 25.0);
+    });
   });
 
   group('legacy series with no source', () {
