@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "átlag {value}",
   "trips_story_history_avgDepth": "átl. mélység {value}",
   "trips_story_rhythm_semantics": "A nap merülési idői",
+  "trips_story_rhythm_semanticsSunriseSunset": "A nap merülési idői. Napkelte {sunrise}, napnyugta {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "A nap merülési idői. Napkelte {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "A nap merülési idői. Napnyugta {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "{number}. nap térképe",
   "@trips_story_dayMap_semantics": {
     "placeholders": {

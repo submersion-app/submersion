@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "média {value}",
   "trips_story_history_avgDepth": "prof. média {value}",
   "trips_story_rhythm_semantics": "Horários de mergulho deste dia",
+  "trips_story_rhythm_semanticsSunriseSunset": "Horários de mergulho deste dia. Nascer do sol {sunrise}, pôr do sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Horários de mergulho deste dia. Nascer do sol {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Horários de mergulho deste dia. Pôr do sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Mapa do dia {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {

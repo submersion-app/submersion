@@ -1844,6 +1844,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_rhythm_semantics => '当天的潜水时间';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return '当天的潜水时间。日出 $sunrise，日落 $sunset。';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return '当天的潜水时间。日出 $sunrise。';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return '当天的潜水时间。日落 $sunset。';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return '第 $number 天地图';
   }

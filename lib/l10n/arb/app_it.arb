@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "media {value}",
   "trips_story_history_avgDepth": "prof. media {value}",
   "trips_story_rhythm_semantics": "Orari delle immersioni del giorno",
+  "trips_story_rhythm_semanticsSunriseSunset": "Orari delle immersioni del giorno. Alba {sunrise}, tramonto {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Orari delle immersioni del giorno. Alba {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Orari delle immersioni del giorno. Tramonto {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Mappa del giorno {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {

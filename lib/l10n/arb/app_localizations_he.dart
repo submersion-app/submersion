@@ -1900,6 +1900,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'זמני הצלילה ביום זה';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise, שקיעה $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'זמני הצלילה ביום זה. שקיעה $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'מפת יום $number';
   }

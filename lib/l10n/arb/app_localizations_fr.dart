@@ -1929,6 +1929,24 @@ class AppLocalizationsFr extends AppLocalizations {
       'Heures de plongée de cette journée';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Heures de plongée de cette journée. Lever du soleil $sunrise, coucher du soleil $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Heures de plongée de cette journée. Lever du soleil $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Heures de plongée de cette journée. Coucher du soleil $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Carte du jour $number';
   }

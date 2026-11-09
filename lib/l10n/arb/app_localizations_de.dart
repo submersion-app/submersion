@@ -1921,6 +1921,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Tauchzeiten an diesem Tag';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Tauchzeiten an diesem Tag. Sonnenaufgang $sunrise, Sonnenuntergang $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Tauchzeiten an diesem Tag. Sonnenaufgang $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Tauchzeiten an diesem Tag. Sonnenuntergang $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Karte von Tag $number';
   }

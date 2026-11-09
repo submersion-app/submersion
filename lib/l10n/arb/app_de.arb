@@ -409,6 +409,33 @@
   "trips_story_history_avgTemp": "Ø {value}",
   "trips_story_history_avgDepth": "Ø Tiefe {value}",
   "trips_story_rhythm_semantics": "Tauchzeiten an diesem Tag",
+  "trips_story_rhythm_semanticsSunriseSunset": "Tauchzeiten an diesem Tag. Sonnenaufgang {sunrise}, Sonnenuntergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Tauchzeiten an diesem Tag. Sonnenaufgang {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Tauchzeiten an diesem Tag. Sonnenuntergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Karte von Tag {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {

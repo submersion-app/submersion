@@ -2947,6 +2947,27 @@ abstract class AppLocalizations {
   /// **'Dive times during this day'**
   String get trips_story_rhythm_semantics;
 
+  /// No description provided for @trips_story_rhythm_semanticsSunriseSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunrise {sunrise}, sunset {sunset}.'**
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  );
+
+  /// No description provided for @trips_story_rhythm_semanticsSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunrise {sunrise}.'**
+  String trips_story_rhythm_semanticsSunrise(String sunrise);
+
+  /// No description provided for @trips_story_rhythm_semanticsSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunset {sunset}.'**
+  String trips_story_rhythm_semanticsSunset(String sunset);
+
   /// No description provided for @trips_story_dayMap_semantics.
   ///
   /// In en, this message translates to:

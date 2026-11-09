@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "gem. {value}",
   "trips_story_history_avgDepth": "gem. diepte {value}",
   "trips_story_rhythm_semantics": "Duiktijden van deze dag",
+  "trips_story_rhythm_semanticsSunriseSunset": "Duiktijden van deze dag. Zonsopkomst {sunrise}, zonsondergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Duiktijden van deze dag. Zonsopkomst {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Duiktijden van deze dag. Zonsondergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Kaart van dag {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
