@@ -7441,13 +7441,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'מה המשמעות של הערכים האלה?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'עומס: לחץ הגז האינרטי בתא כאחוז מהמקסימום שהוא רשאי להכיל על פני המים (ערך ה-M שלו, הקו האדום ב-100%).\n\nרמת פני המים: הסימון על כל עמודה מראה היכן מתייצב תא שהתרוקן לגמרי בזמן שאתה נושם אוויר על פני המים. הוא אף פעם לא ב-0%, כי הגוף שלך תמיד מכיל את החנקן שבאוויר שאתה נושם. עמודה שעומדת על הסימון שלה כבר לא נושאת עומס שנותר מהצלילה.\n\nספיגה ושחרור: גז נע תמיד לכיוון הלחץ של הגז שאתה נושם. אחרי דקומפרסיה בחמצן או בתערובת עשירה בהליום, התאים המהירים עשויים להכיל פחות חנקן מהאוויר על פני המים. כשחוזרים לנשום אוויר, הם סופגים שוב חנקן עד שהם מגיעים לסימון שלהם. זה תקין ואינו עומס שנותר מהצלילה.\n\nהליום: אוויר אינו מכיל הליום. אחרי צלילת טרימיקס, תא משחרר הליום ובאותו זמן יכול לספוג חנקן. החיצים ליד N₂ ו-He מציגים כל גז בנפרד; הציון ליד מספר התא מציג את הכיוון הכולל של שניהם.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'תרשים רוויית רקמות. $count תאים, עומס ביחס לערך M; תא מוביל $number ב-$percent%.';
   }
@@ -17642,9 +17635,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'נפח';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'אודות MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'מצב';
 
   @override
@@ -17842,10 +17832,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'בתוך מגבלות ה-ppO₂, END והצפיפות שלך בעומקים שנבדקו.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'ה-MOD הוא העומק שבו התערובת מגיעה למגבלת ה-ppO₂. הוא תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה.\n\nRec משתמש ב-1 בר לכל 10 מ׳, כמו היומן. OC Tec ו-CCR Tec לוקחים את לחץ הסביבה מסוג המים, כמו מחשבון צפיפות הגז, ולכן אותה תערובת עשויה להציג שם MOD רדוד מעט יותר.\n\nEAD מחשיב חנקן כנרקוטי, END חנקן וחמצן. מגבלת ה-END שלך, האם חמצן נחשב נרקוטי ומגבלות ה-ppO₂ ברירת המחדל מגיעים מפרופיל הצולל שלך.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -17896,13 +17882,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'עומק נרקוטי מרבי (MND) הוא העומק הגדול ביותר שאליו אפשר לצלול לפני שהנרקוזה חורגת ממגבלת ה-END שלך. עומק נרקוטי שווה ערך (END) מציין את ההשפעה הנרקוטית של הגז שלך בעומק נתון.\n\nכאשר \'O2 נרקוטי\' מופעל, גם חמצן וגם חנקן תורמים לנרקוזה (שמרני יותר). כאשר מושבת, רק חנקן נחשב נרקוטי.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'אודות MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'ללא הגבלה';
@@ -17968,13 +17947,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'החל';
-
-  @override
-  String get gasCalculators_icd_infoTitle => 'על דיפוזיה הפכית איזובארית';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'דיפוזיה הפכית איזובארית (ICD) היא הסיכון שמעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן יגדיל את מתח הגזים האינרטיים הכולל ברקמה, מכיוון שהליום מתפזר מהר יותר מחנקן. כלל החמישית הוא כלל אצבע נפוץ: חלקיק החנקן לא אמור לעלות ביותר מחמישית מהירידה בחלקיק ההליום.\n\nארגונים חלוקים בדעתם עד כמה זה חשוב בפועל בצלילה מתוכננת היטב עם גזים סטנדרטיים. מחשבון זה מחיל את כלל האצבע על שני הגזים שהוזנו; הוא אינו מחליף הכשרה או ייעוץ מקצועי.';
 
   @override
   String get gasCalculators_ppO2Limit => 'מגבלת ppO₂';
@@ -18115,13 +18087,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'הבלון תחת לחץ אך ללא חמצן וללא הליום, כלומר חנקן טהור. בדוק את התערובת שכבר נמצאת בבלון.';
-
-  @override
-  String get gasCalculators_blender_about => 'על הערבוב';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'ערבוב בלחצים חלקיים לתערובת היעד. הוסף כל גז מילוי לפי הסדר עד ללחץ המוצג, ואז תן לבלון להתייצב. גזי המילוי וסדרם ניתנים להגדרה, כך שקביעת הגז האחרון ל-32/0 משלימה את המילוי ב-EAN32 במקום באוויר. תמיד נתח את התערובת הסופית לפני צלילה איתה.';
 
   @override
   String get gasCalculators_blender_conditions => 'תנאי הערבוב';
@@ -18541,10 +18506,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'עומק שקול לצפיפות אוויר (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
-
-  @override
   String get gasCalculators_density_loopGasTitle => 'גז הלולאה בעומק';
 
   @override
@@ -18563,14 +18524,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'הגז המדלל לבדו נותן כאן ppO2 של $ppO2, מעל ה-Setpoint. הצפיפות מחושבת לפי ה-ppO2 של הגז המדלל.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'על צפיפות גז';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של $warn g/L לכל היותר; $critical g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.';
   }
 
   @override
@@ -21870,10 +21823,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'ציפה לאורך הצלילה, שינוי ומשקל הניתן להשלכה';
-
-  @override
-  String get buoyancy_tooltip =>
-      'ציפה נטו מודלת לאורך הצלילה מהפרופיל, צריכת הגז והציוד.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -27369,13 +27318,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'גורמי שיפוע (GF) קובעים עד כמה שמרניים חישובי הדקומפרסיה שלך. GF Low משפיע על עצירות עמוקות, בעוד GF High משפיע על עצירות רדודות.\n\nערכים נמוכים יותר = שמרני יותר = עצירות דקו ארוכות יותר\nערכים גבוהים יותר = פחות שמרני = עצירות דקו קצרות יותר';
-
-  @override
-  String get settings_decompression_aboutTitle => 'אודות גורמי שיפוע';
-
-  @override
   String get settings_decompression_currentSettings => 'הגדרות נוכחיות';
 
   @override
@@ -28180,13 +28122,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_notifications_header_serviceReminders => 'תזכורות תחזוקה';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'התראות מתוזמנות בעת הפעלת האפליקציה ומתעדכנות מעת לעת ברקע. ניתן להתאים אישית תזכורות לפריטי ציוד בודדים במסך העריכה שלהם.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'איך זה עובד';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -31662,13 +31597,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'לגופך יש 16 תאי רקמה הקולטים ומשחררים חנקן בקצבים שונים. רקמות מהירות (כמו דם) נספגות במהירות אך גם משחררות גז במהירות. רקמות איטיות (כמו עצם ושומן) לוקחות יותר זמן גם לספיגה וגם לפריקה. \"תא מוביל\" הוא התא הכי רווי הקובע בדרך כלל את מגבלת הזמן ללא דקומפרסיה (NDL) שלך. במהלך מרווח שטח, כל הרקמות משחררות גז לעבר רמות רוויה של פני השטח (~40% העמסה).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title => 'אודות העמסת רקמות';
 
   @override
   String get surfaceInterval_action_resetDefaults => 'אפס לברירת מחדל';
@@ -36075,13 +36003,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_undo => 'בטל';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock Bottom הוא מינימום עתודת הגז הנדרש לעלייה חירומית תוך שיתוף אוויר עם השותף שלך.\n\n• משתמש בקצבי RMV במצב לחץ (2-3 כפול מהרגיל)\n• מניח ששני הצוללים על מיכל אחד\n• כולל עצירת בטיחות כשמופעלת\n\nתמיד סיים את הצלילה לפני שמגיעים ל-Rock Bottom!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'אודות Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired => 'גז נדרש לעלייה';
 
   @override
@@ -40171,13 +40092,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'ללא פרופיל עומק לא ניתן לחשב את ה-CNS% וה-OTU שלה. הסיכומים שלהלן אינם כוללים אותה.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'אודות CNS ו-OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'אחוז ה-CNS שלך (שעון החמצן) דועך לאחר הצלילה עם מחצית חיים של 90 דקות -- הוא חוזר כמעט לגמרי ל-0 אחרי כיום אחד בערך.\n\nה-OTU היומי מתאפס בכל לילה בחצות. ה-OTU השבועי הוא סכום מתגלגל של 7 הימים האחרונים: צלילות ישנות יותר נופלות אוטומטית מהחישוב ברגע שהן יוצאות מחלון הזמן הזה.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title => 'אין עומס שארי ברקמות';
 
   @override
@@ -40191,13 +40105,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'לצלילה האחרונה אין נתונים לחישוב רוויית הרקמות, למשל צלילה ללא פרופיל עומק, במצב מד עומק או במחזר ללא נקודת כיוון.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'אודות רוויית הרקמות';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'בגוף שלך יש 16 תאי רקמה שסופגים ומשחררים חנקן (ובצלילות טרימיקס או מחזר גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות צריכות הרבה יותר זמן לשני התהליכים.\n\nעומס שארי הוא רק מה שנמצא מעל הרמה הרגילה על פני המים. גם אחרי התרוקנות מלאה העמודות לא יורדות ל-0%: כל תא מתייצב על הסימון שמתאים לחנקן שבאוויר שאתה נושם. לכן תא מהיר יכול להראות כאן ערך גבוה יותר מאשר בסוף צלילה עם דקומפרסיה בחמצן, בלי שהעומס גדל.\n\nאחרי צלילה עם הליום, תא משחרר הליום ובאותו זמן סופג חנקן, עד ששני הגזים בשיווי משקל עם האוויר שאתה נושם.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

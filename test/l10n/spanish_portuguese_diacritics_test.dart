@@ -189,7 +189,6 @@ void main() {
           'surfaceInterval_result_beyondHorizon',
           'startup_interruptedRestore_bodyWithDate',
           'startup_interruptedRestore_body',
-          'safetyHub_tissueLoading_about_body',
         },
       ),
       'habitat': _Homograph(

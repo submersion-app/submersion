@@ -7213,13 +7213,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => '这些数值代表什么？';
-
-  @override
-  String get diveLog_deco_info_body =>
-      '负荷：隔间内惰性气体压力占其在水面可容纳最大值（M 值，即 100% 处的红线）的百分比。\n\n水面水平：每根柱上的标记表示在水面呼吸空气时，完全脱饱和的隔间最终稳定的位置。它永远不会是 0%，因为你的身体始终含有所呼吸空气中的氮气。处于标记处的柱不再带有潜水遗留的负荷。\n\n吸收与释放：气体总是向你所呼吸气体的压力方向移动。使用氧气或富氦混合气减压后，快速隔间中的氮气可能少于水面空气中的氮气。重新呼吸空气后，它们会再次吸收氮气，直到达到各自的标记。这是正常现象，并非潜水遗留的负荷。\n\n氦气：空气中不含氦气。三混气潜水后，隔间在释放氦气的同时可能吸收氮气。N₂ 和 He 旁的箭头分别显示每种气体的方向；隔间编号旁的标识显示两者的总体方向。';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return '组织饱和度图表。$count 个隔间，负荷相对于 M 值；前导隔间 $number 为 $percent%。';
   }
@@ -17153,9 +17146,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_consumption_volume => '容积';
 
   @override
-  String get gasCalculators_mod_aboutMod => '关于 MOD';
-
-  @override
   String get gasCalculators_mod_mode => '模式';
 
   @override
@@ -17349,10 +17339,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_allClear => '在所检查的深度内，均在你的 ppO₂、END 和密度限值之内。';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'MOD 是混合气达到 ppO₂ 限值的深度。它始终向下取整，从不向上。\n\nRec 按每 10 米 1 bar 计算，与日志一致。OC Tec 和 CCR Tec 按水类型计算环境压力，与气体密度计算器一致，因此同一混合气在那里的 MOD 可能略浅。\n\nEAD 将氮气视为致麻醉，END 将氮气和氧气都视为致麻醉。你的 END 限值、氧气是否致麻醉以及默认 ppO₂ 限值均来自你的潜水员档案。';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -17400,13 +17386,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      '最大麻醉深度 (MND) 是指在麻醉效应超过您的等效麻醉深度限制之前可以到达的最大深度。等效麻醉深度 (END) 表示您的气体在给定深度的麻醉效应。\n\n启用「氧气具有麻醉性」时，氧气和氮气都会导致麻醉（更保守）。禁用时，仅考虑氮气的麻醉作用。';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => '关于最大麻醉深度/等效麻醉深度';
 
   @override
   String get gasCalculators_mnd_unlimited => '无限';
@@ -17470,13 +17449,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => '应用';
-
-  @override
-  String get gasCalculators_icd_infoTitle => '关于等压逆向扩散';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      '等压逆向扩散(ICD)是指从氦气含量较高的气体切换到氮气含量较高的气体时,由于氦气扩散速度快于氮气,可能导致组织中惰性气体总张力升高的风险。五分之一法则是一个常见的经验法则:氮气比例的上升幅度不应超过氦气比例下降幅度的五分之一。\n\n各机构对于在使用标准气体、规划良好的潜水中这一风险的实际重要性存在分歧。本计算器将该经验法则应用于输入的两种气体;它不能替代培训或专业建议。';
 
   @override
   String get gasCalculators_ppO2Limit => '氧分压限制';
@@ -17612,13 +17584,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       '气瓶有压力，但既无氧气也无氦气，那将是纯氮气。请检查瓶内现有的混合气。';
-
-  @override
-  String get gasCalculators_blender_about => '关于配气';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      '按分压法配制目标混合气。依次充入每种充填气体至显示的压力，然后让气瓶静置。充填气体及其顺序可自行设置：将最后一种气体设为 32/0，即以 EAN32 而非空气收尾。下水前务必分析配好的混合气。';
 
   @override
   String get gasCalculators_blender_conditions => '配气条件';
@@ -18019,10 +17984,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_density_eaddLabel => '等效空气密度深度 (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'EADD 是空气密度与该气体相同时所处的深度。与以 g/L 表示的密度不同，它不受温度影响。';
-
-  @override
   String get gasCalculators_density_loopGasTitle => '深度处的回路气体';
 
   @override
@@ -18040,14 +18001,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return '仅稀释气体在此处即产生 $ppO2 的 ppO2，高于设定点。密度按稀释气体的 ppO2 计算。';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => '关于气体密度';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return '高密度气体更难呼吸，并会增加 CO2 潴留的风险。请将密度保持在 $warn g/L 或以下；$critical g/L 为硬性上限。\n\n在 CCR 模式下，计算的是回路气体的密度：氧气按设定点，其余按稀释气体的比例分配给氮气和氦气。\n\n较冷的气体密度更高，因此较冷的温度选项更保守。计算假定为理想气体。';
   }
 
   @override
@@ -21248,9 +21201,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description => '整个潜水过程的浮力、变化和可抛弃配重';
-
-  @override
-  String get buoyancy_tooltip => '根据剖面、气体消耗和装备模拟的整个潜水过程净浮力。';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -26492,13 +26442,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      '梯度因子（GF）控制减压计算的保守程度。GF Low 影响深停留，而 GF High 影响浅停留。数值越低 = 越保守 = 更长的减压停留；数值越高 = 越不保守 = 更短的减压停留';
-
-  @override
-  String get settings_decompression_aboutTitle => '关于梯度因子';
-
-  @override
   String get settings_decompression_currentSettings => '当前设置';
 
   @override
@@ -27269,13 +27212,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_notifications_header_serviceReminders => '维护提醒';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      '通知在应用启动时计划，并在后台定期刷新。您可以在每件装备的编辑界面中自定义提醒。';
-
-  @override
-  String get settings_notifications_howItWorks_title => '工作原理';
 
   @override
   String get settings_notifications_permissionRequired => '请在系统设置中启用通知';
@@ -30581,13 +30517,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      '您的身体有16个组织隔间，以不同速率吸收和释放氮气。快组织（如血液）饱和快但排气也快。慢组织（如骨骼和脂肪）吸收和排放都需要更长时间。「前导隔间」是饱和度最高的组织，通常控制您的免减压极限。在水面间隔期间，所有组织向水面饱和水平（约40%负荷）排气。';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title => '关于组织负荷';
 
   @override
   String get surfaceInterval_action_resetDefaults => '恢复默认值';
@@ -34786,13 +34715,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_undo => '撤销';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      '最低气量是在与潜伴共用气源进行紧急上升时所需的最低气体储备。\n\n• 使用应激耗气率（正常的 2-3 倍）\n• 假设两位潜水员共用一个气瓶\n• 启用时包含安全停留\n\n务必在到达最低气量之前折返！';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => '关于最低气量';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired => '上升气体必填';
 
   @override
@@ -38752,13 +38674,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '没有深度剖面，无法计算其 CNS% 和 OTU。下方合计不包含此次潜水。';
 
   @override
-  String get safetyHub_cnsOtu_about_title => '关于 CNS 和 OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      '潜水后 CNS%（氧气钟）以 90 分钟的半衰期衰减——大约一天后基本降回 0。\n\n每日 OTU 每晚午夜重置。每周 OTU 是过去 7 天的滚动总和：较早的潜水一旦超出该时间窗口，就会自动从计算中剔除。';
-
-  @override
   String get safetyHub_tissueLoading_clear_title => '组织无残余负荷';
 
   @override
@@ -38771,13 +38686,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       '上一次潜水没有可用于计算组织饱和度的数据，例如没有深度曲线的潜水、深度计模式下的潜水，或未设置设定点的循环呼吸器潜水。';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => '关于组织饱和度';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      '你的身体有 16 个组织隔间，它们以不同速度吸收和释放氮气（在三混气或循环呼吸器潜水中也包括氦气）。快速组织饱和与脱饱和都很快；慢速组织两者都需要长得多的时间。\n\n残余负荷仅指高于水面正常水平的部分。即使完全脱饱和，柱也不会降到 0%：每个隔间都会稳定在与所呼吸空气中氮气相对应的标记处。因此，在使用氧气减压的潜水后，快速隔间在这里的数值可能高于潜水结束时，但负荷并没有增加。\n\n含氦潜水后，隔间在释放氦气的同时会吸收氮气，直到两种气体都与所呼吸的空气达到平衡。';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

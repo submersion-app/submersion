@@ -7552,13 +7552,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'Wat betekenen deze waarden?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Belading: de inertgasdruk van een compartiment als percentage van het maximum dat het aan de oppervlakte mag bevatten (de M-waarde, de rode lijn bij 100%).\n\nOppervlakteniveau: de markering op elke balk toont waar een volledig ontzadigd compartiment uitkomt terwijl je aan de oppervlakte lucht ademt. Die ligt nooit op 0%, omdat je lichaam altijd de stikstof uit de ingeademde lucht bevat. Een balk op zijn markering draagt geen restbelading van het duiken meer.\n\nGasopname en gasafgifte: gas beweegt altijd naar de druk van het gas dat je ademt. Na decompressie op zuurstof of op een heliumrijk mengsel kunnen de snelle compartimenten minder stikstof bevatten dan de lucht aan de oppervlakte. Terug op lucht nemen ze weer stikstof op tot ze hun markering bereiken. Dat is normaal en geen restbelading van de duik.\n\nHelium: lucht bevat geen helium. Na een trimixduik geeft een compartiment helium af terwijl het tegelijk stikstof kan opnemen. De pijlen naast N₂ en He tonen elk gas afzonderlijk; de aanduiding naast het compartimentnummer toont de netto richting van beide.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Grafiek van de weefselbelading. $count compartimenten, belading ten opzichte van de M-waarde; leidend compartiment $number op $percent%.';
   }
@@ -17913,9 +17906,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volume';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'Over MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Modus';
 
   @override
@@ -18117,10 +18107,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Binnen je ppO₂-, END- en dichtheidslimieten op de gecontroleerde dieptes.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'De MOD is de diepte waarop het mengsel de ppO₂-limiet bereikt. Hij wordt altijd naar beneden afgerond, nooit naar boven.\n\nRec rekent met 1 bar per 10 m, zoals het logboek. OC Tec en CCR Tec halen de omgevingsdruk uit het watertype, zoals de gasdichtheidscalculator, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.\n\nDe EAD telt stikstof als narcotisch, de END stikstof en zuurstof. Je END-limiet, of zuurstof als narcotisch telt en de standaard-ppO₂-limieten komen uit je duikersprofiel.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18171,13 +18157,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'Maximale Narcotische Diepte (MND) is de diepste diepte waarop je kunt duiken voordat narcose je END-limiet overschrijdt. Equivalente Narcotische Diepte (END) geeft het narcotische effect van je gas op een bepaalde diepte aan.\n\nWanneer \'O2 is narcotisch\' is ingeschakeld, dragen zowel zuurstof als stikstof bij aan narcose (conservatiever). Wanneer uitgeschakeld, wordt alleen stikstof als narcotisch beschouwd.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'Over MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'onbeperkt';
@@ -18245,13 +18224,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Toepassen';
-
-  @override
-  String get gasCalculators_icd_infoTitle => 'Over isobare tegendiffusie';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'Isobare tegendiffusie (ICD) is het risico dat het overschakelen van een heliumrijker naar een stikstofrijker gas de totale inerte gasspanning in weefsel verhoogt, omdat helium sneller diffundeert dan stikstof. De vijfde-regel is een veelgebruikte vuistregel: het stikstofaandeel mag met maximaal een vijfde van de afname van het heliumaandeel stijgen.\n\nOrganisaties zijn het er niet over eens hoe belangrijk dit in de praktijk is bij een goed geplande duik met standaardgassen. Deze rekenmachine past de vuistregel toe op de twee ingevoerde gassen; het vervangt geen training of professioneel advies.';
 
   @override
   String get gasCalculators_ppO2Limit => 'ppO₂ limiet';
@@ -18392,13 +18364,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'De fles staat onder druk maar bevat geen zuurstof en geen helium, dus pure stikstof. Controleer het mengsel dat al in de fles zit.';
-
-  @override
-  String get gasCalculators_blender_about => 'Over het mengen';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Partiaaldrukmenging voor het doelmengsel. Voeg elk vulgas op volgorde toe tot de getoonde druk en laat de fles daarna stabiliseren. Vulgassen en hun volgorde zijn instelbaar: zet je het laatste gas op 32/0, dan wordt met EAN32 in plaats van lucht afgevuld. Analyseer het uiteindelijke mengsel altijd voordat je ermee duikt.';
 
   @override
   String get gasCalculators_blender_conditions => 'Mengcondities';
@@ -18830,10 +18795,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Equivalente luchtdichtheidsdiepte (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'De EADD is de diepte waarop lucht even dicht zou zijn als dit gas. Anders dan de dichtheid in g/L hangt ze niet af van de temperatuur.';
-
-  @override
   String get gasCalculators_density_loopGasTitle => 'Loopgas op diepte';
 
   @override
@@ -18852,14 +18813,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'Het diluent alleen geeft hier een ppO2 van $ppO2, boven het setpoint. De dichtheid rekent met de ppO2 van het diluent.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'Over gasdichtheid';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Dicht gas ademt zwaarder en verhoogt het risico op CO2-retentie. Houd de dichtheid op maximaal $warn g/L; $critical g/L is de harde bovengrens.\n\nBij CCR telt de dichtheid van het loopgas: zuurstof op het setpoint, de rest verdeeld over stikstof en helium in de verhouding van het diluent.\n\nKouder gas is dichter, dus de koudere temperatuuroptie is de conservatieve keuze. De berekening gaat uit van een ideaal gas.';
   }
 
   @override
@@ -22216,10 +22169,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'Drijfvermogen tijdens de duik, variatie, afwerpbaar lood';
-
-  @override
-  String get buoyancy_tooltip =>
-      'Gemodelleerd netto drijfvermogen tijdens de duik op basis van profiel, gasverbruik en uitrusting.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -27885,13 +27834,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Gradiëntfactoren (GF) bepalen hoe conservatief je decompressieberekeningen zijn. GF Low beïnvloedt diepe stops, terwijl GF High ondiepe stops beïnvloedt.\n\nLagere waarden = conservatiever = langere decostops\nHogere waarden = minder conservatief = kortere decostops';
-
-  @override
-  String get settings_decompression_aboutTitle => 'Over gradiëntfactoren';
-
-  @override
   String get settings_decompression_currentSettings => 'Huidige instellingen';
 
   @override
@@ -28712,13 +28654,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Onderhoudsherinneringen';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Meldingen worden ingepland wanneer de app opstart en worden periodiek op de achtergrond vernieuwd. Je kunt herinneringen voor individuele uitrustingsitems aanpassen in hun bewerkingsscherm.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'Hoe het werkt';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32251,14 +32186,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Je lichaam heeft 16 weefselcompartimenten die stikstof absorberen en afgeven met verschillende snelheden. Snelle weefsels (zoals bloed) verzadigen snel maar geven ook snel gas af. Langzame weefsels (zoals bot en vet) hebben langer nodig om zowel te laden als te ontladen. Het \"leidende compartiment\" is het weefsel dat het meest verzadigd is en bepaalt meestal je no-decompression limiet (NDL). Tijdens een oppervlakte-interval geven alle weefsels gas af naar oppervlakteverzadigingsniveaus (~40% belading).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title =>
-      'Over weefselbelasting';
 
   @override
   String get surfaceInterval_action_resetDefaults =>
@@ -36726,13 +36653,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_undo => 'Ongedaan maken';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock bottom is de minimale gasreserve voor een noodopstijging terwijl je lucht deelt met je buddy.\n\n• Gebruikt verhoogde RMV-waarden (2-3x normaal)\n• Gaat ervan uit dat beide duikers op één fles zitten\n• Inclusief veiligheidsstop indien ingeschakeld\n\nKeer de duik altijd om VOOR je rock bottom bereikt!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'Over Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Benodigd gas voor opstijging';
 
@@ -40903,13 +40823,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'Over CNS en OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Geen resterende weefselbelading';
 
@@ -40924,13 +40837,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'De laatste duik heeft geen gegevens om de weefselbelading uit te berekenen, bijvoorbeeld een duik zonder diepteprofiel, in dieptemetermodus of met een rebreather zonder setpoint.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'Over weefselverzadiging';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'Je lichaam heeft 16 weefselcompartimenten die stikstof (en bij trimix- of rebreatherduiken ook helium) met verschillende snelheden opnemen en afgeven. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben er voor beide veel langer voor nodig.\n\nRestbelading is alleen wat boven het normale oppervlakteniveau ligt. Zelfs volledig ontzadigd zakken de balken niet naar 0%: elk compartiment komt uit op de markering die past bij de stikstof in de lucht die je ademt. Daarom kan een snel compartiment hier hoger staan dan aan het einde van een duik met zuurstofdecompressie, zonder dat de belading is gestegen.\n\nNa een duik met helium geeft een compartiment helium af terwijl het tegelijk stikstof opneemt, tot beide gassen in evenwicht zijn met de lucht die je ademt.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

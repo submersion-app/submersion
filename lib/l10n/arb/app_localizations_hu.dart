@@ -7582,13 +7582,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'Mit jelentenek ezek az értékek?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Terhelés: egy kamra inertgáz-nyomása annak a maximumnak a százalékában, amelyet a felszínen tartalmazhat (az M-értéke, a piros vonal 100%-nál).\n\nFelszíni szint: az egyes oszlopokon lévő jelölés mutatja, hol áll be egy teljesen telítetlenné vált kamra, miközben a felszínen levegőt lélegzel. Soha nincs 0%-on, mert a tested mindig tartalmazza a belélegzett levegő nitrogénjét. A jelölésénél álló oszlop már nem hordoz a merülésből visszamaradt terhelést.\n\nFeltöltődés és leürülés: a gáz mindig a belélegzett gáz nyomása felé mozog. Oxigénes vagy héliumban gazdag keverékkel végzett dekompresszió után a gyors kamrák kevesebb nitrogént tartalmazhatnak, mint a felszíni levegő. Ismét levegőt lélegezve újra nitrogént vesznek fel, amíg el nem érik a jelölésüket. Ez normális, és nem a merülésből visszamaradt terhelés.\n\nHélium: a levegő nem tartalmaz héliumot. Trimix merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vehet fel. Az N₂ és He melletti nyilak külön mutatják az egyes gázokat; a kamra száma melletti jelzés a kettő együttes irányát mutatja.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Szövetterhelési diagram. $count kamra, terhelés az M-értékhez viszonyítva; a vezető kamra a(z) $number. $percent%-on.';
   }
@@ -17973,9 +17966,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Térfogat';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'A MOD-ról';
-
-  @override
   String get gasCalculators_mod_mode => 'Mód';
 
   @override
@@ -18176,10 +18166,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az ellenőrzött mélységekben a ppO₂-, END- és sűrűséghatáraidon belül.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'A MOD az a mélység, ahol a keverék eléri a ppO₂-határt. Mindig lefelé kerekítjük, soha nem felfelé.\n\nA Rec 10 méterenként 1 barral számol, mint a napló. Az OC Tec és a CCR Tec a vízfajtából veszi a környezeti nyomást, mint a gázsűrűség-kalkulátor, ezért ugyanaz a keverék ott valamivel sekélyebb MOD-ot mutathat.\n\nAz EAD a nitrogént tekinti narkotikusnak, az END a nitrogént és az oxigént. Az END-határod, hogy az oxigén narkotikusnak számít-e, és az alapértelmezett ppO₂-határok a búvárprofilodból származnak.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18231,13 +18217,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'A Maximum Narkotikus Mélység (MND) az a legnagyobb mélység, ameddig a narkózis nem haladja meg az END határt. Az Ekvivalens Narkotikus Mélység (END) megmutatja a gázkeverék narkotikus hatását adott mélységben.\n\nHa az \'O2 narkotikus\' be van kapcsolva, az oxigén és a nitrogén egyaránt hozzájárul a narkózishoz (konzervatívabb). Ha ki van kapcsolva, csak a nitrogén számít narkotikusnak.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'MND/END névjegy';
 
   @override
   String get gasCalculators_mnd_unlimited => 'korlátlan';
@@ -18305,13 +18284,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Alkalmaz';
-
-  @override
-  String get gasCalculators_icd_infoTitle => 'Az izobár ellendiffúzióról';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'Az izobár ellendiffúzió (ICD) annak a kockázata, hogy egy héliumban gazdagabb gázról egy nitrogénben gazdagabb gázra váltás növeli a szövetekben az összes inert gáz feszültségét, mivel a hélium gyorsabban diffundál, mint a nitrogén. Az ötödszabály egy gyakori ökölszabály: a nitrogénhányad legfeljebb a héliumhányad csökkenésének ötödével nőhet.\n\nA szervezetek véleménye eltér arról, hogy ez mennyire számít a valóságban egy jól megtervezett, szabványos gázokkal végzett merülésnél. Ez a kalkulátor a két megadott gázra alkalmazza az ökölszabályt; nem helyettesíti a képzést vagy a szakmai tanácsot.';
 
   @override
   String get gasCalculators_ppO2Limit => 'ppO₂ limit';
@@ -18452,13 +18424,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'A palack nyomás alatt van, de sem oxigént, sem héliumot nem tartalmaz, ami tiszta nitrogén lenne. Ellenőrizd a palackban lévő keveréket.';
-
-  @override
-  String get gasCalculators_blender_about => 'A keverésről';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Parciális nyomású keverés a cél keverékhez. Add hozzá a töltőgázokat sorrendben, a megadott nyomásig, majd hagyd a palackot kiegyenlítődni. A töltőgázok és a sorrendjük állítható: ha az utolsó gázt 32/0-ra állítod, levegő helyett EAN32-vel tölt fel. A kész keveréket mindig elemezd, mielőtt lemerülnél vele.';
 
   @override
   String get gasCalculators_blender_conditions => 'Keverési körülmények';
@@ -18892,10 +18857,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Egyenértékű levegősűrűség-mélység (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'Az EADD az a mélység, ahol a levegő ugyanolyan sűrű lenne, mint ez a gáz. A g/L-ben megadott sűrűséggel ellentétben nem függ a hőmérséklettől.';
-
-  @override
   String get gasCalculators_density_loopGasTitle => 'Hurokgáz mélységben';
 
   @override
@@ -18914,14 +18875,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'A hígítógáz önmagában itt $ppO2 ppO2-t ad, ami a setpoint felett van. A sűrűség a hígítógáz ppO2-jével számol.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'A gázsűrűségről';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'A sűrű gázt nehezebb belélegezni, és növeli a CO2-visszatartás kockázatát. Tartsd a sűrűséget legfeljebb $warn g/L-en; $critical g/L az abszolút felső határ.\n\nCCR esetén a hurokgáz sűrűsége számít: oxigén a setpoint szerint, a maradék nitrogén és hélium a hígítógáz arányában.\n\nA hidegebb gáz sűrűbb, ezért a hidegebb hőmérséklet a konzervatív választás. A számítás ideális gázt feltételez.';
   }
 
   @override
@@ -22287,10 +22240,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'Felhajtóerő a merülés során, ingadozás, ledobható ólom';
-
-  @override
-  String get buoyancy_tooltip =>
-      'Modellezett nettó felhajtóerő a merülés során a profilból, gázfogyasztásból és felszerelésből.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -27934,13 +27883,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'A Gradiens Faktorok (GF) szabályozzák, mennyire konzervatív a dekompressziós számítás. A GF Low a mély megállókra, míg a GF High a sekély megállókra hat.\n\nAlacsonyabb értékek = konzervatívabb = hosszabb dekó megállók\nMagasabb értékek = kevésbé konzervatív = rövidebb dekó megállók';
-
-  @override
-  String get settings_decompression_aboutTitle => 'Gradiens Faktorokról';
-
-  @override
   String get settings_decompression_currentSettings => 'Jelenlegi beállítások';
 
   @override
@@ -28770,13 +28712,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Szerviz emlékeztetők';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Az értesítések az alkalmazás indításakor kerülnek ütemezésre, és rendszeresen frissülnek a háttérben. Az egyes felszerelések emlékeztetőit a szerkesztési képernyőjükön szabhatja testre.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'Hogyan működik';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32311,14 +32246,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'A testednek 16 szövetkamrája van, amelyek különböző sebességgel nyelik el és adják le a nitrogént. A gyors szövetek (mint a vér) gyorsan telítődnek, de gyorsan is ürülnek. A lassú szövetek (mint a csont és a zsír) tovább tart, hogy mindkettőt betöltsék és kiürüljenek. A \"vezető kamra\" az a szövet, amelyik a legtelítettebb, és általában ez szabályozza a dekompresszió nélküli határidőt (NDL). A felszíni intervallum alatt minden szövet kiürül a felszíni telítettségi szintek felé (~40% telítettség).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title =>
-      'A szövet telítettségről';
 
   @override
   String get surfaceInterval_action_resetDefaults =>
@@ -36788,13 +36715,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get divePlanner_undo => 'Visszavonás';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'A Rock Bottom az a minimális gáztartalék, ami egy veszélyes helyzetben szükséges a felszínre éréshez, miközben levegőt oszt meg a búvártársával.\n\n- Stresszes RMV értékeket használ (2-3x normális)\n- Feltételezi, hogy mindkét merülő egy palackról szív\n- Tartalmazza a biztonsági megállót, ha engedélyezve van\n\nMindig forduljon vissza, mielőtt eléri a Rock Bottom értéket!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'A Rock Bottom-ról';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Emelkedéshez szükséges gáz';
 
@@ -40949,13 +40869,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Mélységprofil nélkül a CNS% és az OTU nem számítható ki. Az alábbi összesítések nem tartalmazzák.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'A CNS-ről és az OTU-ról';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'A CNS% (oxigénóra) a merülés után 90 perces felezési idővel csökken -- körülbelül egy nap múlva gyakorlatilag visszatér 0-ra.\n\nA napi OTU minden éjjel éjfélkor nullázódik. A heti OTU az utolsó 7 nap gördülő összege: a régebbi merülések automatikusan kikerülnek a számításból, amint kiesnek ebből az időablakból.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Nincs maradék szövetterhelés';
 
@@ -40970,13 +40883,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'Az utolsó merüléshez nincs adat a szövetterhelés kiszámításához, például mélységprofil nélküli merülésnél, mélységmérő módban vagy setpoint nélküli rebreatherrel.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'A szövettelítődésről';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'A testedben 16 szövetkamra van, amelyek különböző sebességgel veszik fel és adják le a nitrogént (trimix vagy rebreather merüléseknél a héliumot is). A gyors szövetek gyorsan telítődnek és ürülnek; a lassú szöveteknek mindkettőhöz sokkal több idő kell.\n\nA maradék terhelés csak az, ami a normál felszíni szint fölött van. Teljesen kiürülve sem esnek az oszlopok 0%-ra: minden kamra a belélegzett levegő nitrogénjének megfelelő jelölésnél áll be. Ezért egy gyors kamra itt magasabb értéket mutathat, mint egy oxigénes dekompressziós merülés végén, anélkül hogy a terhelés nőtt volna.\n\nHéliumos merülés után egy kamra héliumot ad le, miközben egyidejűleg nitrogént vesz fel, amíg mindkét gáz egyensúlyba nem kerül a belélegzett levegővel.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

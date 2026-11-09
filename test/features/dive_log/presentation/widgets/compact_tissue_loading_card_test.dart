@@ -722,9 +722,7 @@ void main() {
       await tester.pumpWidget(buildCard(scrollable: true));
       await tester.pumpAndSettle();
 
-      final context = tester.element(find.byType(CompactTissueLoadingCard));
-      final l10n = AppLocalizations.of(context);
-      expect(find.text(l10n.diveLog_deco_info_title), findsNothing);
+      expect(find.text('What do these values mean?'), findsNothing);
       expect(find.byType(InfoButton), findsOneWidget);
 
       await tester.tap(find.byType(InfoButton));

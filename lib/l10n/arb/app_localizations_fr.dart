@@ -7620,13 +7620,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'Que signifient ces valeurs ?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Charge : la pression de gaz inerte d\'un compartiment en pourcentage du maximum qu\'il peut contenir en surface (sa valeur M, la ligne rouge à 100 %).\n\nNiveau de surface : le repère sur chaque barre indique où se stabilise un compartiment entièrement désaturé pendant que vous respirez de l\'air en surface. Il n\'est jamais à 0 %, car votre corps contient toujours l\'azote de l\'air que vous respirez. Une barre à son repère ne porte plus aucune charge résiduelle de la plongée.\n\nAbsorption et élimination : le gaz se déplace toujours vers la pression du gaz que vous respirez. Après une décompression à l\'oxygène ou avec un mélange riche en hélium, les compartiments rapides peuvent contenir moins d\'azote que l\'air en surface. De retour à l\'air, ils absorbent à nouveau de l\'azote jusqu\'à atteindre leur repère. C\'est normal et ce n\'est pas une charge résiduelle de la plongée.\n\nHélium : l\'air ne contient pas d\'hélium. Après une plongée au trimix, un compartiment élimine l\'hélium tout en pouvant absorber de l\'azote en même temps. Les flèches à côté de N₂ et He montrent chaque gaz séparément ; l\'indication à côté du numéro du compartiment montre la direction globale des deux.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Graphique de saturation des tissus. $count compartiments, charge par rapport à la valeur M ; compartiment directeur $number à $percent %.';
   }
@@ -18083,9 +18076,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volume';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'À propos de la MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Mode';
 
   @override
@@ -18288,10 +18278,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Dans tes limites de ppO₂, END et densité aux profondeurs vérifiées.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'La MOD est la profondeur à laquelle le mélange atteint la limite de ppO₂. Elle est toujours arrondie vers le bas, jamais vers le haut.\n\nRec utilise 1 bar par 10 m, comme le carnet. OC Tec et CCR Tec tirent la pression ambiante du type d\'eau, comme le calculateur de densité ; le même mélange peut donc y afficher une MOD un peu moins profonde.\n\nL\'EAD compte l\'azote comme narcotique, l\'END l\'azote et l\'oxygène. Ta limite END, le caractère narcotique de l\'oxygène et les limites de ppO₂ par défaut viennent de ton profil de plongeur.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18343,13 +18329,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'La profondeur narcotique maximale (MND) est la profondeur maximale à laquelle vous pouvez descendre avant que la narcose ne dépasse votre limite END. La profondeur narcotique équivalente (END) indique l\'effet narcotique de votre gaz à une profondeur donnée.\n\nLorsque \"O2 est narcotique\" est activé, l\'oxygène et l\'azote contribuent tous deux à la narcose (plus conservateur). Lorsque désactivé, seul l\'azote est considéré comme narcotique.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'À propos de MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'illimitée';
@@ -18417,14 +18396,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Appliquer';
-
-  @override
-  String get gasCalculators_icd_infoTitle =>
-      'À propos de la contre-diffusion isobare';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'La contre-diffusion isobare (ICD) est le risque qu\'un passage d\'un gaz plus riche en hélium à un gaz plus riche en azote augmente la tension totale des gaz inertes dans les tissus, l\'hélium diffusant plus vite que l\'azote. La règle du cinquième est une règle empirique courante : la fraction d\'azote ne devrait pas augmenter de plus d\'un cinquième de la baisse de la fraction d\'hélium.\n\nLes avis divergent sur l\'importance réelle de ce phénomène pour une plongée bien planifiée avec des gaz standards. Ce calculateur applique la règle empirique aux deux gaz saisis ; il ne remplace ni une formation ni un avis professionnel.';
 
   @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
@@ -18565,13 +18536,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'Le bloc est sous pression mais ne contient ni oxygène ni hélium, ce qui serait de l\'azote pur. Vérifiez le mélange déjà présent dans le bloc.';
-
-  @override
-  String get gasCalculators_blender_about => 'À propos du mélange';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Mélange par pressions partielles pour le mélange cible. Ajoutez chaque gaz de remplissage dans l\'ordre, jusqu\'à la pression indiquée, puis laissez le bloc se stabiliser. Les gaz de remplissage et leur ordre sont configurables : en réglant le dernier gaz sur 32/0, le complément se fait à l\'EAN32 au lieu de l\'air. Analysez toujours le mélange final avant de le plonger.';
 
   @override
   String get gasCalculators_blender_conditions => 'Conditions de mélange';
@@ -19007,10 +18971,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Profondeur équivalente en densité d\'air (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'L\'EADD est la profondeur à laquelle l\'air serait aussi dense que ce gaz. Contrairement à la densité en g/L, elle ne dépend pas de la température.';
-
-  @override
   String get gasCalculators_density_loopGasTitle =>
       'Gaz de la boucle en profondeur';
 
@@ -19030,15 +18990,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'Le diluant seul donne ici une ppO2 de $ppO2, au-dessus du setpoint. La densité utilise la ppO2 du diluant.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle =>
-      'À propos de la densité du gaz';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Un gaz dense est plus difficile à respirer et augmente le risque de rétention de CO2. Gardez la densité à $warn g/L au maximum ; $critical g/L est la limite absolue.\n\nEn CCR, c\'est la densité du gaz de la boucle qui compte : l\'oxygène au setpoint, le reste réparti entre azote et hélium selon le rapport du diluant.\n\nUn gaz plus froid est plus dense : l\'option de température la plus froide est donc la plus prudente. Le calcul suppose un gaz parfait.';
   }
 
   @override
@@ -22425,10 +22376,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'Flottabilité pendant la plongée, variation, lest largable';
-
-  @override
-  String get buoyancy_tooltip =>
-      'Flottabilité nette modélisée pendant la plongée d\'après le profil, la consommation de gaz et l\'équipement.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -28145,14 +28092,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Les Gradient Factors (GF) contrôlent le niveau de conservatisme de vos calculs de décompression. Le GF Low affecte les paliers profonds, tandis que le GF High affecte les paliers peu profonds.\n\nValeurs plus basses = plus conservateur = paliers déco plus longs\nValeurs plus hautes = moins conservateur = paliers déco plus courts';
-
-  @override
-  String get settings_decompression_aboutTitle =>
-      'À propos des Gradient Factors';
-
-  @override
   String get settings_decompression_currentSettings => 'Réglages actuels';
 
   @override
@@ -28990,13 +28929,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Rappels d\'entretien';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Les notifications sont programmées au lancement de l\'application et se rafraîchissent périodiquement en arrière-plan. Vous pouvez personnaliser les rappels pour chaque équipement dans son écran de modification.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'Comment ça fonctionne';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32578,14 +32510,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label : $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Votre corps possède 16 compartiments tissulaires qui absorbent et libèrent l\'azote à des vitesses différentes. Les tissus rapides (comme le sang) se saturent rapidement mais se désaturent aussi rapidement. Les tissus lents (comme les os et la graisse) mettent plus de temps à se charger et à se décharger. Le « compartiment directeur » est celui qui est le plus saturé et contrôle généralement votre limite de non-décompression (NDL). Pendant un intervalle de surface, tous les tissus se désaturent vers les niveaux de saturation de surface (~40% de charge).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title =>
-      'À propos du chargement tissulaire';
 
   @override
   String get surfaceInterval_action_resetDefaults =>
@@ -37088,13 +37012,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_undo => 'Annuler';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Le rock bottom est la réserve de gaz minimale pour une remontée d\'urgence en partageant l\'air avec votre binôme.\n\n- Utilise des consommations majorées (2-3x la normale)\n- Suppose les deux plongeurs sur un seul bloc\n- Inclut le palier de sécurité si activé\n\nFaites toujours demi-tour AVANT d\'atteindre le rock bottom !';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'À propos du Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Gaz nécessaire pour la remontée';
 
@@ -41296,13 +41213,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Sans profil de profondeur, son CNS% et ses OTU ne peuvent pas être calculés. Les totaux ci-dessous l\'excluent.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'À propos du CNS et de l\'OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'Votre CNS% (horloge à oxygène) décroît après la plongée avec une demi-vie de 90 minutes -- il est pratiquement revenu à 0 au bout d\'un jour environ.\n\nL\'OTU quotidien est remis à zéro chaque nuit à minuit. L\'OTU hebdomadaire est un total glissant sur les 7 derniers jours : les plongées plus anciennes sortent automatiquement du calcul dès qu\'elles quittent cette fenêtre.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Aucune charge tissulaire résiduelle';
 
@@ -41317,14 +41227,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'La dernière plongée n\'a pas de données permettant de calculer la saturation des tissus, par exemple une plongée sans profil de profondeur, en mode profondimètre ou au recycleur sans consigne.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title =>
-      'À propos de la saturation des tissus';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'Votre corps compte 16 compartiments tissulaires qui absorbent et éliminent l\'azote (et, en plongée au trimix ou au recycleur, l\'hélium aussi) à des vitesses différentes. Les tissus rapides se saturent et se désaturent vite ; les tissus lents mettent beaucoup plus de temps dans les deux cas.\n\nLa charge résiduelle correspond seulement à ce qui dépasse le niveau normal en surface. Même entièrement désaturées, les barres ne descendent pas à 0 % : chaque compartiment se stabilise au repère correspondant à l\'azote de l\'air que vous respirez. C\'est pourquoi un compartiment rapide peut afficher ici une valeur plus élevée qu\'à la fin d\'une plongée avec décompression à l\'oxygène, sans que la charge ait augmenté.\n\nAprès une plongée à l\'hélium, un compartiment élimine l\'hélium tout en absorbant de l\'azote, jusqu\'à ce que les deux gaz soient en équilibre avec l\'air que vous respirez.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

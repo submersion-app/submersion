@@ -7602,13 +7602,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => '¿Qué significan estos valores?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Carga: la presión de gas inerte de un compartimento como porcentaje del máximo que puede contener en superficie (su valor M, la línea roja al 100%).\n\nNivel de superficie: la marca en cada barra indica dónde se estabiliza un compartimento totalmente desaturado mientras respiras aire en superficie. Nunca está en 0%, porque tu cuerpo siempre contiene el nitrógeno del aire que respiras. Una barra en su marca ya no tiene carga residual del buceo.\n\nAbsorción y liberación: el gas siempre se mueve hacia la presión del gas que respiras. Tras una descompresión con oxígeno o con una mezcla rica en helio, los compartimentos rápidos pueden contener menos nitrógeno que el aire en superficie. Al volver a respirar aire, absorben nitrógeno de nuevo hasta alcanzar su marca. Es normal y no es una carga residual de la inmersión.\n\nHelio: el aire no contiene helio. Tras una inmersión con trimix, un compartimento libera helio mientras puede absorber nitrógeno al mismo tiempo. Las flechas junto a N₂ y He muestran cada gas por separado; la indicación junto al número del compartimento muestra la dirección neta de ambos.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Gráfico de carga tisular. $count compartimentos, carga respecto al valor M; compartimento líder $number al $percent%.';
   }
@@ -18022,9 +18015,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volumen';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'Acerca de MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Modo';
 
   @override
@@ -18225,10 +18215,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Dentro de tus límites de ppO₂, END y densidad en las profundidades comprobadas.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'La MOD es la profundidad a la que la mezcla alcanza el límite de ppO₂. Siempre se redondea hacia abajo, nunca hacia arriba.\n\nRec usa 1 bar cada 10 m, como el registro. OC Tec y CCR Tec toman la presión ambiente del tipo de agua, como la calculadora de densidad, por lo que la misma mezcla puede mostrar allí una MOD algo menor.\n\nLa EAD considera narcótico el nitrógeno; la END, el nitrógeno y el oxígeno. Tu límite END, si el oxígeno cuenta como narcótico y los límites de ppO₂ por defecto provienen de tu perfil de buceador.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18280,13 +18266,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'La Profundidad Narcótica Máxima (MND) es la profundidad máxima a la que puedes descender antes de que la narcosis supere tu límite de END. La Profundidad Narcótica Equivalente (END) te indica el efecto narcótico de tu gas a una profundidad determinada.\n\nCuando \'O2 es narcótico\' está activado, tanto el oxígeno como el nitrógeno contribuyen a la narcosis (más conservador). Cuando está desactivado, solo el nitrógeno se considera narcótico.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'Acerca de MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'ilimitado';
@@ -18354,14 +18333,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Aplicar';
-
-  @override
-  String get gasCalculators_icd_infoTitle =>
-      'Acerca de la contradifusión isobárica';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'La contradifusión isobárica (ICD) es el riesgo de que cambiar de un gas más rico en helio a uno más rico en nitrógeno aumente la tensión total de gases inertes en el tejido, porque el helio difunde más rápido que el nitrógeno. La regla del quinto es una norma habitual: la fracción de nitrógeno no debería aumentar más de un quinto de lo que disminuye la fracción de helio.\n\nLas agencias no coinciden en la importancia real de esto en una inmersión bien planificada con gases estándar. Esta calculadora aplica la regla a los dos gases introducidos; no sustituye la formación ni el asesoramiento profesional.';
 
   @override
   String get gasCalculators_ppO2Limit => 'Límite ppO₂';
@@ -18502,13 +18473,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'El cilindro tiene presión pero ni oxígeno ni helio, lo que sería nitrógeno puro. Comprueba la mezcla que ya hay en el cilindro.';
-
-  @override
-  String get gasCalculators_blender_about => 'Sobre la mezcla';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Mezcla por presiones parciales para la mezcla objetivo. Añade cada gas de llenado en orden, hasta la presión indicada, y deja que el cilindro se estabilice. Los gases de llenado y su orden son configurables: si ajustas el último gas a 32/0, el remate se hace con EAN32 en lugar de aire. Analiza siempre la mezcla final antes de bucearla.';
 
   @override
   String get gasCalculators_blender_conditions => 'Condiciones de mezcla';
@@ -18944,10 +18908,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Profundidad equivalente de densidad de aire (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'La EADD es la profundidad a la que el aire sería tan denso como este gas. A diferencia de la densidad en g/L, no depende de la temperatura.';
-
-  @override
   String get gasCalculators_density_loopGasTitle =>
       'Gas del circuito en profundidad';
 
@@ -18967,15 +18927,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'El diluyente por sí solo da aquí una ppO2 de $ppO2, por encima del setpoint. La densidad usa la ppO2 del diluyente.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle =>
-      'Acerca de la densidad del gas';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Un gas denso cuesta más respirarlo y aumenta el riesgo de retención de CO2. Mantén la densidad en $warn g/L o menos; $critical g/L es el límite absoluto.\n\nEn CCR cuenta la densidad del gas del circuito: oxígeno al setpoint y el resto repartido entre nitrógeno y helio según la proporción del diluyente.\n\nUn gas más frío es más denso, así que la opción de temperatura más fría es la conservadora. El cálculo supone un gas ideal.';
   }
 
   @override
@@ -22355,10 +22306,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'Flotabilidad durante la inmersión, variación, lastre soltable';
-
-  @override
-  String get buoyancy_tooltip =>
-      'Flotabilidad neta modelada durante la inmersión a partir del perfil, el consumo de gas y el equipo.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -28084,14 +28031,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Los factores de gradiente (GF) controlan qué tan conservadores son tus cálculos de descompresión. GF Low afecta las paradas profundas, mientras que GF High afecta las paradas someras.\n\nValores más bajos = más conservador = paradas de deco más largas\nValores más altos = menos conservador = paradas de deco más cortas';
-
-  @override
-  String get settings_decompression_aboutTitle =>
-      'Acerca de los factores de gradiente';
-
-  @override
   String get settings_decompression_currentSettings => 'Ajustes actuales';
 
   @override
@@ -28923,13 +28862,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Recordatorios de servicio';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Las notificaciones se programan cuando la app se inicia y se actualizan periódicamente en segundo plano. Puedes personalizar los recordatorios para cada equipo individual en su pantalla de edición.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'Cómo funciona';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32498,14 +32430,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Tu cuerpo tiene 16 compartimentos de tejido que absorben y liberan nitrógeno a diferentes velocidades. Los tejidos rápidos (como la sangre) se saturan rápidamente pero también desgasifican rápidamente. Los tejidos lentos (como hueso y grasa) tardan más en cargarse y descargarse. El \"compartimento líder\" es el tejido más saturado y típicamente controla tu límite de no descompresión (NDL). Durante un intervalo de superficie, todos los tejidos desgasifican hacia niveles de saturación de superficie (~40% de carga).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title =>
-      'Acerca de la Carga de Tejidos';
 
   @override
   String get surfaceInterval_action_resetDefaults =>
@@ -37005,13 +36929,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_undo => 'Deshacer';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'La reserva mínima (rock bottom) es la cantidad mínima de gas para un ascenso de emergencia compartiendo aire con tu compañero.\n\n- Usa tasas RMV de estrés (2-3x lo normal)\n- Asume ambos buceadores con un solo tanque\n- Incluye parada de seguridad cuando está activada\n\nSiempre inicia el regreso ANTES de alcanzar la reserva mínima!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'Sobre la reserva mínima';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Gas de ascenso requerido';
 
@@ -41205,13 +41122,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin perfil de profundidad no se pueden calcular su CNS% ni sus OTU. Los totales de abajo no la incluyen.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'Sobre CNS y OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'Su CNS% (reloj de oxígeno) decae tras la inmersión con una semivida de 90 minutos; prácticamente vuelve a 0 al cabo de un día.\n\nLa OTU diaria se reinicia cada noche a medianoche. La OTU semanal es un total móvil de los últimos 7 días: las inmersiones más antiguas salen automáticamente del cálculo en cuanto quedan fuera de esa ventana.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Sin carga tisular residual';
 
@@ -41226,13 +41136,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión sin perfil de profundidad, en modo profundímetro o con recirculador sin setpoint.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'Sobre la carga tisular';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'Tu cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o recirculador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan enseguida; los lentos tardan mucho más en ambos casos.\n\nLa carga residual es solo lo que queda por encima del nivel normal en superficie. Incluso totalmente desaturadas, las barras no bajan a 0%: cada compartimento se estabiliza en la marca que corresponde al nitrógeno del aire que respiras. Por eso un compartimento rápido puede marcar aquí más que al final de una inmersión con descompresión con oxígeno, sin que la carga haya aumentado.\n\nTras una inmersión con helio, un compartimento libera helio mientras absorbe nitrógeno al mismo tiempo, hasta que ambos gases están en equilibrio con el aire que respiras.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

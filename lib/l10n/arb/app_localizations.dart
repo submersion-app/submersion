@@ -11944,18 +11944,6 @@ abstract class AppLocalizations {
   /// **'Surface level: {percent}%'**
   String diveLog_deco_tooltipSurfaceLevel(String percent);
 
-  /// No description provided for @diveLog_deco_info_title.
-  ///
-  /// In en, this message translates to:
-  /// **'What do these values mean?'**
-  String get diveLog_deco_info_title;
-
-  /// No description provided for @diveLog_deco_info_body.
-  ///
-  /// In en, this message translates to:
-  /// **'Load: a compartment\'s inert gas pressure as a percentage of the most it may hold at the surface (its M-value, the red line at 100%).\n\nSurface level: the marker on each bar shows where a fully desaturated compartment settles while you breathe air at the surface. It is never 0%, because your body always holds the nitrogen of the air you breathe. A bar at its marker carries no load left over from diving.\n\nOngassing and offgassing: gas always moves toward the pressure of the gas you breathe. After decompression on oxygen or on a mix rich in helium, the fast compartments can hold less nitrogen than the air at the surface. Back on air, they take nitrogen up again until they reach their marker. That is normal and not a residual load from the dive.\n\nHelium: air contains no helium. After a trimix dive, a compartment releases helium while it can take nitrogen up at the same time. The arrows next to N₂ and He show each gas on its own; the badge next to the compartment number shows the net direction of both.'**
-  String get diveLog_deco_info_body;
-
   /// No description provided for @diveLog_deco_barChartSemantics.
   ///
   /// In en, this message translates to:
@@ -28881,12 +28869,6 @@ abstract class AppLocalizations {
   /// **'Volume'**
   String get gasCalculators_consumption_volume;
 
-  /// No description provided for @gasCalculators_mod_aboutMod.
-  ///
-  /// In en, this message translates to:
-  /// **'About MOD'**
-  String get gasCalculators_mod_aboutMod;
-
   /// No description provided for @gasCalculators_mod_mode.
   ///
   /// In en, this message translates to:
@@ -29189,12 +29171,6 @@ abstract class AppLocalizations {
   /// **'Within your ppO₂, END and density limits at the depths checked.'**
   String get gasCalculators_mod_allClear;
 
-  /// No description provided for @gasCalculators_mod_aboutModesBody.
-  ///
-  /// In en, this message translates to:
-  /// **'The MOD is the depth at which the mix reaches the ppO₂ limit. It is always rounded down, never up.\n\nRec uses 1 bar per 10 m, like the dive log. OC Tec and CCR Tec take the ambient pressure from the water type, like the gas density calculator, so the same mix can show a slightly shallower MOD there.\n\nEAD counts nitrogen as narcotic, END nitrogen and oxygen. Your END limit, whether oxygen counts as narcotic and the default ppO₂ limits come from your diver profile.'**
-  String get gasCalculators_mod_aboutModesBody;
-
   /// No description provided for @gasCalculators_mod_modeRec.
   ///
   /// In en, this message translates to:
@@ -29283,18 +29259,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'He %'**
   String get gasCalculators_mnd_hePercent;
-
-  /// No description provided for @gasCalculators_mnd_infoContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Maximum Narcotic Depth (MND) is the deepest you can go before narcosis exceeds your END limit. Equivalent Narcotic Depth (END) tells you the narcotic effect of your gas at a given depth.\n\nWhen \'O2 is narcotic\' is enabled, both oxygen and nitrogen contribute to narcosis (more conservative). When disabled, only nitrogen is considered narcotic.'**
-  String get gasCalculators_mnd_infoContent;
-
-  /// No description provided for @gasCalculators_mnd_infoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'About MND/END'**
-  String get gasCalculators_mnd_infoTitle;
 
   /// No description provided for @gasCalculators_mnd_unlimited.
   ///
@@ -29409,18 +29373,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get gasCalculators_icd_applyButton;
-
-  /// No description provided for @gasCalculators_icd_infoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'About Isobaric Counterdiffusion'**
-  String get gasCalculators_icd_infoTitle;
-
-  /// No description provided for @gasCalculators_icd_infoContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Isobaric counterdiffusion (ICD) is the risk that switching from a more helium-rich to a more nitrogen-rich gas increases total inert gas tension in tissue, because helium diffuses faster than nitrogen. The rule of fifths is a common rule of thumb: the nitrogen fraction should not rise by more than a fifth of how much the helium fraction falls.\n\nAgencies disagree on how much this matters in practice for a well-planned dive with standard gases. This calculator applies the rule of thumb to whichever two gases you enter; it is not a substitute for training or professional advice.'**
-  String get gasCalculators_icd_infoContent;
 
   /// No description provided for @gasCalculators_ppO2Limit.
   ///
@@ -29655,18 +29607,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The cylinder is holding pressure but no oxygen and no helium, which would be pure nitrogen. Check the mix already in the cylinder.'**
   String get gasCalculators_blender_error_implausibleStartMix;
-
-  /// No description provided for @gasCalculators_blender_about.
-  ///
-  /// In en, this message translates to:
-  /// **'About blending'**
-  String get gasCalculators_blender_about;
-
-  /// No description provided for @gasCalculators_blender_aboutBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Partial-pressure blend for the target mix. Add each fill gas in order, up to the pressure shown, then let the cylinder settle. Fill gases and their order are configurable, so setting the last gas to 32/0 tops off with EAN32 instead of air. Always analyse the finished mix before diving it.'**
-  String get gasCalculators_blender_aboutBody;
 
   /// No description provided for @gasCalculators_blender_conditions.
   ///
@@ -30382,12 +30322,6 @@ abstract class AppLocalizations {
   /// **'Equivalent air density depth (EADD)'**
   String get gasCalculators_density_eaddLabel;
 
-  /// No description provided for @gasCalculators_density_eaddInfo.
-  ///
-  /// In en, this message translates to:
-  /// **'EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.'**
-  String get gasCalculators_density_eaddInfo;
-
   /// No description provided for @gasCalculators_density_loopGasTitle.
   ///
   /// In en, this message translates to:
@@ -30415,18 +30349,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The diluent alone gives ppO2 {ppO2} here, above the setpoint. The density uses the diluent\'s ppO2.'**
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2);
-
-  /// No description provided for @gasCalculators_density_infoTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'About Gas Density'**
-  String get gasCalculators_density_infoTitle;
-
-  /// No description provided for @gasCalculators_density_infoContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below {warn} g/L; {critical} g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent\'s ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.'**
-  String gasCalculators_density_infoContent(Object warn, Object critical);
 
   /// No description provided for @gasCalculators_desc_blender.
   ///
@@ -35462,12 +35384,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Buoyancy through the dive, swing, ditchable weight'**
   String get diveDetailSection_buoyancy_description;
-
-  /// No description provided for @buoyancy_tooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Modeled net buoyancy through the dive from your profile, gas use, and gear.'**
-  String get buoyancy_tooltip;
 
   /// No description provided for @buoyancy_verdictBuoyant.
   ///
@@ -44784,18 +44700,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} photo or video} other{{count} photos and videos}}'**
   String dataHealth_facts_media(int count);
 
-  /// No description provided for @settings_decompression_aboutContent.
-  ///
-  /// In en, this message translates to:
-  /// **'Gradient Factors (GF) control how conservative your decompression calculations are. GF Low affects deep stops, while GF High affects shallow stops.  Lower values = more conservative = longer deco stops Higher values = less conservative = shorter deco stops'**
-  String get settings_decompression_aboutContent;
-
-  /// No description provided for @settings_decompression_aboutTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'About Gradient Factors'**
-  String get settings_decompression_aboutTitle;
-
   /// No description provided for @settings_decompression_currentSettings.
   ///
   /// In en, this message translates to:
@@ -46183,18 +46087,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Service Reminders'**
   String get settings_notifications_header_serviceReminders;
-
-  /// No description provided for @settings_notifications_howItWorks_content.
-  ///
-  /// In en, this message translates to:
-  /// **'Notifications are scheduled when the app launches and refresh periodically in the background. You can customize reminders for individual equipment items in their edit screen.'**
-  String get settings_notifications_howItWorks_content;
-
-  /// No description provided for @settings_notifications_howItWorks_title.
-  ///
-  /// In en, this message translates to:
-  /// **'How it works'**
-  String get settings_notifications_howItWorks_title;
 
   /// No description provided for @settings_notifications_permissionRequired.
   ///
@@ -51743,18 +51635,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{label}: {value}'**
   String insights_valueCard_semanticLabel(Object label, Object value);
-
-  /// Educational text explaining tissue compartments and nitrogen loading
-  ///
-  /// In en, this message translates to:
-  /// **'Your body has 16 tissue compartments that absorb and release nitrogen at different rates. Fast tissues (like blood) saturate quickly but also off-gas quickly. Slow tissues (like bone and fat) take longer to both load and unload.  The \"leading compartment\" is whichever tissue is most saturated and typically controls your no-decompression limit (NDL). During a surface interval, all tissues off-gas toward surface saturation levels (~40% loading).'**
-  String get surfaceInterval_aboutTissueLoading_body;
-
-  /// Title for the tissue loading info card
-  ///
-  /// In en, this message translates to:
-  /// **'About Tissue Loading'**
-  String get surfaceInterval_aboutTissueLoading_title;
 
   /// Tooltip for the reset button on the surface interval tool
   ///
@@ -58175,18 +58055,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Undo'**
   String get divePlanner_undo;
-
-  /// No description provided for @gasCalculators_rockBottom_aboutDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Rock bottom is the minimum gas reserve for an emergency ascent while sharing air with your buddy.\n\n• Uses a stressed RMV (2-3x normal)\n• Assumes both divers on one tank\n• Includes safety stop when enabled\n\nAlways turn the dive BEFORE reaching rock bottom!'**
-  String get gasCalculators_rockBottom_aboutDescription;
-
-  /// No description provided for @gasCalculators_rockBottom_aboutTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'About Rock Bottom'**
-  String get gasCalculators_rockBottom_aboutTitle;
 
   /// No description provided for @gasCalculators_rockBottom_ascentGasRequired.
   ///
@@ -64970,18 +64838,6 @@ abstract class AppLocalizations {
   /// **'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.'**
   String get safetyHub_cnsOtu_noProfile_body;
 
-  /// No description provided for @safetyHub_cnsOtu_about_title.
-  ///
-  /// In en, this message translates to:
-  /// **'About CNS and OTU'**
-  String get safetyHub_cnsOtu_about_title;
-
-  /// No description provided for @safetyHub_cnsOtu_about_body.
-  ///
-  /// In en, this message translates to:
-  /// **'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.'**
-  String get safetyHub_cnsOtu_about_body;
-
   /// No description provided for @safetyHub_tissueLoading_clear_title.
   ///
   /// In en, this message translates to:
@@ -65005,18 +64861,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The last dive has no data to calculate tissue loading from, for example a dive without a depth profile, in gauge mode or on a rebreather without a setpoint.'**
   String get safetyHub_tissueLoading_unavailable_body;
-
-  /// No description provided for @safetyHub_tissueLoading_about_title.
-  ///
-  /// In en, this message translates to:
-  /// **'About Tissue Loading'**
-  String get safetyHub_tissueLoading_about_title;
-
-  /// No description provided for @safetyHub_tissueLoading_about_body.
-  ///
-  /// In en, this message translates to:
-  /// **'Your body has 16 tissue compartments that take up and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nResidual load is only what sits above the normal surface level. Even fully desaturated, the bars do not drop to 0%: each compartment settles at the marker that matches the nitrogen in the air you breathe. That is why a fast compartment can read higher here than at the end of a dive with oxygen decompression, without the load having grown.\n\nAfter a dive with helium, a compartment releases helium while it takes up nitrogen at the same time, until both gases are in equilibrium with the air you breathe.'**
-  String get safetyHub_tissueLoading_about_body;
 
   /// No description provided for @safetyHub_noFly_category_single.
   ///

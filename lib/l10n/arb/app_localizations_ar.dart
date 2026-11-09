@@ -7712,13 +7712,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'ماذا تعني هذه القيم؟';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'الحمل: ضغط الغاز الخامل في الحجرة كنسبة مئوية من الحد الأقصى الذي يمكنها حمله على السطح (قيمة M الخاصة بها، الخط الأحمر عند 100%).\n\nمستوى السطح: تُظهر العلامة على كل عمود المستوى الذي تستقر عنده الحجرة بعد إزالة التشبع بالكامل أثناء تنفسك الهواء على السطح. لا تكون أبداً عند 0%، لأن جسمك يحتوي دائماً على نيتروجين الهواء الذي تتنفسه. العمود الواقف عند علامته لا يحمل أي حمل متبقٍ من الغوص.\n\nالامتصاص والإطلاق: يتحرك الغاز دائماً نحو ضغط الغاز الذي تتنفسه. بعد تخفيف الضغط بالأكسجين أو بخليط غني بالهيليوم، قد تحتوي الحجرات السريعة على نيتروجين أقل من هواء السطح. وعند العودة إلى تنفس الهواء، تمتص النيتروجين مجدداً حتى تصل إلى علامتها. هذا أمر طبيعي وليس حملاً متبقياً من الغوصة.\n\nالهيليوم: لا يحتوي الهواء على هيليوم. بعد غوصة بالترايمكس، تطلق الحجرة الهيليوم بينما قد تمتص النيتروجين في الوقت نفسه. تُظهر الأسهم بجانب N₂ وHe كل غاز على حدة، وتُظهر الإشارة بجانب رقم الحجرة الاتجاه الإجمالي للغازين.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'مخطط تشبّع الأنسجة. $count حجرة، الحمل نسبةً إلى قيمة M؛ الحجرة الرائدة $number عند $percent%.';
   }
@@ -18285,9 +18278,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'الحجم';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'حول MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'الوضع';
 
   @override
@@ -18486,10 +18476,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'ضمن حدود ppO₂ و END والكثافة لديك في الأعماق المفحوصة.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'الـ MOD هو العمق الذي يبلغ فيه الخليط حد ppO₂. يُقرَّب دائمًا للأسفل، ولا يُقرَّب للأعلى أبدًا.\n\nيستخدم Rec بارًا واحدًا لكل 10 م، مثل السجل. يأخذ OC Tec و CCR Tec الضغط المحيط من نوع الماء، مثل حاسبة كثافة الغاز، لذلك قد يظهر الخليط نفسه هناك بـ MOD أقل عمقًا بقليل.\n\nتعد EAD النيتروجين مخدرًا، و END النيتروجين والأكسجين. حد END لديك، واعتبار الأكسجين مخدرًا، وحدود ppO₂ الافتراضية تأتي من ملف الغواص الخاص بك.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18541,13 +18527,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'العمق المخدر الأقصى (MND) هو أعمق نقطة يمكنك الوصول إليها قبل أن يتجاوز التخدير حد END الخاص بك. العمق المخدر المكافئ (END) يخبرك بالتأثير المخدر لغازك عند عمق معين.\n\nعند تفعيل \'O2 مخدر\'، يساهم كل من الأكسجين والنيتروجين في التخدير (أكثر تحفظاً). عند التعطيل، يُعتبر النيتروجين فقط مخدراً.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'حول MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'غير محدود';
@@ -18614,14 +18593,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'تطبيق';
-
-  @override
-  String get gasCalculators_icd_infoTitle =>
-      'حول الانتشار المعاكس متساوي الضغط';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'الانتشار المعاكس متساوي الضغط (ICD) هو خطر أن يؤدي التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين إلى زيادة إجمالي ضغط الغازات الخاملة في النسيج، لأن الهليوم ينتشر أسرع من النيتروجين. قاعدة الخُمس هي قاعدة تقريبية شائعة: لا ينبغي أن ترتفع نسبة النيتروجين بأكثر من خُمس مقدار انخفاض نسبة الهليوم.\n\nتختلف الجهات حول مدى أهمية ذلك عمليًا في غطسة مخططة جيدًا بغازات قياسية. تطبق هذه الحاسبة القاعدة التقريبية على الغازين المدخلين؛ وهي لا تحل محل التدريب أو المشورة المتخصصة.';
 
   @override
   String get gasCalculators_ppO2Limit => 'حد ppO₂';
@@ -18762,13 +18733,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'الأسطوانة تحت ضغط لكنها لا تحتوي على أكسجين ولا هيليوم، أي نيتروجين نقي. تحقّق من الخليط الموجود في الأسطوانة.';
-
-  @override
-  String get gasCalculators_blender_about => 'حول الخلط';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'خلط بالضغط الجزئي للوصول إلى الخليط المستهدف. أضف كل غاز تعبئة بالترتيب حتى الضغط المعروض، ثم اترك الأسطوانة تستقر. غازات التعبئة وترتيبها قابلة للتعديل، فضبط الغاز الأخير على 32/0 يجعل الاستكمال بـ EAN32 بدلاً من الهواء. حلّل الخليط النهائي دائمًا قبل الغوص به.';
 
   @override
   String get gasCalculators_blender_conditions => 'ظروف الخلط';
@@ -19193,10 +19157,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'العمق المكافئ لكثافة الهواء (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'EADD هو العمق الذي يكون فيه الهواء بكثافة هذا الغاز. وعلى خلاف الكثافة بوحدة g/L، لا يعتمد على درجة الحرارة.';
-
-  @override
   String get gasCalculators_density_loopGasTitle => 'غاز الدائرة على العمق';
 
   @override
@@ -19215,14 +19175,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'غاز المخفف وحده يعطي هنا ppO2 قدره $ppO2، وهو أعلى من نقطة الضبط. تُحسب الكثافة بـ ppO2 غاز المخفف.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'حول كثافة الغاز';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'الغاز الكثيف أصعب في التنفس ويزيد خطر احتباس CO2. حافظ على الكثافة عند $warn g/L أو أقل؛ و$critical g/L هو الحد الأقصى المطلق.\n\nفي وضع CCR تُحتسب كثافة غاز الدائرة: الأكسجين عند نقطة الضبط، والباقي موزع بين النيتروجين والهيليوم بنسبة غاز المخفف.\n\nالغاز الأبرد أكثف، لذا فإن خيار درجة الحرارة الأبرد هو الخيار المتحفظ. يفترض الحساب غازًا مثاليًا.';
   }
 
   @override
@@ -22694,10 +22646,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'الطفو خلال الغطسة، التغيّر، والوزن القابل للإسقاط';
-
-  @override
-  String get buoyancy_tooltip =>
-      'الطفو الصافي المُنمذَج خلال الغطسة من المخطط واستهلاك الغاز والمعدات.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -28346,13 +28294,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'تتحكم عوامل التدرج (GF) في مدى تحفظ حسابات تخفيف الضغط. يؤثر GF المنخفض على محطات التوقف العميقة، بينما يؤثر GF المرتفع على محطات التوقف الضحلة.\n\nقيم أقل = أكثر تحفظًا = محطات تخفيف ضغط أطول\nقيم أعلى = أقل تحفظًا = محطات تخفيف ضغط أقصر';
-
-  @override
-  String get settings_decompression_aboutTitle => 'حول عوامل التدرج';
-
-  @override
   String get settings_decompression_currentSettings => 'الإعدادات الحالية';
 
   @override
@@ -29177,13 +29118,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'تذكيرات الصيانة';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'تتم جدولة الإشعارات عند تشغيل التطبيق وتُحدّث دوريًا في الخلفية. يمكنك تخصيص التذكيرات لكل عنصر من المعدات في شاشة التعديل الخاصة به.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'كيف يعمل';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32762,13 +32696,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'جسمك يحتوي على 16 حجرة نسيجية تمتص وتطلق النيتروجين بمعدلات مختلفة. الأنسجة السريعة (مثل الدم) تتشبع بسرعة ولكنها أيضاً تطلق الغاز بسرعة. الأنسجة البطيئة (مثل العظام والدهون) تستغرق وقتاً أطول للتحميل والتفريغ. \"الحجرة الرائدة\" هي أي نسيج أكثر تشبعاً وعادة ما تتحكم في حد عدم تخفيف الضغط (NDL). خلال فترة السطح، تطلق جميع الأنسجة الغاز نحو مستويات التشبع السطحي (~40% تحميل).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title => 'حول تحميل الأنسجة';
 
   @override
   String get surfaceInterval_action_resetDefaults =>
@@ -37459,13 +37386,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get divePlanner_undo => 'تراجع';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'الحد الأدنى للغاز هو أقل احتياطي غاز للصعود الطارئ أثناء مشاركة الهواء مع رفيقك.\n\n- يستخدم معدلات RMV تحت الضغط (2-3 أضعاف المعدل الطبيعي)\n- يفترض أن كلا الغواصين على أسطوانة واحدة\n- يشمل وقفة الأمان عند تفعيلها\n\nقم بإنهاء الغطسة دائمًا قبل الوصول إلى الحد الأدنى!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'حول الحد الأدنى للغاز';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'الغاز المطلوب للصعود';
 
@@ -41689,13 +41609,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن حساب CNS% و OTU لها بدون بيانات العمق. المجاميع أدناه لا تشملها.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'حول CNS وOTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'تنخفض نسبة CNS% (ساعة الأكسجين) بعد الغطسة بعمر نصف 90 دقيقة — تعود عمليًا إلى 0 بعد نحو يوم واحد.\n\nيُعاد ضبط OTU اليومي كل ليلة عند منتصف الليل. أما OTU الأسبوعي فهو مجموع متجدد لآخر 7 أيام: تسقط الغطسات الأقدم تلقائيًا من الحساب بمجرد خروجها من هذا النطاق.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'لا يوجد حمل متبقٍ في الأنسجة';
 
@@ -41710,13 +41623,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'لا تتوفر للغوصة الأخيرة بيانات لحساب تشبّع الأنسجة، مثل غوصة بلا ملف عمق، أو في وضع مقياس العمق، أو بجهاز إعادة التنفس دون نقطة ضبط.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'حول تشبّع الأنسجة';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'يحتوي جسمك على 16 حجرة نسيجية تمتص النيتروجين وتطلقه (والهيليوم أيضاً في غوصات الترايمكس أو أجهزة إعادة التنفس) بسرعات مختلفة. تتشبع الأنسجة السريعة وتتخلص من التشبع بسرعة، بينما تحتاج الأنسجة البطيئة وقتاً أطول بكثير في الحالتين.\n\nالحمل المتبقي هو فقط ما يزيد على المستوى الطبيعي على السطح. حتى بعد إزالة التشبع بالكامل، لا تنخفض الأعمدة إلى 0%: تستقر كل حجرة عند العلامة المطابقة لنيتروجين الهواء الذي تتنفسه. لهذا قد تُظهر حجرة سريعة هنا قيمة أعلى مما كانت عليه في نهاية غوصة مع تخفيف ضغط بالأكسجين، دون أن يكون الحمل قد ازداد.\n\nبعد غوصة بالهيليوم، تطلق الحجرة الهيليوم بينما تمتص النيتروجين في الوقت نفسه، حتى يصل الغازان إلى التوازن مع الهواء الذي تتنفسه.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

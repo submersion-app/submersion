@@ -104,20 +104,13 @@ void main() {
   /// them; these are the ones #2244 turned up.
   ///
   /// Each accented phrase is listed in full rather than checking that the
-  /// value contains an `è` somewhere. `gasCalculators_mnd_infoContent` holds
-  /// four separate copulas, and a containment check stays green while three
-  /// of them regress to a bare `e`.
+  /// value contains an `è` somewhere: a value with several copulas would stay
+  /// green on a containment check while all but one regress to a bare `e`.
   const copulaPhrases = <String, List<String>>{
     'certifications_detail_status_expired': ['certificazione è scaduta'],
     'diveLog_equipmentPicker_allSpare': ['rimanente è segnata'],
     'equipment_list_emptyState_serviceDueUpToDate': [
       'attrezzatura è in regola',
-    ],
-    'gasCalculators_mnd_infoContent': [
-      '(MND) è la',
-      'O2 è narcotico',
-      'narcotico" è attivato',
-      "l'azoto è considerato",
     ],
     'gasCalculators_mnd_o2Narcotic': ['O2 è narcotico'],
     'media_diveScan_accessDenied': ['foto è necessario'],

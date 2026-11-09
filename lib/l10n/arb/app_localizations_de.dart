@@ -7604,13 +7604,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'Was bedeuten diese Werte?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Belastung: der Inertgasdruck eines Kompartiments in Prozent des Höchstwerts, den es an der Oberfläche halten darf (sein M-Wert, die rote Linie bei 100 %).\n\nOberflächenniveau: Die Markierung auf jedem Balken zeigt, wo sich ein vollständig entsättigtes Kompartiment einpendelt, während du an der Oberfläche Luft atmest. Sie liegt nie bei 0 %, weil dein Körper immer den Stickstoff der Atemluft enthält. Ein Balken auf seiner Markierung trägt keine Restbelastung vom Tauchen mehr.\n\nAufsättigung und Entsättigung: Gas bewegt sich immer in Richtung des Drucks des Gases, das du atmest. Nach einer Deko mit Sauerstoff oder einem heliumreichen Gemisch können die schnellen Kompartimente weniger Stickstoff enthalten als die Luft an der Oberfläche. Atmest du wieder Luft, nehmen sie Stickstoff auf, bis sie ihre Markierung erreichen. Das ist normal und keine Restbelastung vom Tauchgang.\n\nHelium: Luft enthält kein Helium. Nach einem Trimix-Tauchgang gibt ein Kompartiment Helium ab und kann gleichzeitig Stickstoff aufnehmen. Die Pfeile neben N₂ und He zeigen jedes Gas einzeln, die Anzeige neben der Kompartimentnummer zeigt die Gesamtrichtung beider Gase.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Diagramm der Gewebesättigung. $count Kompartimente, Belastung im Verhältnis zum M-Wert; führendes Kompartiment $number bei $percent %.';
   }
@@ -18013,9 +18006,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volumen';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'Über MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Modus';
 
   @override
@@ -18216,10 +18206,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Auf den geprüften Tiefen innerhalb deiner ppO₂-, END- und Dichtegrenzen.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'Die MOD ist die Tiefe, in der das Gemisch die ppO₂-Grenze erreicht. Sie wird immer abgerundet, nie aufgerundet.\n\nRec rechnet mit 1 bar pro 10 m wie das Logbuch. OC Tec und CCR Tec nehmen den Umgebungsdruck aus dem Wassertyp wie der Gasdichte-Rechner, deshalb kann dasselbe Gemisch dort eine etwas flachere MOD zeigen.\n\nDie EAD zählt Stickstoff als narkotisch, die END Stickstoff und Sauerstoff. Deine END-Grenze, ob Sauerstoff als narkotisch gilt und die Standard-ppO₂-Grenzen stammen aus deinem Taucherprofil.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18271,13 +18257,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'Die maximale narkotische Tiefe (MND) ist die tiefste Stelle, die Sie erreichen können, bevor die Narkose Ihre END-Grenze überschreitet. Die äquivalente narkotische Tiefe (END) gibt die narkotische Wirkung Ihres Gases in einer bestimmten Tiefe an.\n\nWenn \'O2 ist narkotisch\' aktiviert ist, tragen sowohl Sauerstoff als auch Stickstoff zur Narkose bei (konservativer). Wenn deaktiviert, wird nur Stickstoff als narkotisch betrachtet.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'Über MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'unbegrenzt';
@@ -18344,13 +18323,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Übernehmen';
-
-  @override
-  String get gasCalculators_icd_infoTitle => 'Über isobare Gegendiffusion';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'Isobare Gegendiffusion (ICD) ist das Risiko, dass der Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas die Gesamt-Gasspannung im Gewebe erhöht, da Helium schneller diffundiert als Stickstoff. Die Fünftel-Regel ist eine gängige Faustregel: Der Stickstoffanteil sollte um höchstens ein Fünftel der Abnahme des Heliumanteils steigen.\n\nOb dies in der Praxis bei einem gut geplanten Tauchgang mit Standardgasen wirklich relevant ist, darüber sind sich die Verbände uneinig. Dieser Rechner wendet die Faustregel auf die beiden eingegebenen Gase an; er ersetzt keine Ausbildung oder fachkundige Beratung.';
 
   @override
   String get gasCalculators_ppO2Limit => 'ppO₂-Limit';
@@ -18491,13 +18463,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'Die Flasche steht unter Druck, enthält aber weder Sauerstoff noch Helium, also reinen Stickstoff. Prüfe die Mischung, die bereits in der Flasche ist.';
-
-  @override
-  String get gasCalculators_blender_about => 'Über das Mischen';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Partialdruck-Mischung für die Zielmischung. Gib jedes Füllgas der Reihe nach bis zum angezeigten Druck zu und lass die Flasche danach ruhen. Füllgase und ihre Reihenfolge sind einstellbar: Setzt du das letzte Gas auf 32/0, wird statt mit Luft mit EAN32 aufgefüllt. Analysiere die fertige Mischung immer, bevor du sie tauchst.';
 
   @override
   String get gasCalculators_blender_conditions => 'Mischbedingungen';
@@ -18931,10 +18896,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Äquivalente Luftdichte-Tiefe (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'Die EADD ist die Tiefe, in der Luft so dicht wäre wie dieses Gas. Anders als die Dichte in g/L hängt sie nicht von der Temperatur ab.';
-
-  @override
   String get gasCalculators_density_loopGasTitle => 'Loop-Gas auf Tiefe';
 
   @override
@@ -18953,14 +18914,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'Das Diluentgas allein ergibt hier ppO2 $ppO2, mehr als der Setpoint. Die Dichte rechnet mit dem ppO2 des Diluentgases.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'Über die Gasdichte';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Dichtes Gas ist schwerer zu atmen und erhöht das Risiko einer CO2-Retention. Halte die Dichte bei höchstens $warn g/L; $critical g/L ist die harte Obergrenze.\n\nBei CCR zählt die Dichte des Loop-Gases: Sauerstoff mit dem Setpoint, der Rest aufgeteilt auf Stickstoff und Helium im Verhältnis des Diluentgases.\n\nKälteres Gas ist dichter, deshalb ist die kältere Temperatur die konservative Wahl. Die Berechnung nimmt ein ideales Gas an.';
   }
 
   @override
@@ -22333,10 +22286,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'Auftrieb im Tauchgangverlauf, Schwankung, abwerfbares Blei';
-
-  @override
-  String get buoyancy_tooltip =>
-      'Modellierter Nettoauftrieb im Tauchgangverlauf aus Profil, Gasverbrauch und Ausrüstung.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -28012,13 +27961,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Gradientenfaktoren (GF) steuern, wie konservativ Ihre Dekompressionsberechnungen sind. GF Low beeinflusst tiefe Stopps, während GF High flache Stopps beeinflusst.\n\nNiedrigere Werte = konservativer = längere Dekostopps\nHöhere Werte = weniger konservativ = kürzere Dekostopps';
-
-  @override
-  String get settings_decompression_aboutTitle => 'Über Gradientenfaktoren';
-
-  @override
   String get settings_decompression_currentSettings => 'Aktuelle Einstellungen';
 
   @override
@@ -28851,13 +28793,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Serviceerinnerungen';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Benachrichtigungen werden beim Start der App geplant und regelmäßig im Hintergrund aktualisiert. Sie können Erinnerungen für einzelne Ausrüstungsgegenstände im jeweiligen Bearbeitungsbildschirm anpassen.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'So funktioniert es';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32407,13 +32342,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Ihr Körper hat 16 Gewebekompartimente, die Stickstoff mit unterschiedlichen Geschwindigkeiten aufnehmen und abgeben. Schnelle Gewebe (wie Blut) sättigen schnell, geben aber auch schnell ab. Langsame Gewebe (wie Knochen und Fett) brauchen länger zum Aufsättigen und Entsättigen. Das \"führende Kompartiment\" ist das am stärksten gesättigte Gewebe und steuert normalerweise Ihre Nullzeit. Während eines Oberflächenintervalls entsättigen alle Gewebe in Richtung Oberflächensättigungsniveaus (~40% Sättigung).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title => 'Über Gewebesättigung';
 
   @override
   String get surfaceInterval_action_resetDefaults =>
@@ -36911,13 +36839,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get divePlanner_undo => 'Rückgängig';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock Bottom ist die Mindestgasreserve für einen Notaufstieg bei Luftteilung mit dem Tauchpartner.\n\n- Verwendet erhöhte AMV-Werte (2-3x normal)\n- Geht davon aus, dass beide Taucher eine Flasche nutzen\n- Beinhaltet Sicherheitsstopp wenn aktiviert\n\nDrehen Sie den Tauchgang immer BEVOR Sie Rock Bottom erreichen!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'Über Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Benötigtes Gas für Aufstieg';
 
@@ -41095,13 +41016,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ohne Tiefenprofil lassen sich CNS% und OTU dafür nicht berechnen. Die Summen unten enthalten ihn nicht.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'Über CNS und OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'Der CNS-Wert (Sauerstoff-Uhr) sinkt nach dem Tauchgang mit einer Halbwertszeit von 90 Minuten – nach rund einem Tag ist er praktisch auf 0 zurückgegangen.\n\nDie Tages-OTU wird jede Nacht um Mitternacht zurückgesetzt. Die Wochen-OTU ist eine rollierende Summe der letzten 7 Tage: ältere Tauchgänge fallen automatisch wieder aus der Berechnung heraus, sobald sie ausserhalb dieses Fensters liegen.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Keine Restbelastung der Gewebe';
 
@@ -41116,13 +41030,6 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'Für den letzten Tauchgang fehlen die Daten, um die Gewebesättigung zu berechnen, zum Beispiel bei einem Tauchgang ohne Tiefenprofil, im Gauge-Modus oder mit Rebreather ohne Setpoint.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'Über die Gewebesättigung';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'Dein Körper hat 16 Gewebekompartimente, die Stickstoff (und bei Trimix- oder Rebreather-Tauchgängen auch Helium) unterschiedlich schnell aufnehmen und abgeben. Schnelle Gewebe sättigen und entsättigen rasch, langsame brauchen dafür deutlich länger.\n\nRestbelastung ist nur der Anteil über dem Normalwert an der Oberfläche. Auch vollständig entsättigt fallen die Balken nicht auf 0 %: Jedes Kompartiment pendelt sich auf der Markierung ein, die dem Stickstoff der Atemluft entspricht. Darum kann ein schnelles Kompartiment nach einer Deko mit Sauerstoff hier höher stehen als am Ende des Tauchgangs, ohne dass die Belastung gestiegen ist.\n\nNach einem Tauchgang mit Helium gibt ein Kompartiment Helium ab und nimmt gleichzeitig Stickstoff auf, bis beide Gase im Gleichgewicht mit der Atemluft sind.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {

@@ -7600,13 +7600,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'O que significam estes valores?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Carga: a pressão de gás inerte de um compartimento como percentagem do máximo que pode conter à superfície (o seu valor M, a linha vermelha a 100%).\n\nNível de superfície: a marca em cada barra mostra onde um compartimento totalmente dessaturado se estabiliza enquanto respira ar à superfície. Nunca fica em 0%, porque o seu corpo contém sempre o azoto do ar que respira. Uma barra na sua marca já não tem carga residual do mergulho.\n\nAbsorção e liberação: o gás move-se sempre em direção à pressão do gás que respira. Após uma descompressão com oxigénio ou com uma mistura rica em hélio, os compartimentos rápidos podem conter menos azoto do que o ar à superfície. De volta ao ar, absorvem azoto novamente até atingirem a sua marca. Isto é normal e não é uma carga residual do mergulho.\n\nHélio: o ar não contém hélio. Após um mergulho com trimix, um compartimento liberta hélio enquanto pode absorver azoto ao mesmo tempo. As setas junto a N₂ e He mostram cada gás separadamente; a indicação junto ao número do compartimento mostra a direção global de ambos.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Gráfico de carga tecidual. $count compartimentos, carga em relação ao valor M; compartimento líder $number a $percent%.';
   }
@@ -18032,9 +18025,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volume';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'Sobre MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Modo';
 
   @override
@@ -18235,10 +18225,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Dentro dos teus limites de ppO₂, END e densidade nas profundidades verificadas.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'A MOD é a profundidade a que a mistura atinge o limite de ppO₂. É sempre arredondada para baixo, nunca para cima.\n\nRec usa 1 bar a cada 10 m, como o registo. OC Tec e CCR Tec obtêm a pressão ambiente do tipo de água, como a calculadora de densidade, por isso a mesma mistura pode mostrar lá uma MOD um pouco menos funda.\n\nA EAD conta o azoto como narcótico, a END o azoto e o oxigénio. O teu limite END, se o oxigénio conta como narcótico e os limites de ppO₂ predefinidos vêm do teu perfil de mergulhador.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18290,13 +18276,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'A Profundidade Narcótica Máxima (MND) é a profundidade máxima que você pode atingir antes que a narcose exceda seu limite de END. A Profundidade Narcótica Equivalente (END) indica o efeito narcótico do seu gás em uma determinada profundidade.\n\nQuando \'O2 é narcótico\' está ativado, tanto o oxigenio quanto o nitrogenio contribuem para a narcose (mais conservador). Quando desativado, apenas o nitrogenio é considerado narcótico.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'Sobre MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'ilimitado';
@@ -18363,13 +18342,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Aplicar';
-
-  @override
-  String get gasCalculators_icd_infoTitle => 'Sobre a contradifusão isobárica';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'A contradifusão isobárica (ICD) é o risco de que a troca de um gás mais rico em hélio para um mais rico em nitrogênio aumente a tensão total de gases inertes no tecido, pois o hélio se difunde mais rápido que o nitrogênio. A regra do quinto é uma regra prática comum: a fração de nitrogênio não deve aumentar mais do que um quinto da redução da fração de hélio.\n\nAs agências não concordam sobre a importância real disso em uma imersão bem planejada com gases padrão. Esta calculadora aplica a regra aos dois gases informados; não substitui treinamento nem orientação profissional.';
 
   @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
@@ -18510,13 +18482,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'O cilindro tem pressão mas nem oxigénio nem hélio, o que seria azoto puro. Verifica a mistura que já está no cilindro.';
-
-  @override
-  String get gasCalculators_blender_about => 'Sobre a mistura';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Mistura por pressões parciais para a mistura alvo. Adiciona cada gás de enchimento pela ordem, até à pressão indicada, e deixa o cilindro estabilizar. Os gases de enchimento e a sua ordem são configuráveis: se definires o último gás como 32/0, o remate é feito com EAN32 em vez de ar. Analisa sempre a mistura final antes de a mergulhares.';
 
   @override
   String get gasCalculators_blender_conditions => 'Condições de mistura';
@@ -18948,10 +18913,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Profundidade equivalente de densidade do ar (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'A EADD é a profundidade em que o ar seria tão denso quanto este gás. Ao contrário da densidade em g/L, ela não depende da temperatura.';
-
-  @override
   String get gasCalculators_density_loopGasTitle =>
       'Gás do circuito em profundidade';
 
@@ -18971,14 +18932,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'O diluente sozinho dá aqui uma ppO2 de $ppO2, acima do setpoint. A densidade usa a ppO2 do diluente.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'Sobre a densidade do gás';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Gás denso é mais difícil de respirar e aumenta o risco de retenção de CO2. Mantenha a densidade em $warn g/L ou menos; $critical g/L é o limite máximo.\n\nEm CCR conta a densidade do gás do circuito: oxigênio no setpoint e o restante dividido entre nitrogênio e hélio na proporção do diluente.\n\nGás mais frio é mais denso, por isso a opção de temperatura mais fria é a conservadora. O cálculo assume um gás ideal.';
   }
 
   @override
@@ -22357,10 +22310,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'Flutuabilidade durante o mergulho, variação, lastro descartável';
-
-  @override
-  String get buoyancy_tooltip =>
-      'Flutuabilidade líquida modelada durante o mergulho a partir do perfil, consumo de gás e equipamento.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -28053,13 +28002,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Fatores de Gradiente (GF) controlam o quão conservadores são seus cálculos de descompressão. GF Low afeta paradas profundas, enquanto GF High afeta paradas rasas.\n\nValores mais baixos = mais conservador = paradas deco mais longas\nValores mais altos = menos conservador = paradas deco mais curtas';
-
-  @override
-  String get settings_decompression_aboutTitle => 'Sobre Fatores de Gradiente';
-
-  @override
   String get settings_decompression_currentSettings => 'Configurações Atuais';
 
   @override
@@ -28891,13 +28833,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Lembretes de Manutenção';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'As notificações são agendadas quando o aplicativo e iniciado e atualizadas periodicamente em segundo plano. Você pode personalizar lembretes para itens de equipamento individuais na tela de edição.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'Como funciona';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32458,14 +32393,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Seu corpo possui 16 compartimentos de tecido que absorvem e liberam nitrogênio em taxas diferentes. Tecidos rápidos (como sangue) saturam rapidamente, mas também liberam gás rapidamente. Tecidos lentos (como osso e gordura) levam mais tempo para carregar e descarregar. O \"compartimento líder\" é aquele tecido que está mais saturado e normalmente controla seu limite de não descompressão (NDL). Durante um intervalo de superfície, todos os tecidos liberam gás em direção aos níveis de saturação de superfície (~40% de carregamento).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title =>
-      'Sobre Carregamento de Tecidos';
 
   @override
   String get surfaceInterval_action_resetDefaults => 'Restaurar padrões';
@@ -36959,13 +36886,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get divePlanner_undo => 'Desfazer';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock bottom é a reserva mínima de gás para uma subida de emergência partilhando ar com o seu companheiro.\n\n- Utiliza taxas RMV sob stress (2-3x o normal)\n- Assume ambos os mergulhadores num único cilindro\n- Inclui parada de segurança quando ativada\n\nVire sempre o mergulho ANTES de atingir o rock bottom!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'Sobre Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Gás necessário para subida';
 
@@ -41152,13 +41072,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem perfil de profundidade, não é possível calcular o CNS% e as OTU dele. Os totais abaixo não o incluem.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'Sobre CNS e OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'O seu CNS% (relógio de oxigênio) decai após o mergulho com uma meia-vida de 90 minutos -- praticamente volta a 0 depois de cerca de um dia.\n\nA OTU diária é reiniciada todas as noites à meia-noite. A OTU semanal é um total móvel dos últimos 7 dias: mergulhos mais antigos saem automaticamente do cálculo assim que ficam fora dessa janela.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Sem carga tecidual residual';
 
@@ -41173,13 +41086,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'O último mergulho não tem dados para calcular a carga tecidual, por exemplo um mergulho sem perfil de profundidade, em modo profundímetro ou com rebreather sem setpoint.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'Sobre a carga tissular';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'O seu corpo tem 16 compartimentos teciduais que absorvem e libertam azoto (e, em mergulhos com trimix ou rebreather, também hélio) a velocidades diferentes. Os tecidos rápidos saturam e dessaturam depressa; os lentos demoram muito mais em ambos os casos.\n\nA carga residual é apenas o que fica acima do nível normal à superfície. Mesmo totalmente dessaturadas, as barras não descem a 0%: cada compartimento estabiliza-se na marca que corresponde ao azoto do ar que respira. Por isso um compartimento rápido pode mostrar aqui um valor mais alto do que no fim de um mergulho com descompressão a oxigénio, sem que a carga tenha aumentado.\n\nApós um mergulho com hélio, um compartimento liberta hélio enquanto absorve azoto ao mesmo tempo, até que ambos os gases estejam em equilíbrio com o ar que respira.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
