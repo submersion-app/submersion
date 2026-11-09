@@ -32184,6 +32184,12 @@ abstract class AppLocalizations {
   /// **'Video file not found'**
   String get media_photoViewer_videoFileNotFound;
 
+  /// Media viewer, in a browser with no service workers (a private window): a Google Drive or WebDAV video cannot stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.'**
+  String get media_photoViewer_videoNeedsNormalWindow;
+
   /// No description provided for @media_photoViewer_videoNotLinked.
   ///
   /// In en, this message translates to:

@@ -5790,6 +5790,7 @@
   "media_photoViewer_shareTooltip": "Compartir foto",
   "media_photoViewer_toggleOverlayLabel": "Alternar superposición de foto",
   "media_photoViewer_videoFileNotFound": "Archivo de video no encontrado",
+  "media_photoViewer_videoNeedsNormalWindow": "Para reproducir este video se necesita una ventana normal del navegador. Las ventanas privadas no pueden transmitir desde Google Drive ni WebDAV.",
   "media_photoViewer_videoNotLinked": "Video no vinculado a la biblioteca",
   "media_photoViewer_writeDiveDataTooltip": "Escribir datos de inmersión en la foto",
   "media_quickSiteDialog_cancelButton": "Cancelar",

@@ -20329,6 +20329,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Fichier vidéo introuvable';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'La lecture de cette vidéo nécessite une fenêtre de navigateur normale. Les fenêtres privées ne peuvent pas diffuser depuis Google Drive ou WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Vidéo non liée à la bibliothèque';
 

@@ -5916,6 +5916,7 @@
   "media_photoViewer_shareTooltip": "Foto teilen",
   "media_photoViewer_toggleOverlayLabel": "Foto-Overlay umschalten",
   "media_photoViewer_videoFileNotFound": "Videodatei nicht gefunden",
+  "media_photoViewer_videoNeedsNormalWindow": "Für dieses Video ist ein normales Browserfenster nötig. Private Fenster können nicht von Google Drive oder WebDAV streamen.",
   "media_photoViewer_videoNotLinked": "Video nicht mit Bibliothek verknüpft",
   "media_photoViewer_writeDiveDataTooltip": "Tauchdaten in Foto schreiben",
   "media_quickSiteDialog_cancelButton": "Abbrechen",

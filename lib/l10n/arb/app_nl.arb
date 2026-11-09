@@ -5790,6 +5790,7 @@
   "media_photoViewer_shareTooltip": "Foto delen",
   "media_photoViewer_toggleOverlayLabel": "Foto-overlay aan/uit",
   "media_photoViewer_videoFileNotFound": "Videobestand niet gevonden",
+  "media_photoViewer_videoNeedsNormalWindow": "Voor het afspelen van deze video is een normaal browservenster nodig. Privévensters kunnen niet streamen vanuit Google Drive of WebDAV.",
   "media_photoViewer_videoNotLinked": "Video niet gekoppeld aan bibliotheek",
   "media_photoViewer_writeDiveDataTooltip": "Duikgegevens naar foto schrijven",
   "media_quickSiteDialog_cancelButton": "Annuleren",

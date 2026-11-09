@@ -20249,6 +20249,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Videodatei nicht gefunden';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Für dieses Video ist ein normales Browserfenster nötig. Private Fenster können nicht von Google Drive oder WebDAV streamen.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video nicht mit Bibliothek verknüpft';
 

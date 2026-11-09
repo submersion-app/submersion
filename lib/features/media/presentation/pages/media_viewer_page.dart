@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,6 +57,9 @@ import 'package:submersion/features/media/presentation/widgets/color_adjust/colo
 import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_correction_label.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
+import 'package:submersion/features/media/presentation/widgets/video_playback_opener.dart';
+import 'package:submersion/features/media/presentation/providers/video_playback_providers.dart';
+import 'package:submersion/features/media/data/streaming/video_playback_plan.dart';
 import 'package:submersion/features/media_store/presentation/widgets/media_reupload_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -1334,8 +1336,16 @@ class _VideoItem extends ConsumerStatefulWidget {
 class _VideoItemState extends ConsumerState<_VideoItem> {
   VideoPlayerController? _controller;
 
-  /// The file [_controller] plays, for the colour track's frames.
+  /// The file [_controller] plays, for the colour track's frames; null
+  /// for a video streamed from the media store in a browser.
   String? _playbackPath;
+
+  /// Opens [_controller] and, for a streamed video, reopens it once when
+  /// its link goes stale (issue #4162).
+  VideoPlaybackOpener? _opener;
+
+  /// Whether a stale-link reopen is in flight.
+  bool _recovering = false;
 
   /// Whether this page has taken keyboard focus since it became current.
   bool _focusTaken = false;
@@ -1381,7 +1391,10 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _isInitialized = false;
     _isLoading = true;
     _error = null;
+    _opener?.dispose();
+    _opener = null;
     if (controller == null) return;
+    controller.removeListener(_onControllerValue);
     widget.onControllerChanged(widget.item.id, null);
     _releaseController(controller, widget.item.id);
   }
@@ -1400,46 +1413,52 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   }
 
   Future<void> _initializeVideo() async {
-    // Held outside the try so a throw from initialize() can still dispose it:
-    // `_controller` is only assigned after a successful init, so dispose()
-    // cannot clean up a controller that never got that far, and each leak
-    // orphans a native decoder/texture for the process lifetime.
-    VideoPlayerController? pending;
     final generation = ++_loadGeneration;
     // Gone, or swiped away and released while this load was in flight.
     bool stale() => !mounted || generation != _loadGeneration;
+    final mediaId = widget.item.id;
     try {
-      final path = await ref.read(resolvedFilePathProvider(widget.item).future);
-
+      final playback = await ref.read(
+        videoPlaybackProvider(widget.item).future,
+      );
       if (stale()) return;
-      _playbackPath = path;
-      if (path == null) {
+      if (playback is NoPlayback) {
         setState(() {
-          _error = 'videoFileNotFound';
+          _error = playback.reason == NoPlaybackReason.needsNormalWindow
+              ? 'videoNeedsNormalWindow'
+              : 'videoFileNotFound';
           _isLoading = false;
         });
         return;
       }
-
-      final controller = VideoPlayerController.file(File(path));
-      pending = controller;
-      await controller.initialize();
+      _playbackPath = playback is FilePlayback ? playback.path : null;
+      // The opener releases every player that fails to start, so a throw
+      // below leaves no native decoder or texture behind.
+      final opener = VideoPlaybackOpener(
+        playback,
+        release: (controller) => _releaseController(controller, mediaId),
+      );
+      final controller = await opener.open();
 
       if (stale()) {
-        _releaseController(controller, widget.item.id);
+        _releaseController(controller, mediaId);
+        opener.dispose();
         return;
       }
 
+      _opener?.dispose();
+      _opener = opener;
       setState(() {
         _controller = controller;
         _isInitialized = true;
         _isLoading = false;
       });
       // Ownership has moved to _controller; dispose() owns it from here.
-      pending = null;
-      widget.onControllerChanged(widget.item.id, controller);
+      widget.onControllerChanged(mediaId, controller);
+      if (playback is StreamPlayback) {
+        controller.addListener(_onControllerValue);
+      }
     } catch (e, stackTrace) {
-      final mediaId = widget.item.id;
       _log.warning(
         'Video $mediaId failed to load',
         error: e,
@@ -1451,15 +1470,62 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
           _isLoading = false;
         });
       }
-      // Only after the error is on screen: see _releaseController.
-      if (pending != null) _releaseController(pending, mediaId);
     }
+  }
+
+  /// A streamed player that failed after it started (an expired link, a
+  /// relay that lost its page) is reopened once from a fresh link, where it
+  /// was and as it was; the opener refuses a second failure in a row.
+  void _onControllerValue() {
+    final controller = _controller;
+    if (controller == null || !controller.value.hasError || _recovering) {
+      return;
+    }
+    _recovering = true;
+    unawaited(_recover(controller));
+  }
+
+  Future<void> _recover(VideoPlayerController failed) async {
+    final generation = _loadGeneration;
+    final mediaId = widget.item.id;
+    failed.removeListener(_onControllerValue);
+    VideoPlayerController? next;
+    try {
+      next = await _opener?.reopenAfterError(failed);
+    } on Object catch (e, stackTrace) {
+      _log.warning(
+        'Video $mediaId could not be reopened',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    _recovering = false;
+    if (!mounted || generation != _loadGeneration) {
+      if (next != null) _releaseController(next, mediaId);
+      return;
+    }
+    widget.onControllerChanged(mediaId, null);
+    _releaseController(failed, mediaId);
+    final reopened = next;
+    if (reopened == null) {
+      setState(() {
+        _controller = null;
+        _isInitialized = false;
+        _error = 'failedToLoadVideo';
+      });
+      return;
+    }
+    setState(() => _controller = reopened);
+    reopened.addListener(_onControllerValue);
+    widget.onControllerChanged(mediaId, reopened);
   }
 
   @override
   void dispose() {
     final controller = _controller;
+    _opener?.dispose();
     if (controller != null) {
+      controller.removeListener(_onControllerValue);
       // Unregister before disposing so the page never holds a dead
       // controller; guarded by mounted on the page side.
       widget.onControllerChanged(widget.item.id, null);
@@ -1495,6 +1561,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
         return context.l10n.media_photoViewer_videoNotLinked;
       case 'videoFileNotFound':
         return context.l10n.media_photoViewer_videoFileNotFound;
+      case 'videoNeedsNormalWindow':
+        return context.l10n.media_photoViewer_videoNeedsNormalWindow;
       case 'failedToLoadVideo':
         return context.l10n.media_photoViewer_failedToLoadVideo;
       default:

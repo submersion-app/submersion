@@ -5689,6 +5689,7 @@
   "media_photoViewer_shareTooltip": "Fotó megosztása",
   "media_photoViewer_toggleOverlayLabel": "Fotó feliratok ki/be kapcsolása",
   "media_photoViewer_videoFileNotFound": "Videó fájl nem található",
+  "media_photoViewer_videoNeedsNormalWindow": "A videó lejátszásához normál böngészőablak szükséges. A privát ablakok nem tudnak streamelni a Google Drive-ról vagy WebDAV-ről.",
   "media_photoViewer_videoNotLinked": "A videó nincs a könyvtárhoz csatolva",
   "media_photoViewer_writeDiveDataTooltip": "Merülési adatok írása a fotóra",
   "media_quickSiteDialog_cancelButton": "Mégse",

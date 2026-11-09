@@ -20199,6 +20199,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Videó fájl nem található';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'A videó lejátszásához normál böngészőablak szükséges. A privát ablakok nem tudnak streamelni a Google Drive-ról vagy WebDAV-ről.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'A videó nincs a könyvtárhoz csatolva';
 

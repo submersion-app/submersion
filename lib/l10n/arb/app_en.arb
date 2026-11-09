@@ -12060,6 +12060,10 @@
   "media_photoViewer_shareTooltip": "Share photo",
   "media_photoViewer_toggleOverlayLabel": "Toggle photo overlay",
   "media_photoViewer_videoFileNotFound": "Video file not found",
+  "media_photoViewer_videoNeedsNormalWindow": "Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.",
+  "@media_photoViewer_videoNeedsNormalWindow": {
+    "description": "Media viewer, in a browser with no service workers (a private window): a Google Drive or WebDAV video cannot stream."
+  },
   "media_photoViewer_videoNotLinked": "Video not linked to library",
   "media_photoViewer_writeDiveDataTooltip": "Write dive data to photo",
   "media_quickSiteDialog_cancelButton": "Cancel",
