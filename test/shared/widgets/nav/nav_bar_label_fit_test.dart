@@ -1,0 +1,175 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/shared/widgets/nav/nav_bar_label_fit.dart';
+
+/// Lays [text] out at [fontSize] within [maxWidth] and counts its lines.
+int _lineCount(
+  String text, {
+  required double fontSize,
+  required double maxWidth,
+  TextScaler textScaler = TextScaler.noScaling,
+}) {
+  final painter = TextPainter(
+    text: TextSpan(
+      text: text,
+      style: TextStyle(fontSize: fontSize),
+    ),
+    textDirection: TextDirection.ltr,
+    textScaler: textScaler,
+  )..layout(maxWidth: maxWidth);
+  final lines = painter.computeLineMetrics().length;
+  painter.dispose();
+  return lines;
+}
+
+void main() {
+  // The test font draws every glyph one em wide, so a word of n letters at
+  // font size s is exactly n * s wide.
+  const base = TextStyle(fontSize: 12);
+
+  group('fitNavBarLabelScale', () {
+    test('keeps full size when every word fits its slot', () {
+      final scale = fitNavBarLabelScale(
+        labels: const ['Home', 'Dives', 'Sites'],
+        styles: const [base],
+        slotWidth: 75,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+      );
+
+      expect(scale, 1.0);
+    });
+
+    test('shrinks until the longest word fits on one line (#4336)', () {
+      const slotWidth = 100.0;
+      final scale = fitNavBarLabelScale(
+        labels: const ['Startseite', 'Tauchgänge', 'Tauchplätze', 'Mehr'],
+        styles: const [base],
+        slotWidth: slotWidth,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+        minFontSize: 6,
+      );
+
+      expect(scale, lessThan(1.0));
+      // Before the fix "Tauchplätze" split mid-word at full size.
+      expect(_lineCount('Tauchplätze', fontSize: 12, maxWidth: slotWidth), 2);
+      expect(
+        _lineCount('Tauchplätze', fontSize: 12 * scale, maxWidth: slotWidth),
+        1,
+      );
+    });
+
+    test('measures words, so a multi-word label may wrap between them', () {
+      final scale = fitNavBarLabelScale(
+        labels: const ['Dive Centers'],
+        styles: const [base],
+        slotWidth: 90,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+        minFontSize: 6,
+      );
+
+      // "Centers" (84 wide) fits 90 at full size; the whole label (144)
+      // would not, and is left to wrap at the space.
+      expect(scale, 1.0);
+    });
+
+    test('never shrinks below the minimum font size', () {
+      final scale = fitNavBarLabelScale(
+        labels: const ['Merülőcentrumok'],
+        styles: const [base],
+        slotWidth: 60,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+        minFontSize: 9,
+      );
+
+      expect(12 * scale, closeTo(9, 0.001));
+    });
+
+    test('never grows a style that is already below the minimum', () {
+      final scale = fitNavBarLabelScale(
+        labels: const ['Tauchplätze'],
+        styles: const [TextStyle(fontSize: 8)],
+        slotWidth: 40,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+        minFontSize: 9,
+      );
+
+      expect(scale, 1.0);
+    });
+
+    test('accounts for the text scaler the label is drawn with', () {
+      const slotWidth = 75.0;
+      const scaler = TextScaler.linear(1.3);
+      final plain = fitNavBarLabelScale(
+        labels: const ['Dives'],
+        styles: const [base],
+        slotWidth: slotWidth,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+        minFontSize: 4,
+      );
+      final scaled = fitNavBarLabelScale(
+        labels: const ['Dives'],
+        styles: const [base],
+        slotWidth: slotWidth,
+        textScaler: scaler,
+        textDirection: TextDirection.ltr,
+        minFontSize: 4,
+      );
+
+      expect(plain, 1.0);
+      expect(scaled, lessThan(1.0));
+      expect(
+        _lineCount(
+          'Dives',
+          fontSize: 12 * scaled,
+          maxWidth: slotWidth,
+          textScaler: scaler,
+        ),
+        1,
+      );
+    });
+
+    test('fits the widest of the styles it is given', () {
+      final scale = fitNavBarLabelScale(
+        labels: const ['Reisen'],
+        styles: const [TextStyle(fontSize: 10), TextStyle(fontSize: 12)],
+        slotWidth: 60,
+        textScaler: TextScaler.noScaling,
+        textDirection: TextDirection.ltr,
+        minFontSize: 4,
+      );
+
+      // At 12, "Reisen" is 72 wide; it needs 60 / 72 of that.
+      expect(scale, lessThan(60 / 72 + 0.001));
+      expect(_lineCount('Reisen', fontSize: 12 * scale, maxWidth: 60), 1);
+    });
+
+    test('ignores empty labels and a zero-width slot', () {
+      expect(
+        fitNavBarLabelScale(
+          labels: const ['', '  '],
+          styles: const [base],
+          slotWidth: 75,
+          textScaler: TextScaler.noScaling,
+          textDirection: TextDirection.ltr,
+        ),
+        1.0,
+      );
+      expect(
+        fitNavBarLabelScale(
+          labels: const ['Dives'],
+          styles: const [base],
+          slotWidth: 0,
+          textScaler: TextScaler.noScaling,
+          textDirection: TextDirection.ltr,
+        ),
+        1.0,
+      );
+    });
+  });
+}
