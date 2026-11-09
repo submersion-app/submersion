@@ -36,7 +36,9 @@ class UddfTankRefRouter {
   /// The cylinder index for [ref], whose first sample reads
   /// [firstPressureBar]; null when every id-less cylinder is already taken.
   int? indexFor(String ref, double firstPressureBar) {
-    final known = _indexByRef[ref];
+    // One ref however it is spelled: the slot is read the same way.
+    final name = ref.trim().toUpperCase();
+    final known = _indexByRef[name];
     if (known != null) return known;
 
     final paired = _pairedByPressure(firstPressureBar);
@@ -44,8 +46,8 @@ class UddfTankRefRouter {
     if (index == null) return null;
 
     _claimed.add(index);
-    _indexByRef[ref] = index;
-    final slot = _slotRef.firstMatch(ref.trim())?.group(1);
+    _indexByRef[name] = index;
+    final slot = _slotRef.firstMatch(name)?.group(1);
     if (paired != null && slot != null) {
       _slotByIndex[index] = int.parse(slot);
     }

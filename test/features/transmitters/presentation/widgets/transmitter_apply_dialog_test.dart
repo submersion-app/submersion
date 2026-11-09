@@ -50,12 +50,14 @@ class _Matcher extends TransmitterSlotMatcher {
     this.resolved = const [],
     this.gate,
     this.computersByKey,
+    this.resolvedByKey,
   });
 
   final List<SlotComputer> computers;
   final List<SlotCandidates> resolved;
   final Completer<void>? gate;
   final Map<String, List<SlotComputer>>? computersByKey;
+  final Map<String, List<SlotCandidates>>? resolvedByKey;
   var resolves = 0;
 
   @override
@@ -66,7 +68,7 @@ class _Matcher extends TransmitterSlotMatcher {
   Future<List<SlotCandidates>> resolve(Transmitter t) async {
     resolves++;
     await gate?.future;
-    return resolved;
+    return resolvedByKey?[t.id] ?? resolved;
   }
 }
 
@@ -368,5 +370,44 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(matcher.resolves, 1);
+  });
+
+  testWidgets('two keys on one computer apply the first key its own '
+      'cylinders', (tester) async {
+    final second = key.copyWith(id: 'k2', transmitterSerial: 'B7');
+    const firstSlots = SlotCandidates(
+      computer: _perdix,
+      tankIdsBySlot: {
+        2: ['a'],
+      },
+      diveIdByTank: {'a': 'd1'},
+    );
+    const secondSlots = SlotCandidates(
+      computer: _perdix,
+      tankIdsBySlot: {
+        2: ['z1', 'z2'],
+      },
+      diveIdByTank: {'z1': 'd8', 'z2': 'd9'},
+    );
+    final repo = _Repo(someSerial);
+    final matcher = _Matcher(
+      computers: [_perdix],
+      resolvedByKey: {
+        'k1': [firstSlots],
+        'k2': [secondSlots],
+      },
+    );
+    await openApply(tester, repo: repo, matcher: matcher, keys: [key, second]);
+
+    expect(find.text('Slot on Perdix'), findsOneWidget);
+    await pickSlot(tester, 'T2: 1 dive');
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+    await tester.pumpAndSettle();
+
+    expect(matcher.resolves, 1);
+    expect(repo.applied, {
+      'k1': ['a'],
+      'k2': <String>[],
+    });
   });
 }

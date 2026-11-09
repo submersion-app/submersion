@@ -83,4 +83,13 @@ void main() {
     expect(list[0].containsKey(kUddfSourceSlotKey), isFalse);
     expect(list[1].containsKey(kUddfSourceSlotKey), isFalse);
   });
+
+  test('a ref spelled differently later is still the same ref', () {
+    final router = UddfTankRefRouter(tanks([132.93, 147.27]));
+
+    final first = router.indexFor('T2', 132.93);
+
+    expect(router.indexFor(' t2 ', 120.0), first);
+    expect(router.indexFor('T3', 147.27), 1);
+  });
 }
