@@ -153,4 +153,16 @@ void main() {
       skyStops(computeDayDaylight(dives)),
     );
   });
+
+  testWidgets('outlines night blocks darker than day blocks in light mode', (
+    tester,
+  ) async {
+    // A night dive's light fill needs a dark edge to show on the pale day
+    // band, where a day dive's dark fill needs a light one on the night band.
+    await tester.pumpWidget(_host([_placed(DateTime.utc(2025, 3, 1, 9))]));
+    final painter = _painter(tester);
+    final day = painter.dayOutlineColor as Color;
+    final night = painter.nightOutlineColor as Color;
+    expect(night.computeLuminance(), lessThan(day.computeLuminance()));
+  });
 }
