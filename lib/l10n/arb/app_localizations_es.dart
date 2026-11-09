@@ -20386,7 +20386,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_photoViewer_videoNeedsNormalWindow =>
-      'Para reproducir este video se necesita una ventana normal del navegador. Las ventanas privadas no pueden transmitir desde Google Drive ni WebDAV.';
+      'Para reproducir este vídeo se necesita una ventana normal del navegador. Las ventanas privadas no pueden transmitir desde Google Drive ni WebDAV.';
 
   @override
   String get media_photoViewer_videoNotLinked =>
