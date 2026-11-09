@@ -67,7 +67,7 @@ void main() {
     await pump(tester, isExpanded: false, isHeading: true);
     expect(
       tester.getSemantics(find.byType(CollapsibleGroupHeader)),
-      containsSemantics(
+      isSemantics(
         isButton: true,
         isHeader: true,
         hasExpandedState: true,
