@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/domain/tag_palette.dart';
@@ -109,70 +110,51 @@ class _TagColorPickerState extends State<TagColorPicker> {
       onTap: _pickCustom,
     );
 
+    final geometry = _BandGeometry(
+      slot: tagTapTarget(Theme.of(context).platform),
+      lead: currentDot == null ? 0 : 1,
+    );
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _preview(),
         const SizedBox(height: 12),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final slot = tagTapTarget(Theme.of(context).platform);
-            final perBand = _huesPerBand(
-              width: constraints.maxWidth,
-              slot: slot,
-              lead: currentDot == null ? 0 : 1,
-            );
-            final hues = tagLightShades.length;
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              spacing: _gap,
-              children: [
-                for (var start = 0; start < hues; start += perBand)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: _gap,
-                    children: [
-                      // The current colour leads the first band; later bands
-                      // keep its slot empty so the hue columns line up.
-                      if (currentDot != null)
-                        start == 0 ? currentDot : SizedBox(width: slot),
-                      for (var hue = start; hue < start + perBand; hue++)
-                        hueColumn(hue),
-                      if (start + perBand >= hues) customDot,
-                    ],
-                  ),
-              ],
-            );
-          },
+        _BandIntrinsics(
+          geometry: geometry,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final slot = geometry.slot;
+              final perBand = geometry.huesPerBand(constraints.maxWidth);
+              final hues = tagLightShades.length;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: _gap,
+                children: [
+                  for (var start = 0; start < hues; start += perBand)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: _gap,
+                      children: [
+                        // The current colour leads the first band; later bands
+                        // keep its slot empty so the hue columns line up.
+                        if (currentDot != null)
+                          start == 0 ? currentDot : SizedBox(width: slot),
+                        for (var hue = start; hue < start + perBand; hue++)
+                          hueColumn(hue),
+                        if (start + perBand >= hues) customDot,
+                      ],
+                    ),
+                ],
+              );
+            },
+          ),
         ),
       ],
     );
-  }
-
-  /// Space between dots, across and down.
-  static const double _gap = 4;
-
-  /// How many hue columns go in each band: the most of 10, 5, 4, 2 or 1
-  /// (each divides the 20 hues, so every band is full) that fit beside the
-  /// [lead] slots and the "+" dot. Ten across on a desktop dialog, fewer on
-  /// a phone, and never a lopsided last band.
-  static int _huesPerBand({
-    required double width,
-    required double slot,
-    required int lead,
-  }) {
-    if (!width.isFinite) return 10;
-    final slots = ((width + _gap) / (slot + _gap)).floor();
-    return const [
-      10,
-      5,
-      4,
-      2,
-      1,
-    ].firstWhere((n) => n + lead + 1 <= slots, orElse: () => 1);
   }
 
   Widget _preview() {
@@ -269,4 +251,92 @@ class _ColorDot extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Space between dots, across and down.
+const double _gap = 4;
+
+/// The arithmetic of the dot grid: [slot] is a dot's square (the platform
+/// tap target) and [lead] is 1 when a current-colour dot leads each band.
+class _BandGeometry {
+  const _BandGeometry({required this.slot, required this.lead});
+
+  final double slot;
+  final int lead;
+
+  static const int _hues = 20;
+
+  /// How many hue columns go in each band: the most of 10, 5, 4, 2 or 1
+  /// (each divides the 20 hues, so every band is full) that fit beside the
+  /// [lead] slot and the "+" dot. Ten across on a desktop dialog, fewer on a
+  /// phone, and never a lopsided last band.
+  int huesPerBand(double width) {
+    if (!width.isFinite) return 10;
+    final slots = ((width + _gap) / (slot + _gap)).floor();
+    return const [
+      10,
+      5,
+      4,
+      2,
+      1,
+    ].firstWhere((n) => n + lead + 1 <= slots, orElse: () => 1);
+  }
+
+  /// The width of a band of [hues] columns with its lead and "+" slots.
+  double widthFor(int hues) {
+    final slots = hues + lead + 1;
+    return slots * slot + (slots - 1) * _gap;
+  }
+
+  /// The height the grid takes at [width].
+  double heightAt(double width) {
+    final bands = _hues ~/ huesPerBand(width);
+    return bands * 3 * slot + (bands - 1) * _gap;
+  }
+}
+
+/// Answers intrinsic-size questions for the grid from [_BandGeometry].
+///
+/// AlertDialog sizes itself with IntrinsicWidth, and a LayoutBuilder cannot
+/// answer an intrinsic size (it would have to run its builder speculatively),
+/// so the question stops here: the grid would like ten hues across and can
+/// shrink to one.
+class _BandIntrinsics extends SingleChildRenderObjectWidget {
+  const _BandIntrinsics({required this.geometry, required super.child});
+
+  final _BandGeometry geometry;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderBandIntrinsics(geometry);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderBandIntrinsics renderObject,
+  ) => renderObject.geometry = geometry;
+}
+
+class _RenderBandIntrinsics extends RenderProxyBox {
+  _RenderBandIntrinsics(this._geometry);
+
+  _BandGeometry _geometry;
+
+  set geometry(_BandGeometry value) {
+    if (value.slot == _geometry.slot && value.lead == _geometry.lead) return;
+    _geometry = value;
+    markNeedsLayout();
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) => _geometry.widthFor(1);
+
+  @override
+  double computeMaxIntrinsicWidth(double height) => _geometry.widthFor(10);
+
+  @override
+  double computeMinIntrinsicHeight(double width) => _geometry.heightAt(width);
+
+  @override
+  double computeMaxIntrinsicHeight(double width) => _geometry.heightAt(width);
 }

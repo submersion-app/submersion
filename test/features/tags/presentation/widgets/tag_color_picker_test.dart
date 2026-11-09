@@ -200,6 +200,37 @@ void main() {
     }
   });
 
+  testWidgets('lays out inside an AlertDialog, which asks its width first', (
+    tester,
+  ) async {
+    // AlertDialog sizes itself with IntrinsicWidth, so the picker must
+    // answer an intrinsic width without laying out its bands.
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(platform: TargetPlatform.macOS),
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: AlertDialog(
+            content: SingleChildScrollView(
+              child: TagColorPicker(
+                selectedColor: 'FF0000',
+                onColorSelected: (_) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    final first = tester.getRect(dot(tagPalette.first.hex));
+    final tenth = tester.getRect(dot(tagPalette[9 * 3].hex));
+    final eleventh = tester.getRect(dot(tagPalette[10 * 3].hex));
+    expect(tenth.top, first.top);
+    expect(eleventh.top, greaterThan(first.top));
+  });
+
   group('hues wrap in even bands', () {
     // Column per hue, light shade on top: its dot gives the column's left
     // edge and its band's top edge.
