@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "media {value}",
   "trips_story_history_avgDepth": "prof. media {value}",
   "trips_story_rhythm_semantics": "Horarios de inmersión de este día",
+  "trips_story_rhythm_semanticsSunriseSunset": "Horarios de inmersión de este día. Salida del sol {sunrise}, puesta del sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Horarios de inmersión de este día. Salida del sol {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Horarios de inmersión de este día. Puesta del sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Mapa del día {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -2726,7 +2753,6 @@
   "diveLog_diveMode_ocDescription": "Buceo estándar de circuito abierto con tanques",
   "diveLog_diveMode_scrDescription": "Rebreather semicerrado con ppO₂ variable",
   "diveLog_diveMode_title": "Modo de buceo",
-  "diveLog_editSighting_count": "Cantidad",
   "diveLog_editSighting_notes": "Notas",
   "diveLog_editSighting_notesHint": "Tamaño, comportamiento, ubicación...",
   "diveLog_editSighting_remove": "Quitar",
@@ -2763,6 +2789,7 @@
   "diveLog_edit_gasSwitches_pickReadout": "{time} a {depth}",
   "diveLog_edit_gasSwitches_pickConfirm": "Definir tiempo",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} cambio de gas quitado con su botella} other{{count} cambios de gas quitados con su botella}}",
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{Completar 1 cambio a partir de las presiones de las botellas} other{Completar {count} cambios a partir de las presiones de las botellas}}",
   "diveLog_edit_gettingLocation": "Obteniendo ubicación...",
   "diveLog_edit_group_buddies": "Compañeros",
   "diveLog_edit_group_conditions": "Condiciones",
@@ -3031,6 +3058,7 @@
   "diveLog_legend_label_depth": "Profundidad",
   "diveLog_legend_label_events": "Eventos",
   "diveLog_legend_label_annotations": "Anotaciones",
+  "diveLog_legend_label_plan": "Plan",
   "diveLog_legend_label_computedEvents": "Eventos calculados",
   "diveLog_legend_label_gasDensity": "Densidad del gas",
   "diveLog_legend_label_lateGasSwitches": "Cambios de gas tardíos",
@@ -3087,6 +3115,10 @@
   "diveLog_fetchConditions_summaryFilled": "{count, plural, =1{1 inmersión actualizada} other{{count} inmersiones actualizadas}}",
   "diveLog_fetchConditions_summaryUnavailable": "{count, plural, =1{1 inmersión sin datos disponibles} other{{count} inmersiones sin datos disponibles}}",
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{1 inmersión sin nada que rellenar} other{{count} inmersiones sin nada que rellenar}}",
+  "diveLog_fetchConditions_confirmBodySelected": "{count, plural, =1{A {count} de {total} inmersiones seleccionadas le faltan las condiciones.} other{A {count} de {total} inmersiones seleccionadas les faltan las condiciones.}} Solo se rellenan los campos vacíos, así que no cambiará nada de lo que ya hayas introducido.",
+  "diveLog_fetchConditions_skippedNoLocation": "{count, plural, =1{{count} inmersión no tiene coordenadas del sitio ni posición GPS y se omitirá.} other{{count} inmersiones no tienen coordenadas del sitio ni posición GPS y se omitirán.}}",
+  "diveLog_fetchConditions_noneNeededSelected": "A ninguna de las inmersiones seleccionadas le faltan condiciones.",
+  "diveLog_fetchConditions_noneLocatedSelected": "Las inmersiones seleccionadas a las que les faltan condiciones no tienen coordenadas del sitio ni posición GPS.",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Detenido antes de tiempo; se procesó 1 inmersión.} other{Detenido antes de tiempo; se procesaron {count} inmersiones.}}",
   "diveLog_scrubber_unrated": "Sin valorar",
   "diveLog_sighting_decreaseCount": "Disminuir cantidad",
@@ -5600,7 +5632,6 @@
   "marineLife_speciesDetail_sitesLabel": "Puntos",
   "marineLife_speciesDetail_taxonomyClassLabel": "Clase: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Mejores puntos",
-  "marineLife_speciesDetail_totalSightingsLabel": "Total de avistamientos",
   "marineLife_speciesEdit_addTitle": "Agregar especie",
   "marineLife_speciesEdit_addedSnackbar": "Se agregó \"{name}\"",
   "marineLife_speciesEdit_backTooltip": "Atrás",
@@ -5674,7 +5705,15 @@
   "marineLife_speciesPage_searchHint": "Buscar especies que has visto",
   "marineLife_speciesPage_manageCatalogTooltip": "Gestionar catálogo",
   "marineLife_speciesPage_sortTooltip": "Ordenar",
-  "marineLife_speciesPage_sort_mostSightings": "Más avistamientos",
+  "marineLife_speciesPage_sort_mostDives": "Más inmersiones",
+  "marineLife_abundance_label": "Cuántos",
+  "marineLife_abundance_seen": "Visto",
+  "marineLife_abundance_single": "Uno solo",
+  "marineLife_abundance_few": "Pocos",
+  "marineLife_abundance_many": "Muchos",
+  "marineLife_abundance_abundant": "Abundantes",
+  "marineLife_abundance_exact": "Exacto",
+  "marineLife_abundance_ranges": "Pocos de 2 a 10, Muchos de 11 a 100, Abundantes más de 100",
   "marineLife_speciesPage_sort_recentlySeen": "Vistas recientemente",
   "marineLife_speciesPage_sort_firstSeen": "Primer avistamiento",
   "marineLife_speciesPage_sort_name": "Nombre",
@@ -5893,6 +5932,7 @@
   "media_photoViewer_shareTooltip": "Compartir foto",
   "media_photoViewer_toggleOverlayLabel": "Alternar superposición de foto",
   "media_photoViewer_videoFileNotFound": "Archivo de video no encontrado",
+  "media_photoViewer_videoNeedsNormalWindow": "Para reproducir este vídeo se necesita una ventana normal del navegador. Las ventanas privadas no pueden transmitir desde Google Drive ni WebDAV.",
   "media_photoViewer_videoNotLinked": "Video no vinculado a la biblioteca",
   "media_photoViewer_writeDiveDataTooltip": "Escribir datos de inmersión en la foto",
   "media_quickSiteDialog_cancelButton": "Cancelar",
@@ -5946,6 +5986,7 @@
   "media_console_library": "Biblioteca",
   "media_console_transfers": "Transferencias",
   "media_library_empty": "Todavía no hay contenido multimedia",
+  "media_library_emptyFiltered": "Ningún contenido multimedia coincide con estos filtros",
   "media_library_filter_all": "Todo",
   "media_library_filter_photos": "Fotos",
   "media_library_filter_videos": "Vídeos",
@@ -6025,6 +6066,14 @@
   "media_library_filter_dates": "Fechas",
   "media_library_filter_missing": "Archivos faltantes",
   "media_library_filter_missingCount": "Archivos faltantes ({count})",
+  "media_library_filter_noPeople": "Nadie etiquetado",
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} persona} other{{count} personas}}",
+  "media_library_filter_peopleSearchHint": "Buscar personas",
+  "media_library_filter_peopleNoMatch": "Ninguna persona coincide",
+  "media_library_filter_peopleClear": "Quitar personas",
+  "media_library_filter_notPlacedInDive": "Sin ubicar en la inmersión",
   "media_library_filter_clear": "Borrar filtros",
   "media_library_filter_any": "Cualquiera",
   "media_library_filter_title": "Filtrar medios",
@@ -10948,6 +10997,7 @@
   "reparseBatch_confirmMessage": "Volver a ejecutar el analizador de inmersiones para {count} inmersiones con datos sin procesar almacenados. Esto actualiza los datos de perfil y sensores, pero conserva tus notas, sitios, compañeros y otras ediciones.",
   "reparseBatch_confirmSkipped": "Inmersiones seleccionadas sin datos sin procesar (se omiten): {count}",
   "reparseBatch_noneWithRawData": "Ninguna de las inmersiones seleccionadas tiene datos sin procesar almacenados para reanalizar.",
+  "diveLog_selection_tooltip_fetchConditions": "Obtener condiciones",
   "diveLog_selection_tooltip_reparse": "Reanalizar",
   "settings_reparseDives_title": "Reanalizar inmersiones",
   "settings_reparseDives_subtitle": "Volver a ejecutar el analizador en cada inmersión con datos sin procesar almacenados",
@@ -15798,6 +15848,7 @@
   "diveLog_detail_errorLoadingSignature": "Error al cargar la firma: {error}",
   "diveLog_profilePanel_selectDive": "Selecciona una inmersión para ver su perfil",
   "diveLog_profilePanel_noProfileData": "Sin datos de perfil para esta inmersión",
+  "diveLog_estimatedProfile_caption": "Estimado a partir de la profundidad máxima y el tiempo, no es un perfil registrado",
   "settings_export_progress_divesCsv": "Exportando inmersiones a CSV...",
   "settings_export_progress_sitesCsv": "Exportando puntos de buceo a CSV...",
   "settings_export_progress_equipmentCsv": "Exportando equipo a CSV...",
@@ -16659,9 +16710,16 @@
   "transmitters_section_setUp": "Configurar",
   "transmitters_action_apply": "Aplicar a inmersiones existentes",
   "transmitters_apply_title": "¿Aplicar a inmersiones existentes?",
-  "transmitters_apply_content": "{tanks} botellas en {dives} inmersiones llevan este transmisor. Se rellenarán los campos vacíos de tamaño, material, nombre y equipo, y se sustituirá un rol que siga en Gas de fondo o que se haya leído del nombre del transmisor.",
+  "transmitters_apply_content": "{tanks} botellas en {dives} inmersiones que llevan este transmisor necesitan su configuración. Se rellenarán los campos vacíos de tamaño, material, nombre y equipo, y se sustituirá un rol que siga en Gas de fondo o que se haya leído del nombre del transmisor.",
   "transmitters_apply_done": "{tanks} botellas actualizadas en {dives} inmersiones",
-  "transmitters_apply_nothing": "Ninguna botella lleva este transmisor",
+  "transmitters_apply_slot_label": "Ranura en {computer}",
+  "transmitters_apply_slot_none": "No emparejar por ranura",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} inmersión} other{{dives} inmersiones}}",
+  "transmitters_apply_slot_reading": "Leyendo archivos importados",
+  "transmitters_apply_slot_intro": "Las botellas importadas de un archivo no tienen número de serie. Se pueden rellenar según la ranura que ocupaba este transmisor en el ordenador de buceo.",
+  "transmitters_apply_summary": "Inmersiones rellenadas por número de serie: {serialDives}, por ranura: {slotDives}",
+  "transmitters_apply_nothing_to_fill": "Ninguna botella necesita la configuración de este transmisor",
+  "transmitters_apply_slot_read_failed": "No se pudieron leer los archivos importados, por lo que las botellas no se pueden asociar por ranura",
   "transmitters_channel": "{computer}, canal {channel}",
   "transmitters_serial": "Transmisor {serial}",
   "transmitters_edit_title": "Editar transmisor",

@@ -2923,7 +2923,7 @@ class PlanEngine {
 
   /// Two gas fractions closer than this are the same gas for the purpose of
   /// marking a switch on the table.
-  static const double _gasFractionEpsilon = 0.0005;
+  static const double gasFractionEpsilon = 0.0005;
 
   /// The dive as table lines: the authored legs, then the computed ascent as
   /// the leg to the first stop, every stop, and the leg to the surface. Travel
@@ -3001,8 +3001,8 @@ class PlanEngine {
       final switched =
           lastFO2 == null ||
           lastFHe == null ||
-          (fO2 - lastFO2).abs() > _gasFractionEpsilon ||
-          (fHe - lastFHe).abs() > _gasFractionEpsilon;
+          (fO2 - lastFO2).abs() > gasFractionEpsilon ||
+          (fHe - lastFHe).abs() > gasFractionEpsilon;
       final pDepth = physicsDepth ?? depth;
       rows.add(
         PlanScheduleRow(

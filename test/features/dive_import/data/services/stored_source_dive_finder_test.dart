@@ -1,0 +1,302 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
+import 'package:submersion/features/dive_import/data/services/stored_source_dive_finder.dart';
+import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_options.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/source_diver.dart';
+import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+
+class _FakeImportedFiles extends ImportedFileRepository {
+  final Map<String, Uint8List> files;
+  _FakeImportedFiles(this.files);
+
+  @override
+  Future<Uint8List?> read(String id) async => files[id];
+}
+
+class _ThrowingParser implements ImportParser {
+  var parses = 0;
+
+  @override
+  List<ImportFormat> get supportedFormats => [ImportFormat.uddf];
+
+  @override
+  Future<ImportPayload> parse(
+    Uint8List fileBytes, {
+    ImportOptions? options,
+  }) async {
+    parses++;
+    throw const FormatException('not UDDF');
+  }
+}
+
+class _CountingParser implements ImportParser {
+  final ImportPayload payload;
+  var parses = 0;
+  _CountingParser(this.payload);
+
+  @override
+  List<ImportFormat> get supportedFormats => [ImportFormat.uddf];
+
+  @override
+  Future<ImportPayload> parse(
+    Uint8List fileBytes, {
+    ImportOptions? options,
+  }) async {
+    parses++;
+    return payload;
+  }
+}
+
+/// Counts the SELECTs that reach the database.
+class _SelectCounter extends QueryInterceptor {
+  var selects = 0;
+
+  @override
+  Future<List<Map<String, Object?>>> runSelect(
+    QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) {
+    selects++;
+    return super.runSelect(executor, statement, args);
+  }
+}
+
+/// The stored-file lookup resync and the transmitter slot matcher share
+/// (issue #4347).
+void main() {
+  late AppDatabase db;
+  late _SelectCounter counter;
+  final when = DateTime(2026, 9, 1, 9);
+
+  setUp(() async {
+    counter = _SelectCounter();
+    db = AppDatabase(
+      NativeDatabase.memory(
+        setup: registerAppSqlFunctions,
+      ).interceptWith(counter),
+    );
+  });
+
+  tearDown(() async => db.close());
+
+  Future<void> seedDive(
+    String id, {
+    DateTime? dateTime,
+    String? diverKey,
+    String? importedFileId = 'file-uddf',
+    String sourceFileFormat = 'uddf',
+  }) async {
+    final at = dateTime ?? when;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diveDateTime: at.millisecondsSinceEpoch,
+            maxDepth: const Value(18.0),
+            bottomTime: const Value(40 * 60),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    if (importedFileId == null) return;
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src-$id',
+            diveId: id,
+            isPrimary: const Value(true),
+            importedAt: at,
+            createdAt: at,
+            sourceFileFormat: Value(sourceFileFormat),
+            importedFileId: Value(importedFileId),
+            sourceDiverKey: Value(diverKey),
+          ),
+        );
+  }
+
+  Map<String, dynamic> parsedAt(DateTime at, {String? diverKey}) => {
+    'dateTime': at,
+    'maxDepth': 18.2,
+    'duration': const Duration(minutes: 41),
+    ...?(diverKey == null ? null : {SourceDiver.mapKey: diverKey}),
+  };
+
+  StoredSourceDiveFinder finder(
+    List<Map<String, dynamic>> dives, {
+    _CountingParser? parser,
+  }) => StoredSourceDiveFinder(
+    db: db,
+    importedFiles: _FakeImportedFiles({'file-uddf': Uint8List(0)}),
+    parserFor: (_) =>
+        parser ??
+        _CountingParser(
+          ImportPayload(entities: {ImportEntityType.dives: dives}),
+        ),
+  );
+
+  test('a dive that no longer exists is diveMissing', () async {
+    final lookup = await finder(const []).find('gone');
+
+    expect(lookup.failure, DiveResyncFailure.diveMissing);
+    expect(lookup.parsedDive, isNull);
+  });
+
+  test('a dive without a stored file is noStoredFile', () async {
+    await seedDive('d1', importedFileId: null);
+
+    final lookup = await finder(const []).find('d1');
+
+    expect(lookup.failure, DiveResyncFailure.noStoredFile);
+  });
+
+  test('a format resync cannot read is unsupportedFormat', () async {
+    await seedDive('d1', sourceFileFormat: 'csv');
+
+    final lookup = await finder(const []).find('d1');
+
+    expect(lookup.failure, DiveResyncFailure.unsupportedFormat);
+  });
+
+  test('a stored file that is gone is storedFileMissing', () async {
+    await seedDive('d1', importedFileId: 'file-gone');
+
+    final lookup = await finder(const []).find('d1');
+
+    expect(lookup.failure, DiveResyncFailure.storedFileMissing);
+  });
+
+  test('no probable match is noMatchingDive', () async {
+    await seedDive('d1');
+
+    final lookup = await finder([
+      parsedAt(when.add(const Duration(days: 3))),
+    ]).find('d1');
+
+    expect(lookup.failure, DiveResyncFailure.noMatchingDive);
+  });
+
+  test('two divers matching with no stored key is ambiguousDiver', () async {
+    await seedDive('d1');
+
+    final lookup = await finder([
+      parsedAt(when, diverKey: 'a'),
+      parsedAt(when, diverKey: 'b'),
+    ]).find('d1');
+
+    expect(lookup.failure, DiveResyncFailure.ambiguousDiver);
+  });
+
+  test('picks the matching dive out of a multi-dive file', () async {
+    await seedDive('d1');
+
+    final lookup = await finder([
+      parsedAt(when.add(const Duration(days: 3))),
+      parsedAt(when),
+    ]).find('d1');
+
+    expect(lookup.failure, isNull);
+    expect(lookup.parsedDive!['dateTime'], when);
+  });
+
+  test('findMany parses a shared file once and skips dives it cannot '
+      'find', () async {
+    final second = when.add(const Duration(days: 1));
+    await seedDive('d1');
+    await seedDive('d2', dateTime: second);
+    await seedDive('d3', importedFileId: null);
+    final parser = _CountingParser(
+      ImportPayload(
+        entities: {
+          ImportEntityType.dives: [parsedAt(when), parsedAt(second)],
+        },
+      ),
+    );
+
+    final found = await finder(
+      const [],
+      parser: parser,
+    ).findMany(['d1', 'd2', 'd3']);
+
+    expect(parser.parses, 1);
+    expect(found.keys, unorderedEquals(['d1', 'd2']));
+    expect(found['d2']!['dateTime'], second);
+  });
+
+  test(
+    'a stored diver key picks that diver\'s copy of a shared dive',
+    () async {
+      await seedDive('d1', diverKey: 'b');
+
+      final lookup = await finder([
+        {...parsedAt(when, diverKey: 'a'), 'maxDepth': 30.0},
+        parsedAt(when, diverKey: 'b'),
+      ]).find('d1');
+
+      expect(lookup.parsedDive![SourceDiver.mapKey], 'b');
+    },
+  );
+
+  test('findMany skips the dives of a file that fails to parse, parsing it '
+      'once', () async {
+    await seedDive('d1');
+    await seedDive('d2', dateTime: when.add(const Duration(days: 1)));
+    final parser = _ThrowingParser();
+
+    final found = await StoredSourceDiveFinder(
+      db: db,
+      importedFiles: _FakeImportedFiles({'file-uddf': Uint8List(0)}),
+      parserFor: (_) => parser,
+    ).findMany(['d1', 'd2']);
+
+    expect(found, isEmpty);
+    expect(parser.parses, 1);
+  });
+
+  test('findMany looks up every dive and source in two queries', () async {
+    final days = [for (var i = 0; i < 3; i++) when.add(Duration(days: i))];
+    for (final (i, at) in days.indexed) {
+      await seedDive('d$i', dateTime: at);
+    }
+    final parser = _CountingParser(
+      ImportPayload(
+        entities: {
+          ImportEntityType.dives: [for (final at in days) parsedAt(at)],
+        },
+      ),
+    );
+    counter.selects = 0;
+
+    final found = await finder(
+      const [],
+      parser: parser,
+    ).findMany(['d0', 'd1', 'd2']);
+
+    expect(found.keys, unorderedEquals(['d0', 'd1', 'd2']));
+    expect(counter.selects, 2);
+  });
+
+  test('findMany skips a dive it cannot look up at all', () async {
+    final closed = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    await closed.close();
+
+    final found = await StoredSourceDiveFinder(
+      db: closed,
+      importedFiles: _FakeImportedFiles(const {}),
+      parserFor: (_) => throw StateError('must not be called'),
+    ).findMany(['d1']);
+
+    expect(found, isEmpty);
+  });
+}

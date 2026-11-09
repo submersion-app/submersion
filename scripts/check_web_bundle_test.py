@@ -51,6 +51,15 @@ class BundleCheckTest(unittest.TestCase):
         self.assertEqual(len(failures), 1)
         self.assertIn("drift_worker.js", failures[0])
 
+    def test_a_missing_stream_worker_fails(self):
+        # Issue #4162: Drive and WebDAV videos play through it.
+        path = os.path.join(self.bundle, "media_stream_worker.js")
+        if os.path.exists(path):
+            os.remove(path)
+        failures = check.check_bundle(self.bundle, self.lock)
+        self.assertEqual(len(failures), 1)
+        self.assertIn("media_stream_worker.js", failures[0])
+
     def test_a_service_worker_fails(self):
         _write(self.bundle, "flutter_service_worker.js")
         failures = check.check_bundle(self.bundle, self.lock)

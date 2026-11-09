@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
 import 'package:submersion/core/services/export/uddf/uddf_shared_dive_writer.dart';
@@ -37,6 +38,7 @@ void main() {
         id: 'sighting-1',
         speciesId: 'turtle',
         speciesName: 'Green turtle',
+        abundance: SightingAbundance.exact,
         count: 2,
         notes: 'Resting under the ledge',
       ),
@@ -51,11 +53,12 @@ void main() {
   XmlElement write({
     UddfExportOptions options = const UddfExportOptions(),
     Map<String, List<TankPressurePoint>>? tankPressures,
+    Dive? of,
   }) {
     final builder = XmlBuilder();
     UddfSharedDiveWriter.write(
       builder,
-      dive,
+      of ?? dive,
       options: options,
       tankPressures: tankPressures,
     );
@@ -98,6 +101,25 @@ void main() {
     expect(sighting.getAttribute('count'), '2');
     expect(sighting.innerText, 'Resting under the ledge');
     expect(textOf(after.getElement('notes')!, 'para'), 'Slack tide');
+  });
+
+  test('writes a REEF group as abundance with no count (issue #4337)', () {
+    final grouped = dive.copyWith(
+      sightings: const [
+        MarineSighting(
+          id: 'sighting-2',
+          speciesId: 'jack',
+          speciesName: 'Bigeye trevally',
+          abundance: SightingAbundance.abundant,
+        ),
+      ],
+    );
+    final sighting = write(
+      of: grouped,
+    ).getElement('informationafterdive')!.findAllElements('sighting').single;
+
+    expect(sighting.getAttribute('abundance'), 'abundant');
+    expect(sighting.getAttribute('count'), isNull);
   });
 
   test('writes each sample with its temperature, GF99 and tank pressure', () {

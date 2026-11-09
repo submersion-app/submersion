@@ -525,6 +525,67 @@ void main() {
       return result.app;
     }
 
+    group('label fit on a narrow phone (#4336)', () {
+      testWidgets('shrinks German labels that would split mid-word', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(375, 667);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(
+          await buildHarness(repo: _FakeRepo(), locale: const Locale('de')),
+        );
+        await tester.pumpAndSettle();
+
+        final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+        final colors = Theme.of(
+          tester.element(find.byType(NavigationBar)),
+        ).colorScheme;
+        final selected = bar.labelTextStyle!.resolve({WidgetState.selected})!;
+        final unselected = bar.labelTextStyle!.resolve(<WidgetState>{})!;
+        final disabled = bar.labelTextStyle!.resolve({WidgetState.disabled})!;
+
+        expect(selected.fontSize, lessThan(12));
+        expect(unselected.fontSize, selected.fontSize);
+        // The shrunk style keeps Material 3's label colours.
+        expect(selected.color, colors.onSurface);
+        expect(unselected.color, colors.onSurfaceVariant);
+        expect(disabled.color, colors.onSurfaceVariant.withValues(alpha: 0.38));
+      });
+
+      testWidgets('leaves labels that fit at the default style', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(375, 667);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        await tester.pumpWidget(await buildHarness(repo: _FakeRepo()));
+        await tester.pumpAndSettle();
+
+        final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+        expect(bar.labelTextStyle, isNull);
+      });
+
+      testWidgets('passes no style while the labels are hidden', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(375, 667);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo()..alwaysHideLabelsPhone = true;
+        await tester.pumpWidget(
+          await buildHarness(repo: repo, locale: const Locale('de')),
+        );
+        await tester.pumpAndSettle();
+
+        final bar = tester.widget<NavigationBar>(find.byType(NavigationBar));
+        expect(bar.labelTextStyle, isNull);
+      });
+    });
+
     group('always-hide labels (#1424)', () {
       testWidgets('the bottom bar always shows labels by default', (
         tester,

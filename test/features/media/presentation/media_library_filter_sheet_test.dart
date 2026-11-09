@@ -193,7 +193,7 @@ void main() {
     // The count rides in the title, where the Missing section's sidebar
     // badge used to be.
     expect(find.text('Missing files (3)'), findsOneWidget);
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.widgetWithText(SwitchListTile, 'Missing files (3)'));
     await tester.pumpAndSettle();
     expect(container.read(mediaLibraryFilterProvider).health, isNull);
 

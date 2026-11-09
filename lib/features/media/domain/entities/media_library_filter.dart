@@ -32,6 +32,8 @@ class MediaLibraryFilter {
     this.tagIds = const {},
     this.buddyIds = const {},
     this.includeMe = false,
+    this.noPeople = false,
+    this.notPlacedInDive = false,
   });
 
   final MediaType? mediaType;
@@ -63,7 +65,20 @@ class MediaLibraryFilter {
   /// "Photos of me" shows each profile its own photos.
   final bool includeMe;
 
-  /// Whether a person (a buddy or Me) narrows the rows.
+  /// Rows with no one tagged at all: no buddy and no diver's Me tag
+  /// (issue #4148). The opposite of the people tile marker, so a row shows
+  /// here exactly when its tile has no people marker. The filter sheet keeps
+  /// it apart from [buddyIds] and [includeMe]; set together, they match
+  /// nothing.
+  final bool noPeople;
+
+  /// Dive rows the profile chart would draw no marker for (issue #4148): the
+  /// opposite of the time-in-dive tile marker, limited to rows linked to a
+  /// dive, since a row with no dive cannot be placed in one.
+  final bool notPlacedInDive;
+
+  /// Whether a person (a buddy or Me) narrows the rows. False for
+  /// [noPeople], which asks for the rows with no person instead.
   bool get hasPeople => buddyIds.isNotEmpty || includeMe;
 
   static const MediaLibraryFilter none = MediaLibraryFilter();
@@ -79,7 +94,9 @@ class MediaLibraryFilter {
       sourceType == null &&
       health == null &&
       tagIds.isEmpty &&
-      !hasPeople;
+      !hasPeople &&
+      !noPeople &&
+      !notPlacedInDive;
 
   /// Sentinel-based copyWith so callers can explicitly clear a field back to
   /// null (the plain `??` idiom cannot).
@@ -96,6 +113,8 @@ class MediaLibraryFilter {
     Set<String>? tagIds,
     Set<String>? buddyIds,
     bool? includeMe,
+    bool? noPeople,
+    bool? notPlacedInDive,
   }) {
     return MediaLibraryFilter(
       mediaType: mediaType == _undefined
@@ -116,6 +135,8 @@ class MediaLibraryFilter {
       tagIds: tagIds ?? this.tagIds,
       buddyIds: buddyIds ?? this.buddyIds,
       includeMe: includeMe ?? this.includeMe,
+      noPeople: noPeople ?? this.noPeople,
+      notPlacedInDive: notPlacedInDive ?? this.notPlacedInDive,
     );
   }
 
@@ -147,6 +168,9 @@ class MediaLibraryFilter {
     // Left out when empty or off, like the tags (issue #1745).
     if (buddyIds.isNotEmpty) 'buddyIds': buddyIds.sorted(),
     if (includeMe) 'me': true,
+    // Left out when off, like Me (issue #4148).
+    if (noPeople) 'noPeople': true,
+    if (notPlacedInDive) 'notPlacedInDive': true,
   };
 
   /// Decodes leniently: an album written by a newer version (or a value
@@ -172,6 +196,8 @@ class MediaLibraryFilter {
         _ => const {},
       },
       includeMe: json['me'] == true,
+      noPeople: json['noPeople'] == true,
+      notPlacedInDive: json['notPlacedInDive'] == true,
     );
   }
 
@@ -204,7 +230,9 @@ class MediaLibraryFilter {
         other.health == health &&
         const SetEquality<String>().equals(other.tagIds, tagIds) &&
         const SetEquality<String>().equals(other.buddyIds, buddyIds) &&
-        other.includeMe == includeMe;
+        other.includeMe == includeMe &&
+        other.noPeople == noPeople &&
+        other.notPlacedInDive == notPlacedInDive;
   }
 
   @override
@@ -221,6 +249,8 @@ class MediaLibraryFilter {
     const SetEquality<String>().hash(tagIds),
     const SetEquality<String>().hash(buddyIds),
     includeMe,
+    noPeople,
+    notPlacedInDive,
   );
 }
 

@@ -42,6 +42,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_item
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_scrubber.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/trip_group_header.dart';
 import 'package:submersion/features/trips/presentation/helpers/new_trip_from_selection.dart';
+import 'package:submersion/features/weather/presentation/widgets/fetch_conditions_bulk_action.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/list_view_mode_toggle.dart';
 import 'package:submersion/shared/widgets/master_detail/keyboard_list_navigator.dart';
@@ -1988,6 +1989,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           onInvoke: () =>
               reparseSelectedDives(context, ref, _selectedIds.toList()),
         ),
+      // Missing weather for the checked dives, from the archive (#4329). Only
+      // needs the network, so unlike Re-parse it is offered everywhere.
+      fetchConditionsBulkAction(
+        context,
+        ref,
+        selected: () => _selectedIds.toSet(),
+      ),
       // Logbook rules on the checked dives, previewed first (#3513). Last,
       // so the existing inline actions keep their places.
       rulesBulkAction(

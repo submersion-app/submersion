@@ -21,8 +21,10 @@ class PressureAnomalyDetector extends QualityDetector {
   // v4: slow rises no longer flagged (#2442), glitches (dropouts, spikes)
   // reported once per tank instead of as rises (#2441), series mixed from
   // two sources reported as such (#2440).
+  // v6: a lead-in above any cylinder fill (Shearwater Cloud's 564.7 bar "no
+  // reading" value) is a glitch too (#4335).
   @override
-  int get version => 5;
+  int get version => 6;
   @override
   QualityCategory get category => QualityCategory.pressure;
 

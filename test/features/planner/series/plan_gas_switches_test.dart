@@ -226,6 +226,108 @@ void main() {
 
       expect(result, [(at: 1360, tank: 'e-40', depth: 6.0)]);
     });
+
+    test('a leg of no time split off at a switch depth moves nothing', () {
+      final result = switches([
+        ...bottom,
+        // The engine splits the leg at EAN80's exact switch depth, a hair
+        // above the stop, leaving a sliver no time is spent on.
+        stop(
+          6,
+          120,
+          1480,
+          .80,
+          'p-80',
+          folded: const [
+            PlanFoldedTravel(
+              fromDepthMeters: 9,
+              toDepthMeters: 6.02,
+              seconds: 30,
+              tankId: 'p-air',
+            ),
+            PlanFoldedTravel(
+              fromDepthMeters: 6.02,
+              toDepthMeters: 6,
+              seconds: 0,
+              tankId: 'p-80',
+            ),
+          ],
+        ),
+      ]);
+
+      expect(result, [(at: 1360, tank: 'e-80', depth: 6.0)]);
+    });
+  });
+
+  test('a printed line of no time is not a gas the dive breathes', () {
+    // The leg to the first stop split at EAN40's switch depth a hair above
+    // EAN80's, leaving a line that rounds to no time on EAN40.
+    final result = switches([
+      _row(30, 600, 600, .21, tankId: 'p-air', gasSwitch: true),
+      _row(
+        21,
+        0,
+        600,
+        .40,
+        tankId: 'p-40',
+        gasSwitch: true,
+        kind: PlanScheduleRowKind.ascent,
+      ),
+      _row(
+        9,
+        40,
+        640,
+        .80,
+        tankId: 'p-80',
+        gasSwitch: true,
+        kind: PlanScheduleRowKind.ascent,
+      ),
+    ]);
+
+    expect(result, [(at: 600, tank: 'e-80', depth: 21.0)]);
+  });
+
+  group('planGasChanges (issue #4078)', () {
+    test('a change of cylinder holding the same mix is not a switch', () {
+      final stretches = planBreathingStretches(
+        [
+          _row(30, 600, 600, .21, tankId: 'p-air', gasSwitch: true),
+          _row(9, 120, 720, .50, tankId: 'stage-a', gasSwitch: true),
+          _row(6, 120, 840, .50, tankId: 'stage-b'),
+        ],
+        planTanks: const [
+          DiveTank(id: 'p-air', gasMix: _air),
+          DiveTank(id: 'stage-a', gasMix: GasMix(o2: 50)),
+          DiveTank(id: 'stage-b', gasMix: GasMix(o2: 50)),
+        ],
+      );
+
+      expect(planGasChanges(stretches).map((s) => s.tankId), ['stage-a']);
+    });
+
+    test('a folded leg on a cylinder the plan does not carry is skipped', () {
+      final stretches = planBreathingStretches(const [
+        PlanScheduleRow(
+          kind: PlanScheduleRowKind.stop,
+          depthMeters: 6,
+          durationSeconds: 60,
+          runtimeSeconds: 120,
+          gasFO2: .21,
+          gasFHe: 0,
+          tankId: 'p-air',
+          foldedTravel: [
+            PlanFoldedTravel(
+              fromDepthMeters: 9,
+              toDepthMeters: 6,
+              seconds: 60,
+              tankId: 'gone',
+            ),
+          ],
+        ),
+      ], planTanks: _planTanks);
+
+      expect(stretches.map((s) => (s.startSeconds, s.tankId)), [(60, 'p-air')]);
+    });
   });
 
   test('a dive descending on a travel gas starts on it in the log', () {

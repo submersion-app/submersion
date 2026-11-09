@@ -38,14 +38,19 @@ class DiveProfileBatcher {
     unawaited(load(ids));
   }
 
-  /// Fetches the profiles of [diveIds] now, skipping cached ones and ones
-  /// already being fetched.
+  /// Fetches the profiles of [diveIds] now, skipping ones already being
+  /// fetched and ones cached with samples.
+  ///
+  /// A dive cached as having none (an empty list) is asked for again: the
+  /// list loads through here on every page and reload, which is how a dive
+  /// that has since gained a profile replaces its estimated outline (#4112).
+  /// A card's own [request] takes the empty entry as an answer.
   Future<void> load(List<String> diveIds) async {
     if (_disposed || diveIds.isEmpty) return;
     final cache = _ref.read(batchProfileCacheProvider);
     final ids = [
       for (final id in diveIds)
-        if (!cache.containsKey(id) && _inFlight.add(id)) id,
+        if ((cache[id]?.isEmpty ?? true) && _inFlight.add(id)) id,
     ];
     if (ids.isEmpty) return;
     try {
@@ -56,6 +61,7 @@ class DiveProfileBatcher {
       mergeIntoBatchProfileCache(
         _ref.read(batchProfileCacheProvider.notifier),
         profiles,
+        requested: ids,
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -63,8 +69,16 @@ class DiveProfileBatcher {
         error: e,
         stackTrace: stackTrace,
       );
-      // Not fetched, so a card built again may ask again.
+      // Not fetched, so a card built again may ask again, and a dive cached
+      // as having no samples is unknown again.
       _requested.removeAll(ids);
+      if (!_disposed) {
+        mergeIntoBatchProfileCache(
+          _ref.read(batchProfileCacheProvider.notifier),
+          const {},
+          requested: ids,
+        );
+      }
     } finally {
       _inFlight.removeAll(ids);
     }

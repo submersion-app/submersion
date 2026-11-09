@@ -132,11 +132,15 @@ import 'package:submersion/features/documents/data/repositories/document_reposit
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
 part 'dive_repository_gear_preview.dart';
+part 'dive_repository_conditions.dart';
 part 'dive_repository_gear_sets.dart';
 part 'dive_repository_surface_intervals.dart';
 
-/// A dive that a conditions fetch can still do something for: its site carries
-/// coordinates and at least one weather column is empty.
+/// A dive that a conditions fetch can still do something for: it has a
+/// location and at least one weather column is empty.
+///
+/// [latitude] and [longitude] are the site's coordinates when it has them,
+/// otherwise the dive's own entry GPS fix, otherwise its exit fix (#4329).
 ///
 /// [dateTime] is the dive's wall clock (entry time when recorded, otherwise the
 /// dive date), used to pick the hour to sample from the archive response.
@@ -1241,53 +1245,23 @@ class DiveRepository {
     }
   }
 
-  /// The weather columns a conditions fetch is allowed to fill.
-  ///
-  /// `weatherDescription` is deliberately absent: the provider returns no
-  /// prose, and the column holds the diver's own words when it holds anything.
-  static Expression<bool> _hasConditionsGap(Dives t) =>
-      t.windSpeed.isNull() |
-      t.windDirection.isNull() |
-      t.cloudCover.isNull() |
-      t.precipitation.isNull() |
-      t.humidity.isNull() |
-      t.weatherCode.isNull() |
-      t.airTemp.isNull() |
-      t.surfacePressure.isNull();
-
-  /// Restricts a conditions query to dives that can still be filled: the dive
-  /// has a site with coordinates and at least one empty weather column.
-  ///
-  /// Shared by the candidate list and its count so the two can never disagree
-  /// about what "needs conditions" means.
-  Expression<bool> _needsConditions($DiveSitesTable sites, {String? diverId}) {
-    var condition =
-        sites.latitude.isNotNull() &
-        sites.longitude.isNotNull() &
-        _hasConditionsGap(_db.dives);
-    if (diverId != null) {
-      condition = condition & _db.dives.diverId.equals(diverId);
-    }
-    return condition;
-  }
-
-  /// How many dives a conditions fetch could still fill something in for.
+  /// How many dives a conditions fetch could still fill something in for:
+  /// those with an empty weather column and a location, restricted to
+  /// [diveIds] when given.
   ///
   /// A COUNT rather than `getDivesNeedingConditions().length`: the confirm
   /// dialog only needs the number, and a large logbook should not be
   /// materialised to produce it.
-  Future<int> countDivesNeedingConditions({String? diverId}) async {
+  Future<int> countDivesNeedingConditions({
+    String? diverId,
+    Set<String>? diveIds,
+  }) async {
     try {
-      final sites = _db.diveSites;
-      final countExpr = _db.dives.id.count();
-      final query = _db.selectOnly(_db.dives)
-        ..addColumns([countExpr])
-        ..where(_needsConditions(sites, diverId: diverId));
-      query.join([innerJoin(sites, sites.id.equalsExp(_db.dives.siteId))]);
-
-      final row = await query.getSingle();
-      final int total = row.read(countExpr) ?? 0;
-      return total;
+      return await _countConditionsGaps(
+        located: true,
+        diverId: diverId,
+        diveIds: diveIds,
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to count dives needing conditions',
@@ -1298,53 +1272,112 @@ class DiveRepository {
     }
   }
 
+  /// How many dives are missing conditions but have nowhere to fetch them
+  /// for: no site coordinates and no GPS fix of their own. The selection's
+  /// confirm dialog says these will be skipped.
+  Future<int> countDivesMissingConditionsWithoutLocation({
+    String? diverId,
+    Set<String>? diveIds,
+  }) async {
+    try {
+      return await _countConditionsGaps(
+        located: false,
+        diverId: diverId,
+        diveIds: diveIds,
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count dives missing conditions without a location',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// How many of [diveIds] are logged dives: neither planned nor gone. A
+  /// selection's conditions fetch states its share against this, since
+  /// planned dives are never fetched for.
+  Future<int> countLoggedDives(Set<String> diveIds) async {
+    try {
+      var total = 0;
+      for (final chunk in seriesIdChunks(diveIds.toList())) {
+        final countExpr = _db.dives.id.count();
+        final query = _db.selectOnly(_db.dives)
+          ..addColumns([countExpr])
+          ..where(_db.dives.id.isIn(chunk) & _db.dives.isPlanned.equals(false));
+        final row = await query.getSingle();
+        total += row.read(countExpr) ?? 0;
+      }
+      return total;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to count logged dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Dives a conditions fetch can still fill something in for: the dive has a
-  /// site with coordinates and at least one empty weather column.
+  /// location and at least one empty weather column, restricted to [diveIds]
+  /// when given. Newest first.
   ///
   /// Projects only the id, sample time and coordinates rather than selecting
   /// whole `dives` and `dive_sites` rows, so scanning a large logbook neither
   /// transfers nor deserialises columns nobody reads.
   Future<List<ConditionsCandidate>> getDivesNeedingConditions({
     String? diverId,
+    Set<String>? diveIds,
   }) async {
     try {
       final sites = _db.diveSites;
-      final query = _db.selectOnly(_db.dives)
-        ..addColumns([
-          _db.dives.id,
-          _db.dives.entryTime,
-          _db.dives.diveDateTime,
-          sites.latitude,
-          sites.longitude,
-        ])
-        ..where(_needsConditions(sites, diverId: diverId))
-        ..orderBy([OrderingTerm.desc(_db.dives.diveDateTime)]);
-      query.join([innerJoin(sites, sites.id.equalsExp(_db.dives.siteId))]);
+      final dives = _db.dives;
+      // Paired with the dive date, which orders the result across chunks.
+      final rows = <(int, ConditionsCandidate)>[];
+      for (final chunk in _conditionsIdChunks(diveIds)) {
+        final query = _db.selectOnly(dives)
+          ..addColumns([
+            dives.id,
+            dives.entryTime,
+            dives.diveDateTime,
+            dives.entryLatitude,
+            dives.entryLongitude,
+            dives.exitLatitude,
+            dives.exitLongitude,
+            sites.latitude,
+            sites.longitude,
+          ])
+          ..where(
+            _conditionsScope(diverId: diverId, diveIds: chunk) &
+                _hasConditionsLocation(sites),
+          );
+        query.join([leftOuterJoin(sites, sites.id.equalsExp(dives.siteId))]);
 
-      final rows = await query.get();
-      final candidates = <ConditionsCandidate>[];
-      for (final row in rows) {
-        final id = row.read(_db.dives.id);
-        final diveDateTime = row.read(_db.dives.diveDateTime);
-        final latitude = row.read(sites.latitude);
-        final longitude = row.read(sites.longitude);
-        if (id == null ||
-            diveDateTime == null ||
-            latitude == null ||
-            longitude == null) {
-          continue;
+        for (final row in await query.get()) {
+          final id = row.read(dives.id);
+          final diveDateTime = row.read(dives.diveDateTime);
+          final location = _conditionsLocation(row, sites);
+          if (id == null || diveDateTime == null || location == null) {
+            continue;
+          }
+          rows.add((
+            diveDateTime,
+            (
+              id: id,
+              dateTime: DateTime.fromMillisecondsSinceEpoch(
+                row.read(dives.entryTime) ?? diveDateTime,
+                isUtc: true,
+              ),
+              latitude: location.latitude,
+              longitude: location.longitude,
+            ),
+          ));
         }
-        candidates.add((
-          id: id,
-          dateTime: DateTime.fromMillisecondsSinceEpoch(
-            row.read(_db.dives.entryTime) ?? diveDateTime,
-            isUtc: true,
-          ),
-          latitude: latitude,
-          longitude: longitude,
-        ));
       }
-      return candidates;
+      rows.sort((a, b) => b.$1.compareTo(a.$1));
+      return [for (final (_, candidate) in rows) candidate];
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get dives needing conditions',
@@ -2260,10 +2293,13 @@ class DiveRepository {
   /// smoothing flattening short features.
   ///
   /// Summarises a dive's primary series only when it has any, every series
-  /// otherwise; a dive with no series is absent from the result. The blobs
-  /// are decoded, merged and downsampled on a background isolate
-  /// ([summarizeSparklinesInBackground]), since a page's worth on the UI
-  /// isolate dropped frames mid-scroll (#3506).
+  /// otherwise. A dive with no series maps to an empty list, so the list can
+  /// tell it has no samples from not fetched yet and draw an estimated
+  /// outline (#4112); a dive whose every series is unreadable, and every
+  /// dive when the read fails, is absent instead, since it may well have
+  /// samples. The blobs are decoded, merged and downsampled on a background
+  /// isolate ([summarizeSparklinesInBackground]), since a page's worth on
+  /// the UI isolate dropped frames mid-scroll (#3506).
   Future<Map<String, List<domain.DiveProfilePoint>>> getBatchProfileSummaries(
     List<String> diveIds, {
     int maxSamples = 120,
@@ -2277,7 +2313,12 @@ class DiveRepository {
           maxSamples: maxSamples,
         );
         _logUnreadableSeries(summaries.unreadable);
-        return summaries.result;
+        final withSeries = {for (final row in rows) row.diveId};
+        return {
+          ...summaries.result,
+          for (final id in diveIds)
+            if (!withSeries.contains(id)) id: const <domain.DiveProfilePoint>[],
+        };
       });
     } catch (e, stackTrace) {
       _log.error(
@@ -2286,6 +2327,25 @@ class DiveRepository {
         stackTrace: stackTrace,
       );
       return {};
+    }
+  }
+
+  /// Whether [diveId] has any stored profile series, readable or not.
+  ///
+  /// [getDiveById] reads an unreadable series as an empty profile, which
+  /// looks like a dive logged without samples; this tells the two apart,
+  /// so only the second gets an estimated outline (#4112). It counts rows
+  /// without reading a blob.
+  Future<bool> hasProfileSeries(String diveId) async {
+    try {
+      return await _profileSeries.hasAnySeries(diveId);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to check for stored profile series: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
     }
   }
 

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/marine_life/presentation/species_description_lookup.dart';
 import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
+import 'package:submersion/features/marine_life/presentation/species_scientific_names.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 /// Binds the three artifacts that must move together: the bundled asset,
@@ -59,6 +60,18 @@ void main() {
           .toList();
       expect(cases.length, ids.length, reason: path);
       expect(cases.toSet().difference(ids), isEmpty, reason: path);
+    }
+  });
+
+  test('every row carries its scientific name in the generated map', () {
+    expect(kBuiltInSpeciesScientificNames.length, catalog.length);
+    for (final row in catalog) {
+      final id = row['id'] as String;
+      expect(
+        kBuiltInSpeciesScientificNames[id],
+        row['scientificName'],
+        reason: id,
+      );
     }
   });
 }

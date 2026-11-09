@@ -86,4 +86,28 @@ void main() {
       ((21 - firstDeco.depthMeters) / 9 * 60).round(),
     );
   });
+
+  test('the OC travel the chart reads lines up with the stops and the '
+      'switch (issue #4078)', () {
+    final outcome = const BailoutSolver().solve(_plan())!;
+    final travel = outcome.ocTravel;
+
+    expect(travel.first.startSeconds, outcome.worstCase.runtimeSeconds);
+    expect(travel.first.startDepthMeters, outcome.worstCase.depthMeters);
+    // EAN50 is picked up where its MOD is crossed, just short of the 21 m
+    // switch stop, the depth the solver starts charging it from.
+    final switchStop = outcome.ocStops.firstWhere((s) => s.depthMeters == 21);
+    final onEan50 = travel.firstWhere((s) => s.tankId == 'ean50');
+    expect(onEan50.startDepthMeters, inInclusiveRange(21.0, 22.0));
+    expect(
+      onEan50.startSeconds,
+      lessThanOrEqualTo(switchStop.arrivalRuntimeSeconds),
+    );
+    // The last stretch is the leg to the surface.
+    final lastStop = outcome.ocStops.last;
+    expect(
+      travel.last.startSeconds,
+      lastStop.arrivalRuntimeSeconds + lastStop.durationSeconds,
+    );
+  });
 }

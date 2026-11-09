@@ -325,6 +325,146 @@ void main() {
     },
   );
 
+  group('preview counts the fill, and slot ids (#4347)', () {
+    test('preview counts only cylinders the fill would change', () async {
+      await seedDiverAndDive();
+      // Already carries everything the entry would fill.
+      await seedTank(
+        id: 'full',
+        diveId: 'd1',
+        serial: '180777',
+        volume: 2,
+        role: 'oxygenSupply',
+      );
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "UPDATE dive_tanks SET working_pressure = 232, tank_material = 'steel', "
+        "tank_name = 'O2' WHERE id = 'full'",
+      );
+      await seedTank(id: 'empty', diveId: 'd1', serial: '180777');
+      final entry = await repo.create(_entry());
+
+      final preview = await repo.previewApplyToExistingDives(entry);
+
+      expect(preview.tanksUpdated, 1);
+      expect(preview.divesUpdated, 1);
+    });
+
+    test('slot ids are filled with the same rules and never gain the '
+        'serial', () async {
+      await seedDiverAndDive();
+      await seedTank(id: 'slot', diveId: 'd1');
+      final entry = await repo.create(_entry());
+
+      final preview = await repo.previewApplyToExistingDives(
+        entry,
+        slotTankIds: ['slot'],
+      );
+      final result = await repo.applyToExistingDives(
+        entry,
+        slotTankIds: ['slot'],
+      );
+
+      expect(preview.tanksUpdated, 1);
+      expect(result.tanksUpdated, 1);
+      final db = DatabaseService.instance.database;
+      final row = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals('slot'))).getSingle();
+      expect(row.volume, 2.0);
+      expect(row.tankRole, 'oxygenSupply');
+      expect(row.transmitterSerial, isNull);
+    });
+
+    test(
+      'a slot id that gained a serial since the preview is skipped',
+      () async {
+        await seedDiverAndDive();
+        await seedTank(id: 'slot', diveId: 'd1', serial: '999');
+        final entry = await repo.create(_entry());
+
+        final result = await repo.applyToExistingDives(
+          entry,
+          slotTankIds: ['slot'],
+        );
+
+        expect(result.tanksUpdated, 0);
+      },
+    );
+
+    test('a slot id the serial also matches is counted once', () async {
+      await seedDiverAndDive();
+      await seedTank(id: 'both', diveId: 'd1', serial: '180777');
+      final entry = await repo.create(_entry());
+
+      final preview = await repo.previewApplyToExistingDives(
+        entry,
+        slotTankIds: ['both'],
+      );
+
+      expect(preview.tanksUpdated, 1);
+    });
+
+    test('the second preview after applying a slot counts zero', () async {
+      await seedDiverAndDive();
+      await seedTank(id: 'slot', diveId: 'd1');
+      final entry = await repo.create(_entry());
+
+      await repo.applyToExistingDives(entry, slotTankIds: ['slot']);
+      final again = await repo.previewApplyToExistingDives(
+        entry,
+        slotTankIds: ['slot'],
+      );
+
+      expect(again.tanksUpdated, 0);
+    });
+  });
+
+  group('channel entries and file imports (#4347)', () {
+    // The dive is attributed to c1 the way an import attributes it (after
+    // createDive), and its primary source says whether a file brought it in.
+    Future<void> seedPrimarySource(String diveId, {String? fileFormat}) async {
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "UPDATE dives SET computer_id = 'c1' WHERE id = '$diveId'",
+      );
+      await db.customStatement(
+        'INSERT INTO dive_data_sources (id, dive_id, is_primary, '
+        'source_file_format, imported_at, created_at) '
+        "VALUES ('src-$diveId', '$diveId', 1, "
+        "${fileFormat == null ? 'NULL' : "'$fileFormat'"}, 1, 1)",
+      );
+    }
+
+    test('a channel entry does not match a file-imported cylinder', () async {
+      await seedDiverAndDive(computerId: 'c1');
+      await seedPrimarySource('d1', fileFormat: 'uddf');
+      // A UDDF cylinder: no parsed index, no computer of its own.
+      await seedTank(id: 'k1', diveId: 'd1', order: 0);
+      final entry = await repo.create(
+        _entry(serial: null, computerId: 'c1', channel: 0),
+      );
+
+      final preview = await repo.previewApplyToExistingDives(entry);
+
+      expect(preview.tanksUpdated, 0);
+    });
+
+    test('a download from before source indices still matches by its '
+        'order', () async {
+      await seedDiverAndDive(computerId: 'c1');
+      await seedPrimarySource('d1');
+      await seedTank(id: 'k1', diveId: 'd1', order: 0);
+      final entry = await repo.create(
+        _entry(serial: null, computerId: 'c1', channel: 0),
+      );
+
+      final preview = await repo.previewApplyToExistingDives(entry);
+
+      expect(preview.tanksUpdated, 1);
+    });
+  });
+
   test(
     'a row stored raw by sync still conflicts and still matches tanks',
     () async {

@@ -33,8 +33,10 @@ void main() {
 
   tearDown(tearDownTestDatabase);
 
+  // #4112: a dive with no series maps to an empty list, so the dive list can
+  // tell "has no samples" (estimate an outline) from "not fetched yet".
   test(
-    'a series-backed dive is summarised, a dive without one is absent',
+    'a series-backed dive is summarised, a dive without one maps to empty',
     () async {
       await series.insertSeries(
         diveId: 'dive-1',
@@ -49,7 +51,9 @@ void main() {
         'dive-2',
         'dive-3',
       ], maxSamples: 120);
-      expect(summaries.keys.toSet(), {'dive-1'});
+      expect(summaries.keys.toSet(), {'dive-1', 'dive-2', 'dive-3'});
+      expect(summaries['dive-2'], isEmpty);
+      expect(summaries['dive-3'], isEmpty);
       expect(summaries['dive-1'], hasLength(120));
       expect(summaries['dive-1']!.first.timestamp, 0);
       expect(summaries['dive-1']!.last.timestamp, 299);
@@ -174,6 +178,20 @@ void main() {
         'dive-2',
       ], maxSamples: 120);
       expect(summaries.keys.toSet(), {'dive-2'});
+    });
+
+    // #4112: getDiveById hands back an empty profile for it, so the detail
+    // page and the profile strip ask this before drawing an estimate.
+    test('still counts as a stored profile', () async {
+      final badId = await series.insertSeries(
+        diveId: 'dive-1',
+        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+        now: now,
+      );
+      await corrupt(badId);
+
+      expect(await dives.hasProfileSeries('dive-1'), isTrue);
+      expect(await dives.hasProfileSeries('dive-2'), isFalse);
     });
 
     test('still lets getDiveById return the dive', () async {
