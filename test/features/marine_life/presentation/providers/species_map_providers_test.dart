@@ -9,6 +9,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/services/gbif_species_map_service.dart';
+import 'package:submersion/features/marine_life/data/services/gbif_tile_client.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
 import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
@@ -388,5 +389,12 @@ void main() {
 
       expect(service.calls, 0);
     });
+  });
+
+  test('the tile client reads an empty GBIF tile as drawn, not failed', () {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    expect(container.read(gbifTileHttpClientProvider), isA<GbifTileClient>());
   });
 }

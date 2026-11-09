@@ -5619,6 +5619,7 @@
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} specie} other{{count} specie}}",
   "speciesMap_semantics_loggedPin": "{site}, {count, plural, one{{count} avvistamento} other{{count} avvistamenti}}",
   "speciesMap_semantics_expectedPin": "{site}, attesa",
+  "speciesMap_semantics_cluster": "{count, plural, one{{count} sito} other{{count} siti}}",
   "speciesMap_whereSeen_title": "Dove è stata vista",
   "speciesMap_whereSeen_openFullMap": "Apri mappa completa",
   "speciesMap_whereSeen_empty": "Non ancora registrata in un sito sulla mappa.",

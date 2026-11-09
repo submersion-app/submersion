@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 
 import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Pin size on the places view: 32 at one species, growing by 8 for each
 /// doubling, capped at 52 so a rich site never swallows its neighbours.
@@ -165,22 +166,29 @@ class SpeciesMapClusterMarker extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final expectedOnly = markers.every(_isExpectedPin);
-    return Container(
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: expectedOnly ? scheme.surface : scheme.secondaryContainer,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: expectedOnly ? scheme.primary : scheme.secondary,
-          width: 2,
+    // Named for a screen reader, which would otherwise hear a bare number;
+    // the cluster layer's own detector supplies the tap.
+    return Semantics(
+      button: true,
+      label: context.l10n.speciesMap_semantics_cluster(markers.length),
+      excludeSemantics: true,
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: expectedOnly ? scheme.surface : scheme.secondaryContainer,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: expectedOnly ? scheme.primary : scheme.secondary,
+            width: 2,
+          ),
+          boxShadow: _shadow,
         ),
-        boxShadow: _shadow,
-      ),
-      child: Text(
-        '${markers.length}',
-        style: TextStyle(
-          color: expectedOnly ? scheme.primary : scheme.onSecondaryContainer,
-          fontWeight: FontWeight.bold,
+        child: Text(
+          '${markers.length}',
+          style: TextStyle(
+            color: expectedOnly ? scheme.primary : scheme.onSecondaryContainer,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

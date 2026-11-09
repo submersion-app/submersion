@@ -35,12 +35,16 @@ Future<List<String?>> _pump(
   WidgetTester tester, {
   List<SeenSpecies>? seen,
   bool seenFails = false,
+  bool catalogFails = false,
 }) async {
   final picked = <String?>[];
   await tester.pumpWidget(
     await speciesMapHarness(
       overrides: [
-        allSpeciesProvider.overrideWith((ref) async => [_manta, _mola]),
+        allSpeciesProvider.overrideWith(
+          (ref) async =>
+              catalogFails ? throw StateError('db') : [_manta, _mola],
+        ),
         seenSpeciesProvider.overrideWith(
           (ref) async =>
               seenFails ? throw StateError('db') : seen ?? [_seenOf(_manta, 9)],
@@ -87,6 +91,32 @@ void main() {
     expect(find.text('Could not load the species map.'), findsOneWidget);
     // The places view stays one tap away.
     expect(find.text('All sites'), findsOneWidget);
+  });
+
+  testWidgets('a failed catalog read still lists the seen species', (
+    tester,
+  ) async {
+    // The seen list carries its own species; only the search needs the
+    // catalog.
+    final picked = await _pump(tester, catalogFails: true);
+
+    expect(find.text('Could not load the species map.'), findsNothing);
+    await tester.tap(find.text('Reef Manta Ray'));
+    expect(picked, ['manta']);
+
+    await tester.enterText(find.byType(TextField), 'mola');
+    await tester.pumpAndSettle();
+    expect(find.text('Could not load the species map.'), findsOneWidget);
+  });
+
+  testWidgets('a failed seen read still searches the catalog', (tester) async {
+    await _pump(tester, seenFails: true);
+
+    await tester.enterText(find.byType(TextField), 'mola');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ocean Sunfish'), findsOneWidget);
+    expect(find.text('Could not load the species map.'), findsNothing);
   });
 
   testWidgets('species seen equally often are listed by name', (tester) async {

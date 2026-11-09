@@ -19584,6 +19584,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sitios',
+      one: '$count sitio',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get speciesMap_whereSeen_title => 'Dónde se ha visto';
 
   @override

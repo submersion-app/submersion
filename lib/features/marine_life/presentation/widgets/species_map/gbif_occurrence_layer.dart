@@ -45,7 +45,9 @@ class GbifOccurrenceLayer extends ConsumerWidget {
           // a rebuild replacing the provider leaks nothing.
           httpClient: ref.watch(gbifTileHttpClientProvider),
           // Not silenced: a silenced failure is drawn as a transparent tile
-          // and never reaches errorTileCallback below.
+          // and never reaches errorTileCallback below. A tile with no
+          // records is no failure: the client hands GBIF's 204 on as an
+          // empty tile (GbifTileClient).
           silenceExceptions: false,
         ),
         errorTileCallback: (tile, error, stackTrace) {

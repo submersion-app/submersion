@@ -72,12 +72,15 @@ class _SpeciesMapListPaneState extends ConsumerState<SpeciesMapListPane> {
     final l10n = context.l10n;
     final seenAsync = ref.watch(seenSpeciesProvider);
     final catalogAsync = ref.watch(allSpeciesProvider);
+    final needle = normalize(_query);
     // A failed read says so: an empty list would read as "nothing logged".
-    final failed = seenAsync.hasError || catalogAsync.hasError;
+    // Only the read the list on screen needs: the seen list carries its own
+    // species, and the search runs over the catalog (losing only the
+    // seen-first order if the seen read failed).
+    final failed = needle.isEmpty ? seenAsync.hasError : catalogAsync.hasError;
     final seen = seenAsync.value ?? const <SeenSpecies>[];
     final catalog = catalogAsync.value ?? const <Species>[];
     final seenById = {for (final s in seen) s.species.id: s};
-    final needle = normalize(_query);
 
     final List<Species> rows;
     if (failed) {

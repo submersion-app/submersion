@@ -5720,6 +5720,7 @@
   "speciesMap_semantics_sitePin": "{site}، {count, plural, zero{لا أنواع} one{نوع واحد} two{نوعان} few{{count} أنواع} many{{count} نوعًا} other{{count} نوع}}",
   "speciesMap_semantics_loggedPin": "{site}، {count, plural, zero{لا مشاهدات} one{مشاهدة واحدة} two{مشاهدتان} few{{count} مشاهدات} many{{count} مشاهدة} other{{count} مشاهدة}}",
   "speciesMap_semantics_expectedPin": "{site}، متوقع",
+  "speciesMap_semantics_cluster": "{count, plural, zero{لا مواقع} one{موقع واحد} two{موقعان} few{{count} مواقع} many{{count} موقعًا} other{{count} موقع}}",
   "speciesMap_whereSeen_title": "أين شوهد",
   "speciesMap_whereSeen_openFullMap": "فتح الخريطة كاملة",
   "speciesMap_whereSeen_empty": "لم يُسجّل بعد في موقع على الخريطة.",

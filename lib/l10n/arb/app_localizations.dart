@@ -31289,6 +31289,12 @@ abstract class AppLocalizations {
   /// **'{site}, expected'**
   String speciesMap_semantics_expectedPin(String site);
 
+  /// Screen-reader label for a cluster of pins on the species map
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} site} other{{count} sites}}'**
+  String speciesMap_semantics_cluster(int count);
+
   /// No description provided for @speciesMap_whereSeen_title.
   ///
   /// In en, this message translates to:

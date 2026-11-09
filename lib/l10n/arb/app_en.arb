@@ -11701,6 +11701,15 @@
       }
     }
   },
+  "speciesMap_semantics_cluster": "{count, plural, one{{count} site} other{{count} sites}}",
+  "@speciesMap_semantics_cluster": {
+    "description": "Screen-reader label for a cluster of pins on the species map",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "speciesMap_whereSeen_title": "Where seen",
   "speciesMap_whereSeen_openFullMap": "Open full map",
   "speciesMap_whereSeen_empty": "Not logged at a mapped site yet.",

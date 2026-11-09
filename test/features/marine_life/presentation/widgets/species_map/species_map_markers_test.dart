@@ -122,5 +122,28 @@ void main() {
       final decoration = _circle(tester, find.byType(SpeciesMapClusterMarker));
       expect(decoration.color, isNot(Theme.of(context).colorScheme.surface));
     });
+
+    testWidgets('a screen reader hears how many sites, not a bare number', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          home: Center(
+            child: SpeciesMapClusterMarker(
+              markers: [
+                pin(SpeciesPinKind.logged),
+                pin(SpeciesPinKind.expected),
+                pin(SpeciesPinKind.logged),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      expect(find.bySemanticsLabel('3 sites'), findsOneWidget);
+      expect(find.bySemanticsLabel('3'), findsNothing);
+      semantics.dispose();
+    });
   });
 }

@@ -299,6 +299,11 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
               l10n.speciesMap_publicUnavailable,
             if (!publicOn && pins.isEmpty) l10n.speciesMap_suggestPublic,
           ],
+          // Riverpod asks again by itself for about 38 seconds; a diver
+          // offline for longer gets the key asked again from here.
+          onRetryNotes: publicOn && taxonKey?.hasError == true
+              ? () => ref.invalidate(speciesGbifTaxonKeyProvider(speciesId))
+              : null,
         );
       },
     );
@@ -349,25 +354,29 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     required String siteId,
     required Widget child,
     Key? key,
-  }) => Marker(
-    key: key,
-    point: point,
-    width: size,
-    height: size,
-    child: Semantics(
-      button: true,
-      label: label,
-      excludeSemantics: true,
-      child: GestureDetector(
-        // Selects without zooming: the card opens over the view the diver
-        // chose, so comparing neighbouring sites stays one tap each.
-        onTap: () => ref
-            .read(mapListSelectionProvider(_sectionKey).notifier)
-            .select(siteId),
-        child: child,
+  }) {
+    // Selects without zooming: the card opens over the view the diver chose,
+    // so comparing neighbouring sites stays one tap each.
+    void select() =>
+        ref.read(mapListSelectionProvider(_sectionKey).notifier).select(siteId);
+    return Marker(
+      key: key,
+      point: point,
+      width: size,
+      height: size,
+      // Its own node with its own tap: excluding the marker's count drops
+      // the detector's tap too, and the label alone would merge into the
+      // map's node, whose tap closes the card instead.
+      child: Semantics(
+        container: true,
+        button: true,
+        label: label,
+        onTap: select,
+        excludeSemantics: true,
+        child: GestureDetector(onTap: select, child: child),
       ),
-    ),
-  );
+    );
+  }
 
   Widget _map(
     BuildContext context, {
@@ -375,6 +384,7 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
     required List<Marker> markers,
     required String? speciesId,
     required List<String?> notes,
+    VoidCallback? onRetryNotes,
   }) {
     if (_fitPending) {
       _fitPending = false;
@@ -483,6 +493,18 @@ class _SpeciesMapPageState extends ConsumerState<SpeciesMapPage>
                           Text(
                             note,
                             style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        if (onRetryNotes != null)
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: const Size(0, 32),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: onRetryNotes,
+                            child: Text(
+                              context.l10n.marineLife_speciesPage_retry,
+                            ),
                           ),
                       ],
                     ),

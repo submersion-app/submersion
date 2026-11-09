@@ -41,6 +41,21 @@ class SpeciesMapSiteCard extends ConsumerWidget {
     final loading = !loggedAsync.hasValue || !catalogAsync.hasValue;
     final logged = loggedAsync.value ?? const <LoggedSpeciesAtSite>[];
     final loggedIds = {for (final l in logged) l.speciesId};
+    // Most seen first, then by the name on screen: the read breaks ties by
+    // species id, which the diver never sees.
+    final named =
+        [
+          for (final item in logged)
+            if (catalog[item.speciesId] case final Species species)
+              (
+                species: species,
+                name: species.localizedCommonName(l10n),
+                count: item.sightingCount,
+              ),
+        ]..sort((a, b) {
+          final byCount = b.count.compareTo(a.count);
+          return byCount != 0 ? byCount : a.name.compareTo(b.name);
+        });
     final expectedAsync = ref.watch(siteExpectedSpeciesProvider(pin.siteId));
     final expected = [
       for (final entry in expectedAsync.value ?? const <SiteSpeciesEntry>[])
@@ -74,16 +89,15 @@ class SpeciesMapSiteCard extends ConsumerWidget {
             spacing: 6,
             runSpacing: 4,
             children: [
-              for (final item in logged)
-                if (catalog[item.speciesId] case final Species species)
-                  SpeciesActionChip(
-                    species: species,
-                    label: l10n.speciesMap_card_speciesWithCount(
-                      species.localizedCommonName(l10n),
-                      item.sightingCount,
-                    ),
-                    onPressed: () => openSpecies(species.id),
+              for (final item in named)
+                SpeciesActionChip(
+                  species: item.species,
+                  label: l10n.speciesMap_card_speciesWithCount(
+                    item.name,
+                    item.count,
                   ),
+                  onPressed: () => openSpecies(item.species.id),
+                ),
             ],
           ),
         // A failed expected read says so under its heading; the logged

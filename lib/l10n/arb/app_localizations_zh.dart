@@ -18621,6 +18621,16 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜点',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get speciesMap_whereSeen_title => '目击地点';
 
   @override

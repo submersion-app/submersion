@@ -5720,6 +5720,7 @@
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} soort} other{{count} soorten}}",
   "speciesMap_semantics_loggedPin": "{site}, {count, plural, one{{count} waarneming} other{{count} waarnemingen}}",
   "speciesMap_semantics_expectedPin": "{site}, verwacht",
+  "speciesMap_semantics_cluster": "{count, plural, one{{count} locatie} other{{count} locaties}}",
   "speciesMap_whereSeen_title": "Waar gezien",
   "speciesMap_whereSeen_openFullMap": "Volledige kaart openen",
   "speciesMap_whereSeen_empty": "Nog niet gelogd op een locatie op de kaart.",

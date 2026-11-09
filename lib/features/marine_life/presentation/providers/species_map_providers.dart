@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_map_repository.dart';
 import 'package:submersion/features/marine_life/data/services/gbif_species_map_service.dart';
+import 'package:submersion/features/marine_life/data/services/gbif_tile_client.dart';
 import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_map_prefs_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -26,9 +27,10 @@ final gbifSpeciesMapServiceProvider = Provider<GbifSpeciesMapService>((ref) {
 /// A tile provider left to create its own client closes it only when its
 /// tile layer unmounts, so every rebuild that hands the layer a new provider
 /// would leave the previous client open. Sharing this one leaves nothing to
-/// close but it, and it carries the app's connect timeout.
+/// close but it, and it carries the app's connect timeout. [GbifTileClient]
+/// draws GBIF's empty tiles (204) as empty rather than failed.
 final gbifTileHttpClientProvider = Provider<http.Client>((ref) {
-  final client = createPlatformHttpClient();
+  final client = GbifTileClient(createPlatformHttpClient());
   ref.onDispose(client.close);
   return client;
 });

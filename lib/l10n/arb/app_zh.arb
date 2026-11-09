@@ -5863,6 +5863,7 @@
   "speciesMap_semantics_sitePin": "{site}，{count, plural, other{{count} 个物种}}",
   "speciesMap_semantics_loggedPin": "{site}，{count, plural, other{{count} 次目击}}",
   "speciesMap_semantics_expectedPin": "{site}，预期",
+  "speciesMap_semantics_cluster": "{count, plural, other{{count} 个潜点}}",
   "speciesMap_whereSeen_title": "目击地点",
   "speciesMap_whereSeen_openFullMap": "打开完整地图",
   "speciesMap_whereSeen_empty": "尚未在地图上的潜点记录。",

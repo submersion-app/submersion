@@ -5846,6 +5846,7 @@
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} Art} other{{count} Arten}}",
   "speciesMap_semantics_loggedPin": "{site}, {count, plural, one{{count} Sichtung} other{{count} Sichtungen}}",
   "speciesMap_semantics_expectedPin": "{site}, erwartet",
+  "speciesMap_semantics_cluster": "{count, plural, one{{count} Tauchplatz} other{{count} Tauchplätze}}",
   "speciesMap_whereSeen_title": "Wo gesehen",
   "speciesMap_whereSeen_openFullMap": "Ganze Karte öffnen",
   "speciesMap_whereSeen_empty": "Noch an keinem kartierten Tauchplatz erfasst.",

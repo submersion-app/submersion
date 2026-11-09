@@ -5619,6 +5619,7 @@
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{מין אחד} other{{count} מינים}}",
   "speciesMap_semantics_loggedPin": "{site}, {count, plural, one{תצפית אחת} other{{count} תצפיות}}",
   "speciesMap_semantics_expectedPin": "{site}, צפוי",
+  "speciesMap_semantics_cluster": "{count, plural, one{אתר אחד} other{{count} אתרים}}",
   "speciesMap_whereSeen_title": "היכן נצפה",
   "speciesMap_whereSeen_openFullMap": "פתיחת המפה המלאה",
   "speciesMap_whereSeen_empty": "טרם תועד באתר שבמפה.",

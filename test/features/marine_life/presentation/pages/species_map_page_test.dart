@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -99,6 +100,8 @@ Future<void> _pump(
   List<SpeciesSitePin> mantaPins = _mantaPins,
   List<SpeciesSitePin> turtlePins = const [],
   Object? taxonKeyError,
+  // Lookups that fail (GBIF unreachable) before one returns [taxonKey].
+  int failedLookups = 0,
   bool tileFailed = false,
   GbifSpeciesMapService? service,
   Duration catalogDelay = Duration.zero,
@@ -113,6 +116,7 @@ Future<void> _pump(
     tester.view.resetDevicePixelRatio();
   });
   final base = await getBaseOverrides();
+  var lookupsToFail = failedLookups;
   if (publicOn) {
     await (await SharedPreferences.getInstance()).setBool(
       kSpeciesMapPublicLayerKey,
@@ -172,10 +176,14 @@ Future<void> _pump(
         if (service != null)
           gbifSpeciesMapServiceProvider.overrideWithValue(service)
         else ...[
-          speciesGbifTaxonKeyProvider('manta').overrideWith(
-            (ref) async =>
-                taxonKeyError != null ? throw taxonKeyError : taxonKey,
-          ),
+          speciesGbifTaxonKeyProvider('manta').overrideWith((ref) async {
+            if (taxonKeyError != null) throw taxonKeyError;
+            if (lookupsToFail > 0) {
+              lookupsToFail--;
+              throw const GbifUnavailableException('offline');
+            }
+            return taxonKey;
+          }),
           speciesGbifTaxonKeyProvider(
             'turtle',
           ).overrideWith((ref) async => taxonKey),
@@ -202,6 +210,19 @@ void main() {
 
     expect(_pin('Blue Corner, 3 species'), findsOneWidget);
     expect(_pin('Manta Point, 6 sightings'), findsNothing);
+  });
+
+  testWidgets('a screen reader opens a site card from its pin', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await _pump(tester);
+
+    final node = tester.getSemantics(_pin('Blue Corner, 3 species'));
+    expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
+    node.owner!.performAction(node.id, SemanticsAction.tap);
+    await _settleMap(tester);
+
+    expect(find.byType(SpeciesMapSiteCard), findsOneWidget);
+    semantics.dispose();
   });
 
   for (final size in const [Size(1400, 900), Size(400, 800)]) {
@@ -345,6 +366,31 @@ void main() {
 
     expect(find.text('Public records could not be loaded.'), findsOneWidget);
     expect(find.textContaining('No public records can be shown'), findsNothing);
+  });
+
+  testWidgets('a failed GBIF lookup can be asked again from its note', (
+    tester,
+  ) async {
+    // Riverpod asks again by itself, ten times over about 38 seconds; a
+    // diver offline for longer is left with the note.
+    await _pump(
+      tester,
+      initialSpeciesId: 'manta',
+      publicOn: true,
+      taxonKey: 9241141,
+      failedLookups: 11,
+    );
+    for (var i = 0; i < 45; i++) {
+      await tester.pump(const Duration(seconds: 1));
+    }
+    expect(find.text('Public records could not be loaded.'), findsOneWidget);
+
+    // Back online: the diver asks again without leaving the map.
+    await tester.tap(find.widgetWithText(TextButton, 'Retry'));
+    await _settleMap(tester);
+
+    expect(find.text('Public records could not be loaded.'), findsNothing);
+    expect(find.widgetWithText(TextButton, 'Retry'), findsNothing);
   });
 
   testWidgets('a failed public tile says records did not load', (tester) async {

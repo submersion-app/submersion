@@ -5619,6 +5619,7 @@
   "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} faj} other{{count} faj}}",
   "speciesMap_semantics_loggedPin": "{site}, {count, plural, one{{count} észlelés} other{{count} észlelés}}",
   "speciesMap_semantics_expectedPin": "{site}, várható",
+  "speciesMap_semantics_cluster": "{count, plural, one{{count} merülőhely} other{{count} merülőhely}}",
   "speciesMap_whereSeen_title": "Hol láttad",
   "speciesMap_whereSeen_openFullMap": "Teljes térkép megnyitása",
   "speciesMap_whereSeen_empty": "Még nincs rögzítve térképen szereplő merülőhelyen.",

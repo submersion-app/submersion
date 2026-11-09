@@ -114,6 +114,22 @@ void main() {
     expect(find.textContaining('14'), findsOneWidget);
   });
 
+  testWidgets('species seen equally often are listed by name', (tester) async {
+    // The read breaks ties by species id, which means nothing on screen.
+    await _pump(
+      tester,
+      logged: Future.value(const [
+        LoggedSpeciesAtSite(speciesId: 'wrasse', sightingCount: 3),
+        LoggedSpeciesAtSite(speciesId: 'shark', sightingCount: 3),
+      ]),
+    );
+
+    final shark = tester.getTopLeft(find.textContaining('Grey Reef Shark'));
+    final wrasse = tester.getTopLeft(find.textContaining('Napoleon Wrasse'));
+    expect(shark.dy, wrasse.dy);
+    expect(shark.dx, lessThan(wrasse.dx));
+  });
+
   testWidgets('lists expected species not yet logged, omitting logged ones', (
     tester,
   ) async {
