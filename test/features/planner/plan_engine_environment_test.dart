@@ -19,7 +19,7 @@ domain.DivePlan _plan({double? altitude, WaterType? waterType}) =>
 
 void main() {
   test('an unset or zero altitude keeps the legacy 1.0 bar surface', () {
-    for (final altitude in [null, 0.0, -10.0]) {
+    for (final altitude in [null, 0.0]) {
       expect(
         PlanEngine.environmentFor(_plan(altitude: altitude)),
         DiveEnvironment.forConditions(
@@ -34,6 +34,39 @@ void main() {
   test('a positive altitude lowers the surface pressure', () {
     final environment = PlanEngine.environmentFor(_plan(altitude: 1500));
     expect(environment.surfacePressureBar, lessThan(1.0));
+  });
+
+  test('a below-sea-level altitude raises the surface pressure (#4314)', () {
+    // The planner and the calculator both accept signed altitudes; the engine
+    // used to read every altitude <= 0 as the legacy 1.0 bar surface.
+    final environment = PlanEngine.environmentFor(_plan(altitude: -430));
+    expect(environment.surfacePressureBar, greaterThan(1.0));
+    expect(
+      environment,
+      DiveEnvironment.forConditions(
+        altitudeMeters: -430,
+        waterType: WaterType.salt,
+      ),
+    );
+  });
+
+  test('environmentForConditions is what environmentFor applies', () {
+    for (final altitude in [null, 0.0, -430.0, 1500.0]) {
+      expect(
+        PlanEngine.environmentForConditions(
+          altitude: altitude,
+          waterType: WaterType.fresh,
+          salinityPpt: 20,
+        ),
+        PlanEngine.environmentFor(
+          _plan(
+            altitude: altitude,
+            waterType: WaterType.fresh,
+          ).copyWith(salinityPpt: 20),
+        ),
+        reason: '$altitude',
+      );
+    }
   });
 
   test('an unset water type is salt; a set one is honoured', () {
