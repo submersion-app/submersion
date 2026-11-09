@@ -40,19 +40,22 @@ abstract interface class RangeReadStore {
   });
 }
 
-/// The bytes [start] to [endInclusive] of a ranged GET's answer: a `206`
-/// body is the range already, a `200` body (a server that ignores `Range`)
-/// is the whole object and is cut down here.
+/// The bytes [start] to [endInclusive] of a ranged GET's answer. A `206`
+/// body starts at [start] but may run past the end a server was asked for,
+/// and a `200` body (a server that ignores `Range`) is the whole object;
+/// both are cut down to the range here, so a reader never passes on more
+/// than it asked for.
 Uint8List rangeOfAnswer(
   int status,
   Uint8List body, {
   required int start,
   required int endInclusive,
 }) {
-  if (status != 200) return body;
-  if (start >= body.length) return Uint8List(0);
-  final end = endInclusive + 1 < body.length ? endInclusive + 1 : body.length;
-  return Uint8List.sublistView(body, start, end);
+  final from = status == 200 ? start : 0;
+  final to = status == 200 ? endInclusive + 1 : endInclusive - start + 1;
+  if (from >= body.length) return Uint8List(0);
+  if (from == 0 && to >= body.length) return body;
+  return Uint8List.sublistView(body, from, to < body.length ? to : body.length);
 }
 
 /// How long an S3 presigned video link stays valid.

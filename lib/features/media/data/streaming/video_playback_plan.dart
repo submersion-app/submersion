@@ -62,6 +62,31 @@ class StreamCandidate {
   final void Function(Uri url) close;
 }
 
+/// One version of a stored video: where it is and what it is.
+typedef _Version = ({ServedTier tier, String key, String extension});
+
+/// The original's and the rendition's place in the store for a video with
+/// [hash].
+({_Version original, _Version rendition}) _versionsOf(
+  MediaItem item,
+  String hash,
+) {
+  final originalExtension = StoreKeys.extensionFor(item.originalFilename);
+  final renditionExtension = StoreKeys.renditionExtension(isVideo: true);
+  return (
+    original: (
+      tier: ServedTier.original,
+      key: StoreKeys.objectKey(hash, extension: originalExtension),
+      extension: originalExtension,
+    ),
+    rendition: (
+      tier: ServedTier.rendition,
+      key: StoreKeys.renditionKey(hash, ext: renditionExtension),
+      extension: renditionExtension,
+    ),
+  );
+}
+
 /// How [item] streams from [store] in a browser: the original, then the
 /// rendition, as the store's own resolver orders them. [relay] is the
 /// stream worker's, or null when this browser has none.
@@ -72,30 +97,14 @@ VideoPlayback planStoreVideo(
 }) {
   final hash = item.contentHash;
   if (hash == null) return const NoPlayback(NoPlaybackReason.notFound);
-  final versions = <({ServedTier tier, String key, String extension})>[
-    if (item.remoteUploadedAt != null)
-      (
-        tier: ServedTier.original,
-        key: StoreKeys.objectKey(
-          hash,
-          extension: StoreKeys.extensionFor(item.originalFilename),
-        ),
-        extension: StoreKeys.extensionFor(item.originalFilename),
-      ),
-    if (item.remoteCompressedUploadedAt != null)
-      (
-        tier: ServedTier.rendition,
-        key: StoreKeys.renditionKey(
-          hash,
-          ext: StoreKeys.renditionExtension(isVideo: true),
-        ),
-        extension: StoreKeys.renditionExtension(isVideo: true),
-      ),
+  final (:original, :rendition) = _versionsOf(item, hash);
+  final versions = [
+    if (item.remoteUploadedAt != null) original,
+    if (item.remoteCompressedUploadedAt != null) rendition,
   ];
   if (versions.isEmpty) return const NoPlayback(NoPlaybackReason.notFound);
 
-  if (store is DirectLinkStore) {
-    final links = store as DirectLinkStore;
+  if (store case final DirectLinkStore links) {
     return StreamPlayback([
       for (final version in versions)
         _directCandidate(links, version.tier, version.key),
@@ -119,6 +128,43 @@ VideoPlayback planStoreVideo(
     ]);
   }
   return const NoPlayback(NoPlaybackReason.notFound);
+}
+
+/// [item] stamped with the versions [store] holds, when its own stamps say
+/// nothing of either: a row whose upload facts have not reached this
+/// device. The gallery's tiles probe the store the same way
+/// (`MediaStoreResolver.tryResolveProbed`), so a video whose poster shows
+/// also plays. A row with a stamp comes back as it is, and a version the
+/// store cannot vouch for (missing, or the HEAD failed) stays unstamped.
+Future<MediaItem> withProbedStamps(
+  MediaItem item, {
+  required MediaObjectStore store,
+}) async {
+  final hash = item.contentHash;
+  if (hash == null ||
+      item.remoteUploadedAt != null ||
+      item.remoteCompressedUploadedAt != null) {
+    return item;
+  }
+  final (:original, :rendition) = _versionsOf(item, hash);
+  final (originalAt, renditionAt) = await (
+    _modifiedAt(store, original.key),
+    _modifiedAt(store, rendition.key),
+  ).wait;
+  return item.copyWith(
+    remoteUploadedAt: originalAt,
+    remoteCompressedUploadedAt: renditionAt,
+  );
+}
+
+/// When [store] last modified [key], or null when it does not hold it or
+/// could not say.
+Future<DateTime?> _modifiedAt(MediaObjectStore store, String key) async {
+  try {
+    return (await store.head(key))?.lastModified;
+  } on Exception {
+    return null;
+  }
 }
 
 /// A candidate whose first open may reuse a still-fresh link and whose

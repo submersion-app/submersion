@@ -693,7 +693,7 @@ jobs:
       - name: Run Python guard tests with coverage
         run: |
           mkdir -p coverage
-          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/curated_sites.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py'
+          guards='scripts/check_proguard_serial_keep.py,scripts/check_apk_signing_cert.py,scripts/check_native_libs_present.py,scripts/check_bundled_native_assets.py,scripts/check_glibc_floor.py,scripts/check_jni_local_refs.py,scripts/check_dc_process_isolation.py,scripts/check_ci_success_gate.py,scripts/check_flutter_setup_retried.py,scripts/check_pr_issue_link.py,scripts/fix_macho_symbol_order.py,scripts/release/sanitize_apple_store_notes.py,scripts/bundle_tests.py,scripts/filter_trivial_coverage.py,scripts/beta_failure_alert.py,scripts/release/play_beta_cooldown.py,scripts/report_inherited_failures.py,scripts/export_support_matrix_catalog.py,scripts/check_no_skipped_tests.py,scripts/check_docs_links.py,scripts/check_dependabot_gemfiles.py,scripts/dependabot_failure_alert.py,scripts/check_ruby_versions.py,scripts/demo_data/fetch_demo_db.py,scripts/curated_sites.py,scripts/demo_package_age_alert.py,scripts/demo_data/fetch_published_manifest.py,scripts/snapshot_downloads.py,scripts/check_web_bundle.py,scripts/web/check_sqlite3_wasm_lock.py,scripts/web/check_junit_ran.py,scripts/web/serve_bundle.py,scripts/web/stage_hosted_site.py'
           python3 -m coverage run --include="$guards" \
             scripts/check_proguard_serial_keep_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -754,6 +754,8 @@ jobs:
             scripts/check_web_bundle_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/web/check_sqlite3_wasm_lock_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/web/check_junit_ran_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/web/serve_bundle_test.py
           python3 -m coverage run --append --include="$guards" \
@@ -1236,7 +1238,7 @@ jobs:
           xvfb-run -a python3 -m pytest scripts/web/smoke_test.py -v -rP \
             --junitxml="$RUNNER_TEMP/smoke.xml"
           # A run that tested nothing, or skipped, must not pass.
-          python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); s = [r] if r.tag == 'testsuite' else list(r); t = sum(int(x.get('tests', 0)) for x in s); k = sum(int(x.get('skipped', 0)) for x in s); print('smoke tests', t, 'skipped', k); sys.exit(1 if t == 0 or k else 0)" "$RUNNER_TEMP/smoke.xml"
+          python3 scripts/web/check_junit_ran.py smoke "$RUNNER_TEMP/smoke.xml"
 
       - name: Play video through the stream worker in three browsers
         env:
@@ -1249,7 +1251,7 @@ jobs:
           xvfb-run -a python3 -m pytest scripts/web/media_stream_worker_test.py -v -rP \
             --junitxml="$RUNNER_TEMP/stream.xml"
           # MinIO is up here, so nothing may skip.
-          python3 -c "import sys, xml.etree.ElementTree as ET; r = ET.parse(sys.argv[1]).getroot(); s = [r] if r.tag == 'testsuite' else list(r); t = sum(int(x.get('tests', 0)) for x in s); k = sum(int(x.get('skipped', 0)) for x in s); print('stream tests', t, 'skipped', k); sys.exit(1 if t == 0 or k else 0)" "$RUNNER_TEMP/stream.xml"
+          python3 scripts/web/check_junit_ran.py stream "$RUNNER_TEMP/stream.xml"
 
       - name: Keep the server log
         if: failure()

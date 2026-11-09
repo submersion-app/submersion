@@ -330,4 +330,31 @@ void main() {
       expect(served, lessThan(10));
     },
   );
+
+  test('readRange cuts a 206 that runs past the range', () async {
+    final overServing = WebDavMediaObjectStore(
+      client: WebDavClient(
+        WebDavConfig(
+          serverUrl: 'https://dav.test/dav',
+          username: 'alice',
+          password: 'secret',
+          folder: kDefaultWebDavMediaFolder,
+        ),
+        httpClient: MockClient(
+          (request) async => http.Response.bytes(
+            List<int>.generate(50, (i) => 10 + i),
+            206,
+            headers: {'content-range': 'bytes 10-59/100'},
+          ),
+        ),
+        backoff: (_) => Duration.zero,
+      ),
+    );
+    final bytes = await overServing.readRange(
+      'smv1/objects/ab/abc.mp4',
+      start: 10,
+      endInclusive: 19,
+    );
+    expect(bytes, List<int>.generate(10, (i) => 10 + i));
+  });
 }

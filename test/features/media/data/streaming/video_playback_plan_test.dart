@@ -63,6 +63,31 @@ class _RangeStore implements MediaObjectStore, RangeReadStore {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// A store that holds [held] and answers a HEAD for each, recording asks.
+class _HeldStore implements MediaObjectStore {
+  _HeldStore(this.held, {this.fails = false});
+
+  final Map<String, DateTime> held;
+  final bool fails;
+  final List<String> heads = [];
+
+  @override
+  Future<StoreObjectInfo?> head(String key) async {
+    heads.add(key);
+    if (fails) {
+      throw const MediaStoreException(
+        'unreachable',
+        kind: MediaStoreErrorKind.transient,
+      );
+    }
+    final at = held[key];
+    return at == null ? null : StoreObjectInfo(key: key, lastModified: at);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _PlainStore implements MediaObjectStore {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -169,4 +194,37 @@ void main() {
       expect(store.fresh, [false, true]);
     },
   );
+
+  group('withProbedStamps', () {
+    test('stamps what the store holds for a row with no stamps', () async {
+      // Its upload facts have not reached this device, but the store has
+      // the rendition: the tile shows its poster, so it should play too.
+      final at = DateTime.utc(2026, 7, 1);
+      final store = _HeldStore({renditionKey: at});
+      final probed = await withProbedStamps(
+        _video(original: false),
+        store: store,
+      );
+      expect(store.heads, unorderedEquals([originalKey, renditionKey]));
+      expect(probed.remoteUploadedAt, isNull);
+      expect(probed.remoteCompressedUploadedAt, at);
+    });
+
+    test('leaves a row with a stamp as it is, asking nothing', () async {
+      final store = _HeldStore({});
+      final item = _video(original: true);
+      expect(await withProbedStamps(item, store: store), same(item));
+      expect(store.heads, isEmpty);
+    });
+
+    test('a store that cannot say leaves the row unstamped', () async {
+      final store = _HeldStore({}, fails: true);
+      final probed = await withProbedStamps(
+        _video(original: false),
+        store: store,
+      );
+      expect(probed.remoteUploadedAt, isNull);
+      expect(probed.remoteCompressedUploadedAt, isNull);
+    });
+  });
 }

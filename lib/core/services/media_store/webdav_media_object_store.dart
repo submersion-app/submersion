@@ -126,17 +126,20 @@ class WebDavMediaObjectStore implements MediaObjectStore, RangeReadStore {
       _client.uriFor(_path(key)),
       headers: {'Range': 'bytes=$start-$endInclusive'},
     );
-    if (response.statusCode != 200) return response.stream.toBytes();
-    // A server that ignores Range sends the whole object: read only as far
-    // as the range's end, and stop the rest coming (a video is large and
-    // this runs once per piece the player asks for).
+    // A server that ignores Range sends the whole object (200): read only
+    // as far as the range's end, and stop the rest coming (a video is large
+    // and this runs once per piece the player asks for). A 206 starts at
+    // [start], so it needs no more than the range's length.
+    final needed = response.statusCode == 200
+        ? endInclusive + 1
+        : endInclusive - start + 1;
     final read = BytesBuilder(copy: false);
     await for (final chunk in response.stream) {
       read.add(chunk);
-      if (read.length > endInclusive) break;
+      if (read.length >= needed) break;
     }
     return rangeOfAnswer(
-      200,
+      response.statusCode,
       read.takeBytes(),
       start: start,
       endInclusive: endInclusive,

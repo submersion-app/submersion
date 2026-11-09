@@ -31,7 +31,11 @@ final videoPlaybackProvider = FutureProvider.family<VideoPlayback, MediaItem>(
       final relay = store is RangeReadStore && store is! DirectLinkStore
           ? await ref.watch(mediaStreamRelayProvider.future)
           : null;
-      return planStoreVideo(item, store: store, relay: relay);
+      return planStoreVideo(
+        await withProbedStamps(item, store: store),
+        store: store,
+        relay: relay,
+      );
     } finally {
       resolving.close();
     }

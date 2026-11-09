@@ -14,6 +14,9 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 /// fails to initialise; every other one initialises at once.
 class _FakePlatform extends VideoPlayerPlatform {
   final Set<String> failing = {};
+
+  /// Sources whose seek the platform refuses.
+  final Set<String> failingSeeks = {};
   final Map<int, StreamController<VideoEvent>> _events = {};
   final Map<int, String> sources = {};
   final Map<int, Duration> seeks = {};
@@ -21,7 +24,12 @@ class _FakePlatform extends VideoPlayerPlatform {
   final Set<int> disposed = {};
   int _next = 0;
 
+  /// When set, every player waits for it before it is created.
+  Completer<void>? createGate;
+
   Future<int?> _create(DataSource source) async {
+    final gate = createGate;
+    if (gate != null) await gate.future;
     final id = ++_next;
     final uri = source.uri ?? '';
     sources[id] = uri;
@@ -71,8 +79,13 @@ class _FakePlatform extends VideoPlayerPlatform {
   @override
   Future<void> setPlaybackSpeed(int playerId, double speed) async {}
   @override
-  Future<void> seekTo(int playerId, Duration position) async =>
-      seeks[playerId] = position;
+  Future<void> seekTo(int playerId, Duration position) async {
+    if (failingSeeks.contains(sources[playerId])) {
+      throw PlatformException(code: 'SeekError', message: 'refused');
+    }
+    seeks[playerId] = position;
+  }
+
   @override
   Future<Duration> getPosition(int playerId) async =>
       seeks[playerId] ?? Duration.zero;
@@ -83,6 +96,12 @@ class _FakePlatform extends VideoPlayerPlatform {
 
   int idOf(VideoPlayerController controller) =>
       sources.entries.lastWhere((e) => e.value == controller.dataSource).key;
+
+  /// Fails a player that already started, as an expired link does.
+  void failAfterStart(VideoPlayerController controller) =>
+      _events[idOf(controller)]!.addError(
+        PlatformException(code: 'VideoError', message: 'link expired'),
+      );
 }
 
 /// A candidate whose every open gives a new numbered URL under [name].
@@ -190,6 +209,113 @@ void main() {
       expect(original.closed, [Uri.parse('https://store.test/original/1')]);
     },
   );
+
+  group('watch', () {
+    test(
+      'a player that fails is reopened where it was and as it was',
+      () async {
+        // An error resets a controller's value to position zero, paused:
+        // the resume point has to come from before the error.
+        final original = _Candidate('original', ServedTier.original);
+        final opener = openerFor([original]);
+        final first = await opener.open();
+        final replaced = Completer<VideoPlayerController?>();
+        opener.watch(first, onReplaced: replaced.complete);
+        await first.seekTo(const Duration(seconds: 12));
+        await first.play();
+        platform.failAfterStart(first);
+        final next = await replaced.future;
+        expect(next!.dataSource, 'https://store.test/original/2');
+        final id = platform.idOf(next);
+        expect(platform.seeks[id], const Duration(seconds: 12));
+        expect(platform.playing, contains(id));
+        await Future.wait(releasing);
+        expect(platform.disposed, contains(platform.idOf(first)));
+        expect(original.closed, [Uri.parse('https://store.test/original/1')]);
+      },
+    );
+
+    test('a player that failed before it was watched is reopened', () async {
+      final original = _Candidate('original', ServedTier.original);
+      final opener = openerFor([original]);
+      final first = await opener.open();
+      platform.failAfterStart(first);
+      await pumpEventQueue();
+      expect(first.value.hasError, isTrue);
+      final replaced = Completer<VideoPlayerController?>();
+      opener.watch(first, onReplaced: replaced.complete);
+      final next = await replaced.future;
+      expect(next!.dataSource, 'https://store.test/original/2');
+    });
+
+    test('the reopened player is watched in turn', () async {
+      final original = _Candidate('original', ServedTier.original);
+      final rendition = _Candidate('rendition', ServedTier.rendition);
+      final opener = openerFor([original, rendition]);
+      final first = await opener.open();
+      // Broadcast, so each step listens only for its own replacement.
+      final replacements = StreamController<VideoPlayerController?>.broadcast();
+      addTearDown(replacements.close);
+      opener.watch(first, onReplaced: replacements.add);
+      await first.seekTo(const Duration(seconds: 12));
+      platform.failAfterStart(first);
+      final again = (await replacements.stream.first)!;
+      // Fails again where it resumed: it will not decode, so the rendition.
+      platform.failAfterStart(again);
+      final last = (await replacements.stream.first)!;
+      expect(last.dataSource, 'https://store.test/rendition/1');
+      expect(platform.seeks[platform.idOf(last)], const Duration(seconds: 12));
+    });
+
+    test('with nothing left to try the caller is told null', () async {
+      final original = _Candidate('original', ServedTier.original);
+      final opener = openerFor([original]);
+      final first = await opener.open();
+      platform.failing.add('https://store.test/original/2');
+      final replaced = Completer<VideoPlayerController?>();
+      opener.watch(first, onReplaced: replaced.complete);
+      platform.failAfterStart(first);
+      expect(await replaced.future, isNull);
+      await Future.wait(releasing);
+      expect(platform.disposed, contains(platform.idOf(first)));
+    });
+
+    test('dispose during a reopen releases the late player', () async {
+      final original = _Candidate('original', ServedTier.original);
+      final opener = openerFor([original]);
+      final first = await opener.open();
+      var told = false;
+      opener.watch(first, onReplaced: (_) => told = true);
+      // The reopened player is still being created when the caller leaves.
+      final gate = Completer<void>();
+      platform.createGate = gate;
+      platform.failAfterStart(first);
+      await pumpEventQueue();
+      opener.dispose();
+      gate.complete();
+      await pumpEventQueue();
+      expect(told, isFalse);
+      await Future.wait(releasing);
+      expect(platform.disposed, contains(2));
+      // The caller still holds the failed one and releases it itself.
+      expect(platform.disposed, isNot(contains(1)));
+    });
+  });
+
+  test('a reopen whose seek fails releases the player it opened', () async {
+    final original = _Candidate('original', ServedTier.original);
+    final opener = openerFor([original]);
+    final first = await opener.open();
+    await first.seekTo(const Duration(seconds: 12));
+    platform.failingSeeks.add('https://store.test/original/2');
+    await expectLater(
+      opener.reopenAfterError(first),
+      throwsA(isA<PlatformException>()),
+    );
+    await Future.wait(releasing);
+    expect(platform.disposed, contains(2));
+    expect(original.closed, original.opened);
+  });
 
   test('a second error in a row returns null', () async {
     final original = _Candidate('original', ServedTier.original);

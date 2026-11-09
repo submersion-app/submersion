@@ -1341,11 +1341,9 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
   String? _playbackPath;
 
   /// Opens [_controller] and, for a streamed video, reopens it once when
-  /// its link goes stale (issue #4162).
+  /// its link goes stale (issue #4162). Disposed with the load it belongs
+  /// to, which also ends a reopen still in flight.
   VideoPlaybackOpener? _opener;
-
-  /// Whether a stale-link reopen is in flight.
-  bool _recovering = false;
 
   /// Whether this page has taken keyboard focus since it became current.
   bool _focusTaken = false;
@@ -1393,11 +1391,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     _error = null;
     _opener?.dispose();
     _opener = null;
-    // A reopen still in flight belongs to the load just ended (its
-    // generation check drops it); the next load must hear its own errors.
-    _recovering = false;
     if (controller == null) return;
-    controller.removeListener(_onControllerValue);
     widget.onControllerChanged(widget.item.id, null);
     _releaseController(controller, widget.item.id);
   }
@@ -1458,9 +1452,7 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       });
       // Ownership has moved to _controller; dispose() owns it from here.
       widget.onControllerChanged(mediaId, controller);
-      if (playback is StreamPlayback) {
-        controller.addListener(_onControllerValue);
-      }
+      opener.watch(controller, onReplaced: _onReplaced);
     } catch (e, stackTrace) {
       _log.warning(
         'Video $mediaId failed to load',
@@ -1476,42 +1468,16 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     }
   }
 
-  /// A streamed player that failed after it started (an expired link, a
-  /// relay that lost its page) is reopened once from a fresh link, where it
-  /// was and as it was; the opener refuses a second failure in a row.
-  void _onControllerValue() {
-    final controller = _controller;
-    if (controller == null || !controller.value.hasError || _recovering) {
-      return;
-    }
-    _recovering = true;
-    unawaited(_recover(controller));
-  }
-
-  Future<void> _recover(VideoPlayerController failed) async {
-    final generation = _loadGeneration;
+  /// A streamed player failed after it started (an expired link, a relay
+  /// that lost its page) and the opener reopened it: [next] plays on where
+  /// the failed one was, or is null when nothing more could be opened. The
+  /// opener releases the failed player once this returns.
+  void _onReplaced(VideoPlayerController? next) {
     final mediaId = widget.item.id;
-    failed.removeListener(_onControllerValue);
-    VideoPlayerController? next;
-    try {
-      next = await _opener?.reopenAfterError(failed);
-    } on Object catch (e, stackTrace) {
-      _log.warning(
-        'Video $mediaId could not be reopened',
-        error: e,
-        stackTrace: stackTrace,
-      );
-    }
-    if (!mounted || generation != _loadGeneration) {
-      // A newer load owns the flag now; this reopen only cleans up.
-      if (next != null) _releaseController(next, mediaId);
-      return;
-    }
-    _recovering = false;
+    // Unregistered before the opener disposes it, as in dispose().
     widget.onControllerChanged(mediaId, null);
-    _releaseController(failed, mediaId);
-    final reopened = next;
-    if (reopened == null) {
+    if (next == null) {
+      _log.warning('Video $mediaId failed and could not be reopened');
       setState(() {
         _controller = null;
         _isInitialized = false;
@@ -1519,9 +1485,8 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
       });
       return;
     }
-    setState(() => _controller = reopened);
-    reopened.addListener(_onControllerValue);
-    widget.onControllerChanged(mediaId, reopened);
+    setState(() => _controller = next);
+    widget.onControllerChanged(mediaId, next);
   }
 
   @override
@@ -1529,7 +1494,6 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
     final controller = _controller;
     _opener?.dispose();
     if (controller != null) {
-      controller.removeListener(_onControllerValue);
       // Unregister before disposing so the page never holds a dead
       // controller; guarded by mounted on the page side.
       widget.onControllerChanged(widget.item.id, null);

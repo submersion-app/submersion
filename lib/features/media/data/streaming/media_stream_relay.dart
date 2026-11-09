@@ -50,6 +50,9 @@ class MediaStreamRelay {
 
   static final Random _random = Random.secure();
 
+  /// One `bytes=<start>-[<end>]` range: the only kind a player sends.
+  static final RegExp _rangePattern = RegExp(r'^bytes=(\d+)-(\d*)$');
+
   static String _randomTicket() => [
     for (var i = 0; i < 16; i++)
       _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
@@ -88,20 +91,14 @@ class MediaStreamRelay {
     if (entry == null) return const RelayAnswer(status: 404);
     try {
       final total = await entry.total();
-      final match = RegExp(
-        r'^bytes=(\d+)-(\d*)$',
-      ).firstMatch(range ?? 'bytes=0-');
+      final match = _rangePattern.firstMatch(range ?? 'bytes=0-');
       final start = match == null ? null : int.parse(match.group(1)!);
-      if (start == null || start >= total) {
-        return RelayAnswer(
-          status: 416,
-          headers: {'Content-Range': 'bytes */$total'},
-        );
-      }
-      final asked = match!.group(2)!.isEmpty
+      final endText = match?.group(2);
+      final asked = endText == null || endText.isEmpty
           ? total - 1
-          : int.parse(match.group(2)!);
-      if (asked < start) {
+          : int.parse(endText);
+      // Unparsable, past the end, or ending before it starts.
+      if (start == null || start >= total || asked < start) {
         return RelayAnswer(
           status: 416,
           headers: {'Content-Range': 'bytes */$total'},
