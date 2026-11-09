@@ -177,6 +177,7 @@ class _CardTile extends StatelessWidget {
     HomeCardType.yearInReview,
     HomeCardType.activeCourses,
     HomeCardType.recentSitesMap,
+    HomeCardType.waitingForDownload,
   };
 
   static String _cardName(
@@ -186,6 +187,8 @@ class _CardTile extends StatelessWidget {
     HomeCardType.hero => l10n.settings_homeCards_card_hero,
     HomeCardType.gaugeStrip => l10n.settings_homeCards_card_gaugeStrip,
     HomeCardType.preDive => l10n.settings_homeCards_card_preDive,
+    HomeCardType.waitingForDownload =>
+      l10n.settings_homeCards_card_waitingForDownload,
     HomeCardType.recentDives => l10n.settings_homeCards_card_recentDives,
     HomeCardType.quickActions => l10n.settings_homeCards_card_quickActions,
     HomeCardType.milestones => l10n.settings_homeCards_card_milestones,

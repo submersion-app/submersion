@@ -3900,6 +3900,7 @@
   "settings_homeCards_card_yearInReview": "Year in review",
   "settings_homeCards_card_activeCourses": "Course progress",
   "settings_homeCards_card_recentSitesMap": "Recent sites map",
+  "settings_homeCards_card_waitingForDownload": "Waiting for download",
   "dashboard_allHidden_message": "All Home cards are hidden.",
   "dashboard_allHidden_customize": "Customize Home",
   "settings_homeChips_flightWindow": "Flight dive window",
@@ -4128,6 +4129,15 @@
     "placeholders": {
       "minutes": {
         "type": "Object"
+      }
+    }
+  },
+  "dashboard_waitingForDownload_download": "Download now",
+  "dashboard_waitingForDownload_title": "{count, plural, =1{1 dive waiting for your dive computer} other{{count} dives waiting for your dive computer}}",
+  "@dashboard_waitingForDownload_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },

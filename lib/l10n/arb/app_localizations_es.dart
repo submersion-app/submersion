@@ -6386,6 +6386,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mapa de puntos recientes';
 
   @override
+  String get settings_homeCards_card_waitingForDownload =>
+      'Waiting for download';
+
+  @override
   String get dashboard_allHidden_message =>
       'Todas las tarjetas de Inicio están ocultas.';
 
@@ -6606,6 +6610,20 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dashboard_semantics_greetingBanner =>
       'Banner de bienvenida del panel';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Download now';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives waiting for your dive computer',
+      one: '1 dive waiting for your dive computer',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Agregar al Planificador';

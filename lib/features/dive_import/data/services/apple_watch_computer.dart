@@ -12,8 +12,8 @@ Future<DiveComputer> appleWatchComputerFor(
   String diverId,
 ) async {
   final computer = await computers.findOrRegisterImportedComputer(
-    model: 'Apple Watch',
-    manufacturer: 'Apple',
+    model: DiveComputer.appleWatchModel,
+    manufacturer: DiveComputer.appleWatchManufacturer,
     diverId: diverId,
   );
   // A non-empty model always finds or makes a row.

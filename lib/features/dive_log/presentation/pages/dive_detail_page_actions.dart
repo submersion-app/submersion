@@ -241,7 +241,13 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
 
   /// A draft's "Download now": the dive computers list, where a download
   /// fills it.
-  void _downloadForDraft() => context.push('/dive-computers');
+  /// Opens the download of the computer the diver used last, or the picker
+  /// when there is none (issue #637).
+  Future<void> _downloadForDraft() async {
+    final target = await ref.read(downloadTargetComputerProvider.future);
+    if (!mounted) return;
+    context.push(downloadRouteFor(target));
+  }
 
   Future<void> _scanGalleryForDive(Dive dive) async {
     if (!demoSealGuard(context, DemoSealedFeature.mediaImport)) {

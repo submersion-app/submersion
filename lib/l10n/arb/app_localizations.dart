@@ -10023,6 +10023,12 @@ abstract class AppLocalizations {
   /// **'Recent sites map'**
   String get settings_homeCards_card_recentSitesMap;
 
+  /// No description provided for @settings_homeCards_card_waitingForDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for download'**
+  String get settings_homeCards_card_waitingForDownload;
+
   /// No description provided for @dashboard_allHidden_message.
   ///
   /// In en, this message translates to:
@@ -10358,6 +10364,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dashboard greeting banner'**
   String get dashboard_semantics_greetingBanner;
+
+  /// No description provided for @dashboard_waitingForDownload_download.
+  ///
+  /// In en, this message translates to:
+  /// **'Download now'**
+  String get dashboard_waitingForDownload_download;
+
+  /// No description provided for @dashboard_waitingForDownload_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive waiting for your dive computer} other{{count} dives waiting for your dive computer}}'**
+  String dashboard_waitingForDownload_title(int count);
 
   /// No description provided for @decoCalculator_addToPlanner.
   ///

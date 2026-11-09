@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_import/presentation/dive_resync_failure
 import 'package:submersion/features/dive_import/presentation/providers/dive_health_metrics_providers.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_resync_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/download_target_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
 import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';

@@ -6398,6 +6398,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Carte des sites récents';
 
   @override
+  String get settings_homeCards_card_waitingForDownload =>
+      'Waiting for download';
+
+  @override
   String get dashboard_allHidden_message =>
       'Toutes les cartes de l\'accueil sont masquées.';
 
@@ -6614,6 +6618,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dashboard_semantics_greetingBanner =>
       'Bannière d\'accueil du tableau de bord';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Download now';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives waiting for your dive computer',
+      one: '1 dive waiting for your dive computer',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Ajouter au planificateur';

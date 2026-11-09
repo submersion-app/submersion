@@ -7,6 +7,9 @@ enum HomeCardType {
   hero,
   gaugeStrip,
   preDive,
+
+  /// Drafts waiting for a dive computer download (issue #637).
+  waitingForDownload,
   recentDives,
   quickActions,
   milestones,

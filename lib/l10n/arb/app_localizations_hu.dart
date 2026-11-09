@@ -6363,6 +6363,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Legutóbbi merülőhelyek térképe';
 
   @override
+  String get settings_homeCards_card_waitingForDownload =>
+      'Waiting for download';
+
+  @override
   String get dashboard_allHidden_message =>
       'Minden kezdőlapi kártya el van rejtve.';
 
@@ -6580,6 +6584,20 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dashboard_semantics_greetingBanner =>
       'Irányítópult üdvözlő banner';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Download now';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives waiting for your dive computer',
+      one: '1 dive waiting for your dive computer',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Hozzáadás a tervezőhöz';

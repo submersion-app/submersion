@@ -6245,6 +6245,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_card_recentSitesMap => 'מפת אתרים אחרונים';
 
   @override
+  String get settings_homeCards_card_waitingForDownload =>
+      'Waiting for download';
+
+  @override
   String get dashboard_allHidden_message => 'כל כרטיסי דף הבית מוסתרים.';
 
   @override
@@ -6457,6 +6461,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dashboard_semantics_greetingBanner => 'באנר ברכה בלוח המחוונים';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Download now';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives waiting for your dive computer',
+      one: '1 dive waiting for your dive computer',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'הוסף למתכנן';
