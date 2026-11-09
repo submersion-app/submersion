@@ -521,6 +521,19 @@ void main() {
     );
   });
 
+  test(
+    'sources that differ only in where a path splits get different keys',
+    () {
+      // '|' is a valid path character, so it cannot be the separator.
+      final split = _item('m1').copyWith(filePath: 'a', localPath: 'b');
+      final joined = _item('m1').copyWith(filePath: 'a|b');
+      expect(
+        DiveCardPhotoBackground.analysisKeyFor(split),
+        isNot(DiveCardPhotoBackground.analysisKeyFor(joined)),
+      );
+    },
+  );
+
   testWidgets('the dark theme draws its own overlay', (tester) async {
     await pumpCard(
       tester,

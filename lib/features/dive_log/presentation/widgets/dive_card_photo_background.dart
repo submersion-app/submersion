@@ -52,7 +52,7 @@ class DiveCardPhotoBackground extends ConsumerStatefulWidget {
   /// its pixels come from.
   @visibleForTesting
   static String analysisKeyFor(MediaItem item) =>
-      '${item.id}|${_DiveCardPhotoBackgroundState._sourceOf(item)}';
+      '${item.id}\u0000${_DiveCardPhotoBackgroundState._sourceOf(item)}';
 
   @override
   ConsumerState<DiveCardPhotoBackground> createState() =>
@@ -80,20 +80,24 @@ class _DiveCardPhotoBackgroundState
   /// Where [item]'s pixels come from. A repair or relink keeps the media id
   /// but changes this, and the crop must then be worked out from the new
   /// picture, not served from the scores of the old one.
+  ///
+  /// Joined with NUL, as the media tile memo and the local-file resolver do:
+  /// a path or bookmark may contain any other separator, which would let
+  /// two different sources read the same.
   static String _sourceOf(MediaItem item) => [
     item.sourceType.name,
-    item.filePath,
-    item.localPath,
-    item.platformAssetId,
-    item.bookmarkRef,
-    item.url,
-    item.remoteAssetId,
-    item.cloudAssetId,
-    item.contentHash,
-  ].join('|');
+    item.filePath ?? '',
+    item.localPath ?? '',
+    item.platformAssetId ?? '',
+    item.bookmarkRef ?? '',
+    item.url ?? '',
+    item.remoteAssetId ?? '',
+    item.cloudAssetId ?? '',
+    item.contentHash ?? '',
+  ].join('\u0000');
 
   /// The analyser's key for the photo on screen: its id and its source.
-  String get _analysisKey => '${widget.photo.mediaId}|${_source ?? ''}';
+  String get _analysisKey => '${widget.photo.mediaId}\u0000${_source ?? ''}';
 
   @override
   void didUpdateWidget(covariant DiveCardPhotoBackground oldWidget) {
