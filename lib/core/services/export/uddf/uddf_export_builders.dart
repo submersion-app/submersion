@@ -2041,6 +2041,14 @@ class UddfExportBuilders {
           if (includeIdentity && transmitterSerial != null) {
             builder.element('transmitterserial', nest: transmitterSerial);
           }
+          // The physical transmitter slot (app-specific, issue #4347), so a
+          // backup keeps what the slot matching learned.
+          if (includeIdentity && tank.transmitterSlot != null) {
+            builder.element(
+              'transmitterslot',
+              nest: tank.transmitterSlot.toString(),
+            );
+          }
         },
       );
     }

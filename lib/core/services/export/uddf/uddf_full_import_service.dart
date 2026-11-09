@@ -15,6 +15,7 @@ import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gradient_factor.dart';
 import 'package:submersion/core/services/export/uddf/uddf_fill_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_transmitter_slot.dart';
 import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
@@ -2400,6 +2401,15 @@ class UddfFullImportService {
         tankInfo['transmitterSerial'] = transmitterSerial;
       }
 
+      // Transmitter slot (app-specific, written by our own export; issue
+      // #4347). Shearwater Cloud's slot comes from the sample refs instead.
+      final transmitterSlot = UddfImportParsers.parseUddfInt(
+        UddfImportParsers.getElementText(tankDataElement, 'transmitterslot'),
+      );
+      if (transmitterSlot != null && transmitterSlot >= 0) {
+        tankInfo['transmitterSlot'] = transmitterSlot;
+      }
+
       // Validate tank data before adding
       final startPressure = (tankInfo['startPressure'] as num?)?.toDouble();
       final endPressure = (tankInfo['endPressure'] as num?)?.toDouble();
@@ -2612,6 +2622,12 @@ class UddfFullImportService {
               } else if (nextFallbackTankIndex < fallbackTankIndices.length) {
                 tankIdx = fallbackTankIndices[nextFallbackTankIndex++];
                 fallbackRefToIndex[tankRef] = tankIdx;
+                // Shearwater Cloud names the transmitter slot in the ref and
+                // nowhere else (issue #4347).
+                final slot = shearwaterSlotFromRef(tankRef);
+                if (slot != null) {
+                  tanks[tankIdx]['transmitterSlot'] ??= slot;
+                }
               } else {
                 _logger.debug(
                   'UDDF import: ${tanks.length} tank records but '

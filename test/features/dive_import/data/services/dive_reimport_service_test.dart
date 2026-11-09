@@ -192,6 +192,36 @@ void main() {
     expect(tanks.map((t) => t.usageDuration), [30 * 60, 12 * 60]);
   });
 
+  test('writes the transmitter slot the parse names (#4347)', () async {
+    // A Shearwater Cloud dive imported before slots were kept gets one from
+    // its file; a parse that names none leaves a stored slot alone.
+    final diveId = await seedDive(notes: '', buddy: '');
+    await seedTank(diveId, id: 'tank-a', tankOrder: 0);
+    await seedTank(diveId, id: 'tank-b', tankOrder: 1);
+    await db.customStatement(
+      "UPDATE dive_tanks SET transmitter_slot = 3 WHERE id = 'tank-b'",
+    );
+
+    await service.applyReimport(
+      diveId: diveId,
+      diveData: {
+        'tanks': [
+          {'order': 0, 'transmitterSlot': 1},
+          {'order': 1},
+          {'order': 2, 'transmitterSlot': 2},
+        ],
+      },
+      now: DateTime(2026, 9, 3),
+    );
+
+    final tanks =
+        await (db.select(db.diveTanks)
+              ..where((t) => t.diveId.equals(diveId))
+              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+            .get();
+    expect(tanks.map((t) => t.transmitterSlot), [1, 3, 2]);
+  });
+
   test('keeps a stored usage duration the parse does not report', () async {
     final diveId = await seedDive(notes: '', buddy: '');
     await seedTank(diveId, id: 'tank-a', tankOrder: 0);

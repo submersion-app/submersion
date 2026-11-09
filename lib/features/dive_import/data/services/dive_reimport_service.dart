@@ -470,6 +470,9 @@ class DiveReimportService {
       // How long the file says the tank was breathed (issue #1496). A dive
       // imported before v259 has none stored, so this is how it gets one.
       final usageSeconds = (t['usageDuration'] as Duration?)?.inSeconds;
+      // The transmitter slot the file names (issue #4347): how a Shearwater
+      // Cloud dive imported before slots were kept gains one.
+      final transmitterSlot = t['transmitterSlot'] as int?;
 
       final row = matched[i];
       if (row != null) {
@@ -493,6 +496,9 @@ class DiveReimportService {
             usageDuration: usageSeconds != null
                 ? Value(usageSeconds)
                 : const Value.absent(),
+            transmitterSlot: transmitterSlot != null
+                ? Value(transmitterSlot)
+                : const Value.absent(),
           ),
         );
         await _syncRepository.markRecordPending(
@@ -515,6 +521,7 @@ class DiveReimportService {
                 o2Percent: Value(o2Percent ?? 21.0),
                 hePercent: Value(hePercent ?? 0.0),
                 usageDuration: Value(usageSeconds),
+                transmitterSlot: Value(transmitterSlot),
               ),
             );
         await _syncRepository.markRecordPending(

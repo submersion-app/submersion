@@ -3700,6 +3700,7 @@ class UddfEntityImporter {
           role: role,
           order: t['order'] as int? ?? 0,
           transmitterSerial: t['transmitterSerial'] as String?,
+          transmitterSlot: t['transmitterSlot'] as int?,
           // How long the source log says the tank was breathed (MacDive,
           // issue #1496).
           usageDuration: t['usageDuration'] as Duration?,
