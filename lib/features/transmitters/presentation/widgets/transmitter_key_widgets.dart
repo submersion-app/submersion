@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_slot_matcher.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
+import 'package:submersion/features/transmitters/presentation/widgets/transmitter_apply_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -58,8 +61,28 @@ String transmitterSpecLine(
   if (entry.material != null) entry.material!.localizedName(l10n),
 ].join(' • ');
 
+/// The computers [key] can match by slot. Best-effort: slot matching is an
+/// extra the serial apply must not lose when the lookup fails.
+Future<List<SlotComputer>> _slotComputersOf(
+  TransmitterSlotMatcher matcher,
+  Transmitter key,
+) async {
+  try {
+    return await matcher.computersWithCandidates(key);
+  } catch (e, st) {
+    LoggerService.forClass(TransmitterSlotMatcher).warning(
+      'Could not look for slot-matched cylinders',
+      error: e,
+      stackTrace: st,
+    );
+    return const [];
+  }
+}
+
 /// Fills the dives already logged with the setup of [keys], the keys of one
 /// transmitter, after one confirmation that counts every tank they match.
+/// Where a key's serial was downloaded on a computer whose file-imported dives
+/// carry no serial, the dialog also offers to match those by slot (#4347).
 Future<void> applyTransmitterSetupToExistingDives(
   BuildContext context,
   WidgetRef ref,
@@ -68,47 +91,46 @@ Future<void> applyTransmitterSetupToExistingDives(
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final repo = ref.read(transmitterRepositoryProvider);
-  // Preview the counts with a dry run: the repository's matcher is the same
-  // one the write uses, so the numbers cannot disagree.
+  final matcher = ref.read(transmitterSlotMatcherProvider);
+  // Preview the counts with a dry run: the repository's fill is the same one
+  // the write uses, so the numbers cannot disagree.
   var tanks = 0;
   var dives = 0;
+  final offers = <SlotOffer>[];
   for (final key in keys) {
     final preview = await repo.previewApplyToExistingDives(key);
     tanks += preview.tanksUpdated;
     dives += preview.divesUpdated;
+    for (final computer in await _slotComputersOf(matcher, key)) {
+      if (offers.any((o) => o.computer.computerId == computer.computerId)) {
+        continue;
+      }
+      offers.add((key: key, computer: computer));
+    }
   }
   if (!context.mounted) return;
-  if (tanks == 0) {
+  if (tanks == 0 && offers.isEmpty) {
     messenger.showSnackBar(
-      SnackBar(content: Text(l10n.transmitters_apply_nothing)),
+      SnackBar(content: Text(l10n.transmitters_apply_nothing_to_fill)),
     );
     return;
   }
-  final confirmed = await showDialog<bool>(
+  final slotTankIds = await showDialog<Map<String, List<String>>>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text(dialogContext.l10n.transmitters_apply_title),
-      content: Text(
-        dialogContext.l10n.transmitters_apply_content(tanks, dives),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: Text(dialogContext.l10n.common_action_cancel),
-        ),
-        FilledButton(
-          onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: Text(dialogContext.l10n.common_action_apply),
-        ),
-      ],
+    builder: (_) => TransmitterApplyDialog(
+      serialPreview: (tanksUpdated: tanks, divesUpdated: dives, mixesKept: 0),
+      slotOffers: offers,
     ),
   );
-  if (confirmed != true) return;
+  if (slotTankIds == null) return;
   try {
     var tanksDone = 0;
     var divesDone = 0;
     for (final key in keys) {
-      final result = await repo.applyToExistingDives(key);
+      final result = await repo.applyToExistingDives(
+        key,
+        slotTankIds: slotTankIds[key.id] ?? const [],
+      );
       tanksDone += result.tanksUpdated;
       divesDone += result.divesUpdated;
     }

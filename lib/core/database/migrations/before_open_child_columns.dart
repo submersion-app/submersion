@@ -17,6 +17,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v259: dive_tanks.usage_duration (issue #1496).
     await _assertTankUsageDurationColumn();
 
+    // v348: dive_tanks.surface_breathing_duration (issue #2930).
+    await _assertTankSurfaceBreathingColumn();
+
     // v287: dive_tanks.passport_id (issue #2650).
     await _assertTankPassportIdColumn();
 
@@ -60,6 +63,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     // computer read selects the whole row, for the same reason as the tank
     // columns.
     await _assertDiveComputerAutoDownloadDisabledColumn();
+
+    // v350: sightings.abundance (issue #4337). Every sighting read selects
+    // the whole row, for the same reason as the tank columns.
+    await _assertSightingAbundanceColumn();
 
     // v353: dive_profile_series.is_edit (issue #4386). Every series read
     // selects the whole row, for the same reason as the tank columns.

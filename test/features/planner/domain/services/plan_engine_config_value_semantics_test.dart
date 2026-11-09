@@ -16,10 +16,8 @@ import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
-/// AirBreakPolicy has no value equality of its own (plain fields, no
-/// Equatable), so the fixture and its copyWith counterpart must share one
-/// instance - two separately built ones with identical fields would compare
-/// unequal and fail "copyWith airBreakPolicy replaces only that field".
+/// One non-default AirBreakPolicy, shared by the fixture and its copyWith
+/// counterpart.
 final _testAirBreakPolicy = AirBreakPolicy(o2Seconds: 100, breakSeconds: 50);
 
 /// One config per field, each differing from the defaults in that field

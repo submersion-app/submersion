@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -13,6 +14,7 @@ const _sighting = Sighting(
   speciesId: 'c1',
   speciesName: 'Grouper',
   speciesCategory: SpeciesCategory.fish,
+  abundance: SightingAbundance.exact,
   count: 3,
   notes: 'Under the ledge',
 );
@@ -52,9 +54,30 @@ void main() {
     expect(find.byKey(const ValueKey('sighting_photos')), findsNothing);
   });
 
-  testWidgets('hides the count badge for a single animal', (tester) async {
+  testWidgets('shows x1 for an exact count of one', (tester) async {
+    // Issue #4337: an exact 1 is a deliberate count, unlike Seen.
     await _pump(tester, sighting: _sighting.copyWith(count: 1));
 
+    expect(find.text('x1'), findsOneWidget);
+  });
+
+  testWidgets('shows no badge for a Seen sighting', (tester) async {
+    await _pump(
+      tester,
+      sighting: _sighting.copyWith(abundance: SightingAbundance.seen, count: 1),
+    );
+
+    expect(find.textContaining(RegExp(r'^x\d')), findsNothing);
+    expect(find.text('Seen'), findsNothing);
+  });
+
+  testWidgets('shows the REEF group name for a group', (tester) async {
+    await _pump(
+      tester,
+      sighting: _sighting.copyWith(abundance: SightingAbundance.few, count: 1),
+    );
+
+    expect(find.text('Few'), findsOneWidget);
     expect(find.text('x1'), findsNothing);
   });
 

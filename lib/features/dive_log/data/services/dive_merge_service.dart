@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
@@ -181,6 +182,7 @@ class DiveMergeService {
               id: row.id,
               speciesId: row.speciesId,
               speciesName: '',
+              abundance: SightingAbundance.fromStorage(row.abundance),
               count: row.count,
               notes: row.notes,
             ),
@@ -644,6 +646,7 @@ class DiveMergeService {
                 id: s.id,
                 diveId: mergedId,
                 speciesId: s.speciesId,
+                abundance: Value(s.abundance.storageValue),
                 count: Value(s.count),
                 notes: Value(s.notes),
               ),

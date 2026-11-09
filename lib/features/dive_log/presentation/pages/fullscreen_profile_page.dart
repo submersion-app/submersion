@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/presentation/utils/profile_extent_s
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cell_divergence_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart'
     show TooltipCard, computeTooltipCardSize;
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
@@ -388,6 +389,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // rows (e.g. right after a split); skip any stale entries instead of
     // crashing on the lookup.
     final sourceById = {for (final s in dataSources) s.id: s};
+    // The linked plan, drawn here as on the dive details card (#4215).
+    final planned = watchPlannedProfileForChart(context, ref, widget.diveId);
     final overlays = <ChartSourceOverlay>[
       for (final id in overlayIds)
         if (id != activeSource?.id &&
@@ -412,6 +415,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                 )
                 .valueOrNull,
           ),
+      ?planned.overlay,
     ];
 
     return Scaffold(
@@ -443,6 +447,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                         child: DiveProfileChart(
                           profile: chartProfile,
                           overlays: overlays.isEmpty ? null : overlays,
+                          hasPlannedProfile: planned.available,
                           activeComputerId: activeProfile?.computerId,
                           diveDuration: dive.effectiveRuntime,
                           maxDepth: dive.maxDepth,

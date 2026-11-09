@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_chunk.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -6,6 +7,8 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_rep
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -121,6 +124,30 @@ void main() {
 
     expect((await load(dives.sublist(0, 2))).tankPressures, isEmpty);
     expect((await load(dives.sublist(2))).tankPressures.keys, ['dive-3']);
+  });
+
+  test('attaches each dive its sightings', () async {
+    // Issue #4337 follow-up: the dive list carries no sightings, so a full
+    // export wrote none until the chunk loader read them.
+    final species = SpeciesRepository();
+    final turtle = await species.createSpecies(
+      commonName: 'Test Turtle',
+      category: SpeciesCategory.turtle,
+    );
+    await species.addSighting(
+      diveId: 'dive-2',
+      speciesId: turtle.id,
+      abundance: SightingAbundance.exact,
+      count: 2,
+    );
+    final dives = await listView();
+
+    final chunk = await loader(DiveRepository())(dives);
+
+    expect(chunk.dives[0].sightings, isEmpty);
+    final sighting = chunk.dives[1].sightings.single;
+    expect(sighting.speciesName, 'Test Turtle');
+    expect(sighting.amount, (abundance: SightingAbundance.exact, count: 2));
   });
 
   test('reads profiles and sources for the run it is given only', () async {

@@ -135,7 +135,10 @@ void main() {
   // Renaming a synced column is breaking: a build below this reads a
   // non-nullable tripId from a row that no longer carries one.
   test('the rename raises the sync floor to 336', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 336);
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(336),
+    );
   });
 
   test('a trip with existing sections and items gets one default checklist, '

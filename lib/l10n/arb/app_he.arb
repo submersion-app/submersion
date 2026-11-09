@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "ממוצע {value}",
   "trips_story_history_avgDepth": "עומק ממוצע {value}",
   "trips_story_rhythm_semantics": "זמני הצלילה ביום זה",
+  "trips_story_rhythm_semanticsSunriseSunset": "זמני הצלילה ביום זה. זריחה {sunrise}, שקיעה {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "זמני הצלילה ביום זה. זריחה {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "זמני הצלילה ביום זה. שקיעה {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "מפת יום {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -2625,7 +2652,6 @@
   "diveLog_diveMode_ocDescription": "סקובה מעגל פתוח סטנדרטי עם בלונים",
   "diveLog_diveMode_scrDescription": "ריברידר חצי סגור עם ppO₂ משתנה",
   "diveLog_diveMode_title": "מצב צלילה",
-  "diveLog_editSighting_count": "כמות",
   "diveLog_editSighting_notes": "הערות",
   "diveLog_editSighting_notesHint": "גודל, התנהגות, מיקום...",
   "diveLog_editSighting_remove": "הסרה",
@@ -2662,6 +2688,7 @@
   "diveLog_edit_gasSwitches_pickReadout": "{time} ב-{depth}",
   "diveLog_edit_gasSwitches_pickConfirm": "הגדרת זמן",
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{החלפת גז {count} הוסרה עם המיכל שלה} other{{count} החלפות גז הוסרו עם המיכל שלהן}}",
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{מילוי החלפה אחת מלחצי המיכלים} other{מילוי {count} החלפות מלחצי המיכלים}}",
   "diveLog_edit_gettingLocation": "מקבל מיקום...",
   "diveLog_edit_group_buddies": "שותפים",
   "diveLog_edit_group_conditions": "תנאים",
@@ -2930,6 +2957,7 @@
   "diveLog_legend_label_depth": "עומק",
   "diveLog_legend_label_events": "אירועים",
   "diveLog_legend_label_annotations": "סימונים",
+  "diveLog_legend_label_plan": "תוכנית",
   "diveLog_legend_label_computedEvents": "אירועים מחושבים",
   "diveLog_legend_label_gasDensity": "צפיפות גז",
   "diveLog_legend_label_lateGasSwitches": "החלפות גז מאוחרות",
@@ -2986,6 +3014,10 @@
   "diveLog_fetchConditions_summaryFilled": "{count, plural, =1{צלילה אחת עודכנה} other{{count} צלילות עודכנו}}",
   "diveLog_fetchConditions_summaryUnavailable": "{count, plural, =1{לצלילה אחת לא היו נתונים זמינים} other{ל-{count} צלילות לא היו נתונים זמינים}}",
   "diveLog_fetchConditions_summaryUnchanged": "{count, plural, =1{בצלילה אחת לא היה מה למלא} other{ב-{count} צלילות לא היה מה למלא}}",
+  "diveLog_fetchConditions_confirmBodySelected": "{count, plural, =1{בצלילה אחת מתוך {total} הצלילות שנבחרו חסרים תנאים.} other{ב-{count} מתוך {total} הצלילות שנבחרו חסרים תנאים.}} רק שדות ריקים ימולאו, ושום דבר שכבר הזנת לא ישתנה.",
+  "diveLog_fetchConditions_skippedNoLocation": "{count, plural, =1{לצלילה אחת אין קואורדינטות אתר או מיקום GPS, והיא תדולג.} other{ל-{count} צלילות אין קואורדינטות אתר או מיקום GPS, והן ידולגו.}}",
+  "diveLog_fetchConditions_noneNeededSelected": "לא חסרים תנאים באף אחת מהצלילות שנבחרו.",
+  "diveLog_fetchConditions_noneLocatedSelected": "לצלילות שנבחרו וחסרים בהן תנאים אין קואורדינטות אתר או מיקום GPS.",
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{הופסק מוקדם; צלילה אחת עובדה.} other{הופסק מוקדם; {count} צלילות עובדו.}}",
   "diveLog_scrubber_unrated": "ללא דירוג",
   "diveLog_sighting_decreaseCount": "הקטנת הכמות",
@@ -3344,6 +3376,9 @@
   "diveLog_summary_stat_totalDives": "סה\"כ צלילות",
   "diveLog_summary_title": "סיכום יומן צלילה",
   "diveLog_tank_label_endPressure": "לחץ סיום",
+  "diveLog_tank_label_surfaceBreathing": "נשימה על פני המים",
+  "diveLog_tank_surfaceBreathing_helper": "דקות על מכל זה אחרי שהמחשב הפסיק לתעד, למשל חמצן על הסירה",
+  "diveLog_tank_surfaceBreathing_unit": "דקות",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "חומר",
   "diveLog_tank_label_mnd": "MND",
@@ -5496,7 +5531,6 @@
   "marineLife_speciesDetail_sitesLabel": "אתרים",
   "marineLife_speciesDetail_taxonomyClassLabel": "מחלקה: {className}",
   "marineLife_speciesDetail_topSitesTitle": "אתרים מובילים",
-  "marineLife_speciesDetail_totalSightingsLabel": "סה\"כ תצפיות",
   "marineLife_speciesEdit_addTitle": "הוסף מין",
   "marineLife_speciesEdit_addedSnackbar": "נוסף \"{name}\"",
   "marineLife_speciesEdit_backTooltip": "חזרה",
@@ -5570,7 +5604,15 @@
   "marineLife_speciesPage_searchHint": "חיפוש מינים שראית",
   "marineLife_speciesPage_manageCatalogTooltip": "ניהול הקטלוג",
   "marineLife_speciesPage_sortTooltip": "מיון",
-  "marineLife_speciesPage_sort_mostSightings": "הכי הרבה תצפיות",
+  "marineLife_speciesPage_sort_mostDives": "הכי הרבה צלילות",
+  "marineLife_abundance_label": "כמה",
+  "marineLife_abundance_seen": "נצפה",
+  "marineLife_abundance_single": "יחיד",
+  "marineLife_abundance_few": "מעטים",
+  "marineLife_abundance_many": "רבים",
+  "marineLife_abundance_abundant": "בשפע",
+  "marineLife_abundance_exact": "מדויק",
+  "marineLife_abundance_ranges": "מעטים 2 עד 10, רבים 11 עד 100, בשפע מעל 100",
   "marineLife_speciesPage_sort_recentlySeen": "נראו לאחרונה",
   "marineLife_speciesPage_sort_firstSeen": "נראו לראשונה",
   "marineLife_speciesPage_sort_name": "שם",
@@ -5789,6 +5831,7 @@
   "media_photoViewer_shareTooltip": "שתף תמונה",
   "media_photoViewer_toggleOverlayLabel": "החלף שכבת-על של תמונה",
   "media_photoViewer_videoFileNotFound": "קובץ הסרטון לא נמצא",
+  "media_photoViewer_videoNeedsNormalWindow": "כדי להפעיל את הסרטון הזה נדרש חלון דפדפן רגיל. חלונות פרטיים אינם יכולים להזרים מ-Google Drive או מ-WebDAV.",
   "media_photoViewer_videoNotLinked": "הסרטון אינו מקושר לספרייה",
   "media_photoViewer_writeDiveDataTooltip": "כתוב נתוני צלילה לתמונה",
   "media_quickSiteDialog_cancelButton": "ביטול",
@@ -5842,6 +5885,7 @@
   "media_console_library": "ספרייה",
   "media_console_transfers": "העברות",
   "media_library_empty": "אין מדיה עדיין",
+  "media_library_emptyFiltered": "אין מדיה שתואמת למסננים אלה",
   "media_library_filter_all": "הכול",
   "media_library_filter_photos": "תמונות",
   "media_library_filter_videos": "סרטונים",
@@ -5921,6 +5965,14 @@
   "media_library_filter_dates": "תאריכים",
   "media_library_filter_missing": "קבצים חסרים",
   "media_library_filter_missingCount": "קבצים חסרים ({count})",
+  "media_library_filter_noPeople": "אף אחד לא מתויג",
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "media_library_filter_peopleCount": "{count, plural, =1{אדם אחד} other{{count} אנשים}}",
+  "media_library_filter_peopleSearchHint": "חיפוש אנשים",
+  "media_library_filter_peopleNoMatch": "אין אנשים תואמים",
+  "media_library_filter_peopleClear": "ניקוי אנשים",
+  "media_library_filter_notPlacedInDive": "לא ממוקם בצלילה",
   "media_library_filter_clear": "ניקוי מסננים",
   "media_library_filter_any": "הכול",
   "media_library_filter_title": "סינון מדיה",
@@ -7816,6 +7868,7 @@
   "settings_conflict_field_summaryRuntimeSeconds": "משך מתוכנן",
   "settings_conflict_field_summaryTtsSeconds": "זמן מתוכנן עד פני המים",
   "settings_conflict_field_supersedesRuleId": "מחליף כלל מובנה",
+  "settings_conflict_field_surfaceBreathingDuration": "זמן נשימה על פני המים",
   "settings_conflict_field_surfaceConditions": "תנאים בפני המים",
   "settings_conflict_field_surfaceSwimLimitM": "השחייה הארוכה ביותר בפני המים",
   "settings_conflict_field_swimSpeedMps": "מהירות שחייה",
@@ -10945,6 +10998,7 @@
   "reparseBatch_confirmMessage": "הפעל את מנתח הצלילות מחדש על {count} צלילות שיש להן נתונים גולמיים שמורים. פעולה זו מעדכנת את נתוני הפרופיל והחיישנים אך שומרת על ההערות, האתרים, השותפים ושאר העריכות.",
   "reparseBatch_confirmSkipped": "צלילות נבחרות ללא נתונים גולמיים (ידולגו): {count}",
   "reparseBatch_noneWithRawData": "לאף אחת מהצלילות שנבחרו אין נתונים גולמיים שמורים לניתוח מחדש.",
+  "diveLog_selection_tooltip_fetchConditions": "אחזור תנאים",
   "diveLog_selection_tooltip_reparse": "נתח מחדש",
   "settings_reparseDives_title": "נתח צלילות מחדש",
   "settings_reparseDives_subtitle": "הפעל את מנתח הצלילות מחדש על כל צלילה שיש לה נתונים גולמיים שמורים",
@@ -15795,6 +15849,7 @@
   "diveLog_detail_errorLoadingSignature": "שגיאה בטעינת החתימה: {error}",
   "diveLog_profilePanel_selectDive": "בחרו צלילה כדי לראות את הפרופיל שלה",
   "diveLog_profilePanel_noProfileData": "אין נתוני פרופיל לצלילה זו",
+  "diveLog_estimatedProfile_caption": "הערכה לפי עומק מרבי וזמן, לא פרופיל מוקלט",
   "settings_export_progress_divesCsv": "מייצא צלילות ל-CSV...",
   "settings_export_progress_sitesCsv": "מייצא אתרים ל-CSV...",
   "settings_export_progress_equipmentCsv": "מייצא ציוד ל-CSV...",
@@ -16656,9 +16711,16 @@
   "transmitters_section_setUp": "הגדר",
   "transmitters_action_apply": "החלה על צלילות קיימות",
   "transmitters_apply_title": "להחיל על צלילות קיימות?",
-  "transmitters_apply_content": "{tanks} מיכלים ב-{dives} צלילות נושאים משדר זה. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.",
+  "transmitters_apply_content": "{tanks} מיכלים ב-{dives} צלילות הנושאים משדר זה זקוקים להגדרות שלו. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.",
   "transmitters_apply_done": "עודכנו {tanks} מיכלים ב-{dives} צלילות",
-  "transmitters_apply_nothing": "אף מיכל אינו נושא משדר זה",
+  "transmitters_apply_slot_label": "חריץ ב-{computer}",
+  "transmitters_apply_slot_none": "ללא התאמה לפי חריץ",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{צלילה אחת} other{{dives} צלילות}}",
+  "transmitters_apply_slot_reading": "קריאת קבצים מיובאים",
+  "transmitters_apply_slot_intro": "למיכלים שיובאו מקובץ אין מספר סידורי. אפשר למלא אותם לפי החריץ שבו ישב משדר זה במחשב הצלילה.",
+  "transmitters_apply_summary": "צלילות שמולאו לפי מספר סידורי: {serialDives}, לפי חריץ: {slotDives}",
+  "transmitters_apply_nothing_to_fill": "אף מיכל אינו צריך את הגדרות המשדר הזה",
+  "transmitters_apply_slot_read_failed": "לא ניתן היה לקרוא את הקבצים המיובאים, ולכן לא ניתן להתאים מיכלים לפי חריץ",
   "transmitters_channel": "{computer}, ערוץ {channel}",
   "transmitters_serial": "משדר {serial}",
   "transmitters_edit_title": "עריכת משדר",

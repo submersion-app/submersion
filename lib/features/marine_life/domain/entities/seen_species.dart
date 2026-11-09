@@ -11,7 +11,9 @@ import 'package:submersion/features/marine_life/domain/entities/species.dart';
 class SeenSpecies extends Equatable {
   final Species species;
 
-  /// Sum of `sightings.count` over every dive.
+  /// Number of dives the species was logged on, however many sighting rows
+  /// a dive holds. Not an animal total: a sighting may be Seen or a REEF
+  /// group (issue #4337).
   final int totalSightings;
 
   /// Number of distinct dives with at least one sighting.

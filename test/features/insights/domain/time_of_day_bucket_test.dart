@@ -313,4 +313,13 @@ void main() {
       expect(classify(at(6, 20), at(7, 10)), classify(at(6, 20), at(7, 10)));
     });
   });
+
+  test('hasUsableLocation rejects missing, 0,0 and off-globe coordinates', () {
+    expect(TimeOfDayClassifier.hasUsableLocation(12.15, -68.27), isTrue);
+    expect(TimeOfDayClassifier.hasUsableLocation(null, -68.27), isFalse);
+    expect(TimeOfDayClassifier.hasUsableLocation(12.15, null), isFalse);
+    expect(TimeOfDayClassifier.hasUsableLocation(0, 0), isFalse);
+    expect(TimeOfDayClassifier.hasUsableLocation(0, 10), isTrue);
+    expect(TimeOfDayClassifier.hasUsableLocation(91, 0), isFalse);
+  });
 }

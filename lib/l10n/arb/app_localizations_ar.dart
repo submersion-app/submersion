@@ -1978,6 +1978,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'أوقات الغطس في هذا اليوم';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'أوقات الغطس في هذا اليوم. شروق الشمس $sunrise، غروب الشمس $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'أوقات الغطس في هذا اليوم. شروق الشمس $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'أوقات الغطس في هذا اليوم. غروب الشمس $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'خريطة اليوم $number';
   }
@@ -8202,9 +8220,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_diveMode_title => 'وضع الغوص';
 
   @override
-  String get diveLog_editSighting_count => 'العدد';
-
-  @override
   String get diveLog_editSighting_notes => 'ملاحظات';
 
   @override
@@ -8339,6 +8354,20 @@ class AppLocalizationsAr extends AppLocalizations {
       few: 'تمت إزالة $count تبديلات غاز مع أسطواناتها',
       two: 'تمت إزالة تبديلي غاز مع أسطوانتيهما',
       one: 'تمت إزالة $count تبديل غاز مع أسطوانته',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ملء $count تبديل من ضغوط الأسطوانات',
+      many: 'ملء $count تبديلًا من ضغوط الأسطوانات',
+      few: 'ملء $count تبديلات من ضغوط الأسطوانات',
+      two: 'ملء تبديلين من ضغوط الأسطوانات',
+      one: 'ملء تبديل واحد من ضغوط الأسطوانات',
     );
     return '$_temp0';
   }
@@ -9339,6 +9368,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'التعليقات';
 
   @override
+  String get diveLog_legend_label_plan => 'الخطة';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'الأحداث المحسوبة';
 
   @override
@@ -9614,6 +9646,42 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تنقص الظروف في $count من الغطسات المحددة وعددها $total.',
+      many: 'تنقص الظروف في $count من الغطسات المحددة وعددها $total.',
+      few: 'تنقص الظروف في $count من الغطسات المحددة وعددها $total.',
+      two: 'تنقص الظروف في غطستين من الغطسات المحددة وعددها $total.',
+      one: 'تنقص الظروف في غطسة واحدة من الغطسات المحددة وعددها $total.',
+    );
+    return '$_temp0 تُملأ الحقول الفارغة فقط، ولن يتغير أي شيء أدخلته من قبل.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ليس لـ $count غطسة إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيها.',
+      many: 'ليس لـ $count غطسة إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيها.',
+      few: 'ليس لـ $count غطسات إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيها.',
+      two: 'ليس لغطستين إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيهما.',
+      one: 'ليس لغطسة واحدة إحداثيات موقع غوص ولا موضع GPS، وسيتم تخطيها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'لا تنقص الظروف في أي من الغطسات المحددة.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'الغطسات المحددة التي تنقصها الظروف ليس لها إحداثيات موقع غوص ولا موضع GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -11036,6 +11104,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'ضغط النهاية';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'التنفس على السطح';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'الدقائق على هذه الأسطوانة بعد توقف الكمبيوتر عن التسجيل، مثل الأكسجين على القارب';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'دقيقة';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -19276,9 +19354,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'أفضل المواقع';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'إجمالي المشاهدات';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'إضافة نوع';
 
   @override
@@ -19600,7 +19675,32 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'ترتيب';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'الأكثر مشاهدة';
+  String get marineLife_speciesPage_sort_mostDives => 'الأكثر غطسات';
+
+  @override
+  String get marineLife_abundance_label => 'كم عددها';
+
+  @override
+  String get marineLife_abundance_seen => 'شوهد';
+
+  @override
+  String get marineLife_abundance_single => 'واحد';
+
+  @override
+  String get marineLife_abundance_few => 'قليل';
+
+  @override
+  String get marineLife_abundance_many => 'كثير';
+
+  @override
+  String get marineLife_abundance_abundant => 'وفير';
+
+  @override
+  String get marineLife_abundance_exact => 'عدد دقيق';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'قليل من 2 إلى 10، كثير من 11 إلى 100، وفير أكثر من 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'شوهدت مؤخرًا';
@@ -20702,6 +20802,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'ملف الفيديو غير موجود';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'يتطلب تشغيل هذا الفيديو نافذة متصفح عادية. لا يمكن للنوافذ الخاصة البث من Google Drive أو WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'الفيديو غير مرتبط بالمكتبة';
 
   @override
@@ -21090,6 +21194,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_empty => 'لا توجد وسائط بعد';
 
   @override
+  String get media_library_emptyFiltered =>
+      'لا توجد وسائط تطابق عوامل التصفية هذه';
+
+  @override
   String get media_library_filter_all => 'الكل';
 
   @override
@@ -21120,6 +21228,45 @@ class AppLocalizationsAr extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'ملفات مفقودة ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'بلا أشخاص موسومين';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first، $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count شخص',
+      many: '$count شخصًا',
+      few: '$count أشخاص',
+      two: 'شخصان',
+      one: 'شخص واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'البحث عن أشخاص';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'لا يوجد أشخاص مطابقون';
+
+  @override
+  String get media_library_filter_peopleClear => 'مسح الأشخاص';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'غير محدد في الغطسة';
 
   @override
   String get media_library_filter_clear => 'مسح عوامل التصفية';
@@ -26528,6 +26675,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'يحل محل القاعدة المدمجة';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'وقت التنفس على السطح';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'الأحوال على السطح';
@@ -38905,6 +39056,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'لا توجد بيانات أولية مخزنة لإعادة التحليل في أي من الغطسات المحددة.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'جلب الظروف';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'إعادة التحليل';
@@ -53925,6 +54079,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات ملف لهذه الغوصة';
 
   @override
+  String get diveLog_estimatedProfile_caption =>
+      'تقدير من أقصى عمق والوقت، وليس ملفًا مسجلًا';
+
+  @override
   String get settings_export_progress_divesCsv =>
       'جارٍ تصدير الغوصات إلى CSV...';
 
@@ -56681,7 +56839,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks أسطوانة في $dives غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.';
+    return '$tanks أسطوانة في $dives غطسة تحمل جهاز الإرسال هذا تحتاج إلى إعداده. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.';
   }
 
   @override
@@ -56690,8 +56848,46 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
+  String transmitters_apply_slot_label(String computer) {
+    return 'الفتحة على $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'عدم المطابقة حسب الفتحة';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة',
+      many: '$dives غطسة',
+      few: '$dives غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'جارٍ قراءة الملفات المستوردة';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'لا تحمل الأسطوانات المستوردة من ملف رقمًا تسلسليًا. يمكن ملؤها حسب الفتحة التي شغلها جهاز الإرسال هذا في كمبيوتر الغوص.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'غطسات مُلئت حسب الرقم التسلسلي: $serialDives، حسب الفتحة: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'لا توجد أسطوانة تحتاج إلى إعداد جهاز الإرسال هذا';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'تعذّرت قراءة الملفات المستوردة، لذا لا يمكن مطابقة الأسطوانات حسب الفتحة';
 
   @override
   String transmitters_channel(String computer, int channel) {

@@ -72,6 +72,17 @@ extension RungsFromV340 on AppDatabase {
     if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
     if (from < 347) await reportProgress();
 
+    // v348: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, the
+    // underwater time and depth whole-dive SAC and RMV divide by, and where
+    // surface breathing stretched them (issue #2930). Nullable columns on a
+    // device-local cache, no backfill: the engine version bump makes the
+    // sweep rebuild every row. Plus dive_tanks.surface_breathing_duration,
+    // minutes the diver enters, synced and nullable. Re-asserted in
+    // beforeOpen.
+    if (from < 348) await _assertDerivedMetricsGasUseColumns();
+    if (from < 348) await _assertTankSurfaceBreathingColumn();
+    if (from < 348) await reportProgress();
+
     // v349: an empty dives.water_temp takes the temperature the dive's source
     // rows measured; a download kept it on the source row only (issue #4333).
     // Data only, so the compatibility floor does not move. It fills empty
@@ -80,10 +91,19 @@ extension RungsFromV340 on AppDatabase {
     if (from < 349) await fillDiveWaterTempsFromSources(this);
     if (from < 349) await reportProgress();
 
+    // v350: sightings.abundance, whether a sighting was only seen, sorted
+    // into a REEF group, or counted exactly (issue #4337). A nullable
+    // column with no backfill: null means the count is exact, so every
+    // existing sighting reads as before. Raises the sync floor (see
+    // minimumCompatibleSchemaVersion). Re-asserted in beforeOpen. Numbered
+    // 350: main holds 349 and open PR #4327 is to take 348.
+    if (from < 350) await _assertSightingAbundanceColumn();
+    if (from < 350) await reportProgress();
+
     // v353: dive_profile_series.is_edit, the synced mark that a series is
     // the diver's manual edit (issue #4386). Nullable, no backfill: a series
     // written before it stays unknown. Re-asserted in beforeOpen. Numbered
-    // 353 because open PRs claim 350 to 352.
+    // 353 because main holds 350 and open PRs claim 351 and 352.
     if (from < 353) await _assertProfileSeriesIsEditColumn();
     if (from < 353) await reportProgress();
   }

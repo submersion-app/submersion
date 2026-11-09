@@ -10,6 +10,17 @@ void main() {
       expect(parseMinutesSeconds('1:7'), 67);
     });
 
+    test('reads back a time before the start as formatted (#4335)', () {
+      // A switch a second computer logged before the primary started shows
+      // as "-1:43"; refusing its own text left the field invalid.
+      expect(parseMinutesSeconds('-1:43'), -103);
+      expect(parseMinutesSeconds(formatMinutesSeconds(-65)), -65);
+      expect(parseMinutesSeconds(' -2 '), -120);
+      expect(parseMinutesSeconds('-0:00'), 0);
+      expect(parseMinutesSeconds('--1:00'), isNull);
+      expect(parseMinutesSeconds('-'), isNull);
+    });
+
     test('refuses text that is not a time', () {
       expect(parseMinutesSeconds('ab'), isNull);
       expect(parseMinutesSeconds('1:60'), isNull);

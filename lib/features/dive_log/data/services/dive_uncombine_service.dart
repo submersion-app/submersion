@@ -541,6 +541,9 @@ class DiveUncombineService {
                   usageDuration: sharedTankIds.contains(tank.id)
                       ? const Value(null)
                       : null,
+                  // Surface breathing comes after the dive, so it stays with
+                  // the last segment (#2930).
+                  surfaceBreathingDuration: isLast ? null : const Value(null),
                 ),
           );
       await _sync.markRecordPending(
@@ -548,6 +551,20 @@ class DiveUncombineService {
         recordId: freshId,
         localUpdatedAt: now,
       );
+      // The last segment's copy took the surface minutes, so the original,
+      // which stays on the kept first dive, lets go of them (#2930).
+      if (isLast && tank.surfaceBreathingDuration != null) {
+        await (_db.update(
+          _db.diveTanks,
+        )..where((t) => t.id.equals(tank.id))).write(
+          const DiveTanksCompanion(surfaceBreathingDuration: Value(null)),
+        );
+        await _sync.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: tank.id,
+          localUpdatedAt: now,
+        );
+      }
     }
 
     // 5. Profile series, re-based, with the merge's surface fill trimmed out

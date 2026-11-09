@@ -24,6 +24,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/sighting_amount_badge.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
@@ -36,6 +37,7 @@ import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_switch_editing.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_usage_range.dart';
+import 'package:submersion/features/dive_log/domain/services/detected_gas_switch_edits.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/linked_dive_times.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/seeded_dive_times.dart';
@@ -106,6 +108,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/cylinder_breath_starts_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/detected_gas_switches_provider.dart';
+import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_text_suggestion_field.dart';
 import 'package:submersion/features/dive_log/presentation/providers/visibility_input_mode_provider.dart';
@@ -495,6 +499,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // [_updateGasSwitches].
   List<GasSwitch> _gasSwitches = const [];
   Set<String> _loadedGasSwitchIds = const {};
+  // The earliest loaded switch, when it lies before the dive start
+  // (#4335): what the dive already holds never fails validation.
+  int _loadedGasSwitchFloor = 0;
   Set<String> _depthTouchedSwitchIds = const {};
   int _removedSwitchNotice = 0;
   bool _gasSwitchesDirty = false;
@@ -1067,6 +1074,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _existingDive = dive;
           _gasSwitches = loadedSwitches;
           _loadedGasSwitchIds = {for (final s in loadedSwitches) s.id};
+          _loadedGasSwitchFloor = loadedSwitches.fold(
+            0,
+            (floor, s) => s.timestamp < floor ? s.timestamp : floor,
+          );
           _isPlanned = dive.isPlanned;
           _hasPrimarySource = hasPrimarySource;
           _diverRoleIds = dive.diverRoleIds;
@@ -6169,26 +6180,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (sighting.count > 1)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          'x${sighting.count}',
-                          style: TextStyle(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onPrimaryContainer,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                    SightingAmountBadge(amount: sighting.amount),
                     IconButton(
                       icon: const Icon(Icons.close, size: 18),
                       tooltip: context.l10n.diveLog_edit_tooltip_removeSighting,
@@ -6222,7 +6214,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         expand: false,
         builder: (context, scrollController) => SpeciesPickerSheet(
           scrollController: scrollController,
-          onSpeciesSelected: (species, count, notes) {
+          onSpeciesSelected: (species, amount, notes) {
             setState(() {
               _markDirty();
               _sightings.add(
@@ -6232,7 +6224,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   speciesId: species.id,
                   speciesName: species.commonName,
                   speciesCategory: species.category,
-                  count: count,
+                  abundance: amount.abundance,
+                  count: amount.count,
                   notes: notes,
                 ),
               );
@@ -6689,6 +6682,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             await speciesRepository.addSighting(
               diveId: savedDiveId,
               speciesId: sighting.speciesId,
+              abundance: sighting.abundance,
               count: sighting.count,
               notes: sighting.notes,
             );

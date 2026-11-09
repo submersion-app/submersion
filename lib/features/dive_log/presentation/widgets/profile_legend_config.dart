@@ -88,6 +88,10 @@ class ProfileLegendConfig {
   /// Whether the dive carries annotations (#4109), which get their own
   /// toggle beside Events.
   final bool hasAnnotations;
+
+  /// Whether the dive has a linked plan whose profile can be drawn beside
+  /// it (#4215), which gets its own toggle in the Overlays section.
+  final bool hasPlannedProfile;
   final bool hasMaxDepthMarker;
   final bool hasPressureMarkers;
   final bool hasGasSwitches;
@@ -150,6 +154,7 @@ class ProfileLegendConfig {
     this.hasComputedEvents = false,
     this.hasImportedEvents = false,
     this.hasAnnotations = false,
+    this.hasPlannedProfile = false,
     this.hasMaxDepthMarker = false,
     this.hasPressureMarkers = false,
     this.hasGasSwitches = false,

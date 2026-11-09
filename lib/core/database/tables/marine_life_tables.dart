@@ -36,6 +36,12 @@ class Sightings extends Table {
   IntColumn get count => integer().withDefault(const Constant(1))();
   TextColumn get notes => text().withDefault(const Constant(''))();
 
+  /// v350 (issue #4337): NULL when count is exact, else seen, single, few,
+  /// many or abundant with count 1. How many animals the diver recorded:
+  /// every sighting from before v350 is NULL, an exact [count]; `seen`
+  /// gives no number, and the four REEF groups give a range.
+  TextColumn get abundance => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 

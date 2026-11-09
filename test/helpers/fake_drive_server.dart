@@ -28,6 +28,10 @@ class FakeDriveServer {
   /// once a folder outgrows a page. Null serves everything in one page.
   int? queryPageSize;
 
+  /// Answers every media GET with the whole file and 200, as a server that
+  /// ignores `Range` does.
+  bool ignoresRange = false;
+
   MockClient get client => MockClient(_handle);
 
   Future<http.Response> _handle(http.Request request) async {
@@ -62,7 +66,7 @@ class FakeDriveServer {
       final file = filesById[id];
       if (file == null) return http.Response('', 404);
       final range = request.headers['Range'] ?? request.headers['range'];
-      if (range != null) {
+      if (range != null && !ignoresRange) {
         final match = RegExp(r'bytes=(\d+)-(\d+)').firstMatch(range)!;
         final start = int.parse(match.group(1)!);
         final end = int.parse(match.group(2)!).clamp(0, file.bytes.length - 1);
