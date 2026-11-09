@@ -10,7 +10,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/primary_source_promotion.dart';
-import 'package:submersion/features/dive_log/data/services/source_ownership.dart';
+import 'package:submersion/features/dive_log/data/services/source_row_ownership.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 
 /// What a source removal did, for its Undo.

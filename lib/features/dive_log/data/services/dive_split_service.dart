@@ -12,7 +12,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/primary_source_promotion.dart';
-import 'package:submersion/features/dive_log/data/services/source_ownership.dart';
+import 'package:submersion/features/dive_log/data/services/source_row_ownership.dart';
 import 'package:submersion/features/dive_log/domain/services/source_bottom_time.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
