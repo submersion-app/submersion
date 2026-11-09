@@ -4725,7 +4725,7 @@
   "diveLog_detail_profileRevision_editType_trimEndZeros": "Trim end zeros",
   "diveLog_detail_section_equipment": "Equipment",
   "diveLog_detail_section_marineLife": "Species",
-  "diveLog_detail_sightingPhotos": "{count, plural, =1{{count} photo} other{{count} photos}}",
+  "diveLog_detail_sightingPhotos": "{count, plural, =1{1 photo} other{{count} photos}}",
   "@diveLog_detail_sightingPhotos": {
     "placeholders": {
       "count": {

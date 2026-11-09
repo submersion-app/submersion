@@ -7846,7 +7846,7 @@ class AppLocalizationsEn extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count photos',
-      one: '$count photo',
+      one: '1 photo',
     );
     return '$_temp0';
   }

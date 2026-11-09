@@ -12529,7 +12529,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_sightingPhotos.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{{count} photo} other{{count} photos}}'**
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
   String diveLog_detail_sightingPhotos(int count);
 
   /// No description provided for @diveLog_detail_section_notes.

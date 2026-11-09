@@ -254,7 +254,6 @@ const Map<String, String> keptEnglishValues = {
   'units_profileMetric_gPerL': _units,
   'universalImport_compare_serial@de': _germanSerial,
   'web_googleClientId_hint': _exampleAddress,
-  'diveLog_detail_sightingPhotos@fr': _sameWord,
   // Gear photos (issue #3355).
   'equipment_photos_checkInCaption@de': _loanword,
   'equipment_photos_checkInCaption@nl': _loanword,
