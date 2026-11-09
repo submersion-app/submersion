@@ -2,9 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// [dive] is every by-dive mode header: a dive's, and since issue #4149 a
-/// site's, an equipment item's and Unlinked.
-enum MediaGroupHeaderKind { month, day, dive }
+/// [dive] is every by-dive mode group header: a dive's, and since issue #4149
+/// a site's and an equipment item's. [section] heads a run of by-dive groups
+/// of one kind (issue #4224): the site pictures after the dives, the
+/// equipment pictures after them, and Unlinked last.
+enum MediaGroupHeaderKind { month, day, dive, section }
 
 /// One header in the grouped gallery. Everything that sets a header's height
 /// comes from here, for [MediaGroupHeader] to draw and
@@ -16,10 +18,14 @@ class MediaGroupHeaderSpec {
     required this.label,
     this.route,
     this.hint,
+    this.icon,
   });
 
   final MediaGroupHeaderKind kind;
   final String label;
+
+  /// Drawn before a [MediaGroupHeaderKind.section] label; ignored otherwise.
+  final IconData? icon;
 
   /// Where this header goes, if it goes anywhere right now: the dive, site
   /// or equipment item its group belongs to. Null while a selection is in
@@ -34,10 +40,30 @@ class MediaGroupHeaderSpec {
   /// 48 is Material's tap-target floor.
   double get minHeight => navigable ? 48 : 0;
 
+  static const double sectionIconSize = 18;
+  static const double sectionIconGap = 8;
+  static const double sectionRuleGap = 4;
+  static const double sectionRuleThickness = 1;
+
+  bool get _hasIcon => kind == MediaGroupHeaderKind.section && icon != null;
+
+  /// Width the icon takes from the label, so the measurer wraps the label
+  /// where the painted one wraps.
+  double get leadingWidth => _hasIcon ? sectionIconSize + sectionIconGap : 0;
+
+  /// The icon's height, the floor under a one-line label's.
+  double get leadingHeight => _hasIcon ? sectionIconSize : 0;
+
+  /// The rule under a section label and the gap above it.
+  double get ruleExtent => kind == MediaGroupHeaderKind.section
+      ? sectionRuleGap + sectionRuleThickness
+      : 0;
+
   EdgeInsets get padding => switch (kind) {
     MediaGroupHeaderKind.month => const EdgeInsets.fromLTRB(12, 16, 12, 4),
     MediaGroupHeaderKind.day => const EdgeInsets.fromLTRB(12, 8, 12, 4),
     MediaGroupHeaderKind.dive => const EdgeInsets.fromLTRB(12, 12, 12, 4),
+    MediaGroupHeaderKind.section => const EdgeInsets.fromLTRB(12, 20, 12, 2),
   };
 
   static TextStyle? themeStyleOf(
@@ -45,6 +71,7 @@ class MediaGroupHeaderSpec {
     TextTheme textTheme,
   ) => switch (kind) {
     MediaGroupHeaderKind.day => textTheme.labelLarge,
+    MediaGroupHeaderKind.section => textTheme.titleSmall,
     MediaGroupHeaderKind.month ||
     MediaGroupHeaderKind.dive => textTheme.titleMedium,
   };
@@ -60,13 +87,12 @@ class MediaGroupHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Text(
-      spec.label,
-      style: MediaGroupHeaderSpec.themeStyleOf(
-        spec.kind,
-        Theme.of(context).textTheme,
-      ),
-    );
+    final theme = Theme.of(context);
+    final style = MediaGroupHeaderSpec.themeStyleOf(spec.kind, theme.textTheme);
+    if (spec.kind == MediaGroupHeaderKind.section) {
+      return _section(theme.colorScheme.primary, style);
+    }
+    final text = Text(spec.label, style: style);
     if (!spec.navigable) return Padding(padding: spec.padding, child: text);
     // No label here: the Text below already gives the merged node its
     // label, and naming it twice made a screen reader read it twice.
@@ -86,6 +112,45 @@ class MediaGroupHeader extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+extension on MediaGroupHeader {
+  /// A section heading: accent label after its icon, a thin accent rule
+  /// under both. Never a button. Every extent here is one the spec states,
+  /// so [MediaGroupHeaderMeasurer] measures what this draws.
+  Widget _section(Color accent, TextStyle? style) {
+    final icon = spec.icon;
+    return Padding(
+      padding: spec.padding,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: MediaGroupHeaderSpec.sectionIconSize,
+                  color: accent,
+                ),
+                const SizedBox(width: MediaGroupHeaderSpec.sectionIconGap),
+              ],
+              Expanded(
+                child: Text(spec.label, style: style?.copyWith(color: accent)),
+              ),
+            ],
+          ),
+          const SizedBox(height: MediaGroupHeaderSpec.sectionRuleGap),
+          SizedBox(
+            height: MediaGroupHeaderSpec.sectionRuleThickness,
+            child: ColoredBox(color: accent),
+          ),
+        ],
       ),
     );
   }
@@ -177,9 +242,10 @@ class MediaGroupHeaderMeasurer {
     final textHeight = _textHeight(
       spec.kind,
       spec.label,
-      math.max(0, paneWidth - spec.padding.horizontal),
+      math.max(0, paneWidth - spec.padding.horizontal - spec.leadingWidth),
     );
-    return math.max(spec.minHeight, textHeight + spec.padding.vertical);
+    final content = math.max(textHeight, spec.leadingHeight) + spec.ruleExtent;
+    return math.max(spec.minHeight, content + spec.padding.vertical);
   }
 
   double _textHeight(
