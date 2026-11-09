@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart' hide Visibility;
 import 'package:submersion/core/constants/enums.dart' as enums;
 import 'package:submersion/core/services/export/models/currency_backup_data.dart';
 import 'package:submersion/core/services/export/models/export_service_record.dart';
+import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/services/export/uddf/uddf_certification_currency.dart';
 import 'package:submersion/core/services/export/uddf/uddf_computer_tissue.dart';
 import 'package:submersion/core/services/export/uddf/uddf_visibility_range.dart';
@@ -475,7 +476,7 @@ class UddfExportBuilders {
                       'sighting',
                       attributes: {
                         'speciesref': 'species_${sighting.speciesId}',
-                        'count': sighting.count.toString(),
+                        ...UddfSightingAmount.attributes(sighting.amount),
                       },
                       nest: () {
                         if (sighting.notes.isNotEmpty) {

@@ -7,7 +7,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 const double _pressureToleranceBar = 1.0;
 
 /// [metaTanks] with the transmitter serial of the parsed tank each one pairs
-/// with (issue #4347): Shearwater Cloud's metadata names a dive's tanks but
+/// with (issue #4388): Shearwater Cloud's metadata names a dive's tanks but
 /// carries no serial, while libdivecomputer reads the serial off the raw log.
 ///
 /// Both lists run in slot order, and libdivecomputer leaves out a slot that

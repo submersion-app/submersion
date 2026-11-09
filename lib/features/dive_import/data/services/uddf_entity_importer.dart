@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:drift/drift.dart' show Value;
+import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/domain/visibility/visibility_range.dart';
@@ -3553,7 +3554,7 @@ class UddfEntityImporter {
     // joins its dives, as a download's does (issue #3676).
     await registerTransmittersForDives(importedDiveIds);
     // A serial the diver has already set up arrives configured, filling
-    // what the file left empty, as a download's does (issue #4347).
+    // what the file left empty, as a download's does (issue #4388).
     await applyTransmitterSetupToDives(importedDiveIds);
 
     return _DiveImportResult(
@@ -3670,7 +3671,8 @@ class UddfEntityImporter {
               defaultStartPressure: _defaultStartPressure,
             )
           : tanksData;
-      return processedTanks.map((t) {
+      return processedTanks.indexed.map((entry) {
+        final (index, t) = entry;
         TankMaterial? material;
         final materialValue = t['material'];
         if (materialValue is TankMaterial) {
@@ -3701,7 +3703,9 @@ class UddfEntityImporter {
           gasMix: t['gasMix'] as GasMix? ?? const GasMix(),
           material: material,
           role: role,
-          order: t['order'] as int? ?? 0,
+          // The file's own order, else its position, as resync stores it
+          // (issue #4347): every cylinder at 0 left their order arbitrary.
+          order: t['order'] as int? ?? index,
           transmitterSerial: t['transmitterSerial'] as String?,
           // How long the source log says the tank was breathed (MacDive,
           // issue #1496).
@@ -3760,10 +3764,12 @@ class UddfEntityImporter {
           taxonomyClass: text(entry['speciesTaxonomyClass']),
           description: text(entry['speciesDescription']),
         );
+        final amount = UddfSightingAmount.amountOf(entry);
         await repository.addSighting(
           diveId: diveId,
           speciesId: species.id,
-          count: entry['count'] is int ? entry['count'] as int : 1,
+          abundance: amount.abundance,
+          count: amount.count,
           notes: entry['notes'] is String ? entry['notes'] as String : '',
         );
       } catch (e) {
@@ -3781,13 +3787,15 @@ class UddfEntityImporter {
         if (sightingData['speciesRef'] case final String speciesRef
             when speciesRef.isNotEmpty)
           if (_sightingSpeciesName(sightingData) case final String name)
-            MarineSighting(
-              id: _uuid.v4(),
-              speciesId: speciesRef,
-              speciesName: name,
-              count: sightingData['count'] as int? ?? 1,
-              notes: sightingData['notes'] as String? ?? '',
-            ),
+            if (UddfSightingAmount.amountOf(sightingData) case final amount)
+              MarineSighting(
+                id: _uuid.v4(),
+                speciesId: speciesRef,
+                speciesName: name,
+                abundance: amount.abundance,
+                count: amount.count,
+                notes: sightingData['notes'] as String? ?? '',
+              ),
     ];
   }
 

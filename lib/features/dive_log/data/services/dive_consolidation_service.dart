@@ -883,7 +883,7 @@ class DiveConsolidationService {
     });
 
     // A serial the fold just gave a cylinder may be one the diver has set
-    // up: fill that setup in, as a download would have (issue #4347).
+    // up: fill that setup in, as a download would have (issue #4388).
     await applyTransmitterSetupToDives([targetDiveId]);
 
     SyncEventBus.notifyLocalChange();
@@ -895,7 +895,7 @@ class DiveConsolidationService {
 
   /// Gives target tank [targetTankId] the transmitter serial of [merged],
   /// the secondary's tank folded into it, when the target has none (issue
-  /// #4347): a file import that knew the cylinder but not its transmitter.
+  /// #4388): a file import that knew the cylinder but not its transmitter.
   /// A serial the target has is never replaced. Only when the pairing rests
   /// on more than chance: a mix that more than one cylinder on either dive
   /// breathes was paired by order, and a wrong serial would carry another

@@ -9,7 +9,7 @@ import 'package:submersion/features/transmitters/domain/entities/transmitter.dar
 import '../../../../helpers/test_database.dart';
 
 /// A resync gives a stored cylinder the transmitter serial its file now
-/// yields, so a Shearwater Cloud import from before #4347 can be repaired
+/// yields, so a Shearwater Cloud import from before #4388 can be repaired
 /// from its stored file, and the diver's setup for that transmitter follows.
 void main() {
   late AppDatabase db;

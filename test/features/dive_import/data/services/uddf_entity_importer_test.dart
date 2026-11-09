@@ -5167,6 +5167,47 @@ void main() {
       verify(mockServiceRecordRepo.createRecord(any)).called(2);
     });
   });
+
+  group('Import dives (cylinder order, #4347)', () {
+    setUp(() {
+      when(
+        mockDiveRepo.createDive(any),
+      ).thenAnswer((inv) async => inv.positionalArguments[0] as Dive);
+    });
+
+    Future<Dive> importDive(List<Map<String, dynamic>> tanks) async {
+      await importer.import(
+        data: UddfImportResult(
+          dives: [
+            {'dateTime': DateTime.utc(2025, 10, 13, 11, 24), 'tanks': tanks},
+          ],
+        ),
+        selections: const UddfImportSelections(dives: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+      return verify(mockDiveRepo.createDive(captureAny)).captured.single
+          as Dive;
+    }
+
+    test('cylinders without a tankorder keep their file position', () async {
+      final dive = await importDive([
+        {'startPressure': 200.0},
+        {'startPressure': 210.0},
+      ]);
+
+      expect(dive.tanks.map((t) => t.order), [0, 1]);
+    });
+
+    test('a tankorder from the file is kept', () async {
+      final dive = await importDive([
+        {'startPressure': 200.0, 'order': 3},
+        {'startPressure': 210.0, 'order': 1},
+      ]);
+
+      expect(dive.tanks.map((t) => t.order), [3, 1]);
+    });
+  });
 }
 
 /// These tests run on mocked repositories with no database: no custom

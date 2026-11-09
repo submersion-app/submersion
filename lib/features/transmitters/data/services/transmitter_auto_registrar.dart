@@ -218,7 +218,7 @@ Future<void> registerTransmittersForDives(
 }
 
 /// Fills each transmitter the diver has already set up onto the tanks of
-/// [diveIds] that carry its serial (issue #4347), for the paths that write
+/// [diveIds] that carry its serial (issue #4388), for the paths that write
 /// tanks without the download adapter's registry match (file import, dive
 /// merge). Fill-only, by the rules of "Apply to existing dives".
 /// Best-effort: a failure never fails the import or merge that called it.

@@ -508,7 +508,7 @@ class ShearwaterDiveMapper {
     }
 
     // The export names the tanks but not their transmitters; the raw log
-    // knows each transmitter's serial (#4347).
+    // knows each transmitter's serial (#4388).
     final metaTanks = merged['tanks'] as List<Map<String, dynamic>>?;
     if (metaTanks != null && metaTanks.isNotEmpty) {
       merged['tanks'] = withTransmitterSerials(metaTanks, parsed.tanks);

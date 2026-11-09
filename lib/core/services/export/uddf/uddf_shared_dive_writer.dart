@@ -2,6 +2,7 @@ import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' show DiveMode;
 import 'package:submersion/core/services/export/models/uddf_export_options.dart';
+import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_custom_fields.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_durations.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_logistics.dart';
@@ -278,7 +279,7 @@ abstract final class UddfSharedDiveWriter {
                       'sighting',
                       attributes: {
                         'speciesref': 'species_${sighting.speciesId}',
-                        'count': sighting.count.toString(),
+                        ...UddfSightingAmount.attributes(sighting.amount),
                       },
                       nest: () {
                         if (sighting.notes.isNotEmpty) {

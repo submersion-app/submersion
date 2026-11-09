@@ -7,6 +7,9 @@ import 'package:submersion/features/dive_log/data/repositories/derived_metrics_r
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/domain/services/derived_metrics_service.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    show DiveProfilePoint;
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -106,6 +109,83 @@ void main() {
       expect(row.finalStopState, isNull);
     },
   );
+
+  group('gas-use window (issue #2930)', () {
+    // 30 minutes at 18 m, then 10 logged at the surface.
+    final tail = [
+      for (var t = 0; t <= 40 * 60; t += 10)
+        DiveProfilePoint(
+          timestamp: t,
+          depth: t == 0
+              ? 0
+              : t < 30 * 60
+              ? 18
+              : 0.3,
+        ),
+    ];
+
+    DerivedMetricsRepository withMerged(List<DiveProfilePoint> merged) =>
+        DerivedMetricsRepository(
+          runner: (input) async => DiveDerivedMetrics(
+            diveId: input.diveId,
+            engineVersion: DerivedMetricsService.version,
+            sourceUpdatedAt: input.sourceUpdatedAt,
+            computedAt: input.computedAtMs,
+            unsupportedReason: UnsupportedReason.gaugeMode,
+          ),
+          mergedProfile: (_) async => merged,
+        );
+
+    test('comes from the merged profile, whatever the engine saw', () async {
+      await insertDive('d1');
+      final r = withMerged(tail);
+      final metrics = await r.ensureCurrent('d1');
+      final window = gasUseWindowOf(
+        tail,
+        time: (p) => p.timestamp,
+        depth: (p) => p.depth,
+      )!;
+      expect(metrics!.gasUseSeconds, window.seconds);
+      final stored = await r.getMetrics('d1');
+      expect(stored!.gasUseSeconds, window.seconds);
+      expect(stored.gasUseAvgDepthMeters, window.avgDepth);
+      // The engine's own fields are kept.
+      expect(stored.unsupportedReason, UnsupportedReason.gaugeMode);
+    });
+
+    test('is cleared when the rebuilt dive has no surface tail', () async {
+      await insertDive('d1');
+      await withMerged(tail).ensureCurrent('d1');
+      final noTail = [
+        for (final p in tail)
+          if (p.timestamp <= 30 * 60) p,
+      ];
+      await withMerged(noTail).ensureCurrent('d1', force: true);
+      final stored = await repo().getMetrics('d1');
+      expect(stored!.gasUseSeconds, isNull);
+      expect(stored.gasUseAvgDepthMeters, isNull);
+    });
+
+    test('a repository bound to its own database must name its reader', () {
+      expect(
+        () => DerivedMetricsRepository(database: db),
+        throwsA(isA<AssertionError>()),
+      );
+      expect(
+        DerivedMetricsRepository(
+          database: db,
+          mergedProfile: (_) async => const [],
+        ),
+        isNotNull,
+      );
+    });
+
+    test('is none for a dive with no profile', () async {
+      await insertDive('d1');
+      final metrics = await withMerged(const []).ensureCurrent('d1');
+      expect(metrics!.gasUseSeconds, isNull);
+    });
+  });
 
   test('a second call reads the stored row without recomputing', () async {
     await insertDive('d1');
@@ -510,6 +590,61 @@ void main() {
       expect(rebuilt!.sourceUpdatedAt, now + (now - 50));
     },
   );
+
+  test('a gas switch added later makes the row stale (#2930)', () async {
+    // A switch logged on the surface stretches the gas-use window, and a
+    // synced switch never re-stamps its dive.
+    await insertDive('d1', updatedAt: now);
+    final r = repo();
+    await r.ensureCurrent('d1');
+    expect(await r.staleDiveIds(), isEmpty);
+
+    await db
+        .into(db.diveTanks)
+        .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1'));
+    await r.ensureCurrent('d1');
+    expect(await r.staleDiveIds(), isEmpty);
+    await db
+        .into(db.gasSwitches)
+        .insert(
+          GasSwitchesCompanion.insert(
+            id: 'sw',
+            diveId: 'd1',
+            timestamp: 2100,
+            tankId: 't1',
+            createdAt: now,
+          ),
+        );
+    expect(await r.staleDiveIds(), ['d1']);
+  });
+
+  test('a new primary computer makes the row stale (#2930)', () async {
+    // The pressure series that say a cylinder was breathed on the surface
+    // are the primary computer's, and a synced source flag never re-stamps
+    // its dive.
+    await insertDive('d1', updatedAt: now);
+    for (final (id, primary) in [('a', true), ('b', false)]) {
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: id,
+              diveId: 'd1',
+              importedAt: DateTime(2026, 6, 1),
+              createdAt: DateTime(2026, 6, 1),
+            ).copyWith(isPrimary: Value(primary)),
+          );
+    }
+    final r = repo();
+    await r.ensureCurrent('d1');
+    expect(await r.staleDiveIds(), isEmpty);
+
+    for (final (id, primary) in [('a', false), ('b', true)]) {
+      await (db.update(db.diveDataSources)..where((s) => s.id.equals(id)))
+          .write(DiveDataSourcesCompanion(isPrimary: Value(primary)));
+    }
+    expect(await r.staleDiveIds(), ['d1']);
+  });
 
   test('a synced tank row change makes the row stale', () async {
     // A tank's volume and identity live on dive_tanks, whose own clock is

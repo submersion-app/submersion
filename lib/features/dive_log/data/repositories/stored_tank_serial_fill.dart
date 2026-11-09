@@ -11,7 +11,7 @@ const double _pressureToleranceBar = 1.0;
 
 /// The serial a stored cylinder [row] should take from [readingSerial], the
 /// transmitter a fresh download of the same computer reports for the tank
-/// paired with it, or null to leave it (issue #4347).
+/// paired with it, or null to leave it (issue #4388).
 ///
 /// Only a cylinder with no serial takes one, and only when both start
 /// pressures are known and agree: the pairing is by index, and a file

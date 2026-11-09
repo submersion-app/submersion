@@ -9,12 +9,11 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
-import 'package:submersion/features/transmitters/data/services/transmitter_tank_filler.dart';
+import 'package:submersion/features/transmitters/data/services/bailout_mix_fixer.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_tank_fill.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
-
-export 'package:submersion/features/transmitters/data/services/transmitter_tank_filler.dart'
-    show ApplyToExistingResult;
 
 /// Thrown when an entry would share a serial (per diver) or a
 /// (computer, channel) key with [existing].
@@ -27,11 +26,19 @@ class TransmitterConflictException implements Exception {
       'TransmitterConflictException: conflicts with ${existing.label}';
 }
 
+/// Outcome of [TransmitterRepository.applyToExistingDives].
+/// [mixesKept]: dives where a bailout entry changed the role but found no
+/// bailout mix to give the tank, so it kept the one it had (issue #3307).
+typedef ApplyToExistingResult = ({
+  int tanksUpdated,
+  int divesUpdated,
+  int mixesKept,
+});
+
 class TransmitterRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final SyncRepository _syncRepository = SyncRepository();
   final _uuid = const Uuid();
-  final TransmitterTankFiller _filler = TransmitterTankFiller();
 
   static const String _entity = 'transmitters';
 
@@ -86,19 +93,13 @@ class TransmitterRepository {
     for (final key in await getForEquipment(equipmentId)) {
       if (key.id == exceptKeyId) continue;
       await update(
-        key.copyWith(
+        key.withSetup(
           role: role,
-          equipmentId: cylinderId,
-          clearEquipmentId: cylinderId == null,
+          cylinderId: cylinderId,
           volumeL: volumeL,
-          clearVolumeL: volumeL == null,
           workingPressureBar: workingPressureBar,
-          clearWorkingPressureBar: workingPressureBar == null,
           material: material,
-          clearMaterial: material == null,
           presetName: presetName,
-          clearPresetName: presetName == null,
-          isConfigured: true,
         ),
       );
     }
@@ -419,35 +420,48 @@ class TransmitterRepository {
     return (known: known, unassigned: seen.length - known);
   }
 
-  /// The counts [applyToExistingDives] would report, without writing.
+  /// The counts [applyToExistingDives] would report, without writing: only
+  /// the cylinders the fill would change (issue #4347), so a setup already
+  /// applied previews as nothing left to do.
   Future<ApplyToExistingResult> previewApplyToExistingDives(
-    Transmitter t,
-  ) async {
-    final candidates = await _tanksForEntry(t);
+    Transmitter t, {
+    Iterable<String> slotTankIds = const [],
+  }) async {
+    final changing = [
+      for (final row in await _rowsToApply(t, slotTankIds))
+        if (transmitterFillFor(row, t) != null) row,
+    ];
     return (
-      tanksUpdated: candidates.length,
-      divesUpdated: candidates.map((r) => r.diveId).toSet().length,
+      tanksUpdated: changing.length,
+      divesUpdated: changing.map((r) => r.diveId).toSet().length,
       mixesKept: 0,
     );
   }
 
-  /// Retroactive fill for the tanks that carry [t]'s key, by the rules of
-  /// [TransmitterTankFiller].
-  Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
-    final candidates = await _tanksForEntry(t);
-    return _filler.fill([for (final row in candidates) (row, t)]);
+  /// Retroactive fill for the tanks that carry [t]'s key, plus
+  /// [slotTankIds]: the serial-less cylinders the diver matched by computer
+  /// slot in the apply dialog (issue #4347), which never gain the serial.
+  /// What each cylinder gains is [transmitterFillFor]'s. An open-circuit
+  /// entry also replaces a name-derived role's 100% O2 default mix (#3307).
+  /// One transaction; a failure leaves no half-applied dive.
+  Future<ApplyToExistingResult> applyToExistingDives(
+    Transmitter t, {
+    Iterable<String> slotTankIds = const [],
+  }) async {
+    final candidates = await _rowsToApply(t, slotTankIds);
+    return _fill([for (final row in candidates) (row, t)]);
   }
 
   /// Fills each set-up transmitter onto the tanks of [diveIds] that carry
-  /// its serial (issue #4347): the step a file import or a dive merge runs
-  /// on its own dives, so a serial the diver has already set up arrives
-  /// configured instead of waiting for "Apply to existing dives". Matched
-  /// on serial only, within each dive's own diver; a channel entry is left
-  /// to "Apply to existing dives", since a file's tank order need not be
-  /// the computer's channel. Fill-only, as [TransmitterTankFiller] is.
+  /// its serial (issue #4388): the step a file import, resync, re-download
+  /// or dive merge runs on its own dives, so a serial the diver has already
+  /// set up arrives configured instead of waiting for "Apply to existing
+  /// dives". Matched on serial only, within each dive's own diver; a channel
+  /// entry is left to that dialog, since a file's tank order need not be the
+  /// computer's channel. What each cylinder gains is [transmitterFillFor]'s.
   Future<ApplyToExistingResult> applyToDives(Iterable<String> diveIds) async {
     final ids = diveIds.toSet().toList();
-    if (ids.isEmpty) return noTanksFilled;
+    if (ids.isEmpty) return _nothingFilled;
     final diverByTank = <String, String?>{};
     for (var i = 0; i < ids.length; i += 500) {
       final chunk = ids.sublist(i, (i + 500).clamp(0, ids.length));
@@ -465,7 +479,7 @@ class TransmitterRepository {
         diverByTank[r.read<String>('id')] = r.read<String?>('diver_id');
       }
     }
-    if (diverByTank.isEmpty) return noTanksFilled;
+    if (diverByTank.isEmpty) return _nothingFilled;
 
     final matchers = <String?, TransmitterMatcher>{};
     for (final diverId in diverByTank.values.toSet()) {
@@ -497,7 +511,80 @@ class TransmitterRepository {
         if (entry != null) pairs.add((row, entry));
       }
     }
-    return _filler.fill(pairs);
+    return _fill(pairs);
+  }
+
+  static const ApplyToExistingResult _nothingFilled = (
+    tanksUpdated: 0,
+    divesUpdated: 0,
+    mixesKept: 0,
+  );
+
+  /// Writes [transmitterFillFor] for each (cylinder, entry) pair, in one
+  /// transaction; a failure leaves no half-applied dive.
+  Future<ApplyToExistingResult> _fill(
+    List<(DiveTank, Transmitter)> pairs,
+  ) async {
+    if (pairs.isEmpty) return _nothingFilled;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final touchedDives = <String>{};
+    var tanks = 0;
+    final mixesKeptDives = <String>{};
+    final mixFixer = BailoutMixFixer();
+    await _db.transaction(() async {
+      for (final (row, t) in pairs) {
+        final companion = transmitterFillFor(row, t);
+        if (companion == null) continue;
+        // An open-circuit entry (bailout, deco, stage) also replaces the
+        // importer's 100% O2 default with that gas's own mix, before the role
+        // write below (#3307).
+        if (isNameDerivedRole(row) && !isLoopTankRole(t.role.name)) {
+          if (!await mixFixer.fix(row)) mixesKeptDives.add(row.diveId);
+        }
+        await (_db.update(
+          _db.diveTanks,
+        )..where((d) => d.id.equals(row.id))).write(companion);
+        await _syncRepository.markRecordPending(
+          entityType: 'diveTanks',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+        touchedDives.add(row.diveId);
+        tanks++;
+      }
+    });
+    if (tanks > 0) {
+      SyncEventBus.notifyLocalChange();
+      // The scan create/update queued ran on the roles before this apply,
+      // so a finding about a role it just fixed would stay open (#3307).
+      scheduleQualityScan(touchedDives);
+    }
+    return (
+      tanksUpdated: tanks,
+      divesUpdated: touchedDives.length,
+      mixesKept: mixesKeptDives.length,
+    );
+  }
+
+  /// [t]'s key matches plus the [slotTankIds] still without a serial, each
+  /// cylinder once. A slot id that gained a serial since the dialog read it
+  /// is no longer the diver's pick to make.
+  Future<List<DiveTank>> _rowsToApply(
+    Transmitter t,
+    Iterable<String> slotTankIds,
+  ) async {
+    final keyed = await _tanksForEntry(t);
+    final seen = {for (final r in keyed) r.id};
+    final wanted = slotTankIds.where((id) => !seen.contains(id)).toSet();
+    if (wanted.isEmpty) return keyed;
+    final slotRows = await (_db.select(
+      _db.diveTanks,
+    )..where((d) => d.id.isIn(wanted))).get();
+    return [
+      ...keyed,
+      for (final r in slotRows)
+        if (normalizeTransmitterSerial(r.transmitterSerial) == null) r,
+    ];
   }
 
   Future<List<DiveTank>> _tanksForEntry(Transmitter t) async {
@@ -520,7 +607,16 @@ class TransmitterRepository {
           'SELECT dt.id AS id FROM dive_tanks dt '
           'JOIN dives d ON d.id = dt.dive_id '
           'WHERE (dt.computer_id = ? OR d.computer_id = ?) '
-          'AND COALESCE(dt.source_tank_index, dt.tank_order) = ?',
+          'AND COALESCE(dt.source_tank_index, dt.tank_order) = ? '
+          // A channel is a download's parsed index. A cylinder a file brought
+          // in has neither that index nor a computer of its own, and its
+          // order is only its place in the file (#4347), so it never
+          // matches. A download from before source indices keeps its order.
+          'AND NOT (dt.source_tank_index IS NULL '
+          'AND dt.computer_id IS NULL '
+          'AND EXISTS (SELECT 1 FROM dive_data_sources s '
+          'WHERE s.dive_id = d.id AND s.is_primary = 1 '
+          'AND s.source_file_format IS NOT NULL))',
           variables: [
             Variable<String>(t.diveComputerId),
             Variable<String>(t.diveComputerId),

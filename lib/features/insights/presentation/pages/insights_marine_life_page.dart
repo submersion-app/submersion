@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
 
@@ -171,15 +172,21 @@ class InsightsMarineLifePage extends ConsumerWidget {
     );
   }
 
-  /// The query returns the stored English `common_name`; every other species
-  /// surface renders the localized name, so this tab must too.
+  /// The query returns the stored English `common_name` and the stored
+  /// category key; every other species surface renders both in the viewer's
+  /// language, so this tab must too (issue #4339).
   RankingItem _localized(RankingItem item, AppLocalizations l10n) {
+    final category = switch (item.kind) {
+      final kind? =>
+        SpeciesCategory.values.asNameMap()[kind]?.localizedName(l10n) ?? kind,
+      null => null,
+    };
     return RankingItem(
       id: item.id,
       name: localizedSpeciesName(l10n, item.id, item.name),
       count: item.count,
       value: item.value,
-      subtitle: item.subtitle,
+      subtitle: category ?? item.subtitle,
       date: item.date,
     );
   }

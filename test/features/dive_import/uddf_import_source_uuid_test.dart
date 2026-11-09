@@ -218,7 +218,7 @@ void main() {
     });
 
     test('a serial the diver has already set up fills its tank on import, '
-        'keeping what the file reports (#4347)', () async {
+        'keeping what the file reports (#4388)', () async {
       final diverId = await createTestDiver();
       await TransmitterRepository().create(
         Transmitter(

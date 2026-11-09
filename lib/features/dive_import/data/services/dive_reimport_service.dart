@@ -202,7 +202,7 @@ class DiveReimportService {
 
     SyncEventBus.notifyLocalChange();
     // A serial the resync just gave a cylinder may be one the diver has set
-    // up (issue #4347). Best-effort, after the commit, like the computers.
+    // up (issue #4388). Best-effort, after the commit, like the computers.
     await applyTransmitterSetupToDives([diveId]);
     final computersAdded = await _addMissingComputers(
       diveId: diveId,
@@ -477,7 +477,7 @@ class DiveReimportService {
       final usageSeconds = (t['usageDuration'] as Duration?)?.inSeconds;
       // The file's transmitter serial fills a cylinder that has none, so a
       // dive imported before the parser read serials picks them up (issue
-      // #4347); a serial the cylinder has is never replaced.
+      // #4388); a serial the cylinder has is never replaced.
       final serial = normalizeTransmitterSerial(
         t['transmitterSerial'] as String?,
       );

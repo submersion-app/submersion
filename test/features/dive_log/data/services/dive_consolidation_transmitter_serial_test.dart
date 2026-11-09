@@ -13,7 +13,7 @@ import '../../../../helpers/test_database.dart';
 
 /// A cylinder a file import left without its transmitter serial takes the
 /// serial of the downloaded cylinder merged into it, and with it the setup
-/// the diver gave that transmitter (issue #4347).
+/// the diver gave that transmitter (issue #4388).
 void main() {
   late AppDatabase db;
   late DiveRepository diveRepo;

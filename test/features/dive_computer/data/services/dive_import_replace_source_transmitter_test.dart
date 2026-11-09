@@ -13,7 +13,7 @@ import 'package:submersion/features/transmitters/domain/entities/transmitter.dar
 
 import '../../../../helpers/test_database.dart';
 
-/// Issue #4347, end to end: a dive whose cylinder came in without its
+/// Issue #4388, end to end: a dive whose cylinder came in without its
 /// transmitter is downloaded again with Replace source. The cylinder takes
 /// the download's serial and the setup the diver gave that transmitter.
 void main() {

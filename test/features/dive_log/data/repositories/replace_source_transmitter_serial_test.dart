@@ -9,7 +9,7 @@ import '../../../../helpers/test_database.dart';
 /// Replace Source on a dive whose cylinders came in without transmitter
 /// serials (a Shearwater Cloud UDDF import of the same computer): the
 /// stored cylinder the download pairs with takes the download's serial,
-/// once their start pressures agree (issue #4347).
+/// once their start pressures agree (issue #4388).
 void main() {
   late AppDatabase db;
   late DiveComputerRepository repo;

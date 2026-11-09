@@ -4763,7 +4763,6 @@
   "diveLog_diveMode_ocDescription": "Standard open circuit scuba with tanks",
   "diveLog_diveMode_scrDescription": "Semi-closed rebreather with variable ppO₂",
   "diveLog_diveMode_title": "Dive Mode",
-  "diveLog_editSighting_count": "Count",
   "diveLog_editSighting_notes": "Notes",
   "diveLog_editSighting_notesHint": "Size, behavior, location...",
   "diveLog_editSighting_remove": "Remove",
@@ -4833,6 +4832,15 @@
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}",
   "@diveLog_edit_gasSwitches_removedWithTank": {
     "description": "Gas switch editor: switches dropped because their cylinder was removed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{Fill in 1 switch from the cylinder pressures} other{Fill in {count} switches from the cylinder pressures}}",
+  "@diveLog_edit_gasSwitches_fillDetected": {
+    "description": "Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes",
     "placeholders": {
       "count": {
         "type": "int"
@@ -5357,6 +5365,7 @@
   "diveLog_legend_label_depth": "Depth",
   "diveLog_legend_label_events": "Events",
   "diveLog_legend_label_annotations": "Annotations",
+  "diveLog_legend_label_plan": "Plan",
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
@@ -5483,6 +5492,14 @@
       }
     }
   },
+  "diveLog_fetchConditions_confirmBodySelected": "{count, plural, =1{{count} of {total} selected dives is missing conditions.} other{{count} of {total} selected dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.",
+  "@diveLog_fetchConditions_confirmBodySelected": {"description": "Confirm text for fetching conditions on selected dives (issue #4329): how many of the checked dives can be filled", "placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}},
+  "diveLog_fetchConditions_skippedNoLocation": "{count, plural, =1{{count} dive has no site location or GPS fix and will be skipped.} other{{count} dives have no site location or GPS fix and will be skipped.}}",
+  "@diveLog_fetchConditions_skippedNoLocation": {"description": "Added to the confirm text when some checked dives have no location to fetch conditions for (issue #4329)", "placeholders": {"count": {"type": "int"}}},
+  "diveLog_fetchConditions_noneNeededSelected": "None of the selected dives are missing conditions.",
+  "@diveLog_fetchConditions_noneNeededSelected": {"description": "Snackbar when no checked dive is missing conditions (issue #4329)"},
+  "diveLog_fetchConditions_noneLocatedSelected": "The selected dives that are missing conditions have no site location or GPS fix.",
+  "@diveLog_fetchConditions_noneLocatedSelected": {"description": "Snackbar when the checked dives missing conditions all lack a location (issue #4329)"},
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Stopped early; 1 dive was processed.} other{Stopped early; {count} dives were processed.}}",
   "@diveLog_fetchConditions_summaryCancelled": {
     "placeholders": {
@@ -6146,6 +6163,9 @@
   "diveLog_summary_stat_totalDives": "Total Dives",
   "diveLog_summary_title": "Dive Log Summary",
   "diveLog_tank_label_endPressure": "End Pressure",
+  "diveLog_tank_label_surfaceBreathing": "Breathed at the surface",
+  "diveLog_tank_surfaceBreathing_helper": "Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat",
+  "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
@@ -11399,7 +11419,6 @@
   "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
-  "marineLife_speciesDetail_totalSightingsLabel": "Total Sightings",
   "marineLife_speciesEdit_addTitle": "Add Species",
   "marineLife_speciesEdit_addedSnackbar": "Added \"{name}\"",
   "marineLife_speciesEdit_backTooltip": "Back",
@@ -11543,7 +11562,39 @@
   "marineLife_speciesPage_searchHint": "Search species you have seen",
   "marineLife_speciesPage_manageCatalogTooltip": "Manage catalog",
   "marineLife_speciesPage_sortTooltip": "Sort",
-  "marineLife_speciesPage_sort_mostSightings": "Most sightings",
+  "marineLife_speciesPage_sort_mostDives": "Most dives",
+  "marineLife_abundance_label": "How many",
+  "@marineLife_abundance_label": {
+    "description": "Label above the sighting abundance choices"
+  },
+  "marineLife_abundance_seen": "Seen",
+  "@marineLife_abundance_seen": {
+    "description": "Sighting abundance: the species was seen, with no number given"
+  },
+  "marineLife_abundance_single": "Single",
+  "@marineLife_abundance_single": {
+    "description": "Sighting abundance, REEF survey group: one animal"
+  },
+  "marineLife_abundance_few": "Few",
+  "@marineLife_abundance_few": {
+    "description": "Sighting abundance, REEF survey group: 2 to 10 animals"
+  },
+  "marineLife_abundance_many": "Many",
+  "@marineLife_abundance_many": {
+    "description": "Sighting abundance, REEF survey group: 11 to 100 animals"
+  },
+  "marineLife_abundance_abundant": "Abundant",
+  "@marineLife_abundance_abundant": {
+    "description": "Sighting abundance, REEF survey group: more than 100 animals"
+  },
+  "marineLife_abundance_exact": "Exact",
+  "@marineLife_abundance_exact": {
+    "description": "Sighting abundance: an exact number of animals, entered with a stepper"
+  },
+  "marineLife_abundance_ranges": "Few 2 to 10, Many 11 to 100, Abundant over 100",
+  "@marineLife_abundance_ranges": {
+    "description": "Helper line under the sighting abundance choices giving each REEF group's range"
+  },
   "marineLife_speciesPage_sort_recentlySeen": "Recently seen",
   "marineLife_speciesPage_sort_firstSeen": "First seen",
   "marineLife_speciesPage_sort_name": "Name",
@@ -12167,6 +12218,10 @@
   "media_photoViewer_shareTooltip": "Share photo",
   "media_photoViewer_toggleOverlayLabel": "Toggle photo overlay",
   "media_photoViewer_videoFileNotFound": "Video file not found",
+  "media_photoViewer_videoNeedsNormalWindow": "Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.",
+  "@media_photoViewer_videoNeedsNormalWindow": {
+    "description": "Media viewer, in a browser with no service workers (a private window): a Google Drive or WebDAV video cannot stream."
+  },
   "media_photoViewer_videoNotLinked": "Video not linked to library",
   "media_photoViewer_writeDiveDataTooltip": "Write dive data to photo",
   "media_quickSiteDialog_cancelButton": "Cancel",
@@ -12810,6 +12865,10 @@
   "@media_library_empty": {
     "description": "Empty state for the media library"
   },
+  "media_library_emptyFiltered": "No media matches these filters",
+  "@media_library_emptyFiltered": {
+    "description": "Empty state for the media library while a filter is on and nothing matches it"
+  },
   "media_library_filter_all": "All",
   "@media_library_filter_all": {
     "description": "Library filter chip: no type filter"
@@ -12854,6 +12913,59 @@
         "type": "int"
       }
     }
+  },
+  "media_library_filter_noPeople": "No one tagged",
+  "@media_library_filter_noPeople": {
+    "description": "Library filter People choice, pinned first in the People picker and shown as the People row's value: items with no buddy or Me tag at all"
+  },
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "@media_library_filter_peopleTwo": {
+    "description": "People row in the library filter: two people picked, e.g. Me, Alex",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "@media_library_filter_peopleAndMore": {
+    "description": "People row in the library filter: the first names picked, then how many more, e.g. Me, Alex +3",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} person} other{{count} people}}",
+  "@media_library_filter_peopleCount": {
+    "description": "People row in the library filter while buddy names are still loading: how many people are picked",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_filter_peopleSearchHint": "Search people",
+  "@media_library_filter_peopleSearchHint": {
+    "description": "Search field hint in the library filter's People picker"
+  },
+  "media_library_filter_peopleNoMatch": "No people match",
+  "@media_library_filter_peopleNoMatch": {
+    "description": "People picker in the library filter: nothing matches the search"
+  },
+  "media_library_filter_peopleClear": "Clear people",
+  "@media_library_filter_peopleClear": {
+    "description": "Tooltip on the button that clears the people picked in the library filter"
+  },
+  "media_library_filter_notPlacedInDive": "Not placed in the dive",
+  "@media_library_filter_notPlacedInDive": {
+    "description": "Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them"
   },
   "media_library_filter_clear": "Clear filters",
   "media_library_filter_any": "Any",
@@ -15508,6 +15620,7 @@
   "@settings_conflict_field_supersedesRuleId": {
     "description": "Sync conflict field label: the built-in certification currency rule that a custom rule replaces."
   },
+  "settings_conflict_field_surfaceBreathingDuration": "Time breathed at the surface",
   "settings_conflict_field_surfaceConditions": "Surface conditions",
   "settings_conflict_field_surfaceSwimLimitM": "Longest surface swim",
   "settings_conflict_field_swimSpeedMps": "Swim speed",
@@ -22971,6 +23084,8 @@
   "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
   "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
+  "diveLog_selection_tooltip_fetchConditions": "Fetch Conditions",
+  "@diveLog_selection_tooltip_fetchConditions": {"description": "Selection bar action that fetches conditions for the checked dives (issue #4329)"},
   "diveLog_selection_tooltip_reparse": "Re-parse",
   "@diveLog_selection_tooltip_reparse": {"description": "Bulk re-parse (issue #224)"},
   "settings_reparseDives_title": "Re-parse dives",
@@ -30932,6 +31047,8 @@
   "diveLog_detail_errorLoadingSignature": "Error loading signature: {error}",
   "diveLog_profilePanel_selectDive": "Select a dive to view its profile",
   "diveLog_profilePanel_noProfileData": "No profile data for this dive",
+  "diveLog_estimatedProfile_caption": "Estimated from max depth and time, not a recorded profile",
+  "@diveLog_estimatedProfile_caption": {"description": "Caption under the dashed outline drawn for a dive with no recorded profile"},
   "@lock_startFresh_body": {
     "description": "Body of the start-fresh confirmation dialog. {token} is the untranslated ASCII confirmation word the diver must type.",
     "placeholders": {
@@ -33099,7 +33216,7 @@
   "transmitters_section_setUp": "Set up",
   "transmitters_action_apply": "Apply to existing dives",
   "transmitters_apply_title": "Apply to existing dives?",
-  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
+  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
   "@transmitters_apply_content": {
     "placeholders": {
       "tanks": { "type": "int" },
@@ -33113,7 +33230,23 @@
       "dives": { "type": "int" }
     }
   },
-  "transmitters_apply_nothing": "No cylinders carry this transmitter",
+  "transmitters_apply_slot_label": "Slot on {computer}",
+  "@transmitters_apply_slot_label": {
+    "placeholders": { "computer": { "type": "String" } }
+  },
+  "transmitters_apply_slot_none": "Don't match by slot",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}",
+  "@transmitters_apply_slot_option": {
+    "placeholders": { "slot": { "type": "int" }, "dives": { "type": "int" } }
+  },
+  "transmitters_apply_slot_reading": "Reading imported files",
+  "transmitters_apply_slot_intro": "Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.",
+  "transmitters_apply_summary": "Dives filled by serial: {serialDives}, by slot: {slotDives}",
+  "@transmitters_apply_summary": {
+    "placeholders": { "serialDives": { "type": "int" }, "slotDives": { "type": "int" } }
+  },
+  "transmitters_apply_nothing_to_fill": "No cylinder needs this transmitter's setup",
+  "transmitters_apply_slot_read_failed": "The imported files could not be read, so cylinders cannot be matched by slot",
   "transmitters_channel": "{computer}, channel {channel}",
   "@transmitters_channel": {
     "placeholders": {

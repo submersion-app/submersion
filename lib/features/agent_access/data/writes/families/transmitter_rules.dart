@@ -145,7 +145,10 @@ Future<Map<String, int>> transmitterTouched(
       normalizeTransmitterSerial(item?.serialNumber) == null;
   var tanks = 0;
   if (applyToDives) {
-    for (final key in [entry, ...others]) {
+    // The save copies the entry's setup onto every other key before the
+    // apply (saveSetup), and the preview counts only what a fill would
+    // change (#4347), so preview each key with that setup, not its stored one.
+    for (final key in [entry, for (final k in others) k.withSetupOf(entry)]) {
       tanks += (await r.transmitters.previewApplyToExistingDives(
         key,
       )).tanksUpdated;

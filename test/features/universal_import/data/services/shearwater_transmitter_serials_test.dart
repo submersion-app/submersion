@@ -14,7 +14,7 @@ pigeon.TankInfo _parsed(int index, double? start, int? serial) =>
 Map<String, dynamic> _meta(double? start) => {'startPressure': start};
 
 void main() {
-  group('withTransmitterSerials (issue #4347)', () {
+  group('withTransmitterSerials (issue #4388)', () {
     test('gives each tank the serial of the parsed tank it pairs with', () {
       final tanks = withTransmitterSerials(
         [_meta(206.8), _meta(190.0), _meta(185.2)],

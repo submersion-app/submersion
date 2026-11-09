@@ -339,7 +339,7 @@ void main() {
       });
 
       test('gives each tank the transmitter serial from the raw log '
-          '(#4347)', () {
+          '(#4388)', () {
         final parsed = pigeon.ParsedDive(
           fingerprint: '',
           dateTimeYear: 2025,

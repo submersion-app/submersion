@@ -112,7 +112,7 @@ void main() {
 
   group('applyToDives', () {
     test('fills a set-up transmitter onto the tanks of the given dives '
-        '(issue #4347)', () async {
+        '(issue #4388)', () async {
       await seedDive('d1');
       await seedTank(id: 'k1', diveId: 'd1', serial: ' 76287 ');
       await repo.create(_entry(id: 't2'));

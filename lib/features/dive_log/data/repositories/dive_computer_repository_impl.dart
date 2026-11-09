@@ -2080,7 +2080,7 @@ class DiveComputerRepository {
           for (final MapEntry(key: index, value: row) in matches.entries) {
             tankIdsByIndex[index] = row.id;
             // A cylinder a file import left without its transmitter takes
-            // this reading's, once the start pressures agree (#4347).
+            // this reading's, once the start pressures agree (#4388).
             final reading = tanks.firstWhere((t) => t.index == index);
             final serial = serialToFill(
               row,
