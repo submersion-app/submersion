@@ -30,14 +30,17 @@ import urllib.parse
 
 USAGE = "Usage: python3 scripts/wiki_howto_index.py <path to a clone of the wiki>"
 HOWTO_PREFIX = "how-to-"
-# Every markup the wiki editor can save a page in, plus the common Markdown
-# spellings a page pushed with git may use.
+# Every markup the wiki editor can save a page in, plus the other Markdown
+# spellings and plain-text pages the wiki renders when pushed with git.
 PAGE_EXTENSIONS = frozenset(
     {
         ".md",
         ".markdown",
         ".mdown",
+        ".mdwn",
+        ".mkd",
         ".mkdn",
+        ".txt",
         ".asciidoc",
         ".adoc",
         ".creole",

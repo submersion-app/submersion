@@ -43,7 +43,16 @@ class IsHowtoTest(unittest.TestCase):
         self.assertFalse(index.is_howto("Showing-How-to-tag.md"))
 
     def test_accepts_every_markup_the_wiki_editor_saves(self):
-        for ext in (".asciidoc", ".rest", ".mediawiki", ".org", ".textile"):
+        for ext in (
+            ".asciidoc",
+            ".rest",
+            ".mediawiki",
+            ".org",
+            ".textile",
+            ".mkd",
+            ".mdwn",
+            ".txt",
+        ):
             with self.subTest(ext=ext):
                 self.assertTrue(index.is_howto(f"How-to-tag-dives{ext}"))
 
