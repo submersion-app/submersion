@@ -171,6 +171,25 @@ void main() {
     expect(await matcher().computersWithCandidates(_entry()), isEmpty);
   });
 
+  test('offers nothing when every candidate already has the setup', () async {
+    await seedDive('dl', importedFileId: null);
+    await seedTank('dl-t', 'dl', serial: '180777', computer: 'c1');
+    await seedDive('u1');
+    for (final id in ['a', 'b']) {
+      await seedTank(
+        id,
+        'u1',
+        start: id == 'a' ? 200.5 : 219.5,
+        end: id == 'a' ? 128.8 : 142.4,
+        volume: 10,
+        role: 'sidemountLeft',
+        name: 'Sidemount left',
+      );
+    }
+
+    expect(await matcher().computersWithCandidates(_entry()), isEmpty);
+  });
+
   test('skips a dive on another computer', () async {
     await seedDive('dl', importedFileId: null);
     await seedTank('dl-t', 'dl', serial: '180777', computer: 'c1');

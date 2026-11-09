@@ -9,7 +9,10 @@ const kUddfSourceSlotKey = 'sourceSlot';
 /// far larger than this.
 const _pressureToleranceBar = 0.01;
 
-final _slotRef = RegExp(r'^T(\d+)$', caseSensitive: false);
+/// A slot label, T1 to T99, read from an already upper-cased ref. Bounded so
+/// a malformed file can neither overflow the parse nor name a slot the apply
+/// dialog cannot list.
+final _slotRef = RegExp(r'^T([1-9][0-9]?)$');
 
 /// Routes the `<tankpressure ref>` values a dive's samples carry to the
 /// parsed cylinders that have no UDDF id to match them by.
@@ -63,8 +66,11 @@ class UddfTankRefRouter {
 
   /// The one id-less cylinder whose begin pressure matches, if it is still
   /// free. Uniqueness is judged over every id-less cylinder, so a twin that
-  /// an earlier ref claimed by order still makes the match ambiguous.
+  /// an earlier ref claimed by order still makes the match ambiguous. A
+  /// reading of 0 bar is no evidence: it is what an unused slot's cylinder
+  /// begins at and what a transmitter reads before it links.
   int? _pairedByPressure(double pressureBar) {
+    if (pressureBar <= 0) return null;
     final matches = [
       for (final i in _candidates)
         if (_startOf(i) case final start?

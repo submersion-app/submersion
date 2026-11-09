@@ -50,23 +50,64 @@ class StoredSourceDiveFinder {
   static final _log = LoggerService.forClass(StoredSourceDiveFinder);
 
   /// [diveId] as its stored file parses it now.
-  Future<StoredSourceLookup> find(String diveId) => _find(diveId, null);
+  Future<StoredSourceLookup> find(String diveId) async {
+    final dive = await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+    if (dive == null) {
+      return const StoredSourceLookup.failed(DiveResyncFailure.diveMissing);
+    }
+    final source =
+        await (db.select(db.diveDataSources)
+              ..where((t) => t.diveId.equals(diveId))
+              ..where((t) => t.isPrimary.equals(true))
+              ..limit(1))
+            .getSingleOrNull();
+    return _match(dive, source, null);
+  }
 
-  /// Each of [diveIds] found in its stored file, keyed by dive id. Each file
-  /// is read and parsed once however many of the dives it holds; a dive that
-  /// cannot be found, or whose file fails to parse, is left out.
+  /// Each of [diveIds] found in its stored file, keyed by dive id. The dives
+  /// and their sources are read in two queries however many there are, and
+  /// each file is read and parsed once however many of the dives it holds; a
+  /// dive that cannot be found, or whose file fails to parse, is left out.
   Future<Map<String, Map<String, dynamic>>> findMany(
     Iterable<String> diveIds,
   ) async {
-    final parsedFiles = <String, Future<List<Map<String, dynamic>>?>>{};
+    final ids = diveIds.toSet();
     final found = <String, Map<String, dynamic>>{};
-    for (final id in diveIds.toSet()) {
+    if (ids.isEmpty) return found;
+
+    final List<Dive> dives;
+    final List<DiveDataSourcesData> sources;
+    try {
+      dives = await (db.select(db.dives)..where((t) => t.id.isIn(ids))).get();
+      sources =
+          await (db.select(db.diveDataSources)
+                ..where((t) => t.diveId.isIn(ids))
+                ..where((t) => t.isPrimary.equals(true)))
+              .get();
+    } catch (e, st) {
+      _log.warning(
+        'Could not look up the dives to find in their stored files',
+        error: e,
+        stackTrace: st,
+      );
+      return found;
+    }
+    // One primary per dive, as [find]'s limit(1) reads it.
+    final sourceByDive = <String, DiveDataSourcesData>{};
+    for (final source in sources) {
+      sourceByDive.putIfAbsent(source.diveId, () => source);
+    }
+
+    final parsedFiles = <String, Future<List<Map<String, dynamic>>?>>{};
+    for (final dive in dives) {
       try {
-        final lookup = await _find(id, parsedFiles);
-        if (lookup.parsedDive case final dive?) found[id] = dive;
+        final lookup = await _match(dive, sourceByDive[dive.id], parsedFiles);
+        if (lookup.parsedDive case final parsed?) found[dive.id] = parsed;
       } catch (e, st) {
         _log.warning(
-          'Could not read the stored file of dive $id',
+          'Could not read the stored file of dive ${dive.id}',
           error: e,
           stackTrace: st,
         );
@@ -75,23 +116,14 @@ class StoredSourceDiveFinder {
     return found;
   }
 
-  Future<StoredSourceLookup> _find(
-    String diveId,
+  /// [dive] found in the stored file its primary [source] names. With
+  /// [parsedFiles], each file is parsed once and a parse failure reads as a
+  /// missing file; without it a parse failure is thrown, as resync reports.
+  Future<StoredSourceLookup> _match(
+    Dive dive,
+    DiveDataSourcesData? source,
     Map<String, Future<List<Map<String, dynamic>>?>>? parsedFiles,
   ) async {
-    final dive = await (db.select(
-      db.dives,
-    )..where((t) => t.id.equals(diveId))).getSingleOrNull();
-    if (dive == null) {
-      return const StoredSourceLookup.failed(DiveResyncFailure.diveMissing);
-    }
-
-    final source =
-        await (db.select(db.diveDataSources)
-              ..where((t) => t.diveId.equals(diveId))
-              ..where((t) => t.isPrimary.equals(true))
-              ..limit(1))
-            .getSingleOrNull();
     final storedFileId = source?.importedFileId;
     if (source == null || storedFileId == null) {
       return const StoredSourceLookup.failed(DiveResyncFailure.noStoredFile);

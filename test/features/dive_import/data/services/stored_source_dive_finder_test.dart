@@ -54,14 +54,35 @@ class _CountingParser implements ImportParser {
   }
 }
 
+/// Counts the SELECTs that reach the database.
+class _SelectCounter extends QueryInterceptor {
+  var selects = 0;
+
+  @override
+  Future<List<Map<String, Object?>>> runSelect(
+    QueryExecutor executor,
+    String statement,
+    List<Object?> args,
+  ) {
+    selects++;
+    return super.runSelect(executor, statement, args);
+  }
+}
+
 /// The stored-file lookup resync and the transmitter slot matcher share
 /// (issue #4347).
 void main() {
   late AppDatabase db;
+  late _SelectCounter counter;
   final when = DateTime(2026, 9, 1, 9);
 
   setUp(() async {
-    db = AppDatabase(NativeDatabase.memory(setup: registerAppSqlFunctions));
+    counter = _SelectCounter();
+    db = AppDatabase(
+      NativeDatabase.memory(
+        setup: registerAppSqlFunctions,
+      ).interceptWith(counter),
+    );
   });
 
   tearDown(() async => db.close());
@@ -239,6 +260,29 @@ void main() {
 
     expect(found, isEmpty);
     expect(parser.parses, 1);
+  });
+
+  test('findMany looks up every dive and source in two queries', () async {
+    final days = [for (var i = 0; i < 3; i++) when.add(Duration(days: i))];
+    for (final (i, at) in days.indexed) {
+      await seedDive('d$i', dateTime: at);
+    }
+    final parser = _CountingParser(
+      ImportPayload(
+        entities: {
+          ImportEntityType.dives: [for (final at in days) parsedAt(at)],
+        },
+      ),
+    );
+    counter.selects = 0;
+
+    final found = await finder(
+      const [],
+      parser: parser,
+    ).findMany(['d0', 'd1', 'd2']);
+
+    expect(found.keys, unorderedEquals(['d0', 'd1', 'd2']));
+    expect(counter.selects, 2);
   });
 
   test('findMany skips a dive it cannot look up at all', () async {

@@ -92,4 +92,31 @@ void main() {
     expect(router.indexFor(' t2 ', 120.0), first);
     expect(router.indexFor('T3', 147.27), 1);
   });
+
+  test('a slot outside T1 to T99 routes but records no slot', () {
+    final list = tanks([110.0, 120.0, 130.0]);
+    final router = UddfTankRefRouter(list);
+
+    expect(router.indexFor('T0', 110.0), 0);
+    expect(router.indexFor('T100', 120.0), 1);
+    // Too many digits for an int: must not throw.
+    expect(router.indexFor('T99999999999999999999', 130.0), 2);
+    router.writeSlots();
+
+    for (final tank in list) {
+      expect(tank.containsKey(kUddfSourceSlotKey), isFalse);
+    }
+  });
+
+  test('a zero first reading is no evidence and records no slot', () {
+    // T1 unused (0 bar); T2's transmitter reads 0 before it links.
+    final list = tanks([0.0, 200.0]);
+    final router = UddfTankRefRouter(list);
+
+    router.indexFor('T2', 0.0);
+    router.writeSlots();
+
+    expect(list[0].containsKey(kUddfSourceSlotKey), isFalse);
+    expect(list[1].containsKey(kUddfSourceSlotKey), isFalse);
+  });
 }

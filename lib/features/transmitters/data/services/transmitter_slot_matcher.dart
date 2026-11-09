@@ -60,11 +60,18 @@ class TransmitterSlotMatcher {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
-  /// The computers with candidate dives for [t]. SQL only, no file parse, so
-  /// the apply dialog can decide quickly whether to offer slot matching.
+  /// The computers with candidate dives for [t] that the fill would still
+  /// change. SQL only, no file parse, so the apply dialog can decide quickly
+  /// whether to offer slot matching, and a setup already applied by slot
+  /// gets the instant "nothing to fill" answer instead of a file read.
   Future<List<SlotComputer>> computersWithCandidates(Transmitter t) async => [
-    for (final entry in (await _candidateDives(t)).entries)
-      if (entry.value.isNotEmpty) entry.key,
+    for (final MapEntry(key: computer, value: dives) in (await _candidateDives(
+      t,
+    )).entries)
+      if (dives.values.any(
+        (rows) => rows.any((r) => transmitterFillFor(r, t) != null),
+      ))
+        computer,
   ];
 
   /// The candidate cylinders of [t] by computer and slot, parsing each stored
@@ -79,7 +86,7 @@ class TransmitterSlotMatcher {
 
     return [
       for (final MapEntry(key: computer, value: dives) in byComputer.entries)
-        if (dives.isNotEmpty) _slotsOn(computer, dives, parsed, t),
+        _slotsOn(computer, dives, parsed, t),
     ];
   }
 
@@ -146,8 +153,8 @@ class TransmitterSlotMatcher {
         (gas.he - row.hePercent).abs() < _gasTolerancePercent;
   }
 
-  /// For each computer the serial was downloaded on, its candidate dives and
-  /// each one's serial-less cylinders.
+  /// For each computer the serial was downloaded on that has candidate
+  /// dives, those dives and each one's serial-less cylinders.
   Future<Map<SlotComputer, Map<String, List<DiveTank>>>> _candidateDives(
     Transmitter t,
   ) async {
@@ -157,10 +164,7 @@ class TransmitterSlotMatcher {
     final result = <SlotComputer, Map<String, List<DiveTank>>>{};
     for (final computer in await _computersOf(serial, t.diverId)) {
       final diveIds = await _uddfDivesOn(computer.computerId, t.diverId);
-      if (diveIds.isEmpty) {
-        result[computer] = const {};
-        continue;
-      }
+      if (diveIds.isEmpty) continue;
       final tanks = await (_db.select(
         _db.diveTanks,
       )..where((d) => d.diveId.isIn(diveIds))).get();
@@ -168,7 +172,7 @@ class TransmitterSlotMatcher {
       for (final row in tanks) {
         byDive.putIfAbsent(row.diveId, () => []).add(row);
       }
-      result[computer] = {
+      final dives = {
         for (final MapEntry(key: diveId, value: rows) in byDive.entries)
           if (!rows.any(
             (r) => normalizeTransmitterSerial(r.transmitterSerial) == serial,
@@ -178,6 +182,8 @@ class TransmitterSlotMatcher {
                 if (normalizeTransmitterSerial(r.transmitterSerial) == null) r,
             ],
       }..removeWhere((_, rows) => rows.isEmpty);
+      // A computer with no candidate dive is left out, not kept empty.
+      if (dives.isNotEmpty) result[computer] = dives;
     }
     return result;
   }

@@ -92,19 +92,13 @@ class TransmitterRepository {
     for (final key in await getForEquipment(equipmentId)) {
       if (key.id == exceptKeyId) continue;
       await update(
-        key.copyWith(
+        key.withSetup(
           role: role,
-          equipmentId: cylinderId,
-          clearEquipmentId: cylinderId == null,
+          cylinderId: cylinderId,
           volumeL: volumeL,
-          clearVolumeL: volumeL == null,
           workingPressureBar: workingPressureBar,
-          clearWorkingPressureBar: workingPressureBar == null,
           material: material,
-          clearMaterial: material == null,
           presetName: presetName,
-          clearPresetName: presetName == null,
-          isConfigured: true,
         ),
       );
     }

@@ -3,7 +3,6 @@ import 'package:submersion/features/dive_import/data/services/dive_reimport_serv
 import 'package:submersion/features/dive_import/data/services/stored_source_dive_finder.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
-import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
@@ -33,17 +32,9 @@ class DiveResyncOutcome {
 /// `imported_files` row) and applies the result through
 /// [DiveReimportService].
 ///
-/// The stored file may be a multi-dive logbook, so the parsed dive that
-/// matches the target dive is found by content, not by position -- this
-/// reuses the same [DiveMatcher] scorer the import wizard already uses to
-/// flag duplicates, rather than inventing a second matching algorithm.
-///
-/// A logbook shared by several divers (MacDive, issue #1893) holds each
-/// buddy dive once per diver, and the copies score almost identically, so
-/// content alone cannot tell them apart. The source row's stored
-/// `sourceDiverKey` restricts the candidates to the importing diver's
-/// dives; a source imported before that key was stored is refused when more
-/// than one diver has a matching dive (issue #1921).
+/// [StoredSourceDiveFinder] finds the dive inside that file (by content, and
+/// by the stored diver key for a logbook several divers share) and says why
+/// when it cannot; this class adds the demo gate and the write.
 class DiveResyncOrchestrator {
   final AppDatabase db;
   final ImportedFileRepository importedFiles;
