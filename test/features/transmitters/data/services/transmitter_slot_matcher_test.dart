@@ -22,10 +22,7 @@ class _FakeFinder extends StoredSourceDiveFinder {
   @override
   Future<Map<String, Map<String, dynamic>>> findMany(
     Iterable<String> diveIds,
-  ) async => {
-    for (final id in diveIds)
-      if (parsed[id] case final dive?) id: dive,
-  };
+  ) async => {for (final id in diveIds) id: ?parsed[id]};
 }
 
 Transmitter _entry({String? serial = '180777', String diverId = 'diver-1'}) =>
