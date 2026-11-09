@@ -169,7 +169,7 @@ class _DuplicateActionCardState extends State<DuplicateActionCard> {
           ? widget.availableActions
           : widget.availableActions.difference({DuplicateAction.consolidate}),
       isPending: widget.isPending,
-      showFillPlanned: widget.matchResult.isPlannedFill,
+      showFillPlanned: widget.matchResult.isFill,
       inBatchPartner: widget.inBatchPartner,
     );
   }
@@ -277,7 +277,7 @@ class _CollapsedHeader extends StatelessWidget {
                         ImportTargetChip(target: target),
                       // A planned-fill row names the dive it fills and offers
                       // to change the target (issue #2002).
-                      if (matchResult.isPlannedFill &&
+                      if (matchResult.isFill &&
                           selectedAction == DuplicateAction.fillPlanned)
                         Row(
                           children: [

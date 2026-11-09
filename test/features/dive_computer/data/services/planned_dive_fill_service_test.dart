@@ -124,7 +124,7 @@ void main() {
       final planned = await plannedDive();
 
       final outcome = await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -156,7 +156,7 @@ void main() {
       final planned = await plannedDive();
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(surfacePressure: 0.961),
         computerId: computerId,
       );
@@ -171,7 +171,7 @@ void main() {
       final planned = await plannedDive();
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -189,7 +189,7 @@ void main() {
       final planned = await plannedDive(dateTime: plannedAt);
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(startTime: DateTime.utc(2026, 6, 1, 9, 3)),
         computerId: computerId,
       );
@@ -206,7 +206,7 @@ void main() {
       final nextDay = DateTime.utc(2026, 6, 2, 0, 30);
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(startTime: nextDay),
         computerId: computerId,
       );
@@ -222,7 +222,7 @@ void main() {
       final planned = await plannedDive(dateTime: plannedAt);
 
       final outcome = await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(startTime: DateTime.utc(2026, 6, 2, 0, 30)),
         computerId: computerId,
       );
@@ -244,7 +244,7 @@ void main() {
     final planned = await plannedDive();
 
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(computerTissue: tissue),
       computerId: computerId,
     );
@@ -271,7 +271,7 @@ void main() {
       );
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -299,7 +299,7 @@ void main() {
       );
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(reportsDecoSettings: false),
         computerId: computerId,
       );
@@ -315,7 +315,7 @@ void main() {
   test('the sketched profile is replaced, not merged', () async {
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -349,7 +349,7 @@ void main() {
         final planned = await withSwitch();
 
         await service.fill(
-          plannedDiveId: planned.id,
+          targetDiveId: planned.id,
           dive: download(),
           computerId: computerId,
         );
@@ -362,7 +362,7 @@ void main() {
     test('comes back when the download is undone', () async {
       final planned = await withSwitch();
       final outcome = await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -377,7 +377,7 @@ void main() {
   test('planned tanks are matched by gas mix and receive pressures', () async {
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -391,7 +391,7 @@ void main() {
   test('an unmatched downloaded tank is added', () async {
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(
         tanks: const [
           DownloadedTank(index: 0, o2Percent: 32, startPressure: 200),
@@ -409,7 +409,7 @@ void main() {
       'from (#2595)', () async {
     final planned = await plannedDive();
     final outcome = await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(
         tanks: const [
           DownloadedTank(index: 0, o2Percent: 32, startPressure: 200),
@@ -438,7 +438,7 @@ void main() {
   test('a data source with the fingerprint exists after the fill', () async {
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -459,7 +459,7 @@ void main() {
     );
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -471,7 +471,7 @@ void main() {
     final planned = await plannedDive();
     final before = await dives.getDiveById(planned.id);
     final outcome = await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -496,7 +496,7 @@ void main() {
     );
     await expectLater(
       service.fill(
-        plannedDiveId: logged.id,
+        targetDiveId: logged.id,
         dive: download(),
         computerId: computerId,
       ),
@@ -538,7 +538,7 @@ void main() {
       };
 
       final outcome = await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );

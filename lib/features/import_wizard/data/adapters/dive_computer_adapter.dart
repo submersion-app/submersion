@@ -775,7 +775,10 @@ class DiveComputerAdapter
           diveId: entry.value,
           score: 1.0,
           timeDifferenceMs: 0,
-          plannedDiveId: entry.value,
+          fillTarget: FillTarget(
+            diveId: entry.value,
+            kind: FillTargetKind.plan,
+          ),
         );
       }
     }
@@ -919,11 +922,12 @@ class DiveComputerAdapter
         plannedId = bundle
             .groups[ImportEntityType.dives]
             ?.matchResults?[index]
-            ?.plannedDiveId;
+            ?.fillTarget
+            ?.diveId;
         if (plannedId != null) {
           try {
             final outcome = await _fillService.fill(
-              plannedDiveId: plannedId,
+              targetDiveId: plannedId,
               dive: dive,
               computerId: comp.id,
               descriptorVendor: _descriptorVendor,

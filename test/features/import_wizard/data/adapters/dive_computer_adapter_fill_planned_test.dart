@@ -73,23 +73,26 @@ void main() {
   });
 
   group('planned pass', () {
-    test('an unmatched download on a planned day gets plannedDiveId', () async {
-      when(
-        mockDiveRepo.getPlannedDives(diverId: diverId),
-      ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 9))]);
-      adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 14))]);
-      final bundle = await adapter.buildBundle();
+    test(
+      'an unmatched download on a planned day gets a plan fill target',
+      () async {
+        when(
+          mockDiveRepo.getPlannedDives(diverId: diverId),
+        ).thenAnswer((_) async => [planned('p1', DateTime(2026, 6, 1, 9))]);
+        adapter.setDownloadedDives([download(DateTime(2026, 6, 1, 14))]);
+        final bundle = await adapter.buildBundle();
 
-      final result = await adapter.checkDuplicates(bundle);
+        final result = await adapter.checkDuplicates(bundle);
 
-      final group = result.groups[ImportEntityType.dives]!;
-      expect(group.duplicateIndices, {0});
-      final match = group.matchResults![0]!;
-      expect(match.plannedDiveId, 'p1');
-      expect(match.isPlannedFill, isTrue);
-      expect(match.diveId, 'p1');
-      expect(match.matchedExistingSource, isFalse);
-    });
+        final group = result.groups[ImportEntityType.dives]!;
+        expect(group.duplicateIndices, {0});
+        final match = group.matchResults![0]!;
+        expect(match.fillTarget?.diveId, 'p1');
+        expect(match.isFill, isTrue);
+        expect(match.diveId, 'p1');
+        expect(match.matchedExistingSource, isFalse);
+      },
+    );
 
     test('a download two days later stays unmatched', () async {
       when(
@@ -114,7 +117,7 @@ void main() {
 
       final group = result.groups[ImportEntityType.dives]!;
       expect(group.duplicateIndices, {0});
-      expect(group.matchResults![0]!.plannedDiveId, 'p1');
+      expect(group.matchResults![0]!.fillTarget?.diveId, 'p1');
     });
 
     test('a fingerprint hit is never turned into a fill', () async {
@@ -143,7 +146,7 @@ void main() {
       final result = await adapter.checkDuplicates(bundle);
 
       final match = result.groups[ImportEntityType.dives]!.matchResults![0]!;
-      expect(match.plannedDiveId, isNull);
+      expect(match.fillTarget?.diveId, isNull);
       expect(match.diveId, 'existing-dive-1');
       expect(match.matchedExistingSource, isTrue);
     });
@@ -164,8 +167,8 @@ void main() {
       final result = await adapter.checkDuplicates(bundle);
 
       final results = result.groups[ImportEntityType.dives]!.matchResults!;
-      expect(results[0]!.plannedDiveId, 'pm');
-      expect(results[1]!.plannedDiveId, 'am');
+      expect(results[0]!.fillTarget?.diveId, 'pm');
+      expect(results[1]!.fillTarget?.diveId, 'am');
     });
   });
 
@@ -186,7 +189,7 @@ void main() {
               diveId: 'p1',
               score: 1,
               timeDifferenceMs: 0,
-              plannedDiveId: 'p1',
+              fillTarget: FillTarget(diveId: 'p1', kind: FillTargetKind.plan),
             ),
           },
         ),
@@ -310,17 +313,19 @@ void main() {
     });
   });
 
-  test('withPlannedDive repoints the fill and keeps the dive id in step', () {
+  test('withFillTarget repoints the fill and keeps the dive id in step', () {
     const base = DiveMatchResult(
       diveId: 'p1',
       score: 1,
       timeDifferenceMs: 0,
-      plannedDiveId: 'p1',
+      fillTarget: FillTarget(diveId: 'p1', kind: FillTargetKind.plan),
     );
-    final moved = base.withPlannedDive('p2');
-    expect(moved.plannedDiveId, 'p2');
+    final moved = base.withFillTarget(
+      const FillTarget(diveId: 'p2', kind: FillTargetKind.plan),
+    );
+    expect(moved.fillTarget?.diveId, 'p2');
     expect(moved.diveId, 'p2');
-    expect(moved.isPlannedFill, isTrue);
+    expect(moved.isFill, isTrue);
     expect(moved.score, 1);
   });
 }
@@ -334,7 +339,7 @@ class _FakeFillService implements PlannedDiveFillService {
 
   @override
   Future<PlannedDiveFillOutcome> fill({
-    required String plannedDiveId,
+    required String targetDiveId,
     required DownloadedDive dive,
     required String computerId,
     String? descriptorVendor,
@@ -342,10 +347,10 @@ class _FakeFillService implements PlannedDiveFillService {
     int? descriptorModel,
     String? libdivecomputerVersion,
   }) async {
-    calls.add(plannedDiveId);
+    calls.add(targetDiveId);
     if (fail) throw StateError('fill failed');
     return PlannedDiveFillOutcome(
-      diveId: plannedDiveId,
+      diveId: targetDiveId,
       snapshot: const DiveMergeSnapshot(
         mergedDiveId: 'p1',
         diveRows: [],

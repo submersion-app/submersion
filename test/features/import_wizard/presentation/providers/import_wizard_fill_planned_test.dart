@@ -55,7 +55,7 @@ const _plannedMatch = DiveMatchResult(
   diveId: 'p1',
   score: 1,
   timeDifferenceMs: 0,
-  plannedDiveId: 'p1',
+  fillTarget: FillTarget(diveId: 'p1', kind: FillTargetKind.plan),
 );
 
 const _fuzzyMatch = DiveMatchResult(
@@ -131,14 +131,17 @@ void main() {
     expect(state().selections[ImportEntityType.dives], contains(0));
   });
 
-  test('setPlannedFillTarget repoints the row and keeps fillPlanned', () {
+  test('setFillTarget repoints the row and keeps fillPlanned', () {
     notifier.setBundle(_bundle({0: _plannedMatch}));
 
-    notifier.setPlannedFillTarget(0, 'p2');
+    notifier.setFillTarget(
+      0,
+      const FillTarget(diveId: 'p2', kind: FillTargetKind.plan),
+    );
 
     final match =
         state().bundle!.groups[ImportEntityType.dives]!.matchResults![0]!;
-    expect(match.plannedDiveId, 'p2');
+    expect(match.fillTarget?.diveId, 'p2');
     expect(match.diveId, 'p2');
     expect(
       state().duplicateActions[ImportEntityType.dives]![0],
@@ -146,10 +149,10 @@ void main() {
     );
   });
 
-  test('setPlannedFillTarget(null) turns the row into a plain new import', () {
+  test('setFillTarget(null) turns the row into a plain new import', () {
     notifier.setBundle(_bundle({0: _plannedMatch}));
 
-    notifier.setPlannedFillTarget(0, null);
+    notifier.setFillTarget(0, null);
 
     // Not a match any more: an empty dive id would read as an in-batch
     // duplicate on the comparison card, so the match is removed outright.
@@ -167,10 +170,10 @@ void main() {
   test('clearing one fill row leaves the others untouched', () {
     notifier.setBundle(_bundle({0: _plannedMatch, 1: _plannedMatch}));
 
-    notifier.setPlannedFillTarget(0, null);
+    notifier.setFillTarget(0, null);
 
     final group = state().bundle!.groups[ImportEntityType.dives]!;
-    expect(group.matchResults![1]!.plannedDiveId, 'p1');
+    expect(group.matchResults![1]!.fillTarget?.diveId, 'p1');
     expect(
       state().duplicateActions[ImportEntityType.dives]![1],
       DuplicateAction.fillPlanned,

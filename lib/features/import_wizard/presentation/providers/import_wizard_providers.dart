@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -508,7 +509,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
             // A planned dive of the target profile fits (issue #2002):
             // default to filling it. The row stays selected and needs no
             // decision; the card offers Change and Import as new.
-            if (match.isPlannedFill) {
+            if (match.isFill) {
               duplicateActions.putIfAbsent(type, () => {})[index] =
                   DuplicateAction.fillPlanned;
               selections[type] = {...selections[type]!, index};
@@ -895,7 +896,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// new dive. Keeping a match with an empty dive id would not do, since an
   /// empty id already means "duplicate of another dive in this batch" to
   /// the comparison card.
-  void setPlannedFillTarget(int index, String? plannedDiveId) {
+  void setFillTarget(int index, FillTarget? target) {
     const type = ImportEntityType.dives;
     final bundle = state.bundle;
     final group = bundle?.groups[type];
@@ -903,7 +904,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     if (bundle == null || group == null || current == null) return;
 
     final EntityGroup updatedGroup;
-    if (plannedDiveId == null) {
+    if (target == null) {
       updatedGroup = group.copyWith(
         duplicateIndices: group.duplicateIndices.difference({index}),
         matchResults: {
@@ -915,7 +916,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       updatedGroup = group.copyWith(
         matchResults: {
           ...group.matchResults!,
-          index: current.withPlannedDive(plannedDiveId),
+          index: current.withFillTarget(target),
         },
       );
     }
@@ -923,7 +924,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       bundle: bundle.copyWith(groups: {...bundle.groups, type: updatedGroup}),
     );
 
-    if (plannedDiveId != null) {
+    if (target != null) {
       setDuplicateAction(type, index, DuplicateAction.fillPlanned);
       return;
     }
