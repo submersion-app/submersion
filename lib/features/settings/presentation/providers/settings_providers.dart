@@ -77,6 +77,7 @@ class SettingsKeys {
   static const String healthAutoImportDiver = 'health_auto_import_diver';
   static const String healthMetricsDiver = 'health_metrics_diver';
   static const String healthImportWatermark = 'health_import_watermark_ms';
+  static const String healthReviewAnnounced = 'health_review_announced';
   static const String depthUnit = 'depth_unit';
   static const String temperatureUnit = 'temperature_unit';
   static const String pressureUnit = 'pressure_unit';

@@ -3,22 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/core/utils/unit_formatter_settings.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart'
     show ImportTripResolver;
-import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
+import 'package:submersion/features/dive_import/data/services/health_dive_writer.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
     show DiveComputerRepository;
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
-import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
-import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
-import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
-import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -73,8 +67,6 @@ class HealthKitAdapter implements ImportSourceAdapter {
        _displayName = displayName,
        _checklistLinker = checklistLinker,
        _tripForImports = tripForImports;
-
-  static final _log = LoggerService.forClass(HealthKitAdapter);
 
   final HealthImportService _healthService;
   final DiveMatcher _diveMatcher;
@@ -378,59 +370,28 @@ class HealthKitAdapter implements ImportSourceAdapter {
     var imported = 0;
     final importedDiveIds = <String>[];
 
-    // One instance for the run: its lookup cache collapses a batch of dives
-    // at the same location into a single elevation request.
-    final altitudeEnricher = DiveAltitudeEnricher();
-    final checklistLinker = _checklistLinker ?? ChecklistDiveLinker();
+    // One writer for the run, shared with the automatic import (issue #637):
+    // its lookup cache collapses a batch of dives at the same location into
+    // a single elevation request.
+    final writer = HealthDiveWriter(
+      dives: _diveRepository,
+      computers: _computerRepository,
+      converter: _converter,
+      checklistLinker: _checklistLinker,
+      tripForImports: _tripForImports,
+    );
 
-    DiveComputer? watch;
     for (var i = 0; i < sortedIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
 
       final importedDive = _parsedDives[sortedIndices[i]];
       // HealthKit records no dive number of its own, but honour one if the
-      // source ever supplies it; otherwise number the dive like every other
-      // import does (issue #1832).
-      final diveNumber =
-          (retainSourceDiveNumbers ? importedDive.diveNumber : null) ??
-          await _diveRepository.getNextDiveNumber(diverId: _diverId);
-      final converted = _converter.convert(
+      // source ever supplies it; otherwise the writer numbers the dive like
+      // every other import does (issue #1832).
+      final dive = await writer.importAsNew(
         importedDive,
         diverId: _diverId,
-        diveNumber: diveNumber,
-      );
-      final tripId = await _tripFor(importedDive.startTime);
-      final dive = tripId == null
-          ? converted
-          : converted.copyWith(tripId: tripId);
-      await _diveRepository.createDive(dive);
-      // The diver's Apple Watch computer (issue #637), before the gear
-      // linkers below, which follow the dive's computer. Best effort, as
-      // the trip lookup is: a failed lookup must not lose the dive.
-      try {
-        watch ??= await appleWatchComputerFor(_computerRepository, _diverId);
-        await _computerRepository.attributeDiveToComputer(
-          diveId: dive.id,
-          computerId: watch.id,
-        );
-      } catch (e, stackTrace) {
-        _log.warning(
-          'Could not attribute ${dive.id} to the Apple Watch computer',
-          error: e,
-          stackTrace: stackTrace,
-        );
-      }
-      await DiveEquipmentDefaulter().applyForImportedDive(dive);
-      await checklistLinker.applyForImportedDive(dive);
-      await altitudeEnricher.applyForImportedDive(dive);
-      // After the defaulter, never before: the defaulter bails on a dive
-      // that already has equipment, so linking first would suppress the
-      // diver's default and geofenced sets.
-      await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
-      // Apply every equipment set that lists this computer as a member
-      // (issue #1020). Additive, independent of the defaulter above.
-      await EquipmentSetForComputerLinker().linkComputerSetsForDive(
-        diveId: dive.id,
+        diveNumber: retainSourceDiveNumbers ? importedDive.diveNumber : null,
       );
 
       imported++;
@@ -463,25 +424,6 @@ class HealthKitAdapter implements ImportSourceAdapter {
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
-
-  /// The trip a new dive starting at [start] joins, the same one a dive
-  /// computer download would place it in (issue #3022), or null when no
-  /// resolver is configured, no trip covers the dive, or the lookup fails: an
-  /// import must never fail because the trips could not be read.
-  Future<String?> _tripFor(DateTime start) async {
-    final resolver = _tripForImports;
-    if (resolver == null) return null;
-    try {
-      return await resolver(start, _diverId);
-    } catch (e, st) {
-      _log.warning(
-        'Trips unavailable, importing the dive without one',
-        error: e,
-        stackTrace: st,
-      );
-      return null;
-    }
-  }
 
   /// Move the saved dives [checkDuplicates] found to their wall clock and
   /// return how many moved. Taken before the write, so a second run of the
