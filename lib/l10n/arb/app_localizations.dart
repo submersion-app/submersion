@@ -33054,6 +33054,12 @@ abstract class AppLocalizations {
   /// **'No media yet'**
   String get media_library_empty;
 
+  /// Empty state for the media library while a filter is on and nothing matches it
+  ///
+  /// In en, this message translates to:
+  /// **'No media matches these filters'**
+  String get media_library_emptyFiltered;
+
   /// Library filter chip: no type filter
   ///
   /// In en, this message translates to:

@@ -20660,6 +20660,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_library_empty => 'Nog geen media';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Geen media komen overeen met deze filters';
+
+  @override
   String get media_library_filter_all => 'Alles';
 
   @override

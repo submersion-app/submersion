@@ -5943,6 +5943,7 @@
   "media_console_library": "Bibliotheek",
   "media_console_transfers": "Overdrachten",
   "media_library_empty": "Nog geen media",
+  "media_library_emptyFiltered": "Geen media komen overeen met deze filters",
   "media_library_filter_all": "Alles",
   "media_library_filter_photos": "Foto's",
   "media_library_filter_videos": "Video's",

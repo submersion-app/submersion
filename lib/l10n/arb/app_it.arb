@@ -5842,6 +5842,7 @@
   "media_console_library": "Libreria",
   "media_console_transfers": "Trasferimenti",
   "media_library_empty": "Ancora nessun contenuto multimediale",
+  "media_library_emptyFiltered": "Nessun contenuto multimediale corrisponde a questi filtri",
   "media_library_filter_all": "Tutti",
   "media_library_filter_photos": "Foto",
   "media_library_filter_videos": "Video",

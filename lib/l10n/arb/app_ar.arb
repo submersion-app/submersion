@@ -5943,6 +5943,7 @@
   "media_console_library": "المكتبة",
   "media_console_transfers": "عمليات النقل",
   "media_library_empty": "لا توجد وسائط بعد",
+  "media_library_emptyFiltered": "لا توجد وسائط تطابق عوامل التصفية هذه",
   "media_library_filter_all": "الكل",
   "media_library_filter_photos": "الصور",
   "media_library_filter_videos": "مقاطع الفيديو",

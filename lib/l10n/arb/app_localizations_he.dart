@@ -20335,6 +20335,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_empty => 'אין מדיה עדיין';
 
   @override
+  String get media_library_emptyFiltered => 'אין מדיה שתואמת למסננים אלה';
+
+  @override
   String get media_library_filter_all => 'הכול';
 
   @override

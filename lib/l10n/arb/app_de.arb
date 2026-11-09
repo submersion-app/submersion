@@ -6069,6 +6069,7 @@
   "media_console_library": "Bibliothek",
   "media_console_transfers": "Übertragungen",
   "media_library_empty": "Noch keine Medien",
+  "media_library_emptyFiltered": "Keine Medien entsprechen diesen Filtern",
   "media_library_filter_all": "Alle",
   "media_library_filter_photos": "Fotos",
   "media_library_filter_videos": "Videos",

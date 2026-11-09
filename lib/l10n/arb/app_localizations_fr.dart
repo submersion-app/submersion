@@ -20854,6 +20854,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_library_empty => 'Aucun média pour le moment';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Aucun média ne correspond à ces filtres';
+
+  @override
   String get media_library_filter_all => 'Tous';
 
   @override

@@ -5842,6 +5842,7 @@
   "media_console_library": "Könyvtár",
   "media_console_transfers": "Átvitelek",
   "media_library_empty": "Még nincs média",
+  "media_library_emptyFiltered": "Nincs a szűrőknek megfelelő média",
   "media_library_filter_all": "Összes",
   "media_library_filter_photos": "Fotók",
   "media_library_filter_videos": "Videók",

@@ -5943,6 +5943,7 @@
   "media_console_library": "Biblioteca",
   "media_console_transfers": "Transferencias",
   "media_library_empty": "Todavía no hay contenido multimedia",
+  "media_library_emptyFiltered": "Ningún contenido multimedia coincide con estos filtros",
   "media_library_filter_all": "Todo",
   "media_library_filter_photos": "Fotos",
   "media_library_filter_videos": "Vídeos",

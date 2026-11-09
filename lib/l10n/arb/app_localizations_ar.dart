@@ -21090,6 +21090,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_empty => 'لا توجد وسائط بعد';
 
   @override
+  String get media_library_emptyFiltered =>
+      'لا توجد وسائط تطابق عوامل التصفية هذه';
+
+  @override
   String get media_library_filter_all => 'الكل';
 
   @override

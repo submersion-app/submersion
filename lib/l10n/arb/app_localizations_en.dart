@@ -20483,6 +20483,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_empty => 'No media yet';
 
   @override
+  String get media_library_emptyFiltered => 'No media matches these filters';
+
+  @override
   String get media_library_filter_all => 'All';
 
   @override

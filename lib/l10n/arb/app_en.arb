@@ -12810,6 +12810,10 @@
   "@media_library_empty": {
     "description": "Empty state for the media library"
   },
+  "media_library_emptyFiltered": "No media matches these filters",
+  "@media_library_emptyFiltered": {
+    "description": "Empty state for the media library while a filter is on and nothing matches it"
+  },
   "media_library_filter_all": "All",
   "@media_library_filter_all": {
     "description": "Library filter chip: no type filter"

@@ -5842,6 +5842,7 @@
   "media_console_library": "ספרייה",
   "media_console_transfers": "העברות",
   "media_library_empty": "אין מדיה עדיין",
+  "media_library_emptyFiltered": "אין מדיה שתואמת למסננים אלה",
   "media_library_filter_all": "הכול",
   "media_library_filter_photos": "תמונות",
   "media_library_filter_videos": "סרטונים",

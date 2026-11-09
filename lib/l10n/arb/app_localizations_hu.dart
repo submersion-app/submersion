@@ -20723,6 +20723,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_library_empty => 'Még nincs média';
 
   @override
+  String get media_library_emptyFiltered => 'Nincs a szűrőknek megfelelő média';
+
+  @override
   String get media_library_filter_all => 'Összes';
 
   @override

@@ -6094,6 +6094,7 @@
   "media_console_library": "媒体库",
   "media_console_transfers": "传输",
   "media_library_empty": "暂无媒体",
+  "media_library_emptyFiltered": "没有符合这些筛选条件的媒体",
   "media_library_filter_all": "全部",
   "media_library_filter_photos": "照片",
   "media_library_filter_videos": "视频",

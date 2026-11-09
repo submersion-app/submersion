@@ -19772,6 +19772,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_empty => '暂无媒体';
 
   @override
+  String get media_library_emptyFiltered => '没有符合这些筛选条件的媒体';
+
+  @override
   String get media_library_filter_all => '全部';
 
   @override
