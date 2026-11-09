@@ -7788,6 +7788,7 @@
   "settings_conflict_field_sourceRef": "Arquivo ou dispositivo de origem",
   "settings_conflict_field_sourceTankId": "Transportada da garrafa",
   "settings_conflict_field_sourceTankIndex": "Número do cilindro no registro de origem",
+  "settings_conflict_field_transmitterSlot": "Posição do transmissor",
   "settings_conflict_field_sourceType": "Origem",
   "settings_conflict_field_sourceUuid": "ID de origem",
   "settings_conflict_field_sourceValueNumber": "Valor de referência",

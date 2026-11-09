@@ -26276,6 +26276,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Numéro du bloc dans le carnet source';
 
   @override
+  String get settings_conflict_field_transmitterSlot =>
+      'Emplacement de l\'émetteur';
+
+  @override
   String get settings_conflict_field_sourceType => 'Source';
 
   @override

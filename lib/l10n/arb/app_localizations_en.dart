@@ -25761,6 +25761,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tank number in the source log';
 
   @override
+  String get settings_conflict_field_transmitterSlot => 'Transmitter slot';
+
+  @override
   String get settings_conflict_field_sourceType => 'Source';
 
   @override

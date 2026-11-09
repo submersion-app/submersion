@@ -7687,6 +7687,7 @@
   "settings_conflict_field_sourceRef": "Fichier ou appareil source",
   "settings_conflict_field_sourceTankId": "Reprise du bloc",
   "settings_conflict_field_sourceTankIndex": "Numéro du bloc dans le carnet source",
+  "settings_conflict_field_transmitterSlot": "Emplacement de l'émetteur",
   "settings_conflict_field_sourceType": "Source",
   "settings_conflict_field_sourceUuid": "ID source",
   "settings_conflict_field_sourceValueNumber": "Valeur de référence",

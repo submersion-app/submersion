@@ -636,6 +636,10 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_transmitterSerial,
     FieldKind.shortText,
   ),
+  'transmitterSlot': ConflictField(
+    (l) => l.settings_conflict_field_transmitterSlot,
+    FieldKind.number,
+  ),
   'usageDuration': ConflictField(
     (l) => l.settings_conflict_field_usageDuration,
     FieldKind.durationSeconds,

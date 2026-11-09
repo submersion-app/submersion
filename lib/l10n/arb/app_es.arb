@@ -7788,6 +7788,7 @@
   "settings_conflict_field_sourceRef": "Archivo o dispositivo de origen",
   "settings_conflict_field_sourceTankId": "Traspasada de la botella",
   "settings_conflict_field_sourceTankIndex": "Número de tanque en el registro de origen",
+  "settings_conflict_field_transmitterSlot": "Ranura del transmisor",
   "settings_conflict_field_sourceType": "Origen",
   "settings_conflict_field_sourceUuid": "ID de origen",
   "settings_conflict_field_sourceValueNumber": "Valor de referencia",

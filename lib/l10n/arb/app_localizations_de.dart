@@ -26152,6 +26152,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Flaschennummer im Quell-Logbuch';
 
   @override
+  String get settings_conflict_field_transmitterSlot =>
+      'Steckplatz des Senders';
+
+  @override
   String get settings_conflict_field_sourceType => 'Quelle';
 
   @override

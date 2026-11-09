@@ -26218,6 +26218,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Numero della bombola nel logbook di origine';
 
   @override
+  String get settings_conflict_field_transmitterSlot =>
+      'Slot del trasmettitore';
+
+  @override
   String get settings_conflict_field_sourceType => 'Origine';
 
   @override

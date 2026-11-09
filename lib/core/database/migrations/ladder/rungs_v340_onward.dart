@@ -71,5 +71,11 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen.
     if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
     if (from < 347) await reportProgress();
+
+    // v348: dive_tanks.transmitter_slot, the physical transmitter slot a
+    // tank's pressures came from (issue #4347). Nullable column only, filled
+    // at runtime; re-asserted in beforeOpen.
+    if (from < 348) await _assertTankTransmitterSlotColumn();
+    if (from < 348) await reportProgress();
   }
 }

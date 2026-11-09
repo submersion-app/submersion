@@ -7792,6 +7792,7 @@
   "settings_conflict_field_sourceRef": "קובץ או מכשיר המקור",
   "settings_conflict_field_sourceTankId": "הועבר מהמיכל",
   "settings_conflict_field_sourceTankIndex": "מספר הבלון ביומן המקור",
+  "settings_conflict_field_transmitterSlot": "חריץ המשדר",
   "settings_conflict_field_sourceType": "מקור",
   "settings_conflict_field_sourceUuid": "מזהה המקור",
   "settings_conflict_field_sourceValueNumber": "ערך ייחוס",

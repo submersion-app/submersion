@@ -26191,6 +26191,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Número do cilindro no registro de origem';
 
   @override
+  String get settings_conflict_field_transmitterSlot =>
+      'Posição do transmissor';
+
+  @override
   String get settings_conflict_field_sourceType => 'Origem';
 
   @override

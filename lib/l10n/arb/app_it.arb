@@ -7687,6 +7687,7 @@
   "settings_conflict_field_sourceRef": "File o dispositivo di origine",
   "settings_conflict_field_sourceTankId": "Ripresa dalla bombola",
   "settings_conflict_field_sourceTankIndex": "Numero della bombola nel logbook di origine",
+  "settings_conflict_field_transmitterSlot": "Slot del trasmettitore",
   "settings_conflict_field_sourceType": "Origine",
   "settings_conflict_field_sourceUuid": "ID di origine",
   "settings_conflict_field_sourceValueNumber": "Valore di riferimento",

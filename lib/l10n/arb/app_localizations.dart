@@ -41778,6 +41778,12 @@ abstract class AppLocalizations {
   /// **'Tank number in the source log'**
   String get settings_conflict_field_sourceTankIndex;
 
+  /// No description provided for @settings_conflict_field_transmitterSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Transmitter slot'**
+  String get settings_conflict_field_transmitterSlot;
+
   /// No description provided for @settings_conflict_field_sourceType.
   ///
   /// In en, this message translates to:

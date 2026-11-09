@@ -268,6 +268,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'tank_name': 'user-friendly name like "Primary AL80"',
     'tank_role': 'backGas, stage, deco, bailout, etc.',
     'transmitter_serial': 'Serial of the air-integration transmitter that reported this tank, as the computer logged it',
+    'transmitter_slot': 'The physical transmitter slot this tank\'s pressures came from, 0 based (Shearwater T1 = 0 to T4 = 3), as the computer or its own logbook export reported it',
     'trip_cylinder_id': 'the trip cylinder slot this tank was breathed from',
     'twin_passport_id': 'the passport id of the second cylinder of a twin set tank, set when the diver picked a linked cylinder as its twin set',
     'usage_duration': 'how long this cylinder was breathed, in seconds, as the source log recorded it',

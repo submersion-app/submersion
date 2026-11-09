@@ -7940,6 +7940,7 @@
   "settings_conflict_field_sourceRef": "源文件或设备",
   "settings_conflict_field_sourceTankId": "沿用自气瓶",
   "settings_conflict_field_sourceTankIndex": "源日志中的气瓶编号",
+  "settings_conflict_field_transmitterSlot": "发射器插槽",
   "settings_conflict_field_sourceType": "来源",
   "settings_conflict_field_sourceUuid": "来源 ID",
   "settings_conflict_field_sourceValueNumber": "参考值",

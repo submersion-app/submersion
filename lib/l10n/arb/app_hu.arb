@@ -7687,6 +7687,7 @@
   "settings_conflict_field_sourceRef": "Forrásfájl vagy -eszköz",
   "settings_conflict_field_sourceTankId": "Átvéve a palackból",
   "settings_conflict_field_sourceTankIndex": "Palack száma a forrásnaplóban",
+  "settings_conflict_field_transmitterSlot": "Jeladó helye",
   "settings_conflict_field_sourceType": "Forrás",
   "settings_conflict_field_sourceUuid": "Forrásazonosító",
   "settings_conflict_field_sourceValueNumber": "Referenciaérték",

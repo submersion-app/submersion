@@ -26213,6 +26213,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Número de tanque en el registro de origen';
 
   @override
+  String get settings_conflict_field_transmitterSlot => 'Ranura del transmisor';
+
+  @override
   String get settings_conflict_field_sourceType => 'Origen';
 
   @override

@@ -25544,6 +25544,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'מספר הבלון ביומן המקור';
 
   @override
+  String get settings_conflict_field_transmitterSlot => 'חריץ המשדר';
+
+  @override
   String get settings_conflict_field_sourceType => 'מקור';
 
   @override

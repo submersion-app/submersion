@@ -26448,6 +26448,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'رقم الأسطوانة في السجل المصدر';
 
   @override
+  String get settings_conflict_field_transmitterSlot => 'فتحة المرسل';
+
+  @override
   String get settings_conflict_field_sourceType => 'المصدر';
 
   @override

@@ -7788,6 +7788,7 @@
   "settings_conflict_field_sourceRef": "Bronbestand of -apparaat",
   "settings_conflict_field_sourceTankId": "Overgenomen van fles",
   "settings_conflict_field_sourceTankIndex": "Flesnummer in het bronlogboek",
+  "settings_conflict_field_transmitterSlot": "Positie van de zender",
   "settings_conflict_field_sourceType": "Bron",
   "settings_conflict_field_sourceUuid": "Bron-ID",
   "settings_conflict_field_sourceValueNumber": "Referentiewaarde",

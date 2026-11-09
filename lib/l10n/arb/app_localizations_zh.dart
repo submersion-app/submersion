@@ -24722,6 +24722,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_sourceTankIndex => '源日志中的气瓶编号';
 
   @override
+  String get settings_conflict_field_transmitterSlot => '发射器插槽';
+
+  @override
   String get settings_conflict_field_sourceType => '来源';
 
   @override

@@ -7921,6 +7921,7 @@
   "settings_conflict_field_sourceRef": "Quelldatei oder Gerät",
   "settings_conflict_field_sourceTankId": "Übernommen von Flasche",
   "settings_conflict_field_sourceTankIndex": "Flaschennummer im Quell-Logbuch",
+  "settings_conflict_field_transmitterSlot": "Steckplatz des Senders",
   "settings_conflict_field_sourceType": "Quelle",
   "settings_conflict_field_sourceUuid": "Quell-ID",
   "settings_conflict_field_sourceValueNumber": "Referenzwert",

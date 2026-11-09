@@ -292,6 +292,13 @@ class DiveTanks extends Table {
   // v200 means "same as tankOrder"; -1 (kNoSourceTankIndex) means the row
   // takes no parsed tank, which is what a reassignment leaves behind.
   IntColumn get sourceTankIndex => integer().nullable()();
+  // The physical transmitter slot this tank's pressures came from, 0 based
+  // (Shearwater T1 = 0 to T4 = 3), as the computer or its own logbook export
+  // reported it (v348, issue #4347). Computer-owned like the serial: written
+  // by download, re-parse and import, never by an edit. Lets a file-imported
+  // tank with no serial be matched to the downloads that show which serial
+  // sat in that slot.
+  IntColumn get transmitterSlot => integer().nullable()();
 
   /// v260: the other computers on a consolidated dive that logged this same
   /// cylinder, as a JSON array of computer ids (tank_shared_computers.dart).

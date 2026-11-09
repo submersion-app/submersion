@@ -26082,6 +26082,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Palack száma a forrásnaplóban';
 
   @override
+  String get settings_conflict_field_transmitterSlot => 'Jeladó helye';
+
+  @override
   String get settings_conflict_field_sourceType => 'Forrás';
 
   @override

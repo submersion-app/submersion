@@ -26030,6 +26030,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Flesnummer in het bronlogboek';
 
   @override
+  String get settings_conflict_field_transmitterSlot => 'Positie van de zender';
+
+  @override
   String get settings_conflict_field_sourceType => 'Bron';
 
   @override
