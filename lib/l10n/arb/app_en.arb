@@ -35726,5 +35726,12 @@
   "equipment_photos_removeConfirmContent": "The photos are removed from Submersion. The files themselves are not touched.",
   "equipment_photos_photoLabel": "Gear photo",
   "equipment_photos_coverLabel": "Cover photo",
-  "equipment_photos_checkInPhotos": "Photos"
+  "equipment_photos_checkInPhotos": "Photos",
+  "equipment_photos_checkInCaption": "Check-in: {title}, {date}",
+  "@equipment_photos_checkInCaption": {"placeholders": {"title": {"type": "String"}, "date": {"type": "String"}}},
+  "media_gearGallery_tab": "Gear",
+  "media_gearGallery_count": "{count, plural, =1{1 photo} other{{count} photos}}",
+  "@media_gearGallery_count": {"placeholders": {"count": {"type": "int"}}},
+  "media_gearGallery_empty": "Photos you add to your gear and its check-ins show up here.",
+  "media_gearGallery_checkInBadge": "Check-in photo"
 }

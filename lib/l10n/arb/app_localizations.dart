@@ -96347,6 +96347,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Photos'**
   String get equipment_photos_checkInPhotos;
+
+  /// No description provided for @equipment_photos_checkInCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in: {title}, {date}'**
+  String equipment_photos_checkInCaption(String title, String date);
+
+  /// No description provided for @media_gearGallery_tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get media_gearGallery_tab;
+
+  /// No description provided for @media_gearGallery_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 photo} other{{count} photos}}'**
+  String media_gearGallery_count(int count);
+
+  /// No description provided for @media_gearGallery_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos you add to your gear and its check-ins show up here.'**
+  String get media_gearGallery_empty;
+
+  /// No description provided for @media_gearGallery_checkInBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in photo'**
+  String get media_gearGallery_checkInBadge;
 }
 
 class _AppLocalizationsDelegate

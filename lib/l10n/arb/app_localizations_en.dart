@@ -60263,4 +60263,30 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_photos_checkInPhotos => 'Photos';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'Check-in: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'Gear';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '1 photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'Photos you add to your gear and its check-ins show up here.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'Check-in photo';
 }

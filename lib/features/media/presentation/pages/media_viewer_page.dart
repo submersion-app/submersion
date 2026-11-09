@@ -96,11 +96,16 @@ class MediaViewerPage extends ConsumerStatefulWidget {
   /// already on the dive.
   final bool showGoToDive;
 
+  /// A line naming where the current item comes from, such as the check-in
+  /// a gear photo backs up (issue #3355); null or an empty result shows none.
+  final String? Function(MediaItem)? captionFor;
+
   const MediaViewerPage({
     super.key,
     required this.mediaList,
     required this.initialMediaId,
     this.showGoToDive = false,
+    this.captionFor,
   });
 
   @override
@@ -724,6 +729,18 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       left: 12,
                       child: ColorCorrectionLabel(item: currentItem),
                     ),
+
+                    // Where the item comes from (issue #3355).
+                    if (widget.captionFor?.call(currentItem) case final caption?
+                        when caption.isNotEmpty)
+                      Positioned(
+                        top:
+                            MediaQuery.paddingOf(context).top +
+                            kMediaViewerToolbarHeight +
+                            4,
+                        right: 12,
+                        child: _ViewerCaption(text: caption),
+                      ),
 
                     // Tag mode keeps the photo clear below the toolbar.
                     if (!taggingPeople) ...[
@@ -2037,4 +2054,27 @@ class _MetadataChip extends StatelessWidget {
         ? tappable
         : Tooltip(message: tooltip!, child: tappable);
   }
+}
+
+/// The viewer's source line, a small dark pill readable over any photo.
+class _ViewerCaption extends StatelessWidget {
+  const _ViewerCaption({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    key: const ValueKey('viewer_caption'),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(
+      color: Colors.black.withValues(alpha: 0.55),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Text(
+      text,
+      style: Theme.of(
+        context,
+      ).textTheme.labelMedium?.copyWith(color: Colors.white),
+    ),
+  );
 }

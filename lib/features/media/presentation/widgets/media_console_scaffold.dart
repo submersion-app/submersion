@@ -21,15 +21,20 @@ import 'package:submersion/shared/widgets/section_title_toggle.dart';
 /// in [MediaSectionPage]'s State as a value, and the `index`/`values[i]`
 /// pair below is a round trip through one TabController. A value may
 /// therefore be inserted wherever it belongs in the list.
-enum MediaConsoleSection { library, sources, transfers, importMedia }
+enum MediaConsoleSection { library, gear, sources, transfers, importMedia }
 
 /// The sections a device with [caps] offers: a browser can neither watch
-/// folders nor import files, so it shows the library and the transfers
-/// (issue #4121).
+/// folders nor import files, so it shows the library, the Gear gallery
+/// (issue #3355, which only shows and removes) and the transfers (issue
+/// #4121).
 List<MediaConsoleSection> mediaConsoleSectionsFor(DeviceCapabilities caps) =>
     caps.mediaAttach
     ? MediaConsoleSection.values
-    : const [MediaConsoleSection.library, MediaConsoleSection.transfers];
+    : const [
+        MediaConsoleSection.library,
+        MediaConsoleSection.gear,
+        MediaConsoleSection.transfers,
+      ];
 
 /// The Media section's page chrome: [headerTitle] over the section's tabs,
 /// over [child] at the full width of the page.
@@ -101,6 +106,7 @@ class _MediaConsoleScaffoldState extends ConsumerState<MediaConsoleScaffold>
   String _label(AppLocalizations l10n, MediaConsoleSection section) {
     return switch (section) {
       MediaConsoleSection.library => l10n.media_console_library,
+      MediaConsoleSection.gear => l10n.media_gearGallery_tab,
       MediaConsoleSection.sources => l10n.media_console_sources,
       MediaConsoleSection.transfers => l10n.media_console_transfers,
       MediaConsoleSection.importMedia => l10n.media_console_import,
