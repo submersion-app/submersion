@@ -86,6 +86,36 @@ void main() {
     });
   });
 
+  // Issue #4339: a shared library document names its expected species by
+  // their English names, with no catalog id.
+  group('localizedCatalogSpeciesName', () {
+    test('a catalog English name is translated', () {
+      expect(localizedCatalogSpeciesName(de, 'European Perch'), 'Flussbarsch');
+      expect(
+        localizedCatalogSpeciesName(en, 'European Perch'),
+        'European Perch',
+      );
+    });
+
+    test('a name two catalog rows share is translated when they agree', () {
+      expect(
+        localizedCatalogSpeciesName(de, 'Spotted Wobbegong'),
+        'Gefleckter Teppichhai',
+      );
+    });
+
+    test('a name outside the catalog is returned as given', () {
+      expect(localizedCatalogSpeciesName(de, 'Mein Barsch'), 'Mein Barsch');
+    });
+
+    test('a catalog name in another case is not the catalog text', () {
+      expect(
+        localizedCatalogSpeciesName(de, 'european perch'),
+        'european perch',
+      );
+    });
+  });
+
   group('localizedSpeciesName', () {
     test('a built-in id with the catalog name is translated', () {
       expect(localizedSpeciesName(de, id, catalogName), 'Walhai');

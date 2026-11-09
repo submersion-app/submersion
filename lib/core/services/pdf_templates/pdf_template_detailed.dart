@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -800,16 +801,24 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
     return [
       _sectionTitle(l10n.pdf_sectionMarineLife),
       pw.SizedBox(height: 6),
-      ...dive.sightings.expand(_sightingLines),
+      ...dive.sightings.expand((s) => _sightingLines(s, l10n)),
       pw.SizedBox(height: 14),
     ];
   }
 
-  List<pw.Widget> _sightingLines(MarineSighting sighting) {
+  List<pw.Widget> _sightingLines(
+    MarineSighting sighting,
+    AppLocalizations l10n,
+  ) {
+    // The stored name is the catalog's English one; the report names the
+    // species in its own language, as the app does (issue #4339).
+    final name = localizedSpeciesName(
+      l10n,
+      sighting.speciesId,
+      sighting.speciesName,
+    );
     // A count on a lone animal reads as noise, so only a real tally is shown.
-    final species = sighting.count > 1
-        ? '${sighting.speciesName} x${sighting.count}'
-        : sighting.speciesName;
+    final species = sighting.count > 1 ? '$name x${sighting.count}' : name;
     const speciesStyle = pw.TextStyle(fontSize: 10, color: PdfColors.grey800);
     const notesStyle = pw.TextStyle(fontSize: 9, color: PdfColors.grey600);
 

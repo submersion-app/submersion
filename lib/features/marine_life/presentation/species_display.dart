@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/species_description_lookup.dart';
+import 'package:submersion/features/marine_life/presentation/species_ids.dart';
 import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -79,6 +80,32 @@ String localizedSpeciesName(
 ) => _isCatalogText(storedName, builtInSpeciesName(_english, id))
     ? (builtInSpeciesName(l10n, id) ?? storedName)
     : storedName;
+
+/// The catalog ids behind each English catalog name. A name can belong to
+/// more than one row (two seed rows share "Spotted Wobbegong").
+final Map<String, List<String>> _catalogIdsByEnglishName = () {
+  final byName = <String, List<String>>{};
+  for (final id in kBuiltInSpeciesIds) {
+    final name = builtInSpeciesName(_english, id);
+    if (name != null) (byName[name] ??= []).add(id);
+  }
+  return Map<String, List<String>>.unmodifiable(byName);
+}();
+
+/// Localized name for a species known only by its stored name.
+///
+/// A shared site library document lists expected species by the name the
+/// author's device stored, with no catalog id, and a built-in is stored under
+/// its English catalog name. That exact text resolves back to the catalog row
+/// and is translated (issue #4339). Anything else, a custom or renamed
+/// species, is the author's own text and is returned as given, as is a name
+/// whose rows would translate differently.
+String localizedCatalogSpeciesName(AppLocalizations l10n, String storedName) {
+  final ids = _catalogIdsByEnglishName[storedName];
+  if (ids == null) return storedName;
+  final names = {for (final id in ids) builtInSpeciesName(l10n, id)};
+  return names.length == 1 ? (names.single ?? storedName) : storedName;
+}
 
 /// Repository search hits plus catalog rows whose *localized* name matches.
 ///

@@ -49,7 +49,7 @@ Future<void> _pump(
               id: 'sp_whale_shark',
               name: 'Whale Shark',
               count: 5,
-              subtitle: 'shark',
+              kind: 'shark',
             ),
           ],
         ),
@@ -81,6 +81,26 @@ void main() {
 
     expect(find.text('Walhai'), findsOneWidget);
     expect(find.text('Whale Shark'), findsNothing);
+  });
+
+  // Issue #4339: the query returns the stored category key, which rendered
+  // as "fish" under a German locale.
+  testWidgets('renders the species category under its localized label', (
+    tester,
+  ) async {
+    await _pump(tester, locale: const Locale('de'));
+
+    expect(find.text('Hai'), findsOneWidget);
+    expect(find.text('shark'), findsNothing);
+  });
+
+  testWidgets('renders the species category label in English too', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    expect(find.text('Shark'), findsOneWidget);
+    expect(find.text('shark'), findsNothing);
   });
 
   testWidgets('tapping a ranked species still opens its detail page', (
