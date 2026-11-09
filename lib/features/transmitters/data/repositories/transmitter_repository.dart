@@ -10,8 +10,10 @@ import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_slot_queries.dart';
 import 'package:submersion/features/transmitters/data/services/bailout_mix_fixer.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
+import 'package:submersion/features/transmitters/domain/entities/transmitter_slot_preview.dart';
 
 /// Thrown when an entry would share a serial (per diver) or a
 /// (computer, channel) key with [existing].
@@ -436,15 +438,41 @@ class TransmitterRepository {
     );
   }
 
+  /// The computers whose dives carry a tank with [serial] (issue #4347).
+  Future<Set<String>> computersForSerial(String serial) =>
+      TransmitterSlotQueries(_db).computersForSerial(serial);
+
+  /// The file-imported tanks with no serial that [t]'s serial matches by
+  /// computer, slot and date (issue #4347), for the Apply dialog. Empty for
+  /// an entry with no serial.
+  Future<TransmitterSlotPreview> previewSlotMatches(Transmitter t) async {
+    final serial = normalizeTransmitterSerial(t.transmitterSerial);
+    if (serial == null) return TransmitterSlotPreview.empty;
+    final queries = TransmitterSlotQueries(_db);
+    return queries.preview(serial, await queries.computersForSerial(serial));
+  }
+
   /// Retroactive fill for the tanks that carry [t]'s key: empty size,
   /// working pressure, material, preset, gear link and name are filled; the
   /// role is replaced while it is still the uninformed backGas default, and
   /// always while it is the computer's guess from the transmitter's name
   /// (issue #2595), which also drops that source: the entry is the diver's
   /// own configuration. A role the diver set is never replaced.
+  /// [slotTankIds] adds the slot matches the Apply dialog showed (issue
+  /// #4347); any that has since gained a serial is skipped, so a tank that
+  /// carries a transmitter of its own is never written.
   /// One transaction; a failure leaves no half-applied dive.
-  Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
-    final candidates = await _tanksForEntry(t);
+  Future<ApplyToExistingResult> applyToExistingDives(
+    Transmitter t, {
+    Set<String> slotTankIds = const {},
+  }) async {
+    final byKey = await _tanksForEntry(t);
+    final candidates = [
+      ...byKey,
+      ...await _unserialedTanks(
+        slotTankIds.difference({for (final r in byKey) r.id}),
+      ),
+    ];
     if (candidates.isEmpty) {
       return (tanksUpdated: 0, divesUpdated: 0, mixesKept: 0);
     }
@@ -520,6 +548,17 @@ class TransmitterRepository {
       divesUpdated: touchedDives.length,
       mixesKept: mixesKeptDives.length,
     );
+  }
+
+  Future<List<DiveTank>> _unserialedTanks(Set<String> ids) async {
+    if (ids.isEmpty) return const [];
+    final rows = await (_db.select(
+      _db.diveTanks,
+    )..where((d) => d.id.isIn(ids))).get();
+    return [
+      for (final r in rows)
+        if (normalizeTransmitterSerial(r.transmitterSerial) == null) r,
+    ];
   }
 
   Future<List<DiveTank>> _tanksForEntry(Transmitter t) async {
