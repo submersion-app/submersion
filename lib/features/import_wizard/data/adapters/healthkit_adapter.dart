@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -63,7 +64,9 @@ class HealthKitAdapter implements ImportSourceAdapter {
     String displayName = 'HealthKit Import',
     ChecklistDiveLinker? checklistLinker,
     ImportTripResolver? tripForImports,
+    Future<Set<String>> Function(Iterable<String> diveIds)? deletedDiveIds,
   }) : _healthService = healthService,
+       _deletedDiveIds = deletedDiveIds ?? _tombstonedDives,
        _diveMatcher = diveMatcher,
        _converter = converter,
        _diveRepository = diveRepository,
@@ -78,6 +81,20 @@ class HealthKitAdapter implements ImportSourceAdapter {
        _tripForImports = tripForImports;
 
   static final _log = LoggerService.forClass(HealthKitAdapter);
+
+  /// The watch dive ids among those given that were deleted, here or on a
+  /// peer (issue #637). A workout merged into a downloaded dive leaves only
+  /// that tombstone, so its match defaults to skip, not to merging again.
+  final Future<Set<String>> Function(Iterable<String> diveIds) _deletedDiveIds;
+
+  /// Best effort: with no database (some tests) nothing is known deleted.
+  static Future<Set<String>> _tombstonedDives(Iterable<String> ids) async {
+    try {
+      return await SyncRepository().deletedIds('dives', ids);
+    } catch (_) {
+      return const {};
+    }
+  }
 
   final HealthImportService _healthService;
   final DiveMatcher _diveMatcher;
@@ -253,6 +270,10 @@ class HealthKitAdapter implements ImportSourceAdapter {
       ],
       targets: drafts,
     );
+    final mergedBefore = await _deletedDiveIds([
+      for (final w in _parsedDives)
+        healthDiveId(diverId: _diverId, workoutUuid: w.sourceId),
+    ]);
     final unclaimedByStart = DiveStartTimeIndex(
       unclaimedDives.map((dive) => dive.effectiveEntryTime),
     );
@@ -328,6 +349,11 @@ class HealthKitAdapter implements ImportSourceAdapter {
               existing,
               score: score,
               existingStart: existing.effectiveEntryTime,
+              // Already merged into a dive, here or on a peer: skip, as a
+              // re-read of a saved workout does.
+              matchedExistingSource: mergedBefore.contains(
+                healthDiveId(diverId: _diverId, workoutUuid: imported.sourceId),
+              ),
             );
           }
         }

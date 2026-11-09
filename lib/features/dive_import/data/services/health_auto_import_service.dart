@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
@@ -60,7 +61,11 @@ class HealthAutoImportService {
     HealthDiveWriter? writer,
     HealthFillService? filler,
     DiveConsolidationService? consolidation,
+    Future<Set<String>> Function(Iterable<String> diveIds)? deletedDiveIds,
   }) : _health = health,
+       _deletedDiveIds =
+           deletedDiveIds ??
+           ((ids) => SyncRepository().deletedIds('dives', ids)),
        _prefs = prefs,
        _boundDiverId = boundDiverId,
        _dives = dives,
@@ -97,6 +102,11 @@ class HealthAutoImportService {
   final DiveConsolidationService _consolidation;
   late final HealthFillService _filler;
 
+  /// The watch dive ids among those given that were deleted, here or on a
+  /// peer: a workout merged into a downloaded dive leaves its watch dive's
+  /// tombstone and nothing else, and is never merged again.
+  final Future<Set<String>> Function(Iterable<String> diveIds) _deletedDiveIds;
+
   Future<HealthAutoImportResult> run({DateTime? now}) async {
     final diverId = _boundDiverId();
     if (diverId == null) return const HealthAutoImportResult();
@@ -122,11 +132,16 @@ class HealthAutoImportService {
       asWallClockUtc(end.toLocal()).add(const Duration(hours: 6)),
       diverId: diverId,
     );
+    final deleted = await _deletedDiveIds([
+      for (final w in workouts)
+        healthDiveId(diverId: diverId, workoutUuid: w.sourceId),
+    ]);
     final fresh = <ImportedDive>[];
     for (final w in workouts) {
       if (handled.containsKey(w.sourceId)) continue;
       if (nearby.any((d) => d.importId == w.sourceId)) continue;
       final id = healthDiveId(diverId: diverId, workoutUuid: w.sourceId);
+      if (deleted.contains(id)) continue;
       if (await _dives.getDiveById(id) != null) continue;
       fresh.add(w);
     }

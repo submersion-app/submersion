@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
 import 'package:submersion/features/dive_import/data/services/health_auto_import_service.dart';
@@ -202,6 +203,39 @@ void main() {
     expect(result.consolidatedIds, [downloaded.id]);
     expect(result.newDiveIds, isEmpty);
   });
+
+  test(
+    'a workout merged into a dive on another device is not merged again',
+    () async {
+      final downloaded = await dives.createDive(
+        Dive(
+          id: '',
+          diverId: 'a',
+          dateTime: ten,
+          entryTime: ten,
+          exitTime: ten.add(const Duration(minutes: 45)),
+          runtime: const Duration(minutes: 45),
+          maxDepth: 18.2,
+          diveNumber: 1,
+        ),
+      );
+      // The other device's merge reached this one as the watch dive's
+      // tombstone.
+      await SyncRepository().logDeletion(
+        entityType: 'dives',
+        recordId: healthDiveId(diverId: 'a', workoutUuid: 'w1'),
+      );
+      health.workouts = [workout('w1', ten)];
+
+      final result = await service().run(now: now);
+
+      expect(result.consolidatedIds, isEmpty);
+      expect(result.newDiveIds, isEmpty);
+      expect(await dives.getAllDives(diverId: 'a'), [
+        isA<Dive>().having((d) => d.id, 'id', downloaded.id),
+      ]);
+    },
+  );
 
   test('a workout that fits two drafts is reported, not written', () async {
     for (final (entry, exit) in [

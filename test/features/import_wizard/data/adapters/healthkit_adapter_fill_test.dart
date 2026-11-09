@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
+import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
 import 'package:submersion/features/dive_import/data/services/health_fill_service.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
@@ -115,9 +116,16 @@ void main() {
     ).thenAnswer((_) async => 1);
   });
 
-  HealthKitAdapter adapter(List<Dive> existing) {
+  HealthKitAdapter adapter(
+    List<Dive> existing, {
+    Set<String> deletedDiveIds = const {},
+  }) {
     when(repo.getAllDives(diverId: diverId)).thenAnswer((_) async => existing);
     final a = HealthKitAdapter(
+      deletedDiveIds: (ids) async => {
+        for (final id in ids)
+          if (deletedDiveIds.contains(id)) id,
+      },
       healthService: MockHealthImportService(),
       diveMatcher: const DiveMatcher(),
       converter: const ImportedDiveConverter(),
@@ -203,6 +211,31 @@ void main() {
     expect(match.matchedComputerId, 'perdix');
     expect(match.score, greaterThanOrEqualTo(0.85));
     expect(bundle.source.currentComputerId, 'watch');
+  });
+
+  test('a workout already merged into a downloaded dive defaults to skip, '
+      'not to merging again', () async {
+    final a = adapter(
+      [
+        Dive(
+          id: 'downloaded',
+          diverId: diverId,
+          dateTime: ten,
+          entryTime: ten,
+          exitTime: ten.add(const Duration(minutes: 45)),
+          runtime: const Duration(minutes: 45),
+          maxDepth: 18,
+          computerId: 'perdix',
+        ),
+      ],
+      deletedDiveIds: {healthDiveId(diverId: diverId, workoutUuid: 'w1')},
+    );
+
+    final bundle = await a.checkDuplicates(await a.buildBundle());
+
+    final match = bundle.groups[ImportEntityType.dives]!.matchResults![0]!;
+    expect(match.diveId, 'downloaded');
+    expect(match.matchedExistingSource, isTrue);
   });
 
   test('Fill fills the target and Merge joins the downloaded dive', () async {
