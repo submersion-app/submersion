@@ -47,6 +47,9 @@ class _BytesResolver implements MediaSourceResolver {
   Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
 }
 
+/// The analyser key a card uses for [_item] with [id].
+String _key(String id) => DiveCardPhotoBackground.analysisKeyFor(_item(id));
+
 MediaItem _item(String id) => MediaItem(
   id: id,
   mediaType: MediaType.photo,
@@ -100,6 +103,7 @@ void main() {
     Brightness brightness = Brightness.dark,
     bool hasMedia = true,
     Size size = _cardSize,
+    ValueNotifier<MediaItem>? media,
   }) async {
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -111,9 +115,15 @@ void main() {
                 MediaSourceType.platformGallery: _BytesResolver(png),
               }),
             ),
-            mediaByIdProvider.overrideWith(
-              (ref, id) async => hasMedia ? _item(id) : null,
-            ),
+            mediaByIdProvider.overrideWith((ref, id) async {
+              if (media != null) {
+                void refresh() => ref.invalidateSelf();
+                media.addListener(refresh);
+                ref.onDispose(() => media.removeListener(refresh));
+                return media.value;
+              }
+              return hasMedia ? _item(id) : null;
+            }),
             cardPhotoOverlayProvider.overrideWithValue(_overlay),
             cardFocusAnalyzerProvider.overrideWithValue(analyzer),
           ],
@@ -255,7 +265,7 @@ void main() {
     });
 
     expect(opacity(tester), 1);
-    final rows = analyzer.peek('m1');
+    final rows = analyzer.peek(_key('m1'));
     expect(rows, isNotNull);
     final expected = cardCropAlignmentY(
       imageAspect: imageAspect,
@@ -289,7 +299,9 @@ void main() {
         return _analysedImage();
       },
     );
-    await tester.runAsync(() => analyzer.rowScoresFor('m1', MemoryImage(png)));
+    await tester.runAsync(
+      () => analyzer.rowScoresFor(_key('m1'), MemoryImage(png)),
+    );
     expect(decodes, 1);
 
     await pumpCard(
@@ -306,7 +318,7 @@ void main() {
         cardCropAlignmentY(
           imageAspect: imageAspect,
           cardAspect: cardAspect,
-          rowScores: analyzer.peek('m1'),
+          rowScores: analyzer.peek(_key('m1')),
         ),
         0.02,
       ),
@@ -346,7 +358,51 @@ void main() {
         cardCropAlignmentY(
           imageAspect: imageAspect,
           cardAspect: cardAspect,
-          rowScores: analyzer.peek('m1'),
+          rowScores: analyzer.peek(_key('m1')),
+        ),
+        0.02,
+      ),
+    );
+    expect(imageAlignmentY(tester), greaterThan(0));
+  });
+
+  testWidgets('untagging the people on a photo analysed before reuses its '
+      'scores without decoding again', (tester) async {
+    var decodes = 0;
+    final analyzer = CardFocusAnalyzer(
+      decode: (_) async {
+        decodes++;
+        return _analysedImage();
+      },
+    );
+    // Another card already analysed this photo's pixels.
+    await tester.runAsync(
+      () => analyzer.rowScoresFor(_key('m1'), MemoryImage(png)),
+    );
+    expect(decodes, 1);
+    final photo = ValueNotifier(
+      const CardPhoto(
+        mediaId: 'm1',
+        focusBoxes: [FocusBox(x: 0.3, y: 0.05, width: 0.2, height: 0.1)],
+      ),
+    );
+    await pumpCard(tester, photo: photo, analyzer: analyzer);
+    expect(imageAlignmentY(tester), lessThan(0));
+
+    await tester.runAsync(() async {
+      photo.value = const CardPhoto(mediaId: 'm1');
+      await settle(tester);
+    });
+
+    expect(decodes, 1);
+    expect(opacity(tester), 1);
+    expect(
+      imageAlignmentY(tester),
+      closeTo(
+        cardCropAlignmentY(
+          imageAspect: imageAspect,
+          cardAspect: cardAspect,
+          rowScores: analyzer.peek(_key('m1')),
         ),
         0.02,
       ),
@@ -381,7 +437,7 @@ void main() {
           imageAspect: imageAspect,
           cardAspect: cardAspect,
           focusBoxes: boxes,
-          rowScores: analyzer.peek('m1'),
+          rowScores: analyzer.peek(_key('m1')),
         ),
         0.02,
       ),
@@ -432,6 +488,51 @@ void main() {
     expect(find.byType(Image), findsNothing);
     expect(find.text('card'), findsOneWidget);
   });
+
+  testWidgets('a photo relinked to other pixels under the same id is '
+      'analysed again, not cropped by the old scores', (tester) async {
+    var decodes = 0;
+    final analyzer = CardFocusAnalyzer(
+      decode: (_) async {
+        decodes++;
+        return _analysedImage();
+      },
+    );
+    final media = ValueNotifier(_item('m1').copyWith(localPath: '/old.jpg'));
+    await pumpCard(
+      tester,
+      photo: ValueNotifier(const CardPhoto(mediaId: 'm1')),
+      analyzer: analyzer,
+      media: media,
+    );
+    expect(decodes, 1);
+    expect(opacity(tester), 1);
+
+    await tester.runAsync(() async {
+      media.value = _item('m1').copyWith(localPath: '/new.jpg');
+      await settle(tester);
+    });
+
+    expect(decodes, 2);
+    expect(opacity(tester), 1);
+    expect(
+      analyzer.hasAnswer(DiveCardPhotoBackground.analysisKeyFor(media.value)),
+      isTrue,
+    );
+  });
+
+  test(
+    'sources that differ only in where a path splits get different keys',
+    () {
+      // '|' is a valid path character, so it cannot be the separator.
+      final split = _item('m1').copyWith(filePath: 'a', localPath: 'b');
+      final joined = _item('m1').copyWith(filePath: 'a|b');
+      expect(
+        DiveCardPhotoBackground.analysisKeyFor(split),
+        isNot(DiveCardPhotoBackground.analysisKeyFor(joined)),
+      );
+    },
+  );
 
   testWidgets('the dark theme draws its own overlay', (tester) async {
     await pumpCard(

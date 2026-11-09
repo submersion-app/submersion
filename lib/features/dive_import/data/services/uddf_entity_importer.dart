@@ -3668,7 +3668,8 @@ class UddfEntityImporter {
               defaultStartPressure: _defaultStartPressure,
             )
           : tanksData;
-      return processedTanks.map((t) {
+      return processedTanks.indexed.map((entry) {
+        final (index, t) = entry;
         TankMaterial? material;
         final materialValue = t['material'];
         if (materialValue is TankMaterial) {
@@ -3699,7 +3700,9 @@ class UddfEntityImporter {
           gasMix: t['gasMix'] as GasMix? ?? const GasMix(),
           material: material,
           role: role,
-          order: t['order'] as int? ?? 0,
+          // The file's own order, else its position, as resync stores it
+          // (issue #4347): every cylinder at 0 left their order arbitrary.
+          order: t['order'] as int? ?? index,
           transmitterSerial: t['transmitterSerial'] as String?,
           // How long the source log says the tank was breathed (MacDive,
           // issue #1496).

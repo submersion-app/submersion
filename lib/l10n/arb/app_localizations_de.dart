@@ -20440,6 +20440,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Videodatei nicht gefunden';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Für dieses Video ist ein normales Browserfenster nötig. Private Fenster können nicht von Google Drive oder WebDAV streamen.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video nicht mit Bibliothek verknüpft';
 
@@ -55911,7 +55915,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks Flaschen in $dives Tauchgängen tragen diesen Sender. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.';
+    return '$tanks Flaschen in $dives Tauchgängen mit diesem Sender brauchen seine Einrichtung. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.';
   }
 
   @override
@@ -55920,7 +55924,44 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => 'Keine Flasche trägt diesen Sender';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Steckplatz auf $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Nicht nach Steckplatz zuordnen';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge',
+      one: '$dives Tauchgang',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading =>
+      'Importierte Dateien werden gelesen';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Aus einer Datei importierte Flaschen haben keine Seriennummer. Sie lassen sich über den Steckplatz füllen, den dieser Sender am Tauchcomputer belegte.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Über Seriennummer gefüllte Tauchgänge: $serialDives, über Steckplatz: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Keine Flasche braucht die Einrichtung dieses Senders';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Die importierten Dateien konnten nicht gelesen werden, daher können Flaschen nicht nach Steckplatz zugeordnet werden';
 
   @override
   String transmitters_channel(String computer, int channel) {

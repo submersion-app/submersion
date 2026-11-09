@@ -20774,6 +20774,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'ملف الفيديو غير موجود';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'يتطلب تشغيل هذا الفيديو نافذة متصفح عادية. لا يمكن للنوافذ الخاصة البث من Google Drive أو WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'الفيديو غير مرتبط بالمكتبة';
 
   @override
@@ -56753,7 +56757,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks أسطوانة في $dives غطسة تحمل جهاز الإرسال هذا. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.';
+    return '$tanks أسطوانة في $dives غطسة تحمل جهاز الإرسال هذا تحتاج إلى إعداده. ستُملأ حقول الحجم والمادة والاسم والمعدات الفارغة، وسيُستبدل الدور الذي ما زال مضبوطًا على غاز الظهر أو المأخوذ من اسم جهاز الإرسال.';
   }
 
   @override
@@ -56762,8 +56766,46 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'لا توجد أسطوانة تحمل جهاز الإرسال هذا';
+  String transmitters_apply_slot_label(String computer) {
+    return 'الفتحة على $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'عدم المطابقة حسب الفتحة';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives غطسة',
+      many: '$dives غطسة',
+      few: '$dives غطسات',
+      two: 'غطستان',
+      one: 'غطسة واحدة',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'جارٍ قراءة الملفات المستوردة';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'لا تحمل الأسطوانات المستوردة من ملف رقمًا تسلسليًا. يمكن ملؤها حسب الفتحة التي شغلها جهاز الإرسال هذا في كمبيوتر الغوص.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'غطسات مُلئت حسب الرقم التسلسلي: $serialDives، حسب الفتحة: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'لا توجد أسطوانة تحتاج إلى إعداد جهاز الإرسال هذا';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'تعذّرت قراءة الملفات المستوردة، لذا لا يمكن مطابقة الأسطوانات حسب الفتحة';
 
   @override
   String transmitters_channel(String computer, int channel) {

@@ -66,4 +66,16 @@ void main() {
     );
     expect(rule, contains('x-amz-bucket-region'));
   });
+
+  test('the WebDAV rules allow the Range header video streaming sends', () {
+    // Issue #4162: Drive and WebDAV videos are read a range at a time.
+    for (final kind in [StoreKind.nextcloud, StoreKind.genericWebDav]) {
+      final rule = corsRuleTemplate(kind, origin: origin, writes: false);
+      expect(
+        rule,
+        matches(RegExp(r'Allow-Headers[^\n]*\bRange\b')),
+        reason: '$kind',
+      );
+    }
+  });
 }

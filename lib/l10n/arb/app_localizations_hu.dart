@@ -20392,6 +20392,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Videó fájl nem található';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'A videó lejátszásához normál böngészőablak szükséges. A privát ablakok nem tudnak streamelni a Google Drive-ról vagy WebDAV-ről.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'A videó nincs a könyvtárhoz csatolva';
 
@@ -55732,7 +55736,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks palack $dives merülésben viseli ezt a jeladót. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.';
+    return '$tanks palacknak $dives merülésben, amely ezt a jeladót viseli, szüksége van a beállítására. Az üres méret-, anyag-, név- és felszerelésmezők kitöltődnek, és a még Hátgázra állított vagy a jeladó nevéből kiolvasott szerep lecserélődik.';
   }
 
   @override
@@ -55741,8 +55745,43 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Egyetlen palack sem viseli ezt a jeladót';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Hely ($computer)';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Nincs hely szerinti párosítás';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives merülés',
+      one: '$dives merülés',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Importált fájlok olvasása';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'A fájlból importált palackoknak nincs sorozatszáma. Kitölthetők annak a helynek az alapján, amelyet ez a jeladó a búvárkomputeren elfoglalt.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Sorozatszám alapján kitöltött merülések: $serialDives, hely alapján: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Egyetlen palacknak sincs szüksége ennek a jeladónak a beállítására';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Az importált fájlokat nem sikerült beolvasni, így a palackok nem párosíthatók foglalat szerint';
 
   @override
   String transmitters_channel(String computer, int channel) {

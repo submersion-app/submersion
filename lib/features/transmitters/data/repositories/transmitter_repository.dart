@@ -11,6 +11,7 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/services/bailout_mix_fixer.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_tank_fill.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
 /// Thrown when an entry would share a serial (per diver) or a
@@ -91,19 +92,13 @@ class TransmitterRepository {
     for (final key in await getForEquipment(equipmentId)) {
       if (key.id == exceptKeyId) continue;
       await update(
-        key.copyWith(
+        key.withSetup(
           role: role,
-          equipmentId: cylinderId,
-          clearEquipmentId: cylinderId == null,
+          cylinderId: cylinderId,
           volumeL: volumeL,
-          clearVolumeL: volumeL == null,
           workingPressureBar: workingPressureBar,
-          clearWorkingPressureBar: workingPressureBar == null,
           material: material,
-          clearMaterial: material == null,
           presetName: presetName,
-          clearPresetName: presetName == null,
-          isConfigured: true,
         ),
       );
     }
@@ -424,27 +419,35 @@ class TransmitterRepository {
     return (known: known, unassigned: seen.length - known);
   }
 
-  /// The counts [applyToExistingDives] would report, without writing.
+  /// The counts [applyToExistingDives] would report, without writing: only
+  /// the cylinders the fill would change (issue #4347), so a setup already
+  /// applied previews as nothing left to do.
   Future<ApplyToExistingResult> previewApplyToExistingDives(
-    Transmitter t,
-  ) async {
-    final candidates = await _tanksForEntry(t);
+    Transmitter t, {
+    Iterable<String> slotTankIds = const [],
+  }) async {
+    final changing = [
+      for (final row in await _rowsToApply(t, slotTankIds))
+        if (transmitterFillFor(row, t) != null) row,
+    ];
     return (
-      tanksUpdated: candidates.length,
-      divesUpdated: candidates.map((r) => r.diveId).toSet().length,
+      tanksUpdated: changing.length,
+      divesUpdated: changing.map((r) => r.diveId).toSet().length,
       mixesKept: 0,
     );
   }
 
-  /// Retroactive fill for the tanks that carry [t]'s key: empty size,
-  /// working pressure, material, preset, gear link and name are filled; the
-  /// role is replaced while it is still the uninformed backGas default, and
-  /// always while it is the computer's guess from the transmitter's name
-  /// (issue #2595), which also drops that source: the entry is the diver's
-  /// own configuration. A role the diver set is never replaced.
+  /// Retroactive fill for the tanks that carry [t]'s key, plus
+  /// [slotTankIds]: the serial-less cylinders the diver matched by computer
+  /// slot in the apply dialog (issue #4347), which never gain the serial.
+  /// What each cylinder gains is [transmitterFillFor]'s. An open-circuit
+  /// entry also replaces a name-derived role's 100% O2 default mix (#3307).
   /// One transaction; a failure leaves no half-applied dive.
-  Future<ApplyToExistingResult> applyToExistingDives(Transmitter t) async {
-    final candidates = await _tanksForEntry(t);
+  Future<ApplyToExistingResult> applyToExistingDives(
+    Transmitter t, {
+    Iterable<String> slotTankIds = const [],
+  }) async {
+    final candidates = await _rowsToApply(t, slotTankIds);
     if (candidates.isEmpty) {
       return (tanksUpdated: 0, divesUpdated: 0, mixesKept: 0);
     }
@@ -455,48 +458,14 @@ class TransmitterRepository {
     final mixFixer = BailoutMixFixer();
     await _db.transaction(() async {
       for (final row in candidates) {
-        final hasVolume = row.volume != null && row.volume! > 0;
-        final nameDerived =
-            TankRoleSource.fromName(row.roleSource) ==
-            TankRoleSource.transmitterName;
+        final companion = transmitterFillFor(row, t);
+        if (companion == null) continue;
         // An open-circuit entry (bailout, deco, stage) also replaces the
         // importer's 100% O2 default with that gas's own mix, before the role
         // write below (#3307).
-        if (nameDerived && !isLoopTankRole(t.role.name)) {
+        if (isNameDerivedRole(row) && !isLoopTankRole(t.role.name)) {
           if (!await mixFixer.fix(row)) mixesKeptDives.add(row.diveId);
         }
-        final companion = DiveTanksCompanion(
-          volume: !hasVolume && t.volumeL != null
-              ? Value(t.volumeL)
-              : const Value.absent(),
-          workingPressure:
-              row.workingPressure == null && t.workingPressureBar != null
-              ? Value(t.workingPressureBar)
-              : const Value.absent(),
-          tankMaterial: row.tankMaterial == null && t.material != null
-              ? Value(t.material!.name)
-              : const Value.absent(),
-          presetName: row.presetName == null && t.presetName != null
-              ? Value(t.presetName)
-              : const Value.absent(),
-          equipmentId: row.equipmentId == null && t.equipmentId != null
-              ? Value(t.equipmentId)
-              : const Value.absent(),
-          tankName:
-              (row.tankName == null || row.tankName!.isEmpty) &&
-                  t.label.isNotEmpty
-              ? Value(t.label)
-              : const Value.absent(),
-          tankRole:
-              nameDerived ||
-                  (row.tankRole == TankRole.backGas.name &&
-                      t.role != TankRole.backGas)
-              ? Value(t.role.name)
-              : const Value.absent(),
-          roleSource: nameDerived ? const Value(null) : const Value.absent(),
-        );
-        // Every field absent means nothing to write for this row.
-        if (companion == const DiveTanksCompanion()) continue;
         await (_db.update(
           _db.diveTanks,
         )..where((d) => d.id.equals(row.id))).write(companion);
@@ -522,6 +491,27 @@ class TransmitterRepository {
     );
   }
 
+  /// [t]'s key matches plus the [slotTankIds] still without a serial, each
+  /// cylinder once. A slot id that gained a serial since the dialog read it
+  /// is no longer the diver's pick to make.
+  Future<List<DiveTank>> _rowsToApply(
+    Transmitter t,
+    Iterable<String> slotTankIds,
+  ) async {
+    final keyed = await _tanksForEntry(t);
+    final seen = {for (final r in keyed) r.id};
+    final wanted = slotTankIds.where((id) => !seen.contains(id)).toSet();
+    if (wanted.isEmpty) return keyed;
+    final slotRows = await (_db.select(
+      _db.diveTanks,
+    )..where((d) => d.id.isIn(wanted))).get();
+    return [
+      ...keyed,
+      for (final r in slotRows)
+        if (normalizeTransmitterSerial(r.transmitterSerial) == null) r,
+    ];
+  }
+
   Future<List<DiveTank>> _tanksForEntry(Transmitter t) async {
     // Canonical on both sides: an entry can arrive unnormalized through a
     // sync payload even though local writes normalize on the way in.
@@ -542,7 +532,16 @@ class TransmitterRepository {
           'SELECT dt.id AS id FROM dive_tanks dt '
           'JOIN dives d ON d.id = dt.dive_id '
           'WHERE (dt.computer_id = ? OR d.computer_id = ?) '
-          'AND COALESCE(dt.source_tank_index, dt.tank_order) = ?',
+          'AND COALESCE(dt.source_tank_index, dt.tank_order) = ? '
+          // A channel is a download's parsed index. A cylinder a file brought
+          // in has neither that index nor a computer of its own, and its
+          // order is only its place in the file (#4347), so it never
+          // matches. A download from before source indices keeps its order.
+          'AND NOT (dt.source_tank_index IS NULL '
+          'AND dt.computer_id IS NULL '
+          'AND EXISTS (SELECT 1 FROM dive_data_sources s '
+          'WHERE s.dive_id = d.id AND s.is_primary = 1 '
+          'AND s.source_file_format IS NOT NULL))',
           variables: [
             Variable<String>(t.diveComputerId),
             Variable<String>(t.diveComputerId),
