@@ -3,6 +3,7 @@ import 'package:health/health.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/time_weighted_mean.dart';
+import 'package:submersion/features/dive_import/domain/entities/health_sample.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 
@@ -231,6 +232,39 @@ class HealthKitService implements HealthImportService {
     // This method exists for lazy loading if needed in the future
     return [];
   }
+
+  @override
+  Future<List<HealthSample>> fetchHeartRate({
+    required DateTime start,
+    required DateTime end,
+  }) => _samples(HealthDataType.HEART_RATE, start, end);
+
+  @override
+  Future<List<HealthSample>> fetchHrv({
+    required DateTime start,
+    required DateTime end,
+  }) => _samples(HealthDataType.HEART_RATE_VARIABILITY_SDNN, start, end);
+
+  @override
+  Future<List<SleepInterval>> fetchSleep({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    final points = await _fetchType(HealthDataType.SLEEP_ASLEEP, start, end);
+    return [
+      for (final p in points)
+        SleepInterval(start: p.dateFrom.toUtc(), end: p.dateTo.toUtc()),
+    ]..sort((a, b) => a.start.compareTo(b.start));
+  }
+
+  Future<List<HealthSample>> _samples(
+    HealthDataType type,
+    DateTime start,
+    DateTime end,
+  ) async => [
+    for (final v in _numericSeries(await _fetchType(type, start, end)))
+      HealthSample(at: v.time.toUtc(), value: v.value),
+  ];
 
   /// Read one data type, isolating its failures.
   ///
