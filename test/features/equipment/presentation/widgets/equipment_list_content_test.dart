@@ -33,6 +33,7 @@ import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_fold_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
@@ -3101,6 +3102,56 @@ void main() {
         expect(stored(), '[]');
       });
     }
+
+    testWidgets('no fold entries once the list empties', (tester) async {
+      // A diver switch can leave the page with no gear while it stays open;
+      // the menu must not offer to fold the previous diver's places.
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      settings = MockSettingsNotifier();
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => settings),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            _visibleEquipmentProvider.overrideWith((ref) => gear),
+            equipmentByStatusProvider.overrideWith(
+              (ref, status) => ref.watch(_visibleEquipmentProvider),
+            ),
+            activeEquipmentProvider.overrideWith(
+              (ref) async => ref.watch(_visibleEquipmentProvider),
+            ),
+            allEquipmentProvider.overrideWith(
+              (ref) async => ref.watch(_visibleEquipmentProvider),
+            ),
+            fakeEquipmentQueryIds(),
+            equipmentListViewModeProvider.overrideWith(
+              (ref) => ListViewMode.detailed,
+            ),
+            equipmentGroupByLocationProvider.overrideWith((ref) async => true),
+            currentEquipmentLocationsProvider.overrideWith(
+              (ref) async => places,
+            ),
+          ],
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+      containerOf(tester).read(_visibleEquipmentProvider.notifier).state =
+          const [];
+      await tester.pumpAndSettle();
+
+      await openMenu(tester);
+      expect(find.text('Collapse all'), findsNothing);
+      expect(
+        containerOf(tester).read(equipmentOuterGroupKeysProvider),
+        isEmpty,
+      );
+    });
 
     testWidgets('no fold entries when the page shows no headings', (
       tester,

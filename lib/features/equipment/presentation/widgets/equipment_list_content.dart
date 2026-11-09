@@ -407,6 +407,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
     // Table mode uses a dedicated scaffold with column configuration support.
     if (viewMode == ListViewMode.table) {
+      // Table mode is flat: no groups to fold.
+      _publishOuterKeys(const []);
       final sortedAsync = equipmentAsync.whenData(
         (equipment) => applyEquipmentSorting(
           equipment,
@@ -498,8 +500,14 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 labels: rowLabels,
                 locationSections: locationSections,
               ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => _buildErrorState(context, error),
+        loading: () {
+          _publishOuterKeys(const []);
+          return const Center(child: CircularProgressIndicator());
+        },
+        error: (error, stack) {
+          _publishOuterKeys(const []);
+          return _buildErrorState(context, error);
+        },
       );
     }
 
@@ -1298,6 +1306,19 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     );
   }
 
+  /// Tells Collapse all and the menu which outermost groups are on screen,
+  /// after the frame and only on change. Every other body (empty, loading,
+  /// error, table) publishes none, so the menu never offers to fold groups
+  /// that are gone, such as the previous diver's places.
+  void _publishOuterKeys(List<String> keys) {
+    if (listEquals(keys, _publishedOuterKeys)) return;
+    _publishedOuterKeys = keys;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(equipmentOuterGroupKeysProvider.notifier).state = keys;
+    });
+  }
+
   /// Whether the group [foldKey] shows its rows: not folded, or folded but
   /// opened for an outside selection.
   bool _isOpen(String foldKey, Set<String> folds) =>
@@ -1378,14 +1399,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     };
     if (_revealed.isNotEmpty) layout = layOut(_revealed);
     final rows = layout.rows;
-    if (!listEquals(layout.outerKeys, _publishedOuterKeys)) {
-      _publishedOuterKeys = layout.outerKeys;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        ref.read(equipmentOuterGroupKeysProvider.notifier).state =
-            layout.outerKeys;
-      });
-    }
+    _publishOuterKeys(layout.outerKeys);
 
     // A folded type group says how much in it needs service. The urgency
     // map evaluates every clock, so it is only watched while one is folded.
@@ -1607,6 +1621,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     WidgetRef ref, {
     required bool tagsEmptied,
   }) {
+    _publishOuterKeys(const []);
     final filter = ref.watch(effectiveEquipmentFilterProvider);
 
     // The default view is the diver's choice (#2628) and can hide all they
