@@ -225,8 +225,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     _deleteTempDirs(superseded);
   }
 
-  /// Every temp-directory deletion [_deleteTempDirs] has started, chained in
-  /// order, so it completes once the last of them has.
+  /// Completes once every temp-directory deletion [_deleteTempDirs] has
+  /// started is done.
   ///
   /// Nothing in the app waits on it: cleanup stays fire-and-forget. A test
   /// awaits it to see a deletion land, instead of sleeping and hoping the
@@ -235,23 +235,31 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   Future<void> get pendingTempCleanup => _pendingTempCleanup;
   Future<void> _pendingTempCleanup = Future<void>.value();
 
+  /// Deletes one extracted-ZIP temp directory. A test swaps in one that
+  /// holds a deletion open, to start another while it runs.
+  @visibleForTesting
+  Future<void> Function(Directory dir) deleteTempDir = _deleteRecursively;
+
+  static Future<void> _deleteRecursively(Directory dir) =>
+      dir.delete(recursive: true);
+
   /// Best-effort, fire-and-forget deletion of extracted-ZIP temp directories.
   void _deleteTempDirs(List<String> paths) {
     if (paths.isEmpty) return;
-    final previous = _pendingTempCleanup;
-    _pendingTempCleanup = () async {
-      // Runs after any cleanup still in flight, so [pendingTempCleanup]
-      // covers both. Neither can fail: each delete swallows its own error.
-      await previous;
+    final run = () async {
       for (final path in paths) {
         try {
-          final dir = Directory(path);
-          if (dir.existsSync()) await dir.delete(recursive: true);
+          await deleteTempDir(Directory(path));
         } catch (_) {
-          // Temp cleanup is best-effort; the OS reclaims systemTemp anyway.
+          // Temp cleanup is best-effort, and a folder already gone lands
+          // here too; the OS reclaims systemTemp anyway.
         }
       }
     }();
+    // Joined, not chained: each cleanup starts at once, as before, and the
+    // one future still covers every cleanup in flight. Neither side can
+    // fail, since each delete swallows its own error.
+    _pendingTempCleanup = Future.wait([_pendingTempCleanup, run]);
     unawaited(_pendingTempCleanup);
   }
 

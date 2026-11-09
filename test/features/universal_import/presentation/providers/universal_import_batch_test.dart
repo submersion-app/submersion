@@ -2,6 +2,7 @@
 // picker, folder pick, drag-and-drop load, and the batch parse/merge/dedup
 // flow (`confirmSource` -> `_parseBatch`) against a real in-memory database.
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' show Locale;
@@ -613,7 +614,7 @@ void main() {
       'a later non-zip pick clears photos and deletes the prior temp dir',
       () async {
         // First import: a DiveCloud zip populates photos + a temp dir.
-        final zipPath = '${tmp.path}/with_photos.zip';
+        final zipPath = p.join(tmp.path, 'with_photos.zip');
         await File(zipPath).writeAsBytes(
           buildZip({
             'a_1.zxu': zxuBytes('20240612093000'),
@@ -648,7 +649,7 @@ void main() {
     );
 
     test('reset() deletes tracked temp dirs', () async {
-      final zipPath = '${tmp.path}/for_reset.zip';
+      final zipPath = p.join(tmp.path, 'for_reset.zip');
       await File(
         zipPath,
       ).writeAsBytes(buildZip({'d_1.zxu': zxuBytes('20240612093000')}));
@@ -663,7 +664,7 @@ void main() {
       expect(Directory(tempDir).existsSync(), isFalse);
     });
 
-    test('one wait covers every cleanup started, even while one is still '
+    test('one wait covers a cleanup started while another is still '
         'running', () async {
       Future<String> expandZip(String name) async {
         final zipPath = p.join(tmp.path, name);
@@ -675,14 +676,31 @@ void main() {
       }
 
       final first = await expandZip('first.zip');
-      // The second archive supersedes the first, starting its cleanup; reset
-      // then starts another before anything awaits the first.
+      // The first folder's deletion is held open until released; the second
+      // one reports when it is gone.
+      final release = Completer<void>();
+      final secondGone = Completer<void>();
+      notifier.deleteTempDir = (dir) async {
+        if (dir.path == first) await release.future;
+        await dir.delete(recursive: true);
+        if (dir.path != first) secondGone.complete();
+      };
+
+      // The second archive supersedes the first, starting its held cleanup;
+      // reset starts the second's while the first is still running.
       final second = await expandZip('second.zip');
       notifier.reset();
+      var settled = false;
+      unawaited(notifier.pendingTempCleanup.then((_) => settled = true));
 
+      await secondGone.future;
+      expect(Directory(second).existsSync(), isFalse);
+      expect(Directory(first).existsSync(), isTrue);
+      expect(settled, isFalse, reason: 'the first cleanup is still running');
+
+      release.complete();
       await notifier.pendingTempCleanup;
       expect(Directory(first).existsSync(), isFalse);
-      expect(Directory(second).existsSync(), isFalse);
     });
   });
 }
