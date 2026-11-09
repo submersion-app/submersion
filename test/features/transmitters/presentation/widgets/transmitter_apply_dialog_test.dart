@@ -211,6 +211,10 @@ void main() {
       ),
     );
     expect(empty.enabled, isFalse);
+    // Drawn muted, so it does not read as a choice.
+    final emptyText = tester.widget<Text>(find.text('T1: 0 dives').last);
+    final theme = Theme.of(tester.element(find.text('T1: 0 dives').last));
+    expect(emptyText.style?.color, theme.disabledColor);
   });
 
   testWidgets('picking a slot updates the summary', (tester) async {

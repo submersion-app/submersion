@@ -188,18 +188,25 @@ class _TransmitterApplyDialogState
       items: [
         DropdownMenuItem<int?>(child: Text(l10n.transmitters_apply_slot_none)),
         for (var slot = 1; slot <= lastSlot; slot++)
-          DropdownMenuItem<int?>(
-            value: slot,
-            enabled: (candidates?.divesFor(slot) ?? 0) > 0,
-            child: Text(
-              l10n.transmitters_apply_slot_option(
-                slot,
-                candidates?.divesFor(slot) ?? 0,
-              ),
-            ),
-          ),
+          _slotItem(context, slot, candidates?.divesFor(slot) ?? 0),
       ],
       onChanged: (slot) => setState(() => _picked[id] = slot),
+    );
+  }
+
+  /// A slot with nothing to fill cannot be picked, and is drawn muted so it
+  /// does not read as a choice.
+  DropdownMenuItem<int?> _slotItem(BuildContext context, int slot, int dives) {
+    final enabled = dives > 0;
+    return DropdownMenuItem<int?>(
+      value: slot,
+      enabled: enabled,
+      child: Text(
+        context.l10n.transmitters_apply_slot_option(slot, dives),
+        style: enabled
+            ? null
+            : TextStyle(color: Theme.of(context).disabledColor),
+      ),
     );
   }
 }
