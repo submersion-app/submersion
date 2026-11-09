@@ -27,9 +27,14 @@ import 'package:flutter/services.dart' show rootBundle;
 /// the resolved record instead.
 class SpeciesCatalogMatcher {
   final Map<int, String> _byGbifKey;
+  final Map<String, int> _bySpeciesId;
   final List<int> _taxonKeys;
 
-  const SpeciesCatalogMatcher._(this._byGbifKey, this._taxonKeys);
+  const SpeciesCatalogMatcher._(
+    this._byGbifKey,
+    this._bySpeciesId,
+    this._taxonKeys,
+  );
 
   static SpeciesCatalogMatcher? _cached;
 
@@ -50,13 +55,23 @@ class SpeciesCatalogMatcher {
       (k, v) => MapEntry(int.parse(k as String), v as String),
     );
     final taxa = (json['taxonKeys'] as List).cast<int>();
-    return SpeciesCatalogMatcher._(keys, List.unmodifiable(taxa));
+    // First key wins when two keys name the same species.
+    final byId = <String, int>{};
+    for (final entry in keys.entries) {
+      byId.putIfAbsent(entry.value, () => entry.key);
+    }
+    return SpeciesCatalogMatcher._(keys, byId, List.unmodifiable(taxa));
   }
 
   /// Clears the cache. Testing only.
   static void resetCache() => _cached = null;
 
   String? localIdFor(int gbifKey) => _byGbifKey[gbifKey];
+
+  /// The species-rank GBIF key of a built-in species, or null when the asset
+  /// names none for [speciesId]. The species map draws a species' public
+  /// records from it without a name lookup.
+  int? gbifKeyFor(String speciesId) => _bySpeciesId[speciesId];
 
   /// Mixed-rank GBIF keys, passed to the occurrence query as `taxonKey`.
   List<int> get taxonKeys => _taxonKeys;
