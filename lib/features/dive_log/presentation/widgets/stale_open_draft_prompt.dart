@@ -36,10 +36,10 @@ DateTime surfacingTimeFor({
       : sameDay;
 }
 
-/// Asks about the current diver's stale open draft at launch and resume,
-/// once per draft per app session. The app never invents an exit time.
 final _log = LoggerService.forClass(StaleOpenDraftPrompter);
 
+/// Asks about the dive left open on this device at launch and resume, once
+/// per draft per app session. The app never invents an exit time.
 class StaleOpenDraftPrompter {
   final _asked = <String>{};
 

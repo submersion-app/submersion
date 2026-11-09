@@ -108,6 +108,27 @@ void main() {
     expect(service.scheduled, [(diveId: id, at: DateTime(2026, 7, 20, 9))]);
   });
 
+  test('a reminder already pending at the same time is not scheduled again '
+      'on the next dive change, and a new reminder time moves it', () async {
+    final id = await surfacedDraft();
+    final kept = scheduler();
+    await kept.updateDraftReminders(settings: settings, diverId: 'd1');
+    service.pending = {id};
+
+    await kept.updateDraftReminders(settings: settings, diverId: 'd1');
+
+    expect(service.scheduled, hasLength(1));
+
+    await kept.updateDraftReminders(
+      settings: settings.copyWith(
+        reminderTime: const TimeOfDay(hour: 18, minute: 0),
+      ),
+      diverId: 'd1',
+    );
+
+    expect(service.scheduled.last, (diveId: id, at: DateTime(2026, 7, 20, 18)));
+  });
+
   test('a draft still in the water is not reminded of', () async {
     await drafts.createDraft(
       diverId: 'd1',

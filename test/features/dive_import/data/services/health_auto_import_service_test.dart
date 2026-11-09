@@ -8,6 +8,8 @@ import 'package:submersion/features/dive_import/data/services/health_auto_import
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_alignment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -38,6 +40,18 @@ class _Health extends Fake implements HealthImportService {
 
   @override
   ImportSource get source => ImportSource.appleWatch;
+}
+
+/// A merge that always fails, as a full disk or a broken row would.
+class _FailingConsolidation extends DiveConsolidationService {
+  _FailingConsolidation(super.dives);
+
+  @override
+  Future<DiveConsolidationOutcome> apply({
+    required String targetDiveId,
+    required List<String> secondaryDiveIds,
+    ConsolidationAlignment? alignment,
+  }) async => throw StateError('merge failed');
 }
 
 /// The automatic Apple Health import (issue #637): each new workout fills a
@@ -312,6 +326,48 @@ void main() {
     final again = await service().run(now: now.add(const Duration(hours: 1)));
 
     expect(again.planReviewWorkoutIds, isEmpty);
+  });
+
+  test('a merge that fails writes nothing, and a later run retries it, '
+      'however long after', () async {
+    // Three days back: older than the one-day overlap.
+    final early = ten.subtract(const Duration(days: 3));
+    final downloaded = await dives.createDive(
+      Dive(
+        id: '',
+        diverId: 'a',
+        dateTime: early,
+        entryTime: early,
+        exitTime: early.add(const Duration(minutes: 45)),
+        runtime: const Duration(minutes: 45),
+        maxDepth: 18.2,
+        diveNumber: 1,
+      ),
+    );
+    health.workouts = [workout('w1', early)];
+
+    final failed = await HealthAutoImportService(
+      health: health,
+      prefs: prefs,
+      boundDiverId: () => bound,
+      dives: dives,
+      consolidation: _FailingConsolidation(dives),
+    ).run(now: now);
+
+    expect(failed.consolidatedIds, isEmpty);
+    expect(await dives.getAllDives(diverId: 'a'), hasLength(1));
+    // The next run reads from the failed workout's start, not this run's.
+    expect(
+      prefs.getInt(SettingsKeys.healthImportWatermark),
+      fromWallClockUtc(
+        early,
+      ).add(HealthAutoImportService.overlap).millisecondsSinceEpoch,
+    );
+
+    final later = await service().run(now: now.add(const Duration(days: 1)));
+
+    expect(later.consolidatedIds, [downloaded.id]);
+    expect(await dives.getAllDives(diverId: 'a'), hasLength(1));
   });
 
   test('the next run starts from this one', () async {

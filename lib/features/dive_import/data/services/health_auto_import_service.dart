@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
@@ -172,6 +173,10 @@ class HealthAutoImportService {
     final review = <String>[];
     final planReview = <String>[];
     final stamp = end.millisecondsSinceEpoch;
+    // The next run reads from here less [overlap]: this run's end, or a
+    // failed workout's start, so the failure is read and retried however
+    // long the app stays closed (within [memory]).
+    var watermarkAt = stamp;
     for (var i = 0; i < fresh.length; i++) {
       final w = fresh[i];
       try {
@@ -186,11 +191,20 @@ class HealthAutoImportService {
             );
             handled[w.sourceId] = stamp;
           case Consolidate(:final diveId):
-            final watchDive = await _writer.importAsNew(w, diverId: diverId);
-            await _consolidation.apply(
-              targetDiveId: diveId,
-              secondaryDiveIds: [watchDive.id],
-            );
+            // One transaction, as a fill is: a merge that fails leaves no
+            // watch dive behind to be skipped as imported next time. The
+            // merged dive is the downloaded one, which keeps its altitude.
+            await DatabaseService.instance.database.transaction(() async {
+              final watchDive = await _writer.importAsNew(
+                w,
+                diverId: diverId,
+                enrichAltitude: false,
+              );
+              await _consolidation.apply(
+                targetDiveId: diveId,
+                secondaryDiveIds: [watchDive.id],
+              );
+            });
             consolidated.add(diveId);
             handled[w.sourceId] = stamp;
           case ImportNew():
@@ -208,6 +222,14 @@ class HealthAutoImportService {
         }
       } catch (e, stackTrace) {
         // One workout's failure leaves the others, and the next run retries.
+        final retryFrom =
+            fromWallClockUtc(w.startTime).millisecondsSinceEpoch +
+            overlap.inMilliseconds;
+        final oldest = end.subtract(memory).millisecondsSinceEpoch;
+        watermarkAt = [
+          watermarkAt,
+          retryFrom > oldest ? retryFrom : oldest,
+        ].reduce((a, b) => a < b ? a : b);
         _log.error(
           'Automatic Apple Health import of ${w.sourceId} failed',
           error: e,
@@ -218,7 +240,7 @@ class HealthAutoImportService {
 
     await _writeIds(_handledKey, handled);
     await _writeIds(SettingsKeys.healthReviewAnnounced, announced);
-    await _prefs.setInt(SettingsKeys.healthImportWatermark, stamp);
+    await _prefs.setInt(SettingsKeys.healthImportWatermark, watermarkAt);
     return HealthAutoImportResult(
       newDiveIds: newIds,
       filledDraftIds: filled,

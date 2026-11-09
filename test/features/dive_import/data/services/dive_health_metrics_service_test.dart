@@ -257,6 +257,24 @@ void main() {
     expect(health.reads, reads);
   });
 
+  test('two dives of one day read their night once', () async {
+    await dive();
+    await dives.createDive(
+      Dive(
+        id: '',
+        diverId: 'a',
+        dateTime: DateTime.utc(2026, 7, 17, 14),
+        entryTime: DateTime.utc(2026, 7, 17, 14),
+        exitTime: DateTime.utc(2026, 7, 17, 14, 45),
+      ),
+    );
+
+    await service().refreshPending();
+
+    // Heart rate per dive; sleep and HRV once for the day.
+    expect(health.reads, 4);
+  });
+
   test('settles three days after the dive with what it has', () async {
     final d = await dive();
     duringAndAfter();

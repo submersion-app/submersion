@@ -1,4 +1,5 @@
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_import/domain/entities/health_sample.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/domain/services/health_metrics_calculator.dart';
@@ -50,7 +51,8 @@ class DiveHealthMetricsService {
   static final _log = LoggerService.forClass(DiveHealthMetricsService);
 
   /// Reads [diveId]'s readings now, whether or not its record is settled.
-  Future<void> refresh(String diveId) => _refresh(diveId, _clock());
+  Future<void> refresh(String diveId) =>
+      _refresh(diveId, _clock(), _NightReads());
 
   /// Reads every recent dive of the bound diver whose record is missing or
   /// not settled. One dive failing does not stop the others.
@@ -62,9 +64,11 @@ class DiveHealthMetricsService {
       diverId: diverId,
       since: asWallClockUtc(at.subtract(_lookBack).toLocal()),
     );
+    // Dives of one day share their night: it is read once.
+    final nights = _NightReads();
     for (final id in ids) {
       try {
-        await _refresh(id, at);
+        await _refresh(id, at, nights);
       } catch (e, stackTrace) {
         _log.error(
           'Reading Apple Health for a dive failed',
@@ -75,7 +79,7 @@ class DiveHealthMetricsService {
     }
   }
 
-  Future<void> _refresh(String diveId, DateTime now) async {
+  Future<void> _refresh(String diveId, DateTime now, _NightReads nights) async {
     final diverId = _diverId();
     if (diverId == null) return;
     final dive = await _dives.getDiveById(diveId);
@@ -105,14 +109,12 @@ class DiveHealthMetricsService {
       start: entry,
       end: exit.add(_recoveryReach),
     );
-    final sleep = await _health.fetchSleep(
-      start: eveningBefore,
-      end: lastExit.add(_nightReach),
-    );
-    final hrv = await _health.fetchHrv(
+    final sleep = await (nights.sleep[(eveningBefore, lastExit)] ??= _health
+        .fetchSleep(start: eveningBefore, end: lastExit.add(_nightReach)));
+    final hrv = await (nights.hrv[lastExit] ??= _health.fetchHrv(
       start: lastExit,
       end: lastExit.add(_nightReach),
-    );
+    ));
 
     final ownHeartRate = (await _dives.getDiveProfile(
       diveId,
@@ -205,4 +207,11 @@ class DiveHealthMetricsService {
       r.heartRateExitPlus15 != null ||
       r.overnightHrvMs != null ||
       r.sleepBeforeMinutes != null;
+}
+
+/// Sleep and HRV reads of one pass, by the window they cover, so the dives
+/// of one day ask Health for their night once.
+class _NightReads {
+  final sleep = <(DateTime, DateTime), Future<List<SleepInterval>>>{};
+  final hrv = <DateTime, Future<List<HealthSample>>>{};
 }

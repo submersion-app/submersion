@@ -34,6 +34,11 @@ class NotificationScheduler {
   final DocumentRepository _documentRepository;
   final DiveDraftRepository _drafts;
   final Future<bool> Function() _draftRemindersOn;
+
+  /// What each draft reminder this scheduler set was set with: its time
+  /// and locale. A reminder still pending with the same pair is left alone,
+  /// so a dive change does not reschedule every reminder.
+  final _draftReminderSet = <String, (DateTime, String)>{};
   final DateTime Function() _clock;
   final _log = LoggerService.forClass(NotificationScheduler);
 
@@ -507,14 +512,21 @@ class NotificationScheduler {
         if (at.isAfter(now)) due[draft.id] = at;
       }
     }
-    for (final id in await _notificationService.pendingDraftReminderIds()) {
+    final pending = await _notificationService.pendingDraftReminderIds();
+    for (final id in pending) {
       if (!due.containsKey(id)) {
         await _notificationService.cancelDraftReminder(id);
+        _draftReminderSet.remove(id);
       }
     }
     if (due.isEmpty) return;
     final l10n = l10nForLocaleTag(settings.locale);
     for (final MapEntry(key: diveId, value: at) in due.entries) {
+      final setWith = (at, settings.locale);
+      if (pending.contains(diveId) && _draftReminderSet[diveId] == setWith) {
+        continue;
+      }
+      _draftReminderSet[diveId] = setWith;
       await _notificationService.scheduleDraftReminder(
         diveId: diveId,
         at: at,

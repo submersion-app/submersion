@@ -18,7 +18,8 @@ import 'package:submersion/features/dive_log/domain/services/profile_alignment.d
 /// or one a draft adopted from a plan) are dropped first: they are not
 /// readings. The plan or draft is placed at the workout's start, since the
 /// dive happened when the watch says, and the whole fill is one
-/// transaction: a fill that fails writes nothing.
+/// transaction: a fill that fails writes nothing. The altitude lookup, which
+/// may go to the network, runs once the transaction commits.
 class HealthFillService {
   HealthFillService({
     required DiveRepository dives,
@@ -45,16 +46,24 @@ class HealthFillService {
     if (target == null || !(target.isPlanned || target.isDraft)) {
       throw StateError('Dive $targetDiveId is neither a plan nor a draft');
     }
-    return DatabaseService.instance.database.transaction(() async {
-      await _series.deleteForDive(targetDiveId);
-      await _dives.deleteGasSwitchesForDive(targetDiveId);
-      final watchDive = await _writer.importAsNew(workout, diverId: diverId);
-      await _consolidation.apply(
-        targetDiveId: watchDive.id,
-        secondaryDiveIds: [targetDiveId],
-        alignment: ConsolidationAlignment.starts,
-      );
-      return watchDive.id;
-    });
+    final filledId = await DatabaseService.instance.database.transaction(
+      () async {
+        await _series.deleteForDive(targetDiveId);
+        await _dives.deleteGasSwitchesForDive(targetDiveId);
+        final watchDive = await _writer.importAsNew(
+          workout,
+          diverId: diverId,
+          enrichAltitude: false,
+        );
+        await _consolidation.apply(
+          targetDiveId: watchDive.id,
+          secondaryDiveIds: [targetDiveId],
+          alignment: ConsolidationAlignment.starts,
+        );
+        return watchDive.id;
+      },
+    );
+    await _writer.enrichAltitudeFor(filledId);
+    return filledId;
   }
 }

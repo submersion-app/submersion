@@ -47,11 +47,15 @@ class HealthDiveWriter {
   DiveComputer? _watch;
 
   /// Saves [workout] for [diverId] and returns the saved dive. [diveNumber]
-  /// wins over the next free number when given.
+  /// wins over the next free number when given. A caller writing inside a
+  /// transaction passes [enrichAltitude] false and calls [enrichAltitude]
+  /// once it commits: the altitude lookup may go to the network, and a
+  /// transaction must not hold the database while it waits.
   Future<Dive> importAsNew(
     ImportedDive workout, {
     required String diverId,
     int? diveNumber,
+    bool enrichAltitude = true,
   }) async {
     final number =
         diveNumber ?? await _dives.getNextDiveNumber(diverId: diverId);
@@ -83,7 +87,7 @@ class HealthDiveWriter {
     }
     await DiveEquipmentDefaulter().applyForImportedDive(dive);
     await _checklistLinker.applyForImportedDive(dive);
-    await _altitudeEnricher.applyForImportedDive(dive);
+    if (enrichAltitude) await _altitudeEnricher.applyForImportedDive(dive);
     // After the defaulter, never before: the defaulter bails on a dive that
     // already has equipment, so linking first would suppress the diver's
     // default and geofenced sets.
@@ -93,6 +97,13 @@ class HealthDiveWriter {
       diveId: dive.id,
     );
     return dive;
+  }
+
+  /// The altitude [importAsNew] left out for the dive [diveId], read from
+  /// what the dive holds now. Best effort: a dive that is gone gets nothing.
+  Future<void> enrichAltitudeFor(String diveId) async {
+    final dive = await _dives.getDiveById(diveId);
+    if (dive != null) await _altitudeEnricher.applyForImportedDive(dive);
   }
 
   Future<String?> _tripFor(DateTime start, String diverId) async {
