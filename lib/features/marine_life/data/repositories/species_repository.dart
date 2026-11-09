@@ -249,10 +249,11 @@ class SpeciesRepository {
   static int _storedCount(SightingAbundance abundance, int count) =>
       abundance == SightingAbundance.exact ? (count < 1 ? 1 : count) : 1;
 
-  /// A companion's abundance and count for [sighting].
-  static ({Value<String?> abundance, Value<int> count}) _amountValues(
+  /// [companion] with [sighting]'s abundance and stored count.
+  static SightingsCompanion _withAmount(
+    SightingsCompanion companion,
     domain.Sighting sighting,
-  ) => (
+  ) => companion.copyWith(
     abundance: Value(sighting.abundance.storageValue),
     count: Value(_storedCount(sighting.abundance, sighting.count)),
   );
@@ -358,11 +359,7 @@ class SpeciesRepository {
     await (_db.update(
       _db.sightings,
     )..where((t) => t.id.equals(sighting.id))).write(
-      SightingsCompanion(
-        abundance: _amountValues(sighting).abundance,
-        count: _amountValues(sighting).count,
-        notes: Value(sighting.notes),
-      ),
+      _withAmount(SightingsCompanion(notes: Value(sighting.notes)), sighting),
     );
     final now = DateTime.now().millisecondsSinceEpoch;
     await _syncRepository.markRecordPending(
@@ -454,13 +451,14 @@ class SpeciesRepository {
         await _db
             .into(_db.sightings)
             .insert(
-              SightingsCompanion(
-                id: Value(id),
-                diveId: Value(diveId),
-                speciesId: Value(sighting.speciesId),
-                abundance: _amountValues(sighting).abundance,
-                count: _amountValues(sighting).count,
-                notes: Value(sighting.notes),
+              _withAmount(
+                SightingsCompanion(
+                  id: Value(id),
+                  diveId: Value(diveId),
+                  speciesId: Value(sighting.speciesId),
+                  notes: Value(sighting.notes),
+                ),
+                sighting,
               ),
             );
         await _syncRepository.markRecordPending(
@@ -498,13 +496,14 @@ class SpeciesRepository {
         await _db
             .into(_db.sightings)
             .insert(
-              SightingsCompanion(
-                id: Value(id),
-                diveId: Value(diveId),
-                speciesId: Value(sighting.speciesId),
-                abundance: _amountValues(sighting).abundance,
-                count: _amountValues(sighting).count,
-                notes: Value(sighting.notes),
+              _withAmount(
+                SightingsCompanion(
+                  id: Value(id),
+                  diveId: Value(diveId),
+                  speciesId: Value(sighting.speciesId),
+                  notes: Value(sighting.notes),
+                ),
+                sighting,
               ),
             );
         await _syncRepository.markRecordPending(

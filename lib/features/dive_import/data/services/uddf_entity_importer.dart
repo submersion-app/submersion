@@ -3781,14 +3781,15 @@ class UddfEntityImporter {
         if (sightingData['speciesRef'] case final String speciesRef
             when speciesRef.isNotEmpty)
           if (_sightingSpeciesName(sightingData) case final String name)
-            MarineSighting(
-              id: _uuid.v4(),
-              speciesId: speciesRef,
-              speciesName: name,
-              abundance: UddfSightingAmount.amountOf(sightingData).abundance,
-              count: UddfSightingAmount.amountOf(sightingData).count,
-              notes: sightingData['notes'] as String? ?? '',
-            ),
+            if (UddfSightingAmount.amountOf(sightingData) case final amount)
+              MarineSighting(
+                id: _uuid.v4(),
+                speciesId: speciesRef,
+                speciesName: name,
+                abundance: amount.abundance,
+                count: amount.count,
+                notes: sightingData['notes'] as String? ?? '',
+              ),
     ];
   }
 
