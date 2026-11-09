@@ -39,5 +39,20 @@ abstract interface class RangeReadStore {
   });
 }
 
+/// The bytes [start] to [endInclusive] of a ranged GET's answer: a `206`
+/// body is the range already, a `200` body (a server that ignores `Range`)
+/// is the whole object and is cut down here.
+Uint8List rangeOfAnswer(
+  int status,
+  Uint8List body, {
+  required int start,
+  required int endInclusive,
+}) {
+  if (status != 200) return body;
+  if (start >= body.length) return Uint8List(0);
+  final end = endInclusive + 1 < body.length ? endInclusive + 1 : body.length;
+  return Uint8List.sublistView(body, start, end);
+}
+
 /// How long an S3 presigned video link stays valid.
 const Duration kS3PresignLifetime = Duration(hours: 6);

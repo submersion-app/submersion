@@ -251,4 +251,44 @@ void main() {
       expect(keys, ['smv1/objects/ab/abcd.jpg']);
     },
   );
+
+  group('readRange', () {
+    const key = 'smv1/objects/ab/abc.mp4';
+    Future<void> putVideo() async {
+      final src = File(p.join(tmp.path, 'v.mp4'))
+        ..writeAsBytesSync(List<int>.generate(100, (i) => i));
+      await store.putFile(key, src, contentType: 'video/mp4');
+    }
+
+    test('sends the Range header and returns the 206 body', () async {
+      await putVideo();
+      server.honorsRange = true;
+      final bytes = await store.readRange(key, start: 10, endInclusive: 19);
+      expect(bytes, List<int>.generate(10, (i) => 10 + i));
+      expect(
+        server.captured.last.headers['range'] ??
+            server.captured.last.headers['Range'],
+        'bytes=10-19',
+      );
+    });
+
+    test('slices a 200 answer to the requested range', () async {
+      await putVideo();
+      final bytes = await store.readRange(key, start: 95, endInclusive: 120);
+      expect(bytes, [95, 96, 97, 98, 99]);
+    });
+
+    test('missing key throws notFound', () async {
+      await expectLater(
+        store.readRange('smv1/objects/zz/none.mp4', start: 0, endInclusive: 9),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.kind,
+            'kind',
+            MediaStoreErrorKind.notFound,
+          ),
+        ),
+      );
+    });
+  });
 }

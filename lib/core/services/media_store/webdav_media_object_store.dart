@@ -5,6 +5,7 @@ import 'package:submersion/core/services/cloud_storage/webdav/chunked_upload.dar
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_client.dart';
 import 'package:submersion/core/services/cloud_storage/webdav/webdav_errors.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/media_streaming.dart';
 
 /// Retry classification for WebDAV failures in the media queue.
 MediaStoreErrorKind mediaStoreKindFor(WebDavErrorCode code) => switch (code) {
@@ -28,7 +29,7 @@ MediaStoreErrorKind mediaStoreKindFor(WebDavErrorCode code) => switch (code) {
 /// live under the configured folder. WebDAV needs real collections, so
 /// parents are created on demand (the client caches them), and listing
 /// walks with Depth 1 because `Depth: infinity` is often disabled.
-class WebDavMediaObjectStore implements MediaObjectStore {
+class WebDavMediaObjectStore implements MediaObjectStore, RangeReadStore {
   WebDavMediaObjectStore({required WebDavClient client}) : _client = client;
 
   final WebDavClient _client;
@@ -112,6 +113,26 @@ class WebDavMediaObjectStore implements MediaObjectStore {
   @override
   Future<Uint8List> getBytes(String key) =>
       _guard(() => _client.getBytes(_path(key)));
+
+  /// One byte range of [key], for the media stream relay (issue #4162).
+  @override
+  Future<Uint8List> readRange(
+    String key, {
+    required int start,
+    required int endInclusive,
+  }) => _guard(() async {
+    final response = await _client.request(
+      'GET',
+      _client.uriFor(_path(key)),
+      headers: {'Range': 'bytes=$start-$endInclusive'},
+    );
+    return rangeOfAnswer(
+      response.statusCode,
+      await response.stream.toBytes(),
+      start: start,
+      endInclusive: endInclusive,
+    );
+  });
 
   @override
   Future<void> delete(String key) => _guard(() => _client.delete(_path(key)));
