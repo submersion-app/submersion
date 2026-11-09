@@ -19,6 +19,7 @@ import 'package:submersion/core/services/export/uddf/uddf_service_clock_writers.
 import 'package:submersion/features/universal_import/data/services/import_site_fold.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/core/services/export/uddf/uddf_operator_centers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/services/export/uddf/uddf_sighting_species.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
@@ -1569,10 +1570,8 @@ class UddfFullImportService {
         )) {
           final sighting = <String, dynamic>{};
           sighting['speciesRef'] = sightingElement.getAttribute('speciesref');
-          final countStr = sightingElement.getAttribute('count');
-          sighting['count'] = countStr != null
-              ? UddfImportParsers.parseUddfInt(countStr) ?? 1
-              : 1;
+          // An exact count, a Submersion abundance, or neither (Seen).
+          sighting.addAll(UddfSightingAmount.parse(sightingElement));
           sighting['notes'] =
               UddfImportParsers.getElementText(sightingElement, 'notes') ?? '';
           sightingsList.add(sighting);

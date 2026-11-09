@@ -143,7 +143,7 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
     idOf: (s) => s.id,
     byDive: (ids) => r.species.getSightingsForDives(ids),
     document: sightingDocument,
-    summaryKeys: const ['dive_id', 'species_name', 'count'],
+    summaryKeys: const ['dive_id', 'species_name', 'abundance', 'count'],
   ),
   _diveChild<_DiveFieldRow>(
     r,

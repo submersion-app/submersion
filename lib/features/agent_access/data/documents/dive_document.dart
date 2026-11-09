@@ -194,6 +194,7 @@ Map<String, Object?> sightingDocument(Sighting s) => {
   'dive_id': s.diveId,
   'species_id': s.speciesId,
   'species_name': s.speciesName,
+  'abundance': s.abundance.name,
   'count': s.count,
   'notes': s.notes,
 };

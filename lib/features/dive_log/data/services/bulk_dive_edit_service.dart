@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/enums.dart' as en;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
@@ -502,6 +503,7 @@ class BulkDiveEditService {
         diveId: '',
         speciesId: r.speciesId,
         speciesName: '',
+        abundance: SightingAbundance.fromStorage(r.abundance),
         count: r.count,
         notes: r.notes,
       ),
