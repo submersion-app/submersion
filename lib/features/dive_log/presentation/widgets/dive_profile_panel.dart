@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/services/estimated_profile.d
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
@@ -283,7 +284,14 @@ class _DiveProfilePanelContentState
     final activeSourceProfile = ref.watch(
       activeSourceProfileProvider(widget.diveId),
     );
-    final chartProfile = activeSourceProfile?.points ?? dive.profile;
+    // Heart rate from Apple Health fills a profile that has none (issue
+    // #637); the length and order are unchanged, so the analysis stays
+    // index-aligned.
+    final chartProfile = withHealthHeartRate(
+      ref,
+      dive,
+      activeSourceProfile?.points ?? dive.profile,
+    );
     // AsyncValue.value, not the valueOrNull polyfill: it keeps the previous
     // value across a provider reload so the chart does not drop a series for
     // a frame when a background write ticks the dive.

@@ -135,6 +135,12 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'via_equipment_id': 'Provenance: the immediate parent assembly this row was attached through, null for a top-level row',
     'via_set_id': 'The equipment set that was applied, carried by every row of the expanded subtree',
   },
+  'dive_health_records': {
+    'heart_rate_at_exit': 'Recovery: the heart rate at the exit, and five and fifteen minutes on',
+    'heart_rate_samples': 'JSON `[[epochSeconds, bpm], ...]`: each sample\'s true time, so the line stays where it was recorded when the dive\'s entry moves',
+    'overnight_hrv_ms': 'The night before the dive: mean heart rate variability (SDNN, ms) and minutes asleep',
+    'settled': 'True once every reading the dive can have is in (the recovery window has passed), so no later refresh asks Health again',
+  },
   'dive_plan_equipment': {
     'updated_at': 'The sync merge\'s age signal for this link',
     'via_equipment_id': 'Provenance: the immediate parent assembly this row was attached through, null for a top-level row',
@@ -417,6 +423,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'import_id': 'Source-specific ID (e.g., HealthKit UUID)',
     'import_source': 'Import source tracking - tracks import source for Apple Watch, Garmin, etc.',
     'import_version': 'Import version: null = pre-fix, 1 = wall-clock-as-UTC convention',
+    'is_draft': 'Draft dive flag: marked at the site, waiting for its dive computer readings',
     'is_favorite': 'Favorite flag',
     'is_planned': 'Dive planner flag',
     'loop_o2_avg': 'Avg loop O2%',

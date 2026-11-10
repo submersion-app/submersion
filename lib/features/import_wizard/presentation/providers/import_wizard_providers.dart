@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:submersion/features/dive_import/data/services/dive_health_metrics_service.dart';
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
+import 'package:submersion/features/dive_import/presentation/health_auto_import_feedback.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -259,14 +262,14 @@ class ImportWizardState {
 ///
 /// Orchestrates review selections, duplicate actions, import progress,
 /// and results. Source-specific logic is delegated to an [ImportSourceAdapter].
-/// The unfilled planned dives a download may fill (issue #2002), keyed by
-/// the import's target profile (null = unscoped). Follows the dives tick so
-/// a plan created or promoted mid-wizard shows up.
-final plannedFillCandidatesProvider = FutureProvider.autoDispose
+/// The plans (issue #2002) and drafts (issue #637) a download may fill,
+/// keyed by the import's target profile (null = unscoped). Follows the dives
+/// tick so one created or filled mid-wizard shows up.
+final fillCandidatesProvider = FutureProvider.autoDispose
     .family<List<Dive>, String?>((ref, diverId) {
       final repository = ref.watch(diveRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchDivesChanges());
-      return repository.getPlannedDives(diverId: diverId);
+      return repository.getUnfilledDives(diverId: diverId);
     });
 
 class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
@@ -277,6 +280,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     RuleEngine? ruleEngine,
     GpsTrackMatchService? gpsTrackMatchService,
     DiveEquipmentDefaulter? equipmentDefaulter,
+    DiveHealthMetricsService? healthMetrics,
     ImportJobNotifier? job,
     bool continuesWithoutWizard = false,
   }) : _tagRepository = tagRepository,
@@ -284,6 +288,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
        _ruleEngine = ruleEngine,
        _gpsTrackMatchService = gpsTrackMatchService,
        _equipmentDefaulter = equipmentDefaulter,
+       _healthMetrics = healthMetrics,
        _job = job,
        _continuesWithoutWizard = continuesWithoutWizard,
        super(const ImportWizardState());
@@ -302,6 +307,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// geofenced set follows the new position. Null in tests that do not
   /// need it.
   final DiveEquipmentDefaulter? _equipmentDefaulter;
+
+  /// Reads heart rate and recovery from Apple Health onto the new dives
+  /// (issue #637). Null where Health is not available, and in tests that do
+  /// not need it.
+  final DiveHealthMetricsService? _healthMetrics;
   String? _diverId;
 
   /// The app-wide job an import runs as (see [importJobProvider]): it owns
@@ -508,7 +518,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
             // A planned dive of the target profile fits (issue #2002):
             // default to filling it. The row stays selected and needs no
             // decision; the card offers Change and Import as new.
-            if (match.isPlannedFill) {
+            if (match.isFill) {
               duplicateActions.putIfAbsent(type, () => {})[index] =
                   DuplicateAction.fillPlanned;
               selections[type] = {...selections[type]!, index};
@@ -895,7 +905,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   /// new dive. Keeping a match with an empty dive id would not do, since an
   /// empty id already means "duplicate of another dive in this batch" to
   /// the comparison card.
-  void setPlannedFillTarget(int index, String? plannedDiveId) {
+  void setFillTarget(int index, FillTarget? target) {
     const type = ImportEntityType.dives;
     final bundle = state.bundle;
     final group = bundle?.groups[type];
@@ -903,7 +913,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
     if (bundle == null || group == null || current == null) return;
 
     final EntityGroup updatedGroup;
-    if (plannedDiveId == null) {
+    if (target == null) {
       updatedGroup = group.copyWith(
         duplicateIndices: group.duplicateIndices.difference({index}),
         matchResults: {
@@ -915,7 +925,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       updatedGroup = group.copyWith(
         matchResults: {
           ...group.matchResults!,
-          index: current.withPlannedDive(plannedDiveId),
+          index: current.withFillTarget(target),
         },
       );
     }
@@ -923,7 +933,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       bundle: bundle.copyWith(groups: {...bundle.groups, type: updatedGroup}),
     );
 
-    if (plannedDiveId != null) {
+    if (target != null) {
       setDuplicateAction(type, index, DuplicateAction.fillPlanned);
       return;
     }
@@ -1254,6 +1264,11 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
               sourceLabel: _adapter.displayName,
               isCancelled: () => token.isCancelled,
             );
+
+      // Heart rate and recovery from Apple Health for the recent dives, the
+      // new ones included (issue #637). In the background: Health reads must
+      // not hold the summary, and they never throw.
+      if (!token.isCancelled) unawaited(refreshDiveHealth(_healthMetrics));
 
       // Once the wizard is gone the job reports the outcome instead.
       if (!mounted) return;

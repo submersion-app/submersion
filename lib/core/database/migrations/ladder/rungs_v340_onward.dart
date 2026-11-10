@@ -105,5 +105,14 @@ extension RungsFromV340 on AppDatabase {
     // beforeOpen.
     if (from < 351) await _assertEquipmentCollapsedGroupsColumn();
     if (from < 351) await reportProgress();
+
+    // v354: dives.is_draft, a dive marked at the site that waits for its
+    // readings (issue #637). Defaulted, no backfill, so the compatibility
+    // floor does not move. Numbered 354: main holds 351 and open work
+    // claims 352 and 353.
+    if (from < 354) await _assertDiveIsDraftColumn();
+    // v354 too: dive_health_records, Apple Health readings per dive.
+    if (from < 354) await _assertDiveHealthRecordsTable();
+    if (from < 354) await reportProgress();
   }
 }

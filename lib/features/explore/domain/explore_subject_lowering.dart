@@ -93,13 +93,14 @@ List<QueryNode> lowerTripTime(DateTime? start, DateTime? end) => [
     ConditionNode(FieldPath(['endDate']), QueryOp.gte, DateValue(start)),
 ];
 
-/// The subject's counted dives matching [parts]: neither planned nor
+/// The subject's counted dives matching [parts]: neither planned, draft nor
 /// excluded from statistics, as the dive counts and the site list's own
 /// "has dives" are.
 QueryNode countedDives(List<QueryNode> parts) => ScopedNode(
   FieldPath(['dives']),
   AndNode([
     ConditionNode(FieldPath(['planned']), QueryOp.eq, const BoolValue(false)),
+    ConditionNode(FieldPath(['draft']), QueryOp.eq, const BoolValue(false)),
     ConditionNode(
       FieldPath(['excludedFromStats']),
       QueryOp.eq,

@@ -381,7 +381,7 @@ void main() {
       await a.checkDuplicates(bundle);
 
       verify(dives.getSourceKeysByDiveId(diverId: 'mitchell')).called(1);
-      verify(dives.getPlannedDives(diverId: 'mitchell')).called(1);
+      verify(dives.getUnfilledDives(diverId: 'mitchell')).called(1);
     });
   });
   group('the result', () {

@@ -749,15 +749,14 @@ void main() {
       );
     });
 
-    test('supportedDuplicateActions contains skip and importAsNew', () {
-      expect(
-        adapter.supportedDuplicateActions,
-        containsAll([DuplicateAction.skip, DuplicateAction.importAsNew]),
-      );
-      expect(
-        adapter.supportedDuplicateActions,
-        isNot(contains(DuplicateAction.consolidate)),
-      );
+    test('supportedDuplicateActions offers skip, import, fill and merge '
+        '(#637)', () {
+      expect(adapter.supportedDuplicateActions, {
+        DuplicateAction.skip,
+        DuplicateAction.importAsNew,
+        DuplicateAction.fillPlanned,
+        DuplicateAction.consolidate,
+      });
     });
 
     test('acquisitionSteps has three steps', () {

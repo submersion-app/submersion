@@ -73,6 +73,8 @@ Future<NoFlyStatus?> activeNoFlyStatus(
       now.toLocal(),
     ).subtract(NoFlyService.lookback + const Duration(days: 1)),
     diverId: diverId,
+    // A draft still in the water ends now (issue #637).
+    now: asWallClockUtc(now.toLocal()),
   );
   final dives = [
     for (final dive in stored)

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:submersion/features/dive_import/presentation/providers/dive_health_metrics_providers.dart';
+import 'package:submersion/features/dive_import/presentation/providers/health_settings_providers.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/change_log/presentation/widgets/change_log_history_menu_item.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/reparse_providers.dart';
@@ -65,6 +67,14 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
         .watch(preDiveSessionForDiveProvider(dive.id))
         .value;
     final canLogForBuddy = _hasMirrorCandidates(ref);
+    // Health first: off iOS the settings are never read (issue #637).
+    final canAddHeartRate =
+        ref.watch(diveHealthMetricsServiceProvider) != null &&
+        ref.watch(healthSettingsProvider.select((s) => s.metricsDiverId)) ==
+            dive.diverId &&
+        dive.diverId != null &&
+        !(dive.isPlanned && !dive.isDraft) &&
+        !(dive.isDraft && dive.exitTime == null);
     final favoriteLabel = dive.isFavorite
         ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
         : context.l10n.diveLog_detail_tooltip_addToFavorites;
@@ -127,6 +137,26 @@ class DiveDetailOverflowMenu extends ConsumerWidget {
               child: ListTile(
                 leading: const Icon(Icons.event_available_outlined),
                 title: Text(context.l10n.diveLog_detail_menu_markLogged),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          // A draft that will never be downloaded (issue #637), once it is
+          // out of the water.
+          if (dive.isDraft && dive.exitTime != null)
+            PopupMenuItem(
+              value: 'markComplete',
+              child: ListTile(
+                leading: const Icon(Icons.task_alt),
+                title: Text(context.l10n.diveLog_draft_markComplete),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          if (canAddHeartRate)
+            PopupMenuItem(
+              value: 'addHeartRate',
+              child: ListTile(
+                leading: const Icon(Icons.monitor_heart_outlined),
+                title: Text(context.l10n.diveLog_detail_menu_addHeartRate),
                 contentPadding: EdgeInsets.zero,
               ),
             ),

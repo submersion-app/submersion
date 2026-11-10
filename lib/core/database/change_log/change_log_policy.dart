@@ -150,6 +150,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'media_enrichment': ChangeLogClass.deleteCopyOnly,
   'tank_pressure_series': ChangeLogClass.deleteCopyOnly,
   'tide_records': ChangeLogClass.deleteCopyOnly,
+  'dive_health_records': ChangeLogClass.deleteCopyOnly,
   'cached_regions': ChangeLogClass.excluded,
   'change_log_context': ChangeLogClass.excluded,
   'change_log_events': ChangeLogClass.excluded,
@@ -394,6 +395,7 @@ const Map<String, ChangeLogParent> changeLogParents = {
     column: 'dive_id',
   ),
   'tide_records': ChangeLogParent(rootTable: 'dives', column: 'dive_id'),
+  'dive_health_records': ChangeLogParent(rootTable: 'dives', column: 'dive_id'),
   'trip_checklist_items': ChangeLogParent(
     rootTable: 'trip_checklists',
     column: 'checklist_id',

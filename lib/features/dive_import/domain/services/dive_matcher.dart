@@ -1,4 +1,5 @@
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Service for matching imported dives to existing dive log entries.
 ///
@@ -83,6 +84,30 @@ class DiveMatcher {
   bool isPossibleDuplicate(double score) => score >= 0.5;
 }
 
+/// Which kind of dive waiting for its readings a download fills.
+enum FillTargetKind { plan, draft }
+
+/// The plan or draft a download fills (issue #637).
+class FillTarget {
+  const FillTarget({required this.diveId, required this.kind});
+
+  /// The target for [dive]'s flags: a dive with both reads as the draft.
+  factory FillTarget.of(Dive dive) => FillTarget(
+    diveId: dive.id,
+    kind: dive.isDraft ? FillTargetKind.draft : FillTargetKind.plan,
+  );
+
+  final String diveId;
+  final FillTargetKind kind;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FillTarget && other.diveId == diveId && other.kind == kind;
+
+  @override
+  int get hashCode => Object.hash(diveId, kind);
+}
+
 /// Result of matching an imported dive against an existing dive.
 class DiveMatchResult {
   /// The ID of the matched existing dive.
@@ -134,14 +159,21 @@ class DiveMatchResult {
   /// dive to fold into).
   final int? inBatchIndex;
 
-  /// When non-null, [diveId] is an unfilled PLANNED dive of the target
-  /// profile on the download's local day or the day before (issues #2002 and
-  /// #4003). The wizard defaults such a row to
-  /// [DuplicateAction.fillPlanned]: the planned dive keeps its human-entered
-  /// facts and the download supplies the measured ones. Never set together with [matchedExistingSource] or
-  /// [inBatchIndex]; the planned pass runs only for otherwise unmatched
-  /// downloads.
-  final String? plannedDiveId;
+  /// When non-null, [diveId] is a dive waiting for its readings that this
+  /// download fills: a plan on the download's local day or the day before
+  /// (issues #2002 and #4003), or a draft whose taps the download overlaps
+  /// (issue #637). The wizard defaults such a row to
+  /// [DuplicateAction.fillPlanned]: the target keeps its human-entered facts
+  /// and the download supplies the measured ones. Never set together with
+  /// [matchedExistingSource] or [inBatchIndex]; the fill pass runs only for
+  /// otherwise unmatched downloads.
+  final FillTarget? fillTarget;
+
+  /// The drafts this download could fill when it fits more than one, or one
+  /// that another download fits too (issue #637). None is chosen: the row
+  /// waits for the diver, who picks one, imports as new or skips. [diveId]
+  /// is the first, for the comparison card. Empty for every other match.
+  final List<String> fillCandidates;
 
   const DiveMatchResult({
     required this.diveId,
@@ -153,24 +185,25 @@ class DiveMatchResult {
     this.matchedComputerId,
     this.matchedExistingSource = false,
     this.inBatchIndex,
-    this.plannedDiveId,
+    this.fillTarget,
+    this.fillCandidates = const [],
   });
 
-  /// True when this row fills a planned dive rather than matching a logged
-  /// one.
-  bool get isPlannedFill => plannedDiveId != null;
+  /// True when this row fills a plan or draft rather than matching a logged
+  /// dive.
+  bool get isFill => fillTarget != null;
 
-  /// Point the fill at another planned dive. [diveId] follows the planned
-  /// dive so the comparison card and the wizard's existing-dive lookups need
-  /// no extra plumbing.
+  /// Point the fill at another plan or draft. [diveId] follows the target so
+  /// the comparison card and the wizard's existing-dive lookups need no
+  /// extra plumbing.
   ///
   /// There is deliberately no way to clear the target here: an empty
   /// [diveId] already means "duplicate of another dive in this batch" to the
   /// comparison card, so a fill row that loses its target stops being a
-  /// match at all (see ImportWizardNotifier.setPlannedFillTarget).
-  DiveMatchResult withPlannedDive(String plannedDiveId) {
+  /// match at all (see ImportWizardNotifier.setFillTarget).
+  DiveMatchResult withFillTarget(FillTarget target) {
     return DiveMatchResult(
-      diveId: plannedDiveId,
+      diveId: target.diveId,
       score: score,
       timeDifferenceMs: timeDifferenceMs,
       depthDifferenceMeters: depthDifferenceMeters,
@@ -179,7 +212,7 @@ class DiveMatchResult {
       matchedComputerId: matchedComputerId,
       matchedExistingSource: matchedExistingSource,
       inBatchIndex: inBatchIndex,
-      plannedDiveId: plannedDiveId,
+      fillTarget: target,
     );
   }
 

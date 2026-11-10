@@ -2988,6 +2988,7 @@ class UddfEntityImporter {
       final diveMode =
           _parseEnum(diveData['diveMode'], DiveMode.values) ?? DiveMode.oc;
       final isPlanned = diveData['isPlanned'] as bool? ?? false;
+      final isDraft = diveData['isDraft'] as bool? ?? false;
       // The diver's own roles (several since #1221), each as this diver's
       // copy of it. A custom role this diver lacks (its definition never
       // arrived) is dropped rather than kept as one this diver's role list
@@ -3110,6 +3111,7 @@ class UddfEntityImporter {
         // Dive mode and rebreather fields
         diveMode: diveMode,
         isPlanned: isPlanned,
+        isDraft: isDraft,
         diverRoleIds: diverRoleIds,
         isFavorite: isFavorite,
         excludedFromStats: excludedFromStats,

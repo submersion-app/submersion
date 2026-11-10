@@ -604,6 +604,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
     _bool('favorite', 'is_favorite'),
     _bool('excludedFromStats', 'excluded_from_stats'),
     _bool('planned', 'is_planned'),
+    _bool('draft', 'is_draft'),
     QueryField(
       key: 'deco',
       type: FieldType.bool,

@@ -1,5 +1,6 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_import/data/services/apple_watch_computer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -38,8 +39,16 @@ class ImportedDiveConverter {
 
     // importedDive.duration is endTime - startTime (total runtime),
     // not bottom time. Store it as runtime and auto-calculate bottom time.
+    // An Apple Watch workout keeps one id per diver on every device (issue
+    // #637), so two devices importing it converge on one dive.
+    final id =
+        importedDive.source == ImportSource.appleWatch &&
+            diverId != null &&
+            importedDive.sourceId.isNotEmpty
+        ? healthDiveId(diverId: diverId, workoutUuid: importedDive.sourceId)
+        : _uuid.v4();
     final dive = Dive(
-      id: _uuid.v4(),
+      id: id,
       diverId: diverId,
       diveNumber: diveNumber,
       dateTime: importedDive.startTime,

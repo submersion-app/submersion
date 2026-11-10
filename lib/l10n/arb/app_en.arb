@@ -3322,6 +3322,44 @@
   },
   "diveLog_gear_removeSet": "Remove set from this dive",
   "diveLog_gear_unknownSet": "Set",
+  "diveLog_health_after15": "After 15 min",
+  "diveLog_health_after5": "After 5 min",
+  "diveLog_health_atSurfacing": "At surfacing",
+  "diveLog_health_average": "Average",
+  "diveLog_health_bpm": "{value} bpm",
+  "@diveLog_health_bpm": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_maximum": "Maximum",
+  "diveLog_health_ms": "{value} ms",
+  "@diveLog_health_ms": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_noneFound": "Apple Health has no readings for this dive",
+  "diveLog_health_overnightHrv": "Heart rate variability the night after",
+  "diveLog_health_readFailed": "Could not read Apple Health",
+  "diveLog_health_recovery": "Recovery",
+  "diveLog_health_recoveryExplain": "Heart rate at surfacing and 5 and 15 minutes later, from Apple Health.",
+  "diveLog_health_sleepBefore": "Slept {hours} h {minutes} min the night before",
+  "@diveLog_health_sleepBefore": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_title": "Heart rate and recovery",
   "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
   "preDive_dashboard_resume": "Resume - {done} of {total}",
   "@preDive_dashboard_resume": {
@@ -3889,6 +3927,7 @@
   "settings_homeCards_card_yearInReview": "Year in review",
   "settings_homeCards_card_activeCourses": "Course progress",
   "settings_homeCards_card_recentSitesMap": "Recent sites map",
+  "settings_homeCards_card_waitingForDownload": "Waiting for download",
   "dashboard_allHidden_message": "All Home cards are hidden.",
   "dashboard_allHidden_customize": "Customize Home",
   "settings_homeChips_flightWindow": "Flight dive window",
@@ -4117,6 +4156,15 @@
     "placeholders": {
       "minutes": {
         "type": "Object"
+      }
+    }
+  },
+  "dashboard_waitingForDownload_download": "Download now",
+  "dashboard_waitingForDownload_title": "{count, plural, =1{1 dive waiting for your dive computer} other{{count} dives waiting for your dive computer}}",
+  "@dashboard_waitingForDownload_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
@@ -5795,6 +5843,7 @@
   "siteMatchReview_empty": "Nothing to match.",
   "siteSuggestion_titlePhoto": "Location found in photos",
   "siteSuggestion_titleDiveComputer": "Location from dive computer",
+  "siteSuggestion_titleDraft": "Location where you went in",
   "siteSuggestion_assignButton": "Assign {name}",
   "@siteSuggestion_assignButton": {
     "placeholders": {
@@ -14264,6 +14313,7 @@
   "diveDetailSection_signatures_name": "Signatures",
   "diveDetailSection_signatures_description": "Buddy/instructor signature display and capture",
   "diveDetailSection_equipment_name": "Equipment",
+  "diveDetailSection_health_description": "Heart rate, recovery and sleep from Apple Health",
   "diveDetailSection_equipment_description": "Equipment used in dive",
   "diveDetailSection_sightings_name": "Species Sightings",
   "diveDetailSection_sightings_description": "Species spotted, sighting details",
@@ -15049,6 +15099,7 @@
   "settings_conflict_field_autoApplyOnComputerImport": "Applied on dive computer import",
   "settings_conflict_field_autoAttach": "Scheduled automatically",
   "settings_conflict_field_autoTagImports": "Tag imported dives",
+  "settings_conflict_field_avgHeartRate": "Average heart rate",
   "settings_conflict_field_downloadsFollowComputerOwner": "Add downloads to the computer's owner",
   "@settings_conflict_field_downloadsFollowComputerOwner": {
     "description": "Label for the downloads-follow-computer-owner setting in a sync conflict"
@@ -15368,6 +15419,10 @@
   "settings_conflict_field_hePercent": "Helium",
   "settings_conflict_field_headingDeg": "Heading in degrees",
   "settings_conflict_field_headingOffsetDeg": "Heading correction in degrees",
+  "settings_conflict_field_heartRateAtExit": "Heart rate at surfacing",
+  "settings_conflict_field_heartRateExitPlus15": "Heart rate 15 min after surfacing",
+  "settings_conflict_field_heartRateExitPlus5": "Heart rate 5 min after surfacing",
+  "settings_conflict_field_heartRateSamples": "Heart rate from Apple Health",
   "settings_conflict_field_scaleFactor": "Track scale factor",
   "settings_conflict_field_height": "Height in pixels",
   "settings_conflict_field_heightCm": "Height",
@@ -15398,6 +15453,7 @@
   "settings_conflict_field_isCustom": "Custom",
   "settings_conflict_field_isDefault": "Default",
   "settings_conflict_field_isDone": "Done",
+  "settings_conflict_field_isDraft": "Draft dive",
   "settings_conflict_field_isOrphaned": "File missing",
   "settings_conflict_field_isPackage": "Part of a package",
   "settings_conflict_field_isPlanned": "Planned dive",
@@ -15446,6 +15502,7 @@
   "settings_conflict_field_material": "Tank material",
   "settings_conflict_field_maxAscentRate": "Maximum ascent rate",
   "settings_conflict_field_maxDescentRate": "Maximum descent rate",
+  "settings_conflict_field_maxHeartRate": "Maximum heart rate",
   "settings_conflict_field_maxSpeed": "Top speed",
   "settings_conflict_field_measuredAt": "Measured",
   "settings_conflict_field_medicalClearanceExpiryDate": "Medical clearance expiry",
@@ -15468,6 +15525,7 @@
   "settings_conflict_field_originalFilename": "Original file name",
   "settings_conflict_field_outingId": "Outing",
   "settings_conflict_field_overdueServices": "Overdue services",
+  "settings_conflict_field_overnightHrvMs": "Overnight heart rate variability",
   "settings_conflict_field_params": "Details",
   "settings_conflict_field_parkingInfo": "Parking",
   "settings_conflict_field_passportId": "Cylinder passport",
@@ -15625,6 +15683,7 @@
   "settings_conflict_field_siteListViewMode": "Site list view",
   "settings_conflict_field_siteSuggestionDismissedAt": "Site suggestion dismissed",
   "settings_conflict_field_size": "Size",
+  "settings_conflict_field_sleepBeforeMinutes": "Sleep the night before",
   "settings_conflict_field_sortOrder": "Sort order",
   "settings_conflict_field_source": "Source",
   "settings_conflict_field_sourceDiverKey": "Diver in the source log",
@@ -15647,6 +15706,7 @@
   "settings_conflict_field_startPressurePinned": "Start pressure set by hand",
   "settings_conflict_field_fixedStart": "Start time set by hand",
   "settings_conflict_field_settingOverrides": "Settings for this dive only",
+  "settings_conflict_field_settled": "Apple Health readings complete",
   "settings_conflict_field_startTime": "Start time",
   "settings_conflict_field_startTimestamp": "Starts at (time into dive)",
   "settings_conflict_field_startedAt": "Started",
@@ -16025,6 +16085,8 @@
       }
     }
   },
+  "notifications_draftReminder_body": "Download your dive computer to fill in the draft.",
+  "notifications_draftReminder_title": "A dive is waiting for your dive computer",
   "notifications_document_expiresToday_body": "Renew it before your next dive.",
   "settings_conflict_field_pageOrder": "Page order",
   "settings_conflict_field_cardSide": "Card side",
@@ -16739,6 +16801,8 @@
   "settings_notifications_disabled_subtitleUnrequested": "Service reminders need permission to send notifications",
   "settings_notifications_disabled_subtitle": "Enable in system settings to receive reminders",
   "settings_notifications_disabled_title": "Notifications Disabled",
+  "settings_notifications_draftReminder": "Remind me about draft dives",
+  "settings_notifications_draftReminder_subtitle": "Three days after a draft dive's exit, if it is still waiting for a download",
   "settings_notifications_enableServiceReminders": "Enable Service Reminders",
   "settings_notifications_enableServiceReminders_subtitle": "Get notified when equipment service is due",
   "settings_notifications_header_reminderSchedule": "Reminder Schedule",
@@ -20852,6 +20916,15 @@
   "universalImport_bulk_replaceSourceAll": "Replace all ({count})",
   "universalImport_description_supportedFormats": "Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.",
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Another dive fits this draft too. Choose the draft it fills.} other{Fits {count} drafts. Choose the one it fills.}}",
+  "@universalImport_fillDraft_ambiguous": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_fillDraft_choose": "Choose draft",
   "universalImport_error_duplicateCheckFailed": "Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.",
   "universalImport_error_noColumnsToMap": "This file has no columns to map. Go back and select the file again, or choose a different source.",
   "universalImport_error_stepFailed": "Import could not continue: {details}",
@@ -20986,6 +21059,36 @@
   "universalImport_label_skip": "Skip",
   "universalImport_label_fillPlanned": "Fill planned dive",
   "universalImport_compare_fillPlannedSubtitle": "Attach this download to the dive you planned",
+  "universalImport_label_fillDraft": "Fill draft",
+  "@universalImport_label_fillDraft": {"description": "Import action: attach the download to a draft dive marked at the site"},
+  "universalImport_compare_fillDraftSubtitle": "Attach this download to the dive you marked at the site",
+  "universalImport_fillDraft_target": "Fills draft: {label}",
+  "@universalImport_fillDraft_target": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_fillDraft_window": "Draft from {start} to {end}",
+  "@universalImport_fillDraft_window": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_fillDraft_windowOpen": "Draft from {start}",
+  "@universalImport_fillDraft_windowOpen": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_label_filledPlanned": "Filled planned dives",
   "universalImport_fillPlanned_target": "Fills planned dive: {label}",
   "@universalImport_fillPlanned_target": {
@@ -22342,6 +22445,24 @@
   "gpsLogger_reviewSites": "Review site matches",
   "gpsLogger_startButton": "Start logging",
   "gpsLogger_stopButton": "Stop logging",
+  "gpsLogger_enteredWater": "Entered water",
+  "@gpsLogger_enteredWater": {"description": "Button while recording a GPS track: marks the moment the diver goes into the water, starting a draft dive"},
+  "gpsLogger_surfaced": "Surfaced",
+  "@gpsLogger_surfaced": {"description": "Button while a draft dive is open: marks the moment the diver surfaces"},
+  "gpsLogger_surfaceOnStop_title": "Still in the water?",
+  "gpsLogger_surfaceOnStop_body": "You entered the water at {time}. Mark the dive surfaced now, or leave it open and tap Surfaced later.",
+  "@gpsLogger_surfaceOnStop_body": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gpsLogger_surfaceOnStop_surfaceNow": "Surface now",
+  "gpsLogger_surfaceOnStop_leaveOpen": "Leave open",
+  "gpsLogger_markNotification_title": "Recording your GPS track",
+  "gpsLogger_markNotification_bodyEnter": "Tap Entered water when you go in.",
+  "gpsLogger_markNotification_bodySurface": "In the water. Tap Surfaced when you are out.",
   "gpsLogger_stripStatus": "Recording GPS track · {count, plural, one{{count} point} other{{count} points}}",
   "@gpsLogger_stripStatus": {
     "placeholders": {
@@ -22840,6 +22961,34 @@
   "settings_dataSources_appleHealth_permissionNotGranted": "HealthKit access not granted",
   "settings_dataSources_appleHealth_permissionChecking": "Checking HealthKit access...",
   "settings_dataSources_appleHealth_importAction": "Import Dives from Apple Watch via HealthKit",
+  "healthAutoImport_newDive_title": "New dive from your Apple Watch",
+  "healthAutoImport_newDives_title": "{count} new dives from your Apple Watch",
+  "@healthAutoImport_newDives_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthAutoImport_newDive_body": "Add details?",
+  "healthAutoImport_addDetails": "Add details",
+  "healthAutoImport_review_title": "An Apple Watch dive needs a look",
+  "healthAutoImport_review_body": "It could belong to more than one dive. Choose in the Apple Health import.",
+  "healthAutoImport_planReview_body": "This dive may be one you planned. Review it to fill the plan.",
+  "healthAutoImport_review": "Review",
+  "settings_appleHealth_autoImport_title": "Import Apple Watch dives automatically",
+  "settings_appleHealth_autoImport_subtitle": "New dives from your watch appear when you open the app.",
+  "settings_appleHealth_metrics_title": "Heart rate, recovery and sleep",
+  "settings_appleHealth_metrics_subtitle": "Adds heart rate during and after each dive, overnight HRV and the sleep before it.",
+  "settings_appleHealth_boundDiver": "For: {name}",
+  "@settings_appleHealth_boundDiver": {
+    "description": "Under an Apple Health switch: the diver whose dives it writes to",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally on this device and is never shared with third parties. Submersion only reads data from Apple HealthKit and does not write any data back to HealthKit.",
   "settings_dataSources_appleHealth_poweredBy": "Powered by Apple HealthKit",
   "diveLog_edit_subsection_autofill": "Auto-fill",
@@ -25273,6 +25422,39 @@
   },
   "diveLog_detail_menu_logNearMiss": "Log near-miss",
   "diveLog_planned_chip": "Planned",
+  "diveLog_draft_chip": "Waiting for download",
+  "@diveLog_draft_chip": {"description": "List marker for a draft dive: marked at the site, waiting for its dive computer readings"},
+  "diveLog_draft_inWaterChip": "In the water",
+  "diveLog_draft_title": "Draft dive",
+  "@diveLog_draft_title": {"description": "Title for a draft dive, which has no number yet"},
+  "diveLog_draft_bannerBody": "About {minutes} min from your taps. Download your dive computer to fill in depth and time.",
+  "@diveLog_draft_bannerBody": {
+    "description": "Banner body on a draft dive: the estimated length from the Entered water and Surfaced taps",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_draft_bannerBodyOpen": "Tap Surfaced when you are out of the water.",
+  "diveLog_draft_downloadNow": "Download now",
+  "diveLog_draft_markComplete": "Mark as complete",
+  "@diveLog_draft_markComplete": {"description": "Action on a draft dive that will never be downloaded: keep it as a hand-added dive"},
+  "diveLog_draft_surfaced": "Surfaced",
+  "diveLog_draft_markedComplete": "Marked as complete",
+  "diveLog_draft_markCompleteFailed": "Couldn't mark the dive as complete.",
+  "diveLog_draft_stale_title": "Did you surface?",
+  "diveLog_draft_stale_body": "You entered the water at {time} and the dive is still open.",
+  "@diveLog_draft_stale_body": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_draft_stale_stillIn": "Still in the water",
+  "diveLog_draft_stale_setTime": "Set surfacing time",
+  "@diveLog_draft_inWaterChip": {"description": "List marker for a draft dive whose diver has entered the water and not yet surfaced"},
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
   "diveLog_planned_openInPlanner": "Open in planner",
@@ -25305,6 +25487,7 @@
   "diveLog_detail_menu_logForBuddy": "Log for a buddy's profile",
   "diveLog_detail_loggedWith": "Logged with",
   "diveLog_detail_loggedWithPlanned": "awaiting their dive computer",
+  "diveLog_detail_menu_addHeartRate": "Add heart rate from Apple Health",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -29616,6 +29799,14 @@
   "explore_unplaced_reason_unknownTime": "Could not read this time",
   "explore_unresolved_noCandidates": "No match in your logbook",
   "diveLog_listPage_semanticsDiveAtSite": "Dive {diveNumber} at {siteName}",
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Draft dive at {siteName}",
+  "@diveLog_listPage_semanticsDraftDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Planned dive at {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {
@@ -34107,6 +34298,8 @@
   "@query_dives_diveNumber": {"description": "Field label in the query builder"},
   "query_dives_diveOperator": "Operator",
   "@query_dives_diveOperator": {"description": "Field label in the query builder"},
+  "query_dives_draft": "Draft",
+  "@query_dives_draft": {"description": "Field label in the query builder: a dive marked at the site that waits for its dive computer readings"},
   "query_dives_entryMethod": "Entry method",
   "@query_dives_entryMethod": {"description": "Field label in the query builder"},
   "query_dives_excludedFromStats": "Excluded from statistics",

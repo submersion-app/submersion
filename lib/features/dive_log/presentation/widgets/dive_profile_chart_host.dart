@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_data_source.da
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
@@ -266,7 +267,13 @@ class DiveProfileChartHost extends ConsumerWidget {
     final activeProfile =
         resolvedActive ??
         (dataSources.length == 1 ? sourceProfiles[dataSources.first.id] : null);
-    final chartProfile = resolvedActive?.points ?? dive.profile;
+    // Heart rate from Apple Health fills a profile that has none (issue
+    // #637); the length and order are unchanged.
+    final chartProfile = withHealthHeartRate(
+      ref,
+      dive,
+      resolvedActive?.points ?? dive.profile,
+    );
 
     keepProfileExtentsOnDrawnSeries(
       context,
