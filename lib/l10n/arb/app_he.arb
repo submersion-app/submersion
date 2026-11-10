@@ -6399,6 +6399,7 @@
   "settings_about_userGuide": "מדריך למשתמש",
   "settings_about_userGuide_snackbar": "בקר ב-submersion.app/guide",
   "settings_about_version": "גרסה {version}",
+  "settings_about_builtOn": "נבנה ב-{date}",
   "settings_appBar_title": "הגדרות",
   "settings_appearance_displaySize": "גודל התצוגה",
   "settings_appearance_displaySize_value": "{percent}%",

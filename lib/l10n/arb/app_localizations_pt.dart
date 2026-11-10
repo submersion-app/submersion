@@ -22281,6 +22281,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String settings_about_builtOn(String date) {
+    return 'Compilado em $date';
+  }
+
+  @override
   String get settings_appBar_title => 'Configurações';
 
   @override

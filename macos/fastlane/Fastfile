@@ -548,7 +548,7 @@ platform :mac do
 
       # Regenerate Flutter configs and plugin registrant (without auto_updater)
       UI.message("Building Flutter app...")
-      sh("cd ../.. && flutter build macos --release --config-only --dart-define=UPDATE_CHANNEL=appstore")
+      sh("cd ../.. && flutter build macos --release --config-only --dart-define=UPDATE_CHANNEL=appstore --dart-define=BUILD_DATE=#{Time.now.utc.strftime('%Y-%m-%d')}")
 
       # Reinstall pods without auto_updater_macos / Sparkle
       # Clear Bundler env so system CocoaPods doesn't inherit fastlane's

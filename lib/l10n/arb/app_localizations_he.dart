@@ -21797,6 +21797,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_about_builtOn(String date) {
+    return 'נבנה ב-$date';
+  }
+
+  @override
   String get settings_appBar_title => 'הגדרות';
 
   @override

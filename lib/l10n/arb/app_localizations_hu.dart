@@ -22210,6 +22210,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String settings_about_builtOn(String date) {
+    return 'Készült: $date';
+  }
+
+  @override
   String get settings_appBar_title => 'Beállítások';
 
   @override

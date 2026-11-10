@@ -6632,6 +6632,7 @@
   "settings_about_userGuide": "Benutzerhandbuch",
   "settings_about_userGuide_snackbar": "Besuchen Sie submersion.app/guide",
   "settings_about_version": "Version {version}",
+  "settings_about_builtOn": "Erstellt am {date}",
   "settings_appBar_title": "Einstellungen",
   "settings_appearance_displaySize": "Anzeigegröße",
   "settings_appearance_displaySize_value": "{percent}%",

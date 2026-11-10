@@ -35274,6 +35274,12 @@ abstract class AppLocalizations {
   /// **'Version {version}'**
   String settings_about_version(String version);
 
+  /// Under the app version in Settings > About and the About dialog: the day this build was made
+  ///
+  /// In en, this message translates to:
+  /// **'Built {date}'**
+  String settings_about_builtOn(String date);
+
   /// No description provided for @settings_appBar_title.
   ///
   /// In en, this message translates to:

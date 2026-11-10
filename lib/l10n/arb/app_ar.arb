@@ -6499,6 +6499,7 @@
   "settings_about_userGuide": "دليل المستخدم",
   "settings_about_userGuide_snackbar": "قم بزيارة submersion.app/guide",
   "settings_about_version": "الإصدار {version}",
+  "settings_about_builtOn": "تاريخ البناء {date}",
   "settings_appBar_title": "الإعدادات",
   "settings_appearance_displaySize": "حجم العرض",
   "settings_appearance_displaySize_value": "{percent}%",

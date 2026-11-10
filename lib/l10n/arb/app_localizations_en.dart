@@ -21954,6 +21954,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String settings_about_builtOn(String date) {
+    return 'Built $date';
+  }
+
+  @override
   String get settings_appBar_title => 'Settings';
 
   @override
