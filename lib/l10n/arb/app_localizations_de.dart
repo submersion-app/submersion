@@ -11359,6 +11359,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Quelle konnte nicht entfernt werden';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Diese Quelle teilt ihren Tauchcomputer mit einer anderen Quelle des Tauchgangs und kann daher nicht allein entfernt werden. Trenne sie stattdessen als eigenen Tauchgang ab.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Kombinierte Tauchgänge trennen';
 
   @override

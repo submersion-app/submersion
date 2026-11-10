@@ -1,4 +1,5 @@
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 
 /// Which cylinders on a dive are one physical cylinder, and which row of them
 /// stays when the duplicates are removed (issue #4393).
@@ -12,10 +13,10 @@ import 'package:submersion/core/database/database.dart';
 /// Tolerance below which two mixes are the same (percentage points).
 const double _mixTolerance = 0.05;
 
-String? _normalSerial(String? serial) {
-  final s = serial?.trim().toUpperCase();
-  return s == null || s.isEmpty ? null : s;
-}
+/// The detector's canonical serial (blank and all-zero read as none),
+/// compared without case.
+String? _normalSerial(String? serial) =>
+    normalizeTransmitterSerial(serial)?.toUpperCase();
 
 /// Tanks grouped by transmitter serial, ignoring case and surrounding
 /// whitespace: each group of two or more, ids sorted, groups ordered by
@@ -47,9 +48,13 @@ List<String> duplicateGroupFor({
   final live = {for (final t in tanks) t.id};
   final List<String> group;
   if (sameTransmitter) {
-    group = serialGroups(
-      tanks,
-    ).firstWhere((g) => g.contains(tankIdA), orElse: () => const []);
+    // Both rows must still share the serial: a finding from an earlier scan
+    // whose second row has since changed must not reach whatever else now
+    // shares the first row's serial.
+    group = serialGroups(tanks).firstWhere(
+      (g) => g.contains(tankIdA) && g.contains(tankIdB),
+      orElse: () => const [],
+    );
   } else {
     group = ([tankIdA, tankIdB].where(live.contains).toList())..sort();
   }

@@ -3589,6 +3589,7 @@
   "diveLog_sources_removeDialog_confirm": "إزالة",
   "diveLog_sources_removeDone": "تمت إزالة المصدر",
   "diveLog_sources_removeFailed": "تعذّرت إزالة المصدر",
+  "diveLog_sources_removeSharedComputer": "يشترك هذا المصدر في حاسوب الغوص مع مصدر آخر في الغطسة، لذا لا يمكن إزالته وحده. افصله في غطسة مستقلة بدلًا من ذلك.",
   "diveLog_sources_menu_separate": "فصل الغوصات المدمجة",
   "diveLog_sources_separateDialog_title": "فصل الغوصات المدمجة؟",
   "diveLog_sources_separateDialog_body": "تم دمج هذه الغوصة من {count} غوصات. يعود ملف كل غوصة وأحداثها وأسطواناتها وتبديلات الغاز إلى غوصتها الخاصة. أما بقية بيانات السجل، بما فيها رفقاء الغوص والوسوم والمعدات والوسائط والملاحظات ورقم الغوصة، فتبقى في هذه الغوصة.",

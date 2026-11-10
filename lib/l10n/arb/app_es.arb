@@ -3589,6 +3589,7 @@
   "diveLog_sources_removeDialog_confirm": "Eliminar",
   "diveLog_sources_removeDone": "Fuente eliminada",
   "diveLog_sources_removeFailed": "No se pudo eliminar la fuente",
+  "diveLog_sources_removeSharedComputer": "Esta fuente comparte su ordenador de buceo con otra fuente de la inmersión, así que no se puede eliminar sola. Sepárala en su propia inmersión.",
   "diveLog_sources_menu_separate": "Separar inmersiones combinadas",
   "diveLog_sources_separateDialog_title": "¿Separar las inmersiones combinadas?",
   "diveLog_sources_separateDialog_body": "Esta inmersión se combinó a partir de {count} inmersiones. El perfil, los eventos, los tanques y los cambios de gas de cada una vuelven a su propia inmersión. El resto de la entrada del cuaderno, incluidos los compañeros, las etiquetas, el equipo, los archivos multimedia, las notas y el número de inmersión, permanece en esta inmersión.",

@@ -3488,6 +3488,7 @@
   "diveLog_sources_removeDialog_confirm": "הסרה",
   "diveLog_sources_removeDone": "המקור הוסר",
   "diveLog_sources_removeFailed": "לא ניתן היה להסיר את המקור",
+  "diveLog_sources_removeSharedComputer": "המקור הזה חולק את מחשב הצלילה שלו עם מקור אחר של הצלילה, ולכן אי אפשר להסיר אותו לבד. פצל אותו לצלילה נפרדת במקום זאת.",
   "diveLog_sources_menu_separate": "הפרדת צלילות ממוזגות",
   "diveLog_sources_separateDialog_title": "להפריד את הצלילות הממוזגות?",
   "diveLog_sources_separateDialog_body": "הצלילה הזו מוזגה מ-{count} צלילות. הפרופיל, האירועים, הבלונים והחלפות הגז של כל אחת יחזרו לצלילה שלה. שאר רשומת היומן, ובכללה השותפים, התגיות, הציוד, המדיה, ההערות ומספר הצלילה, תישאר בצלילה הזו.",

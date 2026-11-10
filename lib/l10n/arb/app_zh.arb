@@ -3704,6 +3704,7 @@
   "diveLog_sources_removeDialog_confirm": "移除",
   "diveLog_sources_removeDone": "已移除数据源",
   "diveLog_sources_removeFailed": "无法移除数据源",
+  "diveLog_sources_removeSharedComputer": "此数据源与该潜水的另一个数据源共用同一台潜水电脑，因此无法单独移除。请改为将其拆分为单独的潜水。",
   "diveLog_sources_menu_separate": "拆分合并的潜水",
   "diveLog_sources_separateDialog_title": "要拆分合并的潜水吗？",
   "diveLog_sources_separateDialog_body": "本次潜水由 {count} 次潜水合并而成。每次潜水的剖面、事件、气瓶和换气记录都会回到各自的潜水中。日志条目的其余部分，包括潜伴、标签、装备、媒体、备注和潜水编号，仍保留在本次潜水中。",

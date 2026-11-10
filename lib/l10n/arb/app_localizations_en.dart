@@ -11187,6 +11187,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sources_removeFailed => 'Could not remove the source';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'This source shares its dive computer with another source of the dive, so it cannot be removed on its own. Split it into its own dive instead.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separate combined dives';
 
   @override

@@ -24,6 +24,24 @@ void main() {
     operationId: 'op',
   );
 
+  test(
+    'mixes that drift across rows differ even when each is near the first',
+    () {
+      const preview = CylinderMergePreview(
+        diveId: 'd1',
+        survivorId: 'a',
+        duplicateIds: ['b', 'c'],
+        cylinders: [
+          CylinderSummary(id: 'a', order: 0, name: null, o2: 21.04, he: 0),
+          CylinderSummary(id: 'b', order: 1, name: null, o2: 21.00, he: 0),
+          CylinderSummary(id: 'c', order: 2, name: null, o2: 21.08, he: 0),
+        ],
+        findingIds: ['f1'],
+      );
+      expect(preview.mixesDiffer, isTrue);
+    },
+  );
+
   test('a run that changed nothing has no summary', () {
     expect(duplicateRemovalSummary(l10n, result()), isNull);
   });

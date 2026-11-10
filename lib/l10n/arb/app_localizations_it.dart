@@ -11366,6 +11366,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_sources_removeFailed => 'Impossibile rimuovere la fonte';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Questa fonte condivide il computer subacqueo con un\'altra fonte dell\'immersione, quindi non può essere rimossa da sola. Separala invece in un\'immersione a sé.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separa le immersioni unite';
 
   @override

@@ -11295,6 +11295,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'De bron kon niet worden verwijderd';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Deze bron deelt zijn duikcomputer met een andere bron van de duik en kan daarom niet apart worden verwijderd. Splits hem in plaats daarvan af als eigen duik.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Samengevoegde duiken scheiden';
 
   @override

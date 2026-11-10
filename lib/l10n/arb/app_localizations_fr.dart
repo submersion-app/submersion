@@ -11405,6 +11405,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de supprimer la source';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Cette source partage son ordinateur de plongée avec une autre source de la plongée, elle ne peut donc pas être supprimée seule. Sépare-la plutôt en une plongée à part.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Séparer les plongées combinées';
 
   @override

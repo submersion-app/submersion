@@ -56,11 +56,18 @@ class CylinderMergePreview {
   final List<String> findingIds;
 
   /// Whether the rows disagree on gas, so the diver must say which it held.
+  /// Whether any two rows disagree on gas, so the diver must say which it
+  /// held. Every pair, as the merge rules compare them: rows can each sit
+  /// near the first while drifting apart from one another.
   bool get mixesDiffer {
-    final first = cylinders.first;
-    return cylinders.any(
-      (c) => (c.o2 - first.o2).abs() > 0.05 || (c.he - first.he).abs() > 0.05,
-    );
+    for (final a in cylinders) {
+      for (final b in cylinders) {
+        if ((a.o2 - b.o2).abs() > 0.05 || (a.he - b.he).abs() > 0.05) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   CylinderSummary get survivor =>

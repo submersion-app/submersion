@@ -11366,6 +11366,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sources_removeFailed => 'No se pudo eliminar la fuente';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Esta fuente comparte su ordenador de buceo con otra fuente de la inmersión, así que no se puede eliminar sola. Sepárala en su propia inmersión.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separar inmersiones combinadas';
 
   @override

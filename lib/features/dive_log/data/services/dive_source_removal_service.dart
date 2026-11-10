@@ -40,6 +40,23 @@ class DiveSourceRemovalService {
 
   AppDatabase get _db => DatabaseService.instance.database;
 
+  /// Whether [sourceId] shares its dive computer with another source of
+  /// [diveId] (a combined split pair, #1045), which [remove] refuses: their
+  /// rows cannot be told apart by computer. Lets a caller explain before
+  /// asking the diver to confirm.
+  Future<bool> sharesComputer({
+    required String diveId,
+    required String sourceId,
+  }) async {
+    final sources = await (_db.select(
+      _db.diveDataSources,
+    )..where((t) => t.diveId.equals(diveId))).get();
+    final source = sources.where((s) => s.id == sourceId).firstOrNull;
+    final computerId = source?.computerId;
+    if (computerId == null) return false;
+    return sources.any((s) => s.id != sourceId && s.computerId == computerId);
+  }
+
   /// Throws [ArgumentError] when the source is not on the dive or is its
   /// only source, and [UnreadableSeriesException] when a series of the dive
   /// cannot be decoded (its tank could not be told apart safely).

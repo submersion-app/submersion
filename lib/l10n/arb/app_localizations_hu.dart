@@ -11341,6 +11341,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A forrást nem sikerült eltávolítani';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Ez a forrás a merülés egy másik forrásával közös búvárkomputert használ, ezért önmagában nem távolítható el. Válaszd le inkább külön merülésbe.';
+
+  @override
   String get diveLog_sources_menu_separate =>
       'Összevont merülések szétválasztása';
 

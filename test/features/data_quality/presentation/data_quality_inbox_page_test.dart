@@ -1978,6 +1978,59 @@ void main() {
       expect(await dcPresent(), isTrue);
     });
 
+    testWidgets('remove source explains why a shared computer cannot be '
+        'removed (#4393)', (tester) async {
+      await seedSources();
+      await tester.runAsync(() async {
+        final db = DatabaseService.instance.database;
+        await db
+            .into(db.diveComputers)
+            .insert(
+              const DiveComputersCompanion(
+                id: Value('teric'),
+                name: Value('Teric'),
+                createdAt: Value(0),
+                updatedAt: Value(0),
+              ),
+            );
+        await (db.update(
+          db.diveDataSources,
+        )).write(const DiveDataSourcesCompanion(computerId: Value('teric')));
+      });
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [conflict()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.text('Sources disagree on dive duration: 23 min vs. 68 min'),
+      );
+      await tester.pumpAndSettle();
+      // With a computer, the source is named after it, not the model.
+      final remove = find.textContaining(RegExp(r'^Remove '));
+      await tester.ensureVisible(remove);
+      await tester.tap(remove);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Remove this source?'), findsNothing);
+      expect(
+        find.text(
+          'This source shares its dive computer with another source of the '
+          'dive, so it cannot be removed on its own. Split it into its own '
+          'dive instead.',
+        ),
+        findsOneWidget,
+      );
+      // The display list merges two sources of one computer, so read the row.
+      final db = DatabaseService.instance.database;
+      final rows = await tester.runAsync(
+        () => (db.select(
+          db.diveDataSources,
+        )..where((t) => t.id.equals('dc'))).get(),
+      );
+      expect(rows, hasLength(1));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
     testWidgets('remove source removes it once confirmed (#4393)', (
       tester,
     ) async {

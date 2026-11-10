@@ -35,8 +35,10 @@ class DuplicateCylinderRepository {
   ///    computers that shared it, so a later Split of that source still finds
   ///    a cylinder to take.
   /// 2. When the survivor has no pressure series, the first duplicate that has
-  ///    one hands it over with its start and end pressures; both read the same
-  ///    transmitter, so any other duplicate series is redundant.
+  ///    one hands it over with its start and end pressures (never its
+  ///    sourceTankIndex, which belongs to the duplicate's computer); both
+  ///    read the same transmitter, so any other duplicate series is
+  ///    redundant.
   /// 3. Gas switches and profile events naming a duplicate name the survivor.
   /// 4. Each duplicate is deleted with its remaining series, tombstoned.
   ///
@@ -106,10 +108,11 @@ class DuplicateCylinderRepository {
       for (final d in duplicates) {
         if (!await _hasSeries(diveId, d.id)) continue;
         await _series.reassignTank(diveId, d.id, survivorId, now: now);
+        // The survivor keeps its own sourceTankIndex: it is the parsed-tank
+        // identity for the survivor's computer, not the duplicate's.
         update = update.copyWith(
           startPressure: Value(d.startPressure),
           endPressure: Value(d.endPressure),
-          sourceTankIndex: Value(d.sourceTankIndex),
         );
         break;
       }

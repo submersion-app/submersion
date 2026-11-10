@@ -182,6 +182,25 @@ void main() {
   });
 
   test(
+    "keeps the survivor's own parsed-tank index when a series moves",
+    () async {
+      await insertTank('keep', computerId: 'dc-a');
+      await insertTank('dup', computerId: 'dc-b');
+      await (db.update(db.diveTanks)..where((t) => t.id.equals('keep'))).write(
+        const DiveTanksCompanion(sourceTankIndex: Value(0)),
+      );
+      await (db.update(db.diveTanks)..where((t) => t.id.equals('dup'))).write(
+        const DiveTanksCompanion(sourceTankIndex: Value(2)),
+      );
+      await insertPressure('dup', 200);
+
+      await merge();
+
+      expect((await tank('keep'))!.sourceTankIndex, 0);
+    },
+  );
+
+  test(
     "deletes the duplicate's series when the survivor has its own",
     () async {
       await insertTank('keep', computerId: 'dc-a');

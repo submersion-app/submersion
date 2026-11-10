@@ -11513,6 +11513,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_removeFailed => 'تعذّرت إزالة المصدر';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'يشترك هذا المصدر في حاسوب الغوص مع مصدر آخر في الغطسة، لذا لا يمكن إزالته وحده. افصله في غطسة مستقلة بدلًا من ذلك.';
+
+  @override
   String get diveLog_sources_menu_separate => 'فصل الغوصات المدمجة';
 
   @override

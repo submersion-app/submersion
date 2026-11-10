@@ -44,18 +44,30 @@ Future<void> runRemoveSource(
   required String sourceId,
   required String? sourceName,
 }) async {
+  final removal = ref.read(diveSourceRemovalServiceProvider);
+  // The finding is raised for a combined split pair too, whose two sources
+  // share a computer and cannot be removed apart: say so instead of offering
+  // a confirmation that can only fail.
+  if (await removal.sharesComputer(diveId: diveId, sourceId: sourceId)) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.diveLog_sources_removeSharedComputer),
+      ),
+    );
+    return;
+  }
+  if (!context.mounted) return;
   if (!await confirmRemoveSource(context, source: sourceName)) return;
   if (!context.mounted) return;
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final findings = ref.read(qualityFindingsRepositoryProvider);
   try {
-    final removal = await ref
-        .read(diveSourceRemovalServiceProvider)
-        .remove(diveId: diveId, sourceId: sourceId);
+    final done = await removal.remove(diveId: diveId, sourceId: sourceId);
     await findings.setStatus(finding.id, QualityStatus.resolved);
     rescanDives([diveId]);
-    final operationId = removal.operationId;
+    final operationId = done.operationId;
     messenger.showSnackBar(
       SnackBar(
         duration: inboxDestructiveUndoWindow,

@@ -11362,6 +11362,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_sources_removeFailed => 'Não foi possível remover a fonte';
 
   @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Esta fonte compartilha o computador de mergulho com outra fonte do mergulho, então não pode ser removida sozinha. Separe-a em um mergulho próprio.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separar mergulhos combinados';
 
   @override

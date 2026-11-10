@@ -43,6 +43,14 @@ void main() {
       ]);
     });
 
+    test('all-zero serials are no transmitter, as the detector reads them', () {
+      final groups = serialGroups([
+        _tank('a', serial: '000'),
+        _tank('b', serial: '000'),
+      ]);
+      expect(groups, isEmpty);
+    });
+
     test('serial groups skip tanks without a serial', () {
       final groups = serialGroups([
         _tank('a'),
@@ -82,6 +90,18 @@ void main() {
           tanks: tanks,
         ),
         ['a', 'b', 'c'],
+      );
+    });
+
+    test('a stale twin whose second tank left the serial group is empty', () {
+      expect(
+        duplicateGroupFor(
+          tankIdA: 'a',
+          tankIdB: 'd',
+          sameTransmitter: true,
+          tanks: tanks,
+        ),
+        isEmpty,
       );
     });
 

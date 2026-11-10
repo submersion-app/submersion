@@ -18064,6 +18064,12 @@ abstract class AppLocalizations {
   /// **'Could not remove the source'**
   String get diveLog_sources_removeFailed;
 
+  /// Snackbar explaining that a data source sharing its computer with another source of the dive cannot be removed.
+  ///
+  /// In en, this message translates to:
+  /// **'This source shares its dive computer with another source of the dive, so it cannot be removed on its own. Split it into its own dive instead.'**
+  String get diveLog_sources_removeSharedComputer;
+
   /// No description provided for @diveLog_sources_menu_separate.
   ///
   /// In en, this message translates to:

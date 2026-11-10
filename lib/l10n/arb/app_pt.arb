@@ -3589,6 +3589,7 @@
   "diveLog_sources_removeDialog_confirm": "Remover",
   "diveLog_sources_removeDone": "Fonte removida",
   "diveLog_sources_removeFailed": "Não foi possível remover a fonte",
+  "diveLog_sources_removeSharedComputer": "Esta fonte compartilha o computador de mergulho com outra fonte do mergulho, então não pode ser removida sozinha. Separe-a em um mergulho próprio.",
   "diveLog_sources_menu_separate": "Separar mergulhos combinados",
   "diveLog_sources_separateDialog_title": "Separar os mergulhos combinados?",
   "diveLog_sources_separateDialog_body": "Este mergulho foi combinado a partir de {count} mergulhos. O perfil, os eventos, os cilindros e as trocas de gás de cada um voltam para o seu próprio mergulho. O restante do registro, incluindo parceiros, tags, equipamentos, mídia, notas e o número do mergulho, permanece neste mergulho.",
