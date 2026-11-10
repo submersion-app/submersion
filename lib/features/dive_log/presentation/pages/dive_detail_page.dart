@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -60,6 +61,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_overflow_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/draft_dive_banner.dart';
@@ -160,7 +162,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     if (!mounted) return;
     final ctx = _notesSectionKey.currentContext;
     if (ctx != null && ctx.mounted) {
-      await Scrollable.ensureVisible(
+      // Lands below the pinned profile strip while it shows (#4423).
+      await ensureVisibleBelowPinnedStrip(
         ctx,
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOutCubic,
@@ -247,7 +250,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   void _scrollToSafetySection() {
     final ctx = _safetyReviewSectionKey.currentContext;
     if (ctx == null) return;
-    Scrollable.ensureVisible(
+    ensureVisibleBelowPinnedStrip(
       ctx,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOutCubic,
@@ -503,6 +506,23 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       ),
     );
 
+    // Once the profile card scrolls away, a thin scrubbable copy pins to the
+    // top (#4423). Only in the detailed layout, where the card is a full card
+    // rather than a folded row, and only for a dive with a curve to draw.
+    // Keyed by dive so the master-detail pane starts afresh on a new dive.
+    final pinProfile =
+        ref.watch(pinProfileOnScrollProvider) &&
+        layout == DiveDetailLayout.detailed &&
+        watchChartProfile(ref, dive).length >= 2;
+    final content = pinProfile
+        ? PinnedProfileOverlay(
+            key: ValueKey('pinnedProfile_${dive.id}'),
+            dive: dive,
+            profileKey: _profileSectionKey,
+            child: body,
+          )
+        : body;
+
     // Embedded mode: Return content with a compact header bar (no Scaffold)
     if (widget.embedded) {
       return Column(
@@ -515,7 +535,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             onDownloadDraft: _downloadForDraft,
             onSurfaceDraft: () => _surfaceDraft(dive),
           ),
-          Expanded(child: body),
+          Expanded(child: content),
         ],
       );
     }
@@ -554,7 +574,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
           _overflowMenu(dive, _appBarMenuKey, showFavorite: compactActions),
         ],
       ),
-      body: body,
+      body: content,
     );
   }
 
