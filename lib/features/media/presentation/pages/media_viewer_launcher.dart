@@ -15,11 +15,15 @@ typedef MediaViewerOpener =
 /// Pushes the cross-dive media viewer as a full-screen dialog on [items],
 /// starting at [initialMediaId]. The library grid and the media map share
 /// this so the two entry points cannot drift.
+///
+/// [captionFor] adds a line naming where an item comes from, such as the
+/// check-in a gear photo backs up (issue #3355).
 void openMediaViewer(
   BuildContext context,
   List<MediaItem> items,
-  String initialMediaId,
-) {
+  String initialMediaId, {
+  String? Function(MediaItem)? captionFor,
+}) {
   Navigator.of(context).push(
     MaterialPageRoute<void>(
       fullscreenDialog: true,
@@ -27,6 +31,7 @@ void openMediaViewer(
         mediaList: items,
         initialMediaId: initialMediaId,
         showGoToDive: true,
+        captionFor: captionFor,
       ),
     ),
   );

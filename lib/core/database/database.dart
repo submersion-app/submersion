@@ -1630,6 +1630,10 @@ class AppDatabase extends _$AppDatabase {
     // folded group keys (issue #4184). A nullable column an older peer
     // omits, so the floor does not move.
     351,
+    // v352: media.observation_id and equipment.cover_media_id, gear photos
+    // and an item's cover photo (issue #3355). Nullable columns an older
+    // peer omits, with no backfill, so the floor does not move.
+    352,
     // v354: dives.is_draft, a dive marked at the site that waits for its
     // dive computer readings, and dive_health_records, heart rate, recovery
     // and sleep from Apple Health per dive (issue #637). Additive and

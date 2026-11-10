@@ -10,6 +10,7 @@ import 'package:submersion/features/query/presentation/widgets/entity_search_hea
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/scan_tag_menu_entries.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_avatar.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_default_view_empty_state.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_bulk_share.dart';
@@ -1675,7 +1676,10 @@ class EquipmentListTile extends ConsumerWidget {
           isSelectionMode: isSelectionMode,
           isChecked: isChecked,
           onChanged: onCheckChanged,
-          child: CircleAvatar(
+          // The chosen cover photo, else the type icon (issue #3355).
+          child: EquipmentAvatar(
+            item: item,
+            radius: 20,
             // An overdue service is a status signal, so it keeps the error
             // colors even with accents on -- a cosmetic preference must not
             // hide a service warning.
@@ -1683,12 +1687,9 @@ class EquipmentListTile extends ConsumerWidget {
                 ? StatusColors.of(context).alert.container
                 : accent?.withValues(alpha: 0.15) ??
                       theme.colorScheme.tertiaryContainer,
-            child: Icon(
-              equipmentTypeIcon(item.type),
-              color: isOverdue
-                  ? StatusColors.of(context).alert.onContainer
-                  : accent ?? theme.colorScheme.onTertiaryContainer,
-            ),
+            iconColor: isOverdue
+                ? StatusColors.of(context).alert.onContainer
+                : accent ?? theme.colorScheme.onTertiaryContainer,
           ),
         ),
         title: Text(item.name),

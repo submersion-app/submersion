@@ -58254,6 +58254,87 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_twinPassportId => '双瓶搭档护照';
 
   @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '它的 $count 张照片',
+      one: '它的照片',
+    );
+    return '删除这条检查记录？$_temp0将从 Submersion 中移除。文件本身不受影响。';
+  }
+
+  @override
+  String get media_import_review_linkToGear => '关联到装备';
+
+  @override
+  String get equipment_photos_title => '照片';
+
+  @override
+  String get equipment_photos_add => '添加照片';
+
+  @override
+  String get equipment_photos_empty => '添加这件装备、其序列号标签或标记的照片，以供参考。';
+
+  @override
+  String get equipment_photos_setCover => '设为封面照片';
+
+  @override
+  String get equipment_photos_clearCover => '移除封面照片';
+
+  @override
+  String get equipment_photos_remove => '移除';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片',
+      one: '$count 张照片',
+    );
+    return '移除 $_temp0？';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      '照片将从 Submersion 中移除。文件本身不受影响。';
+
+  @override
+  String get equipment_photos_photoLabel => '装备照片';
+
+  @override
+  String get equipment_photos_coverLabel => '封面照片';
+
+  @override
+  String get equipment_photos_checkInPhotos => '照片';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return '检查记录：$title，$date';
+  }
+
+  @override
+  String get media_gearGallery_tab => '装备';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片',
+      one: '$count 张照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty => '你为装备及其检查记录添加的照片会显示在这里。';
+
+  @override
+  String get media_gearGallery_checkInBadge => '检查记录照片';
+
+  @override
   String info_button_semantics(String title) {
     return '关于$title';
   }

@@ -97455,6 +97455,114 @@ abstract class AppLocalizations {
   /// **'Twin set partner passport'**
   String get settings_conflict_field_twinPassportId;
 
+  /// No description provided for @equipment_photos_deleteCheckInWithPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this check-in? Its {count, plural, =1{photo} other{{count} photos}} will be removed from Submersion. The files themselves are not touched.'**
+  String equipment_photos_deleteCheckInWithPhotos(int count);
+
+  /// No description provided for @media_import_review_linkToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to equipment'**
+  String get media_import_review_linkToGear;
+
+  /// No description provided for @equipment_photos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get equipment_photos_title;
+
+  /// No description provided for @equipment_photos_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos'**
+  String get equipment_photos_add;
+
+  /// No description provided for @equipment_photos_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos of this item, its serial number label or markings, for reference.'**
+  String get equipment_photos_empty;
+
+  /// No description provided for @equipment_photos_setCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Use as cover photo'**
+  String get equipment_photos_setCover;
+
+  /// No description provided for @equipment_photos_clearCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove cover photo'**
+  String get equipment_photos_clearCover;
+
+  /// No description provided for @equipment_photos_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get equipment_photos_remove;
+
+  /// No description provided for @equipment_photos_removeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {count, plural, =1{{count} photo} other{{count} photos}}?'**
+  String equipment_photos_removeConfirmTitle(int count);
+
+  /// No description provided for @equipment_photos_removeConfirmContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The photos are removed from Submersion. The files themselves are not touched.'**
+  String get equipment_photos_removeConfirmContent;
+
+  /// No description provided for @equipment_photos_photoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment photo'**
+  String get equipment_photos_photoLabel;
+
+  /// No description provided for @equipment_photos_coverLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover photo'**
+  String get equipment_photos_coverLabel;
+
+  /// No description provided for @equipment_photos_checkInPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get equipment_photos_checkInPhotos;
+
+  /// No description provided for @equipment_photos_checkInCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in: {title}, {date}'**
+  String equipment_photos_checkInCaption(String title, String date);
+
+  /// No description provided for @media_gearGallery_tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get media_gearGallery_tab;
+
+  /// No description provided for @media_gearGallery_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} photo} other{{count} photos}}'**
+  String media_gearGallery_count(int count);
+
+  /// No description provided for @media_gearGallery_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos you add to your equipment and its check-ins show up here.'**
+  String get media_gearGallery_empty;
+
+  /// No description provided for @media_gearGallery_checkInBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in photo'**
+  String get media_gearGallery_checkInBadge;
+
   /// No description provided for @info_button_semantics.
   ///
   /// In en, this message translates to:

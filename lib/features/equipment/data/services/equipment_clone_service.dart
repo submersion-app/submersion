@@ -151,6 +151,9 @@ class EquipmentCloneService {
   /// its hash.
   Future<void> _copyMedia(String sourceId, String cloneId) async {
     for (final item in await _media.getMediaForEquipment(sourceId)) {
+      // A photo shows that unit, its serial label or a check-in finding,
+      // so a new unit starts without them (issue #3355).
+      if (item.isGearPhoto) continue;
       await _media.createMedia(
         item.copyWith(id: '', equipmentId: cloneId, diveId: null, siteId: null),
       );

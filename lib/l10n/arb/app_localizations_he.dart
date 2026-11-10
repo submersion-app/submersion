@@ -60774,6 +60774,89 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_twinPassportId => 'דרכון הבלון השותף';
 
   @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count התמונות שלה יוסרו',
+      one: 'התמונה שלה תוסר',
+    );
+    return 'למחוק בדיקה זו? $_temp0 מ-Submersion. הקבצים עצמם לא ייפגעו.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'קישור לציוד';
+
+  @override
+  String get equipment_photos_title => 'תמונות';
+
+  @override
+  String get equipment_photos_add => 'הוספת תמונות';
+
+  @override
+  String get equipment_photos_empty =>
+      'הוסיפו תמונות של הפריט, של תווית המספר הסידורי או של הסימונים שלו, לעיון.';
+
+  @override
+  String get equipment_photos_setCover => 'שימוש כתמונת שער';
+
+  @override
+  String get equipment_photos_clearCover => 'הסרת תמונת השער';
+
+  @override
+  String get equipment_photos_remove => 'הסרה';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות',
+      one: 'תמונה אחת',
+    );
+    return 'להסיר $_temp0?';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'התמונות מוסרות מ-Submersion. הקבצים עצמם לא ייפגעו.';
+
+  @override
+  String get equipment_photos_photoLabel => 'תמונת ציוד';
+
+  @override
+  String get equipment_photos_coverLabel => 'תמונת שער';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'תמונות';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'בדיקה: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'ציוד';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות',
+      one: 'תמונה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'תמונות שתוסיפו לציוד ולבדיקות שלו יופיעו כאן.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'תמונת בדיקה';
+
+  @override
   String info_button_semantics(String title) {
     return 'אודות $title';
   }

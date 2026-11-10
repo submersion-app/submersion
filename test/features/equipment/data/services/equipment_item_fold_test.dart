@@ -508,6 +508,35 @@ void main() {
     expect(into.purchaseCurrency, 'USD');
   });
 
+  group('cover photo (issue #3355)', () {
+    Future<String?> coverOf(String id) async => (await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals(id))).getSingle()).coverMediaId;
+
+    test('fold keeps survivor cover', () async {
+      await (db.update(db.equipment)..where((t) => t.id.equals('into'))).write(
+        const EquipmentCompanion(coverMediaId: Value('m-into')),
+      );
+      await (db.update(db.equipment)..where((t) => t.id.equals('from'))).write(
+        const EquipmentCompanion(coverMediaId: Value('m-from')),
+      );
+
+      await fold();
+
+      expect(await coverOf('into'), 'm-into');
+    });
+
+    test('fold takes folded cover when the survivor has none', () async {
+      await (db.update(db.equipment)..where((t) => t.id.equals('from'))).write(
+        const EquipmentCompanion(coverMediaId: Value('m-from')),
+      );
+
+      await fold();
+
+      expect(await coverOf('into'), 'm-from');
+    });
+  });
+
   test("another diver's item is never folded", () async {
     await (db.update(db.equipment)..where((t) => t.id.equals('from'))).write(
       const EquipmentCompanion(diverId: Value('d2')),

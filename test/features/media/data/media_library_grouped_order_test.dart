@@ -146,7 +146,7 @@ void main() {
       await insertSite('reef', 'Reef');
       await insertSite('arch', 'Arch');
 
-      // Newest first, the flat order is u1 s1 a1 b1 a2 q1 s2 b2 a3: dive A's
+      // Newest first, the flat order is u1 s1 a1 b1 a2 (q1) s2 b2 a3: dive A's
       // rows are split by dive B's b1 (a camera clock off by a week) and by
       // the rows attached to no dive.
       await insertMedia('u1', DateTime(2026, 6, 12), name: 'k.jpg');
@@ -210,23 +210,16 @@ void main() {
           MediaLibraryGrouping.none,
           limit: 2,
         ),
-        ['u1', 's1', 'a1', 'b1', 'a2', 'q1', 's2', 'b2', 'a3'],
+        // q1 is a gear-only photo: it lives in the Gear gallery, never in
+        // the library (issue #3355).
+        ['u1', 's1', 'a1', 'b1', 'a2', 's2', 'b2', 'a3'],
       );
     });
 
     // Dives newest first, each dive's rows newest first; then the site groups
-    // by name (Arch before Reef), the equipment group, and Unlinked last.
-    const dateDescending = [
-      'a1',
-      'a2',
-      'a3',
-      'b1',
-      'b2',
-      's2',
-      's1',
-      'q1',
-      'u1',
-    ];
+    // by name (Arch before Reef), and Unlinked last. The gear-only q1 is in
+    // no library view (issue #3355).
+    const dateDescending = ['a1', 'a2', 'a3', 'b1', 'b2', 's2', 's1', 'u1'];
 
     for (final limit in [1, 2, 3, 60]) {
       test('date descending keeps every dive whole (page of $limit)', () async {
@@ -248,7 +241,7 @@ void main() {
           MediaLibraryGrouping.dive,
           limit: 2,
         ),
-        ['b2', 'b1', 'a3', 'a2', 'a1', 's2', 's1', 'q1', 'u1'],
+        ['b2', 'b1', 'a3', 'a2', 'a1', 's2', 's1', 'u1'],
       );
     });
 
@@ -259,7 +252,7 @@ void main() {
           MediaLibraryGrouping.dive,
           limit: 2,
         ),
-        ['a3', 'a2', 'a1', 'b2', 'b1', 's2', 's1', 'q1', 'u1'],
+        ['a3', 'a2', 'a1', 'b2', 'b1', 's2', 's1', 'u1'],
       );
     });
 

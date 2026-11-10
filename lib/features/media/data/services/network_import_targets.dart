@@ -24,6 +24,12 @@ NetworkInsertRequest _request(
       media: media,
       siteId: siteId,
     ),
+    EquipmentAttachTarget(:final equipmentId, :final observationId) =>
+      NetworkInsertRequest(
+        media: media,
+        equipmentId: equipmentId,
+        observationId: observationId,
+      ),
   };
 }
 

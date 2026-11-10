@@ -62050,6 +62050,89 @@ class AppLocalizationsPt extends AppLocalizations {
       'Passaporte do cilindro parceiro';
 
   @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'As suas $count fotos serão removidas',
+      one: 'A sua foto será removida',
+    );
+    return 'Eliminar esta verificação? $_temp0 do Submersion. Os ficheiros não são alterados.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'Vincular a um equipamento';
+
+  @override
+  String get equipment_photos_title => 'Fotos';
+
+  @override
+  String get equipment_photos_add => 'Adicionar fotos';
+
+  @override
+  String get equipment_photos_empty =>
+      'Adicione fotos deste equipamento, da etiqueta com o número de série ou das marcações, para referência.';
+
+  @override
+  String get equipment_photos_setCover => 'Usar como foto de capa';
+
+  @override
+  String get equipment_photos_clearCover => 'Remover foto de capa';
+
+  @override
+  String get equipment_photos_remove => 'Remover';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return 'Remover $_temp0?';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'As fotos são removidas do Submersion. Os ficheiros não são alterados.';
+
+  @override
+  String get equipment_photos_photoLabel => 'Foto do equipamento';
+
+  @override
+  String get equipment_photos_coverLabel => 'Foto de capa';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'Fotos';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'Verificação: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'Equipamentos';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'As fotos que adicionar ao seu equipamento e às suas verificações aparecem aqui.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'Foto da verificação';
+
+  @override
   String info_button_semantics(String title) {
     return 'Sobre $title';
   }

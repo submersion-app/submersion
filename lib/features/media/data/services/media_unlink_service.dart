@@ -1,3 +1,4 @@
+import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 
 /// What an unlink actually did, so the caller can report it.
@@ -71,9 +72,16 @@ class EquipmentUnlinkOutcome {
 /// dive-deletion cascade's carve-out, and stops a dive-scoped action from
 /// destroying a site's only photo as a side effect.
 class MediaUnlinkService {
-  MediaUnlinkService({required this.repository, required this.deleteMedia});
+  MediaUnlinkService({
+    required this.repository,
+    required this.deleteMedia,
+    GearPhotoRepository? gearPhotos,
+  }) : _gearPhotos = gearPhotos;
 
   final MediaRepository repository;
+
+  /// Clears a gear item's cover when its photo leaves (issue #3355).
+  final GearPhotoRepository? _gearPhotos;
 
   /// The destructive half, injected rather than called directly: the real
   /// wiring is MediaDeletionCoordinator, which enqueues the remote blob
@@ -154,6 +162,7 @@ class MediaUnlinkService {
     if (split.deletable.isNotEmpty) {
       await deleteMedia(split.deletable);
     }
+    await (_gearPhotos ?? GearPhotoRepository()).clearCoversNaming(mediaIds);
     return EquipmentUnlinkOutcome(
       deleted: split.deletable.length,
       keptLinked: split.keptIds.length,

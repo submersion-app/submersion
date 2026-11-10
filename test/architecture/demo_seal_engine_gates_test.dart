@@ -252,6 +252,12 @@ const _gates = <(String, String, String, _Kind)>[
     _Kind.ensure,
   ),
   (
+    'lib/features/media/data/services/media_import_service.dart',
+    ' importPhotosForEquipment(',
+    'mediaImport',
+    _Kind.ensure,
+  ),
+  (
     'lib/features/media/data/services/local_file_link_service.dart',
     ' linkFileForDive(',
     'mediaImport',
