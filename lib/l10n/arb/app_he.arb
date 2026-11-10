@@ -18491,5 +18491,7 @@
   "info_settings_conditionThresholds_summary": "הקווים שגורמים לצלילה להיספר כקרה, עמוקה או עתירת חמצן לשעוני השירות.",
   "info_settings_sensorSummaries_summary": "הנתונים לכל צלילה שהאפליקציה שומרת לתאי חמצן, משדרים ומסנני CO2.",
   "info_settings_conditionRules_summary": "הבדיקות שמאחורי ממצאי מצב הציוד. כלל כבוי לעולם אינו מדווח.",
-  "info_settings_notifications_summary": "התזכורות מתוזמנות כשהאפליקציה נפתחת ומתעדכנות ברקע. לכל פריט ציוד אפשר לקבוע תזכורות משלו במסך העריכה שלו."
+  "info_settings_notifications_summary": "התזכורות מתוזמנות כשהאפליקציה נפתחת ומתעדכנות ברקע. לכל פריט ציוד אפשר לקבוע תזכורות משלו במסך העריכה שלו.",
+  "info_settings_ascentRate_summary": "המהירויות שבהן הפרופיל צובע את העלייה ורושם אירועי קצב עלייה.",
+  "gasCalculators_blender_analyseNote": "תמיד נתח את התערובת הסופית לפני צלילה איתה."
 }

@@ -63,24 +63,16 @@ class DecoCalculatorPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          context.l10n.decoCalculator_diveParameters,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
-                        ),
+                  InfoTitleRow(
+                    title: Text(
+                      context.l10n.decoCalculator_diveParameters,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
                       ),
-                      HeaderInfoButton(
-                        title: context.l10n.decoCalculator_title,
-                        content: (context) => decoCalculatorInfo(
-                          context.l10n,
-                          infoUnits(context),
-                        ),
-                      ),
-                    ],
+                    ),
+                    label: context.l10n.decoCalculator_title,
+                    info: (context) =>
+                        decoCalculatorInfo(context.l10n, infoUnits(context)),
                   ),
                   const SizedBox(height: 12),
                   const DepthSlider(),

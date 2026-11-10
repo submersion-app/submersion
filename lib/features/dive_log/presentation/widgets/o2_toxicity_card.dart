@@ -162,7 +162,7 @@ class O2ToxicityCard extends StatelessWidget {
                 content: (context) => o2ToxicityInfo(
                   context.l10n,
                   infoUnits(context),
-                  showsOtuWindows: showDetails,
+                  showsDetails: showDetails,
                   showsTimeAbove:
                       exposure.timeAboveWarning > 0 ||
                       exposure.timeAboveCritical > 0,
@@ -630,7 +630,7 @@ class CompactO2ToxicityPanel extends StatelessWidget {
           content: (context) => o2ToxicityInfo(
             context.l10n,
             infoUnits(context),
-            showsOtuWindows: true,
+            showsDetails: true,
             showsTimeAbove:
                 exposure.timeAboveWarning > 0 || exposure.timeAboveCritical > 0,
           ),

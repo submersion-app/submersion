@@ -95,16 +95,17 @@ class TrendChartSection extends ConsumerWidget {
     final rollingColor = isDark ? Colors.amber.shade300 : Colors.amber.shade800;
     final rateColor = theme.colorScheme.onSurface.withValues(alpha: 0.75);
 
+    final summary = infoSummary;
     return StatSectionCard(
       title: title,
       subtitle: subtitle,
-      info: infoSummary == null
+      info: summary == null
           ? null
           : (context) => trendChartInfo(
               context.l10n,
               infoUnits(context),
               title: title,
-              summary: infoSummary!,
+              summary: summary,
               metricTerms: infoTerms,
               settings: ref.read(trendChartSettingsProvider(chartId)),
               gaps: ref.read(trendGapThresholdProvider),

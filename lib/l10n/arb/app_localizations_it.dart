@@ -62709,4 +62709,12 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'I promemoria sono pianificati all\'apertura dell\'app e aggiornati in background. Ogni elemento può avere promemoria propri nella sua schermata di modifica.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'Le velocità oltre le quali il profilo colora la risalita e registra eventi di velocità di risalita.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analizza sempre la miscela finale prima di immergerti.';
 }

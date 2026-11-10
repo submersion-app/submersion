@@ -98684,6 +98684,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders are scheduled when the app opens and refreshed in the background. Each equipment item can set its own reminders in its edit screen.'**
   String get info_settings_notifications_summary;
+
+  /// Summary on the info sheet for the Ascent rate section of the decompression settings.
+  ///
+  /// In en, this message translates to:
+  /// **'The speeds at which the profile colours the ascent and logs ascent rate events.'**
+  String get info_settings_ascentRate_summary;
+
+  /// Standing safety note under the gas blender's fill procedure.
+  ///
+  /// In en, this message translates to:
+  /// **'Always analyse the finished mix before diving it.'**
+  String get gasCalculators_blender_analyseNote;
 }
 
 class _AppLocalizationsDelegate

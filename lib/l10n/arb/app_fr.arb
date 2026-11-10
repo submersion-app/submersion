@@ -18491,5 +18491,7 @@
   "info_settings_conditionThresholds_summary": "Les seuils qui font compter une plongée comme froide, profonde ou à oxygène élevé pour les compteurs d'entretien.",
   "info_settings_sensorSummaries_summary": "Les valeurs par plongée que l'application conserve pour les cellules O2, les émetteurs et la chaux.",
   "info_settings_conditionRules_summary": "Les vérifications derrière les constats d'état du matériel. Une règle désactivée n'est jamais signalée.",
-  "info_settings_notifications_summary": "Les rappels sont planifiés à l'ouverture de l'application et actualisés en arrière-plan. Chaque équipement peut avoir ses propres rappels dans son écran d'édition."
+  "info_settings_notifications_summary": "Les rappels sont planifiés à l'ouverture de l'application et actualisés en arrière-plan. Chaque équipement peut avoir ses propres rappels dans son écran d'édition.",
+  "info_settings_ascentRate_summary": "Les vitesses à partir desquelles le profil colore la remontée et enregistre des événements de vitesse de remontée.",
+  "gasCalculators_blender_analyseNote": "Analysez toujours le mélange final avant de le plonger."
 }

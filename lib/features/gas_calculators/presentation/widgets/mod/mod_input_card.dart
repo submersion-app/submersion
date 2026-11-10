@@ -62,23 +62,16 @@ class ModInputCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.gasCalculators_mod_inputParameters,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+            InfoTitleRow(
+              title: Text(
+                l10n.gasCalculators_mod_inputParameters,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                HeaderInfoButton(
-                  title: context.l10n.gasCalculators_tab_mod,
-                  content: (context) =>
-                      calculatorInfo(context.l10n, infoUnits(context), 'mod'),
-                ),
-              ],
+              ),
+              label: context.l10n.gasCalculators_tab_mod,
+              info: (context) =>
+                  calculatorInfo(context.l10n, infoUnits(context), 'mod'),
             ),
             const SizedBox(height: 16),
             _Labelled(

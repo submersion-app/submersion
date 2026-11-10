@@ -894,6 +894,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 }
 
 class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
+  /// Where this chart last published its legend for the card's info icon.
+  ProfileLegendSnapshot? _legendSnapshot;
+
   /// The diver's metric colours (issue #3012), resolved at the top of
   /// every build so tooltip and gesture code reads the same palette.
   late ProfileMetricPalette _palette;
@@ -1750,6 +1753,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   @override
   void dispose() {
+    _legendSnapshot?.release(this);
     _viewportNotifier.dispose();
     _zoomNotifier.dispose();
     _plotPointerTick.dispose();
@@ -3189,7 +3193,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
 
     // The card header's info icon lists the overlays drawn here.
-    ProfileLegendSnapshotScope.maybeOf(context)?.config = legendConfig;
+    final snapshot = ProfileLegendSnapshotScope.maybeOf(context);
+    if (!identical(snapshot, _legendSnapshot)) _legendSnapshot?.release(this);
+    _legendSnapshot = snapshot?..publish(this, legendConfig);
 
     _scheduleLegendMeasure();
 

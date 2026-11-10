@@ -62322,4 +62322,12 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'Herinneringen worden ingepland bij het openen van de app en op de achtergrond vernieuwd. Elk uitrustingsitem kan eigen herinneringen hebben in zijn bewerkscherm.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'De snelheden waarbij het profiel de opstijging kleurt en gebeurtenissen voor opstijgsnelheid vastlegt.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analyseer het uiteindelijke mengsel altijd voordat je ermee duikt.';
 }

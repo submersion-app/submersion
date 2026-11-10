@@ -58786,4 +58786,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       '提醒在应用打开时安排，并在后台刷新。每件装备都可在其编辑界面设置自己的提醒。';
+
+  @override
+  String get info_settings_ascentRate_summary => '剖面图为上升着色并记录上升速度事件所用的速度。';
+
+  @override
+  String get gasCalculators_blender_analyseNote => '下水前务必分析配好的混合气。';
 }

@@ -21,17 +21,22 @@ class InfoButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = context.l10n.info_button_semantics(title);
-    return IconButton(
-      icon: Icon(
-        Icons.info_outline,
-        size: 18,
-        color: Theme.of(context).colorScheme.outline,
-        semanticLabel: label,
+    // The tooltip stays out of semantics: the icon's label already says it,
+    // and a screen reader would read it twice.
+    return Tooltip(
+      message: label,
+      excludeFromSemantics: true,
+      child: IconButton(
+        icon: Icon(
+          Icons.info_outline,
+          size: 18,
+          color: Theme.of(context).colorScheme.outline,
+          semanticLabel: label,
+        ),
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+        padding: EdgeInsets.zero,
+        onPressed: () => showInfoSheet(context, content(context)),
       ),
-      tooltip: label,
-      constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
-      padding: EdgeInsets.zero,
-      onPressed: () => showInfoSheet(context, content(context)),
     );
   }
 }
@@ -71,6 +76,42 @@ class HeaderInfoButton extends StatelessWidget {
         maxHeight: 48,
         child: InfoButton(title: title, content: content),
       ),
+    );
+  }
+}
+
+/// A header's [title] with its info icon at the end, the title taking the
+/// rest of the row. Without [info] it returns [title] alone.
+class InfoTitleRow extends StatelessWidget {
+  const InfoTitleRow({
+    super.key,
+    required this.title,
+    required this.label,
+    required this.info,
+    this.height = 24,
+  });
+
+  /// The header's title widget, usually its text.
+  final Widget title;
+
+  /// The name the icon is read out with, "About {label}".
+  final String label;
+
+  final InfoContentBuilder? info;
+
+  /// The height of the title line, passed to [HeaderInfoButton].
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    final builder = info;
+    if (builder == null) return title;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: title),
+        HeaderInfoButton(title: label, content: builder, height: height),
+      ],
     );
   }
 }

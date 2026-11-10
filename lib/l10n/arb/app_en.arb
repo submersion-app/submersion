@@ -36225,5 +36225,9 @@
   "info_settings_conditionThresholds_summary": "The lines that make a dive count as cold, deep or high-oxygen for service clocks.",
   "info_settings_sensorSummaries_summary": "The per-dive figures the app keeps for oxygen cells, transmitters and scrubbers.",
   "info_settings_conditionRules_summary": "The checks behind the equipment condition findings. A rule that is off is never reported.",
-  "info_settings_notifications_summary": "Reminders are scheduled when the app opens and refreshed in the background. Each equipment item can set its own reminders in its edit screen."
+  "info_settings_notifications_summary": "Reminders are scheduled when the app opens and refreshed in the background. Each equipment item can set its own reminders in its edit screen.",
+  "info_settings_ascentRate_summary": "The speeds at which the profile colours the ascent and logs ascent rate events.",
+  "@info_settings_ascentRate_summary": {"description": "Summary on the info sheet for the Ascent rate section of the decompression settings."},
+  "gasCalculators_blender_analyseNote": "Always analyse the finished mix before diving it.",
+  "@gasCalculators_blender_analyseNote": {"description": "Standing safety note under the gas blender's fill procedure."}
 }

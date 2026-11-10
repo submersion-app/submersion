@@ -26,17 +26,9 @@ class PlanSectionHeader extends StatelessWidget {
         ),
       ),
     );
-    final builder = info;
-    if (builder == null) return text;
-    // The slot spans the label and the padding under it, so the header
-    // keeps its height.
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: text),
-        HeaderInfoButton(title: label, content: builder, height: 24),
-      ],
-    );
+    // The icon's slot spans the label and the padding under it, so the
+    // header keeps its height.
+    return InfoTitleRow(title: text, label: label, info: info);
   }
 }
 

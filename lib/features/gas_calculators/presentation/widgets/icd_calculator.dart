@@ -39,8 +39,8 @@ class IcdCalculator extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildGasCard(
-                showInfo: true,
                 context,
+                showInfo: true,
                 textTheme: textTheme,
                 colorScheme: colorScheme,
                 title: context.l10n.gasCalculators_icd_gasATitle,

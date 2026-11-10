@@ -52,22 +52,14 @@ class _DisplaySectionState extends ConsumerState<DisplaySection> {
       key: const ValueKey('connections-display'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
-                l10n.connections_display_title,
-                style: theme.textTheme.titleSmall,
-              ),
-            ),
-            HeaderInfoButton(
-              title: l10n.connections_display_title,
-              height: 20,
-              content: (context) =>
-                  connectionsInfo(context.l10n, infoUnits(context)),
-            ),
-          ],
+        InfoTitleRow(
+          title: Text(
+            l10n.connections_display_title,
+            style: theme.textTheme.titleSmall,
+          ),
+          label: l10n.connections_display_title,
+          height: 20,
+          info: (context) => connectionsInfo(context.l10n, infoUnits(context)),
         ),
         const SizedBox(height: 8),
         Text(l10n.connections_layout_title, style: theme.textTheme.labelLarge),

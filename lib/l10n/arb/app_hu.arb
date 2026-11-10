@@ -18491,5 +18491,7 @@
   "info_settings_conditionThresholds_summary": "A határok, amelyek alapján egy merülés hidegnek, mélynek vagy magas oxigéntartalmúnak számít a szervizórák szerint.",
   "info_settings_sensorSummaries_summary": "A merülésenkénti adatok, amelyeket az alkalmazás az oxigéncellákhoz, jeladókhoz és mésztartályokhoz tárol.",
   "info_settings_conditionRules_summary": "A felszerelésállapot-megállapítások mögötti ellenőrzések. A kikapcsolt szabály soha nem jelez.",
-  "info_settings_notifications_summary": "Az emlékeztetők az alkalmazás megnyitásakor ütemeződnek, és a háttérben frissülnek. Minden felszerelés saját emlékeztetőket kaphat a szerkesztőképernyőjén."
+  "info_settings_notifications_summary": "Az emlékeztetők az alkalmazás megnyitásakor ütemeződnek, és a háttérben frissülnek. Minden felszerelés saját emlékeztetőket kaphat a szerkesztőképernyőjén.",
+  "info_settings_ascentRate_summary": "Azok a sebességek, amelyeknél a profil kiszínezi a feljövetelt, és feljövetelsebesség-eseményeket rögzít.",
+  "gasCalculators_blender_analyseNote": "A kész keveréket mindig elemezd, mielőtt lemerülnél vele."
 }

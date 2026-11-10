@@ -62687,4 +62687,12 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'Os lembretes são agendados quando a aplicação abre e atualizados em segundo plano. Cada equipamento pode ter lembretes próprios no seu ecrã de edição.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'As velocidades a partir das quais o perfil colore a subida e registra eventos de velocidade de subida.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analisa sempre a mistura final antes de a mergulhares.';
 }

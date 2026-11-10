@@ -73,26 +73,19 @@ class GasConsumptionCalculator extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              context.l10n.decoCalculator_diveParameters,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                      InfoTitleRow(
+                        title: Text(
+                          context.l10n.decoCalculator_diveParameters,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
                           ),
-                          HeaderInfoButton(
-                            title: context.l10n.gasCalculators_tab_consumption,
-                            content: (context) => calculatorInfo(
-                              context.l10n,
-                              infoUnits(context),
-                              'consumption',
-                            ),
-                          ),
-                        ],
+                        ),
+                        label: context.l10n.gasCalculators_tab_consumption,
+                        info: (context) => calculatorInfo(
+                          context.l10n,
+                          infoUnits(context),
+                          'consumption',
+                        ),
                       ),
                       const SizedBox(height: 16),
 

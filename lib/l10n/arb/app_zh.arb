@@ -18491,5 +18491,7 @@
   "info_settings_conditionThresholds_summary": "让潜水在保养计时中计为冷水、深潜或高氧潜水的阈值。",
   "info_settings_sensorSummaries_summary": "应用为氧传感器、发射器和吸收罐保存的每次潜水数据。",
   "info_settings_conditionRules_summary": "装备状态发现背后的检查。关闭的规则不会被报告。",
-  "info_settings_notifications_summary": "提醒在应用打开时安排，并在后台刷新。每件装备都可在其编辑界面设置自己的提醒。"
+  "info_settings_notifications_summary": "提醒在应用打开时安排，并在后台刷新。每件装备都可在其编辑界面设置自己的提醒。",
+  "info_settings_ascentRate_summary": "剖面图为上升着色并记录上升速度事件所用的速度。",
+  "gasCalculators_blender_analyseNote": "下水前务必分析配好的混合气。"
 }

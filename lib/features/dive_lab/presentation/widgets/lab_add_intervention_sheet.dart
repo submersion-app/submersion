@@ -263,21 +263,14 @@ class _LabAddInterventionSheetState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.diveLab_sheet_title,
-                    style: theme.textTheme.titleMedium,
-                  ),
-                ),
-                HeaderInfoButton(
-                  title: l10n.diveLab_sheet_title,
-                  content: (context) =>
-                      labInterventionsInfo(context.l10n, infoUnits(context)),
-                ),
-              ],
+            InfoTitleRow(
+              title: Text(
+                l10n.diveLab_sheet_title,
+                style: theme.textTheme.titleMedium,
+              ),
+              label: l10n.diveLab_sheet_title,
+              info: (context) =>
+                  labInterventionsInfo(context.l10n, infoUnits(context)),
             ),
             const SizedBox(height: 8),
             if (available.isEmpty)

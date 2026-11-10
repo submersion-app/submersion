@@ -172,7 +172,6 @@ class InsightsProfilePage extends ConsumerWidget {
         infoUnits(context),
         title: context.l10n.insights_profile_timeAtDepth_title,
         summary: context.l10n.info_insights_timeAtDepth_summary,
-        terms: const [],
       ),
       subtitle: context.l10n.insights_profile_timeAtDepth_subtitle,
       child: depthRangesAsync.when(

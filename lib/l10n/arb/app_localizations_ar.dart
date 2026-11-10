@@ -63555,4 +63555,12 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'تُجدول التذكيرات عند فتح التطبيق وتُحدَّث في الخلفية. ويمكن لكل قطعة معدات ضبط تذكيراتها في شاشة تعديلها.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'السرعات التي يلوّن عندها الملف الصعود ويسجّل أحداث سرعة الصعود.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'حلّل الخليط النهائي دائمًا قبل الغوص به.';
 }

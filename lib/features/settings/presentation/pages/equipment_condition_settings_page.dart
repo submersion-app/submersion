@@ -68,27 +68,20 @@ class _EquipmentConditionSettingsPageState
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.equipmentConditionSettings_thresholdsHeader,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+          InfoTitleRow(
+            title: Text(
+              l10n.equipmentConditionSettings_thresholdsHeader,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
               ),
-              HeaderInfoButton(
-                title: l10n.equipmentConditionSettings_thresholdsHeader,
-                height: 20,
-                content: (context) => settingsSectionInfo(
-                  context.l10n,
-                  infoUnits(context),
-                  SettingsInfoSection.conditionThresholds,
-                ),
-              ),
-            ],
+            ),
+            label: l10n.equipmentConditionSettings_thresholdsHeader,
+            height: 20,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.conditionThresholds,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -130,27 +123,20 @@ class _EquipmentConditionSettingsPageState
             onSubmit: notifier.setHighO2ThresholdPercent,
           ),
           const SizedBox(height: 24),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.equipmentConditionSettings_sensorHeader,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
+          InfoTitleRow(
+            title: Text(
+              l10n.equipmentConditionSettings_sensorHeader,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
               ),
-              HeaderInfoButton(
-                title: l10n.equipmentConditionSettings_sensorHeader,
-                height: 20,
-                content: (context) => settingsSectionInfo(
-                  context.l10n,
-                  infoUnits(context),
-                  SettingsInfoSection.sensorSummaries,
-                ),
-              ),
-            ],
+            ),
+            label: l10n.equipmentConditionSettings_sensorHeader,
+            height: 20,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.sensorSummaries,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
@@ -203,27 +189,20 @@ class _EquipmentConditionSettingsPageState
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 16, 0, 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.equipmentConditionSettings_rulesHeader,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+            child: InfoTitleRow(
+              title: Text(
+                l10n.equipmentConditionSettings_rulesHeader,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                HeaderInfoButton(
-                  title: l10n.equipmentConditionSettings_rulesHeader,
-                  height: 20,
-                  content: (context) => settingsSectionInfo(
-                    context.l10n,
-                    infoUnits(context),
-                    SettingsInfoSection.conditionRules,
-                  ),
-                ),
-              ],
+              ),
+              label: l10n.equipmentConditionSettings_rulesHeader,
+              height: 20,
+              info: (context) => settingsSectionInfo(
+                context.l10n,
+                infoUnits(context),
+                SettingsInfoSection.conditionRules,
+              ),
             ),
           ),
           for (final rule in ConditionRuleId.values)

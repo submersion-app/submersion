@@ -27,24 +27,16 @@ class EnvironmentWaterConditions extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
-                context.l10n.water_conditions_title,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                ),
-              ),
+        InfoTitleRow(
+          title: Text(
+            context.l10n.water_conditions_title,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.primary,
             ),
-            if (info case final builder?)
-              HeaderInfoButton(
-                title: context.l10n.water_conditions_title,
-                height: 20,
-                content: builder,
-              ),
-          ],
+          ),
+          label: context.l10n.water_conditions_title,
+          height: 20,
+          info: info,
         ),
         const SizedBox(height: 8),
         for (final reading in lines.readings)

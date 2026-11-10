@@ -55,26 +55,16 @@ class BestMixInputCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.gasCalculators_bestMix_targetDive,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+            InfoTitleRow(
+              title: Text(
+                l10n.gasCalculators_bestMix_targetDive,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                HeaderInfoButton(
-                  title: context.l10n.gasCalculators_tab_bestMix,
-                  content: (context) => calculatorInfo(
-                    context.l10n,
-                    infoUnits(context),
-                    'best-mix',
-                  ),
-                ),
-              ],
+              ),
+              label: context.l10n.gasCalculators_tab_bestMix,
+              info: (context) =>
+                  calculatorInfo(context.l10n, infoUnits(context), 'best-mix'),
             ),
             const SizedBox(height: 16),
             BestMixLabelled(

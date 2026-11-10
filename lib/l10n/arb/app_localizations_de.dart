@@ -62579,4 +62579,12 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'Erinnerungen werden beim Öffnen der App geplant und im Hintergrund aktualisiert. Jedes Ausrüstungsteil kann im Bearbeiten-Bildschirm eigene Erinnerungen haben.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'Die Geschwindigkeiten, ab denen das Profil den Aufstieg einfärbt und Ereignisse zur Aufstiegsgeschwindigkeit erfasst.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analysiere die fertige Mischung immer, bevor du sie tauchst.';
 }

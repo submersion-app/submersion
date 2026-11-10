@@ -18491,5 +18491,7 @@
   "info_settings_conditionThresholds_summary": "Los límites que hacen que una inmersión cuente como fría, profunda o de oxígeno alto para los relojes de mantenimiento.",
   "info_settings_sensorSummaries_summary": "Las cifras por inmersión que guarda la aplicación para células de oxígeno, transmisores y filtros.",
   "info_settings_conditionRules_summary": "Las comprobaciones detrás de los hallazgos del estado del equipo. Una regla desactivada nunca se informa.",
-  "info_settings_notifications_summary": "Los recordatorios se programan al abrir la aplicación y se actualizan en segundo plano. Cada equipo puede tener sus propios recordatorios en su pantalla de edición."
+  "info_settings_notifications_summary": "Los recordatorios se programan al abrir la aplicación y se actualizan en segundo plano. Cada equipo puede tener sus propios recordatorios en su pantalla de edición.",
+  "info_settings_ascentRate_summary": "Las velocidades a partir de las cuales el perfil colorea el ascenso y registra eventos de velocidad de ascenso.",
+  "gasCalculators_blender_analyseNote": "Analiza siempre la mezcla final antes de bucearla."
 }

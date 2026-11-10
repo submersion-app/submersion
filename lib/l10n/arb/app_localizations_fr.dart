@@ -62843,4 +62843,12 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'Les rappels sont planifiés à l\'ouverture de l\'application et actualisés en arrière-plan. Chaque équipement peut avoir ses propres rappels dans son écran d\'édition.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'Les vitesses à partir desquelles le profil colore la remontée et enregistre des événements de vitesse de remontée.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analysez toujours le mélange final avant de le plonger.';
 }

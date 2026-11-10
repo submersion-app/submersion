@@ -679,28 +679,21 @@ class _DistributionsSection extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      context.l10n.insights_summary_distributions_title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+              child: InfoTitleRow(
+                title: Text(
+                  context.l10n.insights_summary_distributions_title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  HeaderInfoButton(
-                    title: context.l10n.insights_summary_distributions_title,
-                    content: (context) => insightsCardInfo(
-                      context.l10n,
-                      infoUnits(context),
-                      title: context.l10n.insights_summary_distributions_title,
-                      summary: context.l10n.info_insights_distributions_summary,
-                      terms: const [DiveTerm.diveTypeCounting],
-                    ),
-                  ),
-                ],
+                ),
+                label: context.l10n.insights_summary_distributions_title,
+                info: (context) => insightsCardInfo(
+                  context.l10n,
+                  infoUnits(context),
+                  title: context.l10n.insights_summary_distributions_title,
+                  summary: context.l10n.info_insights_distributions_summary,
+                  terms: const [DiveTerm.diveTypeCounting],
+                ),
               ),
             ),
             const SizedBox(height: 8),

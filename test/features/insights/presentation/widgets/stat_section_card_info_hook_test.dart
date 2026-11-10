@@ -115,24 +115,4 @@ void main() {
     final icon = tester.getRect(find.byIcon(Icons.info_outline));
     expect(icon.right, lessThanOrEqualTo(card.right));
   });
-
-  testWidgets('SliverStatSectionCard shows the icon when given info', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      testApp(
-        child: const CustomScrollView(
-          slivers: [
-            SliverStatSectionCard(
-              title: 'Dives',
-              info: _info,
-              sliver: SliverToBoxAdapter(child: SizedBox(height: 40)),
-            ),
-          ],
-        ),
-      ),
-    );
-
-    expect(find.byType(InfoButton), findsOneWidget);
-  });
 }

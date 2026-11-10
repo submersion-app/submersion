@@ -18491,5 +18491,7 @@
   "info_settings_conditionThresholds_summary": "Os limiares que fazem um mergulho contar como frio, fundo ou de oxigénio elevado para os relógios de manutenção.",
   "info_settings_sensorSummaries_summary": "Os valores por mergulho que a aplicação guarda para células de oxigénio, transmissores e filtros.",
   "info_settings_conditionRules_summary": "As verificações por trás das ocorrências do estado do equipamento. Uma regra desligada nunca é assinalada.",
-  "info_settings_notifications_summary": "Os lembretes são agendados quando a aplicação abre e atualizados em segundo plano. Cada equipamento pode ter lembretes próprios no seu ecrã de edição."
+  "info_settings_notifications_summary": "Os lembretes são agendados quando a aplicação abre e atualizados em segundo plano. Cada equipamento pode ter lembretes próprios no seu ecrã de edição.",
+  "info_settings_ascentRate_summary": "As velocidades a partir das quais o perfil colore a subida e registra eventos de velocidade de subida.",
+  "gasCalculators_blender_analyseNote": "Analisa sempre a mistura final antes de a mergulhares."
 }

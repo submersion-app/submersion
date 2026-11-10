@@ -27,6 +27,17 @@ void main() {
     }
   });
 
+  test('no settings sheet repeats a term as its summary', () {
+    for (final section in SettingsInfoSection.values) {
+      final content = settingsSectionInfo(l10n, units, section);
+      expect(
+        content.terms.map((e) => e.body),
+        isNot(contains(content.summary)),
+        reason: '$section',
+      );
+    }
+  });
+
   test('the gradient factors section explains GF and cites its source', () {
     final content = settingsSectionInfo(
       l10n,
@@ -58,5 +69,31 @@ void main() {
       labels(scrubberMarginInfo(l10n, units)),
       contains(label(DiveTerm.scrubber)),
     );
+  });
+
+  group('equipment', () {
+    test('each condition trend explains its own measure', () {
+      for (final kind in ConditionTrendKind.values) {
+        final content = equipmentTrendInfo(l10n, units, kind, title: 'Trend');
+        expect(content.title, 'Trend');
+        expect(content.summary, isNotEmpty, reason: '$kind');
+        expect(content.terms, hasLength(1), reason: '$kind');
+      }
+    });
+
+    test('the findings card explains the condition rules', () {
+      final content = equipmentFindingsInfo(l10n, units);
+      expect(labels(content), [label(DiveTerm.conditionRules)]);
+    });
+
+    test('the exposure card explains its four exposure units', () {
+      final content = equipmentExposureInfo(l10n, units);
+      expect(labels(content), [
+        label(DiveTerm.saltWaterHours),
+        label(DiveTerm.coldDives),
+        label(DiveTerm.highO2Hours),
+        label(DiveTerm.deepCycles),
+      ]);
+    });
   });
 }

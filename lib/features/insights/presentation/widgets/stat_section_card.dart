@@ -132,18 +132,11 @@ class StatSectionHeader extends StatelessWidget {
   }
 
   /// The title, with the info icon at its end when [info] is set.
-  Widget _titleLine(ThemeData theme) {
-    final text = Text(title, style: theme.textTheme.titleMedium);
-    final builder = info;
-    if (builder == null) return text;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: text),
-        HeaderInfoButton(title: title, content: builder),
-      ],
-    );
-  }
+  Widget _titleLine(ThemeData theme) => InfoTitleRow(
+    title: Text(title, style: theme.textTheme.titleMedium),
+    label: title,
+    info: info,
+  );
 
   Widget _chevron(ThemeData theme) =>
       Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant);
@@ -167,14 +160,10 @@ class SliverStatSectionCard extends StatelessWidget {
   final String title;
   final Widget sliver;
 
-  /// What the card's info icon explains; null shows no icon.
-  final InfoContentBuilder? info;
-
   const SliverStatSectionCard({
     super.key,
     required this.title,
     required this.sliver,
-    this.info,
   });
 
   @override
@@ -203,9 +192,7 @@ class SliverStatSectionCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           sliver: SliverMainAxisGroup(
             slivers: [
-              SliverToBoxAdapter(
-                child: StatSectionHeader(title: title, info: info),
-              ),
+              SliverToBoxAdapter(child: StatSectionHeader(title: title)),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
               sliver,
             ],

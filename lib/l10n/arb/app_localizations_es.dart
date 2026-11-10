@@ -62744,4 +62744,12 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'Los recordatorios se programan al abrir la aplicación y se actualizan en segundo plano. Cada equipo puede tener sus propios recordatorios en su pantalla de edición.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'Las velocidades a partir de las cuales el perfil colorea el ascenso y registra eventos de velocidad de ascenso.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analiza siempre la mezcla final antes de bucearla.';
 }

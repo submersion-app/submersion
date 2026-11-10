@@ -163,7 +163,6 @@ class PlanResultsSheet extends ConsumerWidget {
                 infoUnits(context),
                 title: context.l10n.plannerCanvas_range_title,
                 summary: context.l10n.info_planner_range_summary,
-                terms: const [],
               ),
             ),
             const RangeTableSection(),

@@ -159,7 +159,6 @@ class InsightsEquipmentPage extends ConsumerWidget {
         infoUnits(context),
         title: context.l10n.insights_equipment_issues_title,
         summary: context.l10n.info_insights_reportedIssues_summary,
-        terms: const [],
       ),
       subtitle: l10n.insights_equipment_issues_subtitle,
       countLabel: l10n.insights_equipment_countLabel_reports,

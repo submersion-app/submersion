@@ -88,27 +88,20 @@ class _SafetyReviewSettingsPageState
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.safetySettings_rulesHeader,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+            child: InfoTitleRow(
+              title: Text(
+                l10n.safetySettings_rulesHeader,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                HeaderInfoButton(
-                  title: l10n.safetySettings_rulesHeader,
-                  height: 20,
-                  content: (context) => settingsSectionInfo(
-                    context.l10n,
-                    infoUnits(context),
-                    SettingsInfoSection.safetyReviewRules,
-                  ),
-                ),
-              ],
+              ),
+              label: l10n.safetySettings_rulesHeader,
+              height: 20,
+              info: (context) => settingsSectionInfo(
+                context.l10n,
+                infoUnits(context),
+                SettingsInfoSection.safetyReviewRules,
+              ),
             ),
           ),
           for (final rule in SafetyRuleId.values)
@@ -124,24 +117,16 @@ class _SafetyReviewSettingsPageState
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.safetySettings_noFlyHeader,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+            child: InfoTitleRow(
+              title: Text(
+                l10n.safetySettings_noFlyHeader,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-                HeaderInfoButton(
-                  title: l10n.safetySettings_noFlyHeader,
-                  height: 20,
-                  content: (context) =>
-                      noFlyInfo(context.l10n, infoUnits(context)),
-                ),
-              ],
+              ),
+              label: l10n.safetySettings_noFlyHeader,
+              height: 20,
+              info: (context) => noFlyInfo(context.l10n, infoUnits(context)),
             ),
           ),
           Padding(

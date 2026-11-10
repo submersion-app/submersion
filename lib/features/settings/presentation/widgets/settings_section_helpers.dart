@@ -16,12 +16,5 @@ Widget buildSettingsSectionHeader(
       fontWeight: FontWeight.bold,
     ),
   );
-  if (info == null) return text;
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Expanded(child: text),
-      HeaderInfoButton(title: title, content: info, height: 20),
-    ],
-  );
+  return InfoTitleRow(title: text, label: title, height: 20, info: info);
 }

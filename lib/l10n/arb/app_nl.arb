@@ -18491,5 +18491,7 @@
   "info_settings_conditionThresholds_summary": "De grenzen waardoor een duik voor onderhoudsklokken als koud, diep of zuurstofrijk telt.",
   "info_settings_sensorSummaries_summary": "De waarden per duik die de app bijhoudt voor zuurstofcellen, zenders en kalk.",
   "info_settings_conditionRules_summary": "De controles achter de bevindingen over uitrustingsstaat. Een uitgeschakelde regel wordt nooit gemeld.",
-  "info_settings_notifications_summary": "Herinneringen worden ingepland bij het openen van de app en op de achtergrond vernieuwd. Elk uitrustingsitem kan eigen herinneringen hebben in zijn bewerkscherm."
+  "info_settings_notifications_summary": "Herinneringen worden ingepland bij het openen van de app en op de achtergrond vernieuwd. Elk uitrustingsitem kan eigen herinneringen hebben in zijn bewerkscherm.",
+  "info_settings_ascentRate_summary": "De snelheden waarbij het profiel de opstijging kleurt en gebeurtenissen voor opstijgsnelheid vastlegt.",
+  "gasCalculators_blender_analyseNote": "Analyseer het uiteindelijke mengsel altijd voordat je ermee duikt."
 }

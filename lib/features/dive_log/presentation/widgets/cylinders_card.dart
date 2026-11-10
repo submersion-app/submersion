@@ -148,30 +148,21 @@ class CylindersCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.diveLog_detail_section_cylinders,
-                    style: theme.textTheme.titleMedium,
-                  ),
-                ),
-                HeaderInfoButton(
-                  title: l10n.diveLog_detail_section_cylinders,
-                  content: (context) => cylindersInfo(
-                    context.l10n,
-                    infoUnits(context),
-                    hasNitrox: dive.tanks.any(
-                      (t) => t.gasMix.he == 0 && t.gasMix.o2 > 22,
-                    ),
-                    hasTrimix: dive.tanks.any((t) => t.gasMix.he > 0),
-                    isRebreather: dive.isRebreather,
-                    showsSac: display.showsSac,
-                    showsRmv: display.showsRmv,
-                  ),
-                ),
-              ],
+            InfoTitleRow(
+              title: Text(
+                l10n.diveLog_detail_section_cylinders,
+                style: theme.textTheme.titleMedium,
+              ),
+              label: l10n.diveLog_detail_section_cylinders,
+              info: (context) => cylindersInfo(
+                context.l10n,
+                infoUnits(context),
+                hasNitrox: dive.tanks.any((t) => t.gasMix.isNitrox),
+                hasTrimix: dive.tanks.any((t) => t.gasMix.isTrimix),
+                isRebreather: dive.isRebreather,
+                showsSac: display.showsSac,
+                showsRmv: display.showsRmv,
+              ),
             ),
             const SizedBox(height: 4),
             for (var i = 0; i < rows.length; i++) ...[

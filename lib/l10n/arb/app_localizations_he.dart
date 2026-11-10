@@ -61421,4 +61421,12 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'התזכורות מתוזמנות כשהאפליקציה נפתחת ומתעדכנות ברקע. לכל פריט ציוד אפשר לקבוע תזכורות משלו במסך העריכה שלו.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'המהירויות שבהן הפרופיל צובע את העלייה ורושם אירועי קצב עלייה.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'תמיד נתח את התערובת הסופית לפני צלילה איתה.';
 }

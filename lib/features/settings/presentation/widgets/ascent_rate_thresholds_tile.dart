@@ -19,28 +19,21 @@ class AscentRateSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Text(
-                context.l10n.settings_decompression_header_ascentRate,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+        InfoTitleRow(
+          title: Text(
+            context.l10n.settings_decompression_header_ascentRate,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.bold,
             ),
-            HeaderInfoButton(
-              title: context.l10n.settings_decompression_header_ascentRate,
-              height: 20,
-              content: (context) => settingsSectionInfo(
-                context.l10n,
-                infoUnits(context),
-                SettingsInfoSection.ascentRate,
-              ),
-            ),
-          ],
+          ),
+          label: context.l10n.settings_decompression_header_ascentRate,
+          height: 20,
+          info: (context) => settingsSectionInfo(
+            context.l10n,
+            infoUnits(context),
+            SettingsInfoSection.ascentRate,
+          ),
         ),
         const SizedBox(height: 4),
         Padding(

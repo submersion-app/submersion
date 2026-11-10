@@ -283,7 +283,6 @@ class InsightsProgressionPage extends ConsumerWidget {
         infoUnits(context),
         title: context.l10n.insights_progression_cumulative_title,
         summary: context.l10n.info_insights_cumulative_summary,
-        terms: const [],
       ),
       subtitle: context.l10n.insights_progression_cumulative_subtitle,
       child: cumulativeAsync.when(

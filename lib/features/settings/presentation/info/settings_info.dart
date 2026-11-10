@@ -77,7 +77,7 @@ InfoContent settingsSectionInfo(
     ),
     SettingsInfoSection.ascentRate => sheet(
       l10n.settings_decompression_header_ascentRate,
-      l10n.info_term_ascentRate_body(units.formatDepthRate(9, decimals: 0)),
+      l10n.info_settings_ascentRate_summary,
       const [DiveTerm.ascentRate],
     ),
     SettingsInfoSection.plannerRates => planSetupSectionInfo(

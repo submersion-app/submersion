@@ -238,7 +238,6 @@ class InsightsConditionsPage extends ConsumerWidget {
         infoUnits(context),
         title: context.l10n.insights_conditions_siteType_title,
         summary: context.l10n.info_insights_siteType_summary,
-        terms: const [],
       ),
       subtitle: context.l10n.insights_conditions_siteType_subtitle,
       child: distAsync.when(
@@ -390,7 +389,6 @@ class InsightsConditionsPage extends ConsumerWidget {
         infoUnits(context),
         title: context.l10n.insights_conditions_temperature_title,
         summary: context.l10n.info_insights_seasonalTemp_summary,
-        terms: const [],
       ),
       subtitle: context.l10n.insights_conditions_temperature_subtitle,
       child: temperatureAsync.when(

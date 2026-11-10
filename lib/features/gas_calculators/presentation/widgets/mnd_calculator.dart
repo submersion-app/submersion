@@ -138,23 +138,16 @@ class MndCalculator extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    context.l10n.gasCalculators_mnd_inputParameters,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+            InfoTitleRow(
+              title: Text(
+                context.l10n.gasCalculators_mnd_inputParameters,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                HeaderInfoButton(
-                  title: context.l10n.gasCalculators_tab_mnd,
-                  content: (context) =>
-                      calculatorInfo(context.l10n, infoUnits(context), 'mnd'),
-                ),
-              ],
+              ),
+              label: context.l10n.gasCalculators_tab_mnd,
+              info: (context) =>
+                  calculatorInfo(context.l10n, infoUnits(context), 'mnd'),
             ),
             const SizedBox(height: 16),
 
@@ -392,10 +385,6 @@ class MndCalculator extends ConsumerWidget {
       ),
     );
   }
-
-  // ===========================================================================
-  // Info Card
-  // ===========================================================================
 
   // ===========================================================================
   // Slider Helper

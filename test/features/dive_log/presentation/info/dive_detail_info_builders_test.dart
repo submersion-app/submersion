@@ -108,16 +108,28 @@ void main() {
     });
   });
 
-  test('oxygen toxicity drops the windows and time above when not shown', () {
+  test('oxygen toxicity always explains the OTU windows the card shows', () {
     final content = o2ToxicityInfo(
       l10n,
       units,
-      showsOtuWindows: false,
-      showsTimeAbove: false,
+      showsDetails: false,
+      showsTimeAbove: true,
     );
     expect(labels(content), contains(label(DiveTerm.cns)));
-    expect(labels(content), isNot(contains(label(DiveTerm.otuWindows))));
+    expect(labels(content), contains(label(DiveTerm.otuWindows)));
+    expect(labels(content), isNot(contains(label(DiveTerm.maxPpO2))));
     expect(labels(content), isNot(contains(label(DiveTerm.timeAboveLimit))));
+  });
+
+  test('oxygen toxicity lists max ppO2 and time above with the details', () {
+    final content = o2ToxicityInfo(
+      l10n,
+      units,
+      showsDetails: true,
+      showsTimeAbove: true,
+    );
+    expect(labels(content), contains(label(DiveTerm.maxPpO2)));
+    expect(labels(content), contains(label(DiveTerm.timeAboveLimit)));
   });
 
   group('tissue loading', () {

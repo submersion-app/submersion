@@ -62358,4 +62358,12 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'Az emlékeztetők az alkalmazás megnyitásakor ütemeződnek, és a háttérben frissülnek. Minden felszerelés saját emlékeztetőket kaphat a szerkesztőképernyőjén.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'Azok a sebességek, amelyeknél a profil kiszínezi a feljövetelt, és feljövetelsebesség-eseményeket rögzít.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'A kész keveréket mindig elemezd, mielőtt lemerülnél vele.';
 }

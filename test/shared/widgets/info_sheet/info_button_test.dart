@@ -60,6 +60,21 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('a screen reader hears About {title} once', (tester) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      testApp(
+        child: const InfoButton(title: 'Deco Status', content: _content),
+      ),
+    );
+
+    final node = tester.getSemantics(find.byType(IconButton));
+    expect(node.label, 'About Deco Status');
+    // The tooltip is visual only: in semantics it would repeat the label.
+    expect(node.tooltip, isEmpty);
+    handle.dispose();
+  });
+
   testWidgets('opens a bottom sheet below 800 px', (tester) async {
     await _setSurface(tester, const Size(400, 800));
     await tester.pumpWidget(

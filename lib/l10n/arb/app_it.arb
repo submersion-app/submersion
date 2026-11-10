@@ -18491,5 +18491,7 @@
   "info_settings_conditionThresholds_summary": "Le soglie per cui un'immersione conta come fredda, profonda o ad alto ossigeno per i contatori di manutenzione.",
   "info_settings_sensorSummaries_summary": "I dati per immersione che l'app conserva per celle O2, trasmettitori e calce.",
   "info_settings_conditionRules_summary": "I controlli dietro i rilievi sullo stato dell'attrezzatura. Una regola disattivata non viene mai segnalata.",
-  "info_settings_notifications_summary": "I promemoria sono pianificati all'apertura dell'app e aggiornati in background. Ogni elemento può avere promemoria propri nella sua schermata di modifica."
+  "info_settings_notifications_summary": "I promemoria sono pianificati all'apertura dell'app e aggiornati in background. Ogni elemento può avere promemoria propri nella sua schermata di modifica.",
+  "info_settings_ascentRate_summary": "Le velocità oltre le quali il profilo colora la risalita e registra eventi di velocità di risalita.",
+  "gasCalculators_blender_analyseNote": "Analizza sempre la miscela finale prima di immergerti."
 }

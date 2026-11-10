@@ -61735,4 +61735,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_settings_notifications_summary =>
       'Reminders are scheduled when the app opens and refreshed in the background. Each equipment item can set its own reminders in its edit screen.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'The speeds at which the profile colours the ascent and logs ascent rate events.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Always analyse the finished mix before diving it.';
 }

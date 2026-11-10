@@ -83,29 +83,25 @@ class DiveDetailsSection extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      context.l10n.diveLog_detail_section_details,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  HeaderInfoButton(
-                    title: context.l10n.diveLog_detail_section_details,
-                    content: (context) {
-                      final display = ref.read(gasConsumptionDisplayProvider);
-                      return diveDetailsInfo(
-                        context.l10n,
-                        infoUnits(context),
-                        showsSac: display.showsSac,
-                        showsRmv: display.showsRmv,
-                        hasGradientFactors: dive.gradientFactorLow != null,
-                      );
-                    },
-                  ),
-                ],
+              InfoTitleRow(
+                title: Text(
+                  context.l10n.diveLog_detail_section_details,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                label: context.l10n.diveLog_detail_section_details,
+                info: (context) {
+                  final display = ref.read(gasConsumptionDisplayProvider);
+                  return diveDetailsInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    showsSac: display.showsSac,
+                    showsRmv: display.showsRmv,
+                    // The row shows only with both factors.
+                    hasGradientFactors:
+                        dive.gradientFactorLow != null &&
+                        dive.gradientFactorHigh != null,
+                  );
+                },
               ),
               const Divider(),
               DiveDetailRow(

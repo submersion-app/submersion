@@ -116,9 +116,28 @@ InfoContent rangeStatsInfo(
 ///
 /// The chart works out which overlays the dive has data for while it builds;
 /// the header cannot see that. The chart writes its config here and the info
-/// sheet reads it when tapped. A plain field: writing it rebuilds nothing.
+/// sheet reads it when tapped. Plain fields: writing them rebuilds nothing.
 class ProfileLegendSnapshot {
-  ProfileLegendConfig? config;
+  ProfileLegendConfig? _config;
+  Object? _owner;
+
+  /// The overlays the chart on screen drew, or null with no chart.
+  ProfileLegendConfig? get config => _config;
+
+  /// Records the [config] the chart [owner] just built.
+  void publish(Object owner, ProfileLegendConfig config) {
+    _owner = owner;
+    _config = config;
+  }
+
+  /// Forgets [owner]'s overlays when it leaves the screen, unless a newer
+  /// chart has published since: a replacement builds before the chart it
+  /// replaces is disposed.
+  void release(Object owner) {
+    if (!identical(_owner, owner)) return;
+    _owner = null;
+    _config = null;
+  }
 }
 
 /// Gives the profile chart below it a [ProfileLegendSnapshot] to fill.

@@ -82,26 +82,19 @@ class LoggedDiveCarryCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.plannerSeries_carriedInto(nextLabel),
-                      style: theme.textTheme.titleSmall,
-                    ),
-                  ),
-                  HeaderInfoButton(
-                    title: l10n.plannerSeries_carriedInto(nextLabel),
-                    height: 20,
-                    content: (context) => planCarryInfo(
-                      context.l10n,
-                      infoUnits(context),
-                      title: context.l10n.plannerSeries_carriedInto(nextLabel),
-                      showsOtu: analysis != null,
-                    ),
-                  ),
-                ],
+              InfoTitleRow(
+                title: Text(
+                  l10n.plannerSeries_carriedInto(nextLabel),
+                  style: theme.textTheme.titleSmall,
+                ),
+                label: l10n.plannerSeries_carriedInto(nextLabel),
+                height: 20,
+                info: (context) => planCarryInfo(
+                  context.l10n,
+                  infoUnits(context),
+                  title: context.l10n.plannerSeries_carriedInto(nextLabel),
+                  showsOtu: analysis != null,
+                ),
               ),
               const SizedBox(height: 8),
               Wrap(

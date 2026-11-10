@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_analyse_note.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_billing_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_cylinder_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
@@ -138,7 +139,9 @@ class _GasBlenderBodyState extends ConsumerState<_GasBlenderBody> {
               const SizedBox(height: 16),
               const BlenderProcedureCard(),
               const SizedBox(height: 16),
-              // Costing goes last, as issue #1100 asks.
+              const BlenderAnalyseNote(),
+              const SizedBox(height: 16),
+              // Costing goes last, after the safety note, as issue #1100 asks.
               const BlenderBillingCard(),
               const SizedBox(height: 16),
               const BlenderInvoiceCard(),
