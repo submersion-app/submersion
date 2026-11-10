@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/deco_calculator/presentation/info/deco_calculator_info.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/gas_calculators/presentation/info/calculator_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -47,8 +48,10 @@ void main() {
     final content = calculatorInfo(l10n, units, 'mod');
     expect(labels(content), contains(label(DiveTerm.mod)));
     expect(labels(content), contains(label(DiveTerm.ead)));
-    expect(labels(content), contains(label(DiveTerm.end)));
     expect(content.background, contains('1 bar per 10m'));
+    // END is a Tec row, so the Tec sheets explain it.
+    final tec = modInfo(l10n, units, mode: ModCalculatorMode.ocTec);
+    expect(labels(tec), contains(label(DiveTerm.end)));
   });
 
   group('Best Mix lists only what the card shows', () {
@@ -96,5 +99,48 @@ void main() {
     expect(deco.howToUse, isNotEmpty);
     expect(labels(si), contains(label(DiveTerm.leadingCompartment)));
     expect(si.background, isNotEmpty);
+  });
+
+  group('MOD lists the rows its mode shows', () {
+    test('Rec: MOD, ppO2 and EAD only', () {
+      final content = modInfo(l10n, units, mode: ModCalculatorMode.rec);
+      expect(labels(content), contains(label(DiveTerm.ead)));
+      for (final term in [
+        DiveTerm.end,
+        DiveTerm.eadd,
+        DiveTerm.gasDensity,
+        DiveTerm.mnd,
+        DiveTerm.setpoint,
+      ]) {
+        expect(labels(content), isNot(contains(label(term))), reason: '$term');
+      }
+    });
+
+    test('OC Tec adds END, EADD, density and MND', () {
+      final content = modInfo(l10n, units, mode: ModCalculatorMode.ocTec);
+      for (final term in [
+        DiveTerm.end,
+        DiveTerm.eadd,
+        DiveTerm.gasDensity,
+        DiveTerm.mnd,
+      ]) {
+        expect(labels(content), contains(label(term)), reason: '$term');
+      }
+      expect(labels(content), isNot(contains(label(DiveTerm.setpoint))));
+    });
+
+    test('CCR Tec adds the setpoint and the diluent', () {
+      final content = modInfo(l10n, units, mode: ModCalculatorMode.ccrTec);
+      expect(labels(content), contains(label(DiveTerm.setpoint)));
+      expect(labels(content), contains(label(DiveTerm.diluent)));
+    });
+  });
+
+  test('the density sheet explains the setpoint only in CCR', () {
+    final oc = densityInfo(l10n, units, isCcr: false);
+    final ccr = densityInfo(l10n, units, isCcr: true);
+    expect(labels(oc), isNot(contains(label(DiveTerm.setpoint))));
+    expect(labels(ccr), contains(label(DiveTerm.setpoint)));
+    expect(labels(oc), contains(label(DiveTerm.gasDensity)));
   });
 }

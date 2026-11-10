@@ -6,6 +6,13 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
 
+/// The rebreather gas use chart: RMV always, the diluent only when its line
+/// is on the chart ([showsDiluent]).
+List<DiveTerm> ccrGasUseTerms({required bool showsDiluent}) => [
+  DiveTerm.rmv,
+  if (showsDiluent) DiveTerm.diluent,
+];
+
 /// SAC or RMV, whichever lane a gas card shows.
 List<DiveTerm> gasLaneTerms({required bool isRmv}) => [
   isRmv ? DiveTerm.rmv : DiveTerm.sac,

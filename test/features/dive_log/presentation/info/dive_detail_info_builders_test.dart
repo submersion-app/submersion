@@ -119,6 +119,8 @@ void main() {
     expect(labels(content), contains(label(DiveTerm.otuWindows)));
     expect(labels(content), isNot(contains(label(DiveTerm.maxPpO2))));
     expect(labels(content), isNot(contains(label(DiveTerm.timeAboveLimit))));
+    // ppO2 shows only in the details section.
+    expect(labels(content), isNot(contains(label(DiveTerm.ppO2))));
   });
 
   test('oxygen toxicity lists max ppO2 and time above with the details', () {

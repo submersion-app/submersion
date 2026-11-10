@@ -1,4 +1,6 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_limits.dart'
+    show ModCalculatorMode;
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
@@ -12,25 +14,17 @@ InfoContent calculatorInfo(
   UnitFormatter units,
   String id,
 ) {
-  // Best Mix lists what its card shows, which its live controls decide;
-  // without them it shows the Rec card with a nitrox result.
-  if (id == 'best-mix') {
-    return bestMixInfo(l10n, units, isCcr: false, hasHelium: false);
+  // These sheets list what their card shows, which the live controls
+  // decide; without them they show each calculator's default mode.
+  switch (id) {
+    case 'best-mix':
+      return bestMixInfo(l10n, units, isCcr: false, hasHelium: false);
+    case 'mod':
+      return modInfo(l10n, units, mode: ModCalculatorMode.rec);
+    case 'density':
+      return densityInfo(l10n, units, isCcr: false);
   }
   final (title, summary, background, howToUse, terms) = switch (id) {
-    'mod' => (
-      l10n.gasCalculators_tab_mod,
-      l10n.info_calculators_mod_summary,
-      l10n.info_calculators_mod_background(units.formatDepth(10, decimals: 0)),
-      l10n.info_calculators_mod_howToUse,
-      const [
-        DiveTerm.mod,
-        DiveTerm.ppO2,
-        DiveTerm.ead,
-        DiveTerm.end,
-        DiveTerm.o2Narcotic,
-      ],
-    ),
     'consumption' => (
       l10n.gasCalculators_tab_consumption,
       l10n.info_calculators_consumption_summary,
@@ -63,18 +57,6 @@ InfoContent calculatorInfo(
       l10n.info_calculators_icd_background,
       l10n.info_calculators_icd_howToUse,
       const [DiveTerm.isobaricCounterdiffusion],
-    ),
-    'density' => (
-      l10n.gasCalculators_tab_density,
-      l10n.info_calculators_density_summary,
-      l10n.info_calculators_density_background,
-      l10n.info_calculators_density_howToUse,
-      const [
-        DiveTerm.gasDensity,
-        DiveTerm.eadd,
-        DiveTerm.hypercapnia,
-        DiveTerm.setpoint,
-      ],
     ),
     'blender' => (
       l10n.gasCalculators_tab_blender,
@@ -114,5 +96,64 @@ InfoContent bestMixInfo(
       if (isCcr) ...[DiveTerm.diluent, DiveTerm.bailout],
     ]),
     howToUse: l10n.info_calculators_bestMix_howToUse,
+  );
+}
+
+/// The MOD sheet for [mode]. Rec shows the MOD, ppO2 and EAD; the Tec modes
+/// add END, EADD, density and MND, and CCR Tec works from a setpoint and a
+/// diluent.
+InfoContent modInfo(
+  AppLocalizations l10n,
+  UnitFormatter units, {
+  required ModCalculatorMode mode,
+}) {
+  final isTec = mode != ModCalculatorMode.rec;
+  return termsInfo(
+    l10n,
+    units,
+    title: l10n.gasCalculators_tab_mod,
+    summary: l10n.info_calculators_mod_summary,
+    background: l10n.info_calculators_mod_background(
+      units.formatDepth(10, decimals: 0),
+    ),
+    howToUse: l10n.info_calculators_mod_howToUse,
+    terms: [
+      DiveTerm.mod,
+      DiveTerm.ppO2,
+      DiveTerm.ead,
+      if (isTec) ...[
+        DiveTerm.end,
+        DiveTerm.eadd,
+        DiveTerm.gasDensity,
+        DiveTerm.mnd,
+        DiveTerm.o2Narcotic,
+      ],
+      if (mode == ModCalculatorMode.ccrTec) ...[
+        DiveTerm.setpoint,
+        DiveTerm.diluent,
+      ],
+    ],
+  );
+}
+
+/// The Gas Density sheet. The setpoint control shows only in CCR ([isCcr]).
+InfoContent densityInfo(
+  AppLocalizations l10n,
+  UnitFormatter units, {
+  required bool isCcr,
+}) {
+  return termsInfo(
+    l10n,
+    units,
+    title: l10n.gasCalculators_tab_density,
+    summary: l10n.info_calculators_density_summary,
+    background: l10n.info_calculators_density_background,
+    howToUse: l10n.info_calculators_density_howToUse,
+    terms: [
+      DiveTerm.gasDensity,
+      DiveTerm.eadd,
+      DiveTerm.hypercapnia,
+      if (isCcr) DiveTerm.setpoint,
+    ],
   );
 }

@@ -102,4 +102,13 @@ void main() {
     expect(gasLaneTerms(isRmv: true), [DiveTerm.rmv]);
     expect(gasLaneTerms(isRmv: false), [DiveTerm.sac]);
   });
+
+  test('rebreather gas use explains the diluent only with its line', () {
+    expect(ccrGasUseTerms(showsDiluent: true), contains(DiveTerm.diluent));
+    expect(
+      ccrGasUseTerms(showsDiluent: false),
+      isNot(contains(DiveTerm.diluent)),
+    );
+    expect(ccrGasUseTerms(showsDiluent: false), contains(DiveTerm.rmv));
+  });
 }

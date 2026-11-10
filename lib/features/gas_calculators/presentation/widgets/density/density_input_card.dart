@@ -57,8 +57,11 @@ class DensityInputCard extends ConsumerWidget {
                 ),
               ),
               label: context.l10n.gasCalculators_tab_density,
-              info: (context) =>
-                  calculatorInfo(context.l10n, infoUnits(context), 'density'),
+              info: (context) => densityInfo(
+                context.l10n,
+                infoUnits(context),
+                isCcr: ref.read(densityCcrProvider),
+              ),
             ),
             const SizedBox(height: 16),
             _Labelled(

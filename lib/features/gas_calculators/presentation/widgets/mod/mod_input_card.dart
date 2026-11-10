@@ -70,8 +70,11 @@ class ModInputCard extends ConsumerWidget {
                 ),
               ),
               label: context.l10n.gasCalculators_tab_mod,
-              info: (context) =>
-                  calculatorInfo(context.l10n, infoUnits(context), 'mod'),
+              info: (context) => modInfo(
+                context.l10n,
+                infoUnits(context),
+                mode: ref.read(modCalculatorNotifierProvider).mode,
+              ),
             ),
             const SizedBox(height: 16),
             _Labelled(
