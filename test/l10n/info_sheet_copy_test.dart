@@ -11,18 +11,33 @@ import 'package:path/path.dart' as p;
 /// Sheets explain what a card shows; they never tell the diver what to do in
 /// the water, and they stay short enough to read at a glance.
 void main() {
-  final english =
+  Map<String, dynamic> arb(String locale) =>
       json.decode(
-            File(p.join('lib', 'l10n', 'arb', 'app_en.arb')).readAsStringSync(),
+            File(
+              p.join('lib', 'l10n', 'arb', 'app_$locale.arb'),
+            ).readAsStringSync(),
           )
           as Map<String, dynamic>;
 
-  /// Sentences counted the way the caps count them: each ". ", "? " or "! "
-  /// ends one, and so does a final stop.
+  final english = arb('en');
+
+  /// Every shipped locale, read from the ARB files on disk.
+  final locales = [
+    for (final file in Directory(p.join('lib', 'l10n', 'arb')).listSync())
+      if (RegExp(r'app_(\w+)\.arb$').firstMatch(p.basename(file.path))
+          case final match?)
+        match.group(1)!,
+  ]..sort();
+
+  /// Sentences counted the way the caps count them: each ". ", "? ", "! "
+  /// or Arabic "؟ " ends one, as does a Chinese "。" with text after it, and
+  /// so does a final stop.
   int sentences(String text) {
     final trimmed = text.trim();
-    final inner = RegExp(r'[.?!] ').allMatches(trimmed).length;
-    final last = RegExp(r'[.?!]$').hasMatch(trimmed) ? 1 : 0;
+    final inner =
+        RegExp(r'[.?!؟] ').allMatches(trimmed).length +
+        RegExp(r'。(?=.)').allMatches(trimmed).length;
+    final last = RegExp(r'[.?!؟。]$').hasMatch(trimmed) ? 1 : 0;
     return inner + last;
   }
 
@@ -41,17 +56,30 @@ void main() {
     expect(infoKeys.where((k) => k.endsWith('_summary')), isNotEmpty);
   });
 
-  test('every info sheet string stays within its sentence cap', () {
+  test('every locale is checked', () {
+    expect(locales, hasLength(greaterThan(1)));
+    expect(locales, contains('en'));
+  });
+
+  test('every info sheet string stays within its cap in every locale', () {
     final over = <String>[];
-    for (final key in infoKeys) {
-      for (final MapEntry(key: suffix, value: cap) in caps.entries) {
-        if (!key.endsWith(suffix)) continue;
-        final count = sentences(english[key] as String);
-        if (count > cap) over.add('$key: $count > $cap');
+    for (final locale in locales) {
+      final strings = arb(locale);
+      for (final key in infoKeys) {
+        final text = strings[key];
+        if (text is! String) continue;
+        for (final MapEntry(key: suffix, value: cap) in caps.entries) {
+          if (!key.endsWith(suffix)) continue;
+          final count = sentences(text);
+          if (count > cap) over.add('$locale $key: $count > $cap');
+        }
       }
     }
     expect(over, isEmpty);
   });
+
+  // The advice and abbreviation checks below read English only: their word
+  // lists are English, and the translations follow the English copy.
 
   test('no info sheet string gives diving advice', () {
     final offenders = [

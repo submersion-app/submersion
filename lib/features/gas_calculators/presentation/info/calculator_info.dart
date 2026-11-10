@@ -36,7 +36,7 @@ InfoContent calculatorInfo(
       l10n.info_calculators_consumption_summary,
       null,
       l10n.info_calculators_consumption_howToUse,
-      const [DiveTerm.rmv, DiveTerm.sac],
+      const [DiveTerm.rmv],
     ),
     'rock-bottom' => (
       l10n.gasCalculators_tab_rockBottom,

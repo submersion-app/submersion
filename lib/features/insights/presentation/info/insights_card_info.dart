@@ -1,5 +1,6 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/presentation/info/equipment_info.dart';
 import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
@@ -49,14 +50,6 @@ InfoContent overviewStatsInfo(AppLocalizations l10n, UnitFormatter units) {
   );
 }
 
-DiveTerm? _exposureTerm(ExposureUnit unit) => switch (unit) {
-  ExposureUnit.saltHours => DiveTerm.saltWaterHours,
-  ExposureUnit.coldDives => DiveTerm.coldDives,
-  ExposureUnit.o2Hours => DiveTerm.highO2Hours,
-  ExposureUnit.deepCycles => DiveTerm.deepCycles,
-  _ => null,
-};
-
 /// The equipment exposure ranking, explaining the chosen [unit].
 InfoContent exposureInfo(
   AppLocalizations l10n,
@@ -68,6 +61,6 @@ InfoContent exposureInfo(
     units,
     title: l10n.insights_equipment_exposure_title,
     summary: l10n.info_insights_exposure_summary,
-    terms: [?_exposureTerm(unit)],
+    terms: [?exposureUnitTerm(unit)],
   );
 }

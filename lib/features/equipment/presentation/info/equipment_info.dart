@@ -4,6 +4,7 @@ import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
 
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 
 /// A condition trend chart on an equipment item, titled as the chart is.
 InfoContent equipmentTrendInfo(
@@ -16,12 +17,14 @@ InfoContent equipmentTrendInfo(
     ConditionTrendKind.cellGain => DiveTerm.cellGain,
     ConditionTrendKind.transmitterGapFraction => DiveTerm.transmitterDropouts,
     ConditionTrendKind.scrubberMinutes => DiveTerm.scrubber,
-    ConditionTrendKind.minTemperature => DiveTerm.coldDives,
+    // Each dive's lowest temperature, plain enough for the summary alone;
+    // the cold-dives count is a different, threshold-based measure.
+    ConditionTrendKind.minTemperature => null,
   };
   return InfoContent(
     title: title,
     summary: l10n.info_equipment_trend_summary,
-    terms: diveTermEntries(l10n, units, [term]),
+    terms: diveTermEntries(l10n, units, [?term]),
   );
 }
 
@@ -34,16 +37,32 @@ InfoContent equipmentFindingsInfo(AppLocalizations l10n, UnitFormatter units) {
   );
 }
 
-/// The exposure card on an equipment item.
-InfoContent equipmentExposureInfo(AppLocalizations l10n, UnitFormatter units) {
+/// The term behind an exposure unit, for the units that need one; days,
+/// dives, hours and cycles explain themselves.
+DiveTerm? exposureUnitTerm(ExposureUnit unit) => switch (unit) {
+  ExposureUnit.saltHours => DiveTerm.saltWaterHours,
+  ExposureUnit.coldDives => DiveTerm.coldDives,
+  ExposureUnit.o2Hours => DiveTerm.highO2Hours,
+  ExposureUnit.deepCycles => DiveTerm.deepCycles,
+  ExposureUnit.days ||
+  ExposureUnit.dives ||
+  ExposureUnit.hours ||
+  ExposureUnit.cycles => null,
+};
+
+/// The exposure card on an equipment item, explaining the [shown] units, the
+/// ones with a chip on the card.
+InfoContent equipmentExposureInfo(
+  AppLocalizations l10n,
+  UnitFormatter units, {
+  required Set<ExposureUnit> shown,
+}) {
   return InfoContent(
     title: l10n.equipmentCondition_exposure_title,
     summary: l10n.info_equipment_exposure_summary,
-    terms: diveTermEntries(l10n, units, const [
-      DiveTerm.saltWaterHours,
-      DiveTerm.coldDives,
-      DiveTerm.highO2Hours,
-      DiveTerm.deepCycles,
+    terms: diveTermEntries(l10n, units, [
+      for (final unit in ExposureUnit.values)
+        if (shown.contains(unit)) ?exposureUnitTerm(unit),
     ]),
   );
 }

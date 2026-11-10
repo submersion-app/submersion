@@ -86,6 +86,8 @@ void main() {
     expect(labels(best), contains(label(DiveTerm.end)));
     expect(labels(best), contains(label(DiveTerm.gasDensity)));
     expect(labels(consumption), contains(label(DiveTerm.rmv)));
+    // The calculator takes and shows RMV only.
+    expect(labels(consumption), isNot(contains(label(DiveTerm.sac))));
   });
 
   test('the deco calculator and surface interval tool have sheets', () {

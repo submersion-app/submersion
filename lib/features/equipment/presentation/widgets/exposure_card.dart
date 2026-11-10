@@ -45,8 +45,12 @@ class ExposureCard extends ConsumerWidget {
                 ),
                 HeaderInfoButton(
                   title: l10n.equipmentCondition_exposure_title,
-                  content: (context) =>
-                      equipmentExposureInfo(context.l10n, infoUnits(context)),
+                  // The units with a chip on the card when tapped.
+                  content: (context) => equipmentExposureInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    shown: totalsAsync.value?.byUnit.keys.toSet() ?? const {},
+                  ),
                 ),
               ],
             ),

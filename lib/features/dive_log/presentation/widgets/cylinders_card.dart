@@ -160,6 +160,7 @@ class CylindersCard extends ConsumerWidget {
                 hasNitrox: dive.tanks.any((t) => t.gasMix.isNitrox),
                 hasTrimix: dive.tanks.any((t) => t.gasMix.isTrimix),
                 isRebreather: dive.isRebreather,
+                hasBreathingGas: dive.breathingTanks.isNotEmpty,
                 showsSac: display.showsSac,
                 showsRmv: display.showsRmv,
               ),

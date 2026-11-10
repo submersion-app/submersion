@@ -190,6 +190,7 @@ void main() {
       hasNitrox: false,
       hasTrimix: false,
       isRebreather: false,
+      hasBreathingGas: true,
       showsSac: true,
       showsRmv: false,
     );
@@ -256,5 +257,27 @@ void main() {
       hasAlert: false,
     );
     expect(labels(content), [label(DiveTerm.degreeHeatingWeeks)]);
+  });
+
+  test('a dive with only suit inflation lists no gas terms', () {
+    final content = cylindersInfo(
+      l10n,
+      units,
+      hasNitrox: false,
+      hasTrimix: false,
+      isRebreather: false,
+      hasBreathingGas: false,
+      showsSac: true,
+      showsRmv: true,
+    );
+    for (final term in [
+      DiveTerm.mod,
+      DiveTerm.mnd,
+      DiveTerm.ppO2,
+      DiveTerm.sac,
+      DiveTerm.rmv,
+    ]) {
+      expect(labels(content), isNot(contains(label(term))), reason: '$term');
+    }
   });
 }

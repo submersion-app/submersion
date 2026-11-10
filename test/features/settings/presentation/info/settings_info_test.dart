@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/info/site_altitude_info.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/presentation/info/equipment_info.dart';
 import 'package:submersion/features/settings/presentation/info/settings_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -92,8 +93,19 @@ void main() {
         final content = equipmentTrendInfo(l10n, units, kind, title: 'Trend');
         expect(content.title, 'Trend');
         expect(content.summary, isNotEmpty, reason: '$kind');
-        expect(content.terms, hasLength(1), reason: '$kind');
       }
+    });
+
+    test('the minimum temperature chart lists no cold-dive count', () {
+      // The chart plots each dive's lowest temperature; cold dives is a
+      // threshold count it does not show.
+      final content = equipmentTrendInfo(
+        l10n,
+        units,
+        ConditionTrendKind.minTemperature,
+        title: 'Trend',
+      );
+      expect(labels(content), isNot(contains(label(DiveTerm.coldDives))));
     });
 
     test('the findings card explains the condition rules', () {
@@ -101,14 +113,22 @@ void main() {
       expect(labels(content), [label(DiveTerm.conditionRules)]);
     });
 
-    test('the exposure card explains its four exposure units', () {
-      final content = equipmentExposureInfo(l10n, units);
-      expect(labels(content), [
-        label(DiveTerm.saltWaterHours),
-        label(DiveTerm.coldDives),
-        label(DiveTerm.highO2Hours),
-        label(DiveTerm.deepCycles),
-      ]);
+    test('the exposure card explains only the units it shows', () {
+      final content = equipmentExposureInfo(
+        l10n,
+        units,
+        shown: const {ExposureUnit.dives, ExposureUnit.saltHours},
+      );
+      expect(labels(content), [label(DiveTerm.saltWaterHours)]);
+    });
+
+    test('plain dive and hour counts need no term', () {
+      final content = equipmentExposureInfo(
+        l10n,
+        units,
+        shown: const {ExposureUnit.dives, ExposureUnit.hours},
+      );
+      expect(content.terms, isEmpty);
     });
   });
 }
