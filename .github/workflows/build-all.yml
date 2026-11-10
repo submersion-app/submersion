@@ -110,7 +110,7 @@ env:
 
 jobs:
   # ============================================================================
-  # macOS Build (signed DMG + Mac App Store)
+  # macOS Build (signed DMG; the Mac App Store pkg is build-macos-app-store)
   # ============================================================================
   build-macos:
     name: Build macOS
@@ -189,7 +189,7 @@ jobs:
           echo 'CODE_SIGN_IDENTITY = ' >> macos/Runner/Configs/Release.xcconfig
 
       - name: Build macOS release
-        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+        run: flutter build macos --release --dart-define=UPDATE_CHANNEL=github "--dart-define=BUILD_DATE=$(date -u +%F)" --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
 
       # -- Developer ID DMG (for GitHub Release) --
 
@@ -314,10 +314,86 @@ jobs:
           path: Submersion-*.dmg
           retention-days: 5
 
-      # -- Mac App Store (via Fastlane) --
+      # The decoded Developer ID p12 holds a private key. The App Store job
+      # cleans up its own signing material the same way.
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/build_certificate.p12"
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" 2>/dev/null || true
 
-      - name: Restore Release.xcconfig for App Store build
-        run: git checkout macos/Runner/Configs/Release.xcconfig
+  # ============================================================================
+  # Mac App Store Build (pkg via Fastlane)
+  # ============================================================================
+  # Its own job so it runs beside the DMG build instead of after it. The two
+  # used to share one 45 minute job, and each compiles the whole app, so a
+  # slow runner pushed the second compile past the limit: four Beta runs in a
+  # row timed out in this step on 2026-11-09. Nothing here reuses the DMG
+  # build's output; the Fastlane `build` lane drops auto_updater, deletes
+  # build/macos, regenerates the Flutter config, reruns pod install and
+  # archives clean. It does need the build_runner output the archive compiles,
+  # so the dependency steps are repeated rather than shared.
+  build-macos-app-store:
+    name: Build macOS App Store
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          ref: ${{ inputs.ref }}
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        id: setup-xcode-macos
+        with:
+          xcode-version: '26'
+
+      - name: Verify selected Xcode (macOS App Store build)
+        run: |
+          echo "setup-xcode selected: ${{ steps.setup-xcode-macos.outputs.version }}"
+          echo "Xcode path: ${{ steps.setup-xcode-macos.outputs.path }}"
+          xcodebuild -version
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+        id: setup-flutter
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: stable
+
+      - name: Cache pub dependencies
+        uses: actions/cache@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-build-all-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-build-all-${{ runner.os }}-
+
+      # Same reason as in Build macOS: with Swift Package Manager on, the
+      # archive links google_sign_in_ios through both SPM and CocoaPods.
+      - name: Use CocoaPods (disable Swift Package Manager)
+        run: flutter config --no-enable-swift-package-manager
+
+      - name: Install dependencies
+        run: |
+          flutter pub get
+          dart run build_runner build --delete-conflicting-outputs
+
+      - name: Override build number
+        if: inputs.build-number != ''
+        shell: bash
+        env:
+          BUILD_NUMBER: ${{ inputs.build-number }}
+        run: |
+          perl -pi -e 's/^(version:\s*[0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+/${1}+$ENV{BUILD_NUMBER}/' pubspec.yaml
+          grep '^version:' pubspec.yaml
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -326,20 +402,30 @@ jobs:
           bundler-cache: true
           working-directory: macos
 
+      # Before the split this step reused the DMG step's keychain, so the pkg
+      # was exported and signed with the Developer ID p12's identities present
+      # as well (run 42530214093 lists four, two of them from that p12; an
+      # installer identity would not show under `-p codesigning`). Importing
+      # that p12 first keeps the same set of identities, so the separate job
+      # cannot lose a certificate the export quietly depended on.
       - name: Import App Store certificates
         env:
+          MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
           APPLE_DEVELOPMENT_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64 }}
           APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD }}
           APPLE_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64 }}
           APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_PASSWORD }}
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          # Reuse the keychain from the DMG step if it exists, otherwise create it
-          if ! security show-keychain-info "$KEYCHAIN_PATH" 2>/dev/null; then
-            security create-keychain -p "ci-build" "$KEYCHAIN_PATH"
-            security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          fi
+          security create-keychain -p "ci-build" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "ci-build" "$KEYCHAIN_PATH"
+          # Import the Developer ID p12 the shared keychain used to carry
+          MACOS_CERT=$RUNNER_TEMP/macos_certificate.p12
+          echo -n "$MACOS_CERTIFICATE_BASE64" | base64 --decode -o "$MACOS_CERT"
+          security import "$MACOS_CERT" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm -f "$MACOS_CERT"
           # Import Apple Development certificate (for archive signing)
           DEV_CERT=$RUNNER_TEMP/apple_development.p12
           echo -n "$APPLE_DEVELOPMENT_CERTIFICATE_BASE64" | base64 --decode -o "$DEV_CERT"
@@ -380,7 +466,9 @@ jobs:
 
       - name: Cleanup sensitive files
         if: always()
-        run: rm -f macos/fastlane/AuthKey.p8
+        run: |
+          rm -f macos/fastlane/AuthKey.p8
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" 2>/dev/null || true
 
   # ============================================================================
   # Windows Build
@@ -439,7 +527,7 @@ jobs:
           grep '^version:' pubspec.yaml
 
       - name: Build Windows release
-        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+        run: flutter build windows --release --dart-define=UPDATE_CHANNEL=github "--dart-define=BUILD_DATE=$((Get-Date).ToUniversalTime().ToString('yyyy-MM-dd'))" --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
 
       - name: Check bundled native assets
         # Runs before the installer is compiled: the .iss packages whatever is
@@ -612,7 +700,7 @@ jobs:
           grep '^version:' pubspec.yaml
 
       - name: Build Linux release
-        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
+        run: flutter build linux --release --dart-define=UPDATE_CHANNEL=github "--dart-define=BUILD_DATE=$(date -u +%F)" --dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}
 
       - name: Check bundled native assets
         # Runs before the tarball is rolled, for the same reason as the Windows
@@ -983,10 +1071,10 @@ jobs:
           chmod 600 android/key.properties android/app/release.keystore
 
       - name: Build Android APK
-        run: flutter build apk --release --dart-define=UPDATE_CHANNEL=github
+        run: flutter build apk --release --dart-define=UPDATE_CHANNEL=github "--dart-define=BUILD_DATE=$(date -u +%F)"
 
       - name: Build Android App Bundle
-        run: flutter build appbundle --release --dart-define=HEALTH_CONNECT_ENABLED=false --dart-define=UPDATE_CHANNEL=playstore
+        run: flutter build appbundle --release --dart-define=HEALTH_CONNECT_ENABLED=false --dart-define=UPDATE_CHANNEL=playstore "--dart-define=BUILD_DATE=$(date -u +%F)"
 
       # Guards against issue #318: a 4 KB-aligned native lib (liblibdc_jni.so)
       # silently shipped in v1.5.5.107 and crashed the app on Android 15+

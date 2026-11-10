@@ -553,6 +553,31 @@ void main() {
       expect(actions.whereType<ReassignPressureSeriesRepair>(), hasLength(1));
     });
 
+    test('twin findings offer remove duplicate first (#4393)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'tank_assignment',
+          params: {'tankIdA': 'a', 'tankIdB': 'b', 'sameTransmitter': true},
+        ),
+      );
+      final remove = actions.first as RemoveDuplicateCylinderRepair;
+      expect(remove.diveId, 'd1');
+      expect(remove.tankIdA, 'a');
+      expect(remove.tankIdB, 'b');
+      expect(remove.sameTransmitter, isTrue);
+    });
+
+    test('curve-only twins keep swap first, with remove offered after', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'tank_assignment',
+          params: {'tankIdA': 'a', 'tankIdB': 'b', 'sameTransmitter': false},
+        ),
+      );
+      expect(actions.first, isA<SwapPressureSeriesRepair>());
+      expect(actions.whereType<RemoveDuplicateCylinderRepair>(), hasLength(1));
+    });
+
     test('single-tank drop offers reassign then navigation', () {
       final actions = repairOptionsFor(
         f(detectorId: 'tank_assignment', params: {'tankId': 't1'}),
@@ -649,6 +674,19 @@ void main() {
       expect(actions.whereType<SetPrimarySourceRepair>(), hasLength(1));
       expect(actions.whereType<SplitSourceRepair>(), hasLength(1));
       expect(actions.whereType<CompareSourcesRepair>(), hasLength(1));
+    });
+
+    test('offers to remove the disagreeing source (issue #4393)', () {
+      final actions = repairOptionsFor(
+        f(detectorId: 'source_conflict', params: {'sourceId': 's1'}),
+      );
+      final remove = actions.whereType<RemoveSourceRepair>().single;
+      expect(remove.sourceId, 's1');
+      expect(remove.diveId, 'd1');
+      expect(
+        actions.indexOf(remove),
+        actions.indexOf(actions.whereType<SplitSourceRepair>().single) + 1,
+      );
     });
 
     test('without a source id gets navigation only', () {

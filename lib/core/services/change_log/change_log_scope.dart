@@ -57,6 +57,8 @@ abstract final class ChangeLogLabels {
   static const libraryReplaced = 'library_replaced';
   static const libraryRestored = 'library_restored';
   static const tableEditor = 'table_editor';
+  static const removeSource = 'remove_source';
+  static const removeDuplicateCylinders = 'remove_duplicate_cylinders';
 }
 
 /// Tells the change log triggers what is happening (issue #3922).

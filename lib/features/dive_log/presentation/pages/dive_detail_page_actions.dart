@@ -419,6 +419,40 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     }
   }
 
+  /// Runs Remove source (issue #4393) through the flow the inbox shares.
+  /// After the removal and after its Undo the dive refreshes, and a source
+  /// the chart was showing or overlaying stops being asked for once gone.
+  Future<void> _confirmAndRemoveSource(
+    Dive dive,
+    String sourceId,
+    String sourceName,
+  ) {
+    final container = ProviderScope.containerOf(context, listen: false);
+    void afterChange() {
+      final active = container.read(activeDiveSourceProvider(dive.id).notifier);
+      if (active.state == sourceId) active.state = null;
+      final overlays = container.read(overlaySourcesProvider(dive.id).notifier);
+      if (overlays.state.contains(sourceId)) {
+        overlays.state = {...overlays.state}..remove(sourceId);
+      }
+      scheduleQualityScan([dive.id]);
+      scheduleSensorSummaryRefresh([dive.id], force: true);
+      scheduleDerivedMetricsRefresh([dive.id], force: true);
+      _refreshDive(container, dive.id);
+      container.invalidate(paginatedDiveListProvider);
+      container.invalidate(divesProvider);
+    }
+
+    return removeSourceWithUndo(
+      context,
+      ref,
+      diveId: dive.id,
+      sourceId: sourceId,
+      sourceName: sourceName,
+      afterChange: afterChange,
+    );
+  }
+
   /// Confirms and runs "Separate combined dives": the inverse of Combine,
   /// and the only recovery path once the merge undo snackbar has dismissed.
   Future<void> _confirmAndSeparate(Dive dive, int segmentCount) async {

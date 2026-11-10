@@ -33,6 +33,13 @@ An agent reads any record: dives and their profiles, sites, trips, buddies,
 gear, certifications, plans and the rest of the logbook. It can also run the
 same queries as the app's search.
 
+An agent can also use the dive planner. Describe a dive, or a series of
+repetitive dives, and it gets back the schedule the planner would show you:
+stops, runtime, gas use, CNS and OTU, and every warning, worked out with your
+own planner settings. A series can follow a dive in your log, as one started
+from **Follow** in the planner does. Working out a plan saves nothing. As in
+the planner, check every plan yourself before you dive it.
+
 Changes come in two steps. The agent first previews a change, which shows
 exactly what it would do and changes nothing, then applies it. With **Ask
 before applying changes** on, Submersion shows the change before anything is

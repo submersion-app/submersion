@@ -99,6 +99,7 @@ QueryField _num(
   ({double min, double max})? sanity,
   String? emptySql,
   ({String low, String high})? rangeSql,
+  int? displayDecimals,
   List<String> tables = const [],
 }) => QueryField(
   key: key,
@@ -110,6 +111,7 @@ QueryField _num(
   labelKey: _label(key),
   sanity: sanity,
   rangeSql: rangeSql,
+  displayDecimals: displayDecimals,
   tables: tables,
 );
 
@@ -442,6 +444,8 @@ final QueryEntity diveQueryEntity = QueryEntity(
       'visibility',
       '{r}.visibility_meters',
       dimension: FieldDimension.depth,
+      // Listed in whole metres or feet, not a depth's tenth.
+      displayDecimals: 0,
       // A band pick stores a range instead (issue #3226).
       rangeSql: (
         low: '{r}.visibility_min_meters',

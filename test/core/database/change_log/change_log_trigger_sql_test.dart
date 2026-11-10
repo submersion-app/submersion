@@ -85,14 +85,20 @@ void main() {
     );
   });
 
-  test('a delete copy only table gets one trigger', () {
+  test('a delete copy only table gets a delete and an opt-in update '
+      'trigger', () {
     final statements = buildChangeLogTriggers(
       _specFor(db, 'dive_profile_series'),
       ChangeLogClass.deleteCopyOnly,
       schemaVersion: 1,
     );
-    expect(statements, hasLength(1));
-    expect(statements.single, contains('AFTER DELETE'));
+    expect(statements, hasLength(2));
+    expect(statements.where((s) => s.contains('AFTER DELETE')), hasLength(1));
+    final update = statements.singleWhere((s) => s.contains('AFTER UPDATE'));
+    expect(
+      update,
+      contains("o.label IN ('remove_duplicate_cylinders', 'remove_source')"),
+    );
   });
 
   test('an excluded table gets none', () {

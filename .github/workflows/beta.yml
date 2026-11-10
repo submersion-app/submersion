@@ -595,17 +595,22 @@ jobs:
   # precheck skips every lane rather than failing it. A job added without being
   # listed fails scripts/beta_failure_alert_test.py.
   #
-  # The condition runs it only on a failure or a fully published run, so the
-  # many runs gated off by precheck stay "skipped" in the Actions list. The ref
-  # check keeps a workflow_dispatch trial from a branch from paging anyone.
+  # The condition runs it only on a failure, a cancellation or a fully
+  # published run, so the many runs gated off by precheck stay "skipped" in the
+  # Actions list. A cancellation is included because GitHub reports a job that
+  # hit its timeout-minutes as `cancelled`, the same as one a newer run
+  # preempted; the script reads the jobs' annotations to tell them apart. Four
+  # Beta runs whose macOS build timed out raised nothing while it was left out.
+  # The ref check keeps a workflow_dispatch trial from a branch from paging
+  # anyone.
   alert:
     name: Alert on failure
     needs: [precheck, build, publish-beta, upload-testflight-ios, upload-testflight-macos, upload-play]
     if: >-
       always() && github.ref == 'refs/heads/main' && (
-        contains(needs.*.result, 'failure') || (
-          !contains(needs.*.result, 'skipped') &&
-          !contains(needs.*.result, 'cancelled')))
+        contains(needs.*.result, 'failure') ||
+        contains(needs.*.result, 'cancelled') ||
+        !contains(needs.*.result, 'skipped'))
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -613,6 +618,9 @@ jobs:
       issues: write
       # Reads this run's jobs to name the failed steps in the alert.
       actions: read
+      # Reads a cancelled job's check-run annotations, the only place a
+      # timeout is told apart from a preemption.
+      checks: read
     # No concurrency group, on purpose: a group keeps one pending job and
     # cancels the one it replaces whatever cancel-in-progress says, so a green
     # run queued behind an alert could discard a pending failure. Two failing

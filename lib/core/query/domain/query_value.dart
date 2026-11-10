@@ -49,16 +49,34 @@ sealed class QueryValue {
 class NumberValue extends QueryValue {
   final double value;
   final QueryUnit? typedUnit;
-  const NumberValue(this.value, this.typedUnit);
+
+  /// The step the app shows this number's field at, in storage units, when
+  /// a diver typed the number at that precision (issue #4398). A comparison
+  /// then reads the column as shown: `depth < 27.1` (feet) leaves out a dive
+  /// stored at 8.26 m, which is listed as 27.1 ft. Null compares exactly:
+  /// a number typed finer than the display, or one built in code.
+  final double? grain;
+
+  /// The number as the diver typed it, in the unit it was shown in, set
+  /// with [grain]. Its sign decides which edge of the band a tie belongs to,
+  /// since the display rounds a tie away from zero: 31.9 F is shown positive
+  /// though it is stored as a negative Celsius value. Null reads [value].
+  final double? shown;
+
+  const NumberValue(this.value, this.typedUnit, {this.grain, this.shown});
   @override
   bool operator ==(Object other) =>
       other is NumberValue &&
       other.value == value &&
-      other.typedUnit == typedUnit;
+      other.typedUnit == typedUnit &&
+      other.grain == grain &&
+      other.shown == shown;
   @override
-  int get hashCode => Object.hash(value, typedUnit);
+  int get hashCode => Object.hash(value, typedUnit, grain, shown);
   @override
-  String toString() => 'NumberValue($value, $typedUnit)';
+  String toString() => grain == null
+      ? 'NumberValue($value, $typedUnit)'
+      : 'NumberValue($value, $typedUnit, grain: $grain, shown: $shown)';
 }
 
 class StringValue extends QueryValue {

@@ -11439,6 +11439,34 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Falha ao dividir';
 
   @override
+  String get diveLog_sources_menu_remove => 'Remover fonte';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Remover esta fonte?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'As leituras de $source serão removidas deste mergulho: o perfil, as pressões e os cilindros que só essa fonte registrou. A entrada do registro permanece.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'As leituras desta fonte serão removidas deste mergulho: o perfil, as pressões e os cilindros que só essa fonte registrou. A entrada do registro permanece.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Remover';
+
+  @override
+  String get diveLog_sources_removeDone => 'Fonte removida';
+
+  @override
+  String get diveLog_sources_removeFailed => 'Não foi possível remover a fonte';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Esta fonte compartilha o computador de mergulho com outra fonte do mergulho, então suas leituras não podem ser separadas e ela não pode ser removida sozinha.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separar mergulhos combinados';
 
   @override
@@ -22278,6 +22306,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String settings_about_version(String version) {
     return 'Versão $version';
+  }
+
+  @override
+  String settings_about_builtOn(String date) {
+    return 'Compilado em $date';
   }
 
   @override
@@ -43878,6 +43911,123 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => 'Remover fonte';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'Remover $source';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Remover cilindro duplicado';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover $count cilindros duplicados?',
+      one: 'Remover o cilindro duplicado?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep permanece e recebe do duplicado os dados que lhe faltam. As trocas de gás e os eventos passam para ele.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Que gás este cilindro levava?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Estas linhas leem o mesmo transmissor, mas divergem no gás. O cilindro que permanece terá o que você escolher.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Remover';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover cilindros duplicados ($count mergulhos)',
+      one: 'Remover cilindros duplicados ($count mergulho)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Remover cilindros duplicados';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Cilindros de um mergulho com o mesmo número de série do transmissor são um único cilindro registrado duas vezes. Fica um em cada mergulho, e Desfazer restaura tudo.';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Remover $remove, manter $keep';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removido em $count mergulhos',
+      one: 'Removido em $count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count ignorados: as misturas diferem';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count falharam';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Dispensar tudo o que aparece ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dispensar $count achados?',
+      one: 'Dispensar $count achado?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Continuam dispensados após uma nova verificação. Desfazer os traz de volta.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Dispensar tudo';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count achados dispensados',
+      one: '$count achado dispensado',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Tornar $source a fonte principal?';
   }
@@ -61371,6 +61521,17 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => 'Mergulho dividido';
+
+  @override
+  String get changeLog_label_removeSource => 'Fonte de dados removida';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Cilindros duplicados removidos';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Desfazer não conseguiu restaurar tudo. O resto está em Ajustes > Dados > Registro de alterações.';
 
   @override
   String get changeLog_label_gearTransfer => 'Equipamento transferido';

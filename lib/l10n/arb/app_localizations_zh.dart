@@ -10870,6 +10870,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sources_splitFailed => '拆分失败';
 
   @override
+  String get diveLog_sources_menu_remove => '移除数据源';
+
+  @override
+  String get diveLog_sources_removeDialog_title => '移除此数据源？';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return '$source 的读数将从此潜水中移除：包括其潜水曲线、压力以及仅由它记录的气瓶。日志条目会保留。';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      '此数据源的读数将从此潜水中移除：包括其潜水曲线、压力以及仅由它记录的气瓶。日志条目会保留。';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => '移除';
+
+  @override
+  String get diveLog_sources_removeDone => '已移除数据源';
+
+  @override
+  String get diveLog_sources_removeFailed => '无法移除数据源';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      '此数据源与该潜水的另一个数据源共用同一台潜水电脑，二者的读数无法区分，因此无法单独移除。';
+
+  @override
   String get diveLog_sources_menu_separate => '拆分合并的潜水';
 
   @override
@@ -21177,6 +21205,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String settings_about_version(String version) {
     return '版本 $version';
+  }
+
+  @override
+  String settings_about_builtOn(String date) {
+    return '构建于 $date';
   }
 
   @override
@@ -41322,6 +41355,120 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => '移除数据源';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return '移除 $source';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate => '移除重复气瓶';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '移除 $count 个重复气瓶？',
+      one: '移除重复气瓶？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '保留 $keep，并从重复项补全其缺少的信息。换气记录和事件将转移到它。';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle => '这个气瓶装的是哪种气体？';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      '这些记录读取同一个发射器，但气体不一致。保留的气瓶将使用你选择的气体。';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => '移除';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '移除重复气瓶（$count 次潜水）',
+      one: '移除重复气瓶（1 次潜水）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => '移除重复气瓶';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      '同一次潜水中发射器序列号相同的气瓶，是被记录了两次的同一个气瓶。每次潜水保留一个，撤销可以恢复全部内容。';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return '移除 $remove，保留 $keep';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已在 $count 次潜水中移除',
+      one: '已在 1 次潜水中移除',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '跳过 $count 个：气体混合不一致';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count 个失败';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return '忽略全部显示项（$count）';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '忽略 $count 条发现？',
+      one: '忽略 1 条发现？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body => '重新扫描后仍保持忽略。撤销可恢复。';
+
+  @override
+  String get dataQuality_dismissAll_confirm => '全部忽略';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已忽略 $count 条发现',
+      one: '已忽略 1 条发现',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return '将 $source 设为主要来源？';
   }
@@ -57606,6 +57753,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => '已拆分潜水';
+
+  @override
+  String get changeLog_label_removeSource => '已移除数据源';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
+
+  @override
+  String get changeLog_undoIncomplete => '撤销未能恢复全部内容。其余内容见 设置 > 数据 > 更改日志。';
 
   @override
   String get changeLog_label_gearTransfer => '已转移装备';

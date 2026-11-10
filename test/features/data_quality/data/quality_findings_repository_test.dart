@@ -187,6 +187,40 @@ void main() {
     expect(all.map((f) => f.status).toSet(), {QualityStatus.dismissed});
   });
 
+  test(
+    'reopenAll reopens every id, for the Undo of dismiss all (#4393)',
+    () async {
+      final a = finding();
+      final b = finding(detectorId: 'depth_spike');
+      await repo.applyScanResults(
+        scopeDiveIds: {'d1'},
+        ranDetectorIds: {'sample_gap', 'depth_spike'},
+        produced: [a, b],
+      );
+      await repo.dismissAll([a.id, b.id]);
+
+      await repo.reopenAll([a.id, b.id]);
+
+      final all = await repo.getFindings();
+      expect(all.map((f) => f.status).toSet(), {QualityStatus.open});
+    },
+  );
+
+  test('resolveAll resolves every id with one call (#4393)', () async {
+    final a = finding();
+    final b = finding(detectorId: 'depth_spike');
+    await repo.applyScanResults(
+      scopeDiveIds: {'d1'},
+      ranDetectorIds: {'sample_gap', 'depth_spike'},
+      produced: [a, b],
+    );
+
+    await repo.resolveAll([a.id, b.id]);
+
+    final all = await repo.getFindings();
+    expect(all.map((f) => f.status).toSet(), {QualityStatus.resolved});
+  });
+
   test('watchOpenCountForDive matches diveId or relatedDiveId', () async {
     final pid = qualityPairIdentity(detectorId: 'duplicate', a: 'dX', b: 'dY');
     await repo.applyScanResults(

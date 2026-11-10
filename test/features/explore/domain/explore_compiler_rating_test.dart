@@ -74,6 +74,15 @@ void main() {
     expect(boundOf(compile('gte', 3.5), 'rating', QueryOp.gte), 4);
   });
 
+  test('more and fewer than leave out the star said (#4398)', () {
+    final more = compile('gt', 3);
+    expect(boundOf(more, 'rating', QueryOp.gte), 4);
+    expect(boundOf(more, 'rating', QueryOp.gt), isNull);
+    final fewer = compile('lt', 3);
+    expect(boundOf(fewer, 'rating', QueryOp.lte), 2);
+    expect(boundOf(compile('gt', 3.5), 'rating', QueryOp.gte), 4);
+  });
+
   test('an exact value no whole number can equal is out of range', () {
     // "Exactly 3.5 stars" rounds inward to at least 4 and at most 3: no
     // dive can match, so the clause says why instead of finding nothing.

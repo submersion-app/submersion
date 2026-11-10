@@ -11190,6 +11190,34 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'הפיצול נכשל';
 
   @override
+  String get diveLog_sources_menu_remove => 'הסרת מקור';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'להסיר את המקור הזה?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'הקריאות מ-$source יוסרו מהצלילה הזו: הפרופיל, הלחצים והמכלים שרק הוא תיעד. רשומת היומן נשארת.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'הקריאות של המקור הזה יוסרו מהצלילה: הפרופיל, הלחצים והמכלים שרק הוא תיעד. רשומת היומן נשארת.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'הסרה';
+
+  @override
+  String get diveLog_sources_removeDone => 'המקור הוסר';
+
+  @override
+  String get diveLog_sources_removeFailed => 'לא ניתן היה להסיר את המקור';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      'המקור הזה חולק את מחשב הצלילה שלו עם מקור אחר של הצלילה, ולכן אי אפשר להפריד בין הקריאות שלהם ואי אפשר להסיר אותו לבד.';
+
+  @override
   String get diveLog_sources_menu_separate => 'הפרדת צלילות ממוזגות';
 
   @override
@@ -21794,6 +21822,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_about_version(String version) {
     return 'גרסה $version';
+  }
+
+  @override
+  String settings_about_builtOn(String date) {
+    return 'נבנה ב-$date';
   }
 
   @override
@@ -42836,6 +42869,121 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => 'הסרת מקור';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'הסרת $source';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate => 'הסרת מכל כפול';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'להסיר $count מכלים כפולים?',
+      one: 'להסיר את המכל הכפול?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep נשאר ומקבל מהכפול פרטים שחסרים לו. החלפות הגז והאירועים עוברים אליו.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle => 'איזה גז היה במכל הזה?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'השורות האלה קוראות את אותו משדר אבל חלוקות על הגז. המכל שנשאר יקבל את הגז שתבחר.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'הסרה';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסרת מכלים כפולים ($count צלילות)',
+      one: 'הסרת מכלים כפולים (צלילה אחת)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'הסרת מכלים כפולים';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'מכלים באותה צלילה עם אותו מספר סידורי של משדר הם מכל אחד שנרשם פעמיים. אחד נשאר בכל צלילה, וביטול מחזיר הכול.';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'הסרת $remove, השארת $keep';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוסר ב-$count צלילות',
+      one: 'הוסר בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count דולגו: תערובות הגז שונות';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count נכשלו';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'התעלמות מכל המוצג ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'להתעלם מ-$count ממצאים?',
+      one: 'להתעלם מממצא אחד?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'הם נשארים מוסתרים גם אחרי סריקה חוזרת. ביטול מחזיר אותם.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'התעלמות מהכול';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ממצאים הוסתרו',
+      one: 'ממצא אחד הוסתר',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'להגדיר את $source כמקור הראשי?';
   }
@@ -60108,6 +60256,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => 'צלילה פוצלה';
+
+  @override
+  String get changeLog_label_removeSource => 'מקור נתונים הוסר';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders => 'מכלים כפולים הוסרו';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'הביטול לא הצליח להחזיר הכול. השאר נמצא בהגדרות > נתונים > יומן שינויים.';
 
   @override
   String get changeLog_label_gearTransfer => 'ציוד הועבר';

@@ -11481,6 +11481,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Échec de la scission';
 
   @override
+  String get diveLog_sources_menu_remove => 'Supprimer la source';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Supprimer cette source ?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'Les relevés de $source seront supprimés de cette plongée : son profil, ses pressions et les blocs qu\'elle seule a enregistrés. L\'entrée du carnet reste.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'Les relevés de cette source seront supprimés de cette plongée : son profil, ses pressions et les blocs qu\'elle seule a enregistrés. L\'entrée du carnet reste.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Supprimer';
+
+  @override
+  String get diveLog_sources_removeDone => 'Source supprimée';
+
+  @override
+  String get diveLog_sources_removeFailed =>
+      'Impossible de supprimer la source';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Cette source partage son ordinateur de plongée avec une autre source de la plongée : leurs relevés ne peuvent pas être distingués et elle ne peut pas être supprimée seule.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Séparer les plongées combinées';
 
   @override
@@ -22341,6 +22370,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String settings_about_version(String version) {
     return 'Version $version';
+  }
+
+  @override
+  String settings_about_builtOn(String date) {
+    return 'Compilé le $date';
   }
 
   @override
@@ -44025,6 +44059,123 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => 'Supprimer la source';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'Supprimer $source';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Supprimer le bloc en double';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer $count blocs en double ?',
+      one: 'Supprimer le bloc en double ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep reste et reprend du doublon les détails qui lui manquent. Les changements de gaz et les événements lui sont rattachés.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Quel gaz contenait ce bloc ?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Ces lignes lisent le même émetteur mais diffèrent sur le gaz. Le bloc conservé portera celui que tu choisis.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Supprimer';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer les blocs en double ($count plongées)',
+      one: 'Supprimer les blocs en double ($count plongée)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Supprimer les blocs en double';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Les blocs d\'une plongée qui partagent le numéro de série d\'un émetteur sont un seul bloc enregistré deux fois. Un seul reste par plongée, et Annuler remet tout en place.';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Supprimer $remove, garder $keep';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimé sur $count plongées',
+      one: 'Supprimé sur $count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count ignorées : les mélanges diffèrent';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count en échec';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Ignorer tout ce qui est affiché ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ignorer $count constats ?',
+      one: 'Ignorer $count constat ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Ils restent ignorés après une nouvelle analyse. Annuler les rétablit.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Tout ignorer';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count constats ignorés',
+      one: '$count constat ignoré',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Définir $source comme source principale ?';
   }
@@ -61525,6 +61676,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => 'Plongée scindée';
+
+  @override
+  String get changeLog_label_removeSource => 'Source de données supprimée';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Blocs en double supprimés';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Annuler n\'a pas pu tout rétablir. Le reste se trouve dans Réglages > Données > Journal des modifications.';
 
   @override
   String get changeLog_label_gearTransfer => 'Équipement transféré';

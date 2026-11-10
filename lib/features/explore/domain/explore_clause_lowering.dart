@@ -211,21 +211,57 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
       units,
     ).toStringAsFixed(rate ? 4 : 2),
   );
-  double? lo;
-  double? hi;
+  // A whole-number field reads a strict word as the next whole number in:
+  // "more than 3 stars" is at least 4, "more than twice" at least three.
+  final integral = field.strictCount || field.wholeNumbers;
+  // A measured number said at the precision the app shows it compares with
+  // the value as shown (issue #4398): "deeper than 27.1 ft" leaves out a dive
+  // listed at 27.1 ft, "at least 27.1 ft" takes it in. Its bound is the
+  // exact storage value, since the band is drawn around it; the rounded one
+  // could shift the band's edge by a third of its width.
+  // A unit said other than the diver's is printed in the diver's unit (the
+  // value carries no typed unit), where it is no longer on the grid, so it
+  // compares exactly, as the printed text would read back.
+  final saidUnit = queryUnitOf(c.unit, field.dimension);
+  final shownAsSaid =
+      saidUnit == null || saidUnit == unitForDimension(field.dimension, units);
+  NumberValue at(num said) {
+    final grain = integral || !shownAsSaid
+        ? null
+        : displayGrain(
+            said,
+            saidUnit,
+            field.dimension,
+            units,
+            decimals: field.field?.displayDecimals,
+          );
+    return grain == null
+        ? NumberValue(ground(said), null)
+        : NumberValue(
+            groundClause(said, c.unit, field.dimension, units),
+            null,
+            grain: grain,
+            shown: said.toDouble(),
+          );
+  }
+
+  NumberValue? lo;
+  NumberValue? hi;
+  var loOp = QueryOp.gte;
+  var hiOp = QueryOp.lte;
   Object chipValue;
   if (c.op == ClauseOp.between) {
     final raw = c.value;
     if (raw is! List || raw.length != 2 || raw.any((v) => v is! num)) {
       return _fail('invalid');
     }
-    var a = ground(raw[0] as num);
-    var b = ground(raw[1] as num);
-    if (b < a) (a, b) = (b, a);
-    if (!field.accepts(a) || !field.accepts(b)) return _fail('outOfRange');
-    lo = a;
-    hi = b;
-    chipValue = [a, b];
+    var (a, b) = (raw[0] as num, raw[1] as num);
+    var (ga, gb) = (ground(a), ground(b));
+    if (gb < ga) (a, b, ga, gb) = (b, a, gb, ga);
+    if (!field.accepts(ga) || !field.accepts(gb)) return _fail('outOfRange');
+    lo = at(a);
+    hi = at(b);
+    chipValue = [ga, gb];
   } else {
     final raw = c.value;
     if (raw is! num) return _fail('invalid');
@@ -236,27 +272,43 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
     if (!field.accepts(v)) return _fail('outOfRange');
     switch (c.op) {
       case ClauseOp.lt:
-        hi = field.strictCount ? v.ceilToDouble() - 1 : v;
+        if (integral) {
+          hi = NumberValue(v.ceilToDouble() - 1, null);
+        } else {
+          hi = at(raw);
+          hiOp = QueryOp.lt;
+        }
       case ClauseOp.lte:
-        hi = v;
+        hi = at(raw);
       case ClauseOp.gt:
-        lo = field.strictCount ? v.floorToDouble() + 1 : v;
+        if (integral) {
+          lo = NumberValue(v.floorToDouble() + 1, null);
+        } else {
+          lo = at(raw);
+          loOp = QueryOp.gt;
+        }
       case ClauseOp.gte:
-        lo = v;
+        lo = at(raw);
       case ClauseOp.eq:
         // A measured value is almost never exactly the number said, so
         // "exactly 15 m" is the half unit either side of it in the unit the
         // diver used, the way it would be rounded. SAC is read to a tenth of
         // a bar or a whole psi, so "a SAC of 1.2" is 1.15 to 1.25 bar/min and
-        // "20 psi/min" is 19.5 to 20.5. Counts stay exact.
+        // "20 psi/min" is 19.5 to 20.5. Counts stay exact, and any other
+        // measured value is everything shown as the number (#4398).
         final half = switch (field.dimension) {
           FieldDimension.depth || FieldDimension.temperature => 0.5,
           FieldDimension.pressureRate =>
             rateUnitSaid(c.unit, units) == PressureUnit.psi ? 0.5 : 0.05,
           _ => 0.0,
         };
-        lo = half == 0 ? v : ground(raw - half);
-        hi = half == 0 ? v : ground(raw + half);
+        if (half == 0) {
+          lo = at(raw);
+          hi = at(raw);
+        } else {
+          lo = NumberValue(ground(raw - half), null);
+          hi = NumberValue(ground(raw + half), null);
+        }
       default:
         return _fail('invalid');
     }
@@ -264,18 +316,18 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
   // Whole-number fields round inward, so a bound never reaches past what was
   // said: "under 3.5 stars" is at most 3, "at least 3.5" is at least 4.
   if (field.wholeNumbers) {
-    lo = lo?.ceilToDouble();
-    hi = hi?.floorToDouble();
+    lo = lo == null ? null : NumberValue(lo.value.ceilToDouble(), null);
+    hi = hi == null ? null : NumberValue(hi.value.floorToDouble(), null);
     // "Exactly 3.5 stars" rounds to at least 4 and at most 3: no whole
     // number lies between, so say so rather than find nothing.
-    if (lo != null && hi != null && lo > hi) return _fail('outOfRange');
+    if (lo != null && hi != null && lo.value > hi.value) {
+      return _fail('outOfRange');
+    }
   }
   final key = field.path.last;
   final bounds = <QueryNode>[
-    if (lo != null)
-      ConditionNode(FieldPath([key]), QueryOp.gte, NumberValue(lo, null)),
-    if (hi != null)
-      ConditionNode(FieldPath([key]), QueryOp.lte, NumberValue(hi, null)),
+    if (lo != null) ConditionNode(FieldPath([key]), loOp, lo),
+    if (hi != null) ConditionNode(FieldPath([key]), hiOp, hi),
   ];
   // A child field (a tank's O2) scopes both bounds to one row, as the old
   // minO2Percent/maxO2Percent axis did.
@@ -287,20 +339,21 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
             bounds.length == 1 ? bounds.single : AndNode(bounds),
           ),
         ];
-  // A strict count reports the bound it applies: "more than 2" is 3.
-  if (field.strictCount) {
-    if (c.op == ClauseOp.gt) chipValue = lo!;
-    if (c.op == ClauseOp.lt) chipValue = hi!;
+  // A whole-number field reports the bound it applies: "more than 2" is 3.
+  if (integral) {
+    if (c.op == ClauseOp.gt) chipValue = lo!.value;
+    if (c.op == ClauseOp.lt) chipValue = hi!.value;
   }
-  // The chip reports the op the query ACTUALLY applies: every bound is
-  // inclusive, so a strict "deeper than 20" shows as "at least 20".
+  // The chip reports the op the query ACTUALLY applies: a whole-number
+  // field's strict word became an inclusive bound, so "more than 2 dives"
+  // shows as "at least 3"; a measured value keeps the strict word.
   return (
     nodes: nodes,
     chip: ClauseChip(
       field: field,
       op: switch (c.op) {
-        ClauseOp.gt => ClauseOp.gte,
-        ClauseOp.lt => ClauseOp.lte,
+        ClauseOp.gt when integral => ClauseOp.gte,
+        ClauseOp.lt when integral => ClauseOp.lte,
         _ => c.op,
       },
       value: chipValue,

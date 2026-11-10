@@ -59,6 +59,8 @@ class DiveDetailDataSourcesSection extends ConsumerWidget {
       },
       onSetPrimary: actions.setPrimarySource,
       onSplit: (readingId) => actions.splitSource(dive, readingId),
+      onRemove: (readingId, name) =>
+          actions.removeSource(dive, readingId, name),
       onSeparate: segmentCount >= 2
           ? () => actions.separateSegments(dive, segmentCount)
           : null,

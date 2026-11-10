@@ -18160,6 +18160,54 @@ abstract class AppLocalizations {
   /// **'Split failed'**
   String get diveLog_sources_splitFailed;
 
+  /// Menu item on a dive's data source that removes it and its readings from the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove source'**
+  String get diveLog_sources_menu_remove;
+
+  /// Title of the dialog confirming removal of a data source from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this source?'**
+  String get diveLog_sources_removeDialog_title;
+
+  /// Body of the dialog confirming removal of a named data source from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'The readings from {source} will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.'**
+  String diveLog_sources_removeDialog_body(String source);
+
+  /// Body of the dialog confirming removal of a data source that has no name.
+  ///
+  /// In en, this message translates to:
+  /// **'This source\'s readings will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.'**
+  String get diveLog_sources_removeDialog_bodyUnnamed;
+
+  /// Confirm button of the dialog that removes a data source from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get diveLog_sources_removeDialog_confirm;
+
+  /// Snackbar shown after a data source was removed from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Source removed'**
+  String get diveLog_sources_removeDone;
+
+  /// Snackbar shown when removing a data source from a dive failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not remove the source'**
+  String get diveLog_sources_removeFailed;
+
+  /// Snackbar explaining that a data source sharing its computer with another source of the dive cannot be removed.
+  ///
+  /// In en, this message translates to:
+  /// **'This source shares its dive computer with another source of the dive, so their readings cannot be told apart and it cannot be removed on its own.'**
+  String get diveLog_sources_removeSharedComputer;
+
   /// No description provided for @diveLog_sources_menu_separate.
   ///
   /// In en, this message translates to:
@@ -35273,6 +35321,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Version {version}'**
   String settings_about_version(String version);
+
+  /// Under the app version in Settings > About and the About dialog: the day this build was made
+  ///
+  /// In en, this message translates to:
+  /// **'Built {date}'**
+  String settings_about_builtOn(String date);
 
   /// No description provided for @settings_appBar_title.
   ///
@@ -68777,6 +68831,126 @@ abstract class AppLocalizations {
   /// **'Split {source} into its own dive'**
   String dataQuality_repairLabel_splitNamed(String source);
 
+  /// Repair button that removes the disagreeing data source from the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove source'**
+  String get dataQuality_repairLabel_removeSource;
+
+  /// Repair button naming the data source that is removed from the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {source}'**
+  String dataQuality_repairLabel_removeSourceNamed(String source);
+
+  /// Repair button on a twin-cylinder finding that merges the duplicate row into the one that stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove duplicate cylinder'**
+  String get dataQuality_repairLabel_removeDuplicate;
+
+  /// Title of the dialog confirming removal of duplicate cylinder rows on one dive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Remove the duplicate cylinder?} other{Remove {count} duplicate cylinders?}}'**
+  String dataQuality_removeDuplicate_title(int count);
+
+  /// Body of the dialog confirming removal of duplicate cylinder rows; keep names the cylinder that stays.
+  ///
+  /// In en, this message translates to:
+  /// **'{keep} stays and takes any details it lacks from the duplicate. Gas switches and events move to it.'**
+  String dataQuality_removeDuplicate_body(String keep);
+
+  /// Title of the dialog asking which gas mix to keep when duplicate cylinder rows disagree.
+  ///
+  /// In en, this message translates to:
+  /// **'Which gas did this cylinder hold?'**
+  String get dataQuality_removeDuplicate_mixTitle;
+
+  /// Body of the dialog asking which gas mix to keep when duplicate cylinder rows disagree.
+  ///
+  /// In en, this message translates to:
+  /// **'These rows read the same transmitter but disagree on the gas. The cylinder that stays will carry the one you choose.'**
+  String get dataQuality_removeDuplicate_mixBody;
+
+  /// Confirm button of the dialogs that remove duplicate cylinders.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get dataQuality_removeDuplicate_confirm;
+
+  /// Inbox toolbar action that removes duplicate cylinders on every dive with a serial-proven twin finding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Remove duplicate cylinders (1 dive)} other{Remove duplicate cylinders ({count} dives)}}'**
+  String dataQuality_bulk_removeDuplicates(int count);
+
+  /// Title of the sheet confirming the bulk removal of duplicate cylinders.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove duplicate cylinders'**
+  String get dataQuality_bulk_sheetTitle;
+
+  /// Explanation at the top of the bulk duplicate cylinder removal sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders on one dive that share a transmitter serial are one cylinder recorded twice. One stays on each dive, and Undo puts everything back.'**
+  String get dataQuality_bulk_sheetBody;
+
+  /// One dive's line in the bulk duplicate cylinder sheet: the cylinders that go and the one that stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {remove}, keep {keep}'**
+  String dataQuality_bulk_sheetRow(String remove, String keep);
+
+  /// Snackbar after the bulk duplicate cylinder removal: how many dives changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removed on 1 dive} other{Removed on {count} dives}}'**
+  String dataQuality_bulk_removeDuplicates_done(int count);
+
+  /// Added to the bulk removal summary: dives left alone because their duplicate rows disagree on gas.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} skipped: gas mixes differ'**
+  String dataQuality_bulk_skippedMixes(int count);
+
+  /// Added to the bulk removal summary: dives the removal could not change.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} failed'**
+  String dataQuality_bulk_failed(int count);
+
+  /// Inbox menu item that dismisses every finding the current filter shows.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all shown ({count})'**
+  String dataQuality_action_dismissAllShown(int count);
+
+  /// Title of the dialog confirming Dismiss all shown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Dismiss 1 finding?} other{Dismiss {count} findings?}}'**
+  String dataQuality_dismissAll_title(int count);
+
+  /// Body of the dialog confirming Dismiss all shown.
+  ///
+  /// In en, this message translates to:
+  /// **'They stay dismissed after a rescan. Undo brings them back.'**
+  String get dataQuality_dismissAll_body;
+
+  /// Confirm button of the dialog that dismisses every shown finding.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all'**
+  String get dataQuality_dismissAll_confirm;
+
+  /// Snackbar after Dismiss all shown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Dismissed 1 finding} other{Dismissed {count} findings}}'**
+  String dataQuality_dismissAll_done(int count);
+
   /// No description provided for @dataQuality_setPrimary_title.
   ///
   /// In en, this message translates to:
@@ -96492,6 +96666,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Split a dive'**
   String get changeLog_label_splitDive;
+
+  /// Change log entry title for removing a data source from a dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed a data source'**
+  String get changeLog_label_removeSource;
+
+  /// Change log entry title for merging duplicate cylinders on dives.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed duplicate cylinders'**
+  String get changeLog_label_removeDuplicateCylinders;
+
+  /// Snackbar shown when an Undo that reverts a change log operation left some records unrestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo could not put everything back. The rest is in Settings > Data > Change log.'**
+  String get changeLog_undoIncomplete;
 
   /// No description provided for @changeLog_label_gearTransfer.
   ///

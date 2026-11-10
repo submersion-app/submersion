@@ -491,7 +491,7 @@ platform :ios do
 
     # Build the Flutter app (version comes from pubspec.yaml -> Generated.xcconfig -> Info.plist)
     UI.message("Building Flutter app...")
-    sh("cd ../.. && flutter build ios --release --no-codesign --dart-define=UPDATE_CHANNEL=appstore")
+    sh("cd ../.. && flutter build ios --release --no-codesign --dart-define=UPDATE_CHANNEL=appstore --dart-define=BUILD_DATE=#{Time.now.utc.strftime('%Y-%m-%d')}")
 
     # Build and sign the IPA
     UI.message("Building and signing IPA...")

@@ -11595,6 +11595,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'فشل الفصل';
 
   @override
+  String get diveLog_sources_menu_remove => 'إزالة المصدر';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'إزالة هذا المصدر؟';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'ستُزال قراءات $source من هذه الغطسة: ملفها الشخصي والضغوط والأسطوانات التي سجلها وحده. يبقى إدخال السجل.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'ستُزال قراءات هذا المصدر من هذه الغطسة: ملفه الشخصي والضغوط والأسطوانات التي سجلها وحده. يبقى إدخال السجل.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'إزالة';
+
+  @override
+  String get diveLog_sources_removeDone => 'تمت إزالة المصدر';
+
+  @override
+  String get diveLog_sources_removeFailed => 'تعذّرت إزالة المصدر';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      'يشترك هذا المصدر في حاسوب الغوص مع مصدر آخر في الغطسة، لذا لا يمكن التمييز بين قراءاتهما ولا يمكن إزالته وحده.';
+
+  @override
   String get diveLog_sources_menu_separate => 'فصل الغوصات المدمجة';
 
   @override
@@ -22638,6 +22666,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_about_version(String version) {
     return 'الإصدار $version';
+  }
+
+  @override
+  String settings_about_builtOn(String date) {
+    return 'تاريخ البناء $date';
   }
 
   @override
@@ -44525,6 +44558,143 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => 'إزالة المصدر';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'إزالة $source';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'إزالة الأسطوانة المكررة';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة $count أسطوانة مكررة؟',
+      many: 'إزالة $count أسطوانة مكررة؟',
+      few: 'إزالة $count أسطوانات مكررة؟',
+      two: 'إزالة أسطوانتين مكررتين؟',
+      one: 'إزالة الأسطوانة المكررة؟',
+      zero: 'إزالة $count أسطوانة مكررة؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return 'تبقى $keep وتأخذ من المكررة أي تفاصيل تنقصها. تنتقل إليها تبديلات الغاز والأحداث.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'ما الغاز الذي احتوته هذه الأسطوانة؟';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'تقرأ هذه الصفوف المرسل نفسه لكنها تختلف في الغاز. ستحمل الأسطوانة الباقية الغاز الذي تختاره.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'إزالة';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة الأسطوانات المكررة ($count غطسة)',
+      many: 'إزالة الأسطوانات المكررة ($count غطسة)',
+      few: 'إزالة الأسطوانات المكررة ($count غطسات)',
+      two: 'إزالة الأسطوانات المكررة (غطستان)',
+      one: 'إزالة الأسطوانات المكررة (غطسة واحدة)',
+      zero: 'إزالة الأسطوانات المكررة ($count غطسة)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'إزالة الأسطوانات المكررة';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'الأسطوانات في غطسة واحدة التي تشترك في الرقم التسلسلي للمرسل هي أسطوانة واحدة سُجلت مرتين. تبقى واحدة في كل غطسة، والتراجع يعيد كل شيء.';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'إزالة $remove، والإبقاء على $keep';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُزيلت في $count غطسة',
+      many: 'أُزيلت في $count غطسة',
+      few: 'أُزيلت في $count غطسات',
+      two: 'أُزيلت في غطستين',
+      one: 'أُزيلت في غطسة واحدة',
+      zero: 'أُزيلت في $count غطسة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return 'تم تخطي $count: الخلطات الغازية مختلفة';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return 'فشل $count';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'تجاهل كل المعروض ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تجاهل $count ملاحظة؟',
+      many: 'تجاهل $count ملاحظة؟',
+      few: 'تجاهل $count ملاحظات؟',
+      two: 'تجاهل ملاحظتين؟',
+      one: 'تجاهل ملاحظة واحدة؟',
+      zero: 'تجاهل $count ملاحظة؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'تبقى متجاهلة بعد إعادة الفحص. التراجع يعيدها.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'تجاهل الكل';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تجاهل $count ملاحظة',
+      many: 'تم تجاهل $count ملاحظة',
+      few: 'تم تجاهل $count ملاحظات',
+      two: 'تم تجاهل ملاحظتين',
+      one: 'تم تجاهل ملاحظة واحدة',
+      zero: 'تم تجاهل $count ملاحظة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'جعل $source المصدر الأساسي؟';
   }
@@ -62267,6 +62437,17 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => 'تم تقسيم غطسة';
+
+  @override
+  String get changeLog_label_removeSource => 'إزالة مصدر بيانات';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'إزالة الأسطوانات المكررة';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'تعذّر على التراجع إعادة كل شيء. الباقي في الإعدادات > البيانات > سجل التغييرات.';
 
   @override
   String get changeLog_label_gearTransfer => 'تم نقل المعدات';

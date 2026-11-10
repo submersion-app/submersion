@@ -264,19 +264,36 @@ class QualityFindingsRepository {
   }
 
   /// Bulk dismiss with ONE notify (fifty false positives, one tap).
-  Future<void> dismissAll(Iterable<String> ids) async {
+  Future<void> dismissAll(Iterable<String> ids) =>
+      _setAll(ids, QualityStatus.dismissed);
+
+  /// Puts [ids] back to open with one notify: the Undo of Dismiss all shown
+  /// (issue #4393).
+  Future<void> reopenAll(Iterable<String> ids) =>
+      _setAll(ids, QualityStatus.open);
+
+  /// Marks [ids] resolved with one notify: the findings a bulk repair
+  /// answered (issue #4393).
+  Future<void> resolveAll(Iterable<String> ids) =>
+      _setAll(ids, QualityStatus.resolved);
+
+  Future<void> _setAll(Iterable<String> ids, QualityStatus status) async {
     final idList = ids.toList();
     if (idList.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
-      await (_db.update(
-        _db.qualityFindings,
-      )..where((t) => t.id.isIn(idList))).write(
-        QualityFindingsCompanion(
-          status: Value(QualityStatus.dismissed.name),
-          updatedAt: Value(now),
-        ),
-      );
+      // Chunked like the scan's reads: Dismiss all shown can pass every open
+      // finding of a large logbook at once.
+      for (final chunk in seriesIdChunks(idList)) {
+        await (_db.update(
+          _db.qualityFindings,
+        )..where((t) => t.id.isIn(chunk))).write(
+          QualityFindingsCompanion(
+            status: Value(status.name),
+            updatedAt: Value(now),
+          ),
+        );
+      }
       for (final id in idList) {
         await _sync.markRecordPending(
           entityType: 'qualityFindings',

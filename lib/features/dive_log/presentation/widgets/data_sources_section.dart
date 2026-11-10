@@ -84,6 +84,12 @@ class DataSourcesSection extends StatefulWidget {
   /// separate dive" (confirmation happens in the caller).
   final void Function(String readingId)? onSplit;
 
+  /// Called with the reading ID when the user chooses "Remove source"
+  /// (confirmation happens in the caller). Offered only on a multi-source
+  /// dive, like Split (issue #4393).
+  /// The name is the source's label as its card shows it, for the dialog.
+  final void Function(String readingId, String sourceName)? onRemove;
+
   /// Called when the user chooses "Separate combined dives" (confirmation
   /// happens in the caller). Null hides the action.
   ///
@@ -110,6 +116,7 @@ class DataSourcesSection extends StatefulWidget {
     this.viewedSourceId,
     this.onSetPrimary,
     this.onSplit,
+    this.onRemove,
     this.onSeparate,
     this.onTapSource,
     this.onCompareIn3d,
@@ -152,6 +159,12 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
     );
   }
 
+  bool _sharesComputer(DiveDataSource source) =>
+      source.computerId != null &&
+      widget.dataSources.any(
+        (s) => s.id != source.id && s.computerId == source.computerId,
+      );
+
   List<Widget> _buildChildren(bool isMultiSource) {
     if (widget.dataSources.isEmpty) {
       return [
@@ -185,6 +198,17 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
               : null,
           onSplit: widget.onSplit != null && isMultiSource
               ? () => widget.onSplit!(source.id)
+              : null,
+          // Two sources of one computer cannot be told apart, so removal
+          // refuses them; the menu does not offer it.
+          onRemove:
+              widget.onRemove != null &&
+                  isMultiSource &&
+                  !_sharesComputer(source)
+              ? () => widget.onRemove!(
+                  source.id,
+                  resolveSourceName(source, _labelsOf(context)),
+                )
               : null,
           onTap: widget.onTapSource != null
               ? () => widget.onTapSource!(source.id)
@@ -319,7 +343,7 @@ class _ManualEntryCard extends StatelessWidget {
 // Data Source Card
 // ---------------------------------------------------------------------------
 
-enum _SourceMenuAction { setPrimary, split }
+enum _SourceMenuAction { setPrimary, split, remove }
 
 /// Card for a single [DiveDataSource]: identity, status chips and the
 /// per-source menu. On a single-source dive it also carries the provenance
@@ -332,6 +356,7 @@ class _DataSourceCard extends StatelessWidget {
   final bool isViewing;
   final VoidCallback? onSetPrimary;
   final VoidCallback? onSplit;
+  final VoidCallback? onRemove;
   final VoidCallback? onTap;
 
   const _DataSourceCard({
@@ -341,6 +366,7 @@ class _DataSourceCard extends StatelessWidget {
     required this.isViewing,
     this.onSetPrimary,
     this.onSplit,
+    this.onRemove,
     this.onTap,
   });
 
@@ -365,7 +391,8 @@ class _DataSourceCard extends StatelessWidget {
     // nothing (#2974).
     final canSetPrimary = !source.isPrimary && onSetPrimary != null;
     final canSplit = onSplit != null;
-    final hasOverflowMenu = canSetPrimary || canSplit;
+    final canRemove = onRemove != null;
+    final hasOverflowMenu = canSetPrimary || canSplit || canRemove;
 
     final chips = <Widget>[
       if (isMultiSource && source.isPrimary)
@@ -449,6 +476,8 @@ class _DataSourceCard extends StatelessWidget {
                               onSetPrimary?.call();
                             case _SourceMenuAction.split:
                               onSplit?.call();
+                            case _SourceMenuAction.remove:
+                              onRemove?.call();
                           }
                         },
                         itemBuilder: (context) => [
@@ -463,6 +492,12 @@ class _DataSourceCard extends StatelessWidget {
                               _SourceMenuAction.split,
                               Icons.call_split,
                               context.l10n.diveLog_sources_menu_split,
+                            ),
+                          if (canRemove)
+                            _menuItem(
+                              _SourceMenuAction.remove,
+                              Icons.delete_outline,
+                              context.l10n.diveLog_sources_menu_remove,
                             ),
                         ],
                       ),

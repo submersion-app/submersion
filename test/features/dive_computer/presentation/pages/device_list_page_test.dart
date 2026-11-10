@@ -412,7 +412,7 @@ void main() {
 
       expect(
         find.text(
-          'Garmin-Uhren werden hier nicht heruntergeladen. Importieren Sie '
+          'Garmin-Uhren werden hier nicht heruntergeladen. Importiere '
           'ihre Tauchgänge über Übertragung > Dateiimport oder '
           'Übertragung > Cloud.',
         ),

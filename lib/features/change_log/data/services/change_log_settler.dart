@@ -184,8 +184,15 @@ class _SettlePass {
     final root = await _rootOf(event);
 
     // Machine rows are kept only to bring back a deleted record. While the
-    // record lives, a sweep replacing them is nothing the diver did.
+    // record lives, a sweep replacing them is nothing the diver did. An
+    // operation that asked for its machine rows (changeLogOptInUpdateTables)
+    // is the exception: its revert needs every one, including a series it
+    // deleted with no owning source or tank gone (a legacy row with no
+    // source_id), and an update's trigger fires only inside such an
+    // operation anyway.
     if (changeLogTables[event.table] == ChangeLogClass.deleteCopyOnly &&
+        event.action != 'U' &&
+        !await _optedInMachineRows(event) &&
         await _exists(root) &&
         !await _machineOwnerGone(event)) {
       await _deleteEvents([event.id]);
@@ -526,6 +533,19 @@ class _SettlePass {
       }
     }
     return (label: null, ordinal: null);
+  }
+
+  /// Whether [event] was recorded inside an operation that keeps its machine
+  /// rows: a series table of [changeLogOptInUpdateTables] under one of
+  /// [changeLogSeriesUpdateLabels].
+  Future<bool> _optedInMachineRows(_Event event) async {
+    final operationId = event.operationId;
+    if (operationId == null ||
+        !changeLogOptInUpdateTables.contains(event.table)) {
+      return false;
+    }
+    final operation = await _loadOperation(operationId);
+    return changeLogSeriesUpdateLabels.contains(operation?.label);
   }
 
   /// Whether the row a machine row belongs to, other than its root, has gone.

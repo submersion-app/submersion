@@ -11,6 +11,7 @@ class DiveDetailActions {
   const DiveDetailActions({
     required this.setPrimarySource,
     required this.splitSource,
+    required this.removeSource,
     required this.separateSegments,
     required this.scanGallery,
     required this.addPhotos,
@@ -21,6 +22,10 @@ class DiveDetailActions {
 
   final void Function(String readingId) setPrimarySource;
   final void Function(Dive dive, String sourceId) splitSource;
+
+  /// Remove source on a multi-source dive (issue #4393).
+  final void Function(Dive dive, String sourceId, String sourceName)
+  removeSource;
   final void Function(Dive dive, int segmentCount) separateSegments;
   final void Function(Dive dive) scanGallery;
   final void Function(Dive dive) addPhotos;

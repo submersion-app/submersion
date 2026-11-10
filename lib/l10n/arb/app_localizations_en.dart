@@ -11264,6 +11264,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Split failed';
 
   @override
+  String get diveLog_sources_menu_remove => 'Remove source';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Remove this source?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'The readings from $source will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'This source\'s readings will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Remove';
+
+  @override
+  String get diveLog_sources_removeDone => 'Source removed';
+
+  @override
+  String get diveLog_sources_removeFailed => 'Could not remove the source';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      'This source shares its dive computer with another source of the dive, so their readings cannot be told apart and it cannot be removed on its own.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separate combined dives';
 
   @override
@@ -21951,6 +21979,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String settings_about_version(String version) {
     return 'Version $version';
+  }
+
+  @override
+  String settings_about_builtOn(String date) {
+    return 'Built $date';
   }
 
   @override
@@ -43176,6 +43209,123 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => 'Remove source';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'Remove $source';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Remove duplicate cylinder';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remove $count duplicate cylinders?',
+      one: 'Remove the duplicate cylinder?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep stays and takes any details it lacks from the duplicate. Gas switches and events move to it.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Which gas did this cylinder hold?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'These rows read the same transmitter but disagree on the gas. The cylinder that stays will carry the one you choose.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Remove';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remove duplicate cylinders ($count dives)',
+      one: 'Remove duplicate cylinders (1 dive)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Remove duplicate cylinders';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Cylinders on one dive that share a transmitter serial are one cylinder recorded twice. One stays on each dive, and Undo puts everything back.';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Remove $remove, keep $keep';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removed on $count dives',
+      one: 'Removed on 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count skipped: gas mixes differ';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count failed';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Dismiss all shown ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dismiss $count findings?',
+      one: 'Dismiss 1 finding?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'They stay dismissed after a rescan. Undo brings them back.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Dismiss all';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dismissed $count findings',
+      one: 'Dismissed 1 finding',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Make $source the primary source?';
   }
@@ -60423,6 +60573,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => 'Split a dive';
+
+  @override
+  String get changeLog_label_removeSource => 'Removed a data source';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Removed duplicate cylinders';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Undo could not put everything back. The rest is in Settings > Data > Change log.';
 
   @override
   String get changeLog_label_gearTransfer => 'Transferred gear';

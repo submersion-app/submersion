@@ -114,6 +114,12 @@ class _QualityFindingCardState extends State<QualityFindingCard> {
         source == null
             ? l10n.dataQuality_repairLabel_split
             : l10n.dataQuality_repairLabel_splitNamed(source),
+      RemoveDuplicateCylinderRepair() =>
+        l10n.dataQuality_repairLabel_removeDuplicate,
+      RemoveSourceRepair() =>
+        source == null
+            ? l10n.dataQuality_repairLabel_removeSource
+            : l10n.dataQuality_repairLabel_removeSourceNamed(source),
       DespikeRepair() => l10n.dataQuality_repairLabel_despike,
       SmoothRatesRepair() => l10n.dataQuality_repairLabel_smoothRates,
       ClampNegativeDepthsRepair() => l10n.dataQuality_repairLabel_clampNegative,

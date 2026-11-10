@@ -745,9 +745,18 @@ class QueryParser {
         if (_isSymbol(_peek, ',') && op != QueryOp.inList) {
           throw _Abort(_err(QueryErrorCode.decimalComma, _peek));
         }
+        final grain = displayGrain(
+          raw,
+          unit,
+          field.dimension,
+          context.prefs,
+          decimals: field.displayDecimals,
+        );
         return NumberValue(
           groundToStorage(raw, unit, field.dimension, context.prefs),
           unit,
+          grain: grain,
+          shown: grain == null ? null : raw.toDouble(),
         );
       case FieldType.text:
       case FieldType.id:

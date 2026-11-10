@@ -11416,6 +11416,35 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'A szétválasztás sikertelen';
 
   @override
+  String get diveLog_sources_menu_remove => 'Forrás eltávolítása';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Eltávolítod ezt a forrást?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'A(z) $source mérései törlődnek erről a merülésről: a profil, a nyomások és a csak általa rögzített palackok. A naplóbejegyzés megmarad.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'Ennek a forrásnak a mérései törlődnek erről a merülésről: a profil, a nyomások és a csak általa rögzített palackok. A naplóbejegyzés megmarad.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Eltávolítás';
+
+  @override
+  String get diveLog_sources_removeDone => 'Forrás eltávolítva';
+
+  @override
+  String get diveLog_sources_removeFailed =>
+      'A forrást nem sikerült eltávolítani';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Ez a forrás a merülés egy másik forrásával közös búvárkomputert használ, ezért a méréseik nem választhatók szét, és önmagában nem távolítható el.';
+
+  @override
   String get diveLog_sources_menu_separate =>
       'Összevont merülések szétválasztása';
 
@@ -22207,6 +22236,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_about_version(String version) {
     return 'Verzió $version';
+  }
+
+  @override
+  String settings_about_builtOn(String date) {
+    return 'Készült: $date';
   }
 
   @override
@@ -43666,6 +43700,123 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => 'Forrás eltávolítása';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return '$source eltávolítása';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Ismétlődő palack eltávolítása';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítasz $count ismétlődő palackot?',
+      one: 'Eltávolítod az ismétlődő palackot?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep megmarad, és átveszi az ismétlődő palackból a hiányzó adatokat. A gázváltások és események hozzá kerülnek.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Milyen gáz volt ebben a palackban?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Ezek a sorok ugyanazt a jeladót olvassák, de eltér a gázuk. A megmaradó palack azt kapja, amelyiket választod.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Eltávolítás';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ismétlődő palackok eltávolítása ($count merülés)',
+      one: 'Ismétlődő palackok eltávolítása (1 merülés)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Ismétlődő palackok eltávolítása';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Az egy merülésen azonos jeladó-sorozatszámú palackok egyetlen, kétszer rögzített palackot jelentenek. Merülésenként egy marad, a Visszavonás mindent visszaállít.';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return '$remove eltávolítása, $keep marad';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésen eltávolítva',
+      one: '1 merülésen eltávolítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count kihagyva: a gázkeverékek eltérnek';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count sikertelen';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Az összes látható elvetése ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Elveted a(z) $count észrevételt?',
+      one: 'Elveted az 1 észrevételt?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Újraellenőrzés után is elvetve maradnak. A Visszavonás visszahozza őket.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Összes elvetése';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count észrevétel elvetve',
+      one: '1 észrevétel elvetve',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Beállítja elsődleges forrásként ezt: $source?';
   }
@@ -61054,6 +61205,17 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => 'Merülés szétválasztva';
+
+  @override
+  String get changeLog_label_removeSource => 'Adatforrás eltávolítva';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Ismétlődő palackok eltávolítva';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'A visszavonás nem tudott mindent visszaállítani. A többi a Beállítások > Adatok > Változásnapló alatt található.';
 
   @override
   String get changeLog_label_gearTransfer => 'Felszerelés átadva';
