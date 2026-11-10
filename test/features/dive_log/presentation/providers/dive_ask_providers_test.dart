@@ -151,7 +151,7 @@ void main() {
     expect(filterOf(c).favoritesOnly, isTrue);
     expect(filterOf(c).axesSuspended, isTrue);
     expect(answer.previousQuery, TextNode(['old']));
-    expect(boundOf(answer.compiled, 'depth', QueryOp.gte), 20);
+    expect(boundOf(answer.compiled, 'depth', QueryOp.gt), 20);
     expect(answer.compiled.unplaced.single.text, 'maybe');
     expect(recorded, ['Turtles below 20m in Bonaire']);
   });
@@ -396,8 +396,8 @@ void main() {
       );
       await askOf(c).ask('Turtles below 20m in Bonaire');
       final compiled = stateOf(c).answer!.compiled;
-      expect(boundOf(compiled, 'depth', QueryOp.gte), 20);
-      expect(boundOf(compiled, 'waterTemp', QueryOp.lte), isNull);
+      expect(boundOf(compiled, 'depth', QueryOp.gt), 20);
+      expect(boundOf(compiled, 'waterTemp', QueryOp.lt), isNull);
       expect(compiled.chips.map((ch) => ch.ref), isNot(contains(ChipRef.time)));
       // The recent list keeps what the diver saw, not the raw reply.
       expect(kept!.clauses.map((cl) => cl.text), ['below 20m']);
@@ -426,7 +426,7 @@ void main() {
         const Locale('de', 'DE'),
         'Schildkröten unter 20m in Bonaire, kaltes Wasser',
       );
-      expect(boundOf(compiled, 'waterTemp', QueryOp.lte), 15);
+      expect(boundOf(compiled, 'waterTemp', QueryOp.lt), 15);
     });
 
     test('a sentence that names its period keeps it', () async {
