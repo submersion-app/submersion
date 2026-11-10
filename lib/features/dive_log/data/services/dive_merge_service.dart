@@ -464,6 +464,9 @@ class DiveMergeService {
               computerId: null,
               sourceId: null,
               isPrimary: true,
+              // Live with no source, the shape that reads as an edit over
+              // anything demoted beneath, so it says it is none (#4386).
+              isEdit: false,
               samples: surface,
               synthetic: true,
             ),
@@ -1019,7 +1022,7 @@ class _SeriesDraft {
   final Value<int?> activatedAt;
 
   /// The original series' `is_edit`, carried so a merged edit stays one
-  /// (issue #4386); null for a synthetic fill.
+  /// (issue #4386); false for a synthetic fill.
   final bool? isEdit;
   final bool synthetic;
   final List<ProfileSample> samples;
