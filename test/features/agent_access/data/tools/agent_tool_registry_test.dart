@@ -64,6 +64,8 @@ void main() {
       sql: SqlWindowRunner(
         file: () async => SqlDatabaseFile(path: sqlFixture.path),
       ),
+      followOf: (_) async => null,
+      planCaveat: () => 'Check it.',
       writes: AgentWriteServices(
         records: RecordRepositories(),
         plans: WritePlanStore(),
@@ -83,6 +85,7 @@ void main() {
           'get_records',
           'list_records',
           'sql_query',
+          'compute_plan',
           'preview_changes',
           'apply_changes',
           'revert_operation',

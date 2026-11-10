@@ -18,11 +18,15 @@ import 'package:submersion/features/agent_access/data/tools/agent_tool_registry.
 import 'package:submersion/features/agent_access/data/writes/agent_write_services.dart';
 import 'package:submersion/features/agent_access/domain/agent_access_settings.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_write_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
+import 'package:submersion/features/planner/data/services/stored_series_results.dart';
+import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
@@ -270,6 +274,8 @@ class AgentAccessController {
       activeDiverId: activeDiverId,
     );
     final records = RecordRepositories(activeDiverId: activeDiverId);
+    // The app's language as it is when a tool runs, for every tool's text.
+    AppLocalizations strings() => l10nForLocaleTag(_ref.read(localeProvider));
     return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,
@@ -277,6 +283,16 @@ class AgentAccessController {
         settings: settings,
         records: records,
         sql: _sqlRunner,
+        // Read as the planner reads it, so a plan an agent computes after a
+        // logged dive carries in exactly what the planner's would. An agent
+        // names the dive by id, so a planned entry is refused as no logged
+        // dive rather than followed as if it had been dived.
+        followOf: loggedDivesOnly(
+          (diveId) =>
+              _ref.container.awaitFuture(seriesFollowProvider(diveId).future),
+          _ref.read(diveRepositoryProvider),
+        ),
+        planCaveat: () => strings().planning_disclaimer_dialog_body,
         writes: AgentWriteServices(
           records: records,
           plans: _ref.read(agentWritePlanStoreProvider),
@@ -285,7 +301,7 @@ class AgentAccessController {
               _ref.read(agentAccessSettingsProvider).confirmWrites,
           rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
           refreshGearReminders: _refreshGearReminders,
-          strings: () => l10nForLocaleTag(_ref.read(localeProvider)),
+          strings: strings,
         ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),

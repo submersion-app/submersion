@@ -24,9 +24,30 @@ class ObjectListCodec extends FieldCodec {
   final String? Function(Map<String, Object?> item)? rule;
   final int maxItems;
 
+  /// Each key with what it takes, so a client learns an enum's names or a
+  /// nested list's shape from the schema rather than from a refusal.
   @override
   String get describe =>
-      'a list of objects with ${keys.keys.join(', ')}, replaced whole';
+      'a list of objects with '
+      '${[for (final MapEntry(:key, :value) in keys.entries) '$key (${value.describe})'].join(', ')}, '
+      'replaced whole';
+
+  /// One item as a JSON Schema object: each key with what it takes, the
+  /// keys an item must give (neither nullable nor defaulted), and no
+  /// others, so a client builds an item from the schema as [parseValue]
+  /// reads it.
+  Map<String, Object?> get itemSchema => {
+    'type': 'object',
+    'properties': {
+      for (final MapEntry(:key, :value) in keys.entries)
+        key: {'description': value.describe},
+    },
+    'required': [
+      for (final MapEntry(:key, :value) in keys.entries)
+        if (!value.nullable && !defaults.containsKey(key)) key,
+    ],
+    'additionalProperties': false,
+  };
 
   @override
   Object parseValue(Object raw) {

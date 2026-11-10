@@ -31,7 +31,8 @@ Everything is under `lib/features/agent_access/`:
 | `data/sql/` | The SQL window: the denied set, the bytecode guard, the worker and its runner |
 | `data/writes/` | The write catalogue: change sets, field codecs, the planner, the plan store and the applier |
 | `data/writes/families/` | One file per family of writable entities, each going through its repository or service |
-| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, `preview_changes`, `apply_changes`, `revert_operation`, and the registry |
+| `data/tools/` | `list_divers`, `query`, `get_records`, `list_records`, `sql_query`, `compute_plan`, `preview_changes`, `apply_changes`, `revert_operation`, and the registry |
+| `data/planning/` | `compute_plan`'s request parser, the series it builds in memory, and its result document |
 | `data/resources/` | `submersion://query-language`, `submersion://units` and `submersion://schema` |
 | `data/server/` | The loopback listener, the bearer check, and the adapter onto `mcp_dart` |
 | `presentation/providers/` | Settings notifier, token store, status stream, lifecycle controller |
@@ -96,6 +97,50 @@ two hundred columns and no domain shape, so `settingsDocument` drops the
 device-local and bookkeeping columns and renames the dimensioned ones from
 `kSettingUnitKeys`. A new `REAL` column must join that map or
 `kUnitlessSettings`, or the guard fails.
+
+## The planner
+
+`compute_plan` computes a dive or a series of up to ten with the planner's
+own code and writes nothing (issue #4203). It never has a planner of its own:
+
+- **Inputs** are read with the `dive_plans` write family's codecs
+  (`writes/families/dive_plan_fields.dart`), so the plan fields of
+  `resolved_inputs` save unchanged through `dive_plans`. Its
+  `surface_interval_s` and `carries_from_tank` are `compute_plan`'s own, and
+  `dive_plans` refuses them. A first dive saved that way is the plan that
+  was computed; a later one saves without what it carried in. `bottom` is
+  the planner's simple plan: a descent at the plan's or the diver's rate,
+  then `time_s` at depth, on the first tank, or a loop's first diluent.
+- **A series** is built as an unsaved `StoredSeries` (`storedSeriesFor`) and
+  computed by `computeSeriesFromStored`, the path a saved series opens by.
+  A later dive takes the dive before's mode, settings and tanks for any it
+  leaves out, as a dive the planner adds copies them. Tanks carry from the
+  same place when taken, else from the same cylinder (the planner's
+  `sameCylinder`: size, working pressure and gas, the only link it carries a
+  pressure across), unless `carries_from_tank` says otherwise. A later dive's
+  `start_date_time` is taken only when the first dive has one or the series
+  follows a logged dive, since the planner has no other clock to measure it
+  from.
+- **Settings** are the named diver's, through `planEngineConfigFromSettings`.
+  `effective_settings` says for each value whether the plan, the diver's
+  Settings or the planner's default set it; values from Settings are never
+  written into `resolved_inputs`, so a saved plan keeps following Settings.
+  Every value it marks as one a plan can set is an input, so an agent can
+  override any of them. That includes the ascent rate bands and the
+  problem-solving allowance (`problem_solving_minutes` at the deepest point on
+  bottom SAC times `sac_factor`), which `litres_used` includes.
+- **Following a logged dive** reads it through the planner's
+  `seriesFollowProvider`, injected as a `SeriesFollowReader` and wrapped in
+  `loggedDivesOnly`, so the carry-in is the planner's own and a planned entry
+  is never followed.
+- **What a dive carried in** includes `tissue_loading`: the tissues from
+  `startStateForPlan`, the state the engine starts the dive from, so after
+  the surface interval has off-gassed them. It names the leading compartment
+  by percent of the surface M-value, as the app's tissue card ranks them, the
+  surface gradient factor, and each compartment's N2 and He.
+
+Every answer carries the planner's caveat in the app's language, and the
+description tells the agent to pass on every issue.
 
 ## Writes
 
@@ -586,6 +631,6 @@ The server factory runs per MCP session, and per request on the stateless
 
 ## Status
 
-Shipped: the read tools, the write core (`preview_changes`, `apply_changes`,
+Shipped: the read tools, `compute_plan`, the write core (`preview_changes`, `apply_changes`,
 `revert_operation`, the confirmation dialog, change log source `agent`) and
 write coverage for every family, kept whole by the guard above.

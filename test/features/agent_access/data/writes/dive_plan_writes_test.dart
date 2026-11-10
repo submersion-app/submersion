@@ -1,6 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart' hide Dive, DivePlan;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/features/agent_access/data/diver_context.dart';
+import 'package:submersion/features/agent_access/data/tools/compute_plan_tool.dart';
+import 'package:submersion/features/agent_access/domain/agent_tool.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
@@ -121,6 +125,85 @@ void main() {
       [ids.first],
     );
     expect(await h.one('dive_plans', ids.last), isNull);
+  });
+
+  test('compute_plan resolved_inputs save as the plan it computed '
+      '(#4203)', () async {
+    final settings = DiverSettingsRepository();
+    final computed =
+        await ComputePlanTool(
+          loader: DiverContextLoader(
+            db: () => db,
+            divers: DiverRepository(),
+            settings: settings,
+            localeTag: 'en',
+            activeDiverId: () async => kDiverA,
+          ),
+          settings: settings,
+          followOf: (_) async => null,
+          caveat: () => '',
+        ).call({
+          'dives': [
+            {
+              'gf_low': 35,
+              'gf_high': 75,
+              'tanks': [
+                {'volume_l': 24, 'start_pressure_bar': 200},
+                {'volume_l': 7, 'start_pressure_bar': 200, 'o2_fraction': 0.5},
+              ],
+              'bottom': {'depth_m': 42, 'time_s': 1500},
+            },
+          ],
+        }, AgentToolContext(db: db, clientName: 'test'));
+    final dive = (computed['dives']! as List).single as Map;
+
+    final id = await make('dive_plans', {
+      'name': 'Computed',
+      ...(dive['resolved_inputs']! as Map).cast<String, Object?>(),
+    });
+
+    final row = await (db.select(
+      db.divePlans,
+    )..where((p) => p.id.equals(id))).getSingle();
+    expect(row.summaryRuntimeSeconds, dive['runtime_s']);
+    expect(row.summaryTtsSeconds, dive['tts_at_bottom_s']);
+    expect(row.summaryMaxDepth, dive['max_depth_m']);
+  });
+
+  test('a plan sets and clears its ascent rates and gas allowance', () async {
+    const keys = [
+      'intermediate_ascent_rate_m_min',
+      'shallow_ascent_rate_m_min',
+      'final_ascent_rate_m_min',
+      'gas_switch_stop_s',
+      'sac_factor',
+      'problem_solving_minutes',
+      'o2_narcotic',
+    ];
+    final id = await make('dive_plans', {
+      'name': 'Rates',
+      'tanks': [
+        {'volume_l': 12, 'start_pressure_bar': 200},
+      ],
+      'segments': [
+        {'target_depth_m': 30, 'duration_s': 1200, 'tank': 0},
+      ],
+      'intermediate_ascent_rate_m_min': 6,
+      'shallow_ascent_rate_m_min': 3,
+      'final_ascent_rate_m_min': 1,
+      'gas_switch_stop_s': 60,
+      'sac_factor': 1.5,
+      'problem_solving_minutes': 0,
+      'o2_narcotic': false,
+    });
+    final saved = (await h.one('dive_plans', id))!;
+    expect([for (final k in keys) saved[k]], [6, 3, 1, 60, 1.5, 0, false]);
+
+    await h.run([
+      updateOp('dive_plans', id, {for (final k in keys) k: null}),
+    ]);
+    final cleared = (await h.one('dive_plans', id))!;
+    expect([for (final k in keys) cleared[k]], everyElement(isNull));
   });
 
   test('a plan naming a missing site is refused', () async {

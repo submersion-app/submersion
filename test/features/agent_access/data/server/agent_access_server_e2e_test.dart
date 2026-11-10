@@ -85,6 +85,8 @@ void main() {
       sql: SqlWindowRunner(
         file: () async => SqlDatabaseFile(path: sqlFixture.path),
       ),
+      followOf: (_) async => null,
+      planCaveat: () => 'Check it.',
       writes: AgentWriteServices(
         records: RecordRepositories(),
         plans: plans,
@@ -178,6 +180,7 @@ void main() {
           'get_records',
           'list_records',
           'sql_query',
+          'compute_plan',
           'preview_changes',
           'apply_changes',
           'revert_operation',
@@ -277,6 +280,28 @@ void main() {
       );
       expect(out.isError, isFalse);
       expect(out.structuredContent!['total'], 1);
+    });
+
+    test('compute_plan over loopback', () async {
+      final out = await client.callTool(
+        const CallToolRequest(
+          name: 'compute_plan',
+          arguments: {
+            'dives': [
+              {
+                'tanks': [
+                  {'volume_l': 12, 'start_pressure_bar': 200},
+                ],
+                'bottom': {'depth_m': 18, 'time_s': 2400},
+              },
+            ],
+          },
+        ),
+      );
+      expect(out.isError, isFalse);
+      final dive = (out.structuredContent!['dives']! as List).single as Map;
+      expect(dive['max_depth_m'], 18);
+      expect(out.structuredContent!['caveat'], 'Check it.');
     });
 
     test('query then get_records round trip', () async {

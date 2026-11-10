@@ -226,6 +226,27 @@ void main() {
       expect(computed.results.map((r) => r.actual), [isNull, isNull]);
     });
 
+    test('a follow by dive id reads only a dive that has been dived', () async {
+      final logged = await dives.createDive(loggedDive('logged', nine));
+      final planned = await dives.createDive(
+        loggedDive('planned', nine, isPlanned: true),
+      );
+      final asked = <String>[];
+      final follow = SeriesFollow(
+        loggedDives: [seriesLoggedDive(logged.id, nine)],
+      );
+      final read = loggedDivesOnly((id) async {
+        asked.add(id);
+        return follow;
+      }, dives);
+
+      expect(await read(logged.id), follow);
+      // A planned entry's profile and tanks are a plan, not what was left.
+      expect(await read(planned.id), isNull);
+      expect(await read('gone'), isNull);
+      expect(asked, [logged.id]);
+    });
+
     test('a series that follows a logged dive starts from it', () async {
       final logged = await dives.createDive(loggedDive('logged', nine));
       final stored = await seriesRepository.saveSeries(
@@ -263,6 +284,15 @@ void main() {
           config: config,
           dives: dives,
           followOf: noFollow,
+        ),
+        throwsArgumentError,
+      );
+      // The same, for a series never saved, with the log already read.
+      expect(
+        () => computeSeriesFromStored(
+          const StoredSeries(id: 'empty', name: 'Empty', dives: []),
+          follow: null,
+          config: config,
         ),
         throwsArgumentError,
       );
