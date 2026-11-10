@@ -147,7 +147,8 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     _ref.invalidate(tagsProvider);
   }
 
-  Future<Tag> addTag(Tag tag) async {
+  /// [widenExistingTo] as for [TagRepository.createTag].
+  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
@@ -155,7 +156,10 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     final tagWithDiver = validatedId != null
         ? tag.copyWith(diverId: validatedId)
         : tag;
-    final newTag = await _repository.createTag(tagWithDiver);
+    final newTag = await _repository.createTag(
+      tagWithDiver,
+      widenExistingTo: widenExistingTo,
+    );
     await _loadTags();
     _ref.invalidate(tagStatisticsProvider);
     return newTag;

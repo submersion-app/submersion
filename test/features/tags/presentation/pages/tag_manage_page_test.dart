@@ -65,13 +65,15 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   final List<String> deleted = [];
   final List<List<String>> bulkDeleted = [];
   final List<Tag> added = [];
+  final List<Set<TagScope>?> addedWidenExistingTo = [];
   final List<Tag> updated = [];
 
   @override
   Future<void> refresh() async {}
   @override
-  Future<Tag> addTag(Tag tag) async {
+  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async {
     added.add(tag);
+    addedWidenExistingTo.add(widenExistingTo);
     return tag;
   }
 
@@ -893,6 +895,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(notifier.added.single.scopes, TagScope.values.toSet());
+      // Untouched defaults are not a choice: a tag already holding the name
+      // is reused as it is, not widened to every scope.
+      expect(notifier.addedWidenExistingTo.single, isEmpty);
     });
 
     testWidgets('a create saves the chosen color and scope', (tester) async {
@@ -1374,6 +1379,8 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(notifier.added.single.scopes, {e});
+      // A narrowed choice is deliberate, so it widens a name's incumbent.
+      expect(notifier.addedWidenExistingTo.single, {e});
     });
 
     testWidgets('widening a tag to equipment saves without asking', (
@@ -1643,7 +1650,7 @@ class _FailingSaveTagListNotifier extends _MockTagListNotifier {
   _FailingSaveTagListNotifier(super.tags);
 
   @override
-  Future<Tag> addTag(Tag tag) async =>
+  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async =>
       throw StateError('create failed for ${tag.name}');
 
   @override
@@ -1658,7 +1665,7 @@ class _GatedSaveTagListNotifier extends _MockTagListNotifier {
   final Completer<void> gate = Completer<void>();
 
   @override
-  Future<Tag> addTag(Tag tag) async {
+  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async {
     added.add(tag);
     await gate.future;
     return tag;

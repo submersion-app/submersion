@@ -160,13 +160,23 @@ class TagRepository {
   /// like an existing dive tag), the incumbent is widened rather than a second
   /// tag minted: the name index allows only one, and the diver meant the same
   /// tag in both places (issue #1765).
-  Future<domain.Tag> createTag(domain.Tag tag) async {
+  ///
+  /// [widenExistingTo] is what the incumbent is widened to, every scope [tag]
+  /// has when null. A caller whose [tag] holds default scopes rather than a
+  /// choice passes less, so a tag narrowed on purpose is not widened to every
+  /// scope just because a new tag defaults to them (issue #4407). An empty
+  /// set reuses the incumbent as it is.
+  Future<domain.Tag> createTag(
+    domain.Tag tag, {
+    Set<domain.TagScope>? widenExistingTo,
+  }) async {
+    final incumbentScopes = widenExistingTo ?? tag.scopes;
     try {
       _requireScope(tag);
       final incumbent = await _tagOccupying(tag.name, tag.diverId);
       if (incumbent != null) {
         _log.info('Tag "${tag.name}" already exists as ${incumbent.id}');
-        return await _widenTo(incumbent, tag);
+        return await _widenTo(incumbent, incumbentScopes);
       }
 
       // Store the SAME normalization the index and every lookup key on.
@@ -202,7 +212,7 @@ class TagRepository {
       if (created == null) {
         final winner = await _tagOccupying(name, tag.diverId);
         _log.info('Tag "$name" was created concurrently as ${winner?.id}');
-        if (winner != null) return await _widenTo(winner, tag);
+        if (winner != null) return await _widenTo(winner, incumbentScopes);
         // Vanishingly unlikely: the conflicting row was deleted between the
         // insert and this read. Surfacing it beats returning a tag id that
         // does not exist.
@@ -243,15 +253,17 @@ class TagRepository {
         return await _widen(existing, scope);
       }
 
-      // Create new tag
+      // Create new tag. A tag created concurrently under the same name is
+      // an existing tag too, so it is widened to [scope] alone.
       return await createTag(
         domain.Tag.create(
           id: _uuid.v4(),
           diverId: diverId,
           name: name.trim(),
           colorHex: colorHex,
-          scope: scope,
-        ).copyWith(scopes: {scope, ...?newTagScopes}),
+          scopes: {scope, ...?newTagScopes},
+        ),
+        widenExistingTo: {scope},
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -346,11 +358,14 @@ class TagRepository {
     }
   }
 
-  /// [tag] widened to also cover every scope [wanted] has.
-  Future<domain.Tag> _widenTo(domain.Tag tag, domain.Tag wanted) async {
+  /// [tag] widened to also cover every scope in [wanted].
+  Future<domain.Tag> _widenTo(
+    domain.Tag tag,
+    Set<domain.TagScope> wanted,
+  ) async {
     var result = tag;
     for (final scope in domain.TagScope.values) {
-      if (wanted.appliesTo(scope)) result = await _widen(result, scope);
+      if (wanted.contains(scope)) result = await _widen(result, scope);
     }
     return result;
   }

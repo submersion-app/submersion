@@ -323,7 +323,15 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                           id: _uuid.v4(),
                           name: name,
                           colorHex: selectedColor,
-                        ).copyWith(scopes: scopes);
+                          scopes: scopes,
+                        );
+                        // Every box ticked is the default, not a choice, so
+                        // a tag already holding this name is reused as it
+                        // is. A narrowed set was chosen and widens it.
+                        final widenExistingTo =
+                            scopes.length == TagScope.values.length
+                            ? const <TagScope>{}
+                            : scopes;
                         _saveFromDialog(
                           dialogContext,
                           setSaving: (v) => setDialogState(() => saving = v),
@@ -331,7 +339,10 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                           save: () async {
                             await ref
                                 .read(tagListNotifierProvider.notifier)
-                                .addTag(newTag);
+                                .addTag(
+                                  newTag,
+                                  widenExistingTo: widenExistingTo,
+                                );
                             return true;
                           },
                         );

@@ -116,6 +116,28 @@ void main() {
     },
   );
 
+  test(
+    'createTag widens a colliding incumbent only to widenExistingTo',
+    () async {
+      final diveTag = await repository.getOrCreateTag('Night');
+
+      // Untouched "everywhere" defaults leave the incumbent as it was (#4407).
+      final kept = await repository.createTag(
+        Tag.create(id: '', name: 'night', scopes: TagScope.everywhere),
+        widenExistingTo: const {},
+      );
+      expect(kept.id, diveTag.id);
+      expect(kept.scopes, {TagScope.dives});
+
+      final widened = await repository.createTag(
+        Tag.create(id: '', name: 'NIGHT', scopes: TagScope.everywhere),
+        widenExistingTo: const {TagScope.media},
+      );
+      expect(widened.id, diveTag.id);
+      expect(widened.scopes, {TagScope.dives, TagScope.media});
+    },
+  );
+
   test('createTag on a colliding name widens the incumbent too', () async {
     final diveTag = await repository.getOrCreateTag('Night');
     final result = await repository.createTag(

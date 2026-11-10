@@ -39,7 +39,7 @@ class MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   }
 
   @override
-  Future<Tag> addTag(Tag tag) async => tag;
+  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async => tag;
   @override
   Future<Tag> getOrCreateTag(
     String name, {

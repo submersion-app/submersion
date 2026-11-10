@@ -15,8 +15,9 @@ enum TagScope {
 
   /// Every scope: where a tag the user creates is offered, so it can be
   /// reused on dives, sites, media and the rest alike (issue #4407).
-  /// Narrowing it is a choice made afterwards in Manage Tags.
-  static Set<TagScope> get everywhere => values.toSet();
+  /// Narrowing it is a choice made in Manage Tags. Unmodifiable, as
+  /// [Tag.scopes] is read-only.
+  static Set<TagScope> get everywhere => Set.unmodifiable(values);
 
   /// Where this scope stores its flag and its links.
   TagScopeTable get table => switch (this) {
@@ -60,13 +61,15 @@ class Tag extends Equatable {
   /// Whether the tag is offered where [scope] is.
   bool appliesTo(TagScope scope) => scopes.contains(scope);
 
-  /// Create a new tag with a default color, offered in [scope] only.
+  /// Create a new tag with a default color, offered in [scopes], or in
+  /// [scope] only when [scopes] is null.
   factory Tag.create({
     required String id,
     required String name,
     String? diverId,
     String? colorHex,
     TagScope scope = TagScope.dives,
+    Set<TagScope>? scopes,
   }) {
     final now = DateTime.now();
     return Tag(
@@ -76,7 +79,7 @@ class Tag extends Equatable {
       colorHex: colorHex,
       createdAt: now,
       updatedAt: now,
-      scopes: {scope},
+      scopes: scopes ?? {scope},
     );
   }
 
