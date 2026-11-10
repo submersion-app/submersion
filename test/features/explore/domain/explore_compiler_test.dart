@@ -100,20 +100,23 @@ void main() {
     'unplaced': <String>[],
   });
 
-  test('a strict operator lowers to the inclusive bound it will apply', () {
+  test('a strict word on a measured value stays strict, read as shown', () {
     final c = compile(turtlesQuery());
-    // The filter axis is `>= 20`, so a 20 m dive matches; the chip must not
-    // claim the query was strict.
-    expect(boundOf(c, 'depth', QueryOp.gte), 20);
-    expect((c.chips.first.payload as ClauseChip).op, ClauseOp.gte);
+    // "Deeper than 20 m" leaves out a dive listed at 20.0 m (#4398), and
+    // the chip says the query is strict, as it is.
+    final depth = conditionsOf(c, ['depth'], QueryOp.gt).single;
+    expect((depth.value! as NumberValue).value, 20);
+    expect((depth.value! as NumberValue).grain, closeTo(0.1, 1e-12));
+    expect(boundOf(c, 'depth', QueryOp.gte), isNull);
+    expect((c.chips.first.payload as ClauseChip).op, ClauseOp.gt);
   });
 
   test(
     'the turtles sentence compiles to depth, visibility, species and sites',
     () {
       final c = compile(turtlesQuery());
-      expect(boundOf(c, 'depth', QueryOp.gte), 20);
-      expect(boundOf(c, 'visibility', QueryOp.gte), 20);
+      expect(boundOf(c, 'depth', QueryOp.gt), 20);
+      expect(boundOf(c, 'visibility', QueryOp.gt), 20);
       expect(refIdsOf(c, ['sightings', 'species']), ['sp_green_turtle']);
       expect(refIdsOf(c, ['site']), ['s1', 's2']);
       expect(c.chips, hasLength(4));
@@ -150,13 +153,12 @@ void main() {
         ],
       });
       final c = compile(q, units: imperial);
-      expect(boundOf(c, 'depth', QueryOp.lte), closeTo(18.29, 0.01));
-      expect(boundOf(c, 'waterTemp', QueryOp.lte), closeTo(15.56, 0.01));
+      expect(boundOf(c, 'depth', QueryOp.lt), closeTo(18.29, 0.01));
+      expect(boundOf(c, 'waterTemp', QueryOp.lt), closeTo(15.56, 0.01));
       final chip = c.chips.first.payload as ClauseChip;
       expect(chip.field, exploreField('depth')!);
-      // The bound is inclusive, so the chip says so rather than repeating
-      // the model's strict "shallower than".
-      expect(chip.op, ClauseOp.lte);
+      // "Shallower than" is strict, read as shown (#4398).
+      expect(chip.op, ClauseOp.lt);
       expect(chip.value, closeTo(18.29, 0.01));
       expect(chip.dimension, FieldDimension.depth);
     },

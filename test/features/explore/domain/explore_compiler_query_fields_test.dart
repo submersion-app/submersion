@@ -45,11 +45,14 @@ void main() {
   ConditionNode cond(String key, QueryOp op, QueryValue v) =>
       ConditionNode(FieldPath([key]), op, v);
 
-  test('average depth is an inclusive bound in the query tree', () {
+  test('average depth is a strict bound read as shown (#4398)', () {
     final q = compile([clause('avgDepth', 'gt', 15)]);
     expect(q.unplaced, isEmpty);
     expect(q.chips, hasLength(1));
-    expect(q.query, cond('avgDepth', QueryOp.gte, const NumberValue(15, null)));
+    expect(
+      q.query,
+      cond('avgDepth', QueryOp.gt, const NumberValue(15, null, grain: 0.1)),
+    );
   });
 
   test('air temperature between two values is two bounds', () {
@@ -60,8 +63,8 @@ void main() {
     expect(
       q.query,
       AndNode([
-        cond('airTemp', QueryOp.gte, const NumberValue(-20, null)),
-        cond('airTemp', QueryOp.lte, const NumberValue(5, null)),
+        cond('airTemp', QueryOp.gte, const NumberValue(-20, null, grain: 0.1)),
+        cond('airTemp', QueryOp.lte, const NumberValue(5, null, grain: 0.1)),
       ]),
     );
   });
@@ -276,13 +279,21 @@ void main() {
             QueryOp.inList,
             ListValue(const [EnumValue('rising')]),
           ),
-          cond('sacChange', QueryOp.gte, const NumberValue(10, null)),
+          cond(
+            'sacChange',
+            QueryOp.gt,
+            const NumberValue(10, null, grain: 0.1),
+          ),
           cond(
             'finalStop',
             QueryOp.inList,
             ListValue(const [EnumValue('unstable')]),
           ),
-          cond('finalStopExcursion', QueryOp.gte, const NumberValue(1, null)),
+          cond(
+            'finalStopExcursion',
+            QueryOp.gt,
+            const NumberValue(1, null, grain: 0.1),
+          ),
           cond('finalStopDuration', QueryOp.gte, const NumberValue(3, null)),
         ]),
       );

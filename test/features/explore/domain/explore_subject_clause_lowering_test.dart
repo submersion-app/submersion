@@ -163,8 +163,12 @@ void main() {
       metric,
       now: now,
     );
-    expect(r.nodes, [
-      cond('maxDepth', QueryOp.gte, const NumberValue(30.48, null)),
-    ]);
+    // Strict, and read at the tenth of a foot it was said in (#4398).
+    final node = r.nodes.single as ConditionNode;
+    expect(node.path, FieldPath(['maxDepth']));
+    expect(node.op, QueryOp.gt);
+    final v = node.value! as NumberValue;
+    expect(v.value, closeTo(30.48, 1e-6));
+    expect(v.grain, closeTo(0.1 / 3.28084, 1e-12));
   });
 }

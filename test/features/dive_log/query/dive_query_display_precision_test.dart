@@ -4,9 +4,13 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/query/compiler/query_validator.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
+import 'package:submersion/features/explore/domain/explore_compiler.dart';
+import 'package:submersion/features/explore/domain/query_model.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 
 import '../../../helpers/test_database.dart';
@@ -51,19 +55,7 @@ void main() {
     volume: VolumeUnit.cubicFeet,
   );
 
-  Future<Set<String>> ids(String text, {UnitPrefs prefs = imperial}) async {
-    final parser = QueryParser(
-      appQueryRegistry,
-      dives,
-      ParseContext(
-        prefs: prefs,
-        now: DateTime(2026, 11, 9),
-        names: const MapNameResolver({}),
-      ),
-    );
-    final parsed = parser.parse(text);
-    expect(parsed, isA<ParseOk>(), reason: '$parsed');
-    final node = (parsed as ParseOk).node;
+  Future<Set<String>> run(QueryNode? node) async {
     expect(validateQuery(node, dives, appQueryRegistry), isEmpty);
     final q = compileQuery(node, dives, appQueryRegistry, rootAlias: 'd');
     final rows = await db
@@ -76,6 +68,53 @@ void main() {
         )
         .get();
     return rows.map((r) => r.read<String>('id')).toSet();
+  }
+
+  Future<Set<String>> ids(String text, {UnitPrefs prefs = imperial}) {
+    final parser = QueryParser(
+      appQueryRegistry,
+      dives,
+      ParseContext(
+        prefs: prefs,
+        now: DateTime(2026, 11, 9),
+        names: const MapNameResolver({}),
+      ),
+    );
+    final parsed = parser.parse(text);
+    expect(parsed, isA<ParseOk>(), reason: '$parsed');
+    return run((parsed as ParseOk).node);
+  }
+
+  /// A plain-word Explore clause ("deeper than 27.1 ft"), as the model
+  /// hands it over, lowered and run the same way.
+  Future<Set<String>> explore(
+    String field,
+    String op,
+    Object value, {
+    String? unit,
+  }) {
+    final compiled = ExploreCompiler.compile(
+      ParsedQuery.fromJson({
+        'schemaVersion': kQuerySchemaVersion,
+        'subject': 'dives',
+        'clauses': [
+          {
+            'field': field,
+            'op': op,
+            'value': value,
+            'unit': ?unit,
+            'text': field,
+          },
+        ],
+      }),
+      ExploreCompilerContext(
+        units: imperial,
+        names: NameIndex.empty,
+        now: DateTime(2026, 11, 9),
+      ),
+    );
+    expect(compiled.unplaced, isEmpty);
+    return run(compiled.query);
   }
 
   test('strict bounds leave out a dive shown at the bound', () async {
@@ -113,5 +152,23 @@ void main() {
     // d1 at 8.26 m shows 8.3 m; d2 at 8.23 m shows 8.2 m.
     expect(await ids('depth < 8.3', prefs: kMetricPrefs), {'d2'});
     expect(await ids('depth = 8.3', prefs: kMetricPrefs), {'d1', 'd3'});
+  });
+
+  group('Explore reads a plain-word number the same way', () {
+    test('more and less than are strict, as shown', () async {
+      expect(await explore('depth', 'lt', 27.1), {'d2'});
+      expect(await explore('depth', 'gt', 27.1), {'d3', 'd5'});
+      expect(await explore('depth', 'gt', 27.1, unit: 'ft'), {'d3', 'd5'});
+    });
+
+    test('at least and at most take in the value as shown', () async {
+      expect(await explore('depth', 'lte', 27.1), {'d1', 'd2'});
+      expect(await explore('depth', 'gte', 27.1), {'d1', 'd3', 'd5'});
+      expect(await explore('depth', 'between', [27.1, 27.2]), {'d1', 'd3'});
+    });
+
+    test('a number finer than the display compares exactly', () async {
+      expect(await explore('depth', 'lt', 27.15), {'d1', 'd2'});
+    });
   });
 }
