@@ -369,6 +369,9 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     final importedDiveIds = <String>[];
     // Dives already in the log that a download was merged into.
     final updatedExistingDiveIds = <String>[];
+    // The subset of those a download was folded into. A Replace source is
+    // settled by the import service itself, so only these need it here.
+    final consolidatedDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -395,6 +398,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
               updatedExistingDiveIds.add(matchResult.diveId);
+              consolidatedDiveIds.add(matchResult.diveId);
               importedCountByComputerId[comp.id] =
                   (importedCountByComputerId[comp.id] ?? 0) + 1;
               // The fold keeps the target's own header, so Connect's notes
@@ -485,7 +489,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     // Each T2 transmitter gets its Transmitter item and joins its dives, as
     // a download's or a FIT file's does (issue #4419). A folded-in dive's
     // tanks now live on the dive it joined, so that dive is settled too.
-    final written = {...importedDiveIds, ...updatedExistingDiveIds};
+    final written = {...importedDiveIds, ...consolidatedDiveIds};
     if (written.isNotEmpty) await _settleTransmitters(written);
 
     scheduleQualityScan(importedDiveIds);

@@ -963,6 +963,8 @@ void main() {
           descriptorProduct: 'Descent Mk2',
         ),
       ).called(1);
+      // resolveConflict settles a replaced source itself.
+      expect(settled, isEmpty);
     });
 
     test('replaces the source of a duplicate marked replaceSource even when '
