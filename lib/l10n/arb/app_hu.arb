@@ -18450,7 +18450,6 @@
   "info_diveLab_buoyancy_summary": "A felhajtóerő az utolsó megállónál a merülés minden változatára.",
   "info_diveLab_interventions_summary": "Kipróbálható változtatások erre a merülésre, mindegyik ugyanazzal a modellel újrajátszva attól a ponttól, ahol érvényes.",
   "info_calculators_mod_summary": "Az a legnagyobb mélység, ahol a választott keverék a ppO2-határán belül marad, az ottani EAD-vel és END-del.",
-  "info_calculators_mod_background": "A Rec 10 méterenként 1 bárral számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából veszi a felszíni nyomást, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat.",
   "info_calculators_mod_howToUse": "Válasszon módot, majd adja meg az oxigént és a munka-ppO2-t. Célmélység is felvehető, hogy egy tervezett mélységet a keverékhez mérjen. Az END-határ és az oxigén narkotikus volta a búvárprofilból jön.",
   "info_calculators_bestMix_summary": "A leggazdagabb keverék egy célmélységhez, amely a ppO2-t a határán, az END-et a narkózishatáron belül tartja.",
   "info_calculators_bestMix_howToUse": "Adja meg a célmélységet és a módot. CCR-nél válassza ki, hogy a keverék hígítógáz vagy bailout-gáz.",
@@ -18493,5 +18492,6 @@
   "info_settings_conditionRules_summary": "A felszerelésállapot-megállapítások mögötti ellenőrzések. A kikapcsolt szabály soha nem jelez.",
   "info_settings_notifications_summary": "Az emlékeztetők az alkalmazás megnyitásakor ütemeződnek, és a háttérben frissülnek. Minden felszerelés saját emlékeztetőket kaphat a szerkesztőképernyőjén.",
   "info_settings_ascentRate_summary": "Azok a sebességek, amelyeknél a profil kiszínezi a feljövetelt, és feljövetelsebesség-eseményeket rögzít.",
-  "gasCalculators_blender_analyseNote": "A kész keveréket mindig elemezd, mielőtt lemerülnél vele."
+  "gasCalculators_blender_analyseNote": "A kész keveréket mindig elemezd, mielőtt lemerülnél vele.",
+  "info_calculators_mod_background": "A Rec minden {depth} mélységre 1 bárt számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából számolja a nyomást a mélységben, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat."
 }

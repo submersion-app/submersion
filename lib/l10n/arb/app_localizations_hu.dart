@@ -62192,10 +62192,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az a legnagyobb mélység, ahol a választott keverék a ppO2-határán belül marad, az ottani EAD-vel és END-del.';
 
   @override
-  String get info_calculators_mod_background =>
-      'A Rec 10 méterenként 1 bárral számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából veszi a felszíni nyomást, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat.';
-
-  @override
   String get info_calculators_mod_howToUse =>
       'Válasszon módot, majd adja meg az oxigént és a munka-ppO2-t. Célmélység is felvehető, hogy egy tervezett mélységet a keverékhez mérjen. Az END-határ és az oxigén narkotikus volta a búvárprofilból jön.';
 
@@ -62366,4 +62362,9 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get gasCalculators_blender_analyseNote =>
       'A kész keveréket mindig elemezd, mielőtt lemerülnél vele.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'A Rec minden $depth mélységre 1 bárt számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából számolja a nyomást a mélységben, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat.';
+  }
 }

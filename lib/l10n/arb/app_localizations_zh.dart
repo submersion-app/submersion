@@ -58639,10 +58639,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '所选混合气保持在 ppO2 限值内的最大深度，以及该深度的 EAD 和 END。';
 
   @override
-  String get info_calculators_mod_background =>
-      'Rec 按每 10 米 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型取水面压力，因此同一混合气在那里显示的 MOD 可能略浅。';
-
-  @override
   String get info_calculators_mod_howToUse =>
       '先选择模式，再设置氧含量和工作 ppO2。可添加目标深度，以检查计划深度是否适合该混合气。END 限值以及氧是否计为致醉来自潜水员档案。';
 
@@ -58792,4 +58788,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_analyseNote => '下水前务必分析配好的混合气。';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'Rec 按每 $depth 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型计算水下压力，因此同一混合气在那里显示的 MOD 可能略浅。';
+  }
 }

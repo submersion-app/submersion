@@ -60448,7 +60448,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String info_term_gasDensity_body(String warn, String critical) {
-    return 'How heavy the breathing gas is at depth, in grams per litre, which sets how hard it is to breathe. Published research names $warn g/L as a recommended maximum and $critical g/L as an upper limit.';
+    return 'How heavy the breathing gas is at depth, in grams per liter, which sets how hard it is to breathe. Published research names $warn g/L as a recommended maximum and $critical g/L as an upper limit.';
   }
 
   @override
@@ -60563,14 +60563,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_term_ongassing_body =>
-      'On-gassing means a compartment is taking up gas because the surrounding pressure is higher, and off-gassing means it is releasing gas. The colour shows which way each compartment is going.';
+      'On-gassing means a compartment is taking up gas because the surrounding pressure is higher, and off-gassing means it is releasing gas. The color shows which way each compartment is going.';
 
   @override
   String get info_term_heatMap_label => 'Heat map';
 
   @override
   String get info_term_heatMap_body =>
-      'Each row is one compartment, fast at the top and slow at the bottom, and time runs left to right. The colour shows how loaded that compartment is at that moment.';
+      'Each row is one compartment, fast at the top and slow at the bottom, and time runs left to right. The color shows how loaded that compartment is at that moment.';
 
   @override
   String get info_term_nitrox_label => 'Nitrox (EANx)';
@@ -61052,11 +61052,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'What a cylinder was for on the dive: bottom gas, stage, deco, pony or bailout. Consumption is grouped by it.';
 
   @override
-  String get info_term_colourBy_label => 'Colour by';
+  String get info_term_colourBy_label => 'Color by';
 
   @override
   String get info_term_colourBy_body =>
-      'Kind colours each point by what it is, groups colours the clusters that dive together, and recency fades links that have not been dived lately.';
+      'Kind colors each point by what it is, groups colors the clusters that dive together, and recency fades links that have not been dived lately.';
 
   @override
   String get info_term_weightedEdges_label => 'Weighted links';
@@ -61438,7 +61438,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_connections_display_howToUse =>
-      'Tap a point to focus on it and its links. The panel chooses the colours, the line style and how far the view reaches.';
+      'Tap a point to focus on it and its links. The panel chooses the colors, the line style and how far the view reaches.';
 
   @override
   String get info_planner_results_summary =>
@@ -61569,10 +61569,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'The deepest depth where the chosen mix stays within its ppO2 limit, with the EAD and END there.';
 
   @override
-  String get info_calculators_mod_background =>
-      'Rec uses 1 bar per 10 m, like the dive log. OC Tec and CCR Tec take the surface pressure from the water type, so the same mix can show a slightly shallower MOD there.';
-
-  @override
   String get info_calculators_mod_howToUse =>
       'Pick a mode, then set the oxygen and the working ppO2. A target depth can be added to check a planned depth against the mix. The END limit and whether oxygen counts as narcotic come from the diver profile.';
 
@@ -61646,7 +61642,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_calculators_blender_howToUse =>
-      'Enter what is already in the cylinder and the target mix. The last step of every blend is analysing the finished mix.';
+      'Enter what is already in the cylinder and the target mix. The last step of every blend is analyzing the finished mix.';
 
   @override
   String get info_decoCalculator_summary =>
@@ -61738,9 +61734,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_settings_ascentRate_summary =>
-      'The speeds at which the profile colours the ascent and logs ascent rate events.';
+      'The speeds at which the profile colors the ascent and logs ascent rate events.';
 
   @override
   String get gasCalculators_blender_analyseNote =>
-      'Always analyse the finished mix before diving it.';
+      'Always analyze the finished mix before diving it.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'Rec uses 1 bar per $depth, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.';
+  }
 }

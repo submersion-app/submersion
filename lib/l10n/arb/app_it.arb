@@ -18450,7 +18450,6 @@
   "info_diveLab_buoyancy_summary": "La galleggiabilità all'ultima sosta per ogni versione dell'immersione.",
   "info_diveLab_interventions_summary": "Modifiche da provare su questa immersione, ciascuna ripercorsa con lo stesso modello dal momento in cui si applica.",
   "info_calculators_mod_summary": "La profondità massima a cui la miscela scelta resta entro il limite di ppO2, con EAD ed END a quella quota.",
-  "info_calculators_mod_background": "Rec usa 1 bar ogni 10 m, come il logbook. OC Tec e CCR Tec ricavano la pressione di superficie dal tipo di acqua, quindi la stessa miscela può mostrare lì una MOD un po' minore.",
   "info_calculators_mod_howToUse": "Scegli una modalità, poi imposta ossigeno e ppO2 di lavoro. Si può aggiungere una profondità obiettivo per verificare una quota prevista con la miscela. Il limite di END e se l'ossigeno conta come narcotico vengono dal profilo del subacqueo.",
   "info_calculators_bestMix_summary": "La miscela più ricca per una profondità obiettivo che tiene la ppO2 nel suo limite e l'END nel limite di narcosi.",
   "info_calculators_bestMix_howToUse": "Imposta la profondità obiettivo e la modalità. In CCR scegli se la miscela è diluente o gas di bailout.",
@@ -18493,5 +18492,6 @@
   "info_settings_conditionRules_summary": "I controlli dietro i rilievi sullo stato dell'attrezzatura. Una regola disattivata non viene mai segnalata.",
   "info_settings_notifications_summary": "I promemoria sono pianificati all'apertura dell'app e aggiornati in background. Ogni elemento può avere promemoria propri nella sua schermata di modifica.",
   "info_settings_ascentRate_summary": "Le velocità oltre le quali il profilo colora la risalita e registra eventi di velocità di risalita.",
-  "gasCalculators_blender_analyseNote": "Analizza sempre la miscela finale prima di immergerti."
+  "gasCalculators_blender_analyseNote": "Analizza sempre la miscela finale prima di immergerti.",
+  "info_calculators_mod_background": "Rec usa 1 bar ogni {depth}, come il logbook. OC Tec e CCR Tec ricavano la pressione in profondità dal tipo di acqua, quindi la stessa miscela può mostrare lì una MOD un po' minore."
 }

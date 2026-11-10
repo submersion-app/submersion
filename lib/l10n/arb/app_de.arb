@@ -18575,7 +18575,6 @@
   "info_diveLab_buoyancy_summary": "Der Auftrieb am letzten Stopp für jede Version des Tauchgangs.",
   "info_diveLab_interventions_summary": "Änderungen zum Ausprobieren an diesem Tauchgang, jede ab dem Zeitpunkt ihres Eintretens durch dasselbe Modell gerechnet.",
   "info_calculators_mod_summary": "Die größte Tiefe, in der das gewählte Gemisch innerhalb seiner ppO2-Grenze bleibt, mit EAD und END dort.",
-  "info_calculators_mod_background": "Rec rechnet mit 1 bar pro 10 m wie das Logbuch. OC Tec und CCR Tec nehmen den Oberflächendruck aus der Wasserart, daher kann dasselbe Gemisch dort eine etwas flachere MOD zeigen.",
   "info_calculators_mod_howToUse": "Einen Modus wählen, dann Sauerstoff und Arbeits-ppO2 festlegen. Eine Zieltiefe lässt sich hinzufügen, um eine geplante Tiefe gegen das Gemisch zu prüfen. END-Grenze und ob Sauerstoff narkotisch zählt, stammen aus dem Taucherprofil.",
   "info_calculators_bestMix_summary": "Das reichste Gemisch für eine Zieltiefe, bei dem ppO2 in seiner Grenze und END in der Narkosegrenze bleibt.",
   "info_calculators_bestMix_howToUse": "Zieltiefe und Modus festlegen. Bei CCR wählen, ob das Gemisch Diluent oder Bailoutgas ist.",
@@ -18618,5 +18617,6 @@
   "info_settings_conditionRules_summary": "Die Prüfungen hinter den Befunden zum Ausrüstungszustand. Eine abgeschaltete Regel wird nie gemeldet.",
   "info_settings_notifications_summary": "Erinnerungen werden beim Öffnen der App geplant und im Hintergrund aktualisiert. Jedes Ausrüstungsteil kann im Bearbeiten-Bildschirm eigene Erinnerungen haben.",
   "info_settings_ascentRate_summary": "Die Geschwindigkeiten, ab denen das Profil den Aufstieg einfärbt und Ereignisse zur Aufstiegsgeschwindigkeit erfasst.",
-  "gasCalculators_blender_analyseNote": "Analysiere die fertige Mischung immer, bevor du sie tauchst."
+  "gasCalculators_blender_analyseNote": "Analysiere die fertige Mischung immer, bevor du sie tauchst.",
+  "info_calculators_mod_background": "Rec rechnet mit 1 bar pro {depth} wie das Logbuch. OC Tec und CCR Tec berechnen den Druck in der Tiefe aus der Wasserart, daher kann dasselbe Gemisch dort eine etwas flachere MOD zeigen."
 }

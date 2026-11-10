@@ -18450,7 +18450,6 @@
   "info_diveLab_buoyancy_summary": "每个潜水版本在最后停留时的浮力。",
   "info_diveLab_interventions_summary": "可在本次潜水上尝试的变更，每项都从其生效时刻起用同一模型重放。",
   "info_calculators_mod_summary": "所选混合气保持在 ppO2 限值内的最大深度，以及该深度的 EAD 和 END。",
-  "info_calculators_mod_background": "Rec 按每 10 米 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型取水面压力，因此同一混合气在那里显示的 MOD 可能略浅。",
   "info_calculators_mod_howToUse": "先选择模式，再设置氧含量和工作 ppO2。可添加目标深度，以检查计划深度是否适合该混合气。END 限值以及氧是否计为致醉来自潜水员档案。",
   "info_calculators_bestMix_summary": "针对目标深度、使 ppO2 不超限且 END 不超过致醉限值的最富混合气。",
   "info_calculators_bestMix_howToUse": "设置目标深度和模式。CCR 模式下选择该混合气用作稀释气还是应急气。",
@@ -18493,5 +18492,6 @@
   "info_settings_conditionRules_summary": "装备状态发现背后的检查。关闭的规则不会被报告。",
   "info_settings_notifications_summary": "提醒在应用打开时安排，并在后台刷新。每件装备都可在其编辑界面设置自己的提醒。",
   "info_settings_ascentRate_summary": "剖面图为上升着色并记录上升速度事件所用的速度。",
-  "gasCalculators_blender_analyseNote": "下水前务必分析配好的混合气。"
+  "gasCalculators_blender_analyseNote": "下水前务必分析配好的混合气。",
+  "info_calculators_mod_background": "Rec 按每 {depth} 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型计算水下压力，因此同一混合气在那里显示的 MOD 可能略浅。"
 }

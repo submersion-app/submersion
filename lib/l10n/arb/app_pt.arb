@@ -18450,7 +18450,6 @@
   "info_diveLab_buoyancy_summary": "A flutuabilidade na última paragem para cada versão do mergulho.",
   "info_diveLab_interventions_summary": "Alterações a experimentar neste mergulho, cada uma repetida pelo mesmo modelo a partir do momento em que se aplica.",
   "info_calculators_mod_summary": "A profundidade máxima em que a mistura escolhida fica dentro do limite de ppO2, com a EAD e a END nesse ponto.",
-  "info_calculators_mod_background": "Rec usa 1 bar por cada 10 m, como o registo. OC Tec e CCR Tec tiram a pressão de superfície do tipo de água, por isso a mesma mistura pode mostrar aí uma MOD um pouco menor.",
   "info_calculators_mod_howToUse": "Escolha um modo e depois defina o oxigénio e a ppO2 de trabalho. Pode juntar uma profundidade-alvo para verificar uma profundidade prevista com a mistura. O limite de END e se o oxigénio conta como narcótico vêm do perfil do mergulhador.",
   "info_calculators_bestMix_summary": "A mistura mais rica para uma profundidade-alvo que mantém a ppO2 no seu limite e a END no limite de narcose.",
   "info_calculators_bestMix_howToUse": "Defina a profundidade-alvo e o modo. Em CCR, escolha se a mistura é diluente ou gás de bailout.",
@@ -18493,5 +18492,6 @@
   "info_settings_conditionRules_summary": "As verificações por trás das ocorrências do estado do equipamento. Uma regra desligada nunca é assinalada.",
   "info_settings_notifications_summary": "Os lembretes são agendados quando a aplicação abre e atualizados em segundo plano. Cada equipamento pode ter lembretes próprios no seu ecrã de edição.",
   "info_settings_ascentRate_summary": "As velocidades a partir das quais o perfil colore a subida e registra eventos de velocidade de subida.",
-  "gasCalculators_blender_analyseNote": "Analisa sempre a mistura final antes de a mergulhares."
+  "gasCalculators_blender_analyseNote": "Analisa sempre a mistura final antes de a mergulhares.",
+  "info_calculators_mod_background": "Rec usa 1 bar por cada {depth}, como o registo. OC Tec e CCR Tec calculam a pressão em profundidade a partir do tipo de água, por isso a mesma mistura pode mostrar aí uma MOD um pouco menor."
 }

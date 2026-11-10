@@ -61255,10 +61255,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'העומק העמוק ביותר שבו התערובת שנבחרה נשארת בגבול ה-ppO2 שלה, עם ה-EAD וה-END שם.';
 
   @override
-  String get info_calculators_mod_background =>
-      'Rec משתמש בבר אחד לכל 10 מ\', כמו יומן הצלילות. OC Tec ו-CCR Tec לוקחים את לחץ פני המים מסוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.';
-
-  @override
   String get info_calculators_mod_howToUse =>
       'בחרו מצב, ואז קבעו את החמצן ואת ה-ppO2 לעבודה. אפשר להוסיף עומק יעד כדי לבדוק עומק מתוכנן מול התערובת. גבול ה-END והאם חמצן נספר כנרקוטי מגיעים מפרופיל הצולל.';
 
@@ -61429,4 +61425,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get gasCalculators_blender_analyseNote =>
       'תמיד נתח את התערובת הסופית לפני צלילה איתה.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'Rec משתמש בבר אחד לכל $depth, כמו יומן הצלילות. OC Tec ו-CCR Tec מחשבים את הלחץ בעומק לפי סוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.';
+  }
 }

@@ -18450,7 +18450,6 @@
   "info_diveLab_buoyancy_summary": "Het drijfvermogen bij de laatste stop voor elke versie van de duik.",
   "info_diveLab_interventions_summary": "Wijzigingen om op deze duik uit te proberen, elk door hetzelfde model afgespeeld vanaf het moment dat ze gelden.",
   "info_calculators_mod_summary": "De grootste diepte waarop het gekozen mengsel binnen zijn ppO2-grens blijft, met de EAD en END daar.",
-  "info_calculators_mod_background": "Rec rekent met 1 bar per 10 m, zoals het logboek. OC Tec en CCR Tec halen de oppervlaktedruk uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.",
   "info_calculators_mod_howToUse": "Kies een modus en stel dan zuurstof en werk-ppO2 in. Een doeldiepte kan worden toegevoegd om een geplande diepte aan het mengsel te toetsen. De END-grens en of zuurstof narcotisch telt, komen uit het duikersprofiel.",
   "info_calculators_bestMix_summary": "Het rijkste mengsel voor een doeldiepte dat de ppO2 binnen zijn grens en de END binnen de narcosegrens houdt.",
   "info_calculators_bestMix_howToUse": "Stel de doeldiepte en de modus in. Kies bij CCR of het mengsel diluent of bailoutgas is.",
@@ -18493,5 +18492,6 @@
   "info_settings_conditionRules_summary": "De controles achter de bevindingen over uitrustingsstaat. Een uitgeschakelde regel wordt nooit gemeld.",
   "info_settings_notifications_summary": "Herinneringen worden ingepland bij het openen van de app en op de achtergrond vernieuwd. Elk uitrustingsitem kan eigen herinneringen hebben in zijn bewerkscherm.",
   "info_settings_ascentRate_summary": "De snelheden waarbij het profiel de opstijging kleurt en gebeurtenissen voor opstijgsnelheid vastlegt.",
-  "gasCalculators_blender_analyseNote": "Analyseer het uiteindelijke mengsel altijd voordat je ermee duikt."
+  "gasCalculators_blender_analyseNote": "Analyseer het uiteindelijke mengsel altijd voordat je ermee duikt.",
+  "info_calculators_mod_background": "Rec rekent met 1 bar per {depth}, zoals het logboek. OC Tec en CCR Tec berekenen de druk op diepte uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen."
 }

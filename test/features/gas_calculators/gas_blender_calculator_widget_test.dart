@@ -79,13 +79,13 @@ void main() {
     expect(find.textContaining('EAN32'), findsWidgets);
   });
 
-  testWidgets('the reminder to analyse the mix stays on the page', (
+  testWidgets('the reminder to analyze the mix stays on the page', (
     tester,
   ) async {
     await _pump(tester);
 
     expect(
-      find.text('Always analyse the finished mix before diving it.'),
+      find.text('Always analyze the finished mix before diving it.'),
       findsOneWidget,
     );
   });

@@ -63389,10 +63389,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'أعمق عمق يبقى فيه الخليط المختار ضمن حد ضغط الأكسجين الجزئي، مع EAD وEND عنده.';
 
   @override
-  String get info_calculators_mod_background =>
-      'يستخدم Rec بارًا واحدًا لكل 10 م، مثل سجل الغوص. ويأخذ OC Tec وCCR Tec ضغط السطح من نوع الماء، لذا قد يظهر للخليط نفسه MOD أقل عمقًا بقليل هناك.';
-
-  @override
   String get info_calculators_mod_howToUse =>
       'اختر وضعًا ثم اضبط الأكسجين وضغط الأكسجين الجزئي للعمل. يمكن إضافة عمق مستهدف لمقارنة عمق مخطط بالخليط. يأتي حد END وكون الأكسجين مخدرًا من ملف الغواص.';
 
@@ -63563,4 +63559,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get gasCalculators_blender_analyseNote =>
       'حلّل الخليط النهائي دائمًا قبل الغوص به.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'يستخدم Rec بارًا واحدًا لكل $depth، مثل سجل الغوص. ويحسب OC Tec وCCR Tec الضغط عند العمق من نوع الماء، لذا قد يظهر للخليط نفسه MOD أقل عمقًا بقليل هناك.';
+  }
 }

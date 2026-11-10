@@ -1,3 +1,5 @@
+import 'package:submersion/core/buoyancy/twin_analyzer.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/gas_density.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -295,7 +297,7 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.ndl => l10n.info_term_ndl_body,
     DiveTerm.ceiling => l10n.info_term_ceiling_body,
     DiveTerm.decoStops => l10n.info_term_decoStops_body(
-      units.formatDepth(3, decimals: 0),
+      units.formatDepth(decoStopIncrement, decimals: 0),
     ),
     DiveTerm.tts => l10n.info_term_tts_body,
     DiveTerm.gtr => l10n.info_term_gtr_body,
@@ -320,7 +322,7 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.sac => l10n.info_term_sac_body,
     DiveTerm.rmv => l10n.info_term_rmv_body,
     DiveTerm.ascentRate => l10n.info_term_ascentRate_body(
-      units.formatDepthRate(9, decimals: 0),
+      units.formatDepthRate(standardAscentRate, decimals: 0),
     ),
     DiveTerm.descentRate => l10n.info_term_descentRate_body,
     DiveTerm.meanDepth => l10n.info_term_meanDepth_body,
@@ -391,7 +393,7 @@ String _body(AppLocalizations l10n, UnitFormatter units, DiveTerm term) {
     DiveTerm.buoyancySwing => l10n.info_term_buoyancySwing_body,
     DiveTerm.peakLift => l10n.info_term_peakLift_body,
     DiveTerm.minDitchable => l10n.info_term_minDitchable_body(
-      units.formatWeight(2, decimals: 0),
+      units.formatWeight(TwinAnalyzer.kDitchableMarginKg, decimals: 0),
     ),
     DiveTerm.drysuitGas => l10n.info_term_drysuitGas_body,
     DiveTerm.noFlyTime => l10n.info_term_noFlyTime_body,

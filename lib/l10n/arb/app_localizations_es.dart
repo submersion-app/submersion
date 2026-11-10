@@ -62578,10 +62578,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'La profundidad máxima a la que la mezcla elegida se mantiene dentro de su límite de ppO2, con la EAD y la END allí.';
 
   @override
-  String get info_calculators_mod_background =>
-      'Rec usa 1 bar por cada 10 m, como el registro. OC Tec y CCR Tec toman la presión de superficie del tipo de agua, así que la misma mezcla puede mostrar allí una MOD algo menor.';
-
-  @override
   String get info_calculators_mod_howToUse =>
       'Elige un modo y fija el oxígeno y la ppO2 de trabajo. Se puede añadir una profundidad objetivo para comprobar una profundidad prevista con la mezcla. El límite de END y si el oxígeno cuenta como narcótico vienen del perfil del buceador.';
 
@@ -62752,4 +62748,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get gasCalculators_blender_analyseNote =>
       'Analiza siempre la mezcla final antes de bucearla.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'Rec usa 1 bar por cada $depth, como el registro. OC Tec y CCR Tec calculan la presión en profundidad a partir del tipo de agua, así que la misma mezcla puede mostrar allí una MOD algo menor.';
+  }
 }

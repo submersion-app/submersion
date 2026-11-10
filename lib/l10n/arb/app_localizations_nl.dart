@@ -62156,10 +62156,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'De grootste diepte waarop het gekozen mengsel binnen zijn ppO2-grens blijft, met de EAD en END daar.';
 
   @override
-  String get info_calculators_mod_background =>
-      'Rec rekent met 1 bar per 10 m, zoals het logboek. OC Tec en CCR Tec halen de oppervlaktedruk uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.';
-
-  @override
   String get info_calculators_mod_howToUse =>
       'Kies een modus en stel dan zuurstof en werk-ppO2 in. Een doeldiepte kan worden toegevoegd om een geplande diepte aan het mengsel te toetsen. De END-grens en of zuurstof narcotisch telt, komen uit het duikersprofiel.';
 
@@ -62330,4 +62326,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get gasCalculators_blender_analyseNote =>
       'Analyseer het uiteindelijke mengsel altijd voordat je ermee duikt.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'Rec rekent met 1 bar per $depth, zoals het logboek. OC Tec en CCR Tec berekenen de druk op diepte uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.';
+  }
 }

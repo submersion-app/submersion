@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/deco_calculator/presentation/info/deco_calculator_info.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
@@ -27,12 +28,27 @@ void main() {
     }
   });
 
+  test('the MOD sheet states its pressure rule in the diver\'s depth unit', () {
+    const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
+    final metric = calculatorInfo(l10n, units, 'mod').background;
+    final feet = calculatorInfo(l10n, imperial, 'mod').background;
+    expect(metric, contains('1 bar per 10m'));
+    expect(feet, contains('1 bar per 33ft'));
+    expect(feet, isNot(contains(' m,')));
+  });
+
+  test('the MOD sheet says the Tec modes take depth pressure from water', () {
+    final background = calculatorInfo(l10n, units, 'mod').background;
+    expect(background, contains('pressure at depth'));
+    expect(background, isNot(contains('surface pressure')));
+  });
+
   test('the MOD sheet keeps the old About facts: MOD, EAD and END', () {
     final content = calculatorInfo(l10n, units, 'mod');
     expect(labels(content), contains(label(DiveTerm.mod)));
     expect(labels(content), contains(label(DiveTerm.ead)));
     expect(labels(content), contains(label(DiveTerm.end)));
-    expect(content.background, contains('1 bar per 10 m'));
+    expect(content.background, contains('1 bar per 10m'));
   });
 
   test('Best Mix explains END and density, Consumption explains RMV', () {

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/l10n/l10n_extension.dart';
+/// A standing safety note on a tool's page, such as a disclaimer or the
+/// reminder to analyse a blend: a warning icon beside [text] on a pale
+/// error-coloured panel. Notes like these stay on the page rather than
+/// inside an info sheet.
+class SafetyNote extends StatelessWidget {
+  const SafetyNote({super.key, required this.text});
 
-/// The standing reminder to analyse a blend before diving it. A safety note,
-/// so it stays on the page rather than inside the calculator's info sheet.
-class BlenderAnalyseNote extends StatelessWidget {
-  const BlenderAnalyseNote({super.key});
+  final String text;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,7 @@ class BlenderAnalyseNote extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              context.l10n.gasCalculators_blender_analyseNote,
+              text,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),

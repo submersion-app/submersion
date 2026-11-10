@@ -18450,7 +18450,6 @@
   "info_diveLab_buoyancy_summary": "הציפה בעצירה האחרונה לכל גרסה של הצלילה.",
   "info_diveLab_interventions_summary": "שינויים לניסוי על הצלילה הזו, שכל אחד מהם מורץ מחדש דרך אותו מודל מהרגע שבו הוא חל.",
   "info_calculators_mod_summary": "העומק העמוק ביותר שבו התערובת שנבחרה נשארת בגבול ה-ppO2 שלה, עם ה-EAD וה-END שם.",
-  "info_calculators_mod_background": "Rec משתמש בבר אחד לכל 10 מ', כמו יומן הצלילות. OC Tec ו-CCR Tec לוקחים את לחץ פני המים מסוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.",
   "info_calculators_mod_howToUse": "בחרו מצב, ואז קבעו את החמצן ואת ה-ppO2 לעבודה. אפשר להוסיף עומק יעד כדי לבדוק עומק מתוכנן מול התערובת. גבול ה-END והאם חמצן נספר כנרקוטי מגיעים מפרופיל הצולל.",
   "info_calculators_bestMix_summary": "התערובת העשירה ביותר לעומק יעד שמשאירה את ה-ppO2 בגבולו ואת ה-END בגבול הנרקוזה.",
   "info_calculators_bestMix_howToUse": "קבעו את עומק היעד ואת המצב. ב-CCR בחרו אם התערובת היא גז מדלל או גז חילוץ.",
@@ -18493,5 +18492,6 @@
   "info_settings_conditionRules_summary": "הבדיקות שמאחורי ממצאי מצב הציוד. כלל כבוי לעולם אינו מדווח.",
   "info_settings_notifications_summary": "התזכורות מתוזמנות כשהאפליקציה נפתחת ומתעדכנות ברקע. לכל פריט ציוד אפשר לקבוע תזכורות משלו במסך העריכה שלו.",
   "info_settings_ascentRate_summary": "המהירויות שבהן הפרופיל צובע את העלייה ורושם אירועי קצב עלייה.",
-  "gasCalculators_blender_analyseNote": "תמיד נתח את התערובת הסופית לפני צלילה איתה."
+  "gasCalculators_blender_analyseNote": "תמיד נתח את התערובת הסופית לפני צלילה איתה.",
+  "info_calculators_mod_background": "Rec משתמש בבר אחד לכל {depth}, כמו יומן הצלילות. OC Tec ו-CCR Tec מחשבים את הלחץ בעומק לפי סוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר."
 }

@@ -18450,7 +18450,6 @@
   "info_diveLab_buoyancy_summary": "La flotabilidad en la última parada para cada versión de la inmersión.",
   "info_diveLab_interventions_summary": "Cambios para probar con esta inmersión, cada uno repetido con el mismo modelo desde el momento en que se aplica.",
   "info_calculators_mod_summary": "La profundidad máxima a la que la mezcla elegida se mantiene dentro de su límite de ppO2, con la EAD y la END allí.",
-  "info_calculators_mod_background": "Rec usa 1 bar por cada 10 m, como el registro. OC Tec y CCR Tec toman la presión de superficie del tipo de agua, así que la misma mezcla puede mostrar allí una MOD algo menor.",
   "info_calculators_mod_howToUse": "Elige un modo y fija el oxígeno y la ppO2 de trabajo. Se puede añadir una profundidad objetivo para comprobar una profundidad prevista con la mezcla. El límite de END y si el oxígeno cuenta como narcótico vienen del perfil del buceador.",
   "info_calculators_bestMix_summary": "La mezcla más rica para una profundidad objetivo que mantiene la ppO2 en su límite y la END en el límite de narcosis.",
   "info_calculators_bestMix_howToUse": "Fija la profundidad objetivo y el modo. En CCR, elige si la mezcla es diluyente o gas de bailout.",
@@ -18493,5 +18492,6 @@
   "info_settings_conditionRules_summary": "Las comprobaciones detrás de los hallazgos del estado del equipo. Una regla desactivada nunca se informa.",
   "info_settings_notifications_summary": "Los recordatorios se programan al abrir la aplicación y se actualizan en segundo plano. Cada equipo puede tener sus propios recordatorios en su pantalla de edición.",
   "info_settings_ascentRate_summary": "Las velocidades a partir de las cuales el perfil colorea el ascenso y registra eventos de velocidad de ascenso.",
-  "gasCalculators_blender_analyseNote": "Analiza siempre la mezcla final antes de bucearla."
+  "gasCalculators_blender_analyseNote": "Analiza siempre la mezcla final antes de bucearla.",
+  "info_calculators_mod_background": "Rec usa 1 bar por cada {depth}, como el registro. OC Tec y CCR Tec calculan la presión en profundidad a partir del tipo de agua, así que la misma mezcla puede mostrar allí una MOD algo menor."
 }

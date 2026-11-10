@@ -59,7 +59,11 @@ class _DisplaySectionState extends ConsumerState<DisplaySection> {
           ),
           label: l10n.connections_display_title,
           height: 20,
-          info: (context) => connectionsInfo(context.l10n, infoUnits(context)),
+          info: (context) => connectionsInfo(
+            context.l10n,
+            infoUnits(context),
+            showsHops: around,
+          ),
         ),
         const SizedBox(height: 8),
         Text(l10n.connections_layout_title, style: theme.textTheme.labelLarge),

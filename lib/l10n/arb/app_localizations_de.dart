@@ -62413,10 +62413,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die größte Tiefe, in der das gewählte Gemisch innerhalb seiner ppO2-Grenze bleibt, mit EAD und END dort.';
 
   @override
-  String get info_calculators_mod_background =>
-      'Rec rechnet mit 1 bar pro 10 m wie das Logbuch. OC Tec und CCR Tec nehmen den Oberflächendruck aus der Wasserart, daher kann dasselbe Gemisch dort eine etwas flachere MOD zeigen.';
-
-  @override
   String get info_calculators_mod_howToUse =>
       'Einen Modus wählen, dann Sauerstoff und Arbeits-ppO2 festlegen. Eine Zieltiefe lässt sich hinzufügen, um eine geplante Tiefe gegen das Gemisch zu prüfen. END-Grenze und ob Sauerstoff narkotisch zählt, stammen aus dem Taucherprofil.';
 
@@ -62587,4 +62583,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get gasCalculators_blender_analyseNote =>
       'Analysiere die fertige Mischung immer, bevor du sie tauchst.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'Rec rechnet mit 1 bar pro $depth wie das Logbuch. OC Tec und CCR Tec berechnen den Druck in der Tiefe aus der Wasserart, daher kann dasselbe Gemisch dort eine etwas flachere MOD zeigen.';
+  }
 }

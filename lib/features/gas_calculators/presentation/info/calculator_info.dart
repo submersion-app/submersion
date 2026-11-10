@@ -16,7 +16,7 @@ InfoContent calculatorInfo(
     'mod' => (
       l10n.gasCalculators_tab_mod,
       l10n.info_calculators_mod_summary,
-      l10n.info_calculators_mod_background,
+      l10n.info_calculators_mod_background(units.formatDepth(10, decimals: 0)),
       l10n.info_calculators_mod_howToUse,
       const [
         DiveTerm.mod,
