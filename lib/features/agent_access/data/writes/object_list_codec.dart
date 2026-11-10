@@ -32,6 +32,23 @@ class ObjectListCodec extends FieldCodec {
       '${[for (final MapEntry(:key, :value) in keys.entries) '$key (${value.describe})'].join(', ')}, '
       'replaced whole';
 
+  /// One item as a JSON Schema object: each key with what it takes, the
+  /// keys an item must give (neither nullable nor defaulted), and no
+  /// others, so a client builds an item from the schema as [parseValue]
+  /// reads it.
+  Map<String, Object?> get itemSchema => {
+    'type': 'object',
+    'properties': {
+      for (final MapEntry(:key, :value) in keys.entries)
+        key: {'description': value.describe},
+    },
+    'required': [
+      for (final MapEntry(:key, :value) in keys.entries)
+        if (!value.nullable && !defaults.containsKey(key)) key,
+    ],
+    'additionalProperties': false,
+  };
+
   @override
   Object parseValue(Object raw) {
     if (raw is! List) {

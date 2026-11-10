@@ -102,14 +102,26 @@ class ComputePlanTool implements AgentTool {
             for (final MapEntry(:key, value: codec)
                 in planComputeFields.entries)
               key: {'description': codec.describe},
+            // The lists by their item shape, as the parser reads them.
+            'tanks': {
+              'type': 'array',
+              'maxItems': planTanksField.maxItems,
+              'description':
+                  'The cylinders, in order; a segment names one by its '
+                  'place here. ${planTanksField.describe}.',
+              'items': planTanksField.itemSchema,
+            },
             'segments': {
               'type': 'array',
+              'maxItems': planSegmentsField.maxItems,
               'description':
                   'The profile: each segment goes to target_depth_m over '
                   'duration_s on the tank at place tank in tanks, with '
                   'setpoint_bar for a loop; split_at_configured_rate '
                   'travels at the configured rate then holds. The planner '
-                  'adds the ascent and stops.',
+                  'adds the ascent and stops. '
+                  '${planSegmentsField.describe}.',
+              'items': planSegmentsField.itemSchema,
             },
             'bottom': {
               'type': 'object',
@@ -124,6 +136,8 @@ class ComputePlanTool implements AgentTool {
                 'tank': {'type': 'integer'},
               },
               'required': ['depth_m', 'time_s'],
+              // As the parser reads it: any other key is refused.
+              'additionalProperties': false,
             },
             'surface_interval_s': {
               'type': 'integer',

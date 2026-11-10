@@ -102,6 +102,35 @@ void main() {
     expect(tanks, contains('o2_fraction (number)'));
   });
 
+  test('the schema gives tanks and segments an item shape', () {
+    final dives = tool().inputSchema['properties']! as Map;
+    final dive =
+        ((dives['dives']! as Map)['items']! as Map)['properties']! as Map;
+    Map<String, Object?> items(String key) =>
+        ((dive[key]! as Map)['items']! as Map).cast<String, Object?>();
+
+    final segment = items('segments');
+    expect(segment['type'], 'object');
+    expect(segment['additionalProperties'], isFalse);
+    expect(
+      (segment['properties']! as Map).keys,
+      containsAll(['target_depth_m', 'duration_s', 'tank', 'setpoint_bar']),
+    );
+    // Neither nullable nor defaulted: what a segment must give.
+    expect(segment['required'], ['target_depth_m', 'duration_s', 'tank']);
+    // The prose keeps the codec's field-by-field description.
+    expect(
+      (dive['segments']! as Map)['description'],
+      contains('duration_s (whole number)'),
+    );
+
+    final tank = items('tanks');
+    expect((tank['properties']! as Map).keys, contains('role'));
+    // Gas and role default; size and pressures may be left out.
+    expect(tank['required'], isEmpty);
+    expect((dive['bottom']! as Map)['additionalProperties'], isFalse);
+  });
+
   test('the description explains the schedule\'s columns', () {
     final description = tool().description;
     expect(description, contains('folded_travel'));
