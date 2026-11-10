@@ -22689,6 +22689,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String settings_about_builtOn(String date) {
+    return 'تاريخ البناء $date';
+  }
+
+  @override
   String get settings_appBar_title => 'الإعدادات';
 
   @override

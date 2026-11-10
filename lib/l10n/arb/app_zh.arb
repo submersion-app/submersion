@@ -6666,6 +6666,7 @@
   "settings_about_userGuide": "用户指南",
   "settings_about_userGuide_snackbar": "请访问 submersion.app/guide",
   "settings_about_version": "版本 {version}",
+  "settings_about_builtOn": "构建于 {date}",
   "settings_appBar_title": "设置",
   "settings_appearance_displaySize": "显示大小",
   "settings_appearance_displaySize_value": "{percent}%",

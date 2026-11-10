@@ -22393,6 +22393,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String settings_about_builtOn(String date) {
+    return 'Compilé le $date';
+  }
+
+  @override
   String get settings_appBar_title => 'Réglages';
 
   @override

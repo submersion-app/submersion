@@ -6414,6 +6414,7 @@
   "settings_about_userGuide": "Guide de l'utilisateur",
   "settings_about_userGuide_snackbar": "Rendez-vous sur submersion.app/guide",
   "settings_about_version": "Version {version}",
+  "settings_about_builtOn": "Compilé le {date}",
   "settings_appBar_title": "Réglages",
   "settings_appearance_displaySize": "Taille d'affichage",
   "settings_appearance_displaySize_value": "{percent}%",

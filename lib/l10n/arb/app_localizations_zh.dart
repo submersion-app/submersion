@@ -21227,6 +21227,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_about_builtOn(String date) {
+    return '构建于 $date';
+  }
+
+  @override
   String get settings_appBar_title => '设置';
 
   @override

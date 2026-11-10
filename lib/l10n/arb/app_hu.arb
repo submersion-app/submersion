@@ -6414,6 +6414,7 @@
   "settings_about_userGuide": "Felhasználói útmutató",
   "settings_about_userGuide_snackbar": "Látogasson el: submersion.app/guide",
   "settings_about_version": "Verzió {version}",
+  "settings_about_builtOn": "Készült: {date}",
   "settings_appBar_title": "Beállítások",
   "settings_appearance_displaySize": "Megjelenítési méret",
   "settings_appearance_displaySize_value": "{percent}%",

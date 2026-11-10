@@ -22310,6 +22310,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String settings_about_builtOn(String date) {
+    return 'Erstellt am $date';
+  }
+
+  @override
   String get settings_appBar_title => 'Einstellungen';
 
   @override
