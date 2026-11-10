@@ -8,16 +8,25 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Net-buoyancy-versus-time line chart. Buoyant (positive) fill above the
 /// zero line, heavy (negative) fill below it; tapping a point reveals the
 /// term breakdown at that moment.
+///
+/// It can follow the dive profile's cursor both ways (issue #4423):
+/// [cursorSeconds] draws a marker at that moment, and [onCursorSeconds]
+/// reports the touched or hovered sample's time, then null when the touch
+/// lifts or the mouse leaves.
 class BuoyancyChart extends StatelessWidget {
   final BuoyancyTwinResult result;
   final UnitFormatter units;
   final double height;
+  final int? cursorSeconds;
+  final ValueChanged<int?>? onCursorSeconds;
 
   const BuoyancyChart({
     super.key,
     required this.result,
     required this.units,
     this.height = 180,
+    this.cursorSeconds,
+    this.onCursorSeconds,
   });
 
   /// True when [s] can be plotted: both its net buoyancy and the unit-converted
@@ -64,6 +73,16 @@ class BuoyancyChart extends StatelessWidget {
       child: LineChart(
         LineChartData(
           lineTouchData: LineTouchData(
+            touchCallback: onCursorSeconds == null
+                ? null
+                : (event, response) {
+                    final spot = response?.lineBarSpots?.firstOrNull;
+                    onCursorSeconds!(
+                      event.isInterestedForInteractions && spot != null
+                          ? plotted[spot.spotIndex].timestamp
+                          : null,
+                    );
+                  },
             touchTooltipData: LineTouchTooltipData(
               getTooltipItems: (touched) => touched.map((spot) {
                 final sample = plotted[spot.spotIndex];
@@ -139,6 +158,15 @@ class BuoyancyChart extends StatelessWidget {
             ),
           ),
           extraLinesData: ExtraLinesData(
+            // The dive profile's cursor, in the profile chart's cursor colour.
+            verticalLines: [
+              if (cursorSeconds != null)
+                VerticalLine(
+                  x: cursorSeconds! / 60.0,
+                  color: theme.colorScheme.primary,
+                  strokeWidth: 1.5,
+                ),
+            ],
             horizontalLines: [
               HorizontalLine(
                 y: 0,

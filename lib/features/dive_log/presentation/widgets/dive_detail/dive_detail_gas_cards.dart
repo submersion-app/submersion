@@ -36,6 +36,7 @@ class DiveDetailBuoyancySection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return BuoyancySection(
       diveId: dive.id,
+      dive: dive,
       units: ref.watch(unitFormatterProvider),
     );
   }
