@@ -265,7 +265,9 @@ class TagWrites extends WritableEntry {
         diverId: diverId,
         name: name,
         colorHex: values['color_hex'] as String?,
-        scopes: _scopes(values['scopes']) ?? const {domain.TagScope.dives},
+        // Offered everywhere unless told, as a tag made in the app is
+        // (issue #4407).
+        scopes: _scopes(values['scopes']) ?? domain.TagScope.everywhere,
         createdAt: now,
         updatedAt: now,
       ),
