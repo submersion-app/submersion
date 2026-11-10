@@ -588,9 +588,9 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     final store = ref.watch(qualityScanStateStoreProvider);
     final formatters = buildQualityUnitFormatters(ref);
     final allFindings = findingsAsync.value;
-    final shown = allFindings == null
-        ? const <QualityFinding>[]
-        : _visible(allFindings).open;
+    // Once per build: the toolbar and the list read the same split.
+    final visible = allFindings == null ? null : _visible(allFindings);
+    final shown = visible?.open ?? const <QualityFinding>[];
 
     return Scaffold(
       appBar: AppBar(
@@ -616,7 +616,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (all) {
-          final (:scoped, :open) = _visible(all);
+          final (:scoped, :open) = visible ?? _visible(all);
           // Keyed off the scoped set, not the visible one: narrowing by the
           // fixed dive filter keeps a deep link (from the import summary, say)
           // from loading identities for the whole library, while keeping the

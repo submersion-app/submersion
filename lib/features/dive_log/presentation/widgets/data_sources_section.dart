@@ -159,6 +159,12 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
     );
   }
 
+  bool _sharesComputer(DiveDataSource source) =>
+      source.computerId != null &&
+      widget.dataSources.any(
+        (s) => s.id != source.id && s.computerId == source.computerId,
+      );
+
   List<Widget> _buildChildren(bool isMultiSource) {
     if (widget.dataSources.isEmpty) {
       return [
@@ -193,7 +199,12 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
           onSplit: widget.onSplit != null && isMultiSource
               ? () => widget.onSplit!(source.id)
               : null,
-          onRemove: widget.onRemove != null && isMultiSource
+          // Two sources of one computer cannot be told apart, so removal
+          // refuses them; the menu does not offer it.
+          onRemove:
+              widget.onRemove != null &&
+                  isMultiSource &&
+                  !_sharesComputer(source)
               ? () => widget.onRemove!(
                   source.id,
                   resolveSourceName(source, _labelsOf(context)),

@@ -306,7 +306,17 @@ class DuplicateCylinderService {
 
     if (touched.isNotEmpty) {
       SyncEventBus.notifyLocalChange();
-      await _findings.resolveAll(resolved);
+      // The merges have landed; a failure to mark their findings must not
+      // read as a failed run. The rescan below settles them either way.
+      try {
+        await _findings.resolveAll(resolved);
+      } catch (error, stackTrace) {
+        _log.warning(
+          'Could not resolve the merged duplicate cylinder findings',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
       final dives = touched.toList();
       scheduleQualityScan(dives);
       scheduleSensorSummaryRefresh(dives, force: true);

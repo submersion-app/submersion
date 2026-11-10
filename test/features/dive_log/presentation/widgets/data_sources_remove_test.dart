@@ -10,12 +10,16 @@ import '../../../../helpers/test_app.dart';
 
 const _units = UnitFormatter(AppSettings());
 
-DiveDataSource _source(String id, {required bool isPrimary}) {
+DiveDataSource _source(
+  String id, {
+  required bool isPrimary,
+  String? computerId,
+}) {
   final now = DateTime(2026, 3, 20, 10, 0);
   return DiveDataSource(
     id: id,
     diveId: 'dive-1',
-    computerId: 'comp-$id',
+    computerId: computerId ?? 'comp-$id',
     isPrimary: isPrimary,
     computerModel: 'Perdix $id',
     maxDepth: 30.0,
@@ -82,4 +86,21 @@ void main() {
     expect(find.byIcon(Icons.more_vert), findsNothing);
     expect(find.text('Remove source'), findsNothing);
   });
+
+  testWidgets(
+    'Remove source is not offered when two sources share a computer',
+    (tester) async {
+      await tester.pumpWidget(
+        _section([
+          _source('a', isPrimary: true, computerId: 'teric'),
+          _source('b', isPrimary: false, computerId: 'teric'),
+        ], onRemove: (_, _) {}),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.more_vert).last);
+      await tester.pumpAndSettle();
+      expect(find.text('Remove source'), findsNothing);
+    },
+  );
 }

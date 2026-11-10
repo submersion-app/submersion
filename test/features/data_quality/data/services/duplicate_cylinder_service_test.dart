@@ -40,6 +40,13 @@ class _FailingOn extends DuplicateCylinderRepository {
   }
 }
 
+/// A findings repository whose bulk resolve fails.
+class _ResolveFails extends QualityFindingsRepository {
+  @override
+  Future<void> resolveAll(Iterable<String> ids) async =>
+      throw StateError('database is locked');
+}
+
 /// Removing duplicate cylinders on one dive or many (issue #4393).
 void main() {
   late AppDatabase db;
@@ -209,6 +216,21 @@ void main() {
     expect(await tankIds('d3'), containsAll(['a5', 'a3', 'b3']));
     expect(await tankIds('d3'), isNot(contains('b5')));
   });
+
+  test(
+    'a failure to resolve findings does not hide the merges that landed',
+    () async {
+      final seeded = await seed(allFindings());
+      final quiet = DuplicateCylinderService(findings: _ResolveFails());
+      final previews = await quiet.previewAll(quiet.bulkCandidates(seeded));
+
+      final result = await quiet.removeAll(previews);
+
+      expect(result.merged, 1);
+      expect(result.failed, 0);
+      expect(await tankIds('d1'), {'a1'});
+    },
+  );
 
   test('the whole batch reverts with one undo', () async {
     final pressureOnB1 = await TankPressureSeriesRepository().insertSeries(

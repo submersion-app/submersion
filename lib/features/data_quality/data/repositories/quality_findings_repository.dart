@@ -282,14 +282,18 @@ class QualityFindingsRepository {
     if (idList.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
-      await (_db.update(
-        _db.qualityFindings,
-      )..where((t) => t.id.isIn(idList))).write(
-        QualityFindingsCompanion(
-          status: Value(status.name),
-          updatedAt: Value(now),
-        ),
-      );
+      // Chunked like the scan's reads: Dismiss all shown can pass every open
+      // finding of a large logbook at once.
+      for (final chunk in seriesIdChunks(idList)) {
+        await (_db.update(
+          _db.qualityFindings,
+        )..where((t) => t.id.isIn(chunk))).write(
+          QualityFindingsCompanion(
+            status: Value(status.name),
+            updatedAt: Value(now),
+          ),
+        );
+      }
       for (final id in idList) {
         await _sync.markRecordPending(
           entityType: 'qualityFindings',
