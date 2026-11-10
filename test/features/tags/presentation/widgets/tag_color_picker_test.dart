@@ -362,6 +362,28 @@ void main() {
     });
   });
 
+  testWidgets('answers intrinsic sizes that match its real layout', (
+    tester,
+  ) async {
+    await pumpPicker(
+      tester,
+      platform: TargetPlatform.android,
+      width: 280,
+      selectedColor: 'FF0000',
+    );
+    // The box above the grid's LayoutBuilder answers for it.
+    final grid = find.descendant(
+      of: find.byType(TagColorPicker),
+      matching: find.byType(LayoutBuilder),
+    );
+    final answering = tester.renderObject<RenderBox>(grid).parent! as RenderBox;
+    final laidOut = tester.getSize(grid);
+
+    expect(answering.getMinIntrinsicWidth(double.infinity), 48);
+    expect(answering.getMinIntrinsicHeight(laidOut.width), laidOut.height);
+    expect(answering.getMaxIntrinsicHeight(laidOut.width), laidOut.height);
+  });
+
   testWidgets('the + dot is an action, not a choice with a selected state', (
     tester,
   ) async {
