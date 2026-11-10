@@ -8,12 +8,15 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 
 import '../../../helpers/test_database.dart';
 
-/// Gear photos live only in the Gear gallery (issue #3355): a row linked to
+/// Gear photos live in the Equipment gallery (issue #3355): a row linked to
 /// gear and to nothing else leaves every ordinary library view, while a row
 /// a dive or site also holds stays, because it is that dive's photo too.
+/// Picking Equipment in the Attached to filter (issue #4224) asks for them,
+/// so then they show.
 void main() {
   late AppDatabase db;
   late MediaRepository media;
@@ -69,6 +72,43 @@ void main() {
       expect(ids, isNot(contains(gearOnlyId)));
     },
   );
+
+  test('picking Equipment in Attached to shows gear-only rows', () async {
+    final page = await library.getPage(
+      diverId: null,
+      filter: const MediaLibraryFilter(
+        attachedTo: {MediaAttachmentKind.equipment},
+      ),
+    );
+
+    expect(page.entries.map((e) => e.item.id), [gearOnlyId]);
+  });
+
+  test('Dive and Equipment together show both kinds', () async {
+    final page = await library.getPage(
+      diverId: null,
+      filter: const MediaLibraryFilter(
+        attachedTo: {MediaAttachmentKind.dive, MediaAttachmentKind.equipment},
+      ),
+    );
+
+    expect(page.entries.map((e) => e.item.id).toSet(), {
+      gearOnlyId,
+      diveGearId,
+      plainId,
+    });
+  });
+
+  test('the map shows gear-only rows when Equipment is picked', () async {
+    final points = await library.getMapPoints(
+      diverId: null,
+      filter: const MediaLibraryFilter(
+        attachedTo: {MediaAttachmentKind.equipment},
+      ),
+    );
+
+    expect(points.map((p) => p.entry.item.id), [gearOnlyId]);
+  });
 
   test('scope count leaves gear-only rows out', () async {
     expect(await library.countInScope(diverId: null), 2);

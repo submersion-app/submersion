@@ -75,16 +75,20 @@ class MediaLibraryRepository {
     mediaTypeToDbString(MediaType.document),
   ];
 
-  /// A library row: no signature or document (see [_nonGalleryFileTypes]).
-  ///
-  /// Gear photos stay out too (issue #3355): a row linked to a piece of gear
-  /// and to no dive or site lives only in the Gear gallery. A row a dive or
-  /// site also holds is that dive's or site's photo as well, so it stays.
-  Expression<bool> get _galleryRow {
+  /// A library row: no signature or document (see [_nonGalleryFileTypes]),
+  /// and no gear photo (see [_gearOnly]).
+  Expression<bool> get _galleryRow => _galleryFileType & _gearOnly.not();
+
+  Expression<bool> get _galleryFileType =>
+      _db.media.fileType.isNotIn(_nonGalleryFileTypes);
+
+  /// A gear photo (issue #3355): a row linked to a piece of gear and to no
+  /// dive or site. It lives in the Equipment gallery and stays out of the
+  /// ordinary library views. A row a dive or site also holds is that dive's
+  /// or site's photo as well, so it is not one.
+  Expression<bool> get _gearOnly {
     final m = _db.media;
-    final gearOnly =
-        m.equipmentId.isNotNull() & m.diveId.isNull() & m.siteId.isNull();
-    return m.fileType.isNotIn(_nonGalleryFileTypes) & gearOnly.not();
+    return m.equipmentId.isNotNull() & m.diveId.isNull() & m.siteId.isNull();
   }
 
   /// Dive-linked rows belong to their dive's diver; unlinked and site-only
@@ -204,7 +208,13 @@ class MediaLibraryRepository {
     final m = _db.media;
     final d = _db.dives;
 
-    Expression<bool> where = _galleryRow & _diverScope(diverId);
+    // Gear photos show only when the Attached to facet asks for Equipment
+    // (issue #4224), which then narrows the rows to the kinds picked.
+    Expression<bool> where =
+        (filter.attachedTo.contains(MediaAttachmentKind.equipment)
+            ? _galleryFileType
+            : _galleryRow) &
+        _diverScope(diverId);
     final type = filter.mediaType;
     if (type != null) {
       where = where & m.fileType.equals(mediaTypeToDbString(type));

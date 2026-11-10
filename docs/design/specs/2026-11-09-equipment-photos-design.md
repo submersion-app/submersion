@@ -102,6 +102,10 @@ Documents library could not take, and has no Add button.
   those views show. Today `MediaLibraryRepository` leaves out only
   signatures and documents (`_nonGalleryFileTypes`), so gear photo rows need
   the same treatment in every library query, count and map query.
+  The one exception (owner decision, 2026-11-09): picking Equipment in the
+  Library's Attached to filter (issue #4224, which landed while this was in
+  review) asks for gear photos, so with that pick they show in the grid,
+  the timeline, By dive and the map, alone or with the other kinds picked.
 - The Gear gallery is its own entry in the Media section (not a filter of the
   ordinary Library). It shows every gear photo (both kinds), grouped by item,
   reusing the library grid, selection and the existing equipment group header
