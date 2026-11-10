@@ -121,15 +121,17 @@ TankConfigurationResult decodeTankConfigSummary(String value) {
 }
 
 TankConfigurationResult _classify(SqliteArguments arguments) {
+  final diveMode = _diveModesByName[arguments[0]] ?? DiveMode.oc;
   final all = _decodeTanks(arguments[4] as String);
   final counted = countedCylinderIds(
     all,
     primarySourceId: arguments[2] as String?,
     primaryComputerId: arguments[3] as String?,
+    rebreather: diveMode == DiveMode.ccr || diveMode == DiveMode.scr,
   );
   return classifyTankConfiguration(
     TankConfigurationDive(
-      diveMode: _diveModesByName[arguments[0]] ?? DiveMode.oc,
+      diveMode: diveMode,
       tanks: [
         for (final t in all)
           if (counted.contains(t.id)) t,

@@ -1,5 +1,6 @@
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_role.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 /// The O2 share from which a cylinder is a deco gas rather than a bottom
@@ -7,9 +8,8 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 /// _decoMinO2Percent).
 const double _decoMinO2Percent = 41.0;
 
-/// The O2 share from which a Back Gas row is a rebreather's oxygen supply
-/// (ccrCylinderRole).
-const double _oxygenMinO2Percent = 99.0;
+/// The roles of the gas a diver starts an open-circuit dive on.
+const Set<TankRole> _bottomGasRoles = {...backmountRoles, ...sidemountRoles};
 
 /// The one-of-a-kind cylinders a diver carries: a bottom gas, a rebreather's
 /// diluent, its oxygen supply.
@@ -29,8 +29,9 @@ enum _Slot { bottomGas, diluent, oxygen }
 /// 1. holds the same gas, within [sameGasTolerancePct]; or
 /// 2. fills a one-of-a-kind slot the row fills too: a bottom gas (a backup computer
 ///    left on air beside a primary on 32% logged one cylinder on a stale
-///    mix), a diluent or an oxygen supply. A back gas row is a rebreather's
-///    diluent or oxygen as well, as the CCR figures read it.
+///    mix), a diluent or an oxygen supply. On a [rebreather] dive each row
+///    takes the role the CCR figures read it as ([ccrCylinderRole]): a back
+///    gas row is the diluent, or the oxygen supply when it is pure O2.
 ///
 /// A recording is the tank's computer, and a tank that names no computer
 /// belongs to its source. The primary's are those [primaryComputerId] uses
@@ -42,6 +43,7 @@ Set<String> countedCylinderIds(
   List<DiveTank> tanks, {
   required String? primarySourceId,
   required String? primaryComputerId,
+  required bool rebreather,
 }) {
   if (primarySourceId == null) return {for (final t in tanks) t.id};
 
@@ -70,11 +72,11 @@ Set<String> countedCylinderIds(
         final others = counted.where(
           (c) => recordings[c.id] != recordings[tank.id],
         );
-        final slots = _slotsOf(tank);
+        final slot = _slotOf(tank, rebreather: rebreather);
         final copy = others.any(
           (c) =>
               _sameGas(c, tank) ||
-              slots.any((slot) => _slotsOf(c).contains(slot)),
+              (slot != null && _slotOf(c, rebreather: rebreather) == slot),
         );
         return copy ? counted : [...counted, tank];
       })
@@ -86,23 +88,19 @@ bool _sameGas(DiveTank a, DiveTank b) =>
     (a.gasMix.o2 - b.gasMix.o2).abs() <= sameGasTolerancePct &&
     (a.gasMix.he - b.gasMix.he).abs() <= sameGasTolerancePct;
 
-/// The slots [tank] fills. Back gas and sidemount rows at deco strength are
-/// not bottom gas: an import without roles labels every cylinder back gas. A
-/// back gas or twin set row is also the diluent, and at oxygen strength the
-/// oxygen supply, since a rebreather dive reads it so (ccrCylinderRole); an
-/// open-circuit dive has neither to clash with.
-Set<_Slot> _slotsOf(DiveTank tank) {
-  final role = tank.role;
-  final o2 = tank.gasMix.o2;
-  if (role == TankRole.oxygenSupply) return const {_Slot.oxygen};
-  if (role == TankRole.diluent) return const {_Slot.diluent};
-  if (role == TankRole.backGas && o2 >= _oxygenMinO2Percent) {
-    return const {_Slot.oxygen};
-  }
-  if (o2 >= _decoMinO2Percent) return const {};
-  if (backmountRoles.contains(role)) {
-    return const {_Slot.bottomGas, _Slot.diluent};
-  }
-  if (sidemountRoles.contains(role)) return const {_Slot.bottomGas};
-  return const {};
+/// The one-of-a-kind slot [tank] fills, or null. On a [rebreather] dive the
+/// role is the one the CCR figures read ([ccrCylinderRole]). Back gas and
+/// sidemount rows at deco strength are not bottom gas: an import without
+/// roles labels every cylinder back gas.
+_Slot? _slotOf(DiveTank tank, {required bool rebreather}) {
+  final role = rebreather ? ccrCylinderRole(tank) : tank.role;
+  return switch (role) {
+    TankRole.oxygenSupply => _Slot.oxygen,
+    TankRole.diluent => _Slot.diluent,
+    _
+        when _bottomGasRoles.contains(role) &&
+            tank.gasMix.o2 < _decoMinO2Percent =>
+      _Slot.bottomGas,
+    _ => null,
+  };
 }

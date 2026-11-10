@@ -64,6 +64,7 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
             dive.tanks,
             primarySourceId: row.read<String?>('primary_source_id'),
             primaryComputerId: row.read<String?>('primary_computer_id'),
+            rebreather: dive.isRebreather,
           );
           final use = ccrDiveUse(
             tanks: dive.tanks,

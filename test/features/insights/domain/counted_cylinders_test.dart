@@ -25,10 +25,12 @@ Set<String> _counted(
   List<DiveTank> tanks, {
   String? primarySourceId = 'src-primary',
   String? primaryComputerId = 'primary',
+  bool rebreather = false,
 }) => countedCylinderIds(
   tanks,
   primarySourceId: primarySourceId,
   primaryComputerId: primaryComputerId,
+  rebreather: rebreather,
 );
 
 void main() {
@@ -186,39 +188,68 @@ void main() {
       );
     });
 
-    test('another computer\'s back gas beside the primary\'s diluent is a '
-        'copy', () {
-      // A rebreather dive reads a back gas row as the diluent.
-      expect(
-        _counted([
-          _tank(
-            'a',
-            role: TankRole.diluent,
-            o2: 10,
-            he: 50,
-            computerId: 'primary',
-          ),
-          _tank('b', computerId: 'other'),
-          _tank('c', role: TankRole.sidemountLeft, computerId: 'other'),
-        ]),
-        {'a', 'c'},
+    group('on a rebreather dive, rows take the CCR reading of their role', () {
+      final diluent = _tank(
+        'dil',
+        role: TankRole.diluent,
+        o2: 10,
+        he: 50,
+        computerId: 'primary',
       );
-    });
 
-    test('another computer\'s oxygen-strength back gas beside the primary\'s '
-        'oxygen is a copy', () {
-      expect(
-        _counted([
-          _tank(
-            'a',
-            role: TankRole.oxygenSupply,
-            o2: 100,
-            computerId: 'primary',
-          ),
-          _tank('b', o2: 99, computerId: 'other'),
-        ]),
-        {'a'},
-      );
+      test('another computer\'s back gas beside the primary\'s diluent is a '
+          'copy, at any strength below pure O2', () {
+        expect(
+          _counted([
+            diluent,
+            _tank('air', computerId: 'other'),
+            _tank('ean50', o2: 50, computerId: 'c3'),
+          ], rebreather: true),
+          {'dil'},
+        );
+      });
+
+      test('a twin set or sidemount bailout is not the diluent', () {
+        expect(
+          _counted([
+            diluent,
+            _tank('twin', role: TankRole.twinSet, computerId: 'other'),
+            _tank(
+              'side',
+              role: TankRole.sidemountLeft,
+              o2: 32,
+              computerId: 'other',
+            ),
+          ], rebreather: true),
+          {'dil', 'twin', 'side'},
+        );
+      });
+
+      test('another computer\'s pure O2 back gas beside the primary\'s '
+          'oxygen is a copy', () {
+        expect(
+          _counted([
+            _tank(
+              'o2',
+              role: TankRole.oxygenSupply,
+              o2: 100,
+              computerId: 'primary',
+            ),
+            _tank('b', o2: 99, computerId: 'other'),
+          ], rebreather: true),
+          {'o2'},
+        );
+      });
+
+      test('on an open-circuit dive a deco-strength back gas is no slot', () {
+        expect(
+          _counted([
+            _tank('a', computerId: 'primary'),
+            _tank('b', o2: 99, computerId: 'other'),
+          ]),
+          {'a', 'b'},
+        );
+      });
     });
   });
 }

@@ -155,6 +155,7 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
         dive.tanks,
         primarySourceId: row.primarySourceId,
         primaryComputerId: row.primaryComputerId,
+        rebreather: dive.isRebreather,
       );
       uses[id] = roleConsumptionForDive(
         dive: dive,
