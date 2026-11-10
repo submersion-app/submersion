@@ -161,6 +161,26 @@ List<InfoEntry> diveTermEntries(
   ];
 }
 
+/// A sheet of [title], [summary] and the [terms] a card shows, for the many
+/// cards whose sheet needs no logic of its own.
+InfoContent termsInfo(
+  AppLocalizations l10n,
+  UnitFormatter units, {
+  required String title,
+  String? summary,
+  List<DiveTerm> terms = const [],
+  String? background,
+  String? howToUse,
+}) {
+  return InfoContent(
+    title: title,
+    summary: summary,
+    terms: diveTermEntries(l10n, units, terms),
+    background: background,
+    howToUse: howToUse,
+  );
+}
+
 String _label(AppLocalizations l10n, DiveTerm term) {
   return switch (term) {
     DiveTerm.ndl => l10n.info_term_ndl_label,

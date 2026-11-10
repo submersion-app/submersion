@@ -36082,7 +36082,7 @@
   "info_term_ead_label": "EAD (equivalent air depth)",
   "info_term_ead_body": "The depth on air that would load nitrogen at the same rate as this nitrox at this depth. It is shallower than the real depth because nitrox carries less nitrogen.",
   "info_term_eadd_label": "EADD (equivalent air density depth)",
-  "info_term_eadd_body": "The depth at which air would be as dense as this gas at this depth. It compares breathing effort across mixes.",
+  "info_term_eadd_body": "The depth at which air would be as dense as this gas at this depth. Unlike the density in g/L, it does not depend on the temperature.",
   "info_term_gasDensity_label": "Gas density",
   "info_term_gasDensity_body": "How heavy the breathing gas is at depth, in grams per liter, which sets how hard it is to breathe. Published research names {warn} g/L as a recommended maximum and {critical} g/L as an upper limit.",
   "@info_term_gasDensity_body": {"placeholders": {"warn": {"type": "String"}, "critical": {"type": "String"}}},
@@ -36438,6 +36438,6 @@
   "@info_settings_ascentRate_summary": {"description": "Summary on the info sheet for the Ascent rate section of the decompression settings."},
   "gasCalculators_blender_analyseNote": "Always analyze the finished mix before diving it.",
   "@gasCalculators_blender_analyseNote": {"description": "Standing safety note under the gas blender's fill procedure."},
-  "info_calculators_mod_background": "Rec uses 1 bar per {depth}, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.",
+  "info_calculators_mod_background": "The MOD is always rounded down, never up. Rec uses 1 bar per {depth}, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.",
   "@info_calculators_mod_background": {"description": "Background on the MOD calculator's info sheet. {depth} is 10 m in the diver's depth unit.", "placeholders": {"depth": {"type": "String", "example": "10 m"}}}
 }

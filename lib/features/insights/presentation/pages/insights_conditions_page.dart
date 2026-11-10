@@ -89,7 +89,7 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_conditions_visibility_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_conditions_visibility_title,
@@ -165,7 +165,7 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_conditions_waterType_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_conditions_waterType_title,
@@ -233,7 +233,7 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_conditions_siteType_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_conditions_siteType_title,
@@ -384,7 +384,7 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_conditions_temperature_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_conditions_temperature_title,
@@ -454,7 +454,7 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: l10n.insights_conditions_waterTempBands_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_conditions_waterTempBands_title,

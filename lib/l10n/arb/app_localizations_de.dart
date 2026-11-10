@@ -61637,7 +61637,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_term_eadd_body =>
-      'Die Tiefe, in der Luft so dicht wäre wie dieses Gas auf dieser Tiefe. Damit lässt sich die Atemarbeit verschiedener Gemische vergleichen.';
+      'Die Tiefe, in der Luft so dicht wäre wie dieses Gas auf dieser Tiefe. Anders als die Dichte in g/L hängt sie nicht von der Temperatur ab.';
 
   @override
   String get info_term_gasDensity_label => 'Gasdichte';
@@ -62939,6 +62939,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'Rec rechnet mit 1 bar pro $depth wie das Logbuch. OC Tec und CCR Tec berechnen den Druck in der Tiefe aus der Wasserart, daher kann dasselbe Gemisch dort eine etwas flachere MOD zeigen.';
+    return 'Die MOD wird immer abgerundet, nie aufgerundet. Rec rechnet mit 1 bar pro $depth wie das Logbuch. OC Tec und CCR Tec berechnen den Druck in der Tiefe aus der Wasserart, daher kann dasselbe Gemisch dort eine etwas flachere MOD zeigen.';
   }
 }

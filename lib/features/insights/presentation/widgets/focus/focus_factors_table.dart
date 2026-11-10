@@ -10,7 +10,6 @@ import 'package:submersion/features/insights/domain/focus/focus_metric.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_factor_labels.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_labels.dart';
 import 'package:submersion/features/insights/presentation/formatters/focus_quiet_rows.dart';
-import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
@@ -79,7 +78,7 @@ class _FocusFactorsTableState extends ConsumerState<FocusFactorsTable> {
 
     return StatSectionCard(
       title: l10n.insights_focus_comparison_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_focus_comparison_title,

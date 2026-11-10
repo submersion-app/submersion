@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_stats.dart';
-import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
@@ -150,7 +149,7 @@ class SurfaceWeatherGroup extends ConsumerWidget {
       ),
       ConditionsBandCard(
         title: l10n.insights_conditions_surfacePressure_title,
-        info: (context) => insightsCardInfo(
+        info: (context) => termsInfo(
           context.l10n,
           infoUnits(context),
           title: context.l10n.insights_conditions_surfacePressure_title,

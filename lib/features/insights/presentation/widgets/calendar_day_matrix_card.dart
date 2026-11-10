@@ -7,7 +7,6 @@ import 'package:submersion/core/theme/foreground_on.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
-import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -68,7 +67,7 @@ class CalendarDayMatrixCard extends ConsumerWidget {
 
     return StatSectionCard(
       title: l10n.insights_timePatterns_calendarDays_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_timePatterns_calendarDays_title,

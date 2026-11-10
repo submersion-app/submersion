@@ -129,7 +129,7 @@ class InsightsEquipmentPage extends ConsumerWidget {
       context,
       ref.watch(findingsByRuleProvider(Localizations.localeOf(context))),
       title: l10n.insights_equipment_findings_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_equipment_findings_title,
@@ -154,7 +154,7 @@ class InsightsEquipmentPage extends ConsumerWidget {
       context,
       ref.watch(issueTagRankingProvider(Localizations.localeOf(context))),
       title: l10n.insights_equipment_issues_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_equipment_issues_title,

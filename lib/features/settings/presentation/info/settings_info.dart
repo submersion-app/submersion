@@ -31,83 +31,87 @@ InfoContent settingsSectionInfo(
   UnitFormatter units,
   SettingsInfoSection section,
 ) {
-  InfoContent sheet(
-    String title,
-    String summary,
-    List<DiveTerm> terms, {
-    String? background,
-  }) => InfoContent(
-    title: title,
-    summary: summary,
-    terms: diveTermEntries(l10n, units, terms),
-    background: background,
-  );
-
   return switch (section) {
-    SettingsInfoSection.gradientFactors => sheet(
-      l10n.settings_decompression_header_gradientFactors,
-      l10n.info_settings_gradientFactors_summary,
-      const [DiveTerm.gradientFactors, DiveTerm.mValue],
+    SettingsInfoSection.gradientFactors => termsInfo(
+      l10n,
+      units,
+      title: l10n.settings_decompression_header_gradientFactors,
+      summary: l10n.info_settings_gradientFactors_summary,
+      terms: const [DiveTerm.gradientFactors, DiveTerm.mValue],
       background: l10n.info_settings_gradientFactors_background,
     ),
-    SettingsInfoSection.oxygenToxicity => sheet(
-      l10n.settings_decompression_header_oxygenToxicity,
-      l10n.info_settings_oxygenToxicity_summary,
-      const [DiveTerm.ppO2, DiveTerm.cns, DiveTerm.otu],
+    SettingsInfoSection.oxygenToxicity => termsInfo(
+      l10n,
+      units,
+      title: l10n.settings_decompression_header_oxygenToxicity,
+      summary: l10n.info_settings_oxygenToxicity_summary,
+      terms: const [DiveTerm.ppO2, DiveTerm.cns, DiveTerm.otu],
     ),
-    SettingsInfoSection.dataSources => sheet(
-      l10n.settings_decompression_header_dataSources,
-      l10n.info_settings_dataSources_summary,
-      const [DiveTerm.sourceDcCalc, DiveTerm.gtr],
+    SettingsInfoSection.dataSources => termsInfo(
+      l10n,
+      units,
+      title: l10n.settings_decompression_header_dataSources,
+      summary: l10n.info_settings_dataSources_summary,
+      terms: const [DiveTerm.sourceDcCalc, DiveTerm.gtr],
     ),
-    SettingsInfoSection.narcosis => sheet(
-      l10n.settings_decompression_header_narcosis,
-      l10n.info_settings_narcosis_summary,
-      const [DiveTerm.end, DiveTerm.mnd, DiveTerm.o2Narcotic],
+    SettingsInfoSection.narcosis => termsInfo(
+      l10n,
+      units,
+      title: l10n.settings_decompression_header_narcosis,
+      summary: l10n.info_settings_narcosis_summary,
+      terms: const [DiveTerm.end, DiveTerm.mnd, DiveTerm.o2Narcotic],
     ),
-    SettingsInfoSection.isobaricCounterdiffusion => sheet(
-      l10n.settings_decompression_header_icd,
-      l10n.info_settings_icd_summary,
-      const [DiveTerm.isobaricCounterdiffusion],
+    SettingsInfoSection.isobaricCounterdiffusion => termsInfo(
+      l10n,
+      units,
+      title: l10n.settings_decompression_header_icd,
+      summary: l10n.info_settings_icd_summary,
+      terms: const [DiveTerm.isobaricCounterdiffusion],
     ),
-    SettingsInfoSection.ascentPlanning => sheet(
-      l10n.settings_decompression_header_ascent,
-      l10n.info_settings_ascent_summary,
-      const [DiveTerm.ascentGasSet, DiveTerm.tts, DiveTerm.ceiling],
+    SettingsInfoSection.ascentPlanning => termsInfo(
+      l10n,
+      units,
+      title: l10n.settings_decompression_header_ascent,
+      summary: l10n.info_settings_ascent_summary,
+      terms: const [DiveTerm.ascentGasSet, DiveTerm.tts, DiveTerm.ceiling],
     ),
-    SettingsInfoSection.ascentRate => sheet(
-      l10n.settings_decompression_header_ascentRate,
-      l10n.info_settings_ascentRate_summary,
-      const [DiveTerm.ascentRate],
+    SettingsInfoSection.ascentRate => termsInfo(
+      l10n,
+      units,
+      title: l10n.settings_decompression_header_ascentRate,
+      summary: l10n.info_settings_ascentRate_summary,
+      terms: const [DiveTerm.ascentRate],
     ),
-    SettingsInfoSection.plannerRates => planSetupSectionInfo(
+    SettingsInfoSection.plannerRates => _plannerDefaultInfo(
       l10n,
       units,
       'rates',
-      title: l10n.settings_decompression_header_plannerRates,
+      l10n.settings_decompression_header_plannerRates,
     ),
-    SettingsInfoSection.plannerGas => planSetupSectionInfo(
+    SettingsInfoSection.plannerGas => _plannerDefaultInfo(
       l10n,
       units,
       'gas',
-      title: l10n.settings_decompression_header_plannerGas,
+      l10n.settings_decompression_header_plannerGas,
     ),
-    SettingsInfoSection.plannerContingency => planSetupSectionInfo(
+    SettingsInfoSection.plannerContingency => _plannerDefaultInfo(
       l10n,
       units,
       'contingencies',
-      title: l10n.settings_decompression_header_plannerContingency,
+      l10n.settings_decompression_header_plannerContingency,
     ),
-    SettingsInfoSection.plannerDpvTeam => planSetupSectionInfo(
+    SettingsInfoSection.plannerDpvTeam => _plannerDefaultInfo(
       l10n,
       units,
       'dpvTeam',
-      title: l10n.settings_decompression_header_plannerDpvTeam,
+      l10n.settings_decompression_header_plannerDpvTeam,
     ),
-    SettingsInfoSection.safetyReviewRules => sheet(
-      l10n.safetySettings_rulesHeader,
-      l10n.info_settings_safetyRules_summary,
-      const [
+    SettingsInfoSection.safetyReviewRules => termsInfo(
+      l10n,
+      units,
+      title: l10n.safetySettings_rulesHeader,
+      summary: l10n.info_settings_safetyRules_summary,
+      terms: const [
         DiveTerm.ascentRate,
         DiveTerm.missedDecoStop,
         DiveTerm.safetyStop,
@@ -116,29 +120,58 @@ InfoContent settingsSectionInfo(
         DiveTerm.lateGasSwitch,
       ],
     ),
-    SettingsInfoSection.conditionThresholds => sheet(
-      l10n.equipmentConditionSettings_thresholdsHeader,
-      l10n.info_settings_conditionThresholds_summary,
-      const [DiveTerm.coldDives, DiveTerm.deepCycles, DiveTerm.highO2Hours],
+    SettingsInfoSection.conditionThresholds => termsInfo(
+      l10n,
+      units,
+      title: l10n.equipmentConditionSettings_thresholdsHeader,
+      summary: l10n.info_settings_conditionThresholds_summary,
+      terms: const [
+        DiveTerm.coldDives,
+        DiveTerm.deepCycles,
+        DiveTerm.highO2Hours,
+      ],
     ),
-    SettingsInfoSection.sensorSummaries => sheet(
-      l10n.equipmentConditionSettings_sensorHeader,
-      l10n.info_settings_sensorSummaries_summary,
-      const [
+    SettingsInfoSection.sensorSummaries => termsInfo(
+      l10n,
+      units,
+      title: l10n.equipmentConditionSettings_sensorHeader,
+      summary: l10n.info_settings_sensorSummaries_summary,
+      terms: const [
         DiveTerm.cellGain,
         DiveTerm.transmitterDropouts,
         DiveTerm.scrubber,
       ],
     ),
-    SettingsInfoSection.conditionRules => sheet(
-      l10n.equipmentConditionSettings_rulesHeader,
-      l10n.info_settings_conditionRules_summary,
-      const [DiveTerm.conditionRules],
+    SettingsInfoSection.conditionRules => termsInfo(
+      l10n,
+      units,
+      title: l10n.equipmentConditionSettings_rulesHeader,
+      summary: l10n.info_settings_conditionRules_summary,
+      terms: const [DiveTerm.conditionRules],
     ),
-    SettingsInfoSection.notifications => sheet(
-      l10n.settings_notifications_header_serviceReminders,
-      l10n.info_settings_notifications_summary,
-      const [],
+    SettingsInfoSection.notifications => termsInfo(
+      l10n,
+      units,
+      title: l10n.settings_notifications_header_serviceReminders,
+      summary: l10n.info_settings_notifications_summary,
+      terms: const [],
     ),
   };
+}
+
+/// A planner default section: the setup section's summary and terms, but not
+/// its How to use, which describes a plan's own controls and results that the
+/// defaults page does not have.
+InfoContent _plannerDefaultInfo(
+  AppLocalizations l10n,
+  UnitFormatter units,
+  String key,
+  String title,
+) {
+  final setup = planSetupSectionInfo(l10n, units, key, title: title);
+  return InfoContent(
+    title: setup.title,
+    summary: setup.summary,
+    terms: setup.terms,
+  );
 }

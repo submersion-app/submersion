@@ -89,7 +89,7 @@ void main() {
     });
 
     test('a section with no terms draws none', () {
-      final content = planSectionInfo(
+      final content = termsInfo(
         l10n,
         units,
         title: 'Range',

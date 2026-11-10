@@ -62624,7 +62624,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_term_eadd_body =>
-      'العمق الذي يصبح فيه الهواء بكثافة هذا الغاز على هذا العمق. يقارن جهد التنفس بين الخلائط.';
+      'العمق الذي يصبح فيه الهواء بكثافة هذا الغاز على هذا العمق. وعلى خلاف الكثافة بوحدة g/L، لا يعتمد على درجة الحرارة.';
 
   @override
   String get info_term_gasDensity_label => 'كثافة الغاز';
@@ -63922,6 +63922,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'يستخدم Rec بارًا واحدًا لكل $depth، مثل سجل الغوص. ويحسب OC Tec وCCR Tec الضغط عند العمق من نوع الماء، لذا قد يظهر للخليط نفسه MOD أقل عمقًا بقليل هناك.';
+    return 'يُقرَّب الـ MOD دائمًا للأسفل، ولا يُقرَّب للأعلى أبدًا. يستخدم Rec بارًا واحدًا لكل $depth، مثل سجل الغوص. ويحسب OC Tec وCCR Tec الضغط عند العمق من نوع الماء، لذا قد يظهر للخليط نفسه MOD أقل عمقًا بقليل هناك.';
   }
 }

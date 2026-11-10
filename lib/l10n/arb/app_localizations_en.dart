@@ -60789,7 +60789,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_term_eadd_body =>
-      'The depth at which air would be as dense as this gas at this depth. It compares breathing effort across mixes.';
+      'The depth at which air would be as dense as this gas at this depth. Unlike the density in g/L, it does not depend on the temperature.';
 
   @override
   String get info_term_gasDensity_label => 'Gas density';
@@ -62090,6 +62090,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'Rec uses 1 bar per $depth, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.';
+    return 'The MOD is always rounded down, never up. Rec uses 1 bar per $depth, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.';
   }
 }

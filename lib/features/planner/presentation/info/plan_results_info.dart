@@ -21,24 +21,9 @@ InfoContent planResultsTilesInfo(
   );
 }
 
-/// A results section with a header: its [title], [summary] and [terms].
-InfoContent planSectionInfo(
-  AppLocalizations l10n,
-  UnitFormatter units, {
-  required String title,
-  required String summary,
-  List<DiveTerm> terms = const [],
-}) {
-  return InfoContent(
-    title: title,
-    summary: summary,
-    terms: diveTermEntries(l10n, units, terms),
-  );
-}
-
 /// The Decompression schedule section and its table columns.
 InfoContent planDecoScheduleInfo(AppLocalizations l10n, UnitFormatter units) =>
-    planSectionInfo(
+    termsInfo(
       l10n,
       units,
       title: l10n.divePlanner_label_decoSchedule,
@@ -53,7 +38,7 @@ InfoContent planDecoScheduleInfo(AppLocalizations l10n, UnitFormatter units) =>
 
 /// The Gas section.
 InfoContent planGasInfo(AppLocalizations l10n, UnitFormatter units) =>
-    planSectionInfo(
+    termsInfo(
       l10n,
       units,
       title: l10n.divePlanner_label_gasConsumption,
@@ -71,7 +56,7 @@ InfoContent planCarryInfo(
   UnitFormatter units, {
   required String title,
   required bool showsOtu,
-}) => planSectionInfo(
+}) => termsInfo(
   l10n,
   units,
   title: title,

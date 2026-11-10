@@ -61799,7 +61799,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_term_eadd_body =>
-      'La profundidad a la que el aire sería tan denso como este gas a esta profundidad. Compara el esfuerzo respiratorio entre mezclas.';
+      'La profundidad a la que el aire sería tan denso como este gas a esta profundidad. A diferencia de la densidad en g/L, no depende de la temperatura.';
 
   @override
   String get info_term_gasDensity_label => 'Densidad del gas';
@@ -63103,6 +63103,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'Rec usa 1 bar por cada $depth, como el registro. OC Tec y CCR Tec calculan la presión en profundidad a partir del tipo de agua, así que la misma mezcla puede mostrar allí una MOD algo menor.';
+    return 'La MOD siempre se redondea hacia abajo, nunca hacia arriba. Rec usa 1 bar por cada $depth, como el registro. OC Tec y CCR Tec calculan la presión en profundidad a partir del tipo de agua, así que la misma mezcla puede mostrar allí una MOD algo menor.';
   }
 }

@@ -38,6 +38,21 @@ void main() {
     }
   });
 
+  test('planner default sheets describe no per-plan controls', () {
+    // The defaults pages have no results and fewer controls than a plan's
+    // setup, so the setup sections' How to use does not fit them.
+    for (final section in [
+      SettingsInfoSection.plannerRates,
+      SettingsInfoSection.plannerGas,
+      SettingsInfoSection.plannerContingency,
+      SettingsInfoSection.plannerDpvTeam,
+    ]) {
+      final content = settingsSectionInfo(l10n, units, section);
+      expect(content.howToUse, isNull, reason: '$section');
+      expect(content.terms, isNotEmpty, reason: '$section');
+    }
+  });
+
   test('the gradient factors section explains GF and cites its source', () {
     final content = settingsSectionInfo(
       l10n,

@@ -60470,7 +60470,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_eadd_body =>
-      'העומק שבו אוויר היה צפוף כמו הגז הזה בעומק הזה. הוא משווה את מאמץ הנשימה בין תערובות.';
+      'העומק שבו אוויר היה צפוף כמו הגז הזה בעומק הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
 
   @override
   String get info_term_gasDensity_label => 'צפיפות הגז';
@@ -61767,6 +61767,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'Rec משתמש בבר אחד לכל $depth, כמו יומן הצלילות. OC Tec ו-CCR Tec מחשבים את הלחץ בעומק לפי סוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.';
+    return 'ה-MOD תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה. Rec משתמש בבר אחד לכל $depth, כמו יומן הצלילות. OC Tec ו-CCR Tec מחשבים את הלחץ בעומק לפי סוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.';
   }
 }

@@ -57957,7 +57957,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get info_term_eadd_label => 'EADD（等效空气密度深度）';
 
   @override
-  String get info_term_eadd_body => '空气密度与此深度下该气体相同时的深度。用于比较不同混合气的呼吸做功。';
+  String get info_term_eadd_body =>
+      '空气密度与此深度下该气体相同时的深度。与以 g/L 表示的密度不同，它不受温度影响。';
 
   @override
   String get info_term_gasDensity_label => '气体密度';
@@ -59110,6 +59111,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'Rec 按每 $depth 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型计算水下压力，因此同一混合气在那里显示的 MOD 可能略浅。';
+    return 'MOD 始终向下取整，从不向上。Rec 按每 $depth 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型计算水下压力，因此同一混合气在那里显示的 MOD 可能略浅。';
   }
 }

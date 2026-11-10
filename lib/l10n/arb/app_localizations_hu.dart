@@ -61413,7 +61413,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_eadd_body =>
-      'Az a mélység, ahol a levegő olyan sűrű lenne, mint ez a gáz ebben a mélységben. A keverékek légzési munkáját hasonlítja össze.';
+      'Az a mélység, ahol a levegő olyan sűrű lenne, mint ez a gáz ebben a mélységben. A g/L-ben megadott sűrűséggel ellentétben nem függ a hőmérséklettől.';
 
   @override
   String get info_term_gasDensity_label => 'Gázsűrűség';
@@ -62715,6 +62715,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'A Rec minden $depth mélységre 1 bárt számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából számolja a nyomást a mélységben, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat.';
+    return 'A MOD-ot mindig lefelé kerekítjük, soha nem felfelé. A Rec minden $depth mélységre 1 bárt számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából számolja a nyomást a mélységben, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat.';
   }
 }

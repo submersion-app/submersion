@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
-import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -278,7 +277,7 @@ class InsightsProgressionPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_progression_cumulative_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_progression_cumulative_title,

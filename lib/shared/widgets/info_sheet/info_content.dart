@@ -48,22 +48,6 @@ class InfoContent {
   /// At most four short sentences on the card's inputs, for cards that have
   /// them.
   final String? howToUse;
-
-  InfoContent copyWith({
-    String? title,
-    String? summary,
-    List<InfoEntry>? terms,
-    String? background,
-    String? howToUse,
-  }) {
-    return InfoContent(
-      title: title ?? this.title,
-      summary: summary ?? this.summary,
-      terms: terms ?? this.terms,
-      background: background ?? this.background,
-      howToUse: howToUse ?? this.howToUse,
-    );
-  }
 }
 
 /// Builds a card's [InfoContent] at the moment its info icon is tapped, so

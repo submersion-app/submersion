@@ -5,23 +5,6 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
 
-/// An Insights card with a [summary] and the fixed [terms] it shows.
-InfoContent insightsCardInfo(
-  AppLocalizations l10n,
-  UnitFormatter units, {
-  required String title,
-  required String summary,
-  List<DiveTerm> terms = const [],
-  String? howToUse,
-}) {
-  return InfoContent(
-    title: title,
-    summary: summary,
-    terms: diveTermEntries(l10n, units, terms),
-    howToUse: howToUse,
-  );
-}
-
 /// SAC or RMV, whichever lane a gas card shows.
 List<DiveTerm> gasLaneTerms({required bool isRmv}) => [
   isRmv ? DiveTerm.rmv : DiveTerm.sac,
@@ -57,7 +40,7 @@ InfoContent focusInfo(
 
 /// The Overview stat cards.
 InfoContent overviewStatsInfo(AppLocalizations l10n, UnitFormatter units) {
-  return insightsCardInfo(
+  return termsInfo(
     l10n,
     units,
     title: l10n.insights_category_overview_title,
@@ -80,7 +63,7 @@ InfoContent exposureInfo(
   UnitFormatter units, {
   required ExposureUnit unit,
 }) {
-  return insightsCardInfo(
+  return termsInfo(
     l10n,
     units,
     title: l10n.insights_equipment_exposure_title,

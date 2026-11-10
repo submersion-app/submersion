@@ -687,7 +687,7 @@ class _DistributionsSection extends ConsumerWidget {
                   ),
                 ),
                 label: context.l10n.insights_summary_distributions_title,
-                info: (context) => insightsCardInfo(
+                info: (context) => termsInfo(
                   context.l10n,
                   infoUnits(context),
                   title: context.l10n.insights_summary_distributions_title,

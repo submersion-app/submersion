@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_stats.dart';
-import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_category_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -37,7 +36,7 @@ class AltitudeConditionsCard extends ConsumerWidget {
     final l10n = context.l10n;
     return ConditionsCategoryCard<AltitudeGroup>(
       title: l10n.insights_conditions_altitude_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_conditions_altitude_title,

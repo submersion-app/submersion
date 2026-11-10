@@ -69,6 +69,17 @@ void main() {
     });
   });
 
+  test('the MOD and density sheets keep the old About facts', () {
+    expect(
+      calculatorInfo(l10n, units, 'mod').background,
+      contains('rounded down'),
+    );
+    expect(
+      diveTermEntry(l10n, units, DiveTerm.eadd).body,
+      contains('does not depend on the temperature'),
+    );
+  });
+
   test('Best Mix explains END and density, Consumption explains RMV', () {
     final best = calculatorInfo(l10n, units, 'best-mix');
     final consumption = calculatorInfo(l10n, units, 'consumption');

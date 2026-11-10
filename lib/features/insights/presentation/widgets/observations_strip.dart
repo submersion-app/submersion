@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/observations_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/observation_card.dart';
@@ -9,6 +8,7 @@ import 'package:submersion/features/insights/presentation/widgets/stat_section_c
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 
 /// Up to three observations at the top of the Insights landing (#2381).
 /// Takes no space at all while loading or when there is nothing to say;
@@ -59,7 +59,7 @@ class ObservationsStrip extends ConsumerWidget {
                   HeaderInfoButton(
                     title: l10n.insights_observations_title,
                     height: 40,
-                    content: (context) => insightsCardInfo(
+                    content: (context) => termsInfo(
                       context.l10n,
                       infoUnits(context),
                       title: context.l10n.insights_observations_title,

@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/formatters/tank_configuration_labels.dart';
-import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -36,7 +35,7 @@ class TankConfigurationCard extends ConsumerWidget {
     final statsAsync = ref.watch(tankConfigurationStatsProvider);
     return StatSectionCard(
       title: l10n.insights_gas_tankConfig_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_gas_tankConfig_title,

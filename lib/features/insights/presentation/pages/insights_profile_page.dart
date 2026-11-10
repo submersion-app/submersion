@@ -3,7 +3,6 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
@@ -63,7 +62,7 @@ class InsightsProfilePage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_profile_ascentDescent_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_profile_ascentDescent_title,
@@ -167,7 +166,7 @@ class InsightsProfilePage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_profile_timeAtDepth_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_profile_timeAtDepth_title,
@@ -228,7 +227,7 @@ class InsightsProfilePage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_profile_deco_title,
-      info: (context) => insightsCardInfo(
+      info: (context) => termsInfo(
         context.l10n,
         infoUnits(context),
         title: context.l10n.insights_profile_deco_title,

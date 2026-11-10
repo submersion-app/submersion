@@ -61375,7 +61375,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_eadd_body =>
-      'De diepte waarop lucht even dicht zou zijn als dit gas op deze diepte. Zo is de ademarbeid van mengsels te vergelijken.';
+      'De diepte waarop lucht even dicht zou zijn als dit gas op deze diepte. Anders dan de dichtheid in g/L hangt ze niet af van de temperatuur.';
 
   @override
   String get info_term_gasDensity_label => 'Gasdichtheid';
@@ -62677,6 +62677,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String info_calculators_mod_background(String depth) {
-    return 'Rec rekent met 1 bar per $depth, zoals het logboek. OC Tec en CCR Tec berekenen de druk op diepte uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.';
+    return 'De MOD wordt altijd naar beneden afgerond, nooit naar boven. Rec rekent met 1 bar per $depth, zoals het logboek. OC Tec en CCR Tec berekenen de druk op diepte uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.';
   }
 }

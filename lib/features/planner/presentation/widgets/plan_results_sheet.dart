@@ -125,7 +125,7 @@ class PlanResultsSheet extends ConsumerWidget {
             const SizedBox(height: 20),
             PlanSectionHeader(
               context.l10n.plannerMission_results_title,
-              info: (context) => planSectionInfo(
+              info: (context) => termsInfo(
                 context.l10n,
                 infoUnits(context),
                 title: context.l10n.plannerMission_results_title,
@@ -139,7 +139,7 @@ class PlanResultsSheet extends ConsumerWidget {
             const SizedBox(height: 20),
             PlanSectionHeader(
               context.l10n.plannerCanvas_bailout_title,
-              info: (context) => planSectionInfo(
+              info: (context) => termsInfo(
                 context.l10n,
                 infoUnits(context),
                 title: context.l10n.plannerCanvas_bailout_title,
@@ -158,7 +158,7 @@ class PlanResultsSheet extends ConsumerWidget {
             const SizedBox(height: 20),
             PlanSectionHeader(
               context.l10n.plannerCanvas_range_title,
-              info: (context) => planSectionInfo(
+              info: (context) => termsInfo(
                 context.l10n,
                 infoUnits(context),
                 title: context.l10n.plannerCanvas_range_title,
@@ -317,7 +317,7 @@ class PlanResultsSheet extends ConsumerWidget {
             const Spacer(),
             HeaderInfoButton(
               title: context.l10n.plannerCanvas_contingency_title,
-              content: (context) => planSectionInfo(
+              content: (context) => termsInfo(
                 context.l10n,
                 infoUnits(context),
                 title: context.l10n.plannerCanvas_contingency_title,

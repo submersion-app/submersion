@@ -97110,7 +97110,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_eadd_body.
   ///
   /// In en, this message translates to:
-  /// **'The depth at which air would be as dense as this gas at this depth. It compares breathing effort across mixes.'**
+  /// **'The depth at which air would be as dense as this gas at this depth. Unlike the density in g/L, it does not depend on the temperature.'**
   String get info_term_eadd_body;
 
   /// No description provided for @info_term_gasDensity_label.
@@ -99210,7 +99210,7 @@ abstract class AppLocalizations {
   /// Background on the MOD calculator's info sheet. {depth} is 10 m in the diver's depth unit.
   ///
   /// In en, this message translates to:
-  /// **'Rec uses 1 bar per {depth}, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.'**
+  /// **'The MOD is always rounded down, never up. Rec uses 1 bar per {depth}, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.'**
   String info_calculators_mod_background(String depth);
 }
 
