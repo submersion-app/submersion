@@ -161,8 +161,9 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     return newTag;
   }
 
-  /// The tag named [name], created or widened so it is offered in [scope]
-  /// (issue #1765).
+  /// The tag named [name], offered in [scope] (issue #1765). A new tag is
+  /// offered everywhere, so the user can reuse it on any kind of item
+  /// (issue #4407); an existing one is only widened to [scope].
   Future<Tag> getOrCreateTag(
     String name, {
     String? colorHex,
@@ -174,6 +175,7 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
       colorHex: colorHex,
       diverId: validatedId,
       scope: scope,
+      newTagScopes: TagScope.everywhere,
     );
     await _loadTags();
     _ref.invalidate(tagStatisticsProvider);

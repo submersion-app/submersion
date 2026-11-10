@@ -13,6 +13,11 @@ enum TagScope {
   media,
   documents;
 
+  /// Every scope: where a tag the user creates is offered, so it can be
+  /// reused on dives, sites, media and the rest alike (issue #4407).
+  /// Narrowing it is a choice made afterwards in Manage Tags.
+  static Set<TagScope> get everywhere => values.toSet();
+
   /// Where this scope stores its flag and its links.
   TagScopeTable get table => switch (this) {
     TagScope.dives => diveTagScopeTable,

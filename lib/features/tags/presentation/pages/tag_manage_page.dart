@@ -251,7 +251,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   void _showCreateDialog() {
     final controller = TextEditingController();
     String selectedColor = TagColors.predefined.first;
-    Set<TagScope> scopes = const {TagScope.dives};
+    // Every scope starts ticked, so a new tag can be reused anywhere unless
+    // the user narrows it here (issue #4407).
+    Set<TagScope> scopes = TagScope.everywhere;
     bool saving = false;
     bool failed = false;
 

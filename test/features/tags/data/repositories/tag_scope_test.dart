@@ -89,6 +89,33 @@ void main() {
     expect(stored!.appliesTo(TagScope.sites), isTrue);
   });
 
+  test('newTagScopes sets where a newly created tag applies (#4407)', () async {
+    final tag = await repository.getOrCreateTag(
+      'Wreck',
+      scope: TagScope.media,
+      newTagScopes: TagScope.everywhere,
+    );
+    expect(tag.scopes, TagScope.values.toSet());
+    final stored = await repository.getTagById(tag.id);
+    expect(stored!.scopes, TagScope.values.toSet());
+  });
+
+  test(
+    'newTagScopes leaves an existing tag narrowed, widened to scope only',
+    () async {
+      // A tag someone narrowed on purpose stays narrow: reusing it from
+      // another scope adds that one scope, not every scope (#4407).
+      final diveTag = await repository.getOrCreateTag('Night');
+      final reused = await repository.getOrCreateTag(
+        'Night',
+        scope: TagScope.sites,
+        newTagScopes: TagScope.everywhere,
+      );
+      expect(reused.id, diveTag.id);
+      expect(reused.scopes, {TagScope.dives, TagScope.sites});
+    },
+  );
+
   test('createTag on a colliding name widens the incumbent too', () async {
     final diveTag = await repository.getOrCreateTag('Night');
     final result = await repository.createTag(

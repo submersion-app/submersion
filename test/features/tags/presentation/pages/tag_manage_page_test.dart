@@ -867,6 +867,34 @@ void main() {
       expect(notifier.updated.map((t) => t.name), ['Night Dive Renamed']);
     });
 
+    testWidgets('a new tag starts ticked for every scope (#4407)', (
+      tester,
+    ) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      for (final label in const [
+        'Use for dives',
+        'Use for sites',
+        'Use for equipment',
+        'Use for media',
+        'Use for documents',
+      ]) {
+        final box = tester.widget<CheckboxListTile>(
+          find.widgetWithText(CheckboxListTile, label),
+        );
+        expect(box.value, isTrue, reason: label);
+      }
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.added.single.scopes, TagScope.values.toSet());
+    });
+
     testWidgets('a create saves the chosen color and scope', (tester) async {
       final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
       await tester.pumpWidget(
@@ -877,7 +905,7 @@ void main() {
       await openCreate(tester, 'To try');
       await tester.ensureVisible(_dot('#22C55E'));
       await tester.tap(_dot('#22C55E'));
-      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+      // Every scope starts ticked (#4407); narrowing unticks the rest.
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
       await tester.pump();
       await tester.tap(find.widgetWithText(TextButton, 'Save'));
@@ -1330,18 +1358,17 @@ void main() {
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).last, 'Rental');
-      final useForDives = find.widgetWithText(
-        CheckboxListTile,
+      // Every scope starts ticked (#4407): untick all but equipment.
+      for (final label in const [
         'Use for dives',
-      );
-      await tester.ensureVisible(useForDives);
-      await tester.tap(useForDives);
-      final useForEquipment = find.widgetWithText(
-        CheckboxListTile,
-        'Use for equipment',
-      );
-      await tester.ensureVisible(useForEquipment);
-      await tester.tap(useForEquipment);
+        'Use for sites',
+        'Use for media',
+        'Use for documents',
+      ]) {
+        final box = find.widgetWithText(CheckboxListTile, label);
+        await tester.ensureVisible(box);
+        await tester.tap(box);
+      }
       await tester.pump();
       await tester.tap(find.widgetWithText(TextButton, 'Save'));
       await tester.pumpAndSettle();
