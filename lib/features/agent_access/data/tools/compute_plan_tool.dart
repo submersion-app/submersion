@@ -54,12 +54,16 @@ class ComputePlanTool implements AgentTool {
       'and in_deco_at_bottom true once the bottom is in deco), gas use per '
       'tank (litres_used includes a problem-solving '
       'allowance of problem_solving_minutes at the deepest point on bottom '
-      'SAC x sac_factor; set problem_solving_minutes to 0 to leave it out), '
+      'SAC x sac_factor; set problem_solving_minutes to 0 to leave it out; '
+      'a tank with no volume_l is priced as 11 litres, so give every '
+      'tank\'s volume_l for its pressures to mean anything), '
       'CNS and OTU, what it carried in from the '
       'dives before, issues (every warning the planner raises), effective_settings '
       '(each value used and whether it came from the plan, Settings or the '
       'default), and resolved_inputs (what was computed, the bottom '
-      'shorthand written out). $kDocumentDateRule Inputs and results are '
+      'shorthand written out; all of it but surface_interval_s and '
+      'carries_from_tank, which only this tool takes, saves unchanged '
+      'through the dive_plans write family). $kDocumentDateRule Inputs and results are '
       'metric; present them '
       'in the diver\'s units (see the units resource). Always pass on every '
       'issue and the caveat, state the parameters the schedule depends on, '
@@ -112,7 +116,8 @@ class ComputePlanTool implements AgentTool {
               'description':
                   'Shorthand for segments: descend to depth_m at the '
                   'descent rate, then stay time_s seconds (time at depth, '
-                  'not counting the descent) on tank (default 0).',
+                  'not counting the descent) on tank (default 0, or the '
+                  'first diluent for a ccr dive).',
               'properties': {
                 'depth_m': {'type': 'number'},
                 'time_s': {'type': 'integer'},
@@ -126,7 +131,8 @@ class ComputePlanTool implements AgentTool {
                   'Seconds since the dive before ended; for the first dive, '
                   'since the followed dive (default: the time since it '
                   'ended, at least an hour). A dive after the first needs '
-                  'this or start_date_time.',
+                  'this or start_date_time, and takes start_date_time only '
+                  'when the first dive has one or follow_dive_id is given.',
             },
             'carries_from_tank': {
               'type': 'array',
@@ -135,11 +141,15 @@ class ComputePlanTool implements AgentTool {
               },
               'description':
                   'One entry per tank: the place of the tank in the dive '
-                  'before (or the followed dive) it continues, starting at '
-                  'that tank\'s end pressure, or null to start at its own '
-                  'start_pressure_bar. Omitted: tanks taken from the dive '
-                  'before continue their own; tanks of its own continue '
-                  'one of the same size and gas.',
+                  'before (or the followed dive) it continues, or null to '
+                  'start at its own start_pressure_bar. A tank continues '
+                  'only the same cylinder, the same volume_l, '
+                  'working_pressure_bar and gas, and starts at that tank\'s '
+                  'end pressure; linked to a different one it starts full, '
+                  'and a followed tank whose log has no end pressure starts '
+                  'at what that logged tank started with. Omitted: tanks '
+                  'taken from the dive before continue their own; tanks of '
+                  'its own continue the same cylinder, if there is one.',
             },
           },
         },

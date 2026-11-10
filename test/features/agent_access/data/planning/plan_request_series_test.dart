@@ -175,6 +175,46 @@ void main() {
       expect(built.inputs.single['carries_from_tank'], [0, 1]);
     });
 
+    test('a tank links only to the same cylinder, as the planner carries', () {
+      // The planner carries a pressure only between tanks of the same size,
+      // working pressure and gas; a link it would start full is no link.
+      final followRated = SeriesFollow(
+        loggedDives: [seriesLoggedDive('logged', ended)],
+        endTanks: const [
+          DiveTank(
+            id: 'logged-28',
+            volume: 12,
+            workingPressure: 232,
+            gasMix: GasMix(o2: 28),
+            endPressure: 70,
+          ),
+        ],
+      );
+      const ean28 = {
+        'volume_l': 12,
+        'start_pressure_bar': 200,
+        'o2_fraction': 0.28,
+      };
+      Map<String, String> linked(Map<String, Object?> tank) {
+        final built = build({
+          'follow_dive_id': 'logged',
+          'dives': [
+            {
+              'tanks': [tank],
+              'bottom': bottom,
+            },
+          ],
+        }, follow: followRated);
+        return built.stored.dives.single.sourceTankIds as Map<String, String>;
+      }
+
+      // 0.28 is the logged 28%, with no float noise between them.
+      expect(linked({...ean28, 'working_pressure_bar': 232}).values, [
+        'logged-28',
+      ]);
+      expect(linked(ean28), isEmpty);
+    });
+
     test('with no interval, it starts as long after as the planner says', () {
       final built = build({
         'follow_dive_id': 'logged',

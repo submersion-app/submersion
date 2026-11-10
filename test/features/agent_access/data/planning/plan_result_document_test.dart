@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/agent_access/data/planning/plan_request.dart';
 import 'package:submersion/features/agent_access/data/planning/plan_request_series.dart';
 import 'package:submersion/features/agent_access/data/planning/plan_result_document.dart';
@@ -142,6 +143,70 @@ void main() {
       'value': config.buddyFactor,
       'source': 'settings',
     });
+    // Off in this config: ppo2_deco_bar governs every deco gas.
+    expect(settings['ppo2_deco_bands_bar'], {
+      'value': null,
+      'source': 'settings',
+    });
+    expect(settings['max_o2_depth_m'], {'value': null, 'source': 'settings'});
+    expect(settings['salinity_ppt'], {'value': null, 'source': 'default'});
+  });
+
+  test('settings name the salinity, deco layers and air breaks used', () {
+    const layered = PlanEngineConfig(
+      ppO2DecoBandsEnabled: true,
+      ppO2DecoBand1: 1.5,
+      ppO2DecoBand2: 1.55,
+      ppO2DecoBand3: 1.6,
+      maxO2DepthEnabled: true,
+      maxO2DepthMeters: 6,
+      airBreakPolicy: AirBreakPolicy(),
+    );
+    final built = storedSeriesFor(
+      parsePlanRequest({
+        'dives': [
+          {
+            'salinity_ppt': 10,
+            'tanks': [ean21, ean50],
+            'bottom': {'depth_m': 45, 'time_s': 1500},
+          },
+        ],
+      }, settings: layered),
+      follow: null,
+      now: DateTime.utc(2026, 11, 14),
+    );
+    final settings = effectiveSettings(built.stored.dives.single.plan, layered);
+    // A salinity of the plan's own overrides the water type.
+    expect(settings['salinity_ppt'], {'value': 10.0, 'source': 'plan'});
+    expect(settings['ppo2_deco_bands_bar'], {
+      'value': [1.5, 1.55, 1.6],
+      'source': 'settings',
+    });
+    expect(settings['max_o2_depth_m'], {'value': 6.0, 'source': 'settings'});
+    expect(settings['air_breaks'], {
+      'value': {'o2_s': 12 * 60, 'break_s': 6 * 60},
+      'source': 'settings',
+    });
+  });
+
+  test('a carried tank starts at its pressure to the tenth of a bar', () {
+    final docs = compute({
+      'dives': [
+        {
+          'tanks': [ean21],
+          'bottom': {'depth_m': 30, 'time_s': 1500},
+        },
+        {
+          'surface_interval_s': 3600,
+          'bottom': {'depth_m': 18, 'time_s': 2400},
+        },
+      ],
+    });
+    final carried =
+        ((docs[1]['tank_usage']! as List).single as Map)['start_pressure_bar']!
+            as double;
+    expect(carried, lessThan(200));
+    expect(carried, double.parse(carried.toStringAsFixed(1)));
   });
 
   test('inputs are what it was computed from, in the shape a save takes', () {

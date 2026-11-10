@@ -2,6 +2,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart' show TankRole, WaterType;
 import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/core/utils/gas_percent.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/object_list_codec.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
@@ -157,9 +158,11 @@ DivePlan applyPlanValues(
               volume: (t['volume_l'] as num?)?.toDouble(),
               workingPressure: (t['working_pressure_bar'] as num?)?.toDouble(),
               startPressure: (t['start_pressure_bar'] as num?)?.toDouble(),
+              // Without float noise, so 0.28 is the 28% a logged tank holds
+              // and the planner carries a pressure between the two.
               gasMix: GasMix(
-                o2: (t['o2_fraction']! as num) * 100,
-                he: (t['he_fraction']! as num) * 100,
+                o2: gasPercentOfFraction((t['o2_fraction']! as num).toDouble()),
+                he: gasPercentOfFraction((t['he_fraction']! as num).toDouble()),
               ),
               role: TankRole.values.byName(t['role']! as String),
               order: i,

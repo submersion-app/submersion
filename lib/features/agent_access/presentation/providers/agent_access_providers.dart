@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 final agentAccessPreferencesProvider = Provider<AgentAccessPreferences>(
@@ -271,6 +272,8 @@ class AgentAccessController {
       activeDiverId: activeDiverId,
     );
     final records = RecordRepositories(activeDiverId: activeDiverId);
+    // The app's language as it is when a tool runs, for every tool's text.
+    AppLocalizations strings() => l10nForLocaleTag(_ref.read(localeProvider));
     return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,
@@ -282,9 +285,7 @@ class AgentAccessController {
         // logged dive carries in exactly what the planner's would.
         followOf: (diveId) =>
             _ref.container.awaitFuture(seriesFollowProvider(diveId).future),
-        planCaveat: () => l10nForLocaleTag(
-          _ref.read(localeProvider),
-        ).planning_disclaimer_dialog_body,
+        planCaveat: () => strings().planning_disclaimer_dialog_body,
         writes: AgentWriteServices(
           records: records,
           plans: _ref.read(agentWritePlanStoreProvider),
@@ -293,7 +294,7 @@ class AgentAccessController {
               _ref.read(agentAccessSettingsProvider).confirmWrites,
           rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
           refreshGearReminders: _refreshGearReminders,
-          strings: () => l10nForLocaleTag(_ref.read(localeProvider)),
+          strings: strings,
         ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),

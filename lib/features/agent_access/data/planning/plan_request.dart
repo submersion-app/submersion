@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart' show TankRole;
 import 'package:submersion/features/agent_access/data/writes/families/dive_plan_fields.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/object_list_codec.dart';
@@ -25,7 +26,9 @@ class PlanRequestDive {
   final Map<String, Object?> values;
 
   /// [values] as JSON, with the `bottom` shorthand written out as segments:
-  /// what the dive was computed from, in the shape a save takes.
+  /// what the dive was computed from. Its plan fields are in the shape a
+  /// `dive_plans` save takes; `surface_interval_s` and `carries_from_tank`
+  /// are `compute_plan`'s own.
   final Map<String, Object?> inputs;
 
   /// Whether it gave its own tanks rather than taking the dive before's.
@@ -61,6 +64,11 @@ const _interval = 'surface_interval_s';
 const _carries = 'carries_from_tank';
 const _start = 'start_date_time';
 
+/// The longest surface interval a dive takes. Following a logged dive
+/// defaults to the time since it ended, however old, and writes that into
+/// the dive's inputs, so this must hold any dive a log can have.
+const _maxIntervalSeconds = 100 * 365 * 86400;
+
 /// The keys a dive takes from the dive before when it leaves them out, as a
 /// dive the planner adds copies its settings.
 final _inherited = ['mode', ...planSettingFields.keys];
@@ -92,6 +100,9 @@ PlanRequest parsePlanRequest(
         index: index,
         previous: dives.lastOrNull,
         follows: follow != null,
+        // A series has a clock only when its first dive has a start or it
+        // follows a logged dive: every later start is measured from that.
+        timed: follow != null || (dives.firstOrNull?.fixedStart ?? false),
         settings: settings,
       ),
     );
@@ -104,6 +115,7 @@ PlanRequestDive _dive(
   required int index,
   required PlanRequestDive? previous,
   required bool follows,
+  required bool timed,
   required PlanEngineConfig settings,
 }) {
   final at = 'dives[$index]';
@@ -116,11 +128,12 @@ PlanRequestDive _dive(
     }
   }
 
-  Object? parse(String key, Object? value) {
+  // [field] names what the agent sent, when it is not [key] itself.
+  Object? parse(String key, Object? value, {String? field}) {
     try {
       return planComputeFields[key]!.parse(value);
     } on FieldRefusal catch (refusal) {
-      throw _refuse('$at.$key', '$key: ${refusal.reason}');
+      throw _refuse('$at.${field ?? key}', '$key: ${refusal.reason}');
     }
   }
 
@@ -143,7 +156,8 @@ PlanRequestDive _dive(
     }
     values['tanks'] = previous.values['tanks'];
   }
-  final tankCount = ObjectListCodec.items(values['tanks']).length;
+  final tanks = ObjectListCodec.items(values['tanks']);
+  final tankCount = tanks.length;
   if (tankCount == 0) throw _refuse('$at.tanks', 'A dive needs a tank.');
 
   final hasSegments = raw.containsKey('segments');
@@ -154,6 +168,8 @@ PlanRequestDive _dive(
   if (!hasSegments && !hasBottom) {
     throw _refuse('$at.segments', 'A dive needs segments, or bottom.');
   }
+  // A refusal names what the agent sent: bottom, when it wrote no segments.
+  final segmentsField = hasSegments ? 'segments' : _bottom;
   values['segments'] = hasSegments
       ? parse('segments', raw['segments'])
       : parse(
@@ -164,14 +180,16 @@ PlanRequestDive _dive(
             descentRate:
                 (values['descent_rate_m_min'] as num?)?.toDouble() ??
                 settings.descentRate,
+            defaultTank: _simplePlanTank(tanks, mode: values['mode']),
           ),
+          field: segmentsField,
         );
   final segments = ObjectListCodec.items(values['segments']);
   if (segments.isEmpty) {
-    throw _refuse('$at.segments', 'A dive needs a segment.');
+    throw _refuse('$at.$segmentsField', 'A dive needs a segment.');
   }
   if (segmentTankProblem(segments, tankCount) case final problem?) {
-    throw _refuse('$at.segments', problem);
+    throw _refuse('$at.$segmentsField', problem);
   }
 
   final carriesIn = previous != null || follows;
@@ -185,10 +203,10 @@ PlanRequestDive _dive(
             'dive (follow_dive_id).',
       );
     }
-    if (interval is! int || interval < 0 || interval > 30 * 86400) {
+    if (interval is! int || interval < 0 || interval > _maxIntervalSeconds) {
       throw _refuse(
         '$at.$_interval',
-        '$_interval takes whole seconds from 0 to ${30 * 86400}.',
+        '$_interval takes whole seconds from 0 to $_maxIntervalSeconds.',
       );
     }
     if (hasStart) {
@@ -198,6 +216,15 @@ PlanRequestDive _dive(
     throw _refuse(
       '$at.$_interval',
       'A dive after the first needs $_interval or $_start.',
+    );
+  }
+  // With no clock to measure from, the planner drops a later dive's start
+  // and computes it after its default interval instead.
+  if (previous != null && hasStart && !timed) {
+    throw _refuse(
+      '$at.$_start',
+      'A later dive starts at its own $_start only when the first dive has '
+          'one or the series follows a logged dive; give $_interval instead.',
     );
   }
 
@@ -226,12 +253,22 @@ PlanRequestDive _dive(
   );
 }
 
+/// The tank the planner's simple plan breathes: a loop's first diluent,
+/// else the first tank.
+int _simplePlanTank(List<Map<String, Object?>> tanks, {required Object? mode}) {
+  if (mode != PlanMode.ccr.name) return 0;
+  final diluent = tanks.indexWhere((t) => t['role'] == TankRole.diluent.name);
+  return diluent < 0 ? 0 : diluent;
+}
+
 /// The `bottom` shorthand as the planner's simple plan writes it: down to
-/// its depth at [descentRate], then held there for its time.
+/// its depth at [descentRate], then held there for its time, on
+/// [defaultTank] unless it names one.
 List<Map<String, Object?>> _bottomSegments(
   Object? raw, {
   required String at,
   required double descentRate,
+  required int defaultTank,
 }) {
   if (raw is! Map) {
     throw _refuse(at, 'bottom takes {depth_m, time_s, tank}.');
@@ -244,7 +281,7 @@ List<Map<String, Object?>> _bottomSegments(
   }
   final depth = raw['depth_m'];
   final time = raw['time_s'];
-  final tank = raw['tank'] ?? 0;
+  final tank = raw['tank'] ?? defaultTank;
   if (depth is! num || depth <= 0 || depth > 350) {
     throw _refuse(at, 'bottom.depth_m takes metres above 0, to 350.');
   }

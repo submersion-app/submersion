@@ -104,16 +104,23 @@ device-local and bookkeeping columns and renames the dimensioned ones from
 own code and writes nothing (issue #4203). It never has a planner of its own:
 
 - **Inputs** are read with the `dive_plans` write family's codecs
-  (`writes/families/dive_plan_fields.dart`), so `resolved_inputs` can be
-  saved unchanged and saves as the plan that was computed. `bottom` is the
-  planner's simple plan: a descent at the plan's or the diver's rate, then
-  `time_s` at depth.
+  (`writes/families/dive_plan_fields.dart`), so the plan fields of
+  `resolved_inputs` save unchanged through `dive_plans`. Its
+  `surface_interval_s` and `carries_from_tank` are `compute_plan`'s own, and
+  `dive_plans` refuses them. A first dive saved that way is the plan that
+  was computed; a later one saves without what it carried in. `bottom` is
+  the planner's simple plan: a descent at the plan's or the diver's rate,
+  then `time_s` at depth, on the first tank, or a loop's first diluent.
 - **A series** is built as an unsaved `StoredSeries` (`storedSeriesFor`) and
   computed by `computeSeriesFromStored`, the path a saved series opens by.
   A later dive takes the dive before's mode, settings and tanks for any it
   leaves out, as a dive the planner adds copies them. Tanks carry from the
-  same place when taken, else from a tank of the same size and gas, unless
-  `carries_from_tank` says otherwise.
+  same place when taken, else from the same cylinder (the planner's
+  `sameCylinder`: size, working pressure and gas, the only link it carries a
+  pressure across), unless `carries_from_tank` says otherwise. A later dive's
+  `start_date_time` is taken only when the first dive has one or the series
+  follows a logged dive, since the planner has no other clock to measure it
+  from.
 - **Settings** are the named diver's, through `planEngineConfigFromSettings`.
   `effective_settings` says for each value whether the plan, the diver's
   Settings or the planner's default set it; values from Settings are never

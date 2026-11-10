@@ -89,8 +89,11 @@ const _uuid = Uuid();
 
 /// Which of [before] each of [tanks] carries from: the tank at the same
 /// place when the dive took the tanks before [byPlace], as a dive the
-/// planner adds does; otherwise the first not yet taken of the same size
-/// and gas, a dive before or a logged dive alike.
+/// planner adds does; otherwise the first not yet taken that is the same
+/// cylinder, a dive before or a logged dive alike. Same cylinder is the
+/// planner's [sameCylinder] (size, working pressure and gas), the only
+/// link it carries a pressure across: one it would start full is not
+/// reported as carried.
 List<int?> _matched(
   List<DiveTank> tanks,
   List<DiveTank> before, {
@@ -106,7 +109,7 @@ List<int?> _matched(
     for (final tank in tanks)
       () {
         for (final (i, other) in before.indexed) {
-          if (!taken.contains(i) && _same(tank, other)) {
+          if (!taken.contains(i) && sameCylinder(tank, other)) {
             taken.add(i);
             return i;
           }
@@ -115,10 +118,3 @@ List<int?> _matched(
       }(),
   ];
 }
-
-/// A logged tank keeps no working pressure the plan states, so a plan tank
-/// matches one of the same size and gas.
-bool _same(DiveTank a, DiveTank b) =>
-    a.volume == b.volume &&
-    a.gasMix.roundedO2 == b.gasMix.roundedO2 &&
-    a.gasMix.roundedHe == b.gasMix.roundedHe;

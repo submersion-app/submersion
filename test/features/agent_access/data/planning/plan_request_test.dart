@@ -168,6 +168,46 @@ void main() {
       );
     });
 
+    test('a bad bottom.tank is refused at bottom, which the agent sent', () {
+      for (final bad in [1, 12]) {
+        expect(
+          () => parse({
+            'dives': [
+              {
+                'tanks': [tank],
+                'bottom': {'depth_m': 18, 'time_s': 60, 'tank': bad},
+              },
+            ],
+          }),
+          throwsA(refused('dives[0].bottom')),
+        );
+      }
+    });
+
+    test('a loop\'s bottom breathes its first diluent, as the planner\'s '
+        'simple plan does', () {
+      final request = parse({
+        'dives': [
+          {
+            'mode': 'ccr',
+            'tanks': [
+              {'volume_l': 3, 'o2_fraction': 1.0, 'role': 'oxygenSupply'},
+              {'volume_l': 3, 'o2_fraction': 0.18, 'he_fraction': 0.45},
+              {
+                'volume_l': 3,
+                'o2_fraction': 0.18,
+                'he_fraction': 0.45,
+                'role': 'diluent',
+              },
+            ],
+            'bottom': {'depth_m': 45, 'time_s': 1200},
+          },
+        ],
+      });
+      final segments = request.dives.single.inputs['segments']! as List;
+      expect([for (final s in segments) (s as Map)['tank']], [2, 2]);
+    });
+
     test('the first dive needs tanks', () {
       expect(
         () => parse({
@@ -367,6 +407,45 @@ void main() {
       });
       expect(request.followDiveId, 'dive-1');
       expect(request.dives.single.surfaceInterval, const Duration(hours: 2));
+    });
+
+    test('takes back the interval following an old dive writes', () {
+      // Following a dive two months gone writes the time since it ended
+      // into the inputs; sent back, they compute again.
+      const twoMonths = 61 * 86400;
+      final request = parse({
+        'follow_dive_id': 'dive-1',
+        'dives': [
+          {...first, 'surface_interval_s': twoMonths},
+        ],
+      });
+      expect(
+        request.dives.single.surfaceInterval,
+        const Duration(seconds: twoMonths),
+      );
+    });
+
+    test('a later dive starts at its own time only with a clock to '
+        'measure it from', () {
+      final later = {
+        'start_date_time': '2026-11-14T15:00:00Z',
+        'bottom': {'depth_m': 18, 'time_s': 2700},
+      };
+      // Neither a first start nor a followed dive: the planner would drop
+      // the start and compute after its default interval.
+      expect(
+        () => parse({
+          'dives': [first, later],
+        }),
+        throwsA(refused('dives[1].start_date_time')),
+      );
+      expect(
+        parse({
+          'follow_dive_id': 'dive-1',
+          'dives': [first, later],
+        }).dives[1].fixedStart,
+        isTrue,
+      );
     });
 
     test('refuses a follow_dive_id that is not text', () {

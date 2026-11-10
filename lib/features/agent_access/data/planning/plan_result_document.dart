@@ -9,7 +9,9 @@ import 'package:submersion/features/planner/domain/services/schedule_lines.dart'
 /// One dive of a `compute_plan` answer (issue #4203): what the planner
 /// shows for [result], metric and unit-named as every document is. [plan]
 /// is the dive as computed, [config] the diver's settings it was computed
-/// with, and [inputs] what it was computed from, in the shape a save takes.
+/// with, and [inputs] what it was computed from: its plan fields in the
+/// shape a `dive_plans` save takes, with `surface_interval_s` and
+/// `carries_from_tank`, which only `compute_plan` takes.
 Map<String, Object?> planResultDocument(
   SeriesDiveResult result, {
   required DivePlan plan,
@@ -48,7 +50,8 @@ Map<String, Object?> planResultDocument(
         {
           'tank': place[usage.tankId],
           'litres_used': _round(usage.litersUsed, 1),
-          'start_pressure_bar': usage.startPressure,
+          // A carried tank starts at the unrounded remainder of the last.
+          'start_pressure_bar': _maybeRound(usage.startPressure, 1),
           'remaining_pressure_bar': _maybeRound(usage.remainingPressure, 1),
           'percent_used': _round(usage.percentUsed, 1),
           'reserve_broken': usage.reserveViolation,
@@ -142,6 +145,10 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
     'value': value,
     'source': 'settings',
   };
+  // The deco layers a plan of its own never sets here, as Settings have
+  // them once merged, and the air breaks that add schedule rows.
+  final resolved = config.resolvedFor(plan);
+  final breaks = config.airBreaksFor(plan);
   return {
     'gf_low': own(plan.gfLow, config.gfLow),
     'gf_high': own(plan.gfHigh, config.gfHigh),
@@ -176,6 +183,25 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
     'reserve_pressure_bar': own(plan.reservePressure, config.reservePressure),
     'ppo2_bottom_bar': own(plan.ppO2Bottom, config.ppO2Working),
     'ppo2_deco_bar': own(plan.ppO2Deco, config.ppO2Deco),
+    // Deco ppO2 by the gas's O2: up to 28%, to 45%, and above 45%. Null
+    // when off, ppo2_deco_bar then governing every deco gas.
+    'ppo2_deco_bands_bar': fromSettings(
+      resolved.ppO2DecoBandsEnabled
+          ? [
+              resolved.ppO2DecoBand1,
+              resolved.ppO2DecoBand2,
+              resolved.ppO2DecoBand3,
+            ]
+          : null,
+    ),
+    'max_o2_depth_m': fromSettings(
+      resolved.maxO2DepthEnabled ? resolved.maxO2DepthMeters : null,
+    ),
+    'air_breaks': fromSettings(
+      breaks == null
+          ? null
+          : {'o2_s': breaks.o2Seconds, 'break_s': breaks.breakSeconds},
+    ),
     'o2_narcotic': own(plan.o2Narcotic, config.o2Narcotic),
     'end_limit_m': fromSettings(config.endLimitMeters),
     'cns_warning_percent': fromSettings(config.cnsWarningThreshold),
@@ -184,6 +210,12 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
     'water_type': {
       'value': (plan.waterType?.name) ?? 'salt',
       'source': plan.waterType == null ? 'default' : 'plan',
+    },
+    // A salinity of the plan's own overrides the water type; null when the
+    // water type governs.
+    'salinity_ppt': {
+      'value': plan.salinityPpt,
+      'source': plan.salinityPpt == null ? 'default' : 'plan',
     },
     'altitude_m': {
       'value': plan.altitude ?? 0,
