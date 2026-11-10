@@ -90,6 +90,20 @@ void main() {
     expectParams(t(QueryOp.eq).params, [-1.35, -1.25]);
   });
 
+  test('an in-list mixing grained and exact values keeps each reading', () {
+    // A list from JSON or code may hold a number built without a grain;
+    // that one stays an exact match inside the union.
+    final i = c(
+      QueryOp.inList,
+      ListValue([shown, const NumberValue(18, null)]),
+    );
+    expect(
+      i.where,
+      '(((r0.max_depth >= ? AND r0.max_depth < ?)) OR (r0.max_depth = ?))',
+    );
+    expectParams(i.params, [29.95, 30.05, 18]);
+  });
+
   test('a number with no grain still compares exactly', () {
     final gt = c(QueryOp.gt, const NumberValue(30, null));
     expect(gt.where, '(r0.max_depth > ?)');
