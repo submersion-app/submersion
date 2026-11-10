@@ -33290,6 +33290,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun tag ne correspond à votre recherche.';
 
   @override
+  String get tags_picker_otherTags => 'Autres tags';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

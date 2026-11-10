@@ -9424,6 +9424,7 @@
   "tags_picker_errorLoading": "Error al cargar las etiquetas: {error}",
   "tags_picker_allAdded": "Todas las etiquetas ya están añadidas.",
   "tags_picker_noMatches": "Ninguna etiqueta coincide con tu búsqueda.",
+  "tags_picker_otherTags": "Otras etiquetas",
   "tags_picker_addCount": "{count, plural, =0{Añadir etiquetas} =1{Añadir 1 etiqueta} other{Añadir {count} etiquetas}}",
   "tags_action_showDives": "Mostrar inmersiones con la etiqueta \"{tagName}\"",
   "tags_hint_addMoreTags": "Agregar más etiquetas...",

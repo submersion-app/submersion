@@ -92,7 +92,9 @@ void main() {
       expect(find.text('31 dives'), findsOneWidget);
     });
 
-    testWidgets('never lists a sites-only tag (issue #1765)', (tester) async {
+    testWidgets('lists a sites-only tag only under Other tags (#1765, #4406)', (
+      tester,
+    ) async {
       final siteOnly = TagStatistic(
         tag: Tag(
           id: 'site-tag',
@@ -106,7 +108,18 @@ void main() {
       await tester.pumpWidget(buildTestWidget(stats: [...testStats, siteOnly]));
       await tester.pumpAndSettle();
 
-      expect(renderedTagNames(tester), ['Wreck', 'Night', 'Deco', 'Training']);
+      expect(renderedTagNames(tester), [
+        'Wreck',
+        'Night',
+        'Deco',
+        'Training',
+        'To try',
+      ]);
+      expect(
+        tester.getTopLeft(find.text('Other tags')).dy,
+        lessThan(tester.getTopLeft(find.text('To try')).dy),
+      );
+      expect(find.text('For: Sites'), findsOneWidget);
     });
 
     group('from a site (issue #1765)', () {
@@ -135,7 +148,7 @@ void main() {
         siteStat('avoid', 'Avoid', sites: 2),
       ];
 
-      testWidgets('lists only site tags, most used on sites first', (
+      testWidgets('lists site tags first, most used on sites first', (
         tester,
       ) async {
         await tester.pumpWidget(
@@ -143,7 +156,17 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(renderedTagNames(tester), ['To try', 'Avoid', 'Favourite']);
+        // The dive-only tags follow under Other tags (issue #4406).
+        expect(renderedTagNames(tester).take(4), [
+          'To try',
+          'Avoid',
+          'Favourite',
+          'Wreck',
+        ]);
+        expect(
+          tester.getTopLeft(find.text('Other tags')).dy,
+          lessThan(tester.getTopLeft(find.text('Wreck')).dy),
+        );
       });
 
       testWidgets('shows how many sites use each tag', (tester) async {
@@ -199,7 +222,7 @@ void main() {
         gearStat('rental', 'Rental', items: 2),
       ];
 
-      testWidgets('lists only equipment tags, most used on equipment first', (
+      testWidgets('lists equipment tags first, most used on equipment first', (
         tester,
       ) async {
         await tester.pumpWidget(
@@ -207,7 +230,17 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        expect(renderedTagNames(tester), ['Travel kit', 'Rental', 'Favourite']);
+        // The dive-only tags follow under Other tags (issue #4406).
+        expect(renderedTagNames(tester).take(4), [
+          'Travel kit',
+          'Rental',
+          'Favourite',
+          'Wreck',
+        ]);
+        expect(
+          tester.getTopLeft(find.text('Other tags')).dy,
+          lessThan(tester.getTopLeft(find.text('Wreck')).dy),
+        );
       });
 
       testWidgets('shows how many equipment items use each tag', (
@@ -240,17 +273,31 @@ void main() {
         expect(picked!.map((t) => t.id), ['travel', 'both']);
       });
 
-      testWidgets('a dive never lists an equipment-only tag', (tester) async {
+      testWidgets('a dive lists equipment-only tags only under Other tags', (
+        tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget(stats: mixed));
         await tester.pumpAndSettle();
 
-        expect(renderedTagNames(tester), [
+        expect(renderedTagNames(tester).take(5), [
           'Wreck',
           'Night',
           'Deco',
           'Training',
           'Favourite',
         ]);
+        await tester.scrollUntilVisible(
+          find.text('Rental'),
+          100,
+          scrollable: find.descendant(
+            of: find.byType(ListView),
+            matching: find.byType(Scrollable),
+          ),
+        );
+        expect(
+          tester.getTopLeft(find.text('Other tags')).dy,
+          lessThan(tester.getTopLeft(find.text('Travel kit')).dy),
+        );
       });
     });
 
@@ -342,7 +389,7 @@ void main() {
       expect(find.text('All tags are already added.'), findsOneWidget);
     });
 
-    testWidgets('shows a no-matches state when the search excludes all tags', (
+    testWidgets('a search no tag matches offers to create it (#4406)', (
       tester,
     ) async {
       await tester.pumpWidget(buildTestWidget());
@@ -352,6 +399,20 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(CheckboxListTile), findsNothing);
+      expect(find.text('Create "zzz"'), findsOneWidget);
+      expect(find.text('No tags match your search.'), findsNothing);
+    });
+
+    testWidgets('shows a no-matches state when the search finds only an '
+        'attached tag', (tester) async {
+      await tester.pumpWidget(buildTestWidget(selectedTagIds: {'tag2'}));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'night');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CheckboxListTile), findsNothing);
+      expect(find.textContaining('Create "'), findsNothing);
       expect(find.text('No tags match your search.'), findsOneWidget);
     });
 

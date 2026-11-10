@@ -9424,6 +9424,7 @@
   "tags_picker_errorLoading": "خطأ في تحميل الوسوم: {error}",
   "tags_picker_allAdded": "تمت إضافة جميع الوسوم بالفعل.",
   "tags_picker_noMatches": "لا توجد وسوم تطابق بحثك.",
+  "tags_picker_otherTags": "وسوم أخرى",
   "tags_picker_addCount": "{count, plural, =0{إضافة وسوم} =1{إضافة وسم واحد} two{إضافة وسمين} few{إضافة {count} وسوم} many{إضافة {count} وسمًا} other{إضافة {count} وسم}}",
   "tags_action_showDives": "عرض الغطسات الموسومة بـ \"{tagName}\"",
   "tags_hint_addMoreTags": "إضافة المزيد من الوسوم...",

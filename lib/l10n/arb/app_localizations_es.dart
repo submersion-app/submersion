@@ -33208,6 +33208,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ninguna etiqueta coincide con tu búsqueda.';
 
   @override
+  String get tags_picker_otherTags => 'Otras etiquetas';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -52729,6 +52729,12 @@ abstract class AppLocalizations {
   /// **'No tags match your search.'**
   String get tags_picker_noMatches;
 
+  /// Tag picker section heading over the diver's tags that are not yet offered for what is being tagged; picking one also offers it there
+  ///
+  /// In en, this message translates to:
+  /// **'Other tags'**
+  String get tags_picker_otherTags;
+
   /// Confirm button on the tag picker sheet; count is how many tags are ticked
   ///
   /// In en, this message translates to:

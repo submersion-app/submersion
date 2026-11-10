@@ -33169,6 +33169,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhuma etiqueta corresponde à sua pesquisa.';
 
   @override
+  String get tags_picker_otherTags => 'Outras etiquetas';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

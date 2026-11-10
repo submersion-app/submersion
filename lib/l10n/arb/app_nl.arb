@@ -9424,6 +9424,7 @@
   "tags_picker_errorLoading": "Fout bij het laden van tags: {error}",
   "tags_picker_allAdded": "Alle tags zijn al toegevoegd.",
   "tags_picker_noMatches": "Geen tags komen overeen met je zoekopdracht.",
+  "tags_picker_otherTags": "Andere tags",
   "tags_picker_addCount": "{count, plural, =0{Tags toevoegen} =1{1 tag toevoegen} other{{count} tags toevoegen}}",
   "tags_action_showDives": "Duiken met tag \"{tagName}\" tonen",
   "tags_hint_addMoreTags": "Meer tags toevoegen...",

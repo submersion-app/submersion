@@ -33021,6 +33021,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_picker_noMatches => 'Nincs a keresésnek megfelelő címke.';
 
   @override
+  String get tags_picker_otherTags => 'Egyéb címkék';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

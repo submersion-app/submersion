@@ -33198,6 +33198,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_picker_noMatches => 'Nessun tag corrisponde alla ricerca.';
 
   @override
+  String get tags_picker_otherTags => 'Altri tag';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
