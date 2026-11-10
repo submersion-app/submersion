@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/data_quality/data/services/duplicate_cylinder_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
-import 'package:submersion/features/data_quality/domain/repairs/duplicate_cylinder_rules.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -59,17 +58,27 @@ class _RemoveDuplicateDialog extends StatefulWidget {
 }
 
 class _RemoveDuplicateDialogState extends State<_RemoveDuplicateDialog> {
-  // Seeded with the kept row's own mix, so the choice it starts on is
-  // always one of the options even when another row is within tolerance.
-  late final List<({double o2, double he})> _mixes =
-      [
-        (o2: widget.preview.survivor.o2, he: widget.preview.survivor.he),
-        for (final c in widget.preview.cylinders) (o2: c.o2, he: c.he),
-      ].fold(
-        <({double o2, double he})>[],
-        (unique, mix) =>
-            unique.any((m) => mixesClose(m, mix)) ? unique : [...unique, mix],
-      );
+  // Every distinct recorded mix, the kept row's first so the choice starts
+  // on an option. Exact values, not the clash tolerance: tolerance is not
+  // transitive, so folding by it could hide a mix the clash check counted.
+  late final List<({double o2, double he})> _mixes = <({double o2, double he})>{
+    (o2: widget.preview.survivor.o2, he: widget.preview.survivor.he),
+    for (final c in widget.preview.cylinders) (o2: c.o2, he: c.he),
+  }.toList();
+
+  /// The mix's gas name, with its exact percentages when another option
+  /// rounds to the same name ("Air (21.04% O2)").
+  String _label(({double o2, double he}) mix) {
+    String name(({double o2, double he}) m) => GasMix(o2: m.o2, he: m.he).name;
+    final own = name(mix);
+    if (_mixes.where((m) => name(m) == own).length < 2) return own;
+    String pct(double v) => v
+        .toStringAsFixed(2)
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
+    final he = mix.he > 0 ? ', ${pct(mix.he)}% He' : '';
+    return '$own (${pct(mix.o2)}% O2$he)';
+  }
 
   late ({double o2, double he}) _chosen = (
     o2: widget.preview.survivor.o2,
@@ -111,7 +120,7 @@ class _RemoveDuplicateDialogState extends State<_RemoveDuplicateDialog> {
                   for (final mix in _mixes)
                     RadioListTile<({double o2, double he})>(
                       value: mix,
-                      title: Text(GasMix(o2: mix.o2, he: mix.he).name),
+                      title: Text(_label(mix)),
                       contentPadding: EdgeInsets.zero,
                     ),
                 ],

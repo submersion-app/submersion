@@ -284,6 +284,51 @@ void main() {
     expect(byRecord[rows.eventB], 'diveProfileEvents');
   });
 
+  test(
+    'rows that name the removed source but stay are unlinked with a clock',
+    () async {
+      await twoComputerDive();
+      // dc-a's tank and series, attributed to src-b (a consolidation quirk):
+      // not src-b's by the computer rule, so they stay, but their link must
+      // go with a clock rather than the FK's silent SET NULL.
+      final tank = await insertTank('dc-a');
+      await (db.update(db.diveTanks)..where((t) => t.id.equals(tank))).write(
+        const DiveTanksCompanion(sourceId: Value('src-b')),
+      );
+      final series = await insertProfile(
+        'dc-a',
+        isPrimary: false,
+        sourceId: 'src-b',
+      );
+
+      await service.remove(diveId: 'dive-1', sourceId: 'src-b');
+
+      final tankRow = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals(tank))).getSingle();
+      expect(tankRow.sourceId, isNull);
+      expect(tankRow.hlc, isNotNull);
+      final seriesRow = await (db.select(
+        db.diveProfileSeries,
+      )..where((t) => t.id.equals(series))).getSingle();
+      expect(seriesRow.sourceId, isNull);
+      expect(seriesRow.hlc, isNotNull);
+    },
+  );
+
+  test("removing the primary keeps the diver's edited profile", () async {
+    final rows = await twoComputerDive();
+    // The edit: a computer-less primary series over the demoted original.
+    await (db.update(db.diveProfileSeries)
+          ..where((t) => t.id.equals(rows.profileA)))
+        .write(const DiveProfileSeriesCompanion(isPrimary: Value(false)));
+    final edit = await insertProfile(null, isPrimary: true);
+
+    await service.remove(diveId: 'dive-1', sourceId: 'src-a');
+
+    expect(await ids(db.diveProfileSeries), contains(edit));
+  });
+
   test('refuses the only source', () async {
     await insertDive('dive-1');
     await insertSource('src-a', 'dc-a', isPrimary: true, createdDay: 1);

@@ -19,13 +19,13 @@ bool mixesClose(({double o2, double he}) a, ({double o2, double he}) b) =>
     (a.o2 - b.o2).abs() <= _mixTolerance &&
     (a.he - b.he).abs() <= _mixTolerance;
 
-/// The detector's canonical serial (blank and all-zero read as none),
-/// compared without case.
-String? _normalSerial(String? serial) =>
-    normalizeTransmitterSerial(serial)?.toUpperCase();
+/// The detector's own canonical serial (trimmed; blank and all-zero read as
+/// none), compared exactly as it compares them, case included, so a repair
+/// never treats as one transmitter what the detector would not.
+String? _normalSerial(String? serial) => normalizeTransmitterSerial(serial);
 
-/// Tanks grouped by transmitter serial, ignoring case and surrounding
-/// whitespace: each group of two or more, ids sorted, groups ordered by
+/// Tanks grouped by transmitter serial, ignoring surrounding whitespace as
+/// the detector does: each group of two or more, ids sorted, groups ordered by
 /// their first id. Tanks without a serial are left out.
 List<List<String>> serialGroups(List<DiveTank> tanks) {
   final bySerial = <String, List<String>>{};

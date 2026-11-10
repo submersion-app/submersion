@@ -9,6 +9,7 @@ import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/primary_source_promotion.dart';
 import 'package:submersion/features/dive_log/data/services/source_row_ownership.dart';
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
@@ -143,8 +144,11 @@ class DiveSourceRemovalService {
         _db.gasSwitches,
       )..where((t) => t.diveId.equals(diveId))).get();
 
+      // The diver's edited profile is their own work, not the source's: it
+      // stays to describe the dive (Split carries it to the new dive
+      // instead; a removal has nowhere else to put it).
       final leavingProfiles = allProfileSeries
-          .where(ownership.ownsProfile)
+          .where((s) => ownership.ownsProfile(s) && !liveEditIds.contains(s.id))
           .toList();
       final leavingPressures = allPressureSeries
           .where(ownership.ownsPressure)
@@ -262,6 +266,17 @@ class DiveSourceRemovalService {
         )..where((t) => t.id.isIn(deletedTankIds))).go();
       }
 
+      // Rows that stay but still name this source (a tank or series the
+      // computer rule gave to another computer) lose the link under a clock
+      // of their own, not through the FK's silent SET NULL, which no peer
+      // would hear of.
+      await clearTankSourceLinks(
+        _db,
+        _sync,
+        (t) => t.sourceId.equals(source.id),
+        now: now,
+      );
+      await _profileSeries.clearSource(source.id, now: now);
       await (_db.delete(
         _db.diveDataSources,
       )..where((t) => t.id.equals(source.id))).go();

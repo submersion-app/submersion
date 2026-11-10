@@ -33,15 +33,19 @@ DiveTank _tank(
 /// Which cylinders are one, and which of them stays (issue #4393).
 void main() {
   group('serialGroups', () {
-    test('serial groups ignore case and whitespace', () {
-      final groups = serialGroups([
-        _tank('a', serial: 'ab12'),
-        _tank('b', serial: ' AB12 '),
-      ]);
-      expect(groups, [
-        ['a', 'b'],
-      ]);
-    });
+    test(
+      'serial groups trim whitespace but keep case, as the detector does',
+      () {
+        final groups = serialGroups([
+          _tank('a', serial: 'AB12'),
+          _tank('b', serial: ' AB12 '),
+          _tank('c', serial: 'ab12'),
+        ]);
+        expect(groups, [
+          ['a', 'b'],
+        ]);
+      },
+    );
 
     test('all-zero serials are no transmitter, as the detector reads them', () {
       final groups = serialGroups([

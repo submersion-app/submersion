@@ -97,6 +97,35 @@ void main() {
     expect(values, contains(group.groupValue));
   });
 
+  testWidgets('every recorded mix is offered, however close', (tester) async {
+    const preview = CylinderMergePreview(
+      diveId: 'd1',
+      survivorId: 'a',
+      duplicateIds: ['b', 'c'],
+      cylinders: [
+        CylinderSummary(id: 'a', number: 1, name: null, o2: 21.04, he: 0),
+        CylinderSummary(id: 'b', number: 2, name: null, o2: 21.00, he: 0),
+        CylinderSummary(id: 'c', number: 3, name: null, o2: 21.08, he: 0),
+      ],
+      findingIds: ['f1'],
+    );
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => confirmRemoveDuplicate(context, preview),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RadioListTile<_Mix>), findsNWidgets(3));
+  });
+
   testWidgets('matching mixes confirm without asking for a gas', (
     tester,
   ) async {
