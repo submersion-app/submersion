@@ -1139,7 +1139,8 @@ class ProfileSeriesRepository {
   /// computer produced. A series marked as an edit is never relinked, live or
   /// demoted: re-activating the original in the revision picker leaves the
   /// edit demoted beneath it, where the shape cannot tell it apart
-  /// (issue #4386).
+  /// (issue #4386). That demoted edit does not shield the original above it
+  /// either, which is relinked like any other.
   Future<int> relinkComputer(
     String computerId,
     List<String> diveIds, {
@@ -1169,7 +1170,12 @@ class ProfileSeriesRepository {
                   ..addColumns([sibling.id])
                   ..where(
                     sibling.diveId.equalsExp(t.diveId) &
-                        sibling.isPrimary.equals(false),
+                        sibling.isPrimary.equals(false) &
+                        // A marked edit beneath is no generation the live
+                        // series superseded, so it does not make that series
+                        // an edit (issue #4386).
+                        (sibling.isEdit.isNull() |
+                            sibling.isEdit.equals(false)),
                   ),
               )),
       now: now,

@@ -400,6 +400,9 @@ void main() {
 
       final rows = await rowsById();
       expect(rows[ids.edit]!.computerId, isNull);
+      // The re-activated original is the computer's output; the marked edit
+      // beneath it is no superseded generation that would make it an edit.
+      expect(rows[ids.original]!.computerId, 'comp-1');
     });
   });
 }
