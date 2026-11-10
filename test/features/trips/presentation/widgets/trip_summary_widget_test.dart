@@ -31,6 +31,9 @@ class _StubTripListNotifier
   _StubTripListNotifier.failed(Object error)
     : super(AsyncValue.error(error, StackTrace.empty));
 
+  /// A reload of the whole list, as a diver switch starts one.
+  void startReload() => state = const AsyncValue.loading();
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -392,6 +395,58 @@ void main() {
       expect(find.text('Filtered: summarizing 2 of 4 trips'), findsOneWidget);
       expect(find.text('Sardinia'), findsOneWidget);
       expect(find.text('Belgium'), findsNothing);
+    });
+
+    // The unfiltered overview is not the filter's: it must not stand under
+    // a "Filtered" banner while the filter's ids load.
+    testWidgets('a first filter does not keep the unfiltered overview', (
+      tester,
+    ) async {
+      final pending = Completer<Set<String>>();
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        idsFor: (_) => pending.future,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+
+      container.read(tripFilterProvider.notifier).state = byTank;
+      await tester.pump();
+
+      expect(find.textContaining('of 4 trips'), findsNothing);
+      expect(find.text('Sardinia'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      pending.complete(const {'b'});
+      await tester.pumpAndSettle();
+      expect(find.text('Filtered: summarizing 1 of 4 trips'), findsOneWidget);
+    });
+
+    // A reload of the trip list itself (another diver) blanks as the list
+    // does, rather than showing the previous list's trips and count.
+    testWidgets('a trip list reload keeps no earlier trips', (tester) async {
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        matchingIds: const {'b'},
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+
+      (container.read(tripListNotifierProvider.notifier)
+              as _StubTripListNotifier)
+          .startReload();
+      await tester.pump();
+
+      expect(find.text('Belgium'), findsNothing);
+      expect(find.textContaining('of 4 trips'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });
 

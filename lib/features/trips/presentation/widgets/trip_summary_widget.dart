@@ -26,10 +26,13 @@ class TripSummaryWidget extends ConsumerStatefulWidget {
 }
 
 class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
-  // The last trips and count shown. A filter change reloads the filtered
-  // trips with no previous value (narrowByIds), so these keep the overview
-  // and its banner on screen until the new trips land, as the Dive Log
-  // summary keeps its totals, instead of blanking to a spinner.
+  // The last filtered trips and count shown. A change from one filter to
+  // another reloads the filtered trips with no previous value
+  // (narrowByIds), so these keep the overview and its banner on screen
+  // until the new trips land, as the Dive Log summary keeps its totals,
+  // instead of blanking to a spinner. Only a filtered result is kept: an
+  // unfiltered overview under a "Filtered" banner would misread as the
+  // filter's.
   List<TripWithStats>? _lastTrips;
   ListEntryCount? _lastCount;
 
@@ -37,12 +40,25 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
   Widget build(BuildContext context) {
     final isFiltered = ref.watch(tripFilterProvider).hasActiveFilters;
     final tripsAsync = ref.watch(filteredTripsProvider);
-    if (tripsAsync.hasValue) _lastTrips = tripsAsync.value;
-    final trips = tripsAsync.isLoading ? _lastTrips : tripsAsync.value;
     // The list's own entry count, so the banner and the list's "3 of 12
     // trips" subtitle can never disagree.
-    final count = ref.watch(tripListCountProvider) ?? _lastCount;
-    _lastCount = count;
+    final liveCount = ref.watch(tripListCountProvider);
+    // A reload of the trip list itself (another diver, say) or an error
+    // shows no earlier figures, as the list and its count show none: only
+    // a filter's own id query in flight falls back to them.
+    final keepLast =
+        isFiltered &&
+        tripsAsync.isLoading &&
+        !ref.watch(tripListNotifierProvider).isLoading;
+    if (!isFiltered || tripsAsync.hasError) {
+      _lastTrips = null;
+      _lastCount = null;
+    } else {
+      if (tripsAsync.hasValue) _lastTrips = tripsAsync.value;
+      if (liveCount != null) _lastCount = liveCount;
+    }
+    final trips = keepLast ? _lastTrips : tripsAsync.value;
+    final count = liveCount ?? (keepLast ? _lastCount : null);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -61,8 +77,7 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
                         count.total,
                       ),
                 clearLabel: context.l10n.trips_list_filters_clearAll,
-                onClear: () => ref.read(tripFilterProvider.notifier).state =
-                    const TripFilterState(),
+                onClear: () => clearTripFilter(ref),
               ),
             ],
             const SizedBox(height: 24),
@@ -288,9 +303,13 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
                   ),
                 ),
                 title: Text(trip.name),
+                // The separator belongs to the translation, as in the
+                // Upcoming card's subtitle: fr joins with a hyphen.
                 subtitle: Text(
-                  '${units.formatDate(trip.startDate)} • '
-                  '${context.l10n.trips_summary_recentDiveCount(tripWithStats.diveCount)}',
+                  context.l10n.trips_summary_recentSubtitle(
+                    units.formatDate(trip.startDate),
+                    tripWithStats.diveCount,
+                  ),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
@@ -309,7 +328,7 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
   Widget _buildUpcomingTrips(
     BuildContext context,
     WidgetRef ref,
-    List upcomingTrips,
+    List<TripWithStats> upcomingTrips,
   ) {
     final units = ref.watch(unitFormatterProvider);
     final nextTrip = upcomingTrips.first;

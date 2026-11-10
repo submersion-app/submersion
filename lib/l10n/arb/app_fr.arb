@@ -10346,7 +10346,7 @@
   "trips_summary_quickActions_title": "Actions rapides",
   "trips_summary_recentTitle": "Voyages récents",
   "trips_summary_filteredBanner": "Filtré : résumé de {shown} sur {total, plural, =1{{total} voyage} other{{total} voyages}}",
-  "trips_summary_recentDiveCount": "{count, plural, =1{{count} plongée} other{{count} plongées}}",
+  "trips_summary_recentSubtitle": "{date} - {count, plural, =1{{count} plongée} other{{count} plongées}}",
   "trips_summary_stat_daysDiving": "Jours de plongée",
   "trips_summary_stat_liveaboards": "Croisières",
   "trips_summary_stat_totalDives": "Total des plongées",

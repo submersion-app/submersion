@@ -55229,11 +55229,11 @@ abstract class AppLocalizations {
   /// **'Filtered: summarizing {shown} of {total, plural, =1{{total} trip} other{{total} trips}}'**
   String trips_summary_filteredBanner(int shown, int total);
 
-  /// Dive count after the date on a Recent Trips row of the Trips overview, e.g. "20/08/2026 • 11 dives".
+  /// Subtitle of a Recent Trips row of the Trips overview: the trip's start date, then its dive count, e.g. "20/08/2026 • 11 dives". Join the two the way trips_summary_upcomingSubtitle does.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
-  String trips_summary_recentDiveCount(int count);
+  /// **'{date} • {count, plural, =1{1 dive} other{{count} dives}}'**
+  String trips_summary_recentSubtitle(String date, int count);
 
   /// No description provided for @trips_summary_stat_daysDiving.
   ///

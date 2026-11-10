@@ -35375,7 +35375,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String trips_summary_recentDiveCount(int count) {
+  String trips_summary_recentSubtitle(String date, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -35385,7 +35385,7 @@ class AppLocalizationsAr extends AppLocalizations {
       two: 'غوصتان',
       one: 'غوصة واحدة',
     );
-    return '$_temp0';
+    return '$date • $_temp0';
   }
 
   @override

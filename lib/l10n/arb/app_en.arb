@@ -20214,7 +20214,7 @@
   "trips_summary_quickActions_title": "Quick Actions",
   "trips_summary_recentTitle": "Recent Trips",
   "trips_summary_filteredBanner": "Filtered: summarizing {shown} of {total, plural, =1{{total} trip} other{{total} trips}}",
-  "trips_summary_recentDiveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "trips_summary_recentSubtitle": "{date} • {count, plural, =1{1 dive} other{{count} dives}}",
   "@trips_summary_filteredBanner": {
     "description": "Line under the Trips overview title while the trip list is filtered (for example by an equipment item): the overview covers {shown} of the diver's {total} trips.",
     "placeholders": {
@@ -20226,9 +20226,12 @@
       }
     }
   },
-  "@trips_summary_recentDiveCount": {
-    "description": "Dive count after the date on a Recent Trips row of the Trips overview, e.g. \"20/08/2026 • 11 dives\".",
+  "@trips_summary_recentSubtitle": {
+    "description": "Subtitle of a Recent Trips row of the Trips overview: the trip's start date, then its dive count, e.g. \"20/08/2026 • 11 dives\". Join the two the way trips_summary_upcomingSubtitle does.",
     "placeholders": {
+      "date": {
+        "type": "String"
+      },
       "count": {
         "type": "int"
       }

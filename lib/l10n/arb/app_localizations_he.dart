@@ -34089,14 +34089,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String trips_summary_recentDiveCount(int count) {
+  String trips_summary_recentSubtitle(String date, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
       other: '$count צלילות',
       one: 'צלילה אחת',
     );
-    return '$_temp0';
+    return '$date • $_temp0';
   }
 
   @override
