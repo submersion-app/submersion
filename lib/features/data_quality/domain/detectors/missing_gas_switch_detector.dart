@@ -20,8 +20,10 @@ class MissingGasSwitchDetector extends QualityDetector {
 
   @override
   String get id => 'missing_gas_switch';
+  // v2: a dive the pressures show began on another cylinder than the
+  // timeline's starts with a switch to it (#4335).
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.tank;
 

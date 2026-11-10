@@ -134,6 +134,30 @@ void main() {
     },
   );
 
+  testWidgets('a draft hides the switch and stays a draft on save (#637)', (
+    tester,
+  ) async {
+    final draft = await repository.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 6, 1, 9),
+        entryTime: DateTime(2026, 6, 1, 9),
+        exitTime: DateTime(2026, 6, 1, 9, 50),
+        isDraft: true,
+      ),
+    );
+    await tester.pumpWidget(await page(diveId: draft.id));
+    await settle(tester);
+    expect(plannedSwitch, findsNothing);
+    expect(find.text('Dive #'), findsNothing);
+
+    await save(tester);
+    final saved = await repository.getDiveById(draft.id);
+    expect(saved?.isDraft, isTrue);
+    expect(saved?.isPlanned, isFalse);
+    expect(saved?.diveNumber, isNull);
+  });
+
   testWidgets('a dive with a primary data source cannot be marked planned', (
     tester,
   ) async {

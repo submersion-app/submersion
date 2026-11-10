@@ -85,4 +85,23 @@ void main() {
       expect(await ids('"testus"'), {'t_whale'});
     },
   );
+
+  test('sightings.count matches exact counts only (issue #4337)', () async {
+    // A Seen or REEF-group sighting stores count 1 but has no number, so it
+    // matches neither `= 1` nor a range; an exact 1 still matches.
+    Future<void> sql(String s) => db.customStatement(s);
+    await sql(
+      'INSERT INTO species (id, common_name, category, is_built_in) VALUES '
+      "('t_jack', 'Test Jack', 'fish', 0), "
+      "('t_grouper', 'Test Grouper', 'fish', 0)",
+    );
+    await sql(
+      'INSERT INTO sightings (id, dive_id, species_id, count, abundance) '
+      "VALUES ('g2', 'd1', 't_jack', 1, 'few'), "
+      "('g3', 'd1', 't_grouper', 1, NULL)",
+    );
+
+    expect(await ids('sightings.count = 1'), {'t_grouper'});
+    expect(await ids('sightings.count >= 1'), {'t_whale', 't_grouper'});
+  });
 }

@@ -14,6 +14,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/global_drop_target.dart';
 import 'package:submersion/shared/widgets/master_detail/list_memory_scope.dart';
+import 'package:submersion/shared/widgets/nav/nav_bar_label_fit.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/nav/nav_selection.dart';
@@ -506,30 +507,44 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     required bool alwaysHideLabels,
   }) {
     final navAccent = _navAccentLookup(context);
-    return NavigationBar(
-      selectedIndex: selectedIndex,
-      labelBehavior: alwaysHideLabels
-          ? NavigationDestinationLabelBehavior.alwaysHide
-          : NavigationDestinationLabelBehavior.alwaysShow,
-      onDestinationSelected: (index) => _onDestinationSelected(
-        index,
-        destinations: primary,
-        overflow: overflow,
+    final labels = [
+      for (final destination in primary) destination.label(context.l10n),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) => NavigationBar(
+        selectedIndex: selectedIndex,
+        labelBehavior: alwaysHideLabels
+            ? NavigationDestinationLabelBehavior.alwaysHide
+            : NavigationDestinationLabelBehavior.alwaysShow,
+        // Long words (German "Tauchplätze") would otherwise split between
+        // two letters on a narrow phone (#4336).
+        labelTextStyle: alwaysHideLabels
+            ? null
+            : fittedNavBarLabelTextStyle(
+                context,
+                labels: labels,
+                barWidth: constraints.maxWidth,
+              ),
+        onDestinationSelected: (index) => _onDestinationSelected(
+          index,
+          destinations: primary,
+          overflow: overflow,
+        ),
+        destinations: [
+          for (final (index, destination) in primary.indexed)
+            NavigationDestination(
+              icon: Icon(
+                destination.icon,
+                color: navAccent(destination.accentId),
+              ),
+              selectedIcon: Icon(
+                destination.selectedIcon,
+                color: navAccent(destination.accentId),
+              ),
+              label: labels[index],
+            ),
+        ],
       ),
-      destinations: [
-        for (final destination in primary)
-          NavigationDestination(
-            icon: Icon(
-              destination.icon,
-              color: navAccent(destination.accentId),
-            ),
-            selectedIcon: Icon(
-              destination.selectedIcon,
-              color: navAccent(destination.accentId),
-            ),
-            label: destination.label(context.l10n),
-          ),
-      ],
     );
   }
 }

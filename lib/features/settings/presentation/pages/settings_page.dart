@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/notifications/presentation/widgets/draft_reminder_switch.dart';
 import 'package:submersion/core/platform/device_capabilities.dart';
 import 'package:submersion/features/equipment/presentation/widgets/profile_checklist_dialog.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -11,6 +12,7 @@ import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/settings/presentation/widgets/altitude_distance_unit_pickers.dart';
+import 'package:submersion/features/settings/presentation/widgets/apple_health_settings_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/data_section_content.dart';
 import 'package:submersion/features/settings/presentation/pages/manage_section_content.dart';
@@ -1526,6 +1528,8 @@ class _NotificationsSectionContent extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
+            const DraftReminderSwitch(),
+            const SizedBox(height: 16),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.luggage),
@@ -1973,6 +1977,9 @@ class _DataSourcesSectionContent extends ConsumerWidget {
               onTap: () => context.push('/settings/wearable-import'),
             ),
           ),
+          // Automatic import and per-dive health readings (issue #637), iOS
+          // only; it brings its own spacing, so it leaves no gap elsewhere.
+          const AppleHealthSettingsSection(),
           const SizedBox(height: 16),
           // Privacy and attribution
           Card(

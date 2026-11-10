@@ -2947,6 +2947,27 @@ abstract class AppLocalizations {
   /// **'Dive times during this day'**
   String get trips_story_rhythm_semantics;
 
+  /// No description provided for @trips_story_rhythm_semanticsSunriseSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunrise {sunrise}, sunset {sunset}.'**
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  );
+
+  /// No description provided for @trips_story_rhythm_semanticsSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunrise {sunrise}.'**
+  String trips_story_rhythm_semanticsSunrise(String sunrise);
+
+  /// No description provided for @trips_story_rhythm_semanticsSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunset {sunset}.'**
+  String trips_story_rhythm_semanticsSunset(String sunset);
+
   /// No description provided for @trips_story_dayMap_semantics.
   ///
   /// In en, this message translates to:
@@ -8463,6 +8484,90 @@ abstract class AppLocalizations {
   /// **'Set'**
   String get diveLog_gear_unknownSet;
 
+  /// No description provided for @diveLog_health_after15.
+  ///
+  /// In en, this message translates to:
+  /// **'After 15 min'**
+  String get diveLog_health_after15;
+
+  /// No description provided for @diveLog_health_after5.
+  ///
+  /// In en, this message translates to:
+  /// **'After 5 min'**
+  String get diveLog_health_after5;
+
+  /// No description provided for @diveLog_health_atSurfacing.
+  ///
+  /// In en, this message translates to:
+  /// **'At surfacing'**
+  String get diveLog_health_atSurfacing;
+
+  /// No description provided for @diveLog_health_average.
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get diveLog_health_average;
+
+  /// No description provided for @diveLog_health_bpm.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} bpm'**
+  String diveLog_health_bpm(int value);
+
+  /// No description provided for @diveLog_health_maximum.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum'**
+  String get diveLog_health_maximum;
+
+  /// No description provided for @diveLog_health_ms.
+  ///
+  /// In en, this message translates to:
+  /// **'{value} ms'**
+  String diveLog_health_ms(int value);
+
+  /// No description provided for @diveLog_health_noneFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health has no readings for this dive'**
+  String get diveLog_health_noneFound;
+
+  /// No description provided for @diveLog_health_overnightHrv.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate variability the night after'**
+  String get diveLog_health_overnightHrv;
+
+  /// No description provided for @diveLog_health_readFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read Apple Health'**
+  String get diveLog_health_readFailed;
+
+  /// No description provided for @diveLog_health_recovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get diveLog_health_recovery;
+
+  /// No description provided for @diveLog_health_recoveryExplain.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate at surfacing and 5 and 15 minutes later, from Apple Health.'**
+  String get diveLog_health_recoveryExplain;
+
+  /// No description provided for @diveLog_health_sleepBefore.
+  ///
+  /// In en, this message translates to:
+  /// **'Slept {hours} h {minutes} min the night before'**
+  String diveLog_health_sleepBefore(int hours, int minutes);
+
+  /// No description provided for @diveLog_health_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate and recovery'**
+  String get diveLog_health_title;
+
   /// No description provided for @diveLog_listPage_bottomSheet_preDiveChecklist.
   ///
   /// In en, this message translates to:
@@ -9939,6 +10044,12 @@ abstract class AppLocalizations {
   /// **'Recent sites map'**
   String get settings_homeCards_card_recentSitesMap;
 
+  /// No description provided for @settings_homeCards_card_waitingForDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for download'**
+  String get settings_homeCards_card_waitingForDownload;
+
   /// No description provided for @dashboard_allHidden_message.
   ///
   /// In en, this message translates to:
@@ -10274,6 +10385,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dashboard greeting banner'**
   String get dashboard_semantics_greetingBanner;
+
+  /// No description provided for @dashboard_waitingForDownload_download.
+  ///
+  /// In en, this message translates to:
+  /// **'Download now'**
+  String get dashboard_waitingForDownload_download;
+
+  /// No description provided for @dashboard_waitingForDownload_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive waiting for your dive computer} other{{count} dives waiting for your dive computer}}'**
+  String dashboard_waitingForDownload_title(int count);
 
   /// No description provided for @decoCalculator_addToPlanner.
   ///
@@ -12712,12 +12835,6 @@ abstract class AppLocalizations {
   /// **'Dive Mode'**
   String get diveLog_diveMode_title;
 
-  /// No description provided for @diveLog_editSighting_count.
-  ///
-  /// In en, this message translates to:
-  /// **'Count'**
-  String get diveLog_editSighting_count;
-
   /// No description provided for @diveLog_editSighting_notes.
   ///
   /// In en, this message translates to:
@@ -12939,6 +13056,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}'**
   String diveLog_edit_gasSwitches_removedWithTank(int count);
+
+  /// Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Fill in 1 switch from the cylinder pressures} other{Fill in {count} switches from the cylinder pressures}}'**
+  String diveLog_edit_gasSwitches_fillDetected(int count);
 
   /// No description provided for @diveLog_edit_gettingLocation.
   ///
@@ -14557,6 +14680,12 @@ abstract class AppLocalizations {
   /// **'Annotations'**
   String get diveLog_legend_label_annotations;
 
+  /// No description provided for @diveLog_legend_label_plan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get diveLog_legend_label_plan;
+
   /// No description provided for @diveLog_legend_label_computedEvents.
   ///
   /// In en, this message translates to:
@@ -14952,6 +15081,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 dive had nothing to fill} other{{count} dives had nothing to fill}}'**
   String diveLog_fetchConditions_summaryUnchanged(int count);
+
+  /// Confirm text for fetching conditions on selected dives (issue #4329): how many of the checked dives can be filled
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} of {total} selected dives is missing conditions.} other{{count} of {total} selected dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.'**
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total);
+
+  /// Added to the confirm text when some checked dives have no location to fetch conditions for (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} dive has no site location or GPS fix and will be skipped.} other{{count} dives have no site location or GPS fix and will be skipped.}}'**
+  String diveLog_fetchConditions_skippedNoLocation(int count);
+
+  /// Snackbar when no checked dive is missing conditions (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'None of the selected dives are missing conditions.'**
+  String get diveLog_fetchConditions_noneNeededSelected;
+
+  /// Snackbar when the checked dives missing conditions all lack a location (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'The selected dives that are missing conditions have no site location or GPS fix.'**
+  String get diveLog_fetchConditions_noneLocatedSelected;
 
   /// No description provided for @diveLog_fetchConditions_summaryCancelled.
   ///
@@ -15726,6 +15879,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location from dive computer'**
   String get siteSuggestion_titleDiveComputer;
+
+  /// No description provided for @siteSuggestion_titleDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Location where you went in'**
+  String get siteSuggestion_titleDraft;
 
   /// No description provided for @siteSuggestion_assignButton.
   ///
@@ -17310,6 +17469,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'End Pressure'**
   String get diveLog_tank_label_endPressure;
+
+  /// No description provided for @diveLog_tank_label_surfaceBreathing.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathed at the surface'**
+  String get diveLog_tank_label_surfaceBreathing;
+
+  /// No description provided for @diveLog_tank_surfaceBreathing_helper.
+  ///
+  /// In en, this message translates to:
+  /// **'Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat'**
+  String get diveLog_tank_surfaceBreathing_helper;
+
+  /// No description provided for @diveLog_tank_surfaceBreathing_unit.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get diveLog_tank_surfaceBreathing_unit;
 
   /// No description provided for @diveLog_tank_label_he.
   ///
@@ -27004,11 +27181,47 @@ abstract class AppLocalizations {
   /// **'Move to location'**
   String get equipment_location_bulkAction;
 
-  /// Item count beside a location heading and on the Locations page
+  /// Item count beside a group heading on gear lists and pickers (a location, a type, or another diver's shared gear) and on the Locations page
   ///
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} item} other{{count} items}}'**
   String equipment_location_groupCount(int count);
+
+  /// One type and its item count in a folded location heading's summary, e.g. BCD 2
+  ///
+  /// In en, this message translates to:
+  /// **'{type} {count}'**
+  String equipment_group_foldedTypeCount(int count, String type);
+
+  /// Second line of a folded type heading on the Equipment list: how many items inside need service
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} service due} other{{count} service due}}'**
+  String equipment_group_foldedServiceDue(int count);
+
+  /// Ends a folded location heading's summary when it lists only the first three types
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{and {count} more} other{and {count} more}}'**
+  String equipment_group_foldedMoreTypes(int count);
+
+  /// Second line of a folded group heading in selection mode: ticked items inside it of all its items
+  ///
+  /// In en, this message translates to:
+  /// **'{selected} of {total} selected'**
+  String equipment_group_foldedSelected(int selected, int total);
+
+  /// Equipment list overflow menu: open every folded group
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all'**
+  String get equipment_list_expandAllGroups;
+
+  /// Equipment list overflow menu: fold every outermost group
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all'**
+  String get equipment_list_collapseAllGroups;
 
   /// Chip in the active filters bar when the list is filtered by location
   ///
@@ -30551,12 +30764,6 @@ abstract class AppLocalizations {
   /// **'Top Sites'**
   String get marineLife_speciesDetail_topSitesTitle;
 
-  /// No description provided for @marineLife_speciesDetail_totalSightingsLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Total Sightings'**
-  String get marineLife_speciesDetail_totalSightingsLabel;
-
   /// No description provided for @marineLife_speciesEdit_addTitle.
   ///
   /// In en, this message translates to:
@@ -30995,11 +31202,59 @@ abstract class AppLocalizations {
   /// **'Sort'**
   String get marineLife_speciesPage_sortTooltip;
 
-  /// No description provided for @marineLife_speciesPage_sort_mostSightings.
+  /// No description provided for @marineLife_speciesPage_sort_mostDives.
   ///
   /// In en, this message translates to:
-  /// **'Most sightings'**
-  String get marineLife_speciesPage_sort_mostSightings;
+  /// **'Most dives'**
+  String get marineLife_speciesPage_sort_mostDives;
+
+  /// Label above the sighting abundance choices
+  ///
+  /// In en, this message translates to:
+  /// **'How many'**
+  String get marineLife_abundance_label;
+
+  /// Sighting abundance: the species was seen, with no number given
+  ///
+  /// In en, this message translates to:
+  /// **'Seen'**
+  String get marineLife_abundance_seen;
+
+  /// Sighting abundance, REEF survey group: one animal
+  ///
+  /// In en, this message translates to:
+  /// **'Single'**
+  String get marineLife_abundance_single;
+
+  /// Sighting abundance, REEF survey group: 2 to 10 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Few'**
+  String get marineLife_abundance_few;
+
+  /// Sighting abundance, REEF survey group: 11 to 100 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Many'**
+  String get marineLife_abundance_many;
+
+  /// Sighting abundance, REEF survey group: more than 100 animals
+  ///
+  /// In en, this message translates to:
+  /// **'Abundant'**
+  String get marineLife_abundance_abundant;
+
+  /// Sighting abundance: an exact number of animals, entered with a stepper
+  ///
+  /// In en, this message translates to:
+  /// **'Exact'**
+  String get marineLife_abundance_exact;
+
+  /// Helper line under the sighting abundance choices giving each REEF group's range
+  ///
+  /// In en, this message translates to:
+  /// **'Few 2 to 10, Many 11 to 100, Abundant over 100'**
+  String get marineLife_abundance_ranges;
 
   /// No description provided for @marineLife_speciesPage_sort_recentlySeen.
   ///
@@ -32370,6 +32625,12 @@ abstract class AppLocalizations {
   /// **'Video file not found'**
   String get media_photoViewer_videoFileNotFound;
 
+  /// Media viewer, in a browser with no service workers (a private window): a Google Drive or WebDAV video cannot stream.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.'**
+  String get media_photoViewer_videoNeedsNormalWindow;
+
   /// No description provided for @media_photoViewer_videoNotLinked.
   ///
   /// In en, this message translates to:
@@ -33054,6 +33315,12 @@ abstract class AppLocalizations {
   /// **'No media yet'**
   String get media_library_empty;
 
+  /// Empty state for the media library while a filter is on and nothing matches it
+  ///
+  /// In en, this message translates to:
+  /// **'No media matches these filters'**
+  String get media_library_emptyFiltered;
+
   /// Library filter chip: no type filter
   ///
   /// In en, this message translates to:
@@ -33113,6 +33380,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Missing files ({count})'**
   String media_library_filter_missingCount(int count);
+
+  /// Library filter People choice, pinned first in the People picker and shown as the People row's value: items with no buddy or Me tag at all
+  ///
+  /// In en, this message translates to:
+  /// **'No one tagged'**
+  String get media_library_filter_noPeople;
+
+  /// People row in the library filter: two people picked, e.g. Me, Alex
+  ///
+  /// In en, this message translates to:
+  /// **'{first}, {second}'**
+  String media_library_filter_peopleTwo(String first, String second);
+
+  /// People row in the library filter: the first names picked, then how many more, e.g. Me, Alex +3
+  ///
+  /// In en, this message translates to:
+  /// **'{names} +{count}'**
+  String media_library_filter_peopleAndMore(String names, int count);
+
+  /// People row in the library filter while buddy names are still loading: how many people are picked
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} person} other{{count} people}}'**
+  String media_library_filter_peopleCount(int count);
+
+  /// Search field hint in the library filter's People picker
+  ///
+  /// In en, this message translates to:
+  /// **'Search people'**
+  String get media_library_filter_peopleSearchHint;
+
+  /// People picker in the library filter: nothing matches the search
+  ///
+  /// In en, this message translates to:
+  /// **'No people match'**
+  String get media_library_filter_peopleNoMatch;
+
+  /// Tooltip on the button that clears the people picked in the library filter
+  ///
+  /// In en, this message translates to:
+  /// **'Clear people'**
+  String get media_library_filter_peopleClear;
+
+  /// Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them
+  ///
+  /// In en, this message translates to:
+  /// **'Not placed in the dive'**
+  String get media_library_filter_notPlacedInDive;
 
   /// Library filter chip: reset every filter
   ///
@@ -35678,6 +35993,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment'**
   String get diveDetailSection_equipment_name;
+
+  /// No description provided for @diveDetailSection_health_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate, recovery and sleep from Apple Health'**
+  String get diveDetailSection_health_description;
 
   /// No description provided for @diveDetailSection_equipment_description.
   ///
@@ -38622,6 +38943,12 @@ abstract class AppLocalizations {
   /// **'Tag imported dives'**
   String get settings_conflict_field_autoTagImports;
 
+  /// No description provided for @settings_conflict_field_avgHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Average heart rate'**
+  String get settings_conflict_field_avgHeartRate;
+
   /// Label for the downloads-follow-computer-owner setting in a sync conflict
   ///
   /// In en, this message translates to:
@@ -38711,6 +39038,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment grouped by location'**
   String get settings_conflict_field_equipmentGroupByLocation;
+
+  /// Label for the Equipment page's saved folded groups in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment folded groups'**
+  String get settings_conflict_field_equipmentCollapsedGroups;
 
   /// Label for a saved list arrangement in a sync conflict
   ///
@@ -40182,6 +40515,30 @@ abstract class AppLocalizations {
   /// **'Heading correction in degrees'**
   String get settings_conflict_field_headingOffsetDeg;
 
+  /// No description provided for @settings_conflict_field_heartRateAtExit.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate at surfacing'**
+  String get settings_conflict_field_heartRateAtExit;
+
+  /// No description provided for @settings_conflict_field_heartRateExitPlus15.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate 15 min after surfacing'**
+  String get settings_conflict_field_heartRateExitPlus15;
+
+  /// No description provided for @settings_conflict_field_heartRateExitPlus5.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate 5 min after surfacing'**
+  String get settings_conflict_field_heartRateExitPlus5;
+
+  /// No description provided for @settings_conflict_field_heartRateSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate from Apple Health'**
+  String get settings_conflict_field_heartRateSamples;
+
   /// No description provided for @settings_conflict_field_scaleFactor.
   ///
   /// In en, this message translates to:
@@ -40361,6 +40718,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Done'**
   String get settings_conflict_field_isDone;
+
+  /// No description provided for @settings_conflict_field_isDraft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft dive'**
+  String get settings_conflict_field_isDraft;
 
   /// No description provided for @settings_conflict_field_isOrphaned.
   ///
@@ -40638,6 +41001,12 @@ abstract class AppLocalizations {
   /// **'Maximum descent rate'**
   String get settings_conflict_field_maxDescentRate;
 
+  /// No description provided for @settings_conflict_field_maxHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum heart rate'**
+  String get settings_conflict_field_maxHeartRate;
+
   /// No description provided for @settings_conflict_field_maxSpeed.
   ///
   /// In en, this message translates to:
@@ -40769,6 +41138,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Overdue services'**
   String get settings_conflict_field_overdueServices;
+
+  /// No description provided for @settings_conflict_field_overnightHrvMs.
+  ///
+  /// In en, this message translates to:
+  /// **'Overnight heart rate variability'**
+  String get settings_conflict_field_overnightHrvMs;
 
   /// No description provided for @settings_conflict_field_params.
   ///
@@ -41712,6 +42087,12 @@ abstract class AppLocalizations {
   /// **'Size'**
   String get settings_conflict_field_size;
 
+  /// No description provided for @settings_conflict_field_sleepBeforeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep the night before'**
+  String get settings_conflict_field_sleepBeforeMinutes;
+
   /// No description provided for @settings_conflict_field_sortOrder.
   ///
   /// In en, this message translates to:
@@ -41844,6 +42225,12 @@ abstract class AppLocalizations {
   /// **'Settings for this dive only'**
   String get settings_conflict_field_settingOverrides;
 
+  /// No description provided for @settings_conflict_field_settled.
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Health readings complete'**
+  String get settings_conflict_field_settled;
+
   /// No description provided for @settings_conflict_field_startTime.
   ///
   /// In en, this message translates to:
@@ -41921,6 +42308,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Replaces built-in rule'**
   String get settings_conflict_field_supersedesRuleId;
+
+  /// No description provided for @settings_conflict_field_surfaceBreathingDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Time breathed at the surface'**
+  String get settings_conflict_field_surfaceBreathingDuration;
 
   /// No description provided for @settings_conflict_field_surfaceConditions.
   ///
@@ -43223,6 +43616,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{title} expires today'**
   String notifications_document_expiresToday_title(String title);
+
+  /// No description provided for @notifications_draftReminder_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Download your dive computer to fill in the draft.'**
+  String get notifications_draftReminder_body;
+
+  /// No description provided for @notifications_draftReminder_title.
+  ///
+  /// In en, this message translates to:
+  /// **'A dive is waiting for your dive computer'**
+  String get notifications_draftReminder_title;
 
   /// No description provided for @notifications_document_expiresToday_body.
   ///
@@ -46123,6 +46528,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Notifications Disabled'**
   String get settings_notifications_disabled_title;
+
+  /// No description provided for @settings_notifications_draftReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me about draft dives'**
+  String get settings_notifications_draftReminder;
+
+  /// No description provided for @settings_notifications_draftReminder_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Three days after a draft dive\'s exit, if it is still waiting for a download'**
+  String get settings_notifications_draftReminder_subtitle;
 
   /// No description provided for @settings_notifications_enableServiceReminders.
   ///
@@ -56341,6 +56758,18 @@ abstract class AppLocalizations {
   /// **'This format is not yet supported. Please export as UDDF or CSV.'**
   String get universalImport_error_unsupportedFormat;
 
+  /// No description provided for @universalImport_fillDraft_ambiguous.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Another dive fits this draft too. Choose the draft it fills.} other{Fits {count} drafts. Choose the one it fills.}}'**
+  String universalImport_fillDraft_ambiguous(int count);
+
+  /// No description provided for @universalImport_fillDraft_choose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose draft'**
+  String get universalImport_fillDraft_choose;
+
   /// Warning on the review step when duplicate detection failed and the incoming rows were left unmarked
   ///
   /// In en, this message translates to:
@@ -56550,6 +56979,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Attach this download to the dive you planned'**
   String get universalImport_compare_fillPlannedSubtitle;
+
+  /// Import action: attach the download to a draft dive marked at the site
+  ///
+  /// In en, this message translates to:
+  /// **'Fill draft'**
+  String get universalImport_label_fillDraft;
+
+  /// No description provided for @universalImport_compare_fillDraftSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach this download to the dive you marked at the site'**
+  String get universalImport_compare_fillDraftSubtitle;
+
+  /// No description provided for @universalImport_fillDraft_target.
+  ///
+  /// In en, this message translates to:
+  /// **'Fills draft: {label}'**
+  String universalImport_fillDraft_target(String label);
+
+  /// No description provided for @universalImport_fillDraft_window.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft from {start} to {end}'**
+  String universalImport_fillDraft_window(String start, String end);
+
+  /// No description provided for @universalImport_fillDraft_windowOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft from {start}'**
+  String universalImport_fillDraft_windowOpen(String start);
 
   /// No description provided for @universalImport_label_filledPlanned.
   ///
@@ -58379,6 +58838,60 @@ abstract class AppLocalizations {
   /// **'Stop logging'**
   String get gpsLogger_stopButton;
 
+  /// Button while recording a GPS track: marks the moment the diver goes into the water, starting a draft dive
+  ///
+  /// In en, this message translates to:
+  /// **'Entered water'**
+  String get gpsLogger_enteredWater;
+
+  /// Button while a draft dive is open: marks the moment the diver surfaces
+  ///
+  /// In en, this message translates to:
+  /// **'Surfaced'**
+  String get gpsLogger_surfaced;
+
+  /// No description provided for @gpsLogger_surfaceOnStop_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Still in the water?'**
+  String get gpsLogger_surfaceOnStop_title;
+
+  /// No description provided for @gpsLogger_surfaceOnStop_body.
+  ///
+  /// In en, this message translates to:
+  /// **'You entered the water at {time}. Mark the dive surfaced now, or leave it open and tap Surfaced later.'**
+  String gpsLogger_surfaceOnStop_body(String time);
+
+  /// No description provided for @gpsLogger_surfaceOnStop_surfaceNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Surface now'**
+  String get gpsLogger_surfaceOnStop_surfaceNow;
+
+  /// No description provided for @gpsLogger_surfaceOnStop_leaveOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave open'**
+  String get gpsLogger_surfaceOnStop_leaveOpen;
+
+  /// No description provided for @gpsLogger_markNotification_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording your GPS track'**
+  String get gpsLogger_markNotification_title;
+
+  /// No description provided for @gpsLogger_markNotification_bodyEnter.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Entered water when you go in.'**
+  String get gpsLogger_markNotification_bodyEnter;
+
+  /// No description provided for @gpsLogger_markNotification_bodySurface.
+  ///
+  /// In en, this message translates to:
+  /// **'In the water. Tap Surfaced when you are out.'**
+  String get gpsLogger_markNotification_bodySurface;
+
   /// No description provided for @gpsLogger_stripStatus.
   ///
   /// In en, this message translates to:
@@ -59550,6 +60063,84 @@ abstract class AppLocalizations {
   /// **'Import Dives from Apple Watch via HealthKit'**
   String get settings_dataSources_appleHealth_importAction;
 
+  /// No description provided for @healthAutoImport_newDive_title.
+  ///
+  /// In en, this message translates to:
+  /// **'New dive from your Apple Watch'**
+  String get healthAutoImport_newDive_title;
+
+  /// No description provided for @healthAutoImport_newDives_title.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new dives from your Apple Watch'**
+  String healthAutoImport_newDives_title(int count);
+
+  /// No description provided for @healthAutoImport_newDive_body.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details?'**
+  String get healthAutoImport_newDive_body;
+
+  /// No description provided for @healthAutoImport_addDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Add details'**
+  String get healthAutoImport_addDetails;
+
+  /// No description provided for @healthAutoImport_review_title.
+  ///
+  /// In en, this message translates to:
+  /// **'An Apple Watch dive needs a look'**
+  String get healthAutoImport_review_title;
+
+  /// No description provided for @healthAutoImport_review_body.
+  ///
+  /// In en, this message translates to:
+  /// **'It could belong to more than one dive. Choose in the Apple Health import.'**
+  String get healthAutoImport_review_body;
+
+  /// No description provided for @healthAutoImport_planReview_body.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive may be one you planned. Review it to fill the plan.'**
+  String get healthAutoImport_planReview_body;
+
+  /// No description provided for @healthAutoImport_review.
+  ///
+  /// In en, this message translates to:
+  /// **'Review'**
+  String get healthAutoImport_review;
+
+  /// No description provided for @settings_appleHealth_autoImport_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Import Apple Watch dives automatically'**
+  String get settings_appleHealth_autoImport_title;
+
+  /// No description provided for @settings_appleHealth_autoImport_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New dives from your watch appear when you open the app.'**
+  String get settings_appleHealth_autoImport_subtitle;
+
+  /// No description provided for @settings_appleHealth_metrics_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate, recovery and sleep'**
+  String get settings_appleHealth_metrics_title;
+
+  /// No description provided for @settings_appleHealth_metrics_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Adds heart rate during and after each dive, overnight HRV and the sleep before it.'**
+  String get settings_appleHealth_metrics_subtitle;
+
+  /// Under an Apple Health switch: the diver whose dives it writes to
+  ///
+  /// In en, this message translates to:
+  /// **'For: {name}'**
+  String settings_appleHealth_boundDiver(String name);
+
   /// No description provided for @settings_dataSources_appleHealth_privacy.
   ///
   /// In en, this message translates to:
@@ -60485,6 +61076,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None of the selected dives have stored raw data to re-parse.'**
   String get reparseBatch_noneWithRawData;
+
+  /// Selection bar action that fetches conditions for the checked dives (issue #4329)
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Conditions'**
+  String get diveLog_selection_tooltip_fetchConditions;
 
   /// Bulk re-parse (issue #224)
   ///
@@ -65714,6 +66311,90 @@ abstract class AppLocalizations {
   /// **'Planned'**
   String get diveLog_planned_chip;
 
+  /// List marker for a draft dive: marked at the site, waiting for its dive computer readings
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for download'**
+  String get diveLog_draft_chip;
+
+  /// List marker for a draft dive whose diver has entered the water and not yet surfaced
+  ///
+  /// In en, this message translates to:
+  /// **'In the water'**
+  String get diveLog_draft_inWaterChip;
+
+  /// Title for a draft dive, which has no number yet
+  ///
+  /// In en, this message translates to:
+  /// **'Draft dive'**
+  String get diveLog_draft_title;
+
+  /// Banner body on a draft dive: the estimated length from the Entered water and Surfaced taps
+  ///
+  /// In en, this message translates to:
+  /// **'About {minutes} min from your taps. Download your dive computer to fill in depth and time.'**
+  String diveLog_draft_bannerBody(int minutes);
+
+  /// No description provided for @diveLog_draft_bannerBodyOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Surfaced when you are out of the water.'**
+  String get diveLog_draft_bannerBodyOpen;
+
+  /// No description provided for @diveLog_draft_downloadNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Download now'**
+  String get diveLog_draft_downloadNow;
+
+  /// Action on a draft dive that will never be downloaded: keep it as a hand-added dive
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as complete'**
+  String get diveLog_draft_markComplete;
+
+  /// No description provided for @diveLog_draft_surfaced.
+  ///
+  /// In en, this message translates to:
+  /// **'Surfaced'**
+  String get diveLog_draft_surfaced;
+
+  /// No description provided for @diveLog_draft_markedComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as complete'**
+  String get diveLog_draft_markedComplete;
+
+  /// No description provided for @diveLog_draft_markCompleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t mark the dive as complete.'**
+  String get diveLog_draft_markCompleteFailed;
+
+  /// No description provided for @diveLog_draft_stale_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you surface?'**
+  String get diveLog_draft_stale_title;
+
+  /// No description provided for @diveLog_draft_stale_body.
+  ///
+  /// In en, this message translates to:
+  /// **'You entered the water at {time} and the dive is still open.'**
+  String diveLog_draft_stale_body(String time);
+
+  /// No description provided for @diveLog_draft_stale_stillIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Still in the water'**
+  String get diveLog_draft_stale_stillIn;
+
+  /// No description provided for @diveLog_draft_stale_setTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Set surfacing time'**
+  String get diveLog_draft_stale_setTime;
+
   /// No description provided for @diveLog_planned_bannerTitle.
   ///
   /// In en, this message translates to:
@@ -65821,6 +66502,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'awaiting their dive computer'**
   String get diveLog_detail_loggedWithPlanned;
+
+  /// No description provided for @diveLog_detail_menu_addHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Add heart rate from Apple Health'**
+  String get diveLog_detail_menu_addHeartRate;
 
   /// No description provided for @diveLog_detail_linkedIncidents.
   ///
@@ -80448,6 +81135,12 @@ abstract class AppLocalizations {
   /// **'Dive {diveNumber} at {siteName}'**
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName);
 
+  /// No description provided for @diveLog_listPage_semanticsDraftDiveAtSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft dive at {siteName}'**
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName);
+
   /// No description provided for @diveLog_listPage_semanticsPlannedDiveAtSite.
   ///
   /// In en, this message translates to:
@@ -83894,6 +84587,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No profile data for this dive'**
   String get diveLog_profilePanel_noProfileData;
+
+  /// Caption under the dashed outline drawn for a dive with no recorded profile
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated from max depth and time, not a recorded profile'**
+  String get diveLog_estimatedProfile_caption;
 
   /// No description provided for @settings_export_progress_divesCsv.
   ///
@@ -88237,7 +88936,7 @@ abstract class AppLocalizations {
   /// No description provided for @transmitters_apply_content.
   ///
   /// In en, this message translates to:
-  /// **'{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.'**
+  /// **'{tanks} cylinders on {dives} dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.'**
   String transmitters_apply_content(int tanks, int dives);
 
   /// No description provided for @transmitters_apply_done.
@@ -88246,11 +88945,53 @@ abstract class AppLocalizations {
   /// **'Updated {tanks} cylinders on {dives} dives'**
   String transmitters_apply_done(int tanks, int dives);
 
-  /// No description provided for @transmitters_apply_nothing.
+  /// No description provided for @transmitters_apply_slot_label.
   ///
   /// In en, this message translates to:
-  /// **'No cylinders carry this transmitter'**
-  String get transmitters_apply_nothing;
+  /// **'Slot on {computer}'**
+  String transmitters_apply_slot_label(String computer);
+
+  /// No description provided for @transmitters_apply_slot_none.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t match by slot'**
+  String get transmitters_apply_slot_none;
+
+  /// No description provided for @transmitters_apply_slot_option.
+  ///
+  /// In en, this message translates to:
+  /// **'T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}'**
+  String transmitters_apply_slot_option(int slot, int dives);
+
+  /// No description provided for @transmitters_apply_slot_reading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading imported files'**
+  String get transmitters_apply_slot_reading;
+
+  /// No description provided for @transmitters_apply_slot_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.'**
+  String get transmitters_apply_slot_intro;
+
+  /// No description provided for @transmitters_apply_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Dives filled by serial: {serialDives}, by slot: {slotDives}'**
+  String transmitters_apply_summary(int serialDives, int slotDives);
+
+  /// No description provided for @transmitters_apply_nothing_to_fill.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder needs this transmitter\'s setup'**
+  String get transmitters_apply_nothing_to_fill;
+
+  /// No description provided for @transmitters_apply_slot_read_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'The imported files could not be read, so cylinders cannot be matched by slot'**
+  String get transmitters_apply_slot_read_failed;
 
   /// No description provided for @transmitters_channel.
   ///
@@ -90438,6 +91179,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Operator'**
   String get query_dives_diveOperator;
+
+  /// Field label in the query builder: a dive marked at the site that waits for its dive computer readings
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get query_dives_draft;
 
   /// Field label in the query builder
   ///

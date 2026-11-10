@@ -6,6 +6,11 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_fie
 /// reviewed column list; the coverage guard in
 /// test/features/settings/presentation/conflicts/ keeps it complete.
 final Map<String, ConflictField> diveLogFields = {
+  'abundance': ConflictField(
+    (l) => l.marineLife_abundance_label,
+    FieldKind.enumValue,
+    enumLabel: sightingAbundanceLabeler,
+  ),
   'airTemp': ConflictField(
     (l) => DiveField.airTemp.localizedDisplayName(l),
     FieldKind.temperature,
@@ -341,6 +346,47 @@ final Map<String, ConflictField> diveLogFields = {
     (l) => l.settings_conflict_field_isPlanned,
     FieldKind.boolean,
   ),
+  'isDraft': ConflictField(
+    (l) => l.settings_conflict_field_isDraft,
+    FieldKind.boolean,
+  ),
+  // Apple Health readings on a dive (dive_health_records, issue #637).
+  'avgHeartRate': ConflictField(
+    (l) => l.settings_conflict_field_avgHeartRate,
+    FieldKind.number,
+  ),
+  'heartRateAtExit': ConflictField(
+    (l) => l.settings_conflict_field_heartRateAtExit,
+    FieldKind.number,
+  ),
+  'heartRateExitPlus15': ConflictField(
+    (l) => l.settings_conflict_field_heartRateExitPlus15,
+    FieldKind.number,
+  ),
+  'heartRateExitPlus5': ConflictField(
+    (l) => l.settings_conflict_field_heartRateExitPlus5,
+    FieldKind.number,
+  ),
+  'heartRateSamples': ConflictField(
+    (l) => l.settings_conflict_field_heartRateSamples,
+    FieldKind.opaque,
+  ),
+  'maxHeartRate': ConflictField(
+    (l) => l.settings_conflict_field_maxHeartRate,
+    FieldKind.number,
+  ),
+  'overnightHrvMs': ConflictField(
+    (l) => l.settings_conflict_field_overnightHrvMs,
+    FieldKind.number,
+  ),
+  'settled': ConflictField(
+    (l) => l.settings_conflict_field_settled,
+    FieldKind.boolean,
+  ),
+  'sleepBeforeMinutes': ConflictField(
+    (l) => l.settings_conflict_field_sleepBeforeMinutes,
+    FieldKind.durationMinutes,
+  ),
   'isPrimary': ConflictField(
     (l) => l.settings_conflict_field_isPrimary,
     FieldKind.boolean,
@@ -578,6 +624,10 @@ final Map<String, ConflictField> diveLogFields = {
   ),
   'startTimestamp': ConflictField(
     (l) => l.settings_conflict_field_startTimestamp,
+    FieldKind.durationSeconds,
+  ),
+  'surfaceBreathingDuration': ConflictField(
+    (l) => l.settings_conflict_field_surfaceBreathingDuration,
     FieldKind.durationSeconds,
   ),
   'surfaceConditions': ConflictField(

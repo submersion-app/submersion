@@ -72,6 +72,14 @@ enum UnitPreset {
 
 /// Keys for SharedPreferences
 class SettingsKeys {
+  // Apple Health (issue #637), device-local: the diver each switch is bound
+  // to, and the last automatic import.
+  static const String healthAutoImportDiver = 'health_auto_import_diver';
+  static const String healthMetricsDiver = 'health_metrics_diver';
+  static const String healthImportWatermark = 'health_import_watermark_ms';
+  static const String healthReviewAnnounced = 'health_review_announced';
+  // Device-local: remind about drafts left waiting for a download.
+  static const String draftDownloadReminder = 'draft_download_reminder';
   static const String depthUnit = 'depth_unit';
   static const String temperatureUnit = 'temperature_unit';
   static const String pressureUnit = 'pressure_unit';
@@ -3897,19 +3905,23 @@ final plannerTurnPressureFractionProvider = Provider<double?>((ref) {
   );
 });
 
-/// The diver's default air-break policy; null = no breaks (issue #3552).
-/// Built from the two Settings columns rather than stored as one, same
-/// shape as [AirBreakPolicy] itself: either both are set or neither is.
-final plannerAirBreakPolicyProvider = Provider<AirBreakPolicy?>((ref) {
-  final o2Seconds = ref.watch(
-    settingsProvider.select((s) => s.plannerAirBreakO2Seconds),
-  );
-  final breakSeconds = ref.watch(
-    settingsProvider.select((s) => s.plannerAirBreakBreakSeconds),
-  );
+/// The default air-break policy [settings] give; null = no breaks (issue
+/// #3552). Built from the two Settings columns rather than stored as one,
+/// same shape as [AirBreakPolicy] itself: either both are set or neither
+/// is. Shared by [plannerAirBreakPolicyProvider] and the planner's engine
+/// config, so both read the columns the same way.
+AirBreakPolicy? plannerAirBreakPolicyOf(AppSettings settings) {
+  final o2Seconds = settings.plannerAirBreakO2Seconds;
+  final breakSeconds = settings.plannerAirBreakBreakSeconds;
   if (o2Seconds == null || breakSeconds == null) return null;
   return AirBreakPolicy(o2Seconds: o2Seconds, breakSeconds: breakSeconds);
-});
+}
+
+/// The diver's default air-break policy; see [plannerAirBreakPolicyOf].
+/// Selected by value, so it notifies only when the policy changes.
+final plannerAirBreakPolicyProvider = Provider<AirBreakPolicy?>(
+  (ref) => ref.watch(settingsProvider.select(plannerAirBreakPolicyOf)),
+);
 
 /// The diver's tank reserve-pressure default (issue #3552, follow-up to
 /// v304-307).

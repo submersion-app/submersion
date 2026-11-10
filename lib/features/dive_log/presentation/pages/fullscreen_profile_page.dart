@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_annotat
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
@@ -32,6 +33,7 @@ import 'package:submersion/features/dive_log/presentation/utils/profile_extent_s
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cell_divergence_highlight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart'
     show TooltipCard, computeTooltipCardSize;
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
@@ -41,6 +43,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/safety_finding
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -363,7 +366,14 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // and photo pins scaled to it drift off the visible span (#1167).
     // activeSourceProfileProvider is the one rule for this, shared with the
     // detail page and the dive-list panel (#543).
-    final chartProfile = resolvedActive?.points ?? dive.profile;
+    //
+    // Heart rate from Apple Health fills a profile that has none (issue
+    // #637), as on the detail page.
+    final chartProfile = withHealthHeartRate(
+      ref,
+      dive,
+      resolvedActive?.points ?? dive.profile,
+    );
     final chartActions = annotationActions.onProfile(chartProfile);
 
     // Keep the range and playback extents on this page's own drawn series
@@ -388,6 +398,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     // rows (e.g. right after a split); skip any stale entries instead of
     // crashing on the lookup.
     final sourceById = {for (final s in dataSources) s.id: s};
+    // The linked plan, drawn here as on the dive details card (#4215).
+    final planned = watchPlannedProfileForChart(context, ref, widget.diveId);
     final overlays = <ChartSourceOverlay>[
       for (final id in overlayIds)
         if (id != activeSource?.id &&
@@ -412,6 +424,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                 )
                 .valueOrNull,
           ),
+      ?planned.overlay,
     ];
 
     return Scaffold(
@@ -443,6 +456,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                         child: DiveProfileChart(
                           profile: chartProfile,
                           overlays: overlays.isEmpty ? null : overlays,
+                          hasPlannedProfile: planned.available,
                           activeComputerId: activeProfile?.computerId,
                           diveDuration: dive.effectiveRuntime,
                           maxDepth: dive.maxDepth,
@@ -489,16 +503,18 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                                 Flexible(
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 4),
-                                    // A planned entry has no number yet.
+                                    // A planned or draft entry has no
+                                    // number yet.
                                     child: Text(
-                                      dive.isPlanned
-                                          ? context
-                                                .l10n
-                                                .diveLog_planned_bannerTitle
-                                          : context.l10n
-                                                .diveLog_fullscreenProfile_title(
-                                                  dive.diveNumber ?? 0,
-                                                ),
+                                      unfilledDiveTitle(
+                                            context,
+                                            isPlanned: dive.isPlanned,
+                                            isDraft: dive.isDraft,
+                                          ) ??
+                                          context.l10n
+                                              .diveLog_fullscreenProfile_title(
+                                                dive.diveNumber ?? 0,
+                                              ),
                                       style: Theme.of(
                                         context,
                                       ).textTheme.titleSmall,

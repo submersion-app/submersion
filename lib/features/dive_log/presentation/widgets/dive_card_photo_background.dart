@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/card_photo/card_crop_alignme
 import 'package:submersion/features/dive_log/domain/card_photo/card_photo.dart';
 import 'package:submersion/features/dive_log/domain/card_photo/card_photo_tuning.dart';
 import 'package:submersion/features/dive_log/presentation/providers/card_photo_providers.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -47,6 +48,12 @@ class DiveCardPhotoBackground extends ConsumerStatefulWidget {
   final CardPhoto photo;
   final Widget child;
 
+  /// The key the crop analysis for [item] is cached under: its id and where
+  /// its pixels come from.
+  @visibleForTesting
+  static String analysisKeyFor(MediaItem item) =>
+      '${item.id}\u0000${_DiveCardPhotoBackgroundState._sourceOf(item)}';
+
   @override
   ConsumerState<DiveCardPhotoBackground> createState() =>
       _DiveCardPhotoBackgroundState();
@@ -66,6 +73,32 @@ class _DiveCardPhotoBackgroundState
   /// again when the tags on it change.
   ImageProvider? _provider;
 
+  /// Where the drawn photo's pixels come from ([_sourceOf]), or null before
+  /// its media row has loaded.
+  String? _source;
+
+  /// Where [item]'s pixels come from. A repair or relink keeps the media id
+  /// but changes this, and the crop must then be worked out from the new
+  /// picture, not served from the scores of the old one.
+  ///
+  /// Joined with NUL, as the media tile memo and the local-file resolver do:
+  /// a path or bookmark may contain any other separator, which would let
+  /// two different sources read the same.
+  static String _sourceOf(MediaItem item) => [
+    item.sourceType.name,
+    item.filePath ?? '',
+    item.localPath ?? '',
+    item.platformAssetId ?? '',
+    item.bookmarkRef ?? '',
+    item.url ?? '',
+    item.remoteAssetId ?? '',
+    item.cloudAssetId ?? '',
+    item.contentHash ?? '',
+  ].join('\u0000');
+
+  /// The analyser's key for the photo on screen: its id and its source.
+  String get _analysisKey => '${widget.photo.mediaId}\u0000${_source ?? ''}';
+
   @override
   void didUpdateWidget(covariant DiveCardPhotoBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -74,6 +107,7 @@ class _DiveCardPhotoBackgroundState
       _imageSize = null;
       _rows = null;
       _provider = null;
+      _source = null;
       _ready = false;
       return;
     }
@@ -86,17 +120,17 @@ class _DiveCardPhotoBackgroundState
         _rows == null &&
         provider != null) {
       final analyzer = ref.read(cardFocusAnalyzerProvider);
-      if (analyzer.hasAnswer(photo.mediaId)) {
-        _rows = analyzer.peek(photo.mediaId);
+      if (analyzer.hasAnswer(_analysisKey)) {
+        _rows = analyzer.peek(_analysisKey);
       } else {
-        _analyse(photo.mediaId, provider);
+        _analyse(provider);
       }
     }
   }
 
   void _onImageReady(ImageProvider provider, Size size) {
     if (!mounted) return;
-    final mediaId = widget.photo.mediaId;
+    final key = _analysisKey;
     _provider = provider;
     if (widget.photo.focusBoxes.isNotEmpty ||
         !CardPhotoTuning.usePixelAnalysis) {
@@ -107,25 +141,27 @@ class _DiveCardPhotoBackgroundState
       return;
     }
     final analyzer = ref.read(cardFocusAnalyzerProvider);
-    if (analyzer.hasAnswer(mediaId)) {
+    if (analyzer.hasAnswer(key)) {
       setState(() {
         _imageSize = size;
-        _rows = analyzer.peek(mediaId);
+        _rows = analyzer.peek(key);
         _ready = true;
       });
       return;
     }
     _imageSize = size;
-    _analyse(mediaId, provider);
+    _analyse(provider);
   }
 
-  /// Analyses [provider]'s pixels for [mediaId]'s crop, and shows the photo
-  /// once they are known.
-  void _analyse(String mediaId, ImageProvider provider) {
-    ref.read(cardFocusAnalyzerProvider).rowScoresFor(mediaId, provider).then((
+  /// Analyses [provider]'s pixels for the photo on screen, and shows it once
+  /// they are known, unless the card has moved on to another photo or
+  /// source in the meantime.
+  void _analyse(ImageProvider provider) {
+    final key = _analysisKey;
+    ref.read(cardFocusAnalyzerProvider).rowScoresFor(key, provider).then((
       rows,
     ) {
-      if (!mounted || widget.photo.mediaId != mediaId) return;
+      if (!mounted || _analysisKey != key) return;
       setState(() {
         _rows = rows;
         _ready = true;
@@ -174,6 +210,20 @@ class _DiveCardPhotoBackgroundState
     // The row went away (deleted, or not on this device yet): no photo.
     if (media.hasValue && media.value == null) _markFailedAfterFrame();
     final item = media.value;
+    // The same photo drawn from other pixels (repaired or relinked): the
+    // old picture's size and crop no longer apply, so it is hidden until
+    // the new one is ready, as on first draw. The view below is keyed by
+    // the source, so it draws and reports the new picture afresh.
+    final source = item == null ? null : _sourceOf(item);
+    if (source != null && source != _source) {
+      if (_source != null) {
+        _imageSize = null;
+        _rows = null;
+        _provider = null;
+        _ready = false;
+      }
+      _source = source;
+    }
     final brightness = Theme.of(context).brightness;
     final overlay = ref.watch(cardPhotoOverlayProvider);
     final opacity = brightness == Brightness.dark
@@ -201,6 +251,7 @@ class _DiveCardPhotoBackgroundState
                     fit: StackFit.expand,
                     children: [
                       MediaItemView(
+                        key: ValueKey(_source),
                         item: item,
                         thumbnail: true,
                         targetSize: Size(decodeWidth, decodeWidth),

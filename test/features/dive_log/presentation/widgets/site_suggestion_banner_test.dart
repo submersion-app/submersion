@@ -10,6 +10,7 @@ void main() {
     required ProposalStatus status,
     required bool hasSite,
     PointSource source = PointSource.photo,
+    bool fromDraft = false,
     int candidateCount = 1,
     double? distance,
     VoidCallback? onAssign,
@@ -22,6 +23,7 @@ void main() {
     locale: locale ?? const Locale('en'),
     child: SiteSuggestionBanner(
       pointSource: source,
+      fromDraft: fromDraft,
       coordinates: '20.5000, -87.2500',
       status: status,
       hasSite: hasSite,
@@ -57,6 +59,22 @@ void main() {
     expect(assigned, isTrue);
     await tester.tap(find.text('Create Site'));
     expect(created, isTrue);
+  });
+
+  testWidgets('a draft\'s position is where the diver went in, not the '
+      'dive computer\'s (issue #637)', (tester) async {
+    await tester.pumpWidget(
+      banner(
+        status: ProposalStatus.clear,
+        hasSite: false,
+        source: PointSource.diveComputer,
+        fromDraft: true,
+        distance: 40,
+      ),
+    );
+
+    expect(find.text('Location where you went in'), findsOneWidget);
+    expect(find.text('Location from dive computer'), findsNothing);
   });
 
   testWidgets('siteless review: Choose nearby primary, Create secondary', (

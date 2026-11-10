@@ -31,8 +31,10 @@ class PlannedDiveFillOutcome {
   });
 }
 
-/// Fills a planned dive from a dive computer download (issue #2002): the
-/// computer supplies the measured facts, the plan keeps the human ones.
+/// Fills a planned dive (issue #2002) or a draft (issue #637) from a dive
+/// computer download: the computer supplies the measured facts, the dive
+/// keeps the human ones, and a draft keeps its tap positions (updateDive
+/// leaves the position pair alone).
 /// The classification lives in `planned_dive_fill_fields.dart`.
 class PlannedDiveFillService {
   final DiveRepository _dives;
@@ -61,7 +63,7 @@ class PlannedDiveFillService {
            consolidation ?? DiveConsolidationService(dives ?? DiveRepository());
 
   Future<PlannedDiveFillOutcome> fill({
-    required String plannedDiveId,
+    required String targetDiveId,
     required DownloadedDive dive,
     required String computerId,
     String? descriptorVendor,
@@ -71,19 +73,20 @@ class PlannedDiveFillService {
   }) async {
     final db = DatabaseService.instance.database;
     return db.transaction(() async {
-      final planned = await _dives.getDiveById(plannedDiveId);
-      if (planned == null || !planned.isPlanned) {
-        throw StateError('Dive $plannedDiveId is not a planned dive');
+      final planned = await _dives.getDiveById(targetDiveId);
+      // A plan, or a draft marked at the site (issue #637).
+      if (planned == null || !(planned.isPlanned || planned.isDraft)) {
+        throw StateError('Dive $targetDiveId is neither a plan nor a draft');
       }
       final snapshot = await DiveMergeSnapshot.capture(db, [
-        plannedDiveId,
-      ], plannedDiveId);
+        targetDiveId,
+      ], targetDiveId);
 
       // 1. Drop the sketched or planner-generated curve and gas switches; the
       //    download is the record of what happened. A planned switch names no
       //    computer, so left here the analysis would apply it to the download.
-      await _series.deleteForDive(plannedDiveId);
-      await _dives.deleteGasSwitchesForDive(plannedDiveId);
+      await _series.deleteForDive(targetDiveId);
+      await _dives.deleteGasSwitchesForDive(targetDiveId);
 
       // 2. Measured facts onto the row, tanks reconciled by serial then mix.
       final mergedTanks = _mergeTanks(planned.tanks, dive.tanks);
@@ -114,7 +117,7 @@ class PlannedDiveFillService {
       //    download with it in between.
       await _import.attachToPlannedDive(
         dive,
-        plannedDiveId,
+        targetDiveId,
         computerId,
         settled: (
           gfLow: measured.gradientFactorLow,
@@ -129,7 +132,7 @@ class PlannedDiveFillService {
         libdivecomputerVersion: libdivecomputerVersion,
       );
       await _computers.attributeDiveToComputer(
-        diveId: plannedDiveId,
+        diveId: targetDiveId,
         computerId: computerId,
       );
 
@@ -137,16 +140,16 @@ class PlannedDiveFillService {
       //    stays as planned, the computer's start having gone to entryTime,
       //    unless the dive happened on another day: a dive pushed back a day
       //    belongs on the day it was dived (issue #4003).
-      await _dives.convertPlanToActualDive(
-        plannedDiveId,
+      await _dives.promoteToLoggedDive(
+        targetDiveId,
         actualDateTime: _sameDay(planned.dateTime, dive.startTime)
             ? null
             : dive.startTime,
       );
-      final promoted = await _dives.getDiveById(plannedDiveId);
+      final promoted = await _dives.getDiveById(targetDiveId);
 
       return PlannedDiveFillOutcome(
-        diveId: plannedDiveId,
+        diveId: targetDiveId,
         snapshot: snapshot,
         assignedDiveNumber: promoted?.diveNumber,
         nameDerivedRoleTanks: mergedTanks

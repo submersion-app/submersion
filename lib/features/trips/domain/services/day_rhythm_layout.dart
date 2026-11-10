@@ -39,10 +39,14 @@ class RhythmBlock extends Equatable {
 ///
 /// Night is decided by [TimeOfDayClassifier] against sunrise and sunset at
 /// the dive site, with the same exit time and fallback clock times as the
-/// Time patterns chart.
-List<RhythmBlock> computeRhythmBlocks(List<Dive> dives) {
+/// Time patterns chart. Pass a [classifier] to share its site clocks with
+/// other work on the same dives.
+List<RhythmBlock> computeRhythmBlocks(
+  List<Dive> dives, {
+  TimeOfDayClassifier? classifier,
+}) {
   const daySeconds = 24 * 3600;
-  final classifier = TimeOfDayClassifier();
+  final timeOfDay = classifier ?? TimeOfDayClassifier();
 
   return dives.map((dive) {
     final entry = dive.entryTime ?? dive.dateTime;
@@ -68,7 +72,7 @@ List<RhythmBlock> computeRhythmBlocks(List<Dive> dives) {
     }
 
     final location = dive.site?.location;
-    final bucket = classifier
+    final bucket = timeOfDay
         .classify(
           entry: entry,
           exit: exit,

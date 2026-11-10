@@ -4,9 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/gps_log/data/services/dive_mark_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/dive_mark_buttons.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/surface_on_stop_dialog.dart';
 import 'package:submersion/features/gps_log/presentation/widgets/track_row_labels.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -18,6 +24,8 @@ bool get canRecordGpsTracks =>
 
 /// Starts and stops the surface GPS logger (discussion #289), with the live
 /// point count and last-fix age while a recording runs.
+final _log = LoggerService.forClass(DiveMarkService);
+
 class GpsRecordCard extends ConsumerWidget {
   const GpsRecordCard({super.key});
 
@@ -25,6 +33,59 @@ class GpsRecordCard extends ConsumerWidget {
     final age = DateTime.now().toUtc().difference(lastFixAt);
     if (age.inMinutes < 1) return '<1min';
     return formatCompactDuration(age);
+  }
+
+  /// "Entered water" with nothing recording (issue #637): the positions
+  /// come from the track, so the recording starts first. The draft is made
+  /// either way, since its time matters for no-fly even without a position.
+  Future<void> _enterWater(
+    BuildContext context,
+    WidgetRef ref,
+    String diverId,
+  ) async {
+    final marks = ref.read(diveMarkServiceProvider);
+    await _start(context, ref);
+    try {
+      await marks.enteredWater(diverId: diverId);
+    } catch (e, stackTrace) {
+      // Nothing awaits a button's callback, so a failed write is logged
+      // here rather than left unhandled.
+      _log.error('Failed to mark a dive', error: e, stackTrace: stackTrace);
+    }
+    ref.invalidate(markingDraftProvider);
+  }
+
+  /// Stops the recording, first asking about a draft still open: the app
+  /// never invents an exit time on its own (issue #637).
+  Future<void> _stop(BuildContext context, WidgetRef ref) async {
+    final recorder = ref.read(gpsTrackRecorderProvider);
+    final marks = ref.read(diveMarkServiceProvider);
+    // Read from the repository, not a provider's future with no listener:
+    // the dive open on this device, the one Surfaced would close.
+    final open = await ref.read(diveDraftRepositoryProvider).openDraftFor(null);
+    if (open != null) {
+      if (!context.mounted) return;
+      final surface = await showSurfaceOnStopDialog(
+        context,
+        entryTime: open.entryTime ?? open.dateTime,
+      );
+      if (surface == null) return;
+      if (surface) {
+        try {
+          await marks.surfaced();
+        } catch (e, stackTrace) {
+          // The diver asked to stop: a failed Surfaced is logged and the
+          // recording stops anyway, leaving the dive open for the prompt
+          // or the detail page.
+          _log.error(
+            'Failed to mark a dive surfaced',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
+      }
+    }
+    await recorder.stop();
   }
 
   Future<void> _start(BuildContext context, WidgetRef ref) async {
@@ -64,6 +125,7 @@ class GpsRecordCard extends ConsumerWidget {
     final state = ref.watch(gpsRecorderStateProvider).value ?? recorder.state;
     final recording = state.status == GpsRecorderStatus.recording;
     final units = ref.watch(unitFormatterProvider);
+    final diverId = ref.watch(currentDiverIdProvider);
 
     return Card(
       child: Padding(
@@ -89,17 +151,28 @@ class GpsRecordCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 12),
+              const DiveMarkButtons(),
+              const SizedBox(height: 8),
               FilledButton.tonalIcon(
                 icon: const Icon(Icons.stop),
                 label: Text(l10n.gpsLogger_stopButton),
-                onPressed: recorder.stop,
+                onPressed: () => _stop(context, ref),
               ),
-            ] else
+            ] else ...[
               FilledButton.icon(
                 icon: const Icon(Icons.gps_fixed),
                 label: Text(l10n.gpsLogger_startButton),
                 onPressed: () => _start(context, ref),
               ),
+              if (diverId != null) ...[
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.scuba_diving),
+                  label: Text(l10n.gpsLogger_enteredWater),
+                  onPressed: () => _enterWater(context, ref, diverId),
+                ),
+              ],
+            ],
           ],
         ),
       ),

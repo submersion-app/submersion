@@ -54,12 +54,13 @@ extension SiteFilterQuery on SiteFilterState {
       );
     }
     if (hasDives != null) {
-      // The list's dive count: dives neither planned nor excluded from
-      // stats (DiveStatsScope), from every diver.
+      // The list's dive count: dives neither planned, draft nor excluded
+      // from stats (DiveStatsScope), from every diver.
       final counted = ScopedNode(
         FieldPath(['dives']),
         AndNode([
           c('planned', QueryOp.eq, const BoolValue(false)),
+          c('draft', QueryOp.eq, const BoolValue(false)),
           c('excludedFromStats', QueryOp.eq, const BoolValue(false)),
         ]),
       );

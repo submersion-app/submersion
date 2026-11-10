@@ -101,7 +101,9 @@ Map<int, DiveMatchResult> _allMatched({String? plannedPrefix}) => {
       diveId: 'existing-$i',
       score: 0.9,
       timeDifferenceMs: 0,
-      plannedDiveId: plannedPrefix == null ? null : '$plannedPrefix$i',
+      fillTarget: plannedPrefix == null
+          ? null
+          : FillTarget(diveId: '$plannedPrefix$i', kind: FillTargetKind.plan),
     ),
 };
 

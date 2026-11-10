@@ -1923,6 +1923,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Horários de mergulho deste dia';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Horários de mergulho deste dia. Nascer do sol $sunrise, pôr do sol $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Horários de mergulho deste dia. Nascer do sol $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Horários de mergulho deste dia. Pôr do sol $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Mapa do dia $number';
   }
@@ -5427,6 +5445,57 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'Conjunto';
 
   @override
+  String get diveLog_health_after15 => 'Após 15 min';
+
+  @override
+  String get diveLog_health_after5 => 'Após 5 min';
+
+  @override
+  String get diveLog_health_atSurfacing => 'Ao emergir';
+
+  @override
+  String get diveLog_health_average => 'Média';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'Máximo';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound =>
+      'O Apple Health não tem dados para este mergulho';
+
+  @override
+  String get diveLog_health_overnightHrv =>
+      'Variabilidade da frequência cardíaca na noite seguinte';
+
+  @override
+  String get diveLog_health_readFailed => 'Não foi possível ler o Apple Health';
+
+  @override
+  String get diveLog_health_recovery => 'Recuperação';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'Frequência cardíaca ao emergir e 5 e 15 minutos depois, do Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return 'Dormiu $hours h $minutes min na noite anterior';
+  }
+
+  @override
+  String get diveLog_health_title => 'Frequência cardíaca e recuperação';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Iniciar lista de verificação pré-mergulho';
 
@@ -6331,6 +6400,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mapa de locais recentes';
 
   @override
+  String get settings_homeCards_card_waitingForDownload =>
+      'Aguardando download';
+
+  @override
   String get dashboard_allHidden_message =>
       'Todos os cartões do Início estão ocultos.';
 
@@ -6549,6 +6622,20 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get dashboard_semantics_greetingBanner =>
       'Banner de saudação do painel';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Baixar agora';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos aguardando seu computador de mergulho',
+      one: '$count mergulho aguardando seu computador de mergulho',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Adicionar ao Planejador';
@@ -8082,9 +8169,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_diveMode_title => 'Modo de Mergulho';
 
   @override
-  String get diveLog_editSighting_count => 'Quantidade';
-
-  @override
   String get diveLog_editSighting_notes => 'Anotações';
 
   @override
@@ -8218,6 +8302,17 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count trocas de gás removidas com o seu cilindro',
       one: '$count troca de gás removida com o seu cilindro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Preencher $count trocas a partir das pressões dos cilindros',
+      one: 'Preencher $count troca a partir das pressões dos cilindros',
     );
     return '$_temp0';
   }
@@ -9219,6 +9314,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Marcações';
 
   @override
+  String get diveLog_legend_label_plan => 'Plano';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Eventos calculados';
 
   @override
@@ -9478,6 +9576,38 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dos $total mergulhos selecionados estão sem condições.',
+      one: '$count dos $total mergulhos selecionados está sem condições.',
+    );
+    return '$_temp0 Apenas os campos vazios são preenchidos, por isso nada do que já introduziu será alterado.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count mergulhos não têm coordenadas do local nem posição GPS e serão ignorados.',
+      one:
+          '$count mergulho não tem coordenadas do local nem posição GPS e será ignorado.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'Nenhum dos mergulhos selecionados está sem condições.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Os mergulhos selecionados sem condições não têm coordenadas do local nem posição GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -9927,6 +10057,9 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get siteSuggestion_titleDiveComputer =>
       'Localização do computador de mergulho';
+
+  @override
+  String get siteSuggestion_titleDraft => 'Local onde você entrou na água';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -10891,6 +11024,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'Pressão Final';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'Respirado à superfície';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minutos nesta garrafa depois de o computador parar de registar, como oxigénio no barco';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'min';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -16850,6 +16993,44 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count manutenções pendentes',
+      one: '$count manutenção pendente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'e mais $count',
+      one: 'e mais $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected de $total selecionados';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Expandir tudo';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Recolher tudo';
+
+  @override
   String get equipment_location_activeFilter => 'Localização';
 
   @override
@@ -19043,10 +19224,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Principais Pontos';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Total de Avistamentos';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Adicionar Espécie';
 
   @override
@@ -19356,7 +19533,32 @@ class AppLocalizationsPt extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Ordenar';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Mais avistamentos';
+  String get marineLife_speciesPage_sort_mostDives => 'Mais mergulhos';
+
+  @override
+  String get marineLife_abundance_label => 'Quantos';
+
+  @override
+  String get marineLife_abundance_seen => 'Visto';
+
+  @override
+  String get marineLife_abundance_single => 'Um só';
+
+  @override
+  String get marineLife_abundance_few => 'Poucos';
+
+  @override
+  String get marineLife_abundance_many => 'Muitos';
+
+  @override
+  String get marineLife_abundance_abundant => 'Abundantes';
+
+  @override
+  String get marineLife_abundance_exact => 'Exato';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Poucos de 2 a 10, Muitos de 11 a 100, Abundantes mais de 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Vistas recentemente';
@@ -20394,6 +20596,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Arquivo de vídeo não encontrado';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Para reproduzir este vídeo é preciso uma janela normal do navegador. Janelas privadas não conseguem transmitir do Google Drive ou do WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Vídeo não vinculado a biblioteca';
 
@@ -20796,6 +21002,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_library_empty => 'Nenhuma mídia ainda';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Nenhuma mídia corresponde a estes filtros';
+
+  @override
   String get media_library_filter_all => 'Tudo';
 
   @override
@@ -20826,6 +21036,43 @@ class AppLocalizationsPt extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Arquivos ausentes ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Ninguém marcado';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pessoas',
+      one: '$count pessoa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Pesquisar pessoas';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Nenhuma pessoa corresponde';
+
+  @override
+  String get media_library_filter_peopleClear => 'Limpar pessoas';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Não posicionado no mergulho';
 
   @override
   String get media_library_filter_clear => 'Limpar filtros';
@@ -22457,6 +22704,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveDetailSection_equipment_name => 'Equipamento';
+
+  @override
+  String get diveDetailSection_health_description =>
+      'Frequência cardíaca, recuperação e sono do Apple Health';
 
   @override
   String get diveDetailSection_equipment_description =>
@@ -24394,6 +24645,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Etiquetar mergulhos importados';
 
   @override
+  String get settings_conflict_field_avgHeartRate =>
+      'Frequência cardíaca média';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Adicionar downloads ao dono do computador';
 
@@ -24448,6 +24703,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Equipamentos agrupados por local';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Grupos de equipamentos recolhidos';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -25297,6 +25556,22 @@ class AppLocalizationsPt extends AppLocalizations {
       'Correção de rumo em graus';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Frequência cardíaca ao emergir';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Frequência cardíaca 15 min após emergir';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Frequência cardíaca 5 min após emergir';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Frequência cardíaca do Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'Fator de escala da trilha';
 
   @override
@@ -25391,6 +25666,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_isDone => 'Feito';
+
+  @override
+  String get settings_conflict_field_isDraft => 'Rascunho de mergulho';
 
   @override
   String get settings_conflict_field_isOrphaned => 'Arquivo ausente';
@@ -25544,6 +25822,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Velocidade de descida máxima';
 
   @override
+  String get settings_conflict_field_maxHeartRate =>
+      'Frequência cardíaca máxima';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Velocidade máxima';
 
   @override
@@ -25612,6 +25894,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'Manutenções atrasadas';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Variabilidade noturna da frequência cardíaca';
 
   @override
   String get settings_conflict_field_params => 'Detalhes';
@@ -26152,6 +26438,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_field_size => 'Tamanho';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sono na noite anterior';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Ordem';
 
   @override
@@ -26228,6 +26518,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Definições apenas para este mergulho';
 
   @override
+  String get settings_conflict_field_settled =>
+      'Dados do Apple Health completos';
+
+  @override
   String get settings_conflict_field_startTime => 'Hora de início';
 
   @override
@@ -26271,6 +26565,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Substitui a regra integrada';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'Tempo respirado à superfície';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
@@ -27044,6 +27342,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String notifications_document_expiresToday_title(String title) {
     return '$title expira hoje';
   }
+
+  @override
+  String get notifications_draftReminder_body =>
+      'Baixe seu computador de mergulho para preencher o rascunho.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'Um mergulho está aguardando seu computador de mergulho';
 
   @override
   String get notifications_document_expiresToday_body =>
@@ -28829,6 +29135,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_notifications_disabled_title =>
       'Notificações Desativadas';
+
+  @override
+  String get settings_notifications_draftReminder =>
+      'Lembrar-me de rascunhos de mergulho';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'Três dias após a saída de um rascunho, se ele ainda estiver aguardando um download';
 
   @override
   String get settings_notifications_enableServiceReminders =>
@@ -35789,6 +36103,21 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este formato ainda não é suportado. Exporte como UDDF ou CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Corresponde a $count rascunhos. Escolha o que ele preenche.',
+      one:
+          'Outro mergulho também corresponde a este rascunho. Escolha o rascunho que ele preenche.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Escolher rascunho';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'A deteção de duplicados não pôde ser executada, por isso nada nesta lista está assinalado como já existente no seu registo. Verifique-a antes de importar.';
 
@@ -35937,6 +36266,28 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_compare_fillPlannedSubtitle =>
       'Anexar este download ao mergulho que você planejou';
+
+  @override
+  String get universalImport_label_fillDraft => 'Preencher rascunho';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'Vincular este download ao mergulho que você marcou no local';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'Preenche o rascunho: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'Rascunho de $start a $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'Rascunho desde $start';
+  }
 
   @override
   String get universalImport_label_filledPlanned =>
@@ -37080,6 +37431,37 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gpsLogger_stopButton => 'Parar registro';
 
   @override
+  String get gpsLogger_enteredWater => 'Entrei na água';
+
+  @override
+  String get gpsLogger_surfaced => 'Emergi';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => 'Ainda na água?';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'Você entrou na água às $time. Marque agora que emergiu, ou deixe o mergulho aberto e toque em Emergi depois.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow => 'Emergir agora';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'Deixar aberto';
+
+  @override
+  String get gpsLogger_markNotification_title => 'Gravando sua trilha GPS';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'Toque em Entrei na água quando entrar.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'Na água. Toque em Emergi quando sair.';
+
+  @override
   String gpsLogger_stripStatus(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37801,6 +38183,57 @@ class AppLocalizationsPt extends AppLocalizations {
       'Importar mergulhos do Apple Watch via HealthKit';
 
   @override
+  String get healthAutoImport_newDive_title =>
+      'Novo mergulho do seu Apple Watch';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return '$count novos mergulhos do seu Apple Watch';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => 'Adicionar detalhes?';
+
+  @override
+  String get healthAutoImport_addDetails => 'Adicionar detalhes';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'Um mergulho do Apple Watch precisa de revisão';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'Ele pode pertencer a mais de um mergulho. Escolha na importação do Apple Health.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'Este mergulho pode ser um que você planejou. Revise-o para preencher o plano.';
+
+  @override
+  String get healthAutoImport_review => 'Revisar';
+
+  @override
+  String get settings_appleHealth_autoImport_title =>
+      'Importar mergulhos do Apple Watch automaticamente';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'Novos mergulhos do seu relógio aparecem quando você abre o app.';
+
+  @override
+  String get settings_appleHealth_metrics_title =>
+      'Frequência cardíaca, recuperação e sono';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'Adiciona a frequência cardíaca durante e após cada mergulho, a VFC noturna e o sono anterior.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'Para: $name';
+  }
+
+  @override
   String get settings_dataSources_appleHealth_privacy =>
       'Seus dados de saúde são armazenados localmente neste dispositivo e nunca são compartilhados com terceiros. O Submersion apenas lê dados do Apple HealthKit e não grava nenhum dado no HealthKit.';
 
@@ -38404,6 +38837,9 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'Nenhum dos mergulhos selecionados tem dados brutos armazenados para reanalisar.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Obter condições';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Reanalisar';
@@ -41583,6 +42019,54 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_planned_chip => 'Planejado';
 
   @override
+  String get diveLog_draft_chip => 'Aguardando download';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'Na água';
+
+  @override
+  String get diveLog_draft_title => 'Rascunho de mergulho';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'Cerca de $minutes min pelos seus toques. Baixe seu computador de mergulho para preencher profundidade e tempo.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen =>
+      'Toque em Emergi quando sair da água.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'Baixar agora';
+
+  @override
+  String get diveLog_draft_markComplete => 'Marcar como concluído';
+
+  @override
+  String get diveLog_draft_surfaced => 'Emergi';
+
+  @override
+  String get diveLog_draft_markedComplete => 'Marcado como concluído';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'Não foi possível marcar o mergulho como concluído.';
+
+  @override
+  String get diveLog_draft_stale_title => 'Você emergiu?';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'Você entrou na água às $time e o mergulho ainda está aberto.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'Ainda na água';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'Definir hora de saída';
+
+  @override
   String get diveLog_planned_bannerTitle => 'Mergulho planejado';
 
   @override
@@ -41646,6 +42130,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_detail_loggedWithPlanned =>
       'aguardando o computador de mergulho deles';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate =>
+      'Adicionar frequência cardíaca do Apple Health';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -50744,6 +51232,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'Rascunho de mergulho em $siteName';
+  }
+
+  @override
   String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
     return 'Mergulho planejado em $siteName';
   }
@@ -53180,6 +53673,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_profilePanel_noProfileData =>
       'Sem dados de perfil para este mergulho';
+
+  @override
+  String get diveLog_estimatedProfile_caption =>
+      'Estimado a partir da profundidade máxima e do tempo, não é um perfil registrado';
 
   @override
   String get settings_export_progress_divesCsv =>
@@ -55949,7 +56446,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks cilindros em $dives mergulhos carregam este transmissor. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo ou lida do nome do transmissor será substituída.';
+    return '$tanks cilindros em $dives mergulhos que carregam este transmissor precisam da sua configuração. Campos vazios de tamanho, material, nome e equipamento serão preenchidos, e uma função ainda definida como Gás de fundo ou lida do nome do transmissor será substituída.';
   }
 
   @override
@@ -55958,8 +56455,43 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Nenhum cilindro carrega este transmissor';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Posição em $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Não associar por posição';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives mergulhos',
+      one: '$dives mergulho',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Lendo arquivos importados';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Cilindros importados de um arquivo não têm número de série. Podem ser preenchidos pela posição que este transmissor ocupava no computador de mergulho.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Mergulhos preenchidos por número de série: $serialDives, por posição: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Nenhum cilindro precisa da configuração deste transmissor';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Não foi possível ler os arquivos importados, portanto os cilindros não podem ser associados por slot';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -57321,6 +57853,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_dives_diveOperator => 'Operadora';
+
+  @override
+  String get query_dives_draft => 'Rascunho';
 
   @override
   String get query_dives_entryMethod => 'Método de entrada';

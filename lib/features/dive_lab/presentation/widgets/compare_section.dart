@@ -219,7 +219,13 @@ class _Comparison extends ConsumerWidget {
       if (on) {
         if (planned != null) columns.add(planned);
         if (comparison.overlay.points.isNotEmpty) {
-          overlays.add(comparison.overlay);
+          // Named as its chip is, not after the plan: the legend reads
+          // "Depth · <name>" beside the dive's own depth (#4215).
+          overlays.add(
+            comparison.overlay.copyWith(
+              name: l10n.diveLab_compare_line_planned,
+            ),
+          );
         }
         duration = math.max(duration, comparison.outcome.runtimeSeconds);
       }

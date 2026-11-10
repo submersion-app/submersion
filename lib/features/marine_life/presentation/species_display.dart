@@ -2,7 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/species_description_lookup.dart';
+import 'package:submersion/features/marine_life/presentation/species_ids.dart';
 import 'package:submersion/features/marine_life/presentation/species_name_lookup.dart';
+import 'package:submersion/features/marine_life/presentation/species_scientific_names.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Display-time localization for species, following the pattern
@@ -79,6 +81,44 @@ String localizedSpeciesName(
 ) => _isCatalogText(storedName, builtInSpeciesName(_english, id))
     ? (builtInSpeciesName(l10n, id) ?? storedName)
     : storedName;
+
+/// The catalog ids behind each English catalog name. A name can belong to
+/// more than one row (two seed rows share "Spotted Wobbegong").
+final Map<String, List<String>> _catalogIdsByEnglishName = () {
+  final byName = <String, List<String>>{};
+  for (final id in kBuiltInSpeciesIds) {
+    final name = builtInSpeciesName(_english, id);
+    if (name != null) (byName[name] ??= []).add(id);
+  }
+  return Map<String, List<String>>.unmodifiable(byName);
+}();
+
+/// Localized name for a species known only by its stored names.
+///
+/// A shared site library document lists expected species by the names the
+/// author's device stored, with no catalog id, and a built-in is stored under
+/// its English catalog name. A custom species can carry that same English
+/// name, so the entry counts as the catalog row only when its scientific name
+/// matches that row's too (compared ignoring case and surrounding space, as
+/// the document bridge matches them). Only then is it translated (issue
+/// #4339). Anything else, including an entry with no scientific name, is the
+/// author's own text and is returned as given, as is a name whose matching
+/// rows would translate differently.
+String localizedCatalogSpeciesName(
+  AppLocalizations l10n,
+  String storedName, {
+  required String? scientificName,
+}) {
+  final wanted = scientificName?.trim().toLowerCase();
+  if (wanted == null || wanted.isEmpty) return storedName;
+  final ids = [
+    for (final id in _catalogIdsByEnglishName[storedName] ?? const <String>[])
+      if (kBuiltInSpeciesScientificNames[id]?.toLowerCase() == wanted) id,
+  ];
+  if (ids.isEmpty) return storedName;
+  final names = {for (final id in ids) builtInSpeciesName(l10n, id)};
+  return names.length == 1 ? (names.single ?? storedName) : storedName;
+}
 
 /// Repository search hits plus catalog rows whose *localized* name matches.
 ///

@@ -1921,6 +1921,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Tauchzeiten an diesem Tag';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Tauchzeiten an diesem Tag. Sonnenaufgang $sunrise, Sonnenuntergang $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Tauchzeiten an diesem Tag. Sonnenaufgang $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Tauchzeiten an diesem Tag. Sonnenuntergang $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Karte von Tag $number';
   }
@@ -5425,6 +5443,58 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
+  String get diveLog_health_after15 => 'Nach 15 Min.';
+
+  @override
+  String get diveLog_health_after5 => 'Nach 5 Min.';
+
+  @override
+  String get diveLog_health_atSurfacing => 'Beim Auftauchen';
+
+  @override
+  String get diveLog_health_average => 'Durchschnitt';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'Maximum';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound =>
+      'Apple Health hat keine Messwerte für diesen Tauchgang';
+
+  @override
+  String get diveLog_health_overnightHrv =>
+      'Herzfrequenzvariabilität in der Nacht danach';
+
+  @override
+  String get diveLog_health_readFailed =>
+      'Apple Health konnte nicht gelesen werden';
+
+  @override
+  String get diveLog_health_recovery => 'Erholung';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'Herzfrequenz beim Auftauchen sowie 5 und 15 Minuten später, aus Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return 'In der Nacht davor $hours Std. $minutes Min. geschlafen';
+  }
+
+  @override
+  String get diveLog_health_title => 'Herzfrequenz und Erholung';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Checkliste vor dem Tauchgang starten';
 
@@ -6336,6 +6406,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Karte der letzten Tauchplätze';
 
   @override
+  String get settings_homeCards_card_waitingForDownload =>
+      'Warten auf Download';
+
+  @override
   String get dashboard_allHidden_message =>
       'Alle Startseiten-Karten sind ausgeblendet.';
 
@@ -6551,6 +6625,20 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dashboard_semantics_greetingBanner => 'Dashboard-Begrüßung';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Jetzt herunterladen';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge warten auf deinen Tauchcomputer',
+      one: '1 Tauchgang wartet auf deinen Tauchcomputer',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Zum Planer hinzufügen';
@@ -8084,9 +8172,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_diveMode_title => 'Tauchmodus';
 
   @override
-  String get diveLog_editSighting_count => 'Anzahl';
-
-  @override
   String get diveLog_editSighting_notes => 'Notizen';
 
   @override
@@ -8221,6 +8306,17 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count Gaswechsel mit ihrer Flasche entfernt',
       one: '$count Gaswechsel mit seiner Flasche entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Wechsel aus den Flaschendrücken übernehmen',
+      one: '1 Wechsel aus den Flaschendrücken übernehmen',
     );
     return '$_temp0';
   }
@@ -9214,6 +9310,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Anmerkungen';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Berechnete Ereignisse';
 
   @override
@@ -9474,6 +9573,40 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Bei $count von $total ausgewählten Tauchgängen fehlen die Bedingungen.',
+      one:
+          'Bei $count von $total ausgewählten Tauchgängen fehlen die Bedingungen.',
+    );
+    return '$_temp0 Es werden nur leere Felder gefüllt; bereits eingetragene Werte bleiben unverändert.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Tauchgänge haben weder Tauchplatzkoordinaten noch eine GPS-Position und werden übersprungen.',
+      one:
+          '$count Tauchgang hat weder Tauchplatzkoordinaten noch eine GPS-Position und wird übersprungen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'Bei keinem der ausgewählten Tauchgänge fehlen Bedingungen.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Die ausgewählten Tauchgänge ohne Bedingungen haben weder Tauchplatzkoordinaten noch eine GPS-Position.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -9924,6 +10057,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get siteSuggestion_titleDiveComputer => 'Standort vom Tauchcomputer';
+
+  @override
+  String get siteSuggestion_titleDraft => 'Ort deines Einstiegs';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -10888,6 +11024,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'Enddruck';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'An der Oberfläche geatmet';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minuten an dieser Flasche, nachdem der Computer die Aufzeichnung beendet hat, etwa Sauerstoff auf dem Boot';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'Min.';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -16840,6 +16986,44 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Wartungen fällig',
+      one: '$count Wartung fällig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'und $count weitere',
+      one: 'und $count weiterer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected von $total ausgewählt';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Alle aufklappen';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Alle einklappen';
+
+  @override
   String get equipment_location_activeFilter => 'Standort';
 
   @override
@@ -19020,10 +19204,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesDetail_topSitesTitle => 'Häufigste Tauchplätze';
 
   @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Sichtungen gesamt';
-
-  @override
   String get marineLife_speciesEdit_addTitle => 'Art hinzufügen';
 
   @override
@@ -19334,7 +19514,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Sortieren';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Meiste Sichtungen';
+  String get marineLife_speciesPage_sort_mostDives => 'Meiste Tauchgänge';
+
+  @override
+  String get marineLife_abundance_label => 'Wie viele';
+
+  @override
+  String get marineLife_abundance_seen => 'Gesehen';
+
+  @override
+  String get marineLife_abundance_single => 'Einzeln';
+
+  @override
+  String get marineLife_abundance_few => 'Wenige';
+
+  @override
+  String get marineLife_abundance_many => 'Viele';
+
+  @override
+  String get marineLife_abundance_abundant => 'Massenhaft';
+
+  @override
+  String get marineLife_abundance_exact => 'Genau';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Wenige 2 bis 10, Viele 11 bis 100, Massenhaft über 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Zuletzt gesehen';
@@ -20374,6 +20579,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Videodatei nicht gefunden';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Für dieses Video ist ein normales Browserfenster nötig. Private Fenster können nicht von Google Drive oder WebDAV streamen.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video nicht mit Bibliothek verknüpft';
 
@@ -20773,6 +20982,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_empty => 'Noch keine Medien';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Keine Medien entsprechen diesen Filtern';
+
+  @override
   String get media_library_filter_all => 'Alle';
 
   @override
@@ -20803,6 +21016,43 @@ class AppLocalizationsDe extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Fehlende Dateien ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Niemand markiert';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Personen',
+      one: '$count Person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Personen suchen';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Keine passenden Personen';
+
+  @override
+  String get media_library_filter_peopleClear => 'Personenauswahl aufheben';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Nicht im Tauchgang platziert';
 
   @override
   String get media_library_filter_clear => 'Filter zurücksetzen';
@@ -22430,6 +22680,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveDetailSection_equipment_name => 'Ausrüstung';
+
+  @override
+  String get diveDetailSection_health_description =>
+      'Herzfrequenz, Erholung und Schlaf aus Apple Health';
 
   @override
   String get diveDetailSection_equipment_description =>
@@ -24367,6 +24621,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Importierte Tauchgänge markieren';
 
   @override
+  String get settings_conflict_field_avgHeartRate =>
+      'Durchschnittliche Herzfrequenz';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Downloads dem Besitzer des Computers zuordnen';
 
@@ -24421,6 +24679,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Ausrüstung nach Ort gruppiert';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Eingeklappte Ausrüstungsgruppen';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -25265,6 +25527,22 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kurskorrektur in Grad';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Herzfrequenz beim Auftauchen';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Herzfrequenz 15 Min. nach dem Auftauchen';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Herzfrequenz 5 Min. nach dem Auftauchen';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Herzfrequenz aus Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'Track-Skalierungsfaktor';
 
   @override
@@ -25362,6 +25640,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_isDone => 'Erledigt';
+
+  @override
+  String get settings_conflict_field_isDraft => 'Tauchgang-Entwurf';
 
   @override
   String get settings_conflict_field_isOrphaned => 'Datei fehlt';
@@ -25512,6 +25793,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Maximale Abstiegsgeschwindigkeit';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximale Herzfrequenz';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Höchstgeschwindigkeit';
 
   @override
@@ -25581,6 +25865,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'Überfällige Wartungen';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Nächtliche Herzfrequenzvariabilität';
 
   @override
   String get settings_conflict_field_params => 'Details';
@@ -26115,6 +26403,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_size => 'Größe';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Schlaf in der Nacht davor';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Sortierreihenfolge';
 
   @override
@@ -26189,6 +26481,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einstellungen nur für diesen Tauchgang';
 
   @override
+  String get settings_conflict_field_settled =>
+      'Apple-Health-Messwerte vollständig';
+
+  @override
   String get settings_conflict_field_startTime => 'Startzeit';
 
   @override
@@ -26233,6 +26529,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Ersetzt integrierte Regel';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'An der Oberfläche geatmete Zeit';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
@@ -27003,6 +27303,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String notifications_document_expiresToday_title(String title) {
     return '$title läuft heute ab';
   }
+
+  @override
+  String get notifications_draftReminder_body =>
+      'Lade deinen Tauchcomputer herunter, um den Entwurf auszufüllen.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'Ein Tauchgang wartet auf deinen Tauchcomputer';
 
   @override
   String get notifications_document_expiresToday_body =>
@@ -28787,6 +29095,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_notifications_disabled_title =>
       'Benachrichtigungen deaktiviert';
+
+  @override
+  String get settings_notifications_draftReminder =>
+      'An Tauchgang-Entwürfe erinnern';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'Drei Tage nach dem Auftauchen, wenn der Entwurf noch auf einen Download wartet';
 
   @override
   String get settings_notifications_enableServiceReminders =>
@@ -35731,6 +36047,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieses Format wird noch nicht unterstützt. Bitte exportieren Sie als UDDF oder CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Passt zu $count Entwürfen. Wähle den, den er ausfüllt.',
+      one:
+          'Auch ein anderer Tauchgang passt zu diesem Entwurf. Wähle den Entwurf, den er ausfüllt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Entwurf wählen';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'Die Duplikaterkennung konnte nicht ausgeführt werden. Daher ist in dieser Liste nichts als bereits im Logbuch vorhanden markiert. Prüfen Sie sie vor dem Import.';
 
@@ -35880,6 +36211,28 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_compare_fillPlannedSubtitle =>
       'Diesen Download dem geplanten Tauchgang zuordnen';
+
+  @override
+  String get universalImport_label_fillDraft => 'Entwurf ausfüllen';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'Diesen Download dem Tauchgang zuordnen, den du am Tauchplatz markiert hast';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'Füllt Entwurf: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'Entwurf von $start bis $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'Entwurf ab $start';
+  }
 
   @override
   String get universalImport_label_filledPlanned =>
@@ -37026,6 +37379,38 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gpsLogger_stopButton => 'Aufzeichnung beenden';
 
   @override
+  String get gpsLogger_enteredWater => 'Eingestiegen';
+
+  @override
+  String get gpsLogger_surfaced => 'Aufgetaucht';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => 'Noch im Wasser?';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'Du bist um $time ins Wasser gegangen. Markiere den Tauchgang jetzt als aufgetaucht, oder lass ihn offen und tippe später auf Aufgetaucht.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow => 'Jetzt auftauchen';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'Offen lassen';
+
+  @override
+  String get gpsLogger_markNotification_title =>
+      'Dein GPS-Track wird aufgezeichnet';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'Tippe auf Eingestiegen, wenn du ins Wasser gehst.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'Im Wasser. Tippe auf Aufgetaucht, wenn du draußen bist.';
+
+  @override
   String gpsLogger_stripStatus(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37746,6 +38131,57 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchgänge per HealthKit von der Apple Watch importieren';
 
   @override
+  String get healthAutoImport_newDive_title =>
+      'Neuer Tauchgang von deiner Apple Watch';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return '$count neue Tauchgänge von deiner Apple Watch';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => 'Details hinzufügen?';
+
+  @override
+  String get healthAutoImport_addDetails => 'Details hinzufügen';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'Ein Apple-Watch-Tauchgang muss geprüft werden';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'Er könnte zu mehr als einem Tauchgang gehören. Wähle im Apple-Health-Import.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'Dieser Tauchgang könnte einer sein, den du geplant hast. Prüfe ihn, um die Planung auszufüllen.';
+
+  @override
+  String get healthAutoImport_review => 'Prüfen';
+
+  @override
+  String get settings_appleHealth_autoImport_title =>
+      'Apple-Watch-Tauchgänge automatisch importieren';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'Neue Tauchgänge von deiner Uhr erscheinen, wenn du die App öffnest.';
+
+  @override
+  String get settings_appleHealth_metrics_title =>
+      'Herzfrequenz, Erholung und Schlaf';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'Fügt die Herzfrequenz während und nach jedem Tauchgang, die nächtliche HRV und den Schlaf davor hinzu.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'Für: $name';
+  }
+
+  @override
   String get settings_dataSources_appleHealth_privacy =>
       'Ihre Gesundheitsdaten werden lokal auf diesem Gerät gespeichert und niemals an Dritte weitergegeben. Submersion liest nur Daten aus Apple HealthKit und schreibt keine Daten in HealthKit zurück.';
 
@@ -38345,6 +38781,9 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'Keiner der ausgewählten Tauchgänge hat gespeicherte Rohdaten zum Neu-Auswerten.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Bedingungen abrufen';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Neu auswerten';
@@ -41525,6 +41964,54 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_planned_chip => 'Geplant';
 
   @override
+  String get diveLog_draft_chip => 'Wartet auf Download';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'Im Wasser';
+
+  @override
+  String get diveLog_draft_title => 'Tauchgang-Entwurf';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'Etwa $minutes Min. laut deinen Markierungen. Lade deinen Tauchcomputer herunter, um Tiefe und Zeit auszufüllen.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen =>
+      'Tippe auf Aufgetaucht, wenn du aus dem Wasser bist.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'Jetzt herunterladen';
+
+  @override
+  String get diveLog_draft_markComplete => 'Als abgeschlossen markieren';
+
+  @override
+  String get diveLog_draft_surfaced => 'Aufgetaucht';
+
+  @override
+  String get diveLog_draft_markedComplete => 'Als abgeschlossen markiert';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'Der Tauchgang konnte nicht als abgeschlossen markiert werden.';
+
+  @override
+  String get diveLog_draft_stale_title => 'Bist du aufgetaucht?';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'Du bist um $time ins Wasser gegangen, und der Tauchgang ist noch offen.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'Noch im Wasser';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'Auftauchzeit festlegen';
+
+  @override
   String get diveLog_planned_bannerTitle => 'Geplanter Tauchgang';
 
   @override
@@ -41588,6 +42075,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_detail_loggedWithPlanned =>
       'wartet auf ihren Tauchcomputer';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate =>
+      'Herzfrequenz aus Apple Health hinzufügen';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -50650,6 +51141,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'Tauchgang-Entwurf bei $siteName';
+  }
+
+  @override
   String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
     return 'Geplanter Tauchgang bei $siteName';
   }
@@ -53065,6 +53561,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_profilePanel_noProfileData =>
       'Keine Profildaten für diesen Tauchgang';
+
+  @override
+  String get diveLog_estimatedProfile_caption =>
+      'Geschätzt aus maximaler Tiefe und Zeit, kein aufgezeichnetes Profil';
 
   @override
   String get settings_export_progress_divesCsv =>
@@ -55842,7 +56342,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks Flaschen in $dives Tauchgängen tragen diesen Sender. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.';
+    return '$tanks Flaschen in $dives Tauchgängen mit diesem Sender brauchen seine Einrichtung. Leere Felder für Größe, Material, Name und Ausrüstung werden gefüllt, und eine noch auf Rückengas gesetzte oder aus dem Sendernamen gelesene Rolle wird ersetzt.';
   }
 
   @override
@@ -55851,7 +56351,44 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => 'Keine Flasche trägt diesen Sender';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Steckplatz auf $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Nicht nach Steckplatz zuordnen';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives Tauchgänge',
+      one: '$dives Tauchgang',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading =>
+      'Importierte Dateien werden gelesen';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Aus einer Datei importierte Flaschen haben keine Seriennummer. Sie lassen sich über den Steckplatz füllen, den dieser Sender am Tauchcomputer belegte.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Über Seriennummer gefüllte Tauchgänge: $serialDives, über Steckplatz: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Keine Flasche braucht die Einrichtung dieses Senders';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'Die importierten Dateien konnten nicht gelesen werden, daher können Flaschen nicht nach Steckplatz zugeordnet werden';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -57207,6 +57744,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get query_dives_diveOperator => 'Anbieter';
+
+  @override
+  String get query_dives_draft => 'Entwurf';
 
   @override
   String get query_dives_entryMethod => 'Einstiegsart';

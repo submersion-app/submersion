@@ -29,6 +29,10 @@ class ListArrangements {
   final String? equipmentArrangement;
   final bool? equipmentGroupByLocation;
 
+  /// The Equipment page's folded group keys as a JSON list (issue #4184),
+  /// see `equipment_fold_keys.dart`.
+  final String? equipmentCollapsedGroups;
+
   const ListArrangements({
     this.diveSort,
     this.divePlanSort,
@@ -43,6 +47,7 @@ class ListArrangements {
     this.certificationGroupBy,
     this.equipmentArrangement,
     this.equipmentGroupByLocation,
+    this.equipmentCollapsedGroups,
   });
 
   /// No list changed yet: every list opens on its starting order.
@@ -64,6 +69,7 @@ class ListArrangements {
     String? certificationGroupBy,
     String? equipmentArrangement,
     bool? equipmentGroupByLocation,
+    String? equipmentCollapsedGroups,
   }) {
     return ListArrangements(
       diveSort: diveSort ?? this.diveSort,
@@ -80,6 +86,8 @@ class ListArrangements {
       equipmentArrangement: equipmentArrangement ?? this.equipmentArrangement,
       equipmentGroupByLocation:
           equipmentGroupByLocation ?? this.equipmentGroupByLocation,
+      equipmentCollapsedGroups:
+          equipmentCollapsedGroups ?? this.equipmentCollapsedGroups,
     );
   }
 
@@ -97,6 +105,7 @@ class ListArrangements {
     certificationGroupBy,
     equipmentArrangement,
     equipmentGroupByLocation,
+    equipmentCollapsedGroups,
   ];
 
   @override

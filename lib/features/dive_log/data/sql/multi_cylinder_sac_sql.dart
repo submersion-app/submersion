@@ -5,7 +5,7 @@ library;
 
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
-import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 
 const String _sidemountRolesSql = "('sidemountLeft', 'sidemountRight')";
@@ -31,17 +31,35 @@ String consumptionVolumeSql(String tank) {
       'SELECT $partner.volume FROM dive_tanks $partner '
       'WHERE $partner.dive_id = $tank.dive_id AND $partner.id <> $tank.id '
       'AND $partner.volume > 0 '
-      'AND (($tank.tank_role IN $_sidemountRolesSql '
-      'AND $partner.tank_role IN $_sidemountRolesSql) '
-      "OR ($tank.tank_role = 'twinSet' AND $partner.tank_role = 'twinSet') "
-      "OR ($tank.tank_role = 'backGas' "
-      "AND $partner.tank_role = 'backGas' "
-      'AND ABS($partner.o2_percent - $tank.o2_percent) '
-      '<= $sameGasTolerancePct '
-      'AND ABS($partner.he_percent - $tank.he_percent) '
-      '<= $sameGasTolerancePct)) '
+      'AND ${matchedPairSql(tank, partner)} '
       'ORDER BY $partner.tank_order, $partner.rowid LIMIT 1) END)';
 }
+
+/// Whether the `dive_tanks` rows aliased [a] and [b] are a matched pair:
+/// both sidemount, both twin set, or both back gas on the same gas. The SQL
+/// form of `isMatchedPair`.
+String matchedPairSql(String a, String b) =>
+    '(($a.tank_role IN $_sidemountRolesSql '
+    'AND $b.tank_role IN $_sidemountRolesSql) '
+    "OR ($a.tank_role = 'twinSet' AND $b.tank_role = 'twinSet') "
+    "OR ($a.tank_role = 'backGas' "
+    "AND $b.tank_role = 'backGas' "
+    'AND ABS($b.o2_percent - $a.o2_percent) '
+    '<= $sameGasTolerancePct '
+    'AND ABS($b.he_percent - $a.he_percent) '
+    '<= $sameGasTolerancePct))';
+
+/// The id of the cylinder the pressure lane of the `dives` row aliased
+/// [dive] is expressed in: the first backmount gas, else the first
+/// breathing cylinder, as `Dive.sacReferenceTank` picks it. A scalar
+/// subquery.
+String sacReferenceIdSql(String dive) =>
+    '(SELECT t2.id FROM dive_tanks t2 '
+    'WHERE t2.dive_id = $dive.id AND ${breathingTankSql('t2')} '
+    'AND (t2.tank_role IN $_backmountRolesSql OR NOT EXISTS ('
+    'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
+    'AND t3.tank_role IN $_backmountRolesSql)) '
+    'ORDER BY t2.tank_order, t2.rowid LIMIT 1)';
 
 /// The effective water type of the `dives` row aliased [dive]: its own, else
 /// its site's, an empty string meaning none was recorded. The SQL twin of
@@ -69,7 +87,8 @@ String diveAmbientBarSql(String dive, String depth) =>
 /// rebreather dive, whose cylinders do not drain with the diver's breathing
 /// (issue #3673), when the reference has no pressures logged, since it must
 /// join, and when nothing adds up to a drop; the caller guards the runtime
-/// and average depth. Mirrors `Dive.sac`.
+/// and average depth. Divides by the gas-use time and depth, so surface time
+/// at the ends of the recording is left out (issue #2930). Mirrors `Dive.sac`.
 String diveSacPressureSql(String dive) {
   // The cylinders matching [where] once each, with their consumption volume
   // computed once.
@@ -101,13 +120,7 @@ String diveSacPressureSql(String dive) {
       'AND ABS(sac_c.he - sac_r.he) <= $sameGasTolerancePct THEN 1.0 '
       'ELSE 0.0 END), 0) '
       'FROM $breathed sac_c JOIN $measured sac_r '
-      'ON sac_r.id = ('
-      'SELECT t2.id FROM dive_tanks t2 '
-      'WHERE t2.dive_id = $dive.id AND ${breathingTankSql('t2')} '
-      'AND (t2.tank_role IN $_backmountRolesSql OR NOT EXISTS ('
-      'SELECT 1 FROM dive_tanks t3 WHERE t3.dive_id = $dive.id '
-      'AND t3.tank_role IN $_backmountRolesSql)) '
-      'ORDER BY t2.tank_order, t2.rowid LIMIT 1)) '
-      '/ (${measuredRuntimeSecondsSql(dive)} / 60.0) '
-      '/ ${diveAmbientBarSql(dive, '$dive.avg_depth')}) END)';
+      'ON sac_r.id = ${sacReferenceIdSql(dive)}) '
+      '/ (${gasUseSecondsSql(dive, lane: GasUseLane.pressure)} / 60.0) '
+      '/ ${diveAmbientBarSql(dive, gasUseAvgDepthSql(dive, lane: GasUseLane.pressure))}) END)';
 }

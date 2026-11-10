@@ -42,6 +42,7 @@ Map<String, Object?> diveDocument(Dive dive) {
     'notes': dive.notes,
     'dive_mode': dive.diveMode.name,
     'is_planned': dive.isPlanned,
+    'is_draft': dive.isDraft,
     'is_favorite': dive.isFavorite,
     'excluded_from_stats': dive.excludedFromStats,
     'excluded_from_gas_stats': dive.excludedFromGasStats,
@@ -156,6 +157,7 @@ Map<String, Object?> diveTankDocument(DiveTank t, {String? diveId}) => {
   'equipment_id': t.equipmentId,
   'trip_cylinder_id': t.tripCylinderId,
   'usage_duration_s': t.usageDuration?.inSeconds,
+  'surface_breathing_s': t.surfaceBreathingDuration?.inSeconds,
   'deco_switch_depth_m': t.decoSwitchDepth,
   'is_travel_gas': t.isTravelGas,
 };
@@ -194,6 +196,7 @@ Map<String, Object?> sightingDocument(Sighting s) => {
   'dive_id': s.diveId,
   'species_id': s.speciesId,
   'species_name': s.speciesName,
+  'abundance': s.abundance.name,
   'count': s.count,
   'notes': s.notes,
 };

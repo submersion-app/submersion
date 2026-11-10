@@ -3,9 +3,12 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import 'package:submersion/core/platform/host_platform.dart';
+import 'package:submersion/core/router/track_locations.dart';
+import 'package:submersion/core/services/dive_mark_actions.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/util/time_zone_database.dart';
 import 'package:submersion/features/documents/domain/document_reminder_plan.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Deterministic 32-bit notification id for [key].
 ///
@@ -23,6 +26,11 @@ int _stableNotificationId(String key) {
   return hash & 0x7FFFFFFF; // positive, within int32
 }
 
+/// Payloads of the automatic Apple Health import's message (issue #637).
+const String kWatchDivePayloadPrefix = 'dive:';
+const String kWatchDivesPayload = 'dives';
+const String kHealthReviewPayload = 'healthReview';
+
 /// The payload prefix of a document reminder: `document:<id>`.
 const String _documentPayloadPrefix = 'document:';
 
@@ -30,6 +38,16 @@ const String _documentPayloadPrefix = 'document:';
 /// `document:<id>`, issue #2613) opens the document, any other payload is
 /// an equipment id. Null for an empty payload.
 String? notificationPayloadRoute(String payload) {
+  // The dive mark notification (issue #637) opens the GPS log.
+  if (payload == kDiveMarkPayload) return kTracksLocation;
+  // An automatic Apple Health import (issue #637): the new dive, the list
+  // for several, or the Health import for a workout that waits.
+  if (payload.startsWith(kWatchDivePayloadPrefix)) {
+    final id = payload.substring(kWatchDivePayloadPrefix.length);
+    return id.isEmpty ? null : '/dives/$id';
+  }
+  if (payload == kWatchDivesPayload) return '/dives';
+  if (payload == kHealthReviewPayload) return '/settings/wearable-import';
   if (payload.startsWith(_documentPayloadPrefix)) {
     final id = payload.substring(_documentPayloadPrefix.length);
     return id.isEmpty ? null : '/documents/$id';
@@ -82,14 +100,28 @@ class NotificationService {
       '@mipmap/ic_launcher',
     );
 
-    // iOS settings
-    const iosSettings = DarwinInitializationSettings(
+    // iOS settings. The dive mark categories (issue #637) are registered
+    // here, once, so their titles take the platform language.
+    final l10n = l10nForLocaleTag('system');
+    final iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false, // Request later
       requestBadgePermission: false,
       requestSoundPermission: false,
+      notificationCategories: [
+        _diveMarkCategory(
+          kDiveMarkEnterCategory,
+          DiveMarkAction.enteredWater,
+          l10n.gpsLogger_enteredWater,
+        ),
+        _diveMarkCategory(
+          kDiveMarkSurfaceCategory,
+          DiveMarkAction.surfaced,
+          l10n.gpsLogger_surfaced,
+        ),
+      ],
     );
 
-    const initSettings = InitializationSettings(
+    final initSettings = InitializationSettings(
       android: androidSettings,
       iOS: iosSettings,
     );
@@ -99,11 +131,38 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
 
+    // A dive mark action that launched the app arrives here, not through
+    // the response callback.
+    final launch = await _plugin.getNotificationAppLaunchDetails();
+    if (launch?.didNotificationLaunchApp ?? false) {
+      DiveMarkActions.instance.handle(launch!.notificationResponse?.actionId);
+    }
+
     _initialized = true;
     _log.info('Notification service initialized');
   }
 
+  static DarwinNotificationCategory _diveMarkCategory(
+    String id,
+    DiveMarkAction action,
+    String title,
+  ) => DarwinNotificationCategory(
+    id,
+    actions: [
+      // Foreground: it opens the app, so the tap reaches it on every device
+      // (issue #637).
+      DarwinNotificationAction.plain(
+        action.name,
+        title,
+        options: {DarwinNotificationActionOption.foreground},
+      ),
+    ],
+  );
+
   void _onNotificationTapped(NotificationResponse response) {
+    // An Entered water or Surfaced tap (issue #637) is the dive mark
+    // listener's, not a route to open.
+    if (DiveMarkActions.instance.handle(response.actionId)) return;
     _log.info('Notification tapped: ${response.payload}');
     if (response.payload != null) {
       // A document reminder carries `document:<id>`; the router maps every
@@ -335,6 +394,61 @@ class NotificationService {
         : 'Your dive data has been backed up successfully.';
   }
 
+  /// Shows, or updates, the notification that offers the next dive mark
+  /// while a GPS track records (issue #637).
+  Future<void> showDiveMarkActions({
+    required DiveMarkAction action,
+    required String actionLabel,
+    required String title,
+    required String body,
+  }) async {
+    if (!_isMobilePlatform) return;
+    await _plugin.show(
+      id: _diveMarkNotificationId,
+      title: title,
+      body: body,
+      notificationDetails: diveMarkNotificationDetails(
+        action: action,
+        actionLabel: actionLabel,
+      ),
+      payload: kDiveMarkPayload,
+    );
+  }
+
+  /// Tells the diver what an automatic Apple Health import did, when the
+  /// app cannot show it in a SnackBar (issue #637).
+  Future<void> showWatchDiveMessage({
+    required String title,
+    required String body,
+    required String payload,
+  }) async {
+    if (!_isMobilePlatform) return;
+    await _plugin.show(
+      id: _stableNotificationId('watch-dives'),
+      title: title,
+      body: body,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'watch_dives',
+          'Apple Watch Dives',
+          channelDescription: 'Dives imported from Apple Health',
+          importance: Importance.defaultImportance,
+          priority: Priority.defaultPriority,
+        ),
+        iOS: DarwinNotificationDetails(presentAlert: true, presentSound: false),
+      ),
+      payload: payload,
+    );
+  }
+
+  /// Removes the dive mark notification, when the recording stops.
+  Future<void> cancelDiveMarkActions() async {
+    if (!_isMobilePlatform) return;
+    await _plugin.cancel(id: _diveMarkNotificationId);
+  }
+
+  static final _diveMarkNotificationId = _stableNotificationId('dive-marks');
+
   /// Show an immediate notification for backup results.
   ///
   /// Used by both foreground operations and background tasks.
@@ -456,6 +570,64 @@ class NotificationService {
     };
   }
 
+  /// One-shot reminder for a draft dive left waiting for its download
+  /// (issue #637). The id is stable per dive, so rescheduling replaces it;
+  /// the payload opens the dive.
+  Future<int> scheduleDraftReminder({
+    required String diveId,
+    required DateTime at,
+    required String title,
+    required String body,
+  }) async {
+    if (!_isMobilePlatform) return 0;
+    final notificationId = _draftReminderId(diveId);
+    const details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'draft_reminders',
+        'Draft Dive Reminders',
+        channelDescription:
+            'Reminders about draft dives waiting for a dive computer download',
+        importance: Importance.defaultImportance,
+        priority: Priority.defaultPriority,
+        category: AndroidNotificationCategory.reminder,
+      ),
+      iOS: DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+    await _plugin.zonedSchedule(
+      id: notificationId,
+      title: title,
+      body: body,
+      scheduledDate: tz.TZDateTime.from(at, tz.local),
+      notificationDetails: details,
+      payload: '$kWatchDivePayloadPrefix$diveId',
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+    return notificationId;
+  }
+
+  Future<void> cancelDraftReminder(String diveId) =>
+      cancelNotification(_draftReminderId(diveId));
+
+  /// The dives with a draft reminder pending in the OS, read from the
+  /// payloads. Only reminders are scheduled with a dive payload; a watch
+  /// dive message is shown at once.
+  Future<Set<String>> pendingDraftReminderIds() async {
+    if (!_isMobilePlatform) return const {};
+    final pending = await _plugin.pendingNotificationRequests();
+    return {
+      for (final p in pending)
+        if (p.payload case final payload?
+            when payload.startsWith(kWatchDivePayloadPrefix))
+          payload.substring(kWatchDivePayloadPrefix.length),
+    };
+  }
+
+  int _draftReminderId(String diveId) => _stableNotificationId('draft#$diveId');
+
   int _documentReminderId(String documentId, DocumentReminderStage stage) =>
       _stableNotificationId('document#$documentId#${stage.name}');
 
@@ -491,3 +663,35 @@ class NotificationService {
     return _plugin.pendingNotificationRequests();
   }
 }
+
+/// The dive mark notification's look (issue #637): quiet, kept until the
+/// recording stops, with [action] as its only button. Both platforms open
+/// the app on a tap, so the tap reaches it whatever the device allows.
+NotificationDetails diveMarkNotificationDetails({
+  required DiveMarkAction action,
+  required String actionLabel,
+}) => NotificationDetails(
+  android: AndroidNotificationDetails(
+    'dive_marks',
+    'Dive Marks',
+    channelDescription: 'Entered water and Surfaced while a GPS track records',
+    importance: Importance.low,
+    priority: Priority.low,
+    ongoing: true,
+    onlyAlertOnce: true,
+    actions: [
+      AndroidNotificationAction(
+        action.name,
+        actionLabel,
+        showsUserInterface: true,
+      ),
+    ],
+  ),
+  iOS: DarwinNotificationDetails(
+    presentAlert: true,
+    presentSound: false,
+    categoryIdentifier: action == DiveMarkAction.enteredWater
+        ? kDiveMarkEnterCategory
+        : kDiveMarkSurfaceCategory,
+  ),
+);

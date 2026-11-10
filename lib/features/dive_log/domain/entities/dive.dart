@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:equatable/equatable.dart';
 
 export 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
@@ -15,6 +17,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
@@ -22,6 +25,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart'
     as multi
@@ -55,6 +59,18 @@ class Dive extends Equatable {
   /// a list read leaves [profile] empty and fills this for a dive only its
   /// samples can measure. Read, never stored.
   final Duration? profileSpan;
+
+  /// The gas-use window of a dive read without its samples, from the derived
+  /// metrics cache: a list read leaves [profile] empty and fills this when
+  /// the recording has surface time to leave out (issue #2930). Read, never
+  /// stored. See [gasUse].
+  final GasUse? storedGasUse;
+
+  /// Where surface time a cylinder was breathed in stretched the gas-use
+  /// window, from the derived metrics cache: the sweep reads the gas switches
+  /// and pressure series a dive entity does not carry (issue #2930). [gasUse]
+  /// stretches its own window from [profile] alike. Read, never stored.
+  final SurfaceBreathing? surfaceBreathing;
 
   /// The gear on this dive, one link per junction row with the item and
   /// where it came from (issue #1487). [equipment] is the flat view.
@@ -218,6 +234,12 @@ class Dive extends Equatable {
   // Dive planner flag (v1.5)
   final bool isPlanned; // True for planned dives (not yet executed)
 
+  /// A dive marked at the site that waits for its dive computer readings
+  /// (issue #637): it has times and positions but no profile. It counts
+  /// for no-fly and surface interval, and stays out of totals and
+  /// numbering until it is filled.
+  final bool isDraft;
+
   /// Shared id across sibling dives mirrored from one save (issue #2002).
   /// Null for a dive that was never mirrored.
   final String? outingId;
@@ -269,6 +291,8 @@ class Dive extends Equatable {
     this.tanks = const [],
     this.profile = const [],
     this.profileSpan,
+    this.storedGasUse,
+    this.surfaceBreathing,
     this.gear = const [],
     this.notes = '',
     this.photoIds = const [],
@@ -336,6 +360,7 @@ class Dive extends Equatable {
     this.scrubber,
     // Dive planner (v1.5)
     this.isPlanned = false,
+    this.isDraft = false,
     this.outingId,
     // Training courses (issue #2515)
     this.courseIds = const [],
@@ -465,6 +490,9 @@ class Dive extends Equatable {
   /// 3. calculateRuntimeFromProfile() (from profile data), else [profileSpan]
   ///    for a dive read without its samples
   Duration? get measuredRuntime {
+    // A draft's times are taps at the site, and a runtime it carries came
+    // from the plan it adopted: neither is a reading (issue #637).
+    if (isDraft) return null;
     if (runtime != null) return runtime;
 
     if (entryTime != null && exitTime != null) {
@@ -482,7 +510,17 @@ class Dive extends Equatable {
   /// intervals, tissue loading), where a table-era log has nothing better.
   /// Never report it as a runtime. `effectiveRuntimeSecondsSql` is the SQL
   /// form.
-  Duration? get effectiveRuntime => measuredRuntime ?? bottomTime;
+  Duration? get effectiveRuntime {
+    // A draft's window is its taps, or nothing yet while it is open.
+    if (isDraft) return _tapSpan;
+    return measuredRuntime ?? bottomTime;
+  }
+
+  Duration? get _tapSpan {
+    if (entryTime == null || exitTime == null) return null;
+    final span = exitTime!.difference(entryTime!);
+    return span > Duration.zero ? span : null;
+  }
 
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
@@ -537,24 +575,17 @@ class Dive extends Equatable {
   ///
   /// Takes the model as a parameter rather than reading a provider so the
   /// entity stays free of container dependencies. Callers source it from
-  /// `gasModelProvider`. The runtime is used verbatim: nothing is added for
-  /// a safety stop (issue #828).
+  /// `gasModelProvider`. Nothing is added for a safety stop (issue #828), and
+  /// surface time at the ends of the recording is left out (see [gasUse]).
   double? rmvFor(GasModel model) {
-    final runtime = measuredRuntime;
     final breathing = breathingTanks;
-    if (isRebreather ||
-        breathing.isEmpty ||
-        runtime == null ||
-        avgDepth == null) {
-      return null;
-    }
-
-    final minutes = runtime.inSeconds / 60;
-    if (minutes <= 0) return null;
-
-    // Ambient pressure ratio in bar, matching the 1 bar reference that
-    // gasVolume returns volumes against.
-    final avgPressureBar = environment.pressureAtDepth(avgDepth!);
+    if (breathing.isEmpty) return null;
+    // Entered surface minutes of the cylinders whose gas this rate sums.
+    final basis = _consumptionBasis(
+      _surfaceSecondsWhere((t) => consumptionVolume(t, breathing) != null),
+    );
+    if (basis == null) return null;
+    final (:minutes, :avgPressureBar) = basis;
 
     // Sum gas consumed across the breathing cylinders (in liters at 1 bar);
     // a suit inflation bottle is not breathed (issue #4243).
@@ -599,6 +630,84 @@ class Dive extends Equatable {
     return totalGasLiters / minutes / avgPressureBar;
   }
 
+  /// The underwater part of the recording, which [sac] and [rmvFor] divide by
+  /// (issue #2930), stretched over the [surfaceBreathing] the cache found:
+  /// from the profile when this dive carries one, else [storedGasUse]. Null
+  /// when there is no surface time at either end to leave out, and then the
+  /// rates use [measuredRuntime] and [avgDepth] as they are.
+  /// `gasUseSecondsSql` and `gasUseAvgDepthSql` are the SQL forms.
+  GasUse? get gasUse {
+    if (profile.length < 2) return storedGasUse;
+    // Worked out once per profile list and stretch: the detail page asks on
+    // every build, and copies of this dive share the list.
+    final cached = _gasUseByProfile[profile];
+    if (cached != null && cached.breathing == surfaceBreathing) {
+      return cached.use;
+    }
+    final use = gasUseWindowOf(
+      profile,
+      time: (p) => p.timestamp,
+      depth: (p) => p.depth,
+      surfaceBreathing: surfaceBreathing,
+    )?.use;
+    _gasUseByProfile[profile] = (breathing: surfaceBreathing, use: use);
+    return use;
+  }
+
+  /// [gasUse] by profile list identity, with the stretch it was worked out
+  /// for. An entity never mutates its profile, so a list's window cannot
+  /// change once worked out.
+  static final Expando<({SurfaceBreathing? breathing, GasUse? use})>
+  _gasUseByProfile = Expando('gasUseByProfile');
+
+  /// The minutes and ambient pressure a whole-dive rate divides by: the
+  /// [measuredRuntime], cut to [gasUse] when that is shorter (a runtime
+  /// already shortened by hand is not cut twice), at the depth of [gasUse],
+  /// else the recorded [avgDepth]. Null when no rate can be given: a
+  /// rebreather, no runtime or no average depth. Each rate checks its own
+  /// cylinders.
+  ({double minutes, double avgPressureBar})? _consumptionBasis(
+    int surfaceSeconds,
+  ) {
+    final runtime = measuredRuntime;
+    final recordedDepth = avgDepth;
+    if (isRebreather || runtime == null || recordedDepth == null) {
+      return null;
+    }
+    final use = gasUse;
+    final seconds = use == null
+        ? runtime.inSeconds
+        : math.min(use.seconds, runtime.inSeconds);
+    // Minutes the diver entered for breathing a cylinder at the surface after
+    // the computer stopped (issue #2930): the logged end pressures include
+    // that gas, and those minutes count at 0 m.
+    // A dive with no recorded time has no rate, as the statistics say: the
+    // entered minutes alone do not make one.
+    if (seconds <= 0) return null;
+    final total = seconds + surfaceSeconds;
+    final depth = use?.avgDepth ?? recordedDepth;
+    // Ambient pressure in bar, matching the 1 bar reference that gasVolume
+    // returns volumes against.
+    return (
+      minutes: total / 60,
+      avgPressureBar: environment.pressureAtDepth(depth * seconds / total),
+    );
+  }
+
+  /// Seconds the diver entered for breathing at the surface after the
+  /// computer stopped logging (issue #2930) that a rate counts: those of the
+  /// breathing cylinders with a logged drop that [contributes] says add gas
+  /// to it, a matched pair's shared time once (see [enteredSurfaceSeconds]).
+  /// A suit inflation bottle is not breathed.
+  int _surfaceSecondsWhere(bool Function(DiveTank tank) contributes) =>
+      enteredSurfaceSeconds([
+        for (final t in breathingTanks)
+          if (t.startPressure != null &&
+              t.endPressure != null &&
+              t.startPressure! > t.endPressure!)
+            t,
+      ], contributes: contributes);
+
   /// The cylinders that hold breathing gas, in order: every one but a suit
   /// inflation bottle (issue #4243). Gas calculations start from these;
   /// [tanks] is what the dive lists.
@@ -631,21 +740,19 @@ class Dive extends Equatable {
   /// that carries pressure. Not a unit conversion of [rmvFor] on multi-tank
   /// dives: bar/min from a 12 L back gas and a 7 L stage cannot be averaged,
   /// only converted by volume. A cylinder of unknown size is left out
-  /// unless it pairs with the reference (see [isMatchedPair]).
+  /// unless it pairs with the reference (see [isMatchedPair]). Surface time
+  /// at the ends of the recording is left out (see [gasUse]).
   double? get sac {
-    final runtime = measuredRuntime;
     final reference = sacReferenceTank;
-    if (isRebreather ||
-        reference == null ||
-        runtime == null ||
-        avgDepth == null) {
-      return null;
-    }
-
-    final minutes = runtime.inSeconds / 60;
-    if (minutes <= 0) return null;
-
-    final avgPressureBar = environment.pressureAtDepth(avgDepth!);
+    if (reference == null) return null;
+    // Entered surface minutes of the cylinders [referencePressureDrop] sums.
+    final basis = _consumptionBasis(
+      _surfaceSecondsWhere(
+        (t) => referenceBarsPerBar(t, reference, tanks) != null,
+      ),
+    );
+    if (basis == null) return null;
+    final (:minutes, :avgPressureBar) = basis;
 
     final pressureUsed = referencePressureDrop(
       reference: reference,
@@ -745,6 +852,8 @@ class Dive extends Equatable {
     List<DiveTank>? tanks,
     List<DiveProfilePoint>? profile,
     Duration? profileSpan,
+    GasUse? storedGasUse,
+    SurfaceBreathing? surfaceBreathing,
     List<GearLink>? gear,
     String? notes,
     List<String>? photoIds,
@@ -812,8 +921,11 @@ class Dive extends Equatable {
     ScrubberInfo? scrubber,
     // Dive planner
     bool? isPlanned,
+    bool? isDraft,
     String? outingId,
     bool clearOutingId = false,
+    bool clearExitTime = false,
+    bool clearRuntime = false,
     bool clearSetpoints = false,
     bool clearDiluentGas = false,
     // Training courses
@@ -841,9 +953,9 @@ class Dive extends Equatable {
       name: clearName ? null : (name ?? this.name),
       dateTime: dateTime ?? this.dateTime,
       entryTime: entryTime ?? this.entryTime,
-      exitTime: exitTime ?? this.exitTime,
+      exitTime: clearExitTime ? null : (exitTime ?? this.exitTime),
       bottomTime: bottomTime ?? this.bottomTime,
-      runtime: runtime ?? this.runtime,
+      runtime: clearRuntime ? null : (runtime ?? this.runtime),
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
       entryLocation: entryLocation ?? this.entryLocation,
@@ -855,6 +967,8 @@ class Dive extends Equatable {
       tanks: tanks ?? this.tanks,
       profile: profile ?? this.profile,
       profileSpan: profileSpan ?? this.profileSpan,
+      storedGasUse: storedGasUse ?? this.storedGasUse,
+      surfaceBreathing: surfaceBreathing ?? this.surfaceBreathing,
       gear: gear ?? this.gear,
       notes: notes ?? this.notes,
       photoIds: photoIds ?? this.photoIds,
@@ -922,6 +1036,7 @@ class Dive extends Equatable {
       scrubber: scrubber ?? this.scrubber,
       // Dive planner
       isPlanned: isPlanned ?? this.isPlanned,
+      isDraft: isDraft ?? this.isDraft,
       outingId: clearOutingId ? null : (outingId ?? this.outingId),
       // Training courses
       courseIds: courseIds ?? this.courseIds,
@@ -965,6 +1080,8 @@ class Dive extends Equatable {
     tanks,
     profile,
     profileSpan,
+    storedGasUse,
+    surfaceBreathing,
     gear,
     notes,
     photoIds,
@@ -1032,6 +1149,7 @@ class Dive extends Equatable {
     scrubber,
     // Dive planner
     isPlanned,
+    isDraft,
     outingId,
     // Training courses
     courseIds,
@@ -1246,6 +1364,11 @@ class MarineSighting extends Equatable {
   final String id;
   final String speciesId;
   final String speciesName;
+
+  /// Seen, a REEF group, or [SightingAbundance.exact] with [count].
+  final SightingAbundance abundance;
+
+  /// The exact number of animals for [SightingAbundance.exact]; 1 otherwise.
   final int count;
   final String notes;
 
@@ -1253,12 +1376,41 @@ class MarineSighting extends Equatable {
     required this.id,
     required this.speciesId,
     required this.speciesName,
+    this.abundance = SightingAbundance.seen,
     this.count = 1,
     this.notes = '',
   });
 
+  /// [abundance] and [count] together.
+  SightingAmount get amount => (abundance: abundance, count: count);
+
+  MarineSighting copyWith({
+    String? id,
+    String? speciesId,
+    String? speciesName,
+    SightingAbundance? abundance,
+    int? count,
+    String? notes,
+  }) {
+    return MarineSighting(
+      id: id ?? this.id,
+      speciesId: speciesId ?? this.speciesId,
+      speciesName: speciesName ?? this.speciesName,
+      abundance: abundance ?? this.abundance,
+      count: count ?? this.count,
+      notes: notes ?? this.notes,
+    );
+  }
+
   @override
-  List<Object?> get props => [id, speciesId, speciesName, count, notes];
+  List<Object?> get props => [
+    id,
+    speciesId,
+    speciesName,
+    abundance,
+    count,
+    notes,
+  ];
 }
 
 /// CO₂ scrubber information for rebreather dives (v1.5)

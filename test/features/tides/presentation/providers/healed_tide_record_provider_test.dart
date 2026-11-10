@@ -28,6 +28,7 @@ class _FakeTideRecordRepository extends TideRecordRepository {
   Future<TideRecord> createFromStatus({
     required String diveId,
     required TideStatus status,
+    String? id,
   }) async {
     writes++;
     final record = TideRecord.fromStatus(

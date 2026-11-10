@@ -5,6 +5,17 @@ class AirBreakPolicy {
 
   final int o2Seconds;
   final int breakSeconds;
+
+  /// By value, so a [PlanEngineConfig] rebuilt from unchanged settings
+  /// equals the one before and the planner's dependents do not rebuild.
+  @override
+  bool operator ==(Object other) =>
+      other is AirBreakPolicy &&
+      other.o2Seconds == o2Seconds &&
+      other.breakSeconds == breakSeconds;
+
+  @override
+  int get hashCode => Object.hash(o2Seconds, breakSeconds);
 }
 
 /// Which phase of the ascent a travel leg belongs to.

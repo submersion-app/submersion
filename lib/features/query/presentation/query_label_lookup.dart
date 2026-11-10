@@ -165,6 +165,8 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_diveNumber;
     case 'query_dives_diveOperator':
       return l10n.query_dives_diveOperator;
+    case 'query_dives_draft':
+      return l10n.query_dives_draft;
     case 'query_dives_entryMethod':
       return l10n.query_dives_entryMethod;
     case 'query_dives_excludedFromStats':

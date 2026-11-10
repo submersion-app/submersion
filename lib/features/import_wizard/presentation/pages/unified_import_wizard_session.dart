@@ -64,6 +64,7 @@ class _UnifiedImportWizardState extends State<UnifiedImportWizard> {
                   ruleEngine: ref.read(ruleEngineProvider),
                   gpsTrackMatchService: ref.read(gpsTrackMatchServiceProvider),
                   equipmentDefaulter: DiveEquipmentDefaulter(),
+                  healthMetrics: ref.read(diveHealthMetricsServiceProvider),
                   job: ref.read(importJobProvider.notifier),
                   // Only the universal adapters read through a container
                   // that outlives the wizard (#3554); every other source

@@ -1143,6 +1143,33 @@
     }
   },
   "trips_story_rhythm_semantics": "Dive times during this day",
+  "trips_story_rhythm_semanticsSunriseSunset": "Dive times during this day. Sunrise {sunrise}, sunset {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Dive times during this day. Sunrise {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Dive times during this day. Sunset {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Map of day {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -3295,6 +3322,44 @@
   },
   "diveLog_gear_removeSet": "Remove set from this dive",
   "diveLog_gear_unknownSet": "Set",
+  "diveLog_health_after15": "After 15 min",
+  "diveLog_health_after5": "After 5 min",
+  "diveLog_health_atSurfacing": "At surfacing",
+  "diveLog_health_average": "Average",
+  "diveLog_health_bpm": "{value} bpm",
+  "@diveLog_health_bpm": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_maximum": "Maximum",
+  "diveLog_health_ms": "{value} ms",
+  "@diveLog_health_ms": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_noneFound": "Apple Health has no readings for this dive",
+  "diveLog_health_overnightHrv": "Heart rate variability the night after",
+  "diveLog_health_readFailed": "Could not read Apple Health",
+  "diveLog_health_recovery": "Recovery",
+  "diveLog_health_recoveryExplain": "Heart rate at surfacing and 5 and 15 minutes later, from Apple Health.",
+  "diveLog_health_sleepBefore": "Slept {hours} h {minutes} min the night before",
+  "@diveLog_health_sleepBefore": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_health_title": "Heart rate and recovery",
   "diveLog_listPage_bottomSheet_preDiveChecklist": "Start pre-dive checklist",
   "preDive_dashboard_resume": "Resume - {done} of {total}",
   "@preDive_dashboard_resume": {
@@ -3862,6 +3927,7 @@
   "settings_homeCards_card_yearInReview": "Year in review",
   "settings_homeCards_card_activeCourses": "Course progress",
   "settings_homeCards_card_recentSitesMap": "Recent sites map",
+  "settings_homeCards_card_waitingForDownload": "Waiting for download",
   "dashboard_allHidden_message": "All Home cards are hidden.",
   "dashboard_allHidden_customize": "Customize Home",
   "settings_homeChips_flightWindow": "Flight dive window",
@@ -4090,6 +4156,15 @@
     "placeholders": {
       "minutes": {
         "type": "Object"
+      }
+    }
+  },
+  "dashboard_waitingForDownload_download": "Download now",
+  "dashboard_waitingForDownload_title": "{count, plural, =1{1 dive waiting for your dive computer} other{{count} dives waiting for your dive computer}}",
+  "@dashboard_waitingForDownload_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
@@ -4763,7 +4838,6 @@
   "diveLog_diveMode_ocDescription": "Standard open circuit scuba with tanks",
   "diveLog_diveMode_scrDescription": "Semi-closed rebreather with variable ppO₂",
   "diveLog_diveMode_title": "Dive Mode",
-  "diveLog_editSighting_count": "Count",
   "diveLog_editSighting_notes": "Notes",
   "diveLog_editSighting_notesHint": "Size, behavior, location...",
   "diveLog_editSighting_remove": "Remove",
@@ -4833,6 +4907,15 @@
   "diveLog_edit_gasSwitches_removedWithTank": "{count, plural, one{{count} gas switch removed with its tank} other{{count} gas switches removed with their tank}}",
   "@diveLog_edit_gasSwitches_removedWithTank": {
     "description": "Gas switch editor: switches dropped because their cylinder was removed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_edit_gasSwitches_fillDetected": "{count, plural, one{Fill in 1 switch from the cylinder pressures} other{Fill in {count} switches from the cylinder pressures}}",
+  "@diveLog_edit_gasSwitches_fillDetected": {
+    "description": "Gas switch editor: action that adds the switches the recorded cylinder pressures show, and re-points a starting switch on the same gas to the cylinder breathed first. count is how many rows it adds or changes",
     "placeholders": {
       "count": {
         "type": "int"
@@ -5357,6 +5440,7 @@
   "diveLog_legend_label_depth": "Depth",
   "diveLog_legend_label_events": "Events",
   "diveLog_legend_label_annotations": "Annotations",
+  "diveLog_legend_label_plan": "Plan",
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
@@ -5483,6 +5567,14 @@
       }
     }
   },
+  "diveLog_fetchConditions_confirmBodySelected": "{count, plural, =1{{count} of {total} selected dives is missing conditions.} other{{count} of {total} selected dives are missing conditions.}} Only empty fields are filled, so nothing you have already entered will change.",
+  "@diveLog_fetchConditions_confirmBodySelected": {"description": "Confirm text for fetching conditions on selected dives (issue #4329): how many of the checked dives can be filled", "placeholders": {"count": {"type": "int"}, "total": {"type": "int"}}},
+  "diveLog_fetchConditions_skippedNoLocation": "{count, plural, =1{{count} dive has no site location or GPS fix and will be skipped.} other{{count} dives have no site location or GPS fix and will be skipped.}}",
+  "@diveLog_fetchConditions_skippedNoLocation": {"description": "Added to the confirm text when some checked dives have no location to fetch conditions for (issue #4329)", "placeholders": {"count": {"type": "int"}}},
+  "diveLog_fetchConditions_noneNeededSelected": "None of the selected dives are missing conditions.",
+  "@diveLog_fetchConditions_noneNeededSelected": {"description": "Snackbar when no checked dive is missing conditions (issue #4329)"},
+  "diveLog_fetchConditions_noneLocatedSelected": "The selected dives that are missing conditions have no site location or GPS fix.",
+  "@diveLog_fetchConditions_noneLocatedSelected": {"description": "Snackbar when the checked dives missing conditions all lack a location (issue #4329)"},
   "diveLog_fetchConditions_summaryCancelled": "{count, plural, =1{Stopped early; 1 dive was processed.} other{Stopped early; {count} dives were processed.}}",
   "@diveLog_fetchConditions_summaryCancelled": {
     "placeholders": {
@@ -5751,6 +5843,7 @@
   "siteMatchReview_empty": "Nothing to match.",
   "siteSuggestion_titlePhoto": "Location found in photos",
   "siteSuggestion_titleDiveComputer": "Location from dive computer",
+  "siteSuggestion_titleDraft": "Location where you went in",
   "siteSuggestion_assignButton": "Assign {name}",
   "@siteSuggestion_assignButton": {
     "placeholders": {
@@ -6146,6 +6239,9 @@
   "diveLog_summary_stat_totalDives": "Total Dives",
   "diveLog_summary_title": "Dive Log Summary",
   "diveLog_tank_label_endPressure": "End Pressure",
+  "diveLog_tank_label_surfaceBreathing": "Breathed at the surface",
+  "diveLog_tank_surfaceBreathing_helper": "Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat",
+  "diveLog_tank_surfaceBreathing_unit": "min",
   "diveLog_tank_label_he": "He",
   "diveLog_tank_label_material": "Material",
   "diveLog_tank_label_mnd": "MND",
@@ -10020,7 +10116,19 @@
   "equipment_location_bulkAction": "Move to location",
   "@equipment_location_bulkAction": {"description": "Bulk action moving the selected gear to a place"},
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} items}}",
-  "@equipment_location_groupCount": {"description": "Item count beside a location heading and on the Locations page", "placeholders": {"count": {"type": "int"}}},
+  "@equipment_location_groupCount": {"description": "Item count beside a group heading on gear lists and pickers (a location, a type, or another diver's shared gear) and on the Locations page", "placeholders": {"count": {"type": "int"}}},
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "@equipment_group_foldedTypeCount": {"description": "One type and its item count in a folded location heading's summary, e.g. BCD 2", "placeholders": {"count": {"type": "int"}, "type": {"type": "String"}}},
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} service due} other{{count} service due}}",
+  "@equipment_group_foldedServiceDue": {"description": "Second line of a folded type heading on the Equipment list: how many items inside need service", "placeholders": {"count": {"type": "int"}}},
+  "equipment_group_foldedMoreTypes": "{count, plural, one{and {count} more} other{and {count} more}}",
+  "@equipment_group_foldedMoreTypes": {"description": "Ends a folded location heading's summary when it lists only the first three types", "placeholders": {"count": {"type": "int"}}},
+  "equipment_group_foldedSelected": "{selected} of {total} selected",
+  "@equipment_group_foldedSelected": {"description": "Second line of a folded group heading in selection mode: ticked items inside it of all its items", "placeholders": {"selected": {"type": "int"}, "total": {"type": "int"}}},
+  "equipment_list_expandAllGroups": "Expand all",
+  "@equipment_list_expandAllGroups": {"description": "Equipment list overflow menu: open every folded group"},
+  "equipment_list_collapseAllGroups": "Collapse all",
+  "@equipment_list_collapseAllGroups": {"description": "Equipment list overflow menu: fold every outermost group"},
   "equipment_location_activeFilter": "Location",
   "@equipment_location_activeFilter": {"description": "Chip in the active filters bar when the list is filtered by location"},
   "equipment_location_tileSemantics": "Location: {name}",
@@ -11399,7 +11507,6 @@
   "marineLife_speciesDetail_statsError": "Failed to load sighting statistics",
   "marineLife_speciesDetail_taxonomyClassLabel": "Class: {className}",
   "marineLife_speciesDetail_topSitesTitle": "Top Sites",
-  "marineLife_speciesDetail_totalSightingsLabel": "Total Sightings",
   "marineLife_speciesEdit_addTitle": "Add Species",
   "marineLife_speciesEdit_addedSnackbar": "Added \"{name}\"",
   "marineLife_speciesEdit_backTooltip": "Back",
@@ -11543,7 +11650,39 @@
   "marineLife_speciesPage_searchHint": "Search species you have seen",
   "marineLife_speciesPage_manageCatalogTooltip": "Manage catalog",
   "marineLife_speciesPage_sortTooltip": "Sort",
-  "marineLife_speciesPage_sort_mostSightings": "Most sightings",
+  "marineLife_speciesPage_sort_mostDives": "Most dives",
+  "marineLife_abundance_label": "How many",
+  "@marineLife_abundance_label": {
+    "description": "Label above the sighting abundance choices"
+  },
+  "marineLife_abundance_seen": "Seen",
+  "@marineLife_abundance_seen": {
+    "description": "Sighting abundance: the species was seen, with no number given"
+  },
+  "marineLife_abundance_single": "Single",
+  "@marineLife_abundance_single": {
+    "description": "Sighting abundance, REEF survey group: one animal"
+  },
+  "marineLife_abundance_few": "Few",
+  "@marineLife_abundance_few": {
+    "description": "Sighting abundance, REEF survey group: 2 to 10 animals"
+  },
+  "marineLife_abundance_many": "Many",
+  "@marineLife_abundance_many": {
+    "description": "Sighting abundance, REEF survey group: 11 to 100 animals"
+  },
+  "marineLife_abundance_abundant": "Abundant",
+  "@marineLife_abundance_abundant": {
+    "description": "Sighting abundance, REEF survey group: more than 100 animals"
+  },
+  "marineLife_abundance_exact": "Exact",
+  "@marineLife_abundance_exact": {
+    "description": "Sighting abundance: an exact number of animals, entered with a stepper"
+  },
+  "marineLife_abundance_ranges": "Few 2 to 10, Many 11 to 100, Abundant over 100",
+  "@marineLife_abundance_ranges": {
+    "description": "Helper line under the sighting abundance choices giving each REEF group's range"
+  },
   "marineLife_speciesPage_sort_recentlySeen": "Recently seen",
   "marineLife_speciesPage_sort_firstSeen": "First seen",
   "marineLife_speciesPage_sort_name": "Name",
@@ -12167,6 +12306,10 @@
   "media_photoViewer_shareTooltip": "Share photo",
   "media_photoViewer_toggleOverlayLabel": "Toggle photo overlay",
   "media_photoViewer_videoFileNotFound": "Video file not found",
+  "media_photoViewer_videoNeedsNormalWindow": "Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.",
+  "@media_photoViewer_videoNeedsNormalWindow": {
+    "description": "Media viewer, in a browser with no service workers (a private window): a Google Drive or WebDAV video cannot stream."
+  },
   "media_photoViewer_videoNotLinked": "Video not linked to library",
   "media_photoViewer_writeDiveDataTooltip": "Write dive data to photo",
   "media_quickSiteDialog_cancelButton": "Cancel",
@@ -12810,6 +12953,10 @@
   "@media_library_empty": {
     "description": "Empty state for the media library"
   },
+  "media_library_emptyFiltered": "No media matches these filters",
+  "@media_library_emptyFiltered": {
+    "description": "Empty state for the media library while a filter is on and nothing matches it"
+  },
   "media_library_filter_all": "All",
   "@media_library_filter_all": {
     "description": "Library filter chip: no type filter"
@@ -12854,6 +13001,59 @@
         "type": "int"
       }
     }
+  },
+  "media_library_filter_noPeople": "No one tagged",
+  "@media_library_filter_noPeople": {
+    "description": "Library filter People choice, pinned first in the People picker and shown as the People row's value: items with no buddy or Me tag at all"
+  },
+  "media_library_filter_peopleTwo": "{first}, {second}",
+  "@media_library_filter_peopleTwo": {
+    "description": "People row in the library filter: two people picked, e.g. Me, Alex",
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "media_library_filter_peopleAndMore": "{names} +{count}",
+  "@media_library_filter_peopleAndMore": {
+    "description": "People row in the library filter: the first names picked, then how many more, e.g. Me, Alex +3",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_filter_peopleCount": "{count, plural, =1{{count} person} other{{count} people}}",
+  "@media_library_filter_peopleCount": {
+    "description": "People row in the library filter while buddy names are still loading: how many people are picked",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_library_filter_peopleSearchHint": "Search people",
+  "@media_library_filter_peopleSearchHint": {
+    "description": "Search field hint in the library filter's People picker"
+  },
+  "media_library_filter_peopleNoMatch": "No people match",
+  "@media_library_filter_peopleNoMatch": {
+    "description": "People picker in the library filter: nothing matches the search"
+  },
+  "media_library_filter_peopleClear": "Clear people",
+  "@media_library_filter_peopleClear": {
+    "description": "Tooltip on the button that clears the people picked in the library filter"
+  },
+  "media_library_filter_notPlacedInDive": "Not placed in the dive",
+  "@media_library_filter_notPlacedInDive": {
+    "description": "Library filter switch: dive items with no time in the dive profile, so the profile chart draws no marker for them"
   },
   "media_library_filter_clear": "Clear filters",
   "media_library_filter_any": "Any",
@@ -14113,6 +14313,7 @@
   "diveDetailSection_signatures_name": "Signatures",
   "diveDetailSection_signatures_description": "Buddy/instructor signature display and capture",
   "diveDetailSection_equipment_name": "Equipment",
+  "diveDetailSection_health_description": "Heart rate, recovery and sleep from Apple Health",
   "diveDetailSection_equipment_description": "Equipment used in dive",
   "diveDetailSection_sightings_name": "Species Sightings",
   "diveDetailSection_sightings_description": "Species spotted, sighting details",
@@ -14898,6 +15099,7 @@
   "settings_conflict_field_autoApplyOnComputerImport": "Applied on dive computer import",
   "settings_conflict_field_autoAttach": "Scheduled automatically",
   "settings_conflict_field_autoTagImports": "Tag imported dives",
+  "settings_conflict_field_avgHeartRate": "Average heart rate",
   "settings_conflict_field_downloadsFollowComputerOwner": "Add downloads to the computer's owner",
   "@settings_conflict_field_downloadsFollowComputerOwner": {
     "description": "Label for the downloads-follow-computer-owner setting in a sync conflict"
@@ -14957,6 +15159,10 @@
   "settings_conflict_field_equipmentGroupByLocation": "Equipment grouped by location",
   "@settings_conflict_field_equipmentGroupByLocation": {
     "description": "Label for a saved list arrangement in a sync conflict"
+  },
+  "settings_conflict_field_equipmentCollapsedGroups": "Equipment folded groups",
+  "@settings_conflict_field_equipmentCollapsedGroups": {
+    "description": "Label for the Equipment page's saved folded groups in a sync conflict"
   },
   "settings_conflict_field_listArrangementHlc": "List arrangement record",
   "@settings_conflict_field_listArrangementHlc": {
@@ -15213,6 +15419,10 @@
   "settings_conflict_field_hePercent": "Helium",
   "settings_conflict_field_headingDeg": "Heading in degrees",
   "settings_conflict_field_headingOffsetDeg": "Heading correction in degrees",
+  "settings_conflict_field_heartRateAtExit": "Heart rate at surfacing",
+  "settings_conflict_field_heartRateExitPlus15": "Heart rate 15 min after surfacing",
+  "settings_conflict_field_heartRateExitPlus5": "Heart rate 5 min after surfacing",
+  "settings_conflict_field_heartRateSamples": "Heart rate from Apple Health",
   "settings_conflict_field_scaleFactor": "Track scale factor",
   "settings_conflict_field_height": "Height in pixels",
   "settings_conflict_field_heightCm": "Height",
@@ -15243,6 +15453,7 @@
   "settings_conflict_field_isCustom": "Custom",
   "settings_conflict_field_isDefault": "Default",
   "settings_conflict_field_isDone": "Done",
+  "settings_conflict_field_isDraft": "Draft dive",
   "settings_conflict_field_isOrphaned": "File missing",
   "settings_conflict_field_isPackage": "Part of a package",
   "settings_conflict_field_isPlanned": "Planned dive",
@@ -15291,6 +15502,7 @@
   "settings_conflict_field_material": "Tank material",
   "settings_conflict_field_maxAscentRate": "Maximum ascent rate",
   "settings_conflict_field_maxDescentRate": "Maximum descent rate",
+  "settings_conflict_field_maxHeartRate": "Maximum heart rate",
   "settings_conflict_field_maxSpeed": "Top speed",
   "settings_conflict_field_measuredAt": "Measured",
   "settings_conflict_field_medicalClearanceExpiryDate": "Medical clearance expiry",
@@ -15313,6 +15525,7 @@
   "settings_conflict_field_originalFilename": "Original file name",
   "settings_conflict_field_outingId": "Outing",
   "settings_conflict_field_overdueServices": "Overdue services",
+  "settings_conflict_field_overnightHrvMs": "Overnight heart rate variability",
   "settings_conflict_field_params": "Details",
   "settings_conflict_field_parkingInfo": "Parking",
   "settings_conflict_field_passportId": "Cylinder passport",
@@ -15470,6 +15683,7 @@
   "settings_conflict_field_siteListViewMode": "Site list view",
   "settings_conflict_field_siteSuggestionDismissedAt": "Site suggestion dismissed",
   "settings_conflict_field_size": "Size",
+  "settings_conflict_field_sleepBeforeMinutes": "Sleep the night before",
   "settings_conflict_field_sortOrder": "Sort order",
   "settings_conflict_field_source": "Source",
   "settings_conflict_field_sourceDiverKey": "Diver in the source log",
@@ -15492,6 +15706,7 @@
   "settings_conflict_field_startPressurePinned": "Start pressure set by hand",
   "settings_conflict_field_fixedStart": "Start time set by hand",
   "settings_conflict_field_settingOverrides": "Settings for this dive only",
+  "settings_conflict_field_settled": "Apple Health readings complete",
   "settings_conflict_field_startTime": "Start time",
   "settings_conflict_field_startTimestamp": "Starts at (time into dive)",
   "settings_conflict_field_startedAt": "Started",
@@ -15508,6 +15723,7 @@
   "@settings_conflict_field_supersedesRuleId": {
     "description": "Sync conflict field label: the built-in certification currency rule that a custom rule replaces."
   },
+  "settings_conflict_field_surfaceBreathingDuration": "Time breathed at the surface",
   "settings_conflict_field_surfaceConditions": "Surface conditions",
   "settings_conflict_field_surfaceSwimLimitM": "Longest surface swim",
   "settings_conflict_field_swimSpeedMps": "Swim speed",
@@ -15869,6 +16085,8 @@
       }
     }
   },
+  "notifications_draftReminder_body": "Download your dive computer to fill in the draft.",
+  "notifications_draftReminder_title": "A dive is waiting for your dive computer",
   "notifications_document_expiresToday_body": "Renew it before your next dive.",
   "settings_conflict_field_pageOrder": "Page order",
   "settings_conflict_field_cardSide": "Card side",
@@ -16583,6 +16801,8 @@
   "settings_notifications_disabled_subtitleUnrequested": "Service reminders need permission to send notifications",
   "settings_notifications_disabled_subtitle": "Enable in system settings to receive reminders",
   "settings_notifications_disabled_title": "Notifications Disabled",
+  "settings_notifications_draftReminder": "Remind me about draft dives",
+  "settings_notifications_draftReminder_subtitle": "Three days after a draft dive's exit, if it is still waiting for a download",
   "settings_notifications_enableServiceReminders": "Enable Service Reminders",
   "settings_notifications_enableServiceReminders_subtitle": "Get notified when equipment service is due",
   "settings_notifications_header_reminderSchedule": "Reminder Schedule",
@@ -20696,6 +20916,15 @@
   "universalImport_bulk_replaceSourceAll": "Replace all ({count})",
   "universalImport_description_supportedFormats": "Select a dive log file to import. Supported formats include CSV, UDDF, Subsurface XML, Garmin FIT, and Shearwater Cloud databases.",
   "universalImport_error_unsupportedFormat": "This format is not yet supported. Please export as UDDF or CSV.",
+  "universalImport_fillDraft_ambiguous": "{count, plural, =1{Another dive fits this draft too. Choose the draft it fills.} other{Fits {count} drafts. Choose the one it fills.}}",
+  "@universalImport_fillDraft_ambiguous": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_fillDraft_choose": "Choose draft",
   "universalImport_error_duplicateCheckFailed": "Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.",
   "universalImport_error_noColumnsToMap": "This file has no columns to map. Go back and select the file again, or choose a different source.",
   "universalImport_error_stepFailed": "Import could not continue: {details}",
@@ -20830,6 +21059,36 @@
   "universalImport_label_skip": "Skip",
   "universalImport_label_fillPlanned": "Fill planned dive",
   "universalImport_compare_fillPlannedSubtitle": "Attach this download to the dive you planned",
+  "universalImport_label_fillDraft": "Fill draft",
+  "@universalImport_label_fillDraft": {"description": "Import action: attach the download to a draft dive marked at the site"},
+  "universalImport_compare_fillDraftSubtitle": "Attach this download to the dive you marked at the site",
+  "universalImport_fillDraft_target": "Fills draft: {label}",
+  "@universalImport_fillDraft_target": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_fillDraft_window": "Draft from {start} to {end}",
+  "@universalImport_fillDraft_window": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_fillDraft_windowOpen": "Draft from {start}",
+  "@universalImport_fillDraft_windowOpen": {
+    "placeholders": {
+      "start": {
+        "type": "String"
+      }
+    }
+  },
   "universalImport_label_filledPlanned": "Filled planned dives",
   "universalImport_fillPlanned_target": "Fills planned dive: {label}",
   "@universalImport_fillPlanned_target": {
@@ -22186,6 +22445,24 @@
   "gpsLogger_reviewSites": "Review site matches",
   "gpsLogger_startButton": "Start logging",
   "gpsLogger_stopButton": "Stop logging",
+  "gpsLogger_enteredWater": "Entered water",
+  "@gpsLogger_enteredWater": {"description": "Button while recording a GPS track: marks the moment the diver goes into the water, starting a draft dive"},
+  "gpsLogger_surfaced": "Surfaced",
+  "@gpsLogger_surfaced": {"description": "Button while a draft dive is open: marks the moment the diver surfaces"},
+  "gpsLogger_surfaceOnStop_title": "Still in the water?",
+  "gpsLogger_surfaceOnStop_body": "You entered the water at {time}. Mark the dive surfaced now, or leave it open and tap Surfaced later.",
+  "@gpsLogger_surfaceOnStop_body": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "gpsLogger_surfaceOnStop_surfaceNow": "Surface now",
+  "gpsLogger_surfaceOnStop_leaveOpen": "Leave open",
+  "gpsLogger_markNotification_title": "Recording your GPS track",
+  "gpsLogger_markNotification_bodyEnter": "Tap Entered water when you go in.",
+  "gpsLogger_markNotification_bodySurface": "In the water. Tap Surfaced when you are out.",
   "gpsLogger_stripStatus": "Recording GPS track · {count, plural, one{{count} point} other{{count} points}}",
   "@gpsLogger_stripStatus": {
     "placeholders": {
@@ -22684,6 +22961,34 @@
   "settings_dataSources_appleHealth_permissionNotGranted": "HealthKit access not granted",
   "settings_dataSources_appleHealth_permissionChecking": "Checking HealthKit access...",
   "settings_dataSources_appleHealth_importAction": "Import Dives from Apple Watch via HealthKit",
+  "healthAutoImport_newDive_title": "New dive from your Apple Watch",
+  "healthAutoImport_newDives_title": "{count} new dives from your Apple Watch",
+  "@healthAutoImport_newDives_title": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "healthAutoImport_newDive_body": "Add details?",
+  "healthAutoImport_addDetails": "Add details",
+  "healthAutoImport_review_title": "An Apple Watch dive needs a look",
+  "healthAutoImport_review_body": "It could belong to more than one dive. Choose in the Apple Health import.",
+  "healthAutoImport_planReview_body": "This dive may be one you planned. Review it to fill the plan.",
+  "healthAutoImport_review": "Review",
+  "settings_appleHealth_autoImport_title": "Import Apple Watch dives automatically",
+  "settings_appleHealth_autoImport_subtitle": "New dives from your watch appear when you open the app.",
+  "settings_appleHealth_metrics_title": "Heart rate, recovery and sleep",
+  "settings_appleHealth_metrics_subtitle": "Adds heart rate during and after each dive, overnight HRV and the sleep before it.",
+  "settings_appleHealth_boundDiver": "For: {name}",
+  "@settings_appleHealth_boundDiver": {
+    "description": "Under an Apple Health switch: the diver whose dives it writes to",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally on this device and is never shared with third parties. Submersion only reads data from Apple HealthKit and does not write any data back to HealthKit.",
   "settings_dataSources_appleHealth_poweredBy": "Powered by Apple HealthKit",
   "diveLog_edit_subsection_autofill": "Auto-fill",
@@ -22971,6 +23276,8 @@
   "@reparseBatch_confirmSkipped": {"description": "Bulk re-parse (issue #224)", "placeholders": {"count": {"type": "int"}}},
   "reparseBatch_noneWithRawData": "None of the selected dives have stored raw data to re-parse.",
   "@reparseBatch_noneWithRawData": {"description": "Bulk re-parse (issue #224)"},
+  "diveLog_selection_tooltip_fetchConditions": "Fetch Conditions",
+  "@diveLog_selection_tooltip_fetchConditions": {"description": "Selection bar action that fetches conditions for the checked dives (issue #4329)"},
   "diveLog_selection_tooltip_reparse": "Re-parse",
   "@diveLog_selection_tooltip_reparse": {"description": "Bulk re-parse (issue #224)"},
   "settings_reparseDives_title": "Re-parse dives",
@@ -25115,6 +25422,39 @@
   },
   "diveLog_detail_menu_logNearMiss": "Log near-miss",
   "diveLog_planned_chip": "Planned",
+  "diveLog_draft_chip": "Waiting for download",
+  "@diveLog_draft_chip": {"description": "List marker for a draft dive: marked at the site, waiting for its dive computer readings"},
+  "diveLog_draft_inWaterChip": "In the water",
+  "diveLog_draft_title": "Draft dive",
+  "@diveLog_draft_title": {"description": "Title for a draft dive, which has no number yet"},
+  "diveLog_draft_bannerBody": "About {minutes} min from your taps. Download your dive computer to fill in depth and time.",
+  "@diveLog_draft_bannerBody": {
+    "description": "Banner body on a draft dive: the estimated length from the Entered water and Surfaced taps",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_draft_bannerBodyOpen": "Tap Surfaced when you are out of the water.",
+  "diveLog_draft_downloadNow": "Download now",
+  "diveLog_draft_markComplete": "Mark as complete",
+  "@diveLog_draft_markComplete": {"description": "Action on a draft dive that will never be downloaded: keep it as a hand-added dive"},
+  "diveLog_draft_surfaced": "Surfaced",
+  "diveLog_draft_markedComplete": "Marked as complete",
+  "diveLog_draft_markCompleteFailed": "Couldn't mark the dive as complete.",
+  "diveLog_draft_stale_title": "Did you surface?",
+  "diveLog_draft_stale_body": "You entered the water at {time} and the dive is still open.",
+  "@diveLog_draft_stale_body": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_draft_stale_stillIn": "Still in the water",
+  "diveLog_draft_stale_setTime": "Set surfacing time",
+  "@diveLog_draft_inWaterChip": {"description": "List marker for a draft dive whose diver has entered the water and not yet surfaced"},
   "diveLog_planned_bannerTitle": "Planned dive",
   "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
   "diveLog_planned_openInPlanner": "Open in planner",
@@ -25147,6 +25487,7 @@
   "diveLog_detail_menu_logForBuddy": "Log for a buddy's profile",
   "diveLog_detail_loggedWith": "Logged with",
   "diveLog_detail_loggedWithPlanned": "awaiting their dive computer",
+  "diveLog_detail_menu_addHeartRate": "Add heart rate from Apple Health",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -29458,6 +29799,14 @@
   "explore_unplaced_reason_unknownTime": "Could not read this time",
   "explore_unresolved_noCandidates": "No match in your logbook",
   "diveLog_listPage_semanticsDiveAtSite": "Dive {diveNumber} at {siteName}",
+  "diveLog_listPage_semanticsDraftDiveAtSite": "Draft dive at {siteName}",
+  "@diveLog_listPage_semanticsDraftDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_listPage_semanticsPlannedDiveAtSite": "Planned dive at {siteName}",
   "@diveLog_listPage_semanticsPlannedDiveAtSite": {
     "placeholders": {
@@ -30932,6 +31281,8 @@
   "diveLog_detail_errorLoadingSignature": "Error loading signature: {error}",
   "diveLog_profilePanel_selectDive": "Select a dive to view its profile",
   "diveLog_profilePanel_noProfileData": "No profile data for this dive",
+  "diveLog_estimatedProfile_caption": "Estimated from max depth and time, not a recorded profile",
+  "@diveLog_estimatedProfile_caption": {"description": "Caption under the dashed outline drawn for a dive with no recorded profile"},
   "@lock_startFresh_body": {
     "description": "Body of the start-fresh confirmation dialog. {token} is the untranslated ASCII confirmation word the diver must type.",
     "placeholders": {
@@ -33099,7 +33450,7 @@
   "transmitters_section_setUp": "Set up",
   "transmitters_action_apply": "Apply to existing dives",
   "transmitters_apply_title": "Apply to existing dives?",
-  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
+  "transmitters_apply_content": "{tanks} cylinders on {dives} dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter's name will be replaced.",
   "@transmitters_apply_content": {
     "placeholders": {
       "tanks": { "type": "int" },
@@ -33113,7 +33464,23 @@
       "dives": { "type": "int" }
     }
   },
-  "transmitters_apply_nothing": "No cylinders carry this transmitter",
+  "transmitters_apply_slot_label": "Slot on {computer}",
+  "@transmitters_apply_slot_label": {
+    "placeholders": { "computer": { "type": "String" } }
+  },
+  "transmitters_apply_slot_none": "Don't match by slot",
+  "transmitters_apply_slot_option": "T{slot}: {dives, plural, one{{dives} dive} other{{dives} dives}}",
+  "@transmitters_apply_slot_option": {
+    "placeholders": { "slot": { "type": "int" }, "dives": { "type": "int" } }
+  },
+  "transmitters_apply_slot_reading": "Reading imported files",
+  "transmitters_apply_slot_intro": "Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.",
+  "transmitters_apply_summary": "Dives filled by serial: {serialDives}, by slot: {slotDives}",
+  "@transmitters_apply_summary": {
+    "placeholders": { "serialDives": { "type": "int" }, "slotDives": { "type": "int" } }
+  },
+  "transmitters_apply_nothing_to_fill": "No cylinder needs this transmitter's setup",
+  "transmitters_apply_slot_read_failed": "The imported files could not be read, so cylinders cannot be matched by slot",
   "transmitters_channel": "{computer}, channel {channel}",
   "@transmitters_channel": {
     "placeholders": {
@@ -33931,6 +34298,8 @@
   "@query_dives_diveNumber": {"description": "Field label in the query builder"},
   "query_dives_diveOperator": "Operator",
   "@query_dives_diveOperator": {"description": "Field label in the query builder"},
+  "query_dives_draft": "Draft",
+  "@query_dives_draft": {"description": "Field label in the query builder: a dive marked at the site that waits for its dive computer readings"},
   "query_dives_entryMethod": "Entry method",
   "@query_dives_entryMethod": {"description": "Field label in the query builder"},
   "query_dives_excludedFromStats": "Excluded from statistics",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -507,7 +508,7 @@ class _EntityTab extends ConsumerWidget {
     final plannedDives = offersFill
         ? ref
                   .watch(
-                    plannedFillCandidatesProvider(
+                    fillCandidatesProvider(
                       bundle.targetChoice?.chosenDiverId ?? notifier.diverId,
                     ),
                   )
@@ -516,7 +517,7 @@ class _EntityTab extends ConsumerWidget {
         : const <Dive>[];
     final units = ref.watch(unitFormatterProvider);
     String? plannedLabelFor(int index) {
-      final plannedId = group.matchResults?[index]?.plannedDiveId;
+      final plannedId = group.matchResults?[index]?.fillTarget?.diveId;
       if (plannedId == null) return null;
       final dive = plannedDives.where((d) => d.id == plannedId).firstOrNull;
       if (dive == null) return null;
@@ -527,22 +528,30 @@ class _EntityTab extends ConsumerWidget {
     }
 
     Future<void> changeFillTarget(int index) async {
-      final current = group.matchResults?[index]?.plannedDiveId;
+      final current = group.matchResults?[index]?.fillTarget?.diveId;
       // A plan takes one download: the ones other rows of this batch
       // already fill are not on offer, or the second fill would find its
       // target promoted and silently import as new instead.
       final taken = <String>{
         for (final entry in (group.matchResults ?? const {}).entries)
-          if (entry.key != index) ?entry.value.plannedDiveId,
+          if (entry.key != index) ?entry.value.fillTarget?.diveId,
       };
       final picked = await showPlannedDivePicker(
         context,
         plannedDives: plannedDives,
         selectedId: current,
         unavailableIds: taken,
+        // A download that fits more than one draft (issue #637) lists those
+        // drafts first.
+        leadingIds:
+            group.matchResults?[index]?.fillCandidates ?? const <String>[],
       );
       if (picked == null) return;
-      notifier.setPlannedFillTarget(index, picked.isEmpty ? null : picked);
+      final target = plannedDives.where((d) => d.id == picked).firstOrNull;
+      notifier.setFillTarget(
+        index,
+        target == null ? null : FillTarget.of(target),
+      );
     }
 
     return SingleChildScrollView(

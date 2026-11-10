@@ -262,4 +262,35 @@ AWS4-HMAC-SHA256
       );
     });
   });
+
+  group('presign', () {
+    test('presign matches the AWS published example', () {
+      // docs.aws.amazon.com AmazonS3 sigv4-query-string-auth example,
+      // recomputed independently before being written down here.
+      final url = SigV4Signer.presign(
+        method: 'GET',
+        scheme: 'https',
+        host: 'examplebucket.s3.amazonaws.com',
+        canonicalUri: '/test.txt',
+        accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
+        secretAccessKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+        region: 'us-east-1',
+        requestTime: DateTime.utc(2013, 5, 24),
+        expiresIn: const Duration(seconds: 86400),
+      );
+      expect(url.scheme, 'https');
+      expect(url.host, 'examplebucket.s3.amazonaws.com');
+      expect(url.path, '/test.txt');
+      expect(url.queryParameters, {
+        'X-Amz-Algorithm': 'AWS4-HMAC-SHA256',
+        'X-Amz-Credential':
+            'AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request',
+        'X-Amz-Date': '20130524T000000Z',
+        'X-Amz-Expires': '86400',
+        'X-Amz-SignedHeaders': 'host',
+        'X-Amz-Signature':
+            'aeeed9bbccd4d02ee5c0109b86d86835f995330da4c265957d157751f604d404',
+      });
+    });
+  });
 }

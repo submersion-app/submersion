@@ -58,6 +58,7 @@ void main() {
     final legacy = await legacyRecord('dives', 'dive-1', [
       'isFavorite',
       'isPlanned',
+      'isDraft',
     ]);
     await (db.delete(db.dives)..where((t) => t.id.equals('dive-1'))).go();
 
@@ -69,6 +70,8 @@ void main() {
     )..where((t) => t.id.equals('dive-1'))).getSingle();
     expect(row.isFavorite, isFalse);
     expect(row.isPlanned, isFalse);
+    // A peer from before drafts (#637) sends no flag: an ordinary dive.
+    expect(row.isDraft, isFalse);
   });
 
   test('a dive center from a pre-v313 peer arrives open (#3379)', () async {
