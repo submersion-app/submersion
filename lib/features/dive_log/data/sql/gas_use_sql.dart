@@ -13,11 +13,22 @@ import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dar
 
 /// What the gas-use expressions read beyond the dive row and the
 /// [measuredRuntimeTables], by SQL name: a query or tick over a whole-dive
-/// rate follows these too.
+/// rate follows these too. `tank_pressure_series` says which cylinders a
+/// transmitter logged, whose entered surface minutes do not count.
 ///
 /// The surface minutes term also reads `dive_tanks`, which every whole-dive
 /// rate already reads for its pressure drop, so it is not repeated here.
-const Set<String> gasUseTables = {'dive_derived_metrics'};
+const Set<String> gasUseTables = {
+  'dive_derived_metrics',
+  'tank_pressure_series',
+};
+
+/// Whether the `dive_tanks` row aliased [tank] has no transmitter log: its
+/// end pressure was read off the gauge, so it can hold gas breathed after
+/// the computer stopped. The SQL form of `!DiveTank.hasPressureSeries`.
+String _unloggedSql(String tank) =>
+    'NOT EXISTS (SELECT 1 FROM tank_pressure_series gu_s '
+    'WHERE gu_s.dive_id = $tank.dive_id AND gu_s.tank_id = $tank.id)';
 
 String _cached(String dive, String column) =>
     '(SELECT gu.$column FROM dive_derived_metrics gu '
@@ -56,19 +67,22 @@ String _contributesSql(String tank, String dive, GasUseLane lane) =>
 
 /// Seconds the diver entered for breathing at the surface after the computer
 /// stopped logging that [lane] counts, 0 when none: the SQL form of
-/// `enteredSurfaceSeconds` over the breathing cylinders with a logged drop.
-/// A matched pair's shared time counts once, at its longer entry.
+/// `enteredSurfaceSeconds` over the breathing cylinders with a logged drop
+/// and no transmitter log. A matched pair's shared time counts once, at its
+/// longer entry.
 String _surfaceSeconds(String dive, GasUseLane lane) =>
     '(SELECT COALESCE(SUM(gu_t.surface_breathing_duration), 0) '
     'FROM dive_tanks gu_t WHERE gu_t.dive_id = $dive.id '
     'AND gu_t.start_pressure > gu_t.end_pressure '
     "AND ${breathingTankSql('gu_t')} "
     'AND gu_t.surface_breathing_duration > 0 '
+    "AND ${_unloggedSql('gu_t')} "
     "AND ${_contributesSql('gu_t', dive, lane)} "
     'AND NOT EXISTS (SELECT 1 FROM dive_tanks gu_p '
     'WHERE gu_p.dive_id = gu_t.dive_id AND gu_p.id <> gu_t.id '
     'AND gu_p.start_pressure > gu_p.end_pressure '
     "AND ${breathingTankSql('gu_p')} "
+    "AND ${_unloggedSql('gu_p')} "
     "AND ${matchedPairSql('gu_t', 'gu_p')} "
     'AND (COALESCE(gu_p.surface_breathing_duration, 0) '
     '> gu_t.surface_breathing_duration '

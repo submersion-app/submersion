@@ -101,8 +101,9 @@ class CylinderSac extends Equatable {
 
   /// Seconds of [usageDuration] the diver entered for breathing this cylinder
   /// at the surface after the computer stopped logging (issue #2930): counted
-  /// at 0 m when the rate comes from the logged pressures, which include that
-  /// gas; 0 when it comes from the pressure series, which does not.
+  /// at 0 m when the rate comes from pressures read off the gauge, which
+  /// include that gas; 0 on a cylinder a transmitter logged, whose readings
+  /// end before it (see `DiveTank.hasPressureSeries`).
   final int surfaceSeconds;
 
   const CylinderSac({

@@ -104,6 +104,30 @@ void main() {
     expect(field(), findsNothing);
   });
 
+  testWidgets('a cylinder a transmitter logged has no such field', (
+    tester,
+  ) async {
+    // Its end pressure is the transmitter's last reading, so entered minutes
+    // would change nothing.
+    final changes = await pump(
+      tester,
+      const DiveTank(
+        id: 't',
+        startPressure: 200,
+        endPressure: 150,
+        surfaceBreathingDuration: Duration(minutes: 10),
+        hasPressureSeries: true,
+      ),
+    );
+    expect(field(), findsNothing);
+    await tester.enterText(
+      find.widgetWithText(TextField, 'End Pressure'),
+      '140',
+    );
+    expect(changes.last.surfaceBreathingDuration, isNull);
+    expect(changes.last.hasPressureSeries, isTrue);
+  });
+
   testWidgets('a suit inflation bottle saves no hidden minutes', (
     tester,
   ) async {

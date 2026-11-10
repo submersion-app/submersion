@@ -839,6 +839,7 @@ class DiveRepository {
 
     final profileSpans = await _profileSpansFor(rows);
     final gasUses = await _gasUsesFor(diveIds);
+    final loggedTankIds = await _loggedTankIdsFor(diveIds);
 
     return rows
         .map(
@@ -864,6 +865,7 @@ class DiveRepository {
             profileSpan: profileSpans[row.id],
             storedGasUse: gasUses[row.id]?.use,
             surfaceBreathing: gasUses[row.id]?.breathing,
+            loggedTankIds: loggedTankIds,
           ),
         )
         .toList();
@@ -948,6 +950,28 @@ class DiveRepository {
       }
     }
     return uses;
+  }
+
+  /// The ids of the cylinders of [diveIds] that a transmitter logged (issue
+  /// #2930): their end pressure is the last reading, so entered surface
+  /// minutes do not count on them (see `DiveTank.hasPressureSeries`). Reads
+  /// no samples.
+  // stats-scope-exempt: hydrates the dives of a list, and aggregates nothing
+  Future<Set<String>> _loggedTankIdsFor(List<String> diveIds) async {
+    final ids = <String>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final result = await _db
+          .customSelect(
+            'SELECT DISTINCT tank_id FROM tank_pressure_series '
+            'WHERE dive_id IN ($placeholders)',
+            variables: [for (final id in chunk) Variable<String>(id)],
+            readsFrom: {_db.tankPressureSeries},
+          )
+          .get();
+      ids.addAll(result.map((row) => row.read<String>('tank_id')));
+    }
+    return ids;
   }
 
   /// Get a single dive by ID
@@ -5038,6 +5062,7 @@ class DiveRepository {
     Duration? profileSpan,
     GasUse? storedGasUse,
     SurfaceBreathing? surfaceBreathing,
+    Set<String> loggedTankIds = const {},
   }) {
     // Map site if exists
     final domainSite = site == null ? null : mapDiveSiteRow(site);
@@ -5274,6 +5299,7 @@ class DiveRepository {
               surfaceBreathingDuration: t.surfaceBreathingDuration != null
                   ? Duration(seconds: t.surfaceBreathingDuration!)
                   : null,
+              hasPressureSeries: loggedTankIds.contains(t.id),
             ),
           )
           .toList(),
@@ -5398,6 +5424,11 @@ class DiveRepository {
       startPressureByTank[entry.key] = endpoints.start;
       endPressureByTank[entry.key] = endpoints.end;
     }
+
+    // Which cylinders a transmitter logged, from whether a series row exists
+    // rather than from the series decoded above, which drops a row it cannot
+    // read: the list read and the SQL ask the same question (issue #2930).
+    final loggedTankIds = await _loggedTankIdsFor([row.id]);
 
     // Get profile for this dive from [_mergedSeriesPoints].
     // [getMergedProfile] mirrors this read and the two must stay in step.
@@ -5750,6 +5781,7 @@ class DiveRepository {
           surfaceBreathingDuration: t.surfaceBreathingDuration != null
               ? Duration(seconds: t.surfaceBreathingDuration!)
               : null,
+          hasPressureSeries: loggedTankIds.contains(t.id),
         );
       }).toList(),
       profile: seriesProfile,

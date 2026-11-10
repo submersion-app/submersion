@@ -286,7 +286,9 @@ class DiveTanks extends Table {
   /// v348: seconds the diver breathed this cylinder at the surface after the
   /// computer stopped logging, as they entered it (issue #2930): oxygen on
   /// the boat after a deco dive. Whole-dive and per-cylinder SAC count it at
-  /// 0 m, since no recording shows it. Null when none was entered.
+  /// 0 m, since no recording shows it, on a cylinder with no
+  /// tank_pressure_series row, whose end was read off the gauge. Null when
+  /// none was entered.
   IntColumn get surfaceBreathingDuration => integer().nullable()();
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber

@@ -95,6 +95,45 @@ void main() {
     expect(breathing.until, isNull);
   });
 
+  test('a series running past the recording stretches to its lowest inside '
+      'it', () {
+    // The transmitter logs on for three minutes after the depth recording
+    // ends and reads lower there; the fall inside the recording still counts.
+    final series = <PressureSample>[
+      for (var t = 0; t <= 45 * 60; t += 10)
+        (
+          timestamp: t,
+          bar: t <= 33 * 60
+              ? 120
+              : t <= 39 * 60
+              ? 120 - (t - 33 * 60) / 60
+              : t <= 42 * 60
+              ? 114
+              : 100,
+        ),
+    ];
+    expect(_of(pressures: [series])!.until, 39 * 60);
+  });
+
+  test('a series starting before the recording stretches back inside it', () {
+    // Readings before the depth recording begins were higher still; the
+    // stretch stays at the recording's own highest.
+    final series = <PressureSample>[
+      for (var t = -3 * 60; t <= 42 * 60; t += 10)
+        (
+          timestamp: t,
+          bar: t < 0
+              ? 230
+              : t <= 30
+              ? 210
+              : t <= 2 * 60
+              ? 210 - (t - 30) / 15
+              : 204,
+        ),
+    ];
+    expect(_of(pressures: [series])!.from, 30);
+  });
+
   test('the latest signal of several wins', () {
     double bar(int t) {
       if (t <= 33 * 60) return 120;
