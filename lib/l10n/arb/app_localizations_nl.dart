@@ -2032,6 +2032,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kies welke eigenschappen worden overschreven op de flessen die deze duiken al hebben. Begin- en einddruk worden nooit gewijzigd.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Alle flessen';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Kies minstens één fleseigenschap om bij te werken.';
 

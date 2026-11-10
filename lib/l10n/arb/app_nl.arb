@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "Vervangen",
   "diveLog_bulkEdit_modeUpdate": "Bijwerken",
   "diveLog_bulkEdit_tankSpecsHint": "Kies welke eigenschappen worden overschreven op de flessen die deze duiken al hebben. Begin- en einddruk worden nooit gewijzigd.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "Alle flessen",
   "diveLog_bulkEdit_tankSpecsNoFields": "Kies minstens één fleseigenschap om bij te werken.",
   "diveLog_bulkEdit_tankFieldPreset": "Voorinstelling",
   "diveLog_bulkEdit_tankFieldRole": "Rol",

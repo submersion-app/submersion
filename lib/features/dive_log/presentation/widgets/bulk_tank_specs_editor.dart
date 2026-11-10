@@ -129,6 +129,9 @@ class _BulkTankSpecsEditorState extends State<BulkTankSpecsEditor> {
         TankEditor(
           tank: widget.specs,
           tankNumber: 1,
+          // The values go to every tank on every selected dive, so the card
+          // must not read as the dives' first tank (#3367).
+          headerTitle: context.l10n.diveLog_bulkEdit_tankSpecsTemplateTitle,
           onChanged: widget.onSpecsChanged,
           canRemove: false,
           showPressures: false,

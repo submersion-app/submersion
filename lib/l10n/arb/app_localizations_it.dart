@@ -2043,6 +2043,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scegli quali attributi sovrascrivere sulle bombole che queste immersioni hanno già. Le pressioni iniziale e finale non vengono mai modificate.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Tutte le bombole';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Scegli almeno un attributo della bombola da aggiornare.';
 

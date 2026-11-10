@@ -2039,6 +2039,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wähle aus, welche Eigenschaften der bereits vorhandenen Flaschen überschrieben werden. Anfangs- und Enddruck werden nie geändert.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Alle Flaschen';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Wähle mindestens eine Flascheneigenschaft zum Aktualisieren.';
 

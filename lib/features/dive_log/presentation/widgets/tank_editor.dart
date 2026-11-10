@@ -64,6 +64,12 @@ class TankEditor extends ConsumerStatefulWidget {
   /// (#797), which never writes pressures.
   final bool showPressures;
 
+  /// Replaces the numbered "Tank N" header with this title and a stacked
+  /// icon. Used where the editor is a template written to many tanks, such
+  /// as the bulk spec update, where "Tank 1" read as only the first tank
+  /// (#3367). Null keeps the number.
+  final String? headerTitle;
+
   /// Called with the diver's own cylinder when its tag is scanned (issue
   /// #2335) or it is picked from "My cylinders" (issue #2599), so the host
   /// can add it to the dive's gear. Awaited, so a failed add is reported
@@ -114,6 +120,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.showPressures = true,
+    this.headerTitle,
     this.onOwnCylinderUsed,
     this.diveDate,
     this.onScanPending,
@@ -605,17 +612,21 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildHeader(GasMix gasMix) {
+    final onContainer = Theme.of(context).colorScheme.onPrimaryContainer;
+    final headerTitle = widget.headerTitle;
     return Row(
       children: [
         CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Text(
-            '${widget.tankNumber}',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child: headerTitle != null
+              ? Icon(Icons.layers_outlined, color: onContainer)
+              : Text(
+                  '${widget.tankNumber}',
+                  style: TextStyle(
+                    color: onContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -623,7 +634,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.l10n.diveLog_tank_title(widget.tankNumber),
+                headerTitle ??
+                    context.l10n.diveLog_tank_title(widget.tankNumber),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(

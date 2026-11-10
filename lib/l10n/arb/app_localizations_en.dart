@@ -2026,6 +2026,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose which attributes to overwrite on the tanks these dives already have. Start and end pressures are never changed.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'All tanks';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Choose at least one tank attribute to update.';
 

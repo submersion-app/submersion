@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "Sostituisci",
   "diveLog_bulkEdit_modeUpdate": "Aggiorna",
   "diveLog_bulkEdit_tankSpecsHint": "Scegli quali attributi sovrascrivere sulle bombole che queste immersioni hanno già. Le pressioni iniziale e finale non vengono mai modificate.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "Tutte le bombole",
   "diveLog_bulkEdit_tankSpecsNoFields": "Scegli almeno un attributo della bombola da aggiornare.",
   "diveLog_bulkEdit_tankFieldPreset": "Preimpostazione",
   "diveLog_bulkEdit_tankFieldRole": "Ruolo",

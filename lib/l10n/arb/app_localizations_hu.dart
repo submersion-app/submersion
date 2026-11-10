@@ -2038,6 +2038,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Válaszd ki, mely tulajdonságok íródjanak felül a merülésekhez már tartozó palackokon. A kezdő és a záró nyomás soha nem változik.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Minden palack';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Válassz legalább egy palacktulajdonságot a frissítéshez.';
 
