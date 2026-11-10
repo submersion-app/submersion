@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -201,6 +202,28 @@ void main() {
       expect(result.tanksUpdated, 0);
     });
 
+    test('a dive with no diver uses the entries that name no diver', () async {
+      await seedDive('d1');
+      await seedDive('d2');
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "UPDATE dives SET diver_id = NULL WHERE id = 'd1'",
+      );
+      await seedTank(id: 'k1', diveId: 'd1', serial: '76287');
+      await seedTank(id: 'k2', diveId: 'd2', serial: '76287');
+      await repo.create(_entry(id: 'shared', diverId: null));
+
+      final result = await repo.applyToDives(['d1', 'd2']);
+
+      expect(result.tanksUpdated, 1);
+      expect((await tank('k1')).tankName, 'T2');
+      expect(
+        (await tank('k2')).tankName,
+        isNull,
+        reason: "diver-1's dive does not take a diverless entry",
+      );
+    });
+
     test('an empty list writes nothing', () async {
       expect(await repo.applyToDives(const []), (
         tanksUpdated: 0,
@@ -209,4 +232,17 @@ void main() {
       ));
     });
   });
+
+  test('applyTransmitterSetupToDives swallows a failing fill', () async {
+    await expectLater(
+      applyTransmitterSetupToDives(['d1'], repository: _ThrowingRepository()),
+      completes,
+    );
+  });
+}
+
+class _ThrowingRepository extends TransmitterRepository {
+  @override
+  Future<ApplyToExistingResult> applyToDives(Iterable<String> diveIds) =>
+      Future.error(StateError('fill failed'));
 }

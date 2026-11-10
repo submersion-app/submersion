@@ -158,6 +158,33 @@ void main() {
     expect(byPressure[190.0]!.transmitterSerial, '76290');
   });
 
+  test('a file cylinder whose pressure matches no reading keeps its order '
+      'pairing and takes no serial', () async {
+    final diveId = await download(const [
+      TankData(index: 0, o2Percent: 21, startPressure: 150.0),
+    ]);
+    await (db.update(
+      db.diveTanks,
+    )..where((t) => t.diveId.equals(diveId))).write(
+      const DiveTanksCompanion(
+        computerId: Value(null),
+        sourceTankIndex: Value(null),
+      ),
+    );
+
+    await replaceWith(diveId, const [
+      TankData(
+        index: 0,
+        o2Percent: 21,
+        startPressure: 206.9,
+        transmitterSerial: '76287',
+      ),
+    ]);
+
+    final tank = (await tanksOf(diveId)).single;
+    expect(tank.transmitterSerial, isNull);
+  });
+
   test('start pressures that disagree leave the serial empty', () async {
     final diveId = await download(const [
       TankData(index: 0, o2Percent: 21, startPressure: 206.8),

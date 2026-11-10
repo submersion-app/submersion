@@ -56,10 +56,21 @@ void main() {
     ],
   );
 
-  Future<void> download(DownloadedDive d, ImportMode mode) => DiveImportService(
-    repository: DiveComputerRepository(),
-    diveRepository: DiveRepository(),
-  ).importDives(dives: [d], computer: computer, diverId: 'me', mode: mode);
+  Future<void> download(
+    DownloadedDive d,
+    ImportMode mode, {
+    ConflictResolution resolution = ConflictResolution.skip,
+  }) =>
+      DiveImportService(
+        repository: DiveComputerRepository(),
+        diveRepository: DiveRepository(),
+      ).importDives(
+        dives: [d],
+        computer: computer,
+        diverId: 'me',
+        mode: mode,
+        defaultResolution: resolution,
+      );
 
   test('Replace source gives a set-up transmitter to the cylinder that '
       'lacked it', () async {
@@ -95,5 +106,32 @@ void main() {
     final rows = await db.select(db.transmitters).get();
     expect(rows.single.transmitterSerial, '76287');
     expect(rows.single.isConfigured, isFalse);
+  });
+
+  test('a duplicate resolved by Replace source by default settles its '
+      'transmitters too', () async {
+    await download(dive(), ImportMode.newOnly);
+    await TransmitterRepository().create(
+      Transmitter(
+        id: 'tx',
+        diverId: 'me',
+        transmitterSerial: '76287',
+        label: 'T2',
+        role: TankRole.sidemountLeft,
+        volumeL: 10,
+        createdAt: DateTime.utc(2026, 11, 1),
+        updatedAt: DateTime.utc(2026, 11, 1),
+      ),
+    );
+
+    await download(
+      dive(serial: '76287'),
+      ImportMode.newOnly,
+      resolution: ConflictResolution.replaceSource,
+    );
+
+    final tank = (await db.select(db.diveTanks).get()).single;
+    expect(tank.transmitterSerial, '76287');
+    expect(tank.tankRole, 'sidemountLeft');
   });
 }
