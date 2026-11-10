@@ -14,6 +14,7 @@ import 'package:submersion/features/divers/data/repositories/diver_repository.da
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -99,6 +100,11 @@ void main() {
     expect(species.single.speciesName, 'Grouper');
     final tag = (await TagRepository().getAllTags(diverId: 'd1')).single;
     expect(tag.diverId, 'd1', reason: 'vocabulary belongs to the diver');
+    expect(
+      tag.scopes,
+      TagScope.everywhere,
+      reason: 'a new tag can be reused on any kind of item (#4407)',
+    );
   });
 
   test('apply reuses existing vocabulary case-insensitively', () async {
