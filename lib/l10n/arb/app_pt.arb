@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "Substituir",
   "diveLog_bulkEdit_modeUpdate": "Atualizar",
   "diveLog_bulkEdit_tankSpecsHint": "Escolhe quais atributos sobrescrever nos cilindros que estes mergulhos já têm. As pressões inicial e final nunca são alteradas.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "Todos os cilindros",
   "diveLog_bulkEdit_tankSpecsNoFields": "Escolhe pelo menos um atributo de cilindro para atualizar.",
   "diveLog_bulkEdit_tankFieldPreset": "Predefinição",
   "diveLog_bulkEdit_tankFieldRole": "Função",

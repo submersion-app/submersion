@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "استبدال",
   "diveLog_bulkEdit_modeUpdate": "تحديث",
   "diveLog_bulkEdit_tankSpecsHint": "اختر السمات التي سيتم استبدالها في الأسطوانات الموجودة بالفعل في هذه الغطسات. لا يتغير ضغط البداية والنهاية أبدًا.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "جميع الأسطوانات",
   "diveLog_bulkEdit_tankSpecsNoFields": "اختر سمة واحدة على الأقل للأسطوانة لتحديثها.",
   "diveLog_bulkEdit_tankFieldPreset": "إعداد مسبق",
   "diveLog_bulkEdit_tankFieldRole": "الدور",

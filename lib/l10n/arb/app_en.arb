@@ -1226,6 +1226,7 @@
   "diveLog_bulkEdit_modeUpdate": "Update",
   "diveLog_bulkEdit_tankOnlyIfEmpty": "Only dives that don't already have a tank",
   "diveLog_bulkEdit_tankSpecsHint": "Choose which attributes to overwrite on the tanks these dives already have. Start and end pressures are never changed.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "All tanks",
   "diveLog_bulkEdit_tankSpecsNoFields": "Choose at least one tank attribute to update.",
   "diveLog_bulkEdit_tankFieldPreset": "Preset",
   "diveLog_bulkEdit_tankFieldRole": "Role",

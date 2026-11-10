@@ -2100,6 +2100,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'اختر السمات التي سيتم استبدالها في الأسطوانات الموجودة بالفعل في هذه الغطسات. لا يتغير ضغط البداية والنهاية أبدًا.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'جميع الأسطوانات';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'اختر سمة واحدة على الأقل للأسطوانة لتحديثها.';
 

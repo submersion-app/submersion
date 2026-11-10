@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "החלף",
   "diveLog_bulkEdit_modeUpdate": "עדכון",
   "diveLog_bulkEdit_tankSpecsHint": "בחר אילו מאפיינים לדרוס במיכלים שכבר קיימים בצלילות אלה. לחצי ההתחלה והסיום לעולם אינם משתנים.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "כל המכלים",
   "diveLog_bulkEdit_tankSpecsNoFields": "בחר לפחות מאפיין אחד של מיכל לעדכון.",
   "diveLog_bulkEdit_tankFieldPreset": "הגדרה מראש",
   "diveLog_bulkEdit_tankFieldRole": "תפקיד",

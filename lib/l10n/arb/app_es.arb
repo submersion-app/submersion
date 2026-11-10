@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "Reemplazar",
   "diveLog_bulkEdit_modeUpdate": "Actualizar",
   "diveLog_bulkEdit_tankSpecsHint": "Elige qué atributos sobrescribir en las botellas que estas inmersiones ya tienen. Las presiones inicial y final nunca se modifican.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "Todas las botellas",
   "diveLog_bulkEdit_tankSpecsNoFields": "Elige al menos un atributo de botella para actualizar.",
   "diveLog_bulkEdit_tankFieldPreset": "Preajuste",
   "diveLog_bulkEdit_tankFieldRole": "Función",

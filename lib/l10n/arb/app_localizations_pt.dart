@@ -2042,6 +2042,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Escolhe quais atributos sobrescrever nos cilindros que estes mergulhos já têm. As pressões inicial e final nunca são alteradas.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Todos os cilindros';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Escolhe pelo menos um atributo de cilindro para atualizar.';
 
