@@ -230,6 +230,7 @@ const Map<String, String> keptEnglishValues = {
   'settings_gitConfig_field_repoUrl_hint': _exampleAddress,
   'settings_webdavConfig_field_serverUrl_hintDav': _exampleAddress,
   'siteType_builtin_blue_hole@de': _loanword,
+  'speciesMap_semantics_cluster@fr': _sameWord,
   'siteType_builtin_blue_hole@it': _loanword,
   'siteType_builtin_blue_hole@nl': _loanword,
   'species_chromodoris_annae_name@nl': _speciesName,

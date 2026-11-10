@@ -21,6 +21,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/database/computer_serial_identity.dart';
 import 'package:submersion/core/database/dive_water_temp_fill.dart';
 import 'package:submersion/core/database/imported_computer_identity.dart';
+import 'package:submersion/core/database/snapshot_serial_heal.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
@@ -64,6 +65,7 @@ import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
+import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
 
 /// A `dive_profile_series` row [DiveComputerRepository.findComputerDivesContainingTime]
 /// found, with the anchor needed to turn an absolute time into an offset on
@@ -477,6 +479,7 @@ class DiveComputerRepository {
         localUpdatedAt: now,
       );
       SyncEventBus.notifyLocalChange();
+      await _healSnapshotSerials(computer.id);
 
       _log.info('Updated dive computer: ${computer.id}');
     } catch (e, stackTrace) {
@@ -486,6 +489,30 @@ class DiveComputerRepository {
         stackTrace: stackTrace,
       );
       rethrow;
+    }
+  }
+
+  /// Brings the serial copies on [computerId]'s downloaded sources and dives
+  /// in line with the serial its record now holds (issue #4368): a download
+  /// learns the serial only when it completes, so a computer's first
+  /// download saved its copies empty. Local-only, like the every-open heal
+  /// that does the same for the whole library. Best-effort: the computer is
+  /// already saved, and the next open repeats it.
+  Future<void> _healSnapshotSerials(String computerId) async {
+    try {
+      if (await healDownloadedSnapshotSerials(_db, computerId: computerId) >
+          0) {
+        _db.notifyUpdates({
+          TableUpdate.onTable(_db.diveDataSources),
+          TableUpdate.onTable(_db.dives),
+        });
+      }
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Failed to update serial copies for dive computer: $computerId',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
@@ -2072,11 +2099,36 @@ class DiveComputerRepository {
           // This computer's own reading again, so its rows are found the way
           // a re-parse finds them: by source index, which a diver's
           // reassignment moves, before falling back to the stored order.
-          final matches = matchStoredTanks(existingTanks, [
-            for (final tank in tanks) tank.index,
-          ], computerId: computerId);
+          final matches = pairFileTanksByPressure(
+            matchStoredTanks(existingTanks, [
+              for (final tank in tanks) tank.index,
+            ], computerId: computerId),
+            existingTanks,
+            [
+              for (final tank in tanks)
+                (index: tank.index, startPressure: tank.startPressure),
+            ],
+          );
+          final serialNow = DateTime.now().millisecondsSinceEpoch;
           for (final MapEntry(key: index, value: row) in matches.entries) {
             tankIdsByIndex[index] = row.id;
+            // A cylinder a file import left without its transmitter takes
+            // this reading's, once the start pressures agree (#4388).
+            final reading = tanks.firstWhere((t) => t.index == index);
+            final serial = serialToFill(
+              row,
+              readingSerial: reading.transmitterSerial,
+              readingStartPressure: reading.startPressure,
+            );
+            if (serial != null) {
+              await writeStoredTankSerial(
+                _db,
+                _syncRepository,
+                row.id,
+                serial,
+                now: serialNow,
+              );
+            }
           }
           // Its gas switches go to its own cylinders only: on a dive other
           // computers recorded too, a stored cylinder of the same mix can be

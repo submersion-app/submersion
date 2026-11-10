@@ -106,7 +106,10 @@ The rows, in order:
 > gas switch logged after you surfaced (oxygen on the boat), or a cylinder whose
 > pressure keeps falling by 5 bar or more on the surface (a surface swim on the
 > regulator). For time after your computer stopped logging, enter the minutes in
-> the cylinder's **Breathed at the surface** field.
+> the cylinder's **Breathed at the surface** field, with the end pressure you read
+> off its gauge afterwards. The field shows only on a cylinder without a
+> transmitter, since a transmitter's last reading was taken before your computer
+> stopped and so does not include that gas.
 
 ### Automatic dive numbering
 

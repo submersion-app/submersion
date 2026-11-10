@@ -86,7 +86,11 @@ Future<void> main() async {
       }
 
       final match = jsonDecode(body) as Map<String, dynamic>;
-      final usageKey = match['usageKey'];
+      // A name GBIF has since renamed matches as a synonym. Occurrence
+      // records carry the accepted key, so a synonym's key finds only the
+      // few filed under the old name (the zebra shark's found 116 of 1,490)
+      // and never matches a nearby record's species key.
+      final usageKey = match['acceptedUsageKey'] ?? match['usageKey'];
 
       // A name GBIF does not know comes back as a HIGHERRANK match on the
       // nearest ancestor (Micropterus nigricans resolved to Animalia, key

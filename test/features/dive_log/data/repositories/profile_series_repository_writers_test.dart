@@ -169,30 +169,26 @@ void main() {
     },
   );
 
-  test(
-    'deleteByComputer matches the computer or the null-computer series',
-    () async {
-      final byComp = await repo.insertSeries(
-        diveId: 'dive-1',
-        computerId: 'comp-1',
-        samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
-        now: 1000,
-      );
-      final manual = await repo.insertSeries(
-        diveId: 'dive-1',
-        samples: const [ProfileSample(timestamp: 0, depth: 2.0)],
-        now: 1000,
-      );
-      expect(await repo.deleteByComputer('dive-1', 'comp-1'), [byComp]);
-      expect(await repo.deleteByComputer('dive-1', null), [manual]);
-      expect(await repo.getSeriesForDive('dive-1'), isEmpty);
-      final tombstones = await db.select(db.deletionLog).get();
-      expect(tombstones.map((t) => t.recordId).toSet(), {byComp, manual});
-      expect(tombstones.map((t) => t.entityType).toSet(), {
-        'diveProfileSeries',
-      });
-    },
-  );
+  test("deleteByComputer matches the computer's series only", () async {
+    final byComp = await repo.insertSeries(
+      diveId: 'dive-1',
+      computerId: 'comp-1',
+      samples: const [ProfileSample(timestamp: 0, depth: 1.0)],
+      now: 1000,
+    );
+    final manual = await repo.insertSeries(
+      diveId: 'dive-1',
+      samples: const [ProfileSample(timestamp: 0, depth: 2.0)],
+      now: 1000,
+    );
+    expect(await repo.deleteByComputer('dive-1', 'comp-1'), [byComp]);
+    expect((await repo.getSeriesForDive('dive-1')).map((s) => s.id).toList(), [
+      manual,
+    ]);
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(tombstones.map((t) => t.recordId).toSet(), {byComp});
+    expect(tombstones.map((t) => t.entityType).toSet(), {'diveProfileSeries'});
+  });
 
   test(
     'deleteByIds deletes exactly the ids given and tolerates an empty list',

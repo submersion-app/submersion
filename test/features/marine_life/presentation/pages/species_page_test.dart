@@ -62,6 +62,10 @@ GoRouter _router() => GoRouter(
               const Scaffold(body: Text('MANAGE PAGE')),
         ),
         GoRoute(
+          path: 'map',
+          builder: (context, state) => const Scaffold(body: Text('MAP PAGE')),
+        ),
+        GoRoute(
           path: ':speciesId',
           builder: (context, state) => Scaffold(
             body: Text('DETAIL ${state.pathParameters['speciesId']}'),
@@ -195,6 +199,14 @@ void main() {
     await tester.tap(find.text('Whale Shark'));
     await tester.pumpAndSettle();
     expect(find.text('DETAIL sp_whale_shark'), findsOneWidget);
+  });
+
+  testWidgets('the map action opens the species map', (tester) async {
+    await _pumpPage(tester, [_whaleShark]);
+
+    await tester.tap(find.byKey(const ValueKey('species_map')));
+    await tester.pumpAndSettle();
+    expect(find.text('MAP PAGE'), findsOneWidget);
   });
 
   testWidgets('the manage action opens the catalog manager', (tester) async {

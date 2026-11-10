@@ -13,7 +13,11 @@ import 'package:submersion/core/database/database.dart';
 /// are consecutive slices of one timeline, so their entry/exit spans are
 /// disjoint; two computers recording one dive cover the same minutes.
 void main() {
-  // Stamped at 183 so ONLY the v184 step runs, isolating what is asserted.
+  // Stamped at 183 so v184 is the first rung to touch the column. Every
+  // later rung runs too, and v356 (issue #4367) numbers the rows of a dive
+  // v184 left unmarked that still has no primary row: one slot per display
+  // strand, so what v184 kept apart stays apart. A dive v184 left alone
+  // therefore shows distinct slots below, never a shared one.
   NativeDatabase setupDb(void Function(dynamic rawDb) seed) {
     return NativeDatabase.memory(
       setup: (rawDb) {
@@ -142,7 +146,7 @@ void main() {
     );
     addTearDown(db.close);
 
-    expect(await slots(db), {'src-a': null, 'src-b': null});
+    expect(await slots(db), {'src-a': 0, 'src-b': 1});
   });
 
   test('leaves a consolidation whose clocks disagree alone (#543)', () async {
@@ -168,7 +172,7 @@ void main() {
     );
     addTearDown(db.close);
 
-    expect(await slots(db), {'src-a': null, 'src-b': null});
+    expect(await slots(db), {'src-a': 0, 'src-b': 1});
   });
 
   test('leaves a dive that still has a primary source alone', () async {
@@ -200,7 +204,7 @@ void main() {
     );
     addTearDown(db.close);
 
-    expect(await slots(db), {'src-only': null});
+    expect(await slots(db), {'src-only': 0});
   });
 
   test('leaves rows that cannot be classified alone', () async {
@@ -215,7 +219,7 @@ void main() {
     );
     addTearDown(db.close);
 
-    expect(await slots(db), {'src-x': null, 'src-y': null});
+    expect(await slots(db), {'src-x': 0, 'src-y': 1});
   });
 
   test('marks a dive combined from three segments', () async {
@@ -246,7 +250,7 @@ void main() {
     );
     addTearDown(db.close);
 
-    expect(await slots(db), {'src-1': null, 'src-2': null, 'src-3': null});
+    expect(await slots(db), {'src-1': 0, 'src-2': 1, 'src-3': 2});
   });
 
   test('treats halves that touch at the boundary as consecutive', () async {
@@ -277,8 +281,8 @@ void main() {
     addTearDown(db.close);
 
     expect(await slots(db), {
-      'src-a': null,
-      'src-b': null,
+      'src-a': 0,
+      'src-b': 1,
       'src-first': 0,
       'src-second': 0,
     });

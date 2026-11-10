@@ -8,6 +8,7 @@ import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/reports/cost_of_ownership.dart';
 import 'package:submersion/features/insights/presentation/providers/equipment_report_insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/equipment/gear_report_row.dart';
+import 'package:submersion/features/insights/presentation/widgets/show_all_toggle.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -151,7 +152,7 @@ class _CostOfOwnershipSectionState
               subtitle: _detail(l10n, row, metric, cost.currency),
               onTap: () => context.push('/equipment/${row.item.id}'),
             ),
-          GearReportShowAll(
+          ShowAllToggle(
             itemCount: rows.length,
             expanded: _expanded,
             onChanged: (value) => setState(() => _expanded = value),

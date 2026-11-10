@@ -601,6 +601,18 @@ void main() {
       expect(filter.containsKey('toDate'), isFalse);
     });
 
+    test('a smart album states what its pictures are attached to', () async {
+      // Issue #4224: the facet reaches the agent through toJson, unchanged.
+      final album = await MediaSmartAlbumRepository().create(
+        name: 'Site pictures',
+        filter: const MediaLibraryFilter(
+          attachedTo: {MediaAttachmentKind.site},
+        ),
+      );
+      final filter = (await h.one('smart_albums', album.id))!['filter'] as Map;
+      expect(filter['attachedTo'], ['site']);
+    });
+
     test('a connection map decodes its spec for its owner', () async {
       final map = await ConnectionMapRepository().create(
         diverId: kDiverA,

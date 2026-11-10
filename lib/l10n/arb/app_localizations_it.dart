@@ -2043,6 +2043,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scegli quali attributi sovrascrivere sulle bombole che queste immersioni hanno già. Le pressioni iniziale e finale non vengono mai modificate.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Tutte le bombole';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Scegli almeno un attributo della bombola da aggiornare.';
 
@@ -8446,6 +8449,39 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_noMarineLife => 'Nessuna specie registrata';
+
+  @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'Suggerimenti per $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return 'Aggiungi $species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vista in $count altre immersioni qui',
+      one: 'Vista in $count altra immersione qui',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'Nell\'elenco delle specie previste di questo sito';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'Mostra tutte ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'Mostra meno';
 
   @override
   String get diveLog_edit_notSpecified => 'Non specificato';
@@ -19636,6 +19672,198 @@ class AppLocalizationsIt extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'Riprova';
 
   @override
+  String get speciesMap_title => 'Mappa delle specie';
+
+  @override
+  String get speciesMap_openTooltip => 'Mappa delle specie';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'Scegli una specie';
+
+  @override
+  String get speciesMap_list_searchHint => 'Cerca tra tutte le specie';
+
+  @override
+  String get speciesMap_list_allSites => 'Tutti i siti';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'Cosa hai registrato e dove';
+
+  @override
+  String get speciesMap_list_notSeen => 'Non ancora vista';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings avvistamenti',
+      one: '$sightings avvistamento',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites siti',
+      one: '$sites sito',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'I miei avvistamenti';
+
+  @override
+  String get speciesMap_legend_expected => 'Attesa, non registrata';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'Dati pubblici';
+
+  @override
+  String get speciesMap_legend_speciesLogged => 'Specie registrate in un sito';
+
+  @override
+  String get speciesMap_layers_tooltip => 'Livelli della mappa';
+
+  @override
+  String get speciesMap_layers_public => 'Dati pubblici (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'Invia a GBIF la specie scelta o la posizione del sito toccato.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'Specie attese secondo';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'I miei siti';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible => 'Tutti i siti che vedo';
+
+  @override
+  String get speciesMap_card_loggedHere => 'Registrate qui';
+
+  @override
+  String get speciesMap_card_expectedNotLogged =>
+      'Attese, non ancora registrate';
+
+  @override
+  String get speciesMap_card_expectedPin => 'Attesa qui, non ancora registrata';
+
+  @override
+  String get speciesMap_card_nothingLogged => 'Ancora niente registrato qui';
+
+  @override
+  String get speciesMap_card_close => 'Chiudi';
+
+  @override
+  String get speciesMap_card_openSite => 'Apri sito';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specie',
+      one: '$count specie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date, immersione $number, ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count avvistamenti sono su immersioni senza sito sulla mappa',
+      one: '$count avvistamento è su un\'immersione senza sito sulla mappa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'Per questa specie non si possono mostrare dati pubblici: serve un nome scientifico riconosciuto da GBIF.';
+
+  @override
+  String get speciesMap_publicUnavailable =>
+      'Impossibile caricare i dati pubblici.';
+
+  @override
+  String get speciesMap_error_loading =>
+      'Impossibile caricare la mappa delle specie.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'Non hai registrato questa specie in nessun sito sulla mappa. Attiva i dati pubblici per vedere dove l\'hanno vista altri.';
+
+  @override
+  String get speciesMap_attribution => 'Dati: GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count specie',
+      one: '$count specie',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count avvistamenti',
+      one: '$count avvistamento',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site, attesa';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count siti',
+      one: '$count sito',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'Dove è stata vista';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'Apri mappa completa';
+
+  @override
+  String get speciesMap_whereSeen_empty =>
+      'Non ancora registrata in un sito sulla mappa.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
+
+  @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
     return 'Avvistamenti ($count)';
   }
@@ -21113,6 +21341,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_library_unlinkedHeader => 'Non collegati';
+
+  @override
+  String get media_library_sectionSitePictures => 'Immagini del sito';
+
+  @override
+  String get media_library_sectionEquipmentPictures =>
+      'Immagini dell\'attrezzatura';
 
   @override
   String get media_library_diveHeaderHint => 'Apri questa immersione';
@@ -33185,6 +33420,40 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Colore';
+
+  @override
+  String tags_color_shadeLight(String color) {
+    return '$color, chiaro';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, scuro';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Colore attuale, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Colore personalizzato';
+
+  @override
+  String get tags_color_hexLabel => 'Codice esadecimale';
+
+  @override
+  String get tags_color_hexError =>
+      'Inserisci sei caratteri 0-9 o A-F, ad esempio #2E8B57';
+
+  @override
+  String get tags_color_use => 'Usa';
+
+  @override
+  String get tags_color_hueLabel => 'Tonalità';
+
+  @override
+  String get tags_color_squareLabel => 'Saturazione e luminosità';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Rimuovi';
@@ -60214,6 +60483,29 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'Tag';
+
+  @override
+  String get media_library_filter_attachedTo => 'Collegato a';
+
+  @override
+  String get media_library_filter_attachedDive => 'Immersione';
+
+  @override
+  String get media_library_filter_attachedSite => 'Sito';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Attrezzatura';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Non collegati';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Collegato a: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

@@ -121,5 +121,15 @@ extension RungsFromV340 on AppDatabase {
     // v354 too: dive_health_records, Apple Health readings per dive.
     if (from < 354) await _assertDiveHealthRecordsTable();
     if (from < 354) await reportProgress();
+
+    // v356: a merge slot on every source row of a dive that has no primary
+    // row and no slot yet, one per display strand, so a combine the v184
+    // rung could not classify keeps a re-parse off its rows after a
+    // consolidation gives it a primary row (issue #4367). Data only, so the
+    // compatibility floor does not move. It fills empty slots and rewrites
+    // none, so changeLogRewrittenColumns needs no entry. Numbered 356: main
+    // holds 354 and open work claims 352, 353 and 355.
+    if (from < 356) await stampCombinedDiveSourceSlots(this);
+    if (from < 356) await reportProgress();
   }
 }

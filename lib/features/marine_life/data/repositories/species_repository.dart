@@ -796,9 +796,23 @@ class SpeciesRepository {
   // ===========================================================================
 
   /// Get species spotted at a site (derived from actual dive sightings)
+  ///
+  /// [excludeDiveId] leaves one dive's sightings out of the counts: the dive
+  /// editor suggests what *other* dives at the site saw (issue #4383), and a
+  /// saved dive's own sightings would otherwise count toward its suggestions.
+  ///
+  /// [statsScope] limits the counts to dives in the statistics, as the site
+  /// page's "Spotted here" does. The editor's suggestions pass false: a dive
+  /// kept out of the statistics still saw what it logged. Planned dives never
+  /// count either way, because nothing was seen on a dive not yet made.
   Future<List<domain.SiteSpeciesSummary>> getSpeciesSpottedAtSite(
-    String siteId,
-  ) async {
+    String siteId, {
+    String? excludeDiveId,
+    bool statsScope = true,
+  }) async {
+    final scope = statsScope
+        ? DiveStatsScope.and(alias: 'd')
+        : ' AND d.is_planned = 0';
     final results = await _db
         .customSelect(
           '''
@@ -807,15 +821,25 @@ class SpeciesRepository {
         sp.common_name,
         sp.category,
         COUNT(*) as sighting_count,
+        COALESCE(SUM(CASE s.abundance
+          WHEN 'few' THEN 2
+          WHEN 'many' THEN 11
+          WHEN 'abundant' THEN 101
+          ELSE s.count
+        END), 0) as animal_count,
         COUNT(DISTINCT d.id) as dive_count
       FROM sightings s
       JOIN species sp ON s.species_id = sp.id
       JOIN dives d ON s.dive_id = d.id
-      WHERE d.site_id = ?${DiveStatsScope.and(alias: 'd')}
+      WHERE d.site_id = ?$scope
+        ${excludeDiveId == null ? '' : 'AND d.id <> ?'}
       GROUP BY sp.id
       ORDER BY sighting_count DESC, sp.common_name ASC
     ''',
-          variables: [Variable.withString(siteId)],
+          variables: [
+            Variable.withString(siteId),
+            if (excludeDiveId != null) Variable.withString(excludeDiveId),
+          ],
         )
         .get();
 
@@ -828,6 +852,7 @@ class SpeciesRepository {
           orElse: () => SpeciesCategory.other,
         ),
         sightingCount: row.data['sighting_count'] as int,
+        animalCount: row.data['animal_count'] as int,
         diveCount: row.data['dive_count'] as int,
       );
     }).toList();

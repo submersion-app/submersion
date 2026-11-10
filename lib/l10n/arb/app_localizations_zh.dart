@@ -1960,6 +1960,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '选择要覆盖这些潜水已有气瓶的哪些属性。起始和结束压力不会被更改。';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => '所有气瓶';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields => '请至少选择一个要更新的气瓶属性。';
 
   @override
@@ -8025,6 +8028,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_edit_noMarineLife => '未记录物种';
+
+  @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return '$siteName 的推荐物种';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return '添加$species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '在此潜点的其他 $count 次潜水中见过',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected => '在此潜点的预期物种列表中';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return '显示全部（$count）';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => '收起';
 
   @override
   String get diveLog_edit_notSpecified => '未指定';
@@ -18657,6 +18691,185 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesPage_retry => '重试';
 
   @override
+  String get speciesMap_title => '物种地图';
+
+  @override
+  String get speciesMap_openTooltip => '物种地图';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => '选择物种';
+
+  @override
+  String get speciesMap_list_searchHint => '搜索所有物种';
+
+  @override
+  String get speciesMap_list_allSites => '所有潜点';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => '你在哪里记录了什么';
+
+  @override
+  String get speciesMap_list_notSeen => '尚未见过';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings 次目击',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites 个潜点',
+    );
+    return '$_temp0，$_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => '我的目击';
+
+  @override
+  String get speciesMap_legend_expected => '预期，未记录';
+
+  @override
+  String get speciesMap_legend_publicRecords => '公开记录';
+
+  @override
+  String get speciesMap_legend_speciesLogged => '潜点已记录的物种';
+
+  @override
+  String get speciesMap_layers_tooltip => '地图图层';
+
+  @override
+  String get speciesMap_layers_public => '公开记录 (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint => '会将所选物种或所点潜点的位置发送给 GBIF。';
+
+  @override
+  String get speciesMap_layers_expectedHeading => '预期物种来源';
+
+  @override
+  String get speciesMap_layers_scopeMine => '我的潜点';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible => '我能看到的所有潜点';
+
+  @override
+  String get speciesMap_card_loggedHere => '在此记录';
+
+  @override
+  String get speciesMap_card_expectedNotLogged => '预期，尚未记录';
+
+  @override
+  String get speciesMap_card_expectedPin => '此处预期，尚未记录';
+
+  @override
+  String get speciesMap_card_nothingLogged => '此处尚无记录';
+
+  @override
+  String get speciesMap_card_close => '关闭';
+
+  @override
+  String get speciesMap_card_openSite => '打开潜点';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date，第 $number 次潜水，×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次目击所在的潜水没有地图上的潜点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords => '无法显示该物种的公开记录：需要 GBIF 能识别的学名。';
+
+  @override
+  String get speciesMap_publicUnavailable => '无法加载公开记录。';
+
+  @override
+  String get speciesMap_error_loading => '无法加载物种地图。';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      '你尚未在地图上的任何潜点记录过该物种。开启公开记录，查看其他人在哪里见过它。';
+
+  @override
+  String get speciesMap_attribution => '记录：GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种',
+    );
+    return '$site，$_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次目击',
+    );
+    return '$site，$_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site，预期';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => '目击地点';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => '打开完整地图';
+
+  @override
+  String get speciesMap_whereSeen_empty => '尚未在地图上的潜点记录。';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
+
+  @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
     return '目击 ($count)';
   }
@@ -20071,6 +20284,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_library_unlinkedHeader => '未关联';
+
+  @override
+  String get media_library_sectionSitePictures => '潜点图片';
+
+  @override
+  String get media_library_sectionEquipmentPictures => '装备图片';
 
   @override
   String get media_library_diveHeaderHint => '打开此潜水';
@@ -31232,6 +31451,39 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => '颜色';
+
+  @override
+  String tags_color_shadeLight(String color) {
+    return '浅$color';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '深$color';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return '当前颜色，$code';
+  }
+
+  @override
+  String get tags_color_custom => '自定义颜色';
+
+  @override
+  String get tags_color_hexLabel => '十六进制代码';
+
+  @override
+  String get tags_color_hexError => '请输入六位 0-9 或 A-F 字符，例如 #2E8B57';
+
+  @override
+  String get tags_color_use => '使用';
+
+  @override
+  String get tags_color_hueLabel => '色相';
+
+  @override
+  String get tags_color_squareLabel => '饱和度和亮度';
 
   @override
   String get tags_manage_narrowDialog_confirm => '移除';
@@ -56500,6 +56752,29 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => '标签';
+
+  @override
+  String get media_library_filter_attachedTo => '关联到';
+
+  @override
+  String get media_library_filter_attachedDive => '潜水';
+
+  @override
+  String get media_library_filter_attachedSite => '潜点';
+
+  @override
+  String get media_library_filter_attachedEquipment => '装备';
+
+  @override
+  String get media_library_filter_attachedUnlinked => '未关联';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return '关联到：$kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => '、';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

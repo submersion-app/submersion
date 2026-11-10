@@ -2038,6 +2038,9 @@ class AppLocalizationsHu extends AppLocalizations {
       'Válaszd ki, mely tulajdonságok íródjanak felül a merülésekhez már tartozó palackokon. A kezdő és a záró nyomás soha nem változik.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Minden palack';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Válassz legalább egy palacktulajdonságot a frissítéshez.';
 
@@ -8425,6 +8428,38 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_edit_noMarineLife => 'Nincs rögzített faj';
+
+  @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'Javaslatok: $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return '$species hozzáadása';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Itt $count másik merülésen látott',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'A merülőhely várt fajainak listáján';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'Az összes ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'Kevesebb';
 
   @override
   String get diveLog_edit_notSpecified => 'Nincs megadva';
@@ -19566,6 +19601,200 @@ class AppLocalizationsHu extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'Újra';
 
   @override
+  String get speciesMap_title => 'Fajtérkép';
+
+  @override
+  String get speciesMap_openTooltip => 'Fajtérkép';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'Faj kiválasztása';
+
+  @override
+  String get speciesMap_list_searchHint => 'Keresés az összes faj között';
+
+  @override
+  String get speciesMap_list_allSites => 'Minden merülőhely';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'Mit hol rögzítettél';
+
+  @override
+  String get speciesMap_list_notSeen => 'Még nem láttad';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings észlelés',
+      one: '$sightings észlelés',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites merülőhely',
+      one: '$sites merülőhely',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'Saját észleléseim';
+
+  @override
+  String get speciesMap_legend_expected => 'Várható, nincs rögzítve';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'Nyilvános adatok';
+
+  @override
+  String get speciesMap_legend_speciesLogged =>
+      'Egy merülőhelyen rögzített fajok';
+
+  @override
+  String get speciesMap_layers_tooltip => 'Térképrétegek';
+
+  @override
+  String get speciesMap_layers_public => 'Nyilvános adatok (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'Elküldi a GBIF-nek a kiválasztott fajt vagy a megérintett merülőhely helyét.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'Várható fajok forrása';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'Saját merülőhelyeim';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible =>
+      'Minden általam látható merülőhely';
+
+  @override
+  String get speciesMap_card_loggedHere => 'Itt rögzítve';
+
+  @override
+  String get speciesMap_card_expectedNotLogged => 'Várható, még nincs rögzítve';
+
+  @override
+  String get speciesMap_card_expectedPin => 'Itt várható, még nincs rögzítve';
+
+  @override
+  String get speciesMap_card_nothingLogged => 'Itt még semmi nincs rögzítve';
+
+  @override
+  String get speciesMap_card_close => 'Bezárás';
+
+  @override
+  String get speciesMap_card_openSite => 'Merülőhely megnyitása';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count faj',
+      one: '$count faj',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date, $number. merülés, ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count észlelés térképen nem szereplő merülőhelyű merüléseken van',
+      one: '$count észlelés térképen nem szereplő merülőhelyű merülésen van',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'Ehhez a fajhoz nem jeleníthetők meg nyilvános adatok: olyan tudományos név kell hozzá, amelyet a GBIF ismer.';
+
+  @override
+  String get speciesMap_publicUnavailable =>
+      'A nyilvános adatokat nem sikerült betölteni.';
+
+  @override
+  String get speciesMap_error_loading =>
+      'A fajtérképet nem sikerült betölteni.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'Ezt a fajt egyetlen térképen szereplő merülőhelyen sem rögzítetted. Kapcsold be a nyilvános adatokat, hogy lásd, hol látták mások.';
+
+  @override
+  String get speciesMap_attribution => 'Adatok: GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count faj',
+      one: '$count faj',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count észlelés',
+      one: '$count észlelés',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site, várható';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülőhely',
+      one: '$count merülőhely',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'Hol láttad';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'Teljes térkép megnyitása';
+
+  @override
+  String get speciesMap_whereSeen_empty =>
+      'Még nincs rögzítve térképen szereplő merülőhelyen.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
+
+  @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
     return 'Észlelések ($count)';
   }
@@ -21038,6 +21267,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_library_unlinkedHeader => 'Nem csatolt';
+
+  @override
+  String get media_library_sectionSitePictures => 'Merülőhely képei';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'Felszerelés képei';
 
   @override
   String get media_library_diveHeaderHint => 'Merülés megnyitása';
@@ -33002,6 +33237,40 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Szín';
+
+  @override
+  String tags_color_shadeLight(String color) {
+    return '$color, világos';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, sötét';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Jelenlegi szín, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Egyéni szín';
+
+  @override
+  String get tags_color_hexLabel => 'Hexakód';
+
+  @override
+  String get tags_color_hexError =>
+      'Adjon meg hat karaktert (0-9 vagy A-F), például #2E8B57';
+
+  @override
+  String get tags_color_use => 'Használat';
+
+  @override
+  String get tags_color_hueLabel => 'Színárnyalat';
+
+  @override
+  String get tags_color_squareLabel => 'Telítettség és fényerő';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Eltávolítás';
@@ -59875,6 +60144,29 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'Címkék';
+
+  @override
+  String get media_library_filter_attachedTo => 'Csatolva ehhez';
+
+  @override
+  String get media_library_filter_attachedDive => 'Merülés';
+
+  @override
+  String get media_library_filter_attachedSite => 'Merülőhely';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Felszerelés';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Nem csatolt';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Csatolva ehhez: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

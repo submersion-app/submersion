@@ -319,7 +319,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 354;
+  static const int currentSchemaVersion = 356;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1640,6 +1640,12 @@ class AppDatabase extends _$AppDatabase {
     // defaulted; the floor does not move. Numbered 354 because main holds
     // 351 and open work claims 352 and 353.
     354,
+    // v356: a merge slot on the source rows of a dive with no primary row and
+    // none yet, so a combine the v184 rung could not classify keeps a
+    // re-parse off its rows once it gains a primary (issue #4367). Data
+    // only; the floor does not move. Numbered 356 because main holds 354 and
+    // open work claims 352, 353 and 355.
+    356,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

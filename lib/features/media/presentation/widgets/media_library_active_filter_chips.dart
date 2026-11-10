@@ -8,6 +8,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/presentation/helpers/media_attachment_labels.dart';
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
@@ -74,6 +75,21 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
               ? l10n.media_library_filter_photos
               : l10n.media_library_filter_videos,
           () => _update(ref, (f) => f.copyWith(mediaType: null)),
+        ),
+      );
+    }
+
+    // One chip for the whole facet (issue #4224), kinds in sheet order.
+    final attachedTo = filter.attachedTo;
+    if (attachedTo.isNotEmpty) {
+      final kinds = [
+        for (final kind in MediaAttachmentKind.values)
+          if (attachedTo.contains(kind)) mediaAttachmentKindLabel(l10n, kind),
+      ].join(l10n.media_library_filter_listSeparator);
+      chips.add(
+        chip(
+          l10n.media_library_filter_attachedToChip(kinds),
+          () => _update(ref, (f) => f.copyWith(attachedTo: const {})),
         ),
       );
     }

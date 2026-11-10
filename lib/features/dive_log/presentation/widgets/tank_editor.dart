@@ -64,6 +64,12 @@ class TankEditor extends ConsumerStatefulWidget {
   /// (#797), which never writes pressures.
   final bool showPressures;
 
+  /// Replaces the numbered "Tank N" header with this title and a stacked
+  /// icon. Used where the editor is a template written to many tanks, such
+  /// as the bulk spec update, where "Tank 1" read as only the first tank
+  /// (#3367). Null keeps the number.
+  final String? headerTitle;
+
   /// Called with the diver's own cylinder when its tag is scanned (issue
   /// #2335) or it is picked from "My cylinders" (issue #2599), so the host
   /// can add it to the dive's gear. Awaited, so a failed add is reported
@@ -114,6 +120,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.showPressures = true,
+    this.headerTitle,
     this.onOwnCylinderUsed,
     this.diveDate,
     this.onScanPending,
@@ -157,6 +164,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
   /// Minutes breathed on the surface after the computer stopped (#2930).
   Duration? _surfaceBreathing;
+
+  /// Whether the minutes field shows: only on a breathing cylinder with no
+  /// transmitter log, whose end pressure was read off the gauge (#2930).
+  bool get _showsSurfaceBreathing =>
+      _role.isBreathingGas && !widget.tank.hasPressureSeries;
 
   /// The partner's passport id when this tank is a twin set (issue #4242).
   String? _twinPassportId;
@@ -490,8 +502,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
-      // Only a breathing cylinder shows the field, so only one keeps it.
-      surfaceBreathingDuration: _role.isBreathingGas ? _surfaceBreathing : null,
+      // Only a cylinder that shows the field keeps it.
+      surfaceBreathingDuration: _showsSurfaceBreathing
+          ? _surfaceBreathing
+          : null,
+      hasPressureSeries: widget.tank.hasPressureSeries,
     ).withRegulators(_regulatorIds);
   }
 
@@ -572,8 +587,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               _buildPressureRow(units),
 
               // Breathed after the computer stopped logging (issue #2930); a
-              // suit inflation bottle is not breathed.
-              if (_role.isBreathingGas) ...[
+              // suit inflation bottle is not breathed, and a transmitter's
+              // last reading holds none of that gas.
+              if (_showsSurfaceBreathing) ...[
                 const SizedBox(height: 12),
                 TankSurfaceBreathingField(
                   value: _surfaceBreathing,
@@ -596,17 +612,21 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildHeader(GasMix gasMix) {
+    final onContainer = Theme.of(context).colorScheme.onPrimaryContainer;
+    final headerTitle = widget.headerTitle;
     return Row(
       children: [
         CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Text(
-            '${widget.tankNumber}',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child: headerTitle != null
+              ? Icon(Icons.layers_outlined, color: onContainer)
+              : Text(
+                  '${widget.tankNumber}',
+                  style: TextStyle(
+                    color: onContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -614,7 +634,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.l10n.diveLog_tank_title(widget.tankNumber),
+                headerTitle ??
+                    context.l10n.diveLog_tank_title(widget.tankNumber),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(

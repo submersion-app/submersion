@@ -70,15 +70,13 @@ Future<int> healShearwaterDownloadSerials(
 
   var rewritten = 0;
   for (final row in rows) {
-    final serial = row.read<String>('serial_number').trim();
-    if (!isAllDigitsSerial(serial)) continue;
-    if (serial.length == 8 && !includeAmbiguous) continue;
-    if (!isShearwaterFamily(
+    final hex = downloadedShearwaterSerialHex(
+      row.read<String>('serial_number'),
       manufacturer: row.readNullable<String>('manufacturer'),
       model: row.readNullable<String>('model'),
-    )) {
-      continue;
-    }
+      includeAmbiguous: includeAmbiguous,
+    );
+    if (hex == null) continue;
     final connection = row
         .readNullable<String>('connection_type')
         ?.trim()
@@ -88,8 +86,6 @@ Future<int> healShearwaterDownloadSerials(
         row.read<int>('downloaded') == 1;
     if (!downloaded) continue;
 
-    final hex = canonicalDownloadedSerial(vendor: 'Shearwater', serial: serial);
-    if (hex == null || hex == serial) continue;
     await db.customStatement(
       'UPDATE dive_computers SET serial_number = ? WHERE id = ?',
       [hex, row.read<String>('id')],
@@ -98,3 +94,30 @@ Future<int> healShearwaterDownloadSerials(
   }
   return rewritten;
 }
+
+/// The hex for a Shearwater [serial] a download stored in libdivecomputer's
+/// decimal, or null when it is not one: another family, a serial that is
+/// not all digits, or (unless [includeAmbiguous]) an 8-digit value, which a
+/// stored hex can also be. The caller has established download provenance.
+/// Shared by every heal of a downloaded serial (issues #3106, #4368).
+String? downloadedShearwaterSerialHex(
+  String serial, {
+  String? manufacturer,
+  String? model,
+  bool includeAmbiguous = false,
+}) {
+  final trimmed = serial.trim();
+  if (!isAllDigitsSerial(trimmed)) return null;
+  if (trimmed.length == 8 && !includeAmbiguous) return null;
+  if (!isShearwaterFamily(manufacturer: manufacturer, model: model)) {
+    return null;
+  }
+  final hex = canonicalDownloadedSerial(vendor: 'Shearwater', serial: trimmed);
+  return hex == trimmed ? null : hex;
+}
+
+/// SQL true for a serial column the by-characters conversion can take: all
+/// digits and not 8 long, so the select returns only real candidates.
+String decimalSerialCandidateSql(String column) =>
+    "TRIM($column) <> '' AND TRIM($column) NOT GLOB '*[^0-9]*' "
+    'AND LENGTH(TRIM($column)) <> 8';

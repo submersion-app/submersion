@@ -203,3 +203,6 @@ Spec section: "Breathing at the surface". Each task is TDD and ends with
 - Tank editor: minutes field and helper line, ARB keys in every locale.
 - Tests: entity, cylinder row, SQL against `Dive.sac`, role group, migration,
   editor round trip.
+- Only a cylinder with no transmitter log counts its minutes:
+  `DiveTank.hasPressureSeries`, set by the list and detail reads, and a
+  `tank_pressure_series` check in the SQL. The editor hides the field there.

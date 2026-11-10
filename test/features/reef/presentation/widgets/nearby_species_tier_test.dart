@@ -56,6 +56,7 @@ Widget _harness(
   ReefPart<NearbySpecies> species, {
   List<Species> catalog = const [_catalogSpecies],
   SpeciesRepository? repository,
+  ValueChanged<String>? onSpeciesTap,
 }) => ProviderScope(
   overrides: [
     validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
@@ -67,7 +68,11 @@ Widget _harness(
   child: localizedMaterialApp(
     locale: const Locale('en'),
     home: Scaffold(
-      body: NearbySpeciesTier(siteId: 'site-1', location: location),
+      body: NearbySpeciesTier(
+        siteId: 'site-1',
+        location: location,
+        onSpeciesTap: onSpeciesTap,
+      ),
     ),
   ),
 );
@@ -274,5 +279,53 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Recorded nearby'), findsNothing);
+  });
+
+  group('read-only, with onSpeciesTap (species map card)', () {
+    const location = GeoPoint(12.16, -68.28);
+    const species = ReefPart<NearbySpecies>.ok(
+      NearbySpecies(
+        matched: [
+          MatchedNearbySpecies(
+            speciesId: 'sp_whale_shark',
+            occurrenceCount: 42,
+          ),
+        ],
+        unmatchedNames: ['Aplysina archeri'],
+      ),
+    );
+
+    testWidgets('a matched chip opens the species and adds nothing', (
+      tester,
+    ) async {
+      final repository = _RecordingSpeciesRepository();
+      final tapped = <String>[];
+      await tester.pumpWidget(
+        _harness(
+          location,
+          species,
+          repository: repository,
+          onSpeciesTap: tapped.add,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.add_circle_outline), findsNothing);
+      await tester.tap(find.widgetWithText(ActionChip, 'Whale Shark'));
+      await tester.pumpAndSettle();
+
+      expect(tapped, ['sp_whale_shark']);
+      expect(repository.added, isEmpty);
+    });
+
+    testWidgets('an unmatched chip has no tap action', (tester) async {
+      await tester.pumpWidget(
+        _harness(location, species, onSpeciesTap: (_) {}),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.widgetWithText(ActionChip, 'Aplysina archeri'), findsNothing);
+      expect(find.widgetWithText(Chip, 'Aplysina archeri'), findsOneWidget);
+    });
   });
 }

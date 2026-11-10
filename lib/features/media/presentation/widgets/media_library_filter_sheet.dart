@@ -13,6 +13,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_library_attachment_filter_section.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_filter_labels.dart';
 import 'package:submersion/features/media/presentation/widgets/people_filter/media_people_filter_picker.dart';
 import 'package:submersion/features/media/presentation/widgets/people_filter/media_people_selection.dart';
@@ -64,6 +65,7 @@ class _MediaLibraryFilterSheetState
   Set<String> _tagIds = const {};
   MediaPeopleSelection _people = MediaPeopleSelection.none;
   bool _notPlacedInDive = false;
+  Set<MediaAttachmentKind> _attachedTo = const {};
 
   @override
   void initState() {
@@ -80,6 +82,7 @@ class _MediaLibraryFilterSheetState
     _tagIds = filter.tagIds;
     _people = _peopleOf(filter);
     _notPlacedInDive = filter.notPlacedInDive;
+    _attachedTo = filter.attachedTo;
   }
 
   void _clearAll() {
@@ -95,6 +98,7 @@ class _MediaLibraryFilterSheetState
       _tagIds = const {};
       _people = MediaPeopleSelection.none;
       _notPlacedInDive = false;
+      _attachedTo = const {};
     });
   }
 
@@ -117,6 +121,7 @@ class _MediaLibraryFilterSheetState
       includeMe: _people.includeMe,
       noPeople: _people.noPeople,
       notPlacedInDive: _notPlacedInDive,
+      attachedTo: _attachedTo,
     );
     Navigator.of(context).pop();
   }
@@ -298,6 +303,7 @@ class _MediaLibraryFilterSheetState
                     _tagIds = album.filter.tagIds;
                     _people = _peopleOf(album.filter);
                     _notPlacedInDive = album.filter.notPlacedInDive;
+                    _attachedTo = album.filter.attachedTo;
                   });
                 },
               ),
@@ -443,6 +449,11 @@ class _MediaLibraryFilterSheetState
                                 setState(() => _mediaType = MediaType.video),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      MediaLibraryAttachmentFilterSection(
+                        selected: _attachedTo,
+                        onChanged: (next) => setState(() => _attachedTo = next),
                       ),
                       const Divider(height: 32),
                       ListTile(

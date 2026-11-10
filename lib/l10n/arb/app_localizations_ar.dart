@@ -2100,6 +2100,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'اختر السمات التي سيتم استبدالها في الأسطوانات الموجودة بالفعل في هذه الغطسات. لا يتغير ضغط البداية والنهاية أبدًا.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'جميع الأسطوانات';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'اختر سمة واحدة على الأقل للأسطوانة لتحديثها.';
 
@@ -8568,6 +8571,42 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_edit_noMarineLife => 'لم يتم تسجيل أنواع';
+
+  @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'مقترحات لـ $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return 'إضافة $species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'شوهد في $count غوصة أخرى هنا',
+      many: 'شوهد في $count غوصةً أخرى هنا',
+      few: 'شوهد في $count غوصات أخرى هنا',
+      two: 'شوهد في غوصتين أخريين هنا',
+      one: 'شوهد في غوصة أخرى هنا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'ضمن قائمة الأنواع المتوقعة لهذا الموقع';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'عرض أقل';
 
   @override
   String get diveLog_edit_notSpecified => 'غير محدد';
@@ -19897,6 +19936,222 @@ class AppLocalizationsAr extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'إعادة المحاولة';
 
   @override
+  String get speciesMap_title => 'خريطة الأنواع';
+
+  @override
+  String get speciesMap_openTooltip => 'خريطة الأنواع';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'اختر نوعًا';
+
+  @override
+  String get speciesMap_list_searchHint => 'البحث في كل الأنواع';
+
+  @override
+  String get speciesMap_list_allSites => 'كل المواقع';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'ما سجّلته وأين';
+
+  @override
+  String get speciesMap_list_notSeen => 'لم يُشاهد بعد';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings مشاهدة',
+      many: '$sightings مشاهدة',
+      few: '$sightings مشاهدات',
+      two: 'مشاهدتان',
+      one: 'مشاهدة واحدة',
+      zero: 'لا مشاهدات',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites موقع',
+      many: '$sites موقعًا',
+      few: '$sites مواقع',
+      two: 'موقعان',
+      one: 'موقع واحد',
+      zero: 'لا مواقع',
+    );
+    return '$_temp0، $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'مشاهداتي';
+
+  @override
+  String get speciesMap_legend_expected => 'متوقع، غير مسجّل';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'سجلات عامة';
+
+  @override
+  String get speciesMap_legend_speciesLogged => 'الأنواع المسجّلة في موقع';
+
+  @override
+  String get speciesMap_layers_tooltip => 'طبقات الخريطة';
+
+  @override
+  String get speciesMap_layers_public => 'سجلات عامة (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'يرسل إلى GBIF النوع المختار، أو موقع الموقع الذي نقرت عليه.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'الأنواع المتوقعة من';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'مواقعي';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible => 'كل المواقع التي أراها';
+
+  @override
+  String get speciesMap_card_loggedHere => 'مسجّلة هنا';
+
+  @override
+  String get speciesMap_card_expectedNotLogged => 'متوقعة، لم تُسجّل بعد';
+
+  @override
+  String get speciesMap_card_expectedPin => 'متوقع هنا، لم يُسجّل بعد';
+
+  @override
+  String get speciesMap_card_nothingLogged => 'لم يُسجّل شيء هنا بعد';
+
+  @override
+  String get speciesMap_card_close => 'إغلاق';
+
+  @override
+  String get speciesMap_card_openSite => 'فتح الموقع';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+      zero: 'لا أنواع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date، الغطسة $number، ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مشاهدة في غطسات بلا موقع على الخريطة',
+      many: '$count مشاهدة في غطسات بلا موقع على الخريطة',
+      few: '$count مشاهدات في غطسات بلا موقع على الخريطة',
+      two: 'مشاهدتان في غطسات بلا موقع على الخريطة',
+      one: 'مشاهدة واحدة في غطسة بلا موقع على الخريطة',
+      zero: 'لا مشاهدات في غطسات بلا موقع على الخريطة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'لا يمكن عرض سجلات عامة لهذا النوع: يحتاج إلى اسم علمي يعرفه GBIF.';
+
+  @override
+  String get speciesMap_publicUnavailable => 'تعذّر تحميل السجلات العامة.';
+
+  @override
+  String get speciesMap_error_loading => 'تعذّر تحميل خريطة الأنواع.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'لم تسجّل هذا النوع في أي موقع على الخريطة. شغّل السجلات العامة لترى أين شاهده الآخرون.';
+
+  @override
+  String get speciesMap_attribution => 'السجلات: GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count نوع',
+      many: '$count نوعًا',
+      few: '$count أنواع',
+      two: 'نوعان',
+      one: 'نوع واحد',
+      zero: 'لا أنواع',
+    );
+    return '$site، $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مشاهدة',
+      many: '$count مشاهدة',
+      few: '$count مشاهدات',
+      two: 'مشاهدتان',
+      one: 'مشاهدة واحدة',
+      zero: 'لا مشاهدات',
+    );
+    return '$site، $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site، متوقع';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count موقع',
+      many: '$count موقعًا',
+      few: '$count مواقع',
+      two: 'موقعان',
+      one: 'موقع واحد',
+      zero: 'لا مواقع',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'أين شوهد';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'فتح الخريطة كاملة';
+
+  @override
+  String get speciesMap_whereSeen_empty => 'لم يُسجّل بعد في موقع على الخريطة.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
+
+  @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
     return 'المشاهدات ($count)';
   }
@@ -21423,6 +21678,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_library_unlinkedHeader => 'غير مرتبطة';
+
+  @override
+  String get media_library_sectionSitePictures => 'صور الموقع';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'صور المعدات';
 
   @override
   String get media_library_diveHeaderHint => 'فتح هذه الغطسة';
@@ -33482,6 +33743,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'اللون';
+
+  @override
+  String tags_color_shadeLight(String color) {
+    return '$color، فاتح';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color، داكن';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'اللون الحالي، $code';
+  }
+
+  @override
+  String get tags_color_custom => 'لون مخصص';
+
+  @override
+  String get tags_color_hexLabel => 'الرمز الست عشري';
+
+  @override
+  String get tags_color_hexError => 'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
+
+  @override
+  String get tags_color_use => 'استخدام';
+
+  @override
+  String get tags_color_hueLabel => 'تدرج اللون';
+
+  @override
+  String get tags_color_squareLabel => 'التشبع والسطوع';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'إزالة';
@@ -61046,6 +61340,29 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'الوسوم';
+
+  @override
+  String get media_library_filter_attachedTo => 'مرفقة بـ';
+
+  @override
+  String get media_library_filter_attachedDive => 'غوصة';
+
+  @override
+  String get media_library_filter_attachedSite => 'الموقع';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'المعدات';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'غير مرتبطة';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'مرفقة بـ: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => '، ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {
