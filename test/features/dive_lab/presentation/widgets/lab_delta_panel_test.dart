@@ -19,6 +19,7 @@ import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../domain/support/synthetic_dives.dart';
+import '../../../../helpers/info_sheets.dart';
 
 LabRequestInputs _inputs({List<DiveTank>? tanks}) {
   final d = squareDive(depth: 45, bottomMinutes: 30);
@@ -176,5 +177,6 @@ void main() {
       findsNothing,
     );
     expect(find.byType(InfoButton), findsWidgets);
+    expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 }

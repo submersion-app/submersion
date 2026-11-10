@@ -54,4 +54,76 @@ void main() {
       label(DiveTerm.cns),
     ]);
   });
+
+  group('results sections', () {
+    test('the deco schedule explains its table columns', () {
+      final content = planDecoScheduleInfo(l10n, units);
+      expect(content.summary, isNotEmpty);
+      expect(labels(content), contains(label(DiveTerm.decoStops)));
+      expect(labels(content), contains(label(DiveTerm.end)));
+    });
+
+    test('the gas section explains turn pressure and minimum gas', () {
+      final content = planGasInfo(l10n, units);
+      expect(labels(content), contains(label(DiveTerm.turnPressure)));
+      expect(labels(content), contains(label(DiveTerm.minGas)));
+    });
+
+    test('the carry card lists OTU only when it shows it', () {
+      final withOtu = planCarryInfo(
+        l10n,
+        units,
+        title: 'Carried into Dive 2',
+        showsOtu: true,
+      );
+      final withoutOtu = planCarryInfo(
+        l10n,
+        units,
+        title: 'Carried into Dive 2',
+        showsOtu: false,
+      );
+      expect(withOtu.title, 'Carried into Dive 2');
+      expect(labels(withOtu), contains(label(DiveTerm.otu)));
+      expect(labels(withoutOtu), isNot(contains(label(DiveTerm.otu))));
+      expect(labels(withoutOtu), contains(label(DiveTerm.cns)));
+    });
+
+    test('a section with no terms draws none', () {
+      final content = planSectionInfo(
+        l10n,
+        units,
+        title: 'Range',
+        summary: 'How far the gas lasts.',
+      );
+      expect(content.terms, isEmpty);
+    });
+  });
+
+  group('Dive Lab', () {
+    test('the delta table explains the what-if column and GF99', () {
+      final content = labDeltaInfo(l10n, units);
+      expect(content.summary, isNotEmpty);
+      expect(labels(content), contains(label(DiveTerm.whatIf)));
+      expect(labels(content), contains(label(DiveTerm.gf99)));
+      expect(labels(content), contains(label(DiveTerm.ceilingViolation)));
+    });
+
+    test('the tissue strips explain the heat map', () {
+      final content = labTissuesInfo(l10n, units);
+      expect(labels(content), contains(label(DiveTerm.heatMap)));
+      expect(labels(content), contains(label(DiveTerm.tissueLoad)));
+    });
+
+    test('the buoyancy rows explain lift and ditchable weight', () {
+      final content = labBuoyancyInfo(l10n, units);
+      expect(labels(content), contains(label(DiveTerm.peakLift)));
+      expect(labels(content), contains(label(DiveTerm.minDitchable)));
+    });
+
+    test('the interventions sheet has a summary and no terms', () {
+      final content = labInterventionsInfo(l10n, units);
+      expect(content.summary, isNotEmpty);
+      expect(content.terms, isEmpty);
+    });
+  });
 }

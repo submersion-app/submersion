@@ -14,6 +14,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/info_sheets.dart';
 
 const reg = EquipmentItem(
   id: 'reg',
@@ -116,6 +117,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(InfoButton), findsWidgets);
+    expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 
   testWidgets('lists active findings and folds the dismissed away', (

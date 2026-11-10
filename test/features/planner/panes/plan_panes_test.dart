@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
+import '../../../helpers/info_sheets.dart';
 import '../../../helpers/planner_results.dart';
 import '../../../helpers/test_app.dart';
 
@@ -133,5 +134,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(InfoCorner), findsOneWidget);
     expect(find.byType(InfoButton), findsWidgets);
+  });
+
+  testWidgets('every info icon on the results opens its sheet', (tester) async {
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    // Tall enough that the whole results column builds at once.
+    tester.view.physicalSize = const Size(500, 9000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: PlanResultsPane(controller: controller),
+      ),
+    );
+    ProviderScope.containerOf(tester.element(find.byType(PlanResultsPane)))
+        .read(divePlanNotifierProvider.notifier)
+        .addSimplePlan(maxDepth: 45, bottomTimeMinutes: 25);
+    await tester.pumpAndSettle();
+
+    // The tile grid, the deco schedule and the gas section at least.
+    expect(await openEveryInfoSheet(tester), greaterThanOrEqualTo(3));
   });
 }

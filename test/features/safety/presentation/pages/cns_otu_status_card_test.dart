@@ -21,6 +21,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/info_sheets.dart';
 
 void main() {
   const units = UnitFormatter(AppSettings());
@@ -439,6 +440,7 @@ void main() {
         // (#4377), not a separate About card.
         expect(find.text('About Tissue Loading'), findsNothing);
         expect(find.byType(InfoButton), findsWidgets);
+        expect(await openEveryInfoSheet(tester), greaterThan(0));
       },
     );
 

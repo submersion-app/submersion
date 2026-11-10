@@ -11,6 +11,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/info_sheets.dart';
 
 void main() {
   // The card formats the deadline with intl, which resolves against
@@ -81,5 +82,6 @@ void main() {
     final until = DateTime.now().toUtc().add(const Duration(hours: 5));
     await pumpCard(tester, statusUntil(until));
     expect(find.byType(InfoButton), findsOneWidget);
+    expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 }

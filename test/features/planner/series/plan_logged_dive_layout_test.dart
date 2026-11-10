@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
@@ -24,6 +25,7 @@ import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
 import '../../../helpers/test_database.dart';
 import 'series_fixtures.dart';
+import '../../../helpers/info_sheets.dart';
 
 /// A logged dive picked in the series bar keeps the planner's layout (issue
 /// #3565): when it was dived from a plan, that plan's segments and results
@@ -126,6 +128,22 @@ void main() {
     await tester.tap(find.byTooltip('Logged dive #42'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('every info icon on a logged dive opens its sheet', (
+    tester,
+  ) async {
+    await pumpLogged(tester, planned: false, size: const Size(1400, 3000));
+
+    // The chart's and the carry card's at least.
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('loggedDiveCarryCard')),
+        matching: find.byType(InfoButton),
+      ),
+      findsOneWidget,
+    );
+    expect(await openEveryInfoSheet(tester), greaterThanOrEqualTo(2));
+  });
 
   testWidgets('a dive dived from a plan shows it as planned, not segments', (
     tester,

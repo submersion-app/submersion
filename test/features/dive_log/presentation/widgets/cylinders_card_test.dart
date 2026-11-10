@@ -25,6 +25,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/info_sheets.dart';
 
 const _settings = AppSettings();
 const _units = UnitFormatter(_settings);
@@ -1338,5 +1339,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.byType(InfoButton), findsOneWidget);
+    expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 }

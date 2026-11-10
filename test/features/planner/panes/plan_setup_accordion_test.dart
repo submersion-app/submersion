@@ -13,6 +13,7 @@ import 'package:submersion/features/planner/presentation/widgets/ccr_settings_se
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
+import '../../../helpers/info_sheets.dart';
 import '../../../helpers/test_app.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
@@ -133,5 +134,15 @@ void main() {
       isTrue,
     );
     expect(find.byType(PlanDecoSection), findsNothing);
+  });
+
+  testWidgets('every section info icon opens its sheet', (tester) async {
+    tester.view.physicalSize = const Size(600, 4000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness());
+    await tester.pumpAndSettle();
+
+    expect(await openEveryInfoSheet(tester), greaterThanOrEqualTo(5));
   });
 }

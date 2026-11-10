@@ -17,6 +17,7 @@ import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/info_sheets.dart';
 
 void main() {
   setUp(() async => setUpTestDatabase());
@@ -355,5 +356,6 @@ void main() {
   testWidgets('the focus results carry info icons', (tester) async {
     await pump(tester);
     expect(find.byType(InfoButton), findsWidgets);
+    expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 }
