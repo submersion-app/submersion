@@ -132,13 +132,26 @@ void main() {
     },
   );
 
-  test('createTag on a colliding name widens the incumbent too', () async {
+  test('createTag on a colliding name widens the incumbent as asked', () async {
     final diveTag = await narrow('Night', {TagScope.dives});
     final result = await repository.createTag(
       Tag.create(id: '', name: 'NIGHT', scopes: {TagScope.sites}),
+      widenExistingTo: const {TagScope.sites},
     );
     expect(result.id, diveTag.id);
     expect(result.appliesTo(TagScope.sites), isTrue);
+  });
+
+  test('createTag widens a colliding incumbent nothing by default', () async {
+    // A new tag defaults to every scope, so widening by default would undo
+    // a narrowing by accident (#4407).
+    final diveTag = await narrow('Night', {TagScope.dives});
+    final result = await repository.createTag(
+      Tag.create(id: '', name: 'night'),
+    );
+    expect(result.id, diveTag.id);
+    expect(result.scopes, {TagScope.dives});
+    expect((await repository.getTagById(diveTag.id))!.scopes, {TagScope.dives});
   });
 
   test('scope-filtered listing', () async {

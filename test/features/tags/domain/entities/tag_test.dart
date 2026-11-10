@@ -16,10 +16,10 @@ void main() {
     expect(Tag.create(id: 't', name: 'T').scopes, TagScope.everywhere);
   });
 
-  test('the constant default names every scope', () {
-    // TagScope.everywhere cannot be a default parameter, so the constructor
-    // spells it out; a new scope must be added there too.
-    expect(Tag.everywhereConst, TagScope.everywhere);
+  test('everywhere names every scope', () {
+    // TagScope.everywhere is spelled out so it can be a constant default;
+    // a new scope must be added there too.
+    expect(TagScope.everywhere, TagScope.values.toSet());
   });
 
   test('create offers the tag in exactly its one scope', () {

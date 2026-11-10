@@ -524,8 +524,9 @@ class PayloadMerger {
       return;
     }
     // A record stating its scopes exactly (a Submersion backup) keeps the
-    // new tag to them, so the everywhere mark survives only when no record
-    // states scopes without it.
+    // new tag to the union below (a silent record still adds its dives
+    // default), so the everywhere mark survives only when no record states
+    // scopes without it.
     bool exact(Map<String, dynamic> r) =>
         importTagStatesScopes(r) && r[importTagNewEverywhereKey] != true;
     final everywhere =

@@ -994,6 +994,33 @@ void main() {
         expect(shownColor(tester), TagColors.predefined.first);
       });
 
+      testWidgets('drops uses added to it once the name no longer matches', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        // Ticking sites adds it to the dives-only 'Night Dive'...
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        tester
+            .widget<CheckboxListTile>(
+              find.widgetWithText(CheckboxListTile, 'Use for sites'),
+            )
+            .onChanged!(true);
+        await tester.pump();
+        expect(ticked(tester), {'Use for dives', 'Use for sites'});
+
+        // ...so a new name is a new tag, offered everywhere, not narrowed
+        // to the uses meant for that one.
+        await tester.enterText(find.byType(TextField).last, 'Night Dives');
+        await tester.pump();
+        expect(ticked(tester), labels.toSet());
+      });
+
       testWidgets('keeps boxes the user already changed', (tester) async {
         final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
         await tester.pumpWidget(
@@ -1118,6 +1145,28 @@ void main() {
         notifier.state = const AsyncValue.loading();
 
         await openCreate(tester, 'Night Dive');
+        await tester.pump();
+
+        expect(ticked(tester), {'Use for dives'});
+        expect(find.text(note), findsOneWidget);
+      });
+
+      testWidgets('is found when the tag list changes after typing', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(const []);
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        expect(find.text(note), findsNothing);
+
+        // A sync (or the first load) brings the tag holding the name.
+        // ignore: invalid_use_of_protected_member
+        notifier.state = AsyncValue.data(_tagsFromStats(_testStats));
         await tester.pump();
 
         expect(ticked(tester), {'Use for dives'});

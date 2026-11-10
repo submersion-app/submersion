@@ -15,9 +15,16 @@ enum TagScope {
 
   /// Every scope: where a tag the user creates is offered, so it can be
   /// reused on dives, sites, media and the rest alike (issue #4407).
-  /// Narrowing it is a choice made in Manage Tags. Unmodifiable, as
-  /// [Tag.scopes] is read-only.
-  static final Set<TagScope> everywhere = Set.unmodifiable(values);
+  /// Narrowing it is a choice made in Manage Tags. A constant, so it can be
+  /// a default parameter; a test keeps it equal to [values], so a new scope
+  /// must be added here too.
+  static const Set<TagScope> everywhere = {
+    dives,
+    sites,
+    equipment,
+    media,
+    documents,
+  };
 
   /// Where this scope stores its flag and its links.
   TagScopeTable get table => switch (this) {
@@ -51,19 +58,10 @@ class Tag extends Equatable {
     this.colorHex,
     required this.createdAt,
     required this.updatedAt,
-    this.scopes = everywhereConst,
+    // A tag built without scopes is offered everywhere, as any new tag is
+    // (issue #4407).
+    this.scopes = TagScope.everywhere,
   });
-
-  /// [TagScope.everywhere] as a constant, so a tag built without scopes is
-  /// offered everywhere, as any new tag is (issue #4407). A test keeps the
-  /// two equal.
-  static const everywhereConst = {
-    TagScope.dives,
-    TagScope.sites,
-    TagScope.equipment,
-    TagScope.media,
-    TagScope.documents,
-  };
 
   /// The colour the tag is drawn in. A tag with no usable colour (one an
   /// import created, say) is drawn as the palette Blue (issue #4384).

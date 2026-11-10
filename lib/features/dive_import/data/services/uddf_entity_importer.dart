@@ -1480,15 +1480,9 @@ class UddfEntityImporter {
       final existing = await repository.getTagByName(name, diverId: diverId);
       if (existing != null) {
         if (uddfId != null) idMapping[uddfId] = existing.id;
-        // Keep every use the file gives the tag.
-        for (final scope in scopes) {
-          if (!existing.appliesTo(scope)) {
-            await repository.getOrCreateTag(
-              name,
-              diverId: diverId,
-              scope: scope,
-            );
-          }
+        // Keep every use the file gives the tag, in one write.
+        if (!existing.scopes.containsAll(scopes)) {
+          await repository.widenTag(existing, scopes);
         }
         continue;
       }

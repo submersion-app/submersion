@@ -46,22 +46,3 @@ class TagScopeChecklist extends StatelessWidget {
     );
   }
 }
-
-/// The failed-save line, shown in a tag dialog itself: a page SnackBar would
-/// render under the dialog's barrier, dimmed and out of reach (#1907). A
-/// live region, so a screen reader announces it.
-class TagSaveErrorLine extends StatelessWidget {
-  const TagSaveErrorLine({super.key});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 8),
-    child: Semantics(
-      liveRegion: true,
-      child: Text(
-        context.l10n.common_error_tryAgain,
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
-      ),
-    ),
-  );
-}

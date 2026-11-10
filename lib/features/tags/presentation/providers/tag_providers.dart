@@ -148,8 +148,11 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
   }
 
   /// [widenExistingTo] is passed to [TagRepository.createTag]: what a tag
-  /// already holding the name is widened to.
-  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async {
+  /// already holding the name is widened to, nothing by default.
+  Future<Tag> addTag(
+    Tag tag, {
+    Set<TagScope> widenExistingTo = const {},
+  }) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 

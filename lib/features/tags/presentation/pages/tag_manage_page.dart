@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
@@ -12,6 +11,7 @@ import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_create_dialog.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_dialog_save.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_scope_checklist.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -40,8 +40,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
   Set<String> get _selectedIds => _selection.value.checkedIds;
-
-  static final _log = LoggerService.forClass(TagManagePage);
 
   @override
   void dispose() {
@@ -349,7 +347,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                             // never modifies it, so this reference is safe.
                             final chosen = scopes;
                             if (name.isEmpty || chosen.isEmpty) return;
-                            _saveFromDialog(
+                            saveFromTagDialog(
                               dialogContext,
                               setSaving: (v) =>
                                   setDialogState(() => saving = v),
@@ -400,37 +398,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     if (!dialogContext.mounted) return;
     Navigator.pop(dialogContext);
     await ref.read(tagListNotifierProvider.notifier).deleteTag(stat.tag.id);
-  }
-
-  /// Runs a tag dialog's [save], closing the dialog only once it lands.
-  ///
-  /// [save] returns false when it chose not to write (the diver declined the
-  /// narrowing confirmation), which leaves the dialog open without an error.
-  /// A failure is logged and flagged through [setFailed], and the dialog
-  /// stays open with its edits so the diver can retry (#1907). [setSaving]
-  /// disables the dialog's buttons meanwhile, so a second tap cannot start a
-  /// second write. A new attempt clears the previous failure.
-  ///
-  /// Every failure is caught here, so the Future a button drops cannot reach
-  /// the zone unattributed.
-  Future<void> _saveFromDialog(
-    BuildContext dialogContext, {
-    required ValueChanged<bool> setSaving,
-    required ValueChanged<bool> setFailed,
-    required Future<bool> Function() save,
-  }) async {
-    setFailed(false);
-    setSaving(true);
-    try {
-      if (await save() && dialogContext.mounted) {
-        Navigator.pop(dialogContext);
-      }
-    } catch (e, stackTrace) {
-      _log.error('Failed to save a tag', error: e, stackTrace: stackTrace);
-      if (dialogContext.mounted) setFailed(true);
-    } finally {
-      if (dialogContext.mounted) setSaving(false);
-    }
   }
 
   /// Turning off a scope removes the tag from every item of that scope

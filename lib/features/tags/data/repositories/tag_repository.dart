@@ -156,21 +156,17 @@ class TagRepository {
   /// name now exists and here it is") while never creating the duplicate that
   /// made a dive show one tag twice (#1032).
   ///
-  /// When the incumbent lacks a scope the new tag asks for (a site tag named
-  /// like an existing dive tag), the incumbent is widened rather than a second
-  /// tag minted: the name index allows only one, and the diver meant the same
-  /// tag in both places (issue #1765).
-  ///
-  /// [widenExistingTo] is what the incumbent is widened to, every scope [tag]
-  /// has when null. A caller whose [tag] holds default scopes rather than a
-  /// choice passes less, so a tag narrowed on purpose is not widened to every
-  /// scope just because a new tag defaults to them (issue #4407). An empty
-  /// set reuses the incumbent as it is.
+  /// The incumbent is widened to [widenExistingTo] (issue #1765): the name
+  /// index allows only one tag, and the diver meant the same tag in both
+  /// places. It widens nothing by default, since a new tag's scopes default
+  /// to every scope and a tag narrowed on purpose must not be widened to all
+  /// of them by accident (issue #4407); a caller asks for what it needs,
+  /// such as the scope it is about to link the tag in.
   Future<domain.Tag> createTag(
     domain.Tag tag, {
-    Set<domain.TagScope>? widenExistingTo,
+    Set<domain.TagScope> widenExistingTo = const {},
   }) async {
-    final incumbentScopes = widenExistingTo ?? tag.scopes;
+    final incumbentScopes = widenExistingTo;
     try {
       _requireScope(tag);
       final incumbent = await _tagOccupying(tag.name, tag.diverId);
@@ -356,6 +352,11 @@ class TagRepository {
       );
     }
   }
+
+  /// [tag] widened to also cover every scope in [scopes], in one write and
+  /// one sync mark; returned as stored. Never narrows it.
+  Future<domain.Tag> widenTag(domain.Tag tag, Set<domain.TagScope> scopes) =>
+      _widenTo(tag, scopes);
 
   /// [tag] widened to also cover every scope in [wanted], in one write.
   /// [notify] false for a caller that notifies once itself.

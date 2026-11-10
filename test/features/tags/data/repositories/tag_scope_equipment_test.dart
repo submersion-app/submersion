@@ -88,6 +88,7 @@ void main() {
       final diveTag = await narrow('Night', {TagScope.dives});
       final result = await repository.createTag(
         Tag.create(id: '', name: 'NIGHT', scopes: {TagScope.equipment}),
+        widenExistingTo: const {TagScope.equipment},
       );
       expect(result.id, diveTag.id);
       expect(result.appliesTo(TagScope.equipment), isTrue);

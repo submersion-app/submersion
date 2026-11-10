@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_dialog_save.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_scope_checklist.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -28,7 +28,6 @@ class TagCreateDialog extends ConsumerStatefulWidget {
 
 class _TagCreateDialogState extends ConsumerState<TagCreateDialog> {
   static const _uuid = Uuid();
-  static final _log = LoggerService.forClass(TagCreateDialog);
   static final _defaultColor = TagColors.predefined.first;
 
   final _controller = TextEditingController();
@@ -43,6 +42,12 @@ class _TagCreateDialogState extends ConsumerState<TagCreateDialog> {
   /// tag's locked scopes so a name edit drops those again. Null until then,
   /// while the boxes follow the name.
   Set<TagScope>? _picked;
+
+  /// The id of the tag [_picked] was made against, null for a new name.
+  /// Picks against a matched tag add uses to it, so they lapse once the
+  /// name stops matching that tag; picks for a new name are the user's
+  /// choice for it and stay.
+  String? _pickedFor;
 
   String _color = _defaultColor;
 
@@ -84,6 +89,10 @@ class _TagCreateDialogState extends ConsumerState<TagCreateDialog> {
 
   void _onNameChanged(String text) => setState(() {
     _existing = _tagNamed(text);
+    if (_pickedFor != null && _pickedFor != _existing?.id) {
+      _picked = null;
+      _pickedFor = null;
+    }
     _scopes = _picked == null
         ? (_existing?.scopes ?? TagScope.everywhere)
         : _picked!.union(_held);
@@ -93,6 +102,7 @@ class _TagCreateDialogState extends ConsumerState<TagCreateDialog> {
   // Applied to the current set, never replaced in place, so a Save already
   // under way keeps its own.
   void _onToggle(TagScope scope, bool on) => setState(() {
+    if (_picked == null) _pickedFor = _existing?.id;
     final picked = _picked ?? _scopes.difference(_held);
     _picked = on ? picked.union({scope}) : picked.difference({scope});
     _scopes = _picked!.union(_held);
@@ -117,28 +127,31 @@ class _TagCreateDialogState extends ConsumerState<TagCreateDialog> {
     final widen = _picked == null ? const <TagScope>{} : _scopes;
     final color = _color;
     final colorPicked = _colorPicked;
-    setState(() {
-      _failed = false;
-      _saving = true;
-    });
-    try {
-      final saved = await notifier.addTag(newTag, widenExistingTo: widen);
-      if (colorPicked && saved.colorHex != color) {
-        await notifier.updateTag(
-          saved.copyWith(colorHex: color, updatedAt: DateTime.now()),
-        );
-      }
-      if (mounted) Navigator.pop(context);
-    } catch (e, stackTrace) {
-      _log.error('Failed to save a tag', error: e, stackTrace: stackTrace);
-      if (mounted) setState(() => _failed = true);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+    await saveFromTagDialog(
+      context,
+      setSaving: (v) => setState(() => _saving = v),
+      setFailed: (v) => setState(() => _failed = v),
+      save: () async {
+        final saved = await notifier.addTag(newTag, widenExistingTo: widen);
+        if (colorPicked && saved.colorHex != color) {
+          await notifier.updateTag(
+            saved.copyWith(colorHex: color, updatedAt: DateTime.now()),
+          );
+        }
+        return true;
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // The list can load or change after the name was typed (its first load,
+    // or a sync), so the name is matched again and the boxes keep mirroring
+    // the tag that holds it. Not while saving: the save's own reload would
+    // show the new tag as one that already existed.
+    ref.listen(tagListNotifierProvider, (_, next) {
+      if (next.hasValue && !_saving) _onNameChanged(_controller.text);
+    });
     final l10n = context.l10n;
     return PopScope(
       // The barrier, Back and Escape all ask before popping. A save in
