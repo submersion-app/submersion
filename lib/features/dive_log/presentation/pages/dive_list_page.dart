@@ -18,7 +18,7 @@ import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_badge.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/services/estimated_profile.dart';
@@ -687,9 +687,20 @@ class DiveListTile extends ConsumerWidget {
       showPhotoBackgroundOnDiveCardsProvider,
     );
 
-    // A dive awaiting its computer data (issue #2002): no number of its own,
-    // so the badge and the screen-reader label leave the number out.
-    final isPlannedDive = isPlanned || summary?.isPlanned == true;
+    // A dive awaiting its computer data, a plan (issue #2002) or a draft
+    // (issue #637): no number of its own, so the badge and the screen-reader
+    // label leave the number out.
+    final unfilledState = unfilledDiveStateOf(
+      isPlanned: isPlanned || summary?.isPlanned == true,
+      isDraft: summary?.isDraft == true,
+      isOpenDraft: summary?.isOpenDraft == true,
+    );
+    // The chip follows the summary alone, as the planned chip did.
+    final chipState = unfilledDiveStateOf(
+      isPlanned: summary?.isPlanned == true,
+      isDraft: summary?.isDraft == true,
+      isOpenDraft: summary?.isOpenDraft == true,
+    );
 
     // The active row carries a fill tint: checked in the bulk selection, or --
     // outside selection mode -- open in the detail pane. Inside selection mode
@@ -829,9 +840,9 @@ class DiveListTile extends ConsumerWidget {
                               // passes its position as a fallback, so the
                               // badge would show a number that belongs to
                               // another dive (issue #2002).
-                              child: isPlannedDive
+                              child: unfilledState != null
                                   ? Icon(
-                                      Icons.event_available_outlined,
+                                      unfilledDiveIcon(unfilledState),
                                       size: 18,
                                       color: colorScheme.onPrimaryContainer,
                                     )
@@ -883,11 +894,11 @@ class DiveListTile extends ConsumerWidget {
                                   strutStyle: titleStyle?.preservingStrut,
                                 ),
                               ),
-                              // Planned dive awaiting its computer data
-                              // (issue #2002).
-                              if (summary?.isPlanned == true) ...[
+                              // A plan or draft awaiting its computer data
+                              // (issues #2002 and #637).
+                              if (chipState != null) ...[
                                 const SizedBox(width: 6),
-                                const PlannedDiveChip(),
+                                UnfilledDiveChip(state: chipState),
                               ],
                               if (isFavorite) ...[
                                 const SizedBox(width: 4),
@@ -1162,14 +1173,12 @@ class DiveListTile extends ConsumerWidget {
       margin: margin,
       color: cardColor,
       clipBehavior: (shouldShowMap || shouldShowPhoto) ? Clip.antiAlias : null,
-      semanticsLabel: isPlannedDive
-          ? context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
-              siteName ?? context.l10n.diveLog_listPage_unknownSite,
-            )
-          : context.l10n.diveLog_listPage_semanticsDiveAtSite(
-              diveNumber,
-              siteName ?? context.l10n.diveLog_listPage_unknownSite,
-            ),
+      semanticsLabel: diveTileSemanticsLabel(
+        context,
+        unfilledState,
+        diveNumber,
+        siteName,
+      ),
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       child: Container(

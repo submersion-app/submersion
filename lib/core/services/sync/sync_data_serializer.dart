@@ -364,6 +364,7 @@ class SyncData {
   /// [toJson].
   final List<Map<String, dynamic>> tankPressureProfiles;
   final List<Map<String, dynamic>> tideRecords;
+  final List<Map<String, dynamic>> diveHealthRecords;
   final List<Map<String, dynamic>> settings;
   final List<Map<String, dynamic>> species;
   final List<Map<String, dynamic>> sightings;
@@ -508,6 +509,7 @@ class SyncData {
     this.insightObservationDismissals = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
+    this.diveHealthRecords = const [],
     this.settings = const [],
     this.species = const [],
     this.sightings = const [],
@@ -644,6 +646,7 @@ class SyncData {
     'ruleRunChanges': ruleRunChanges,
     'insightObservationDismissals': insightObservationDismissals,
     'tideRecords': tideRecords,
+    'diveHealthRecords': diveHealthRecords,
     'settings': settings,
     'species': species,
     'sightings': sightings,
@@ -797,6 +800,7 @@ class SyncData {
       ),
       tankPressureProfiles: _parseList(json['tankPressureProfiles']),
       tideRecords: _parseList(json['tideRecords']),
+      diveHealthRecords: _parseList(json['diveHealthRecords']),
       settings: _parseList(json['settings']),
       species: _parseList(json['species']),
       sightings: _parseList(json['sightings']),
@@ -1432,6 +1436,12 @@ class SyncDataSerializer {
     ),
     (key: 'tideRecords', table: _db.tideRecords, blob: false, full: null),
     (
+      key: 'diveHealthRecords',
+      table: _db.diveHealthRecords,
+      blob: false,
+      full: null,
+    ),
+    (
       key: 'settings',
       table: null,
       blob: false,
@@ -2005,6 +2015,7 @@ class SyncDataSerializer {
     'equipmentLocationMoves',
     'diveCenterGearNotes',
     'tideRecords',
+    'diveHealthRecords',
     'sightings',
     'diveCustomFields',
     'diveDataSources',
@@ -2242,6 +2253,7 @@ class SyncDataSerializer {
     'weightPresetEntries': 'weight_preset_entries',
     'diveCenterGearNotes': 'dive_center_gear_notes',
     'tideRecords': 'tide_records',
+    'diveHealthRecords': 'dive_health_records',
     'sightings': 'sightings',
     'diveCustomFields': 'dive_custom_fields',
     'diveDataSources': 'dive_data_sources',
@@ -2833,6 +2845,14 @@ class SyncDataSerializer {
         () async => _withPendingChildren(
           'tideRecords',
           await _exportTideRecords(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      diveHealthRecords: await _safeExport(
+        'diveHealthRecords',
+        () async => _withPendingChildren(
+          'diveHealthRecords',
+          await _exportDiveHealthRecords(hlcSince),
           pendingChildren,
         ),
       ),
@@ -3895,6 +3915,11 @@ class SyncDataSerializer {
       case 'tideRecords':
         final row = await (_db.select(
           _db.tideRecords,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'diveHealthRecords':
+        final row = await (_db.select(
+          _db.diveHealthRecords,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'settings':
@@ -6061,6 +6086,11 @@ class SyncDataSerializer {
             .into(_db.tideRecords)
             .insertOnConflictUpdate(TideRecord.fromJson(data));
         return;
+      case 'diveHealthRecords':
+        await _db
+            .into(_db.diveHealthRecords)
+            .insertOnConflictUpdate(DiveHealthRecord.fromJson(data));
+        return;
       case 'settings':
         // Never let an incoming payload overwrite a device-local settings key
         // (e.g. active_diver_id). Export filters these, but a peer on an older
@@ -7775,6 +7805,14 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'diveHealthRecords':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.diveHealthRecords,
+            records.map((r) => DiveHealthRecord.fromJson(r)).toList(),
+          ),
+        );
+        return;
       case 'settings':
         // Mirror upsertRecord: never overwrite a device-local settings key.
         final settingsRows = records
@@ -8360,6 +8398,8 @@ class SyncDataSerializer {
         return plain(_db.fieldPresets, _db.fieldPresets.id);
       case 'tideRecords':
         return plain(_db.tideRecords, _db.tideRecords.id);
+      case 'diveHealthRecords':
+        return plain(_db.diveHealthRecords, _db.diveHealthRecords.id);
       case 'sightings':
         return plain(_db.sightings, _db.sightings.id);
       case 'certifications':
@@ -8895,6 +8935,8 @@ class SyncDataSerializer {
         return _db.fieldPresets;
       case 'tideRecords':
         return _db.tideRecords;
+      case 'diveHealthRecords':
+        return _db.diveHealthRecords;
       case 'sightings':
         return _db.sightings;
       case 'certifications':
@@ -9518,6 +9560,11 @@ class SyncDataSerializer {
       case 'tideRecords':
         await (_db.delete(
           _db.tideRecords,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'diveHealthRecords':
+        await (_db.delete(
+          _db.diveHealthRecords,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'settings':
@@ -11036,6 +11083,27 @@ class SyncDataSerializer {
       return rows.map((r) => r.toJson()).toList();
     }
     final rows = await _db.select(_db.tideRecords).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Apple Health readings (issue #637) travel with their dive, as tide
+  /// records do; a record marked pending is added by [_withPendingChildren].
+  Future<List<Map<String, dynamic>>> _exportDiveHealthRecords(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final modifiedDives = await (_db.select(
+        _db.dives,
+      )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+      final diveIds = modifiedDives.map((d) => d.id).toSet();
+      if (diveIds.isEmpty) return [];
+
+      final rows = await (_db.select(
+        _db.diveHealthRecords,
+      )..where((t) => t.diveId.isIn(diveIds))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.diveHealthRecords).get();
     return rows.map((r) => r.toJson()).toList();
   }
 

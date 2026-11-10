@@ -15,7 +15,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_computer/data/services/dive_import_service.dart';
 import 'package:submersion/features/dive_computer/data/services/planned_dive_fill_service.dart';
-import 'package:submersion/features/dive_computer/domain/services/planned_dive_matcher.dart';
+import 'package:submersion/features/dive_computer/domain/services/fill_target_matcher.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/data/services/fingerprint_utils.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
@@ -743,33 +743,52 @@ class DiveComputerAdapter
       }
     }
 
-    // Planned pass (issue #2002): downloads that matched nothing may fill a
-    // planned dive of the target profile from the same local day or the day
-    // before (issue #4003). Runs after the fingerprint, fuzzy and contained
+    // Fill pass: downloads that matched nothing may fill a draft whose taps
+    // they overlap (issue #637), or a planned dive of the target profile from
+    // the same local day or the day before (issues #2002 and #4003). Runs after the fingerprint, fuzzy and contained
     // passes so a real duplicate never becomes a fill. An empty diver id means
     // an unscoped library, where every planned dive is a candidate.
-    final planned = await _diveRepository.getPlannedDives(
+    final unfilled = await _diveRepository.getUnfilledDives(
       diverId: targetDiverId.isEmpty ? null : targetDiverId,
     );
-    if (planned.isNotEmpty) {
+    if (unfilled.isNotEmpty) {
       final unmatched = [
         for (var i = 0; i < _downloadedDives.length; i++)
           if (!duplicateIndices.contains(i)) i,
       ];
-      final pairs = const PlannedDiveMatcher().pair(
-        incomingStarts: [
-          for (final i in unmatched) _downloadedDives[i].startTime,
+      final pairing = const FillTargetMatcher().match(
+        incoming: [
+          for (final i in unmatched)
+            (
+              start: _downloadedDives[i].startTime,
+              end: _downloadedDives[i].startTime.add(
+                Duration(seconds: _downloadedDives[i].durationSeconds),
+              ),
+            ),
         ],
-        plannedDives: planned,
+        targets: unfilled,
       );
-      for (final entry in pairs.entries) {
+      for (final entry in pairing.pairs.entries) {
         final index = unmatched[entry.key];
         duplicateIndices.add(index);
         matchResults[index] = DiveMatchResult(
           diveId: entry.value,
           score: 1.0,
           timeDifferenceMs: 0,
-          plannedDiveId: entry.value,
+          fillTarget: FillTarget.of(
+            unfilled.firstWhere((d) => d.id == entry.value),
+          ),
+        );
+      }
+      // More than one draft could take it: the row waits for the diver.
+      for (final entry in pairing.ambiguous.entries) {
+        final index = unmatched[entry.key];
+        duplicateIndices.add(index);
+        matchResults[index] = DiveMatchResult(
+          diveId: entry.value.first,
+          score: 1.0,
+          timeDifferenceMs: 0,
+          fillCandidates: entry.value,
         );
       }
     }
@@ -913,11 +932,12 @@ class DiveComputerAdapter
         plannedId = bundle
             .groups[ImportEntityType.dives]
             ?.matchResults?[index]
-            ?.plannedDiveId;
+            ?.fillTarget
+            ?.diveId;
         if (plannedId != null) {
           try {
             final outcome = await _fillService.fill(
-              plannedDiveId: plannedId,
+              targetDiveId: plannedId,
               dive: dive,
               computerId: comp.id,
               descriptorVendor: _descriptorVendor,

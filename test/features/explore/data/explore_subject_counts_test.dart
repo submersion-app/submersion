@@ -46,6 +46,7 @@ void main() {
     String diverId = 'me',
     double depth = 10,
     bool excluded = false,
+    bool draft = false,
   }) => db
       .into(db.dives)
       .insert(
@@ -58,6 +59,7 @@ void main() {
           siteId: Value(siteId),
           maxDepth: Value(depth),
           excludedFromStats: Value(excluded),
+          isDraft: Value(draft),
         ),
       );
 
@@ -82,6 +84,8 @@ void main() {
     // Excluded from statistics, and another diver's: neither counts.
     await dive('5', siteId: 'b', depth: 40, excluded: true);
     await dive('6', siteId: 'b', depth: 40, diverId: 'other');
+    // A draft waits for its readings, so it is not counted yet (#637).
+    await dive('7', siteId: 'b', depth: 40, draft: true);
 
     expect(
       await repo.diveCountsBySubject(ParsedSubject.sites, deep, diverId: 'me'),

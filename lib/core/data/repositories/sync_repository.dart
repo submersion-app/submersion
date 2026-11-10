@@ -209,6 +209,7 @@ class SyncRepository {
     'weightPresetEntries': (table: 'weight_preset_entries', pk: 'id'),
     'diveCenterGearNotes': (table: 'dive_center_gear_notes', pk: 'id'),
     'tideRecords': (table: 'tide_records', pk: 'id'),
+    'diveHealthRecords': (table: 'dive_health_records', pk: 'id'),
     'sightings': (table: 'sightings', pk: 'id'),
     'diveCustomFields': (table: 'dive_custom_fields', pk: 'id'),
     'diveDataSources': (table: 'dive_data_sources', pk: 'id'),
@@ -1685,6 +1686,22 @@ class SyncRepository {
   /// stamp issued here. A [relayed] peer tombstone keeps the clock the peer
   /// sent as [originHlc], or none: this device's stamp says only when it
   /// heard of the delete, not when the delete happened.
+  /// The ids among [recordIds] of [entityType] this device holds a
+  /// tombstone for: deleted here, or by a peer whose deletion synced in.
+  Future<Set<String>> deletedIds(
+    String entityType,
+    Iterable<String> recordIds,
+  ) async {
+    final ids = recordIds.toSet();
+    if (ids.isEmpty) return const {};
+    final rows =
+        await (_db.select(_db.deletionLog)..where(
+              (t) => t.entityType.equals(entityType) & t.recordId.isIn(ids),
+            ))
+            .get();
+    return {for (final r in rows) r.recordId};
+  }
+
   Future<void> logDeletion({
     required String entityType,
     required String recordId,

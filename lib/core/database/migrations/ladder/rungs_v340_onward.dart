@@ -109,8 +109,17 @@ extension RungsFromV340 on AppDatabase {
     // v352: media.observation_id, the check-in a gear photo backs up, and
     // equipment.cover_media_id, the photo that stands for an item (issue
     // #3355). Nullable columns, no backfill. Re-asserted in beforeOpen.
-    // Numbered 352: main holds 350 and 351.
+    // Numbered 352: main holds 350, 351 and 354, and left 352 for this.
     if (from < 352) await _assertEquipmentPhotoColumns();
     if (from < 352) await reportProgress();
+
+    // v354: dives.is_draft, a dive marked at the site that waits for its
+    // readings (issue #637). Defaulted, no backfill, so the compatibility
+    // floor does not move. Numbered 354: main holds 351 and open work
+    // claims 352 and 353.
+    if (from < 354) await _assertDiveIsDraftColumn();
+    // v354 too: dive_health_records, Apple Health readings per dive.
+    if (from < 354) await _assertDiveHealthRecordsTable();
+    if (from < 354) await reportProgress();
   }
 }

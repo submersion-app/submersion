@@ -2,6 +2,36 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 void main() {
+  group('a draft (#637)', () {
+    final draft = Dive(
+      id: 'draft',
+      dateTime: DateTime(2024, 1, 1, 10),
+      entryTime: DateTime(2024, 1, 1, 10, 0),
+      exitTime: DateTime(2024, 1, 1, 10, 52),
+      runtime: const Duration(minutes: 45),
+      isDraft: true,
+    );
+
+    test('has no measured runtime: its taps are not a reading', () {
+      expect(draft.measuredRuntime, isNull);
+    });
+
+    test('still spans its taps for a time window', () {
+      expect(draft.effectiveRuntime, const Duration(minutes: 52));
+    });
+
+    test('an open draft has no window length yet', () {
+      final open = Dive(
+        id: 'open',
+        dateTime: DateTime(2024, 1, 1, 10),
+        entryTime: DateTime(2024, 1, 1, 10, 0),
+        runtime: const Duration(minutes: 45),
+        isDraft: true,
+      );
+      expect(open.effectiveRuntime, isNull);
+    });
+  });
+
   group('Dive.measuredRuntime', () {
     test('reads the runtime, then the times, then the profile', () {
       final timed = Dive(

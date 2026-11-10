@@ -64,6 +64,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     // columns.
     await _assertDiveComputerAutoDownloadDisabledColumn();
 
+    // v354: dives.is_draft (issue #637). Every dive read selects the whole
+    // row, for the same reason as the tank columns.
+    await _assertDiveIsDraftColumn();
+
     // v350: sightings.abundance (issue #4337). Every sighting read selects
     // the whole row, for the same reason as the tank columns.
     await _assertSightingAbundanceColumn();

@@ -2072,6 +2072,11 @@ class SyncService {
             hasUpdatedAt: false,
           ),
           (type: 'tideRecords', records: data.tideRecords, hasUpdatedAt: false),
+          (
+            type: 'diveHealthRecords',
+            records: data.diveHealthRecords,
+            hasUpdatedAt: false,
+          ),
           (type: 'sightings', records: data.sightings, hasUpdatedAt: false),
           (
             type: 'certifications',
@@ -3137,6 +3142,7 @@ class SyncService {
     'viewConfigs': true,
     'fieldPresets': false,
     'tideRecords': false,
+    'diveHealthRecords': false,
     'sightings': false,
     'certifications': true,
     'documents': true,
@@ -3505,6 +3511,7 @@ class SyncService {
     ],
     'diveCustomFields': [(field: 'diveId', parent: 'dives', nullable: false)],
     'tideRecords': [(field: 'diveId', parent: 'dives', nullable: false)],
+    'diveHealthRecords': [(field: 'diveId', parent: 'dives', nullable: false)],
     'diveDataSources': [
       (field: 'diveId', parent: 'dives', nullable: false),
       (field: 'computerId', parent: 'diveComputers', nullable: true),

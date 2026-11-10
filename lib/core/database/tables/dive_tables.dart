@@ -180,6 +180,12 @@ class Dives extends Table {
   BoolColumn get isPlanned =>
       boolean().withDefault(const Constant(false))(); // True for planned dives
 
+  // Draft dive flag (v354, issue #637): marked at the site, waiting for its
+  // dive computer readings. A draft really happened, so unlike a plan it
+  // counts for no-fly and surface interval; it stays out of totals and has
+  // no dive number until it is filled.
+  BoolColumn get isDraft => boolean().withDefault(const Constant(false))();
+
   /// Shared id across the sibling dives created by one mirror action (issue
   /// #2002). Not a foreign key: a lone dive with an outing id is valid, and a
   /// group id written once per row never half-applies under sync.

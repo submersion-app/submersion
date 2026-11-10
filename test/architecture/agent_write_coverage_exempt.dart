@@ -153,6 +153,8 @@ final exempt = <String, String>{
     'lib/features/tides/data/repositories/tide_record_repository.dart:createFromStatus',
     'lib/features/tides/data/repositories/tide_record_repository.dart:deleteTideRecordForDive',
     'lib/features/tides/data/repositories/tide_record_repository.dart:saveTideRecord',
+    // Apple Health readings on a dive (issue #637).
+    'lib/features/dive_log/data/repositories/dive_health_record_repository.dart:upsert',
     'lib/features/trips/data/repositories/trip_day_weather_repository.dart:upsert',
   ])
     method:
@@ -269,6 +271,17 @@ final exempt = <String, String>{
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:replacePlannedProfile',
   ])
     method: 'a planned dive is made and removed by the planner, from its plan',
+  // Draft dives (issue #637).
+  for (final method in const [
+    'lib/features/dive_log/data/repositories/dive_draft_repository.dart:createDraft',
+    'lib/features/dive_log/data/repositories/dive_draft_repository.dart:promoteToLoggedDive',
+    'lib/features/dive_log/data/repositories/dive_draft_repository.dart:markDraftComplete',
+    'lib/features/dive_log/data/repositories/dive_repository_impl.dart:promoteToLoggedDive',
+  ])
+    method:
+        'a draft is marked at the site and filled by a download, as a plan is '
+        'made by the planner; an agent edits the dive itself through the dive '
+        'write family',
   // Profile samples.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:deleteProfileSeriesWithHistoryForDive',

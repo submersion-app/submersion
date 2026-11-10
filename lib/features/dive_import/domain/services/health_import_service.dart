@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_import/domain/entities/health_sample.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 
 /// What the platform health API will tell us about read access.
@@ -55,6 +56,11 @@ abstract class HealthImportService {
   /// may call this on every visit rather than gating it behind a check.
   Future<bool> requestPermissions();
 
+  /// Request read access to heart rate, heart rate variability and sleep,
+  /// for the per-dive health record (issue #637). Like [requestPermissions],
+  /// true means the request completed, not that anything was granted.
+  Future<bool> requestMetricsPermissions();
+
   /// What the platform will tell us about read access.
   Future<HealthPermissionStatus> permissionStatus();
 
@@ -83,6 +89,28 @@ abstract class HealthImportService {
   ///
   /// Returns detailed profile samples including depth, temperature, HR.
   Future<List<ImportedProfileSample>> fetchDiveProfile(String sourceId);
+
+  /// Heart rate samples (bpm) from [start] to [end], from any workout or
+  /// none, in time order (issue #637). Instants are true UTC; empty when
+  /// the read is refused or unsupported.
+  Future<List<HealthSample>> fetchHeartRate({
+    required DateTime start,
+    required DateTime end,
+  });
+
+  /// Heart rate variability (SDNN, ms) samples from [start] to [end], in
+  /// time order, like [fetchHeartRate].
+  Future<List<HealthSample>> fetchHrv({
+    required DateTime start,
+    required DateTime end,
+  });
+
+  /// The stretches Health records as asleep from [start] to [end], in time
+  /// order, like [fetchHeartRate].
+  Future<List<SleepInterval>> fetchSleep({
+    required DateTime start,
+    required DateTime end,
+  });
 
   /// Get the import source type for this service.
   ImportSource get source;

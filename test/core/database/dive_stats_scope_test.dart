@@ -6,21 +6,21 @@ void main() {
     test('defaults to alias d and the two descriptive rules', () {
       expect(
         DiveStatsScope.predicate(),
-        'd.excluded_from_stats = 0 AND d.is_planned = 0',
+        'd.excluded_from_stats = 0 AND d.is_planned = 0 AND d.is_draft = 0',
       );
     });
 
     test('honours a custom alias on every term', () {
       expect(
         DiveStatsScope.predicate(alias: 'd2'),
-        'd2.excluded_from_stats = 0 AND d2.is_planned = 0',
+        'd2.excluded_from_stats = 0 AND d2.is_planned = 0 AND d2.is_draft = 0',
       );
     });
 
     test('the gas variant adds the gas flag and the gauge-mode rule', () {
       expect(
         DiveStatsScope.predicate(gas: true),
-        'd.excluded_from_stats = 0 AND d.is_planned = 0 '
+        'd.excluded_from_stats = 0 AND d.is_planned = 0 AND d.is_draft = 0 '
         "AND d.excluded_from_gas_stats = 0 AND d.dive_mode <> 'gauge'",
       );
     });
@@ -63,7 +63,7 @@ void main() {
     test('prefixes the predicate for appending into an existing WHERE', () {
       expect(
         DiveStatsScope.and(),
-        ' AND d.excluded_from_stats = 0 AND d.is_planned = 0',
+        ' AND d.excluded_from_stats = 0 AND d.is_planned = 0 AND d.is_draft = 0',
       );
     });
 

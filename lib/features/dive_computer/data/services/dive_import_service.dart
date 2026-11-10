@@ -1069,7 +1069,7 @@ class DiveImportService {
     );
   }
 
-  /// Attach [dive]'s download to the planned dive [plannedDiveId] (issue
+  /// Attach [dive]'s download to the planned dive [targetDiveId] (issue
   /// #2002). Like [_updateExistingDive] but nothing is cleared first, since
   /// a planned dive holds no source for this computer, and the target is
   /// named explicitly so a sibling dive at the same minute cannot be picked
@@ -1081,7 +1081,7 @@ class DiveImportService {
   /// them outright, and the raw download's nulls would blank the plan's.
   Future<void> attachToPlannedDive(
     DownloadedDive dive,
-    String plannedDiveId,
+    String targetDiveId,
     String computerId, {
     required ({
       int? gfLow,
@@ -1135,11 +1135,11 @@ class DiveImportService {
       cnsStart: dive.cnsStart,
       cnsEnd: dive.cnsEnd,
       otu: dive.otu,
-      targetDiveId: plannedDiveId,
+      targetDiveId: targetDiveId,
     );
-    if (attachedTo != plannedDiveId) {
+    if (attachedTo != targetDiveId) {
       throw StateError(
-        'importProfile attached to $attachedTo, expected $plannedDiveId',
+        'importProfile attached to $attachedTo, expected $targetDiveId',
       );
     }
   }

@@ -5,7 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_list_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_dive_list_tile.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -58,7 +58,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(PlannedDiveChip), findsOneWidget);
+    expect(find.byType(UnfilledDiveChip), findsOneWidget);
     expect(find.text('Planned'), findsOneWidget);
   });
 
@@ -73,7 +73,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(PlannedDiveChip), findsNothing);
+    expect(find.byType(UnfilledDiveChip), findsNothing);
   });
 
   testWidgets('the compact tile shows Planned for a planned summary', (
@@ -96,7 +96,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(PlannedDiveChip), findsOneWidget);
+    expect(find.byType(UnfilledDiveChip), findsOneWidget);
   });
 
   testWidgets('a screen reader hears that the dive is planned', (tester) async {
