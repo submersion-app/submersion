@@ -10345,6 +10345,8 @@
   "trips_summary_quickActions_add": "Út hozzáadása",
   "trips_summary_quickActions_title": "Gyorsműveletek",
   "trips_summary_recentTitle": "Legutóbbi utak",
+  "trips_summary_filteredBanner": "Szűrve: {shown} / {total, plural, =1{{total} út} other{{total} út}} összesítve",
+  "trips_summary_recentDiveCount": "{count, plural, =1{1 merülés} other{{count} merülés}}",
   "trips_summary_stat_daysDiving": "Merülési napok",
   "trips_summary_stat_liveaboards": "Hajószállások",
   "trips_summary_stat_totalDives": "Összes merülés",

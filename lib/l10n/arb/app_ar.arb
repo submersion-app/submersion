@@ -10445,6 +10445,8 @@
   "trips_summary_quickActions_add": "إضافة رحلة",
   "trips_summary_quickActions_title": "إجراءات سريعة",
   "trips_summary_recentTitle": "الرحلات الأخيرة",
+  "trips_summary_filteredBanner": "مُصفّى: ملخص {shown} من {total, plural, =1{رحلة واحدة} two{رحلتين} few{{total} رحلات} many{{total} رحلة} other{{total} رحلة}}",
+  "trips_summary_recentDiveCount": "{count, plural, =1{غوصة واحدة} two{غوصتان} few{{count} غوصات} many{{count} غوصة} other{{count} غوصة}}",
   "trips_summary_stat_daysDiving": "أيام الغوص",
   "trips_summary_stat_liveaboards": "سفن الغوص",
   "trips_summary_stat_totalDives": "إجمالي الغوصات",

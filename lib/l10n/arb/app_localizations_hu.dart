@@ -34763,6 +34763,28 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_summary_recentTitle => 'Legutóbbi utak';
 
   @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total út',
+      one: '$total út',
+    );
+    return 'Szűrve: $shown / $_temp0 összesítve';
+  }
+
+  @override
+  String trips_summary_recentDiveCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get trips_summary_stat_daysDiving => 'Merülési napok';
 
   @override

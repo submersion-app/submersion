@@ -10445,6 +10445,8 @@
   "trips_summary_quickActions_add": "Reis toevoegen",
   "trips_summary_quickActions_title": "Snelle acties",
   "trips_summary_recentTitle": "Recente reizen",
+  "trips_summary_filteredBanner": "Gefilterd: overzicht van {shown} van {total, plural, =1{{total} reis} other{{total} reizen}}",
+  "trips_summary_recentDiveCount": "{count, plural, =1{1 duik} other{{count} duiken}}",
   "trips_summary_stat_daysDiving": "Duikdagen",
   "trips_summary_stat_liveaboards": "Liveaboards",
   "trips_summary_stat_totalDives": "Totaal duiken",

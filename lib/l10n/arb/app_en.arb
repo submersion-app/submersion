@@ -20213,6 +20213,27 @@
   "trips_summary_quickActions_add": "Add Trip",
   "trips_summary_quickActions_title": "Quick Actions",
   "trips_summary_recentTitle": "Recent Trips",
+  "trips_summary_filteredBanner": "Filtered: summarizing {shown} of {total, plural, =1{{total} trip} other{{total} trips}}",
+  "trips_summary_recentDiveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
+  "@trips_summary_filteredBanner": {
+    "description": "Line under the Trips overview title while the trip list is filtered (for example by an equipment item): the overview covers {shown} of the diver's {total} trips.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@trips_summary_recentDiveCount": {
+    "description": "Dive count after the date on a Recent Trips row of the Trips overview, e.g. \"20/08/2026 • 11 dives\".",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trips_summary_stat_daysDiving": "Days Diving",
   "trips_summary_stat_liveaboards": "Liveaboards",
   "trips_summary_stat_totalDives": "Total Dives",

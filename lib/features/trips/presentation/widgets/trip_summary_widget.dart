@@ -11,12 +11,17 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/core/utils/unit_formatter.dart';
 
 /// Summary widget shown when no trip is selected.
+///
+/// It summarizes the trips the list beside it shows. Under a trip list
+/// filter (an equipment item's Trips row opens one) that is the filtered
+/// trips alone, with a banner saying so, never every trip (issue #4414).
 class TripSummaryWidget extends ConsumerWidget {
   const TripSummaryWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tripsAsync = ref.watch(tripListNotifierProvider);
+    final isFiltered = ref.watch(tripFilterProvider).hasActiveFilters;
+    final tripsAsync = ref.watch(filteredTripsProvider);
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -25,6 +30,10 @@ class TripSummaryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(context),
+            if (isFiltered) ...[
+              const SizedBox(height: 16),
+              const _TripSummaryFilterBanner(),
+            ],
             const SizedBox(height: 24),
             tripsAsync.when(
               data: (trips) => _buildOverview(context, ref, trips),
@@ -253,7 +262,8 @@ class TripSummaryWidget extends ConsumerWidget {
                 ),
                 title: Text(trip.name),
                 subtitle: Text(
-                  '${units.formatDate(trip.startDate)} • ${tripWithStats.diveCount} dives',
+                  '${units.formatDate(trip.startDate)} • '
+                  '${context.l10n.trips_summary_recentDiveCount(tripWithStats.diveCount as int)}',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
@@ -369,6 +379,57 @@ class TripSummaryWidget extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Shown under the Trips overview title while the trip list is filtered, so
+/// the totals below are never read as every trip's: "Filtered: summarizing
+/// 10 of 82 trips", plus the button the list's filter bar offers to clear it.
+/// The trip list counterpart of the Dive Log's DiveSummaryFilterBanner.
+class _TripSummaryFilterBanner extends ConsumerWidget {
+  const _TripSummaryFilterBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final shown = ref.watch(filteredTripsProvider).value?.length;
+    final total = ref.watch(tripListNotifierProvider).value?.length;
+
+    return Container(
+      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          ExcludeSemantics(
+            child: Icon(
+              Icons.filter_list,
+              size: 20,
+              color: colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              shown == null || total == null
+                  ? ''
+                  : context.l10n.trips_summary_filteredBanner(shown, total),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => ref.read(tripFilterProvider.notifier).state =
+                const TripFilterState(),
+            child: Text(context.l10n.trips_list_filters_clearAll),
+          ),
+        ],
+      ),
     );
   }
 }

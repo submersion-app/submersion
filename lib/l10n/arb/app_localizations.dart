@@ -55223,6 +55223,18 @@ abstract class AppLocalizations {
   /// **'Recent Trips'**
   String get trips_summary_recentTitle;
 
+  /// Line under the Trips overview title while the trip list is filtered (for example by an equipment item): the overview covers {shown} of the diver's {total} trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered: summarizing {shown} of {total, plural, =1{{total} trip} other{{total} trips}}'**
+  String trips_summary_filteredBanner(int shown, int total);
+
+  /// Dive count after the date on a Recent Trips row of the Trips overview, e.g. "20/08/2026 • 11 dives".
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String trips_summary_recentDiveCount(int count);
+
   /// No description provided for @trips_summary_stat_daysDiving.
   ///
   /// In en, this message translates to:

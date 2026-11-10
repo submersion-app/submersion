@@ -55,12 +55,18 @@ Future<void> _pump(
   DateFormatPreference format,
   List<TripWithStats> trips, {
   Locale locale = const Locale('en'),
+  TripFilterState filter = const TripFilterState(),
+  Set<String> matchingIds = const {},
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         tripListNotifierProvider.overrideWith(
           (ref) => _StubTripListNotifier(trips),
+        ),
+        tripFilterProvider.overrideWith((ref) => filter),
+        queryFilteredTripIdsProvider.overrideWith(
+          (ref, filter) async => matchingIds,
         ),
         settingsProvider.overrideWith(
           (ref) => MockSettingsNotifier(AppSettings(dateFormat: format)),
@@ -276,5 +282,86 @@ void main() {
       trip('s', 12, 18, parent: 'p'),
     ]);
     expect(find.text('17'), findsOneWidget);
+  });
+
+  // Issue #4414: an equipment item's Trips row opens the trip list filtered
+  // to the trips that used it, but the overview beside that list summed and
+  // previewed every trip, so "10 trips" landed on "82 trips" and on three
+  // trips the item never went on.
+  group('TripSummaryWidget under a trip list filter', () {
+    final year = DateTime.now().year - 1;
+    TripWithStats trip(String id, String name, int month, int dives) =>
+        TripWithStats(
+          trip: Trip(
+            id: id,
+            name: name,
+            startDate: DateTime(year, month, 1),
+            endDate: DateTime(year, month, 5),
+            createdAt: DateTime(year),
+            updatedAt: DateTime(year),
+          ),
+          diveCount: dives,
+        );
+    final all = [
+      trip('a', 'Sardinia', 8, 11),
+      trip('b', 'Belgium', 6, 3),
+      trip('c', 'Southern France', 5, 19),
+      trip('d', 'Zeeland', 2, 7),
+    ];
+    const byTank = TripFilterState(equipmentId: 'tank-1');
+
+    testWidgets('summarizes only the trips the list shows', (tester) async {
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        matchingIds: const {'b', 'd'},
+      );
+
+      expect(find.text('Filtered: summarizing 2 of 4 trips'), findsOneWidget);
+      expect(find.bySemanticsLabel('Total Trips: 2'), findsOneWidget);
+      expect(find.bySemanticsLabel('Total Dives: 10'), findsOneWidget);
+      expect(find.text('Belgium'), findsOneWidget);
+      expect(find.text('Zeeland'), findsOneWidget);
+      expect(find.text('Sardinia'), findsNothing);
+      expect(find.text('Southern France'), findsNothing);
+    });
+
+    testWidgets('Clear all drops the filter the list shares', (tester) async {
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        matchingIds: const {'b'},
+      );
+
+      await tester.tap(find.text('Clear all'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+      expect(container.read(tripFilterProvider), const TripFilterState());
+      expect(find.textContaining('Filtered:'), findsNothing);
+      expect(find.text('Sardinia'), findsOneWidget);
+    });
+
+    testWidgets('an unfiltered list shows no banner', (tester) async {
+      await _pump(tester, DateFormatPreference.mmmDYYYY, all);
+
+      expect(find.textContaining('Filtered:'), findsNothing);
+      expect(find.bySemanticsLabel('Total Trips: 4'), findsOneWidget);
+    });
+  });
+
+  testWidgets('the recent-trips dive count is translated', (tester) async {
+    await _pump(tester, DateFormatPreference.ddmmyyyy, [
+      _trip(id: 't1', name: 'Belgien 2026', start: past),
+    ], locale: const Locale('de'));
+
+    expect(find.textContaining('4 Tauchgänge'), findsOneWidget);
+    expect(find.textContaining('dives'), findsNothing);
   });
 }
