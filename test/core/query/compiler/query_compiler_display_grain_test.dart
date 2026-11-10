@@ -104,6 +104,29 @@ void main() {
     expectParams(i.params, [29.95, 30.05, 18]);
   });
 
+  test('a tie follows the sign shown, not the stored one', () {
+    // 31.9 F is stored as -0.06 C but shown positive, so its ties round as
+    // a positive number's: the lower edge is in, the upper edge out.
+    const nearFreezing = NumberValue(
+      (31.9 - 32) * 5 / 9,
+      null,
+      grain: 0.1 * 5 / 9,
+      shown: 31.9,
+    );
+    final eq = compileQuery(
+      ConditionNode(FieldPath(['waterTemp']), QueryOp.eq, nearFreezing),
+      fixtureDives,
+      fixtureRegistry,
+    );
+    expect(eq.where, '((r0.water_temp >= ? AND r0.water_temp < ?))');
+    final gt = compileQuery(
+      ConditionNode(FieldPath(['waterTemp']), QueryOp.gt, nearFreezing),
+      fixtureDives,
+      fixtureRegistry,
+    );
+    expect(gt.where, '(r0.water_temp >= ?)');
+  });
+
   test('a number with no grain still compares exactly', () {
     final gt = c(QueryOp.gt, const NumberValue(30, null));
     expect(gt.where, '(r0.max_depth > ?)');

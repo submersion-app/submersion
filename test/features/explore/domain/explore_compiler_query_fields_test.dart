@@ -51,7 +51,11 @@ void main() {
     expect(q.chips, hasLength(1));
     expect(
       q.query,
-      cond('avgDepth', QueryOp.gt, const NumberValue(15, null, grain: 0.1)),
+      cond(
+        'avgDepth',
+        QueryOp.gt,
+        const NumberValue(15, null, grain: 0.1, shown: 15),
+      ),
     );
   });
 
@@ -61,8 +65,16 @@ void main() {
     expect(
       q.query,
       AndNode([
-        cond('sacChange', QueryOp.gte, const NumberValue(32, null, grain: 0.1)),
-        cond('sacChange', QueryOp.lte, const NumberValue(32, null, grain: 0.1)),
+        cond(
+          'sacChange',
+          QueryOp.gte,
+          const NumberValue(32, null, grain: 0.1, shown: 32),
+        ),
+        cond(
+          'sacChange',
+          QueryOp.lte,
+          const NumberValue(32, null, grain: 0.1, shown: 32),
+        ),
       ]),
     );
   });
@@ -75,8 +87,16 @@ void main() {
     expect(
       q.query,
       AndNode([
-        cond('airTemp', QueryOp.gte, const NumberValue(-20, null, grain: 0.1)),
-        cond('airTemp', QueryOp.lte, const NumberValue(5, null, grain: 0.1)),
+        cond(
+          'airTemp',
+          QueryOp.gte,
+          const NumberValue(-20, null, grain: 0.1, shown: -20),
+        ),
+        cond(
+          'airTemp',
+          QueryOp.lte,
+          const NumberValue(5, null, grain: 0.1, shown: 5),
+        ),
       ]),
     );
   });
@@ -294,7 +314,7 @@ void main() {
           cond(
             'sacChange',
             QueryOp.gt,
-            const NumberValue(10, null, grain: 0.1),
+            const NumberValue(10, null, grain: 0.1, shown: 10),
           ),
           cond(
             'finalStop',
@@ -304,7 +324,7 @@ void main() {
           cond(
             'finalStopExcursion',
             QueryOp.gt,
-            const NumberValue(1, null, grain: 0.1),
+            const NumberValue(1, null, grain: 0.1, shown: 1),
           ),
           cond('finalStopDuration', QueryOp.gte, const NumberValue(3, null)),
         ]),

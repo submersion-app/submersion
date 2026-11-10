@@ -202,17 +202,19 @@ class QueryValueEditor extends StatelessWidget {
         // says why.
         final read = numbers.readNumber(text);
         if (read is! numbers.NumberValue) return;
+        final grain = displayGrain(
+          read.value,
+          unit,
+          field.dimension,
+          context.prefs,
+          decimals: field.displayDecimals,
+        );
         onValue(
           NumberValue(
             groundToStorage(read.value, unit, field.dimension, context.prefs),
             null,
-            grain: displayGrain(
-              read.value,
-              unit,
-              field.dimension,
-              context.prefs,
-              decimals: field.displayDecimals,
-            ),
+            grain: grain,
+            shown: grain == null ? null : read.value.toDouble(),
           ),
         );
       },

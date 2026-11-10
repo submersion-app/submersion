@@ -32,10 +32,12 @@ void main() {
         : null;
     // The grain is the parser's own (#4398): a number on the display grid
     // carries one, a finer one does not.
+    final grain = displayGrain(raw, unit, FieldDimension.depth, prefs);
     return NumberValue(
       groundToStorage(raw, unit, FieldDimension.depth, prefs),
       unit,
-      grain: displayGrain(raw, unit, FieldDimension.depth, prefs),
+      grain: grain,
+      shown: grain == null ? null : raw.toDouble(),
     );
   }
 

@@ -57,19 +57,26 @@ class NumberValue extends QueryValue {
   /// a number typed finer than the display, or one built in code.
   final double? grain;
 
-  const NumberValue(this.value, this.typedUnit, {this.grain});
+  /// The number as the diver typed it, in the unit it was shown in, set
+  /// with [grain]. Its sign decides which edge of the band a tie belongs to,
+  /// since the display rounds a tie away from zero: 31.9 F is shown positive
+  /// though it is stored as a negative Celsius value. Null reads [value].
+  final double? shown;
+
+  const NumberValue(this.value, this.typedUnit, {this.grain, this.shown});
   @override
   bool operator ==(Object other) =>
       other is NumberValue &&
       other.value == value &&
       other.typedUnit == typedUnit &&
-      other.grain == grain;
+      other.grain == grain &&
+      other.shown == shown;
   @override
-  int get hashCode => Object.hash(value, typedUnit, grain);
+  int get hashCode => Object.hash(value, typedUnit, grain, shown);
   @override
   String toString() => grain == null
       ? 'NumberValue($value, $typedUnit)'
-      : 'NumberValue($value, $typedUnit, grain: $grain)';
+      : 'NumberValue($value, $typedUnit, grain: $grain, shown: $shown)';
 }
 
 class StringValue extends QueryValue {

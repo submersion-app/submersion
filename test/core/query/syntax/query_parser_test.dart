@@ -78,7 +78,7 @@ void main() {
         ConditionNode(
           FieldPath(['depth']),
           QueryOp.gt,
-          const NumberValue(30, null, grain: 0.1),
+          const NumberValue(30, null, grain: 0.1, shown: 30),
         ),
       );
       final imp = ok(imperial(), 'depth > 100') as ConditionNode;
@@ -91,7 +91,7 @@ void main() {
         ConditionNode(
           FieldPath(['waterTemp']),
           QueryOp.lt,
-          const NumberValue(-2, null, grain: 0.1),
+          const NumberValue(-2, null, grain: 0.1, shown: -2),
         ),
       );
     },
@@ -105,7 +105,7 @@ void main() {
           ConditionNode(
             FieldPath(['depth']),
             QueryOp.gt,
-            const NumberValue(30, null, grain: 0.1),
+            const NumberValue(30, null, grain: 0.1, shown: 30),
           ),
           ConditionNode(
             FieldPath(['rating']),
@@ -156,7 +156,7 @@ void main() {
       ConditionNode(
         FieldPath(['depth']),
         QueryOp.eq,
-        const NumberValue(30, null, grain: 0.1),
+        const NumberValue(30, null, grain: 0.1, shown: 30),
       ),
     );
   });
@@ -176,8 +176,8 @@ void main() {
         FieldPath(['depth']),
         QueryOp.between,
         ListValue([
-          const NumberValue(18, null, grain: 0.1),
-          const NumberValue(30, null, grain: 0.1),
+          const NumberValue(18, null, grain: 0.1, shown: 18),
+          const NumberValue(30, null, grain: 0.1, shown: 30),
         ]),
       ),
     );
@@ -540,8 +540,8 @@ void main() {
         FieldPath(['depth']),
         QueryOp.between,
         ListValue([
-          const NumberValue(18, null, grain: 0.1),
-          const NumberValue(30, null, grain: 0.1),
+          const NumberValue(18, null, grain: 0.1, shown: 18),
+          const NumberValue(30, null, grain: 0.1, shown: 30),
         ]),
       ),
     );
@@ -625,7 +625,7 @@ void main() {
           ConditionNode(
             FieldPath(['depth']),
             QueryOp.gt,
-            const NumberValue(30, null, grain: 0.1),
+            const NumberValue(30, null, grain: 0.1, shown: 30),
           ),
         ]),
       );

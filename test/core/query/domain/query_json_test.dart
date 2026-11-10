@@ -56,7 +56,7 @@ void main() {
     final grained = ConditionNode(
       FieldPath(['depth']),
       QueryOp.lt,
-      const NumberValue(8.26, null, grain: 0.03),
+      const NumberValue(8.26, null, grain: 0.03, shown: 27.1),
     );
     final json = queryNodeToJson(grained);
     final back = queryNodeFromJson(
@@ -160,6 +160,13 @@ void main() {
           'op': 'gt',
           'value': {'k': 'num', 'v': 1, 'g': g},
         },
+      // a shown number that is not one
+      {
+        't': 'cond',
+        'path': ['depth'],
+        'op': 'gt',
+        'value': {'k': 'num', 'v': 1, 'g': 0.1, 's': 'x'},
+      },
       // children that are not maps
       {
         't': 'and',

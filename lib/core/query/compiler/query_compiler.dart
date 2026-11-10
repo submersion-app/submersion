@@ -497,9 +497,12 @@ class _Ctx {
   /// tie away from zero (toStringAsFixed), so a positive value keeps its
   /// lower edge, a negative one its upper edge, and zero neither: 27.05
   /// shows as 27.1, -1.25 as -1.3, and both -0.05 and 0.05 leave 0.0. The
-  /// sign is the stored value's; only temperature has an offset, and a
-  /// Fahrenheit tie converts to no exact Celsius double.
-  static (bool, bool) _tiesIn(NumberValue v) => (v.value > 0, v.value < 0);
+  /// sign is the one shown: Fahrenheit's offset makes 31.9 F a negative
+  /// Celsius value, and stored values do land exactly on its band's edges.
+  static (bool, bool) _tiesIn(NumberValue v) {
+    final sign = v.shown ?? v.value;
+    return (sign > 0, sign < 0);
+  }
 
   /// [_cmp] for a number typed at display precision: the bound moves to the
   /// edge of the band shown as [v], so `< 27.1` stops below everything shown

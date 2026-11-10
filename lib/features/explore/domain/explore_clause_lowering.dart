@@ -241,6 +241,7 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
             groundClause(said, c.unit, field.dimension, units),
             null,
             grain: grain,
+            shown: said.toDouble(),
           );
   }
 

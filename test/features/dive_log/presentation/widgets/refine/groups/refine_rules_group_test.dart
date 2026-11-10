@@ -40,7 +40,7 @@ void main() {
       ConditionNode(
         FieldPath(['depth']),
         QueryOp.gt,
-        const NumberValue(30, null, grain: 0.1),
+        const NumberValue(30, null, grain: 0.1, shown: 30),
       ),
     );
     expect(h.draft.computerId, 'dc-1');
