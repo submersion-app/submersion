@@ -46,6 +46,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/build_date_label.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/settings_root_set_up_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
@@ -2142,6 +2143,7 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
       loading: () => '',
       error: (_, _) => '',
     );
+    final builtOn = watchBuildDateLabel(context, ref);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -2159,7 +2161,8 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                 ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: Text(context.l10n.settings_about_aboutSubmersion),
-                  onTap: () => _showAboutDialog(context, versionString),
+                  onTap: () =>
+                      _showAboutDialog(context, versionString, builtOn),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -2265,6 +2268,15 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                     ),
                   ),
                 ),
+                if (builtOn != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    builtOn,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -2428,11 +2440,19 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
     await ref.read(updateStatusProvider.notifier).checkForUpdate();
   }
 
-  void _showAboutDialog(BuildContext context, String versionString) {
+  void _showAboutDialog(
+    BuildContext context,
+    String versionString,
+    String? builtOn,
+  ) {
     showAboutDialog(
       context: context,
       applicationName: context.l10n.settings_about_appName,
       applicationVersion: versionString,
+      // The legalese slot is the small line under the version, which is where
+      // the build date belongs (issue #4365); the app has no legalese of its
+      // own, and null leaves the line out for a build without a date.
+      applicationLegalese: builtOn,
       applicationIcon: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.asset('assets/icon/icon.png', width: 64, height: 64),

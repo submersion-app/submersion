@@ -36,7 +36,7 @@ else
 fi
 
 # Build with Flutter first
-flutter build macos --release "${DART_DEFINES[@]}"
+flutter build macos --release "--dart-define=BUILD_DATE=$(date -u +%F)" "${DART_DEFINES[@]}"
 
 # Re-sign with ad-hoc signature and no-sandbox entitlements
 echo ""

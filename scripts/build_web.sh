@@ -46,6 +46,7 @@ if [ -n "${GOOGLE_WEB_CLIENT_ID:-}" ]; then
 fi
 # The guarded expansion: bash 3.2 (macOS) calls an empty array unbound.
 flutter build web --release --pwa-strategy=none --no-web-resources-cdn \
+  "--dart-define=BUILD_DATE=$(date -u +%F)" \
   ${google_defines[@]+"${google_defines[@]}"} "$@"
 
 # flutter build web writes flutter_service_worker.js whatever the PWA
