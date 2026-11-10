@@ -58,7 +58,6 @@ class SubmersionAboutDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final localizations = MaterialLocalizations.of(context);
-    String label(String text) => theme.useMaterial3 ? text : text.toUpperCase();
 
     return AlertDialog(
       scrollable: true,
@@ -100,7 +99,7 @@ class SubmersionAboutDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
-          child: Text(label(localizations.viewLicensesButtonLabel)),
+          child: Text(localizations.viewLicensesButtonLabel),
           onPressed: () => showLicensePage(
             context: context,
             applicationName: applicationName,
@@ -109,7 +108,7 @@ class SubmersionAboutDialog extends StatelessWidget {
           ),
         ),
         TextButton(
-          child: Text(label(localizations.closeButtonLabel)),
+          child: Text(localizations.closeButtonLabel),
           onPressed: () => Navigator.pop(context),
         ),
       ],
