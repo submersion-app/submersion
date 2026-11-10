@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
@@ -167,6 +168,41 @@ void main() {
 
     final events = await logEvents(db);
     expect(events.map((e) => e['action']), ['D']);
+  });
+
+  test(
+    'a photo placement shifted in a remove source operation is recorded',
+    () async {
+      // A promotion re-zeroes the timeline, photo placements included.
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await db.customStatement(
+        'INSERT INTO media_enrichment (id, media_id, dive_id, elapsed_seconds, '
+        "created_at) VALUES ('enrich', 'photo', 'dive', 600, 0)",
+      );
+      await db.customStatement('PRAGMA foreign_keys = ON');
+      await forget();
+
+      await ChangeLogScope.bulk(
+        db,
+        label: ChangeLogLabels.removeSource,
+        body: () => db.customStatement(
+          "UPDATE media_enrichment SET elapsed_seconds = 480 WHERE id = 'enrich'",
+        ),
+      );
+      await repository.settleAll();
+
+      final events = await logEvents(db);
+      expect(events.map((e) => (e['table_name'], e['action'])), [
+        ('media_enrichment', 'U'),
+      ]);
+    },
+  );
+
+  test('the opt-in labels are the removal labels', () {
+    expect(changeLogSeriesUpdateLabels, {
+      ChangeLogLabels.removeSource,
+      ChangeLogLabels.removeDuplicateCylinders,
+    });
   });
 
   test('a series delete in another operation is still dropped while its dive '

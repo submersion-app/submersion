@@ -495,9 +495,12 @@ const Set<String> changeLogDeviceLocalTables = {'dive_profile_series_history'};
 /// series rows in place. Without their old values a revert would bring back
 /// the deleted rows beside series still shifted, which is a broken dive.
 /// Downloads, re-parses and analysis sweeps rewrite these large rows all the
-/// time and nothing the diver did, so they stay out of the log.
+/// time and nothing the diver did, so they stay out of the log. A promotion
+/// also shifts photo placements along the re-zeroed timeline, so
+/// media_enrichment is here too.
 const Set<String> changeLogOptInUpdateTables = {
   'dive_profile_series',
+  'media_enrichment',
   'tank_pressure_series',
 };
 

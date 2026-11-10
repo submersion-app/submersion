@@ -535,7 +535,6 @@ class _SettlePass {
     return (label: null, ordinal: null);
   }
 
-  /// Whether the row a machine row belongs to, other than its root, has gone.
   /// Whether [event] was recorded inside an operation that keeps its machine
   /// rows: a series table of [changeLogOptInUpdateTables] under one of
   /// [changeLogSeriesUpdateLabels].
@@ -549,6 +548,7 @@ class _SettlePass {
     return changeLogSeriesUpdateLabels.contains(operation?.label);
   }
 
+  /// Whether the row a machine row belongs to, other than its root, has gone.
   Future<bool> _machineOwnerGone(_Event event) async {
     final owners = changeLogMachineOwners[event.table];
     if (owners == null) return false;
