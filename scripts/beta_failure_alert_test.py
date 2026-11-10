@@ -85,6 +85,76 @@ RUN_JOBS = {
     ]
 }
 
+# A build job that hits its timeout-minutes is `cancelled` to needs and to the
+# jobs API alike, exactly like one a newer run preempted (Beta run 42740909797,
+# whose macOS build timed out at 45 minutes, against run 42732478246, whose
+# builds a newer run cancelled). The lanes behind it are skipped.
+BUILD_CANCELLED = needs(
+    precheck="success",
+    build="cancelled",
+    publish_beta="skipped",
+    upload_testflight_ios="skipped",
+    upload_testflight_macos="skipped",
+    upload_play="skipped",
+)
+
+MACOS_JOB_ID = 129582153394
+
+CANCELLED_RUN_JOBS = {
+    "jobs": [
+        {"id": 1, "name": "Compute version and gate", "conclusion": "success", "steps": []},
+        {"id": 2, "name": "Build / Build iOS", "conclusion": "success", "steps": []},
+        {
+            "id": MACOS_JOB_ID,
+            "name": "Build / Build macOS",
+            "conclusion": "cancelled",
+            "steps": [
+                {"name": "Install dependencies", "conclusion": "success"},
+                {"name": "Build Mac App Store package", "conclusion": "cancelled"},
+                {"name": "Upload Mac App Store pkg artifact", "conclusion": "skipped"},
+            ],
+        },
+        {"id": 3, "name": "Upload macOS beta to TestFlight", "conclusion": "skipped", "steps": []},
+        {"id": 4, "name": "Alert on failure", "conclusion": None, "steps": []},
+    ]
+}
+
+# The check-run annotations of each kind of cancellation, as the API returns
+# them (one page, slurped).
+TIMEOUT_ANNOTATIONS = [
+    [
+        {"annotation_level": "failure",
+         "message": "The job has exceeded the maximum execution time of 45m0s"},
+        {"annotation_level": "failure", "message": "The operation was canceled."},
+    ]
+]
+PREEMPTED_ANNOTATIONS = [
+    [
+        {"annotation_level": "failure",
+         "message": "Canceling since a higher priority waiting request for beta-build exists"},
+        {"annotation_level": "failure", "message": "The operation was canceled."},
+    ]
+]
+
+
+def annotations_call(job_id):
+    """The gh args that read one job's check-run annotations."""
+    return (
+        "api", "--paginate", "--slurp",
+        f"repos/submersion-app/submersion/check-runs/{job_id}/annotations",
+    )
+
+
+def cancelled_gh(annotations, **kwargs):
+    """A FakeGh for a run whose macOS build was cancelled, for whatever reason."""
+    responses = {
+        ("api",): json.dumps([CANCELLED_RUN_JOBS]),
+        annotations_call(MACOS_JOB_ID): annotations,
+    }
+    responses.update(kwargs.pop("responses", {}))
+    return FakeGh(responses=responses, **kwargs)
+
+
 CONTEXT = {
     "repo": "submersion-app/submersion",
     "run_id": "36460341104",
@@ -181,9 +251,19 @@ class DecideTest(unittest.TestCase):
     def test_a_gated_off_run_does_nothing(self):
         self.assertEqual(alert.decide(NOTHING_TO_SHIP), ("none", []))
 
-    def test_a_cancelled_lane_neither_alerts_nor_resolves(self):
+    def test_a_cancelled_job_is_left_for_the_timeout_check(self):
+        # needs cannot tell a timeout from a preemption; run() reads the jobs.
         cancelled = dict(ALL_GREEN, **needs(upload_testflight_macos="cancelled"))
-        self.assertEqual(alert.decide(cancelled), ("none", []))
+        self.assertEqual(
+            alert.decide(cancelled), ("cancelled", ["upload-testflight-macos"])
+        )
+
+    def test_a_cancelled_build_is_left_for_the_timeout_check(self):
+        self.assertEqual(alert.decide(BUILD_CANCELLED), ("cancelled", ["build"]))
+
+    def test_a_failure_wins_over_a_cancellation(self):
+        both = dict(BUILD_CANCELLED, **needs(publish_beta="failure"))
+        self.assertEqual(alert.decide(both), ("alert", ["publish-beta"]))
 
     def test_no_needs_does_nothing(self):
         self.assertEqual(alert.decide({}), ("none", []))
@@ -196,8 +276,19 @@ class FailedStepsTest(unittest.TestCase):
             [("Upload Android beta to Play open testing", ["Upload to Play open testing"])],
         )
 
-    def test_a_timed_out_job_counts_as_failed(self):
-        # needs reports a timeout as `failure`; the jobs API does not.
+    def test_a_job_that_hit_its_timeout_is_listed_at_the_step_it_was_cut_off_in(self):
+        jobs = CANCELLED_RUN_JOBS["jobs"]
+        self.assertEqual(
+            alert.failed_steps(jobs, timed_out=frozenset({MACOS_JOB_ID})),
+            [("Build / Build macOS (timed out)", ["Build Mac App Store package"])],
+        )
+
+    def test_a_cancelled_job_that_did_not_time_out_is_not_listed(self):
+        self.assertEqual(alert.failed_steps(CANCELLED_RUN_JOBS["jobs"]), [])
+
+    def test_failed_and_timed_out_conclusions_count_as_failed(self):
+        # The jobs API has been seen to report a timeout only as `cancelled`,
+        # but `timed_out` is a documented conclusion, so it is honoured too.
         jobs = [
             {
                 "name": "Upload macOS beta to TestFlight",
@@ -258,8 +349,8 @@ class AlertTest(unittest.TestCase):
         self.assertEqual(comment[2], "2650")
 
     def test_lists_every_failed_job_even_when_the_api_misses_one(self):
-        # A timed-out build is `failure` in needs but may be missing from the
-        # API's failed jobs. Step details for Play must not hide it.
+        # needs and the API's per-job details can disagree (a failed build
+        # whose jobs list no failure). Step details for Play must not hide it.
         both = dict(PLAY_RED, **needs(build="failure"))
         gh = FakeGh()
         _quiet(alert.run, both, CONTEXT, gh)
@@ -412,6 +503,82 @@ class AlertTest(unittest.TestCase):
         self.assertNotIn("@@", body)
 
 
+class TimeoutTest(unittest.TestCase):
+    """A timeout is `cancelled`, so only the job annotations reveal it."""
+
+    def test_a_build_that_hit_its_timeout_raises_the_alert(self):
+        gh = cancelled_gh(json.dumps(TIMEOUT_ANNOTATIONS))
+        code, _ = _quiet(alert.run, BUILD_CANCELLED, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        (create,) = gh.commands("issue", "create")
+        body = _value(create, "--body")
+        self.assertIn("`build`", body)
+        self.assertIn("Build / Build macOS (timed out)", body)
+        self.assertIn("Build Mac App Store package", body)
+        self.assertIn(failed_in(120), body)
+        (edit,) = gh.commands("issue", "edit")
+        self.assertEqual(_value(edit, "--add-assignee"), "maintainer")
+
+    def test_a_build_a_newer_run_preempted_touches_no_issue(self):
+        gh = cancelled_gh(json.dumps(PREEMPTED_ANNOTATIONS), open_issues=[OPEN_ALERT])
+        code, out = _quiet(alert.run, BUILD_CANCELLED, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        self.assertEqual(gh.commands("issue"), [])
+        self.assertIn("nothing to do", out)
+
+    def test_reads_the_annotations_of_cancelled_jobs_only(self):
+        gh = cancelled_gh(json.dumps(PREEMPTED_ANNOTATIONS))
+        _quiet(alert.run, BUILD_CANCELLED, CONTEXT, gh)
+        reads = [c[-1] for c in gh.commands("api") if c[-1].endswith("/annotations")]
+        self.assertEqual(reads, [annotations_call(MACOS_JOB_ID)[-1]])
+
+    def test_an_unreadable_run_fails_the_job_rather_than_guess(self):
+        # Silence is how four timed-out betas went unnoticed; a red alert job
+        # at least shows in the Actions list.
+        error = subprocess.CalledProcessError(1, ["gh"], stderr="HTTP 403")
+        gh = cancelled_gh(json.dumps(TIMEOUT_ANNOTATIONS), responses={("api",): error})
+        with self.assertRaises(subprocess.CalledProcessError):
+            _quiet(alert.run, BUILD_CANCELLED, CONTEXT, gh)
+        self.assertEqual(gh.commands("issue"), [])
+
+    def test_unreadable_annotations_fail_the_job_rather_than_guess(self):
+        error = subprocess.CalledProcessError(1, ["gh"], stderr="HTTP 403")
+        gh = cancelled_gh(error)
+        with self.assertRaises(subprocess.CalledProcessError):
+            _quiet(alert.run, BUILD_CANCELLED, CONTEXT, gh)
+
+    def test_a_failure_report_also_names_a_job_that_timed_out(self):
+        # Windows failed and macOS timed out in the same build: the report
+        # must name both, though only the failure decided to alert.
+        jobs = {
+            "jobs": CANCELLED_RUN_JOBS["jobs"]
+            + [
+                {
+                    "id": 5,
+                    "name": "Build / Build Windows",
+                    "conclusion": "failure",
+                    "steps": [{"name": "Build Windows release", "conclusion": "failure"}],
+                }
+            ]
+        }
+        gh = cancelled_gh(
+            json.dumps(TIMEOUT_ANNOTATIONS), responses={("api",): json.dumps([jobs])}
+        )
+        _quiet(alert.run, BUILD_RED, CONTEXT, gh)
+        body = _value(gh.commands("issue", "create")[0], "--body")
+        self.assertIn("Build / Build macOS (timed out)", body)
+        self.assertIn("Build Windows release", body)
+
+    def test_unreadable_annotations_still_deliver_a_failure_alert(self):
+        # On a failure the alert goes out regardless; only its details suffer.
+        error = subprocess.CalledProcessError(1, ["gh"], stderr="HTTP 403")
+        gh = cancelled_gh(error)
+        code, out = _quiet(alert.run, BUILD_RED, CONTEXT, gh)
+        self.assertEqual(code, 0)
+        self.assertEqual(len(gh.commands("issue", "create")), 1)
+        self.assertIn("::warning::", out)
+
+
 class ResolveTest(unittest.TestCase):
     def test_closes_the_open_alert_once_every_lane_publishes(self):
         gh = FakeGh(open_issues=[OPEN_ALERT])
@@ -561,19 +728,27 @@ class WorkflowWiringTest(unittest.TestCase):
             block.append(line)
         return " ".join(" ".join(block).split())
 
-    def test_the_alert_runs_on_any_failure_and_on_a_full_publish_only(self):
+    def test_the_alert_runs_on_a_failure_a_cancellation_or_a_full_publish(self):
         # always() so a failed need does not skip it; the failure clause so
-        # any failed job alerts; the no-skipped/no-cancelled clause so it can
-        # resolve, while gated-off runs stay skipped; main only.
+        # any failed job alerts; the cancelled clause so the script can tell a
+        # timeout (reported as `cancelled`) from a preemption; the no-skipped
+        # clause so it can resolve, while gated-off runs stay skipped; main
+        # only.
         condition = self._alert_condition()
         for clause in (
             "always()",
             "github.ref == 'refs/heads/main'",
             "contains(needs.*.result, 'failure') ||",
-            "!contains(needs.*.result, 'skipped') &&",
-            "!contains(needs.*.result, 'cancelled')",
+            "contains(needs.*.result, 'cancelled') ||",
+            "!contains(needs.*.result, 'skipped')",
         ):
             self.assertIn(clause, condition)
+
+    def test_the_alert_job_may_read_check_run_annotations(self):
+        # Annotations are the only place a timeout is told apart from a
+        # preemption, and they sit behind the checks permission.
+        body = dict(gate._job_lines(self.text))[alert.ALERT_JOB]
+        self.assertTrue(any(line.strip() == "checks: read" for line in body))
 
     def test_the_alert_job_has_no_concurrency_group(self):
         # A concurrency group keeps one pending job and cancels the one it

@@ -12,10 +12,21 @@ Behaviour, decided from the workflow's `toJSON(needs)`:
   any job failed      Open one rolling alert issue if none is open, otherwise
                       comment on it. Either way the maintainer is assigned and
                       @-mentioned, which is what sends the notification.
+  a job cancelled     Read this run's jobs. A job that hit its timeout-minutes
+                      raises the alert as a failure would; a job a newer run
+                      preempted, or one cancelled by hand, does nothing.
   every job succeeded The beta published on every lane: close the open alert,
                       if there is one.
-  anything else       A run gated off (nothing shippable, skip-publish) or
-                      cancelled by a newer one. Not a failure, not a publish.
+  anything else       A run gated off (nothing shippable, skip-publish). Not a
+                      failure, not a publish.
+
+GitHub reports a job that ran out of time as `cancelled`, to needs and to the
+jobs API alike, the same as one a concurrency group preempted. Only the job's
+check-run annotation says which it was. Four Beta runs in a row timed out in the
+macOS build on 2026-11-09 (the last was run 42740909797) and raised nothing,
+because a cancellation used to be treated as a preemption without looking.
+Reading a cancelled run is not best effort: a run whose jobs or annotations
+cannot be read fails this job instead of guessing.
 
 The rolling issue is found by MARKER in its body rather than by title, so
 editing the title by hand does not make the next failure open a duplicate.
@@ -68,36 +79,62 @@ _RESOLVED_RUN_RE = re.compile(r"<!-- beta-resolved-run: (\d+) -->")
 # Used when the BETA_ALERT_ASSIGNEE Actions variable is unset.
 DEFAULT_ASSIGNEE = "ericgriffin"
 
-# Job conclusions the jobs API uses for a job that needs.*.result reports as
-# `failure`. A timeout is `failure` to needs but `timed_out` here.
+# Job conclusions the jobs API uses for a failed job. A timeout has been seen
+# only as `cancelled` (see TIMEOUT_ANNOTATION), but `timed_out` is a
+# documented conclusion, so it counts too.
 FAILED_CONCLUSIONS = frozenset({"failure", "timed_out", "startup_failure"})
+
+# The check-run annotation GitHub writes on a job that ran out of time, as in
+# "The job has exceeded the maximum execution time of 45m0s". A preempted job
+# says "Canceling since a higher priority waiting request for <group> exists".
+TIMEOUT_ANNOTATION = "exceeded the maximum execution time"
 
 
 def decide(needs):
-    """Return (action, failed_job_ids) for a `toJSON(needs)` mapping."""
+    """Return (action, job_ids) for a `toJSON(needs)` mapping.
+
+    "cancelled" carries the cancelled job ids; run() reads the jobs to learn
+    whether any of them timed out.
+    """
     results = {job: (info or {}).get("result") for job, info in needs.items()}
     failed = sorted(job for job, result in results.items() if result == "failure")
     if failed:
         return "alert", failed
+    cancelled = sorted(job for job, result in results.items() if result == "cancelled")
+    if cancelled:
+        return "cancelled", cancelled
     if results and all(result == "success" for result in results.values()):
         return "resolve", []
     return "none", []
 
 
-def failed_steps(jobs):
-    """Return [(job name, [failed step names])] for every failed job."""
-    return [
-        (
-            job.get("name", "?"),
-            [
-                step.get("name", "?")
-                for step in job.get("steps") or []
-                if step.get("conclusion") == "failure"
-            ],
-        )
-        for job in jobs
-        if job.get("conclusion") in FAILED_CONCLUSIONS
-    ]
+def failed_steps(jobs, timed_out=frozenset()):
+    """Return [(job name, [step names])] for every failed or timed-out job.
+
+    A failed job lists its failed steps; a job whose id is in timed_out lists
+    the step the timeout cut off, which the API marks `cancelled`.
+    """
+    listed = []
+    for job in jobs:
+        name = job.get("name", "?")
+        if job.get("conclusion") in FAILED_CONCLUSIONS:
+            wanted = "failure"
+        elif job.get("id") in timed_out:
+            name, wanted = f"{name} (timed out)", "cancelled"
+        else:
+            continue
+        steps = [
+            step.get("name", "?")
+            for step in job.get("steps") or []
+            if step.get("conclusion") == wanted
+        ]
+        listed.append((name, steps))
+    return listed
+
+
+def timed_out(annotations):
+    """True when a job's check-run annotations say it ran out of time."""
+    return any(TIMEOUT_ANNOTATION in (a.get("message") or "") for a in annotations)
 
 
 def gh_cli(args):
@@ -112,33 +149,63 @@ def _warn(message):
     print(f"::warning::{message}")
 
 
-def _run_jobs(gh, ctx):
-    """Return the jobs of this run attempt, or None if they cannot be read."""
+def _read_jobs(gh, ctx):
+    """Return the jobs of this run attempt; raises if they cannot be read."""
     path = (
         f"repos/{ctx['repo']}/actions/runs/{ctx['run_id']}"
         f"/attempts/{ctx['run_attempt']}/jobs"
     )
-    try:
-        pages = json.loads(gh(["api", "--paginate", "--slurp", path]))
-    except (subprocess.CalledProcessError, ValueError) as exc:
-        _warn(f"could not read this run's jobs ({exc}); listing job ids only")
-        return None
+    pages = json.loads(gh(["api", "--paginate", "--slurp", path]))
     return [job for page in pages for job in page.get("jobs", [])]
 
 
-def _failure_lines(gh, ctx, failed_ids):
+def _timed_out_ids(gh, ctx, jobs):
+    """Return the ids of the cancelled jobs that ran out of time.
+
+    Raises if a cancelled job's annotations cannot be read.
+    """
+    ids = set()
+    for job in jobs:
+        if job.get("conclusion") != "cancelled":
+            continue
+        path = f"repos/{ctx['repo']}/check-runs/{job['id']}/annotations"
+        pages = json.loads(gh(["api", "--paginate", "--slurp", path]))
+        if timed_out([a for page in pages for a in page]):
+            ids.add(job["id"])
+    return frozenset(ids)
+
+
+def _details_best_effort(gh, ctx):
+    """Return failed_steps() for this run, or None if the jobs cannot be read.
+
+    For a run that already failed: the alert goes out either way, so losing
+    the details, or only the timed-out jobs among them, is a warning.
+    """
+    try:
+        jobs = _read_jobs(gh, ctx)
+    except (subprocess.CalledProcessError, ValueError) as exc:
+        _warn(f"could not read this run's jobs ({exc}); listing job ids only")
+        return None
+    try:
+        timed_out_ids = _timed_out_ids(gh, ctx, jobs)
+    except (subprocess.CalledProcessError, ValueError) as exc:
+        _warn(f"could not read the cancelled jobs' annotations ({exc}); timeouts are not named")
+        timed_out_ids = frozenset()
+    return failed_steps(jobs, timed_out_ids)
+
+
+def _failure_lines(failed_ids, details):
     # The ids from needs are always listed: they are the complete set, while
-    # the API's per-job details can miss one (a timeout reported as
-    # `cancelled`), and details for one job must not hide another.
+    # the API's per-job details can miss one, and details for one job must not
+    # hide another.
     lines = ["Failed: " + ", ".join(f"`{job}`" for job in failed_ids), ""]
-    jobs = _run_jobs(gh, ctx)
-    for name, steps in failed_steps(jobs) if jobs is not None else []:
+    for name, steps in details or []:
         suffix = ", at " + ", ".join(f"`{s}`" for s in steps) if steps else ""
         lines.append(f"- **{name}**{suffix}")
     return lines
 
 
-def _report(gh, ctx, failed_ids, assignee):
+def _report(ctx, failed_ids, details, assignee):
     tag = ctx["tag"] or "(version not computed: precheck failed)"
     sha = ctx["sha"][:12] if ctx["sha"] else "unknown"
     return "\n".join(
@@ -146,7 +213,7 @@ def _report(gh, ctx, failed_ids, assignee):
             FAILED_RUN.format(ctx["run_number"]),
             f"@{assignee} Beta `{tag}` (source `{sha}`) failed:",
             "",
-            *_failure_lines(gh, ctx, failed_ids),
+            *_failure_lines(failed_ids, details),
             "",
             f"**Run:** {ctx['run_url']}",
             "",
@@ -229,12 +296,13 @@ def _assign(gh, repo, number, assignee):
         )
 
 
-def raise_alert(gh, ctx, failed_ids):
+def raise_alert(gh, ctx, failed_ids, details):
+    """Open or update the alert; details is failed_steps() output or None."""
     repo = ctx["repo"]
     # A login is often written "@name"; verbatim it would be an "@@name"
     # mention and an assignment GitHub rejects, so nobody would be notified.
     assignee = ctx["assignee"].strip().lstrip("@") or DEFAULT_ASSIGNEE
-    report = _report(gh, ctx, failed_ids, assignee)
+    report = _report(ctx, failed_ids, details, assignee)
     number = _open_alert(gh, repo)
     if number is None:
         body = "\n".join(
@@ -301,10 +369,30 @@ def resolve_alert(gh, ctx):
         )
 
 
+def _check_cancelled(gh, ctx, cancelled_ids):
+    """Alert on a run whose cancelled jobs include one that timed out.
+
+    Unlike the failure path, nothing here is best effort: if the jobs or their
+    annotations cannot be read, the error fails this job, since staying quiet
+    is how timed-out betas went unnoticed.
+    """
+    jobs = _read_jobs(gh, ctx)
+    timed_out_ids = _timed_out_ids(gh, ctx, jobs)
+    if not timed_out_ids:
+        print(
+            "Cancelled by a newer run or by hand, not by a timeout; "
+            "nothing to do."
+        )
+        return
+    raise_alert(gh, ctx, cancelled_ids, failed_steps(jobs, timed_out_ids))
+
+
 def run(needs, ctx, gh=gh_cli):
-    action, failed_ids = decide(needs)
+    action, job_ids = decide(needs)
     if action == "alert":
-        raise_alert(gh, ctx, failed_ids)
+        raise_alert(gh, ctx, job_ids, _details_best_effort(gh, ctx))
+    elif action == "cancelled":
+        _check_cancelled(gh, ctx, job_ids)
     elif action == "resolve":
         resolve_alert(gh, ctx)
     else:
