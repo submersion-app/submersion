@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,8 +27,17 @@ void main() {
   late SharedPreferences prefs;
   late Directory tempDir;
   late LogFileService logFileService;
+  late String? previousLocale;
+
+  // The date is formatted by intl, which reads the process-global
+  // Intl.defaultLocale rather than MaterialApp.locale. Pin it to English for
+  // the month names asserted here, and restore it so no other file in the
+  // same isolate inherits it. Pinning it needs the symbols loaded first.
+  setUpAll(() => initializeDateFormatting('en'));
 
   setUp(() async {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en';
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
     tempDir = Directory.systemTemp.createTempSync('about_build_date_');
@@ -35,6 +46,7 @@ void main() {
   });
 
   tearDown(() {
+    Intl.defaultLocale = previousLocale;
     if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
   });
 
