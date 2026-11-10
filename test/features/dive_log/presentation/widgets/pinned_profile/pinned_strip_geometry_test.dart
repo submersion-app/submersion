@@ -19,9 +19,7 @@ void main() {
 
     test('is linear in the window', () {
       expect(
-        condenseProgress(
-          cardBottom: kPinnedStripHeight + kCondenseWindow / 2,
-        ),
+        condenseProgress(cardBottom: kPinnedStripHeight + kCondenseWindow / 2),
         closeTo(0.5, 1e-9),
       );
     });

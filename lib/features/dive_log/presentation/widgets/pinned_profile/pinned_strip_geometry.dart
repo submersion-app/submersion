@@ -14,8 +14,8 @@ const double kCondenseWindow = 120;
 /// the strip's bottom edge and completes as it reaches it, so scrolling
 /// slowly plays the condense slowly and scrolling back reverses it.
 double condenseProgress({required double cardBottom}) {
-  final t = (kPinnedStripHeight + kCondenseWindow - cardBottom) /
-      kCondenseWindow;
+  final t =
+      (kPinnedStripHeight + kCondenseWindow - cardBottom) / kCondenseWindow;
   return t.clamp(0.0, 1.0);
 }
 

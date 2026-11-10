@@ -98,7 +98,9 @@ List<String> formatPinnedStripValues(
   return [
     _formatRuntime(values.runtimeSeconds),
     units.formatDepth(values.depthMeters),
-    l10n.diveLog_pinnedStrip_ppO2(ppO2 == null ? _missing : ppO2.toStringAsFixed(2)),
+    l10n.diveLog_pinnedStrip_ppO2(
+      ppO2 == null ? _missing : ppO2.toStringAsFixed(2),
+    ),
     switch (values.deco) {
       NdlSlot(:final ndlSeconds) => l10n.diveLog_pinnedStrip_ndl(
         '${ndlSeconds ~/ 60}',

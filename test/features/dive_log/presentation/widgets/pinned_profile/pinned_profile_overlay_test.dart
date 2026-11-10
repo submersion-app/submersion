@@ -18,7 +18,10 @@ void main() {
   final dive = createTestDiveWithBottomTime().copyWith(
     profile: [
       for (var t = 0; t <= 600; t += 10)
-        DiveProfilePoint(timestamp: t, depth: t < 300 ? t / 20 : (600 - t) / 20),
+        DiveProfilePoint(
+          timestamp: t,
+          depth: t < 300 ? t / 20 : (600 - t) / 20,
+        ),
     ],
   );
   const profileTop = 100.0;
@@ -84,14 +87,33 @@ void main() {
     await tester.pump();
   }
 
-  final proxy = find.byKey(const ValueKey('pinnedProfileProxy'));
+  final strip = find.byType(PinnedProfileStrip);
+
+  /// Scrolls so the card's bottom edge sits at progress [t] of the condense.
+  Future<void> condenseTo(WidgetTester tester, double t) => jump(
+    tester,
+    profileTop +
+        profileHeight -
+        (kPinnedStripHeight + kCondenseWindow * (1 - t)),
+  );
+
+  double opacityOf(WidgetTester tester) => tester
+      .widget<Opacity>(
+        find.ancestor(of: strip, matching: find.byType(Opacity)).first,
+      )
+      .opacity;
+
+  bool ignoresPointer(WidgetTester tester) => tester
+      .widget<IgnorePointer>(
+        find.ancestor(of: strip, matching: find.byType(IgnorePointer)).first,
+      )
+      .ignoring;
 
   testWidgets('nothing is drawn while the profile card is on screen', (
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
-    expect(find.byType(PinnedProfileStrip), findsNothing);
-    expect(proxy, findsNothing);
+    expect(strip, findsNothing);
   });
 
   testWidgets('the strip shows once the card has scrolled past', (
@@ -106,22 +128,45 @@ void main() {
     );
   });
 
-  testWidgets('the proxy shows mid-condense, without the strip', (
+  testWidgets('mid-condense the strip itself is morphing, not yet scrubbable', (
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
-    // Card bottom (400) sits halfway through the window above the strip.
-    await jump(tester, 400 - (kPinnedStripHeight + kCondenseWindow / 2));
-    expect(proxy, findsOneWidget);
-    expect(find.byType(PinnedProfileStrip), findsNothing);
+    await condenseTo(tester, 0.5);
+    expect(strip, findsOneWidget);
+    expect(
+      tester.widget<PinnedProfileStrip>(strip).condense,
+      closeTo(0.5, 1e-6),
+    );
+    expect(tester.getSize(strip).height, greaterThan(kPinnedStripHeight));
+    expect(ignoresPointer(tester), isTrue);
+  });
+
+  testWidgets('it fades in over the start of the condense', (tester) async {
+    await pump(tester, profileKey: GlobalKey());
+    await condenseTo(tester, 0.1);
+    expect(opacityOf(tester), lessThan(0.5));
+    await condenseTo(tester, 0.6);
+    expect(opacityOf(tester), 1);
+  });
+
+  testWidgets('the morphing strip carries through to pinned without a swap', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await condenseTo(tester, 0.9);
+    final morphing = tester.state(strip);
+    await jump(tester, 800);
+    expect(identical(tester.state(strip), morphing), isTrue);
+    expect(tester.widget<PinnedProfileStrip>(strip).condense, 1);
+    expect(ignoresPointer(tester), isFalse);
   });
 
   testWidgets('scrolling back up removes the strip', (tester) async {
     await pump(tester, profileKey: GlobalKey());
     await jump(tester, 800);
     await jump(tester, 0);
-    expect(find.byType(PinnedProfileStrip), findsNothing);
-    expect(proxy, findsNothing);
+    expect(strip, findsNothing);
   });
 
   testWidgets('no strip when the profile is not on the page', (tester) async {

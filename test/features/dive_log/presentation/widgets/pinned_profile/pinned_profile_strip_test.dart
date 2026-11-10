@@ -98,34 +98,26 @@ void main() {
     return Offset(box.left + box.width * fraction, box.top + 20);
   }
 
-  testWidgets(
-    'shows the hover hint with no cursor on a pointer platform',
-    (tester) async {
-      await pump(tester);
-      expect(find.text('Hover to scrub'), findsOneWidget);
-    },
-    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
-  );
+  testWidgets('shows the hover hint with no cursor on a pointer platform', (
+    tester,
+  ) async {
+    await pump(tester);
+    expect(find.text('Hover to scrub'), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
-  testWidgets(
-    'shows the drag hint on a touch platform',
-    (tester) async {
-      await pump(tester);
-      expect(find.text('Drag to scrub'), findsOneWidget);
-    },
-    variant: TargetPlatformVariant.only(TargetPlatform.iOS),
-  );
+  testWidgets('shows the drag hint on a touch platform', (tester) async {
+    await pump(tester);
+    expect(find.text('Drag to scrub'), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
-  testWidgets(
-    'switches to the drag hint after a touch on a pointer platform',
-    (tester) async {
-      await pump(tester);
-      await tester.tapAt(at(tester, 0.5));
-      await tester.pump();
-      expect(find.text('Drag to scrub'), findsOneWidget);
-    },
-    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
-  );
+  testWidgets('switches to the drag hint after a touch on a pointer platform', (
+    tester,
+  ) async {
+    await pump(tester);
+    await tester.tapAt(at(tester, 0.5));
+    await tester.pump();
+    expect(find.text('Drag to scrub'), findsOneWidget);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
   testWidgets('shows four values when the cursor is set', (tester) async {
     final c = await pump(tester);
@@ -187,6 +179,47 @@ void main() {
         .state<ScrollableState>(find.byType(Scrollable).first)
         .position;
     expect(position.pixels, greaterThan(0));
+  });
+
+  testWidgets('mid-condense the curve fills the height and the row fades in', (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          activeSourceProfileProvider(dive.id).overrideWith((ref) => null),
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: null,
+          )).overrideWith((ref) async => analysis),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: stripWidth,
+                height: 200,
+                child: PinnedProfileStrip(dive: dive, condense: 0.5),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(tester.getSize(find.byType(PinnedProfileStrip)).height, 200);
+    final row = tester.widget<Opacity>(
+      find.ancestor(
+        of: find.textContaining('to scrub'),
+        matching: find.byType(Opacity),
+      ),
+    );
+    expect(row.opacity, closeTo(0.5, 1e-6));
   });
 
   testWidgets('the strip has a semantics label', (tester) async {

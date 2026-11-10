@@ -1,26 +1,20 @@
-import 'dart:ui' show lerpDouble;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/mini_profile_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 
-/// Corner radius of the profile card the proxy condenses out of.
-const double _cardRadius = 12;
+/// The share of the condense over which the strip fades in over the card.
+const double _fadeInPortion = 0.25;
 
 /// Pins a thin, scrubbable profile strip over the top of [child], the dive
 /// details scroll view, once the profile card ([profileKey]) has scrolled
 /// away (issue #4423).
 ///
-/// While the card's last stretch leaves the viewport, a lightweight copy of
-/// the depth curve condenses out of the card's footprint into the strip; the
-/// live chart is never transformed. Nothing here takes space in the scroll
+/// While the card's last stretch leaves the viewport, the strip itself fades
+/// in over the card's footprint and condenses into place; the live chart is
+/// never transformed. Nothing here takes space in the scroll
 /// content, so the page never reflows.
 class PinnedProfileOverlay extends StatefulWidget {
   const PinnedProfileOverlay({
@@ -44,7 +38,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   Rect? _cardInContent;
   double _pixels = 0;
 
-  /// Whether the strip itself, not the condensing proxy, is showing.
+  /// Whether the strip is fully pinned, rather than still condensing.
   bool get showingStrip => _progress >= 1;
 
   Rect? get _card => _cardInContent?.shift(Offset(0, -_pixels));
@@ -124,7 +118,12 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                 child: widget.child,
               ),
             ),
-            if (card != null && t > 0 && t < 1)
+            // One strip, at one place in the tree, from the first pixel of
+            // the condense to pinned: it is never swapped for another widget,
+            // so the morph has no cut. It fades in over the start of the
+            // condense, while the real card is still mostly on screen beneath
+            // it, and only takes input once pinned.
+            if (card != null && t > 0)
               Positioned.fromRect(
                 rect: condenseRect(
                   card: card,
@@ -132,52 +131,16 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                   t: t,
                 ),
                 child: IgnorePointer(
-                  key: const ValueKey('pinnedProfileProxy'),
-                  child: _CondensingProxy(dive: widget.dive, t: t),
+                  ignoring: t < 1,
+                  child: Opacity(
+                    opacity: (t / _fadeInPortion).clamp(0.0, 1.0),
+                    child: PinnedProfileStrip(dive: widget.dive, condense: t),
+                  ),
                 ),
-              ),
-            if (t >= 1)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: PinnedProfileStrip(dive: widget.dive),
               ),
           ],
         );
       },
-    );
-  }
-}
-
-/// The depth curve on a card surface, drawn while the card condenses into
-/// the strip: rounded and lifted like the card at the start, square and flat
-/// against the top edge like the strip at the end.
-class _CondensingProxy extends ConsumerWidget {
-  const _CondensingProxy({required this.dive, required this.t});
-
-  final Dive dive;
-  final double t;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = Theme.of(context).colorScheme;
-    return Material(
-      color: colors.surface,
-      elevation: 2,
-      borderRadius: BorderRadius.circular(lerpDouble(_cardRadius, 0, t)!),
-      clipBehavior: Clip.antiAlias,
-      child: CustomPaint(
-        painter: MiniProfilePainter(
-          // The series the strip draws, so the curve keeps its shape as the
-          // proxy hands over to the strip.
-          profile: watchChartProfile(ref, dive),
-          selectedSeconds: null,
-          curveColor: ProfileMetricColors.depth,
-          fillColor: ProfileMetricColors.depth.withValues(alpha: 0.18),
-          markerColor: colors.primary,
-        ),
-      ),
     );
   }
 }
@@ -202,8 +165,9 @@ Future<void> ensureVisibleBelowPinnedStrip(
     );
   }
   final position = Scrollable.of(target).position;
-  final reveal =
-      RenderAbstractViewport.of(object).getOffsetToReveal(object, alignment);
+  final reveal = RenderAbstractViewport.of(
+    object,
+  ).getOffsetToReveal(object, alignment);
   final offset = (reveal.offset - kPinnedStripHeight).clamp(
     position.minScrollExtent,
     position.maxScrollExtent,

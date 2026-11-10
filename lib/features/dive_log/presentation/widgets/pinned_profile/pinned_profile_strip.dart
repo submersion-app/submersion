@@ -15,8 +15,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Height of the curve above the strip's values row.
-const double _curveHeight = 40;
+/// Height of the strip's values row; the curve takes the rest.
+const double _rowHeight = 16;
+
+/// Corner radius of the profile card the strip condenses out of.
+const double _cardRadius = 12;
 
 /// The thin, scrubbable dive profile pinned at the top of dive details once
 /// the full profile card scrolls away (issue #4423).
@@ -25,10 +28,20 @@ const double _curveHeight = 40;
 /// [profileTrackingIndexProvider], so every card that follows the chart
 /// follows the strip too. Like the full chart, lifting a finger or moving the
 /// mouse away clears the cursor.
+///
+/// The same widget draws the condense itself, so it never swaps for another
+/// at any point: below [condense] 1 it fills whatever box it is given (the
+/// shrinking footprint of the profile card), its curve stretching to fit,
+/// its corners rounding like the card's, and its values row fading in.
 class PinnedProfileStrip extends ConsumerStatefulWidget {
-  const PinnedProfileStrip({super.key, required this.dive});
+  const PinnedProfileStrip({super.key, required this.dive, this.condense = 1});
 
   final Dive dive;
+
+  /// How far the card has condensed into the strip, from 0 to 1. At 1 the
+  /// strip is its pinned [kPinnedStripHeight]; below 1 it needs a bounded
+  /// height from its parent.
+  final double condense;
 
   @override
   ConsumerState<PinnedProfileStrip> createState() => _PinnedProfileStripState();
@@ -38,8 +51,9 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
   /// Whether the hint speaks to touch. Starts from the platform and follows
   /// whichever kind of pointer last reached the strip.
   late bool _touch = switch (defaultTargetPlatform) {
-    TargetPlatform.iOS || TargetPlatform.android || TargetPlatform.fuchsia =>
-      true,
+    TargetPlatform.iOS ||
+    TargetPlatform.android ||
+    TargetPlatform.fuchsia => true,
     _ => false,
   };
 
@@ -59,7 +73,8 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
   }
 
   void _noteKind(PointerDeviceKind kind) {
-    final touch = kind == PointerDeviceKind.touch ||
+    final touch =
+        kind == PointerDeviceKind.touch ||
         kind == PointerDeviceKind.stylus ||
         kind == PointerDeviceKind.invertedStylus;
     if (touch != _touch) setState(() => _touch = touch);
@@ -71,7 +86,9 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
     final cursor = ref.watch(profileTrackingIndexProvider(_diveId));
     final sourceId = ref.watch(activeDiveSourceProvider(_diveId));
     final analysis = ref
-        .watch(sourceProfileAnalysisProvider((diveId: _diveId, sourceId: sourceId)))
+        .watch(
+          sourceProfileAnalysisProvider((diveId: _diveId, sourceId: sourceId)),
+        )
         .value;
     final units = ref.watch(unitFormatterProvider);
     final values = pinnedStripValuesAt(
@@ -85,14 +102,17 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         ? profile[cursor].timestamp
         : null;
 
+    final condense = widget.condense.clamp(0.0, 1.0);
     return Semantics(
       container: true,
       label: context.l10n.diveLog_pinnedStrip_semantics,
       child: Material(
         color: colors.surface,
         elevation: 2,
+        borderRadius: BorderRadius.circular(_cardRadius * (1 - condense)),
+        clipBehavior: Clip.antiAlias,
         child: SizedBox(
-          height: kPinnedStripHeight,
+          height: condense >= 1 ? kPinnedStripHeight : null,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final width = constraints.maxWidth;
@@ -116,10 +136,9 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                     onHorizontalDragCancel: () => _write(null),
                     child: Column(
                       children: [
-                        SizedBox(
-                          height: _curveHeight,
-                          width: width,
+                        Expanded(
                           child: CustomPaint(
+                            size: Size(width, double.infinity),
                             painter: MiniProfilePainter(
                               profile: profile,
                               selectedSeconds: selectedSeconds,
@@ -131,10 +150,14 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                             ),
                           ),
                         ),
-                        Expanded(
-                          child: values == null
-                              ? _Hint(touch: _touch)
-                              : _ValuesRow(values: values, units: units),
+                        SizedBox(
+                          height: _rowHeight,
+                          child: Opacity(
+                            opacity: condense,
+                            child: values == null
+                                ? _Hint(touch: _touch)
+                                : _ValuesRow(values: values, units: units),
+                          ),
                         ),
                       ],
                     ),
