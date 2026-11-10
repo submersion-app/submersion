@@ -109,6 +109,26 @@ class VisibilityFilter {
         );
   }
 
+  /// [column], an equipment id on another table, names an item that exists
+  /// and that [diverId] may see by the [equipmentVisibleTo] rule; any item
+  /// that exists for a null [diverId]. A subquery, so the caller needs no
+  /// join through `equipment`: gear photos use it in the Equipment gallery
+  /// and the Library alike (issue #3355).
+  static Expression<bool> visibleEquipmentIds(
+    AppDatabase db,
+    Expression<String> column,
+    String? diverId,
+  ) {
+    final equipment = db.equipment;
+    return column.isInQuery(
+      db.selectOnly(equipment)
+        ..addColumns([equipment.id])
+        ..where(
+          equipmentVisibleTo(db, equipment, diverId) ?? const Constant(true),
+        ),
+    );
+  }
+
   /// [applyToEquipment] for raw SQL: `$conjunction (alias.diver_id = ? OR
   /// alias.id IN (items shared with ?))`. Empty for a null [diverId].
   static SqlFragment equipmentSqlFragment({

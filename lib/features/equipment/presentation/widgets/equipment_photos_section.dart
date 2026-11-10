@@ -98,7 +98,8 @@ class _EquipmentPhotosSectionState
       }
       return BulkActionOutcome.failed;
     }
-    ref.invalidate(equipmentCoverProvider(_equipmentId));
+    // The item's new cover id is a new key for the avatar's cover read, so
+    // nothing needs invalidating here.
     return BulkActionOutcome.completed;
   }
 

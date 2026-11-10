@@ -1,13 +1,13 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
-import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/media/data/repositories/media_library_group_order.dart';
+import 'package:submersion/features/media/data/repositories/media_library_rows.dart';
 import 'package:submersion/features/media/data/repositories/media_library_tile_markers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
@@ -62,49 +62,12 @@ class MediaLibraryRepository {
   Expression<int> get _sizeKey =>
       coalesce<int>([_db.media.contentSizeBytes, const Constant(-1)]);
 
-  /// The library is the photo and video gallery. Signatures never appear,
-  /// in any spelling, and neither do documents (#3052): invoices and
-  /// briefings attached through a dive's, site's or equipment's Documents
-  /// section belong to that section, and an equipment-only document showed
-  /// up in the grid as "Unlinked".
-  ///
-  /// An exclusion list rather than `IN ('photo', 'video')`: parseMediaType
-  /// reads any file_type it does not recognise as a photo, and a whitelist
-  /// would hide those rows here while every other surface shows them.
-  static final List<String> _nonGalleryFileTypes = [
-    ...kSignatureFileTypes,
-    mediaTypeToDbString(MediaType.document),
-  ];
+  /// Which rows are library rows at all (see [MediaLibraryRows]).
+  MediaLibraryRows get _rows => MediaLibraryRows(_db);
 
-  /// A library row: no signature or document (see [_nonGalleryFileTypes]),
-  /// and no gear photo (see [_gearOnly]).
-  Expression<bool> get _galleryRow => _galleryFileType & _gearOnly.not();
-
-  Expression<bool> get _galleryFileType =>
-      _db.media.fileType.isNotIn(_nonGalleryFileTypes);
-
-  /// A gear photo (issue #3355): a row linked to a piece of gear and to no
-  /// dive or site. It lives in the Equipment gallery and stays out of the
-  /// ordinary library views. A row a dive or site also holds is that dive's
-  /// or site's photo as well, so it is not one.
-  Expression<bool> get _gearOnly {
-    final m = _db.media;
-    return m.equipmentId.isNotNull() & m.diveId.isNull() & m.siteId.isNull();
-  }
-
-  /// A gear photo [diverId] may see: its item still exists and is theirs or
-  /// shared with them (issue #2046), the rule the Equipment gallery scopes
-  /// by. With no diver, any existing item's. A subquery, so the library
-  /// query needs no join through `equipment`.
-  Expression<bool> _visibleGearPhoto(String? diverId) {
-    final e = _db.equipment;
-    final visible = VisibilityFilter.equipmentVisibleTo(_db, e, diverId);
-    return _db.media.equipmentId.isInQuery(
-      _db.selectOnly(e)
-        ..addColumns([e.id])
-        ..where(visible ?? const Constant(true)),
-    );
-  }
+  /// A row of the ordinary library views: no signature, document or gear
+  /// photo.
+  Expression<bool> get _galleryRow => _rows.galleryRow;
 
   /// Dive-linked rows belong to their dive's diver; unlinked and site-only
   /// rows are diver-global. Needs `dives` joined on `media.dive_id`.
@@ -223,15 +186,8 @@ class MediaLibraryRepository {
     final m = _db.media;
     final d = _db.dives;
 
-    // Gear photos show only when the Attached to facet asks for Equipment
-    // (issue #4224), which then narrows the rows to the kinds picked. Their
-    // rows carry no dive, so [_diverScope] passes them all; the gear's own
-    // visibility decides instead.
     Expression<bool> where =
-        (filter.attachedTo.contains(MediaAttachmentKind.equipment)
-            ? _galleryFileType & (_gearOnly.not() | _visibleGearPhoto(diverId))
-            : _galleryRow) &
-        _diverScope(diverId);
+        _rows.forFilter(filter, diverId) & _diverScope(diverId);
     final type = filter.mediaType;
     if (type != null) {
       where = where & m.fileType.equals(mediaTypeToDbString(type));

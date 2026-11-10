@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' hide Dive;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -130,7 +131,7 @@ void main() {
       expect(ids, isNot(contains(backed.id)));
 
       await repository.setCover(item.id, orphan.id);
-      expect((await repository.coverFor(item.id))?.id, orphan.id);
+      expect((await repository.coverFor(item.id, orphan.id))?.id, orphan.id);
     },
   );
 
@@ -165,11 +166,32 @@ void main() {
   });
 
   test(
-    'gearGallery groups by item and skips items outside the visible set',
+    'gearGallery groups by item and shows only gear the diver may see',
     () async {
-      final reg = await createItem('Reg');
-      final suit = await createItem('Suit');
-      final hidden = await createItem('Hidden');
+      for (final id in ['me', 'other']) {
+        await db
+            .into(db.divers)
+            .insert(
+              DiversCompanion.insert(
+                id: id,
+                name: id,
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+      }
+      Future<EquipmentItem> owned(String name, String diverId) =>
+          equipment.createEquipment(
+            EquipmentItem(
+              id: '',
+              diverId: diverId,
+              name: name,
+              type: EquipmentType.regulator,
+            ),
+          );
+      final reg = await owned('Reg', 'me');
+      final suit = await owned('Suit', 'me');
+      final hidden = await owned('Hidden', 'other');
       await addMedia(equipmentId: reg.id, takenAt: DateTime.utc(2026, 10, 1));
       await addMedia(
         equipmentId: suit.id,
@@ -179,7 +201,7 @@ void main() {
       await addMedia(equipmentId: suit.id, type: MediaType.document);
       await addMedia(equipmentId: hidden.id);
 
-      final groups = await repository.gearGallery({reg.id, suit.id});
+      final groups = await repository.gearGallery(diverId: 'me');
 
       expect(groups.map((g) => g.name), ['Suit', 'Reg']);
       expect(groups.first.items, hasLength(1));
@@ -187,24 +209,21 @@ void main() {
 
       // A check-in id with no check-in is no check-in in the gallery either.
       await addMedia(equipmentId: reg.id, observationId: 'gone');
-      final again = await repository.gearGallery({reg.id});
-      expect(again.single.items.every((m) => !m.isCheckInPhoto), isTrue);
+      final again = await repository.gearGallery(diverId: 'me');
+      expect(
+        again
+            .firstWhere((g) => g.equipmentId == reg.id)
+            .items
+            .every((m) => !m.isCheckInPhoto),
+        isTrue,
+      );
+      // With no diver, every item's photos show.
+      expect(
+        (await repository.gearGallery()).map((g) => g.equipmentId),
+        contains(hidden.id),
+      );
     },
   );
-
-  test('equipmentIdsWithPhotos lists items holding a gear photo', () async {
-    final reg = await createItem('Reg');
-    final suit = await createItem('Suit');
-    final paper = await createItem('Paper');
-    await addMedia(equipmentId: reg.id);
-    await addMedia(equipmentId: suit.id, observationId: 'obs-1');
-    await addMedia(equipmentId: paper.id, type: MediaType.document);
-
-    expect(
-      await repository.equipmentIdsWithPhotos(),
-      unorderedEquals([reg.id, suit.id]),
-    );
-  });
 
   test('linkedLocalPathsFor returns the item\'s local file paths', () async {
     final item = await createItem('Reg');
@@ -237,7 +256,7 @@ void main() {
     );
     await db.customStatement('PRAGMA foreign_keys = ON');
 
-    expect(await repository.gearGallery({'missing-item'}), isEmpty);
+    expect(await repository.gearGallery(), isEmpty);
   });
 
   test('setCover stamps updatedAt and marks equipment pending', () async {
@@ -333,13 +352,44 @@ void main() {
     final suitPhoto = await addMedia(equipmentId: suit.id);
     final regPhoto = await addMedia(equipmentId: reg.id);
 
-    await repository.setCover(reg.id, 'missing');
-    expect(await repository.coverFor(reg.id), isNull);
+    expect(await repository.coverFor(reg.id, 'missing'), isNull);
+    expect(await repository.coverFor(reg.id, suitPhoto.id), isNull);
+    expect((await repository.coverFor(reg.id, regPhoto.id))!.id, regPhoto.id);
+  });
 
-    await repository.setCover(reg.id, suitPhoto.id);
-    expect(await repository.coverFor(reg.id), isNull);
+  test('setCover on an item that is gone throws and marks nothing', () async {
+    await db.delete(db.syncRecords).go();
 
-    await repository.setCover(reg.id, regPhoto.id);
-    expect((await repository.coverFor(reg.id))!.id, regPhoto.id);
+    await expectLater(
+      repository.setCover('gone-item', 'any-photo'),
+      throwsStateError,
+    );
+    final pending = await db.select(db.syncRecords).get();
+    expect(pending.where((r) => r.recordId == 'gone-item'), isEmpty);
+  });
+
+  test('a check-in id list longer than one chunk is read in full', () async {
+    final item = await createItem('Reg');
+    final living = await addMedia(
+      equipmentId: item.id,
+      observationId: await checkIn(item.id, 'obs-real'),
+    );
+    // More dangling check-in ids than one bound-variable chunk holds.
+    const count = kSeriesIdChunkSize + 50;
+    final values = [
+      for (var i = 0; i < count; i++)
+        "('m$i', 'p$i', 'photo', $i, 1, 1, '${item.id}', 'gone-$i')",
+    ].join(', ');
+    await db.customStatement(
+      'INSERT INTO media (id, file_path, file_type, taken_at, created_at, '
+      'updated_at, equipment_id, observation_id) VALUES $values',
+    );
+
+    final ids = (await repository.identificationPhotos(
+      item.id,
+    )).map((m) => m.id);
+    expect(ids, hasLength(count));
+    expect(ids, isNot(contains(living.id)));
+    expect((await repository.photosByObservation(item.id)).keys, ['obs-real']);
   });
 }

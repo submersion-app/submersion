@@ -1,14 +1,15 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 /// One gear item's photos in the Gear gallery, newest first.
 class GearPhotoGroup {
@@ -52,9 +53,9 @@ class GearPhotoRepository {
       .debounce(MediaRepository.changeTickDebounce);
 
   /// [watchGearPhotoChanges] plus the equipment rows and their shares, for
-  /// the readers that also read an item: the gallery's names, which items
-  /// the diver may see, and the cover. The photo lists do not, so an
-  /// unrelated gear edit does not re-read them.
+  /// the gallery, which also reads items: their names and which of them the
+  /// diver may see. The photo lists and covers do not, so an unrelated gear
+  /// edit does not re-read them.
   Stream<void> watchGearItemPhotoChanges() => _db
       .tableUpdates(
         TableUpdateQuery.onAllTables([
@@ -101,14 +102,21 @@ class GearPhotoRepository {
   /// whose app was killed before Save, a check-in deleted on a peer, or one
   /// that has not arrived yet (sync applies media before check-ins).
   Future<Set<String>> _existingCheckIns(Iterable<MediaItem> photos) async {
-    final ids = {for (final m in photos) ?m.observationId};
-    if (ids.isEmpty) return const {};
-    final rows =
-        await (_db.selectOnly(_db.equipmentObservations)
-              ..addColumns([_db.equipmentObservations.id])
-              ..where(_db.equipmentObservations.id.isIn(ids)))
-            .get();
-    return {for (final r in rows) r.read(_db.equipmentObservations.id)!};
+    final t = _db.equipmentObservations;
+    final living = <String>{};
+    // Chunked for SQLite's bound-variable limit: a gallery can hold a
+    // great many check-in photos.
+    for (final chunk in seriesIdChunks([
+      ...{for (final m in photos) ?m.observationId},
+    ])) {
+      final rows =
+          await (_db.selectOnly(t)
+                ..addColumns([t.id])
+                ..where(t.id.isIn(chunk)))
+              .get();
+      living.addAll(rows.map((r) => r.read(t.id)!));
+    }
+    return living;
   }
 
   /// The photos that back up one check-in.
@@ -135,32 +143,16 @@ class GearPhotoRepository {
     return byObservation;
   }
 
-  /// Every item holding at least one gear photo, for the gallery's
-  /// visibility check.
-  Future<Set<String>> equipmentIdsWithPhotos() async {
-    final m = _db.media;
-    // The SQL form of [MediaItem.isGearPhoto]: ids only, no row to hydrate.
-    final rows =
-        await (_db.selectOnly(m, distinct: true)
-              ..addColumns([m.equipmentId])
-              ..where(
-                m.equipmentId.isNotNull() &
-                    m.fileType.isNotIn([
-                      ...kSignatureFileTypes,
-                      mediaTypeToDbString(MediaType.document),
-                    ]) &
-                    m.sourceType.equals(MediaSourceType.signature.name).not(),
-              ))
-            .get();
-    return {for (final r in rows) r.read(m.equipmentId)!};
-  }
-
-  /// The Gear gallery: photos of every item in [equipmentIds], grouped by
-  /// item, the item with the newest photo first. The caller passes the ids
-  /// the viewing diver may see.
-  Future<List<GearPhotoGroup>> gearGallery(Set<String> equipmentIds) async {
-    if (equipmentIds.isEmpty) return const [];
-    final rows = await _photosOf((t) => t.equipmentId.isIn(equipmentIds));
+  /// The Equipment gallery: photos of every item [diverId] may see (every
+  /// item for a null [diverId]), grouped by item, the item with the newest
+  /// photo first. Scoped by the same rule as the Library's Equipment pick
+  /// ([VisibilityFilter.visibleEquipmentIds]), which also leaves out a row
+  /// naming an item this device lacks (a peer's delete not yet reconciled),
+  /// since it has no page to open.
+  Future<List<GearPhotoGroup>> gearGallery({String? diverId}) async {
+    final rows = await _photosOf(
+      (t) => VisibilityFilter.visibleEquipmentIds(_db, t.equipmentId, diverId),
+    );
     if (rows.isEmpty) return const [];
     // A check-in id with no check-in counts as none here too, so the badge
     // agrees with the gear page.
@@ -175,15 +167,15 @@ class GearPhotoRepository {
     for (final item in photos) {
       (byItem[item.equipmentId!] ??= []).add(item);
     }
-    final names = {
+    final names = <String, String>{};
+    for (final chunk in seriesIdChunks(byItem.keys.toList())) {
       for (final row in await (_db.select(
         _db.equipment,
-      )..where((t) => t.id.isIn(byItem.keys))).get())
-        row.id: row.name,
-    };
-    // Insertion order follows the photos' newest-first order. A row naming
-    // an item this device lacks (a peer's delete not yet reconciled) has no
-    // page to open, so its group is left out.
+      )..where((t) => t.id.isIn(chunk))).get()) {
+        names[row.id] = row.name;
+      }
+    }
+    // Insertion order follows the photos' newest-first order.
     return [
       for (final MapEntry(:key, :value) in byItem.entries)
         if (names[key] case final name?)
@@ -207,15 +199,11 @@ class GearPhotoRepository {
       if (item.localPath case final path? when path.isNotEmpty) path,
   };
 
-  /// The item's cover photo, or null when none is chosen, the chosen row is
-  /// not on this device, or it is no longer one of this item's
-  /// identification photos.
-  Future<MediaItem?> coverFor(String equipmentId) async {
-    final item = await (_db.select(
-      _db.equipment,
-    )..where((t) => t.id.equals(equipmentId))).getSingleOrNull();
-    final coverId = item?.coverMediaId;
-    if (coverId == null) return null;
+  /// The photo [coverId] that [equipmentId] names as its cover, or null when
+  /// the row is not on this device or is no longer one of this item's
+  /// identification photos. The caller holds the item, so its cover id is
+  /// passed in rather than read again.
+  Future<MediaItem?> coverFor(String equipmentId, String coverId) async {
     final row = await (_db.select(
       _db.media,
     )..where((t) => t.id.equals(coverId))).getSingleOrNull();
@@ -230,15 +218,24 @@ class GearPhotoRepository {
 
   /// Chooses [mediaId] as the photo that stands for [equipmentId], or clears
   /// the choice when null. A targeted write: the edit form's save never
-  /// touches this column.
+  /// touches this column. Throws a [StateError] when the item is gone (a
+  /// peer's delete arriving mid-tap), so nothing is marked for sync and the
+  /// caller can say the cover did not change.
   Future<void> setCover(String equipmentId, String? mediaId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
-      await (_db.update(
-        _db.equipment,
-      )..where((t) => t.id.equals(equipmentId))).write(
-        EquipmentCompanion(coverMediaId: Value(mediaId), updatedAt: Value(now)),
-      );
+      final written =
+          await (_db.update(
+            _db.equipment,
+          )..where((t) => t.id.equals(equipmentId))).write(
+            EquipmentCompanion(
+              coverMediaId: Value(mediaId),
+              updatedAt: Value(now),
+            ),
+          );
+      if (written == 0) {
+        throw StateError('No equipment $equipmentId to set a cover on');
+      }
       await _syncRepository.markRecordPending(
         entityType: 'equipment',
         recordId: equipmentId,
@@ -251,13 +248,13 @@ class GearPhotoRepository {
   /// Clears the cover of every item whose cover is one of [mediaIds], after
   /// those rows leave their item.
   Future<void> clearCoversNaming(Iterable<String> mediaIds) async {
-    final ids = mediaIds.toSet();
-    if (ids.isEmpty) return;
-    final items = await (_db.select(
-      _db.equipment,
-    )..where((t) => t.coverMediaId.isIn(ids))).get();
-    for (final item in items) {
-      await setCover(item.id, null);
+    for (final chunk in seriesIdChunks(mediaIds.toSet().toList())) {
+      final items = await (_db.select(
+        _db.equipment,
+      )..where((t) => t.coverMediaId.isIn(chunk))).get();
+      for (final item in items) {
+        await setCover(item.id, null);
+      }
     }
   }
 }

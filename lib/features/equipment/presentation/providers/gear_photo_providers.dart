@@ -1,7 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 
 /// Gear photos (issue #3355).
@@ -29,34 +28,37 @@ final checkInPhotosProvider =
       return repository.photosByObservation(equipmentId);
     });
 
-/// The photos backing one check-in, for the check-in sheet.
-final observationPhotosProvider =
-    FutureProvider.family<List<MediaItem>, String>((ref, observationId) async {
+/// The photos backing one check-in, for the check-in sheet. Auto-disposed:
+/// a new check-in's draft id is fresh every time the editor opens, so a
+/// kept entry would never be read again.
+final observationPhotosProvider = FutureProvider.autoDispose
+    .family<List<MediaItem>, String>((ref, observationId) async {
       final repository = ref.watch(gearPhotoRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchGearPhotoChanges());
       return repository.photosForObservation(observationId);
     });
 
-/// The photo standing for an item, or null to show its type icon.
-final equipmentCoverProvider = FutureProvider.family<MediaItem?, String>((
-  ref,
-  equipmentId,
-) async {
-  final repository = ref.watch(gearPhotoRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchGearItemPhotoChanges());
-  return repository.coverFor(equipmentId);
-});
+/// The photo an item names as its cover, or null to show its type icon.
+///
+/// Keyed by the cover id the caller's item already holds, so a new choice
+/// is a new key, and it re-reads only when photos or check-ins change, not
+/// on every gear edit: a list of covered items would otherwise re-read
+/// each cover whenever any item was saved.
+final equipmentCoverProvider =
+    FutureProvider.family<
+      MediaItem?,
+      ({String equipmentId, String coverMediaId})
+    >((ref, key) async {
+      final repository = ref.watch(gearPhotoRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchGearPhotoChanges());
+      return repository.coverFor(key.equipmentId, key.coverMediaId);
+    });
 
 /// The Gear gallery: photos of every item the viewing diver may see,
 /// grouped by item.
 final gearGalleryProvider = FutureProvider<List<GearPhotoGroup>>((ref) async {
   final repository = ref.watch(gearPhotoRepositoryProvider);
-  final equipment = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchGearItemPhotoChanges());
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-  final ids = await repository.equipmentIdsWithPhotos();
-  final visible = diverId == null
-      ? ids
-      : await equipment.visibleIdsAmong(ids, diverId);
-  return repository.gearGallery(visible);
+  return repository.gearGallery(diverId: diverId);
 });

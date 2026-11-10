@@ -111,7 +111,12 @@ void main() {
       finding.id,
     );
     expect(
-      (await container.read(equipmentCoverProvider(reg.id).future))?.id,
+      (await container.read(
+        equipmentCoverProvider((
+          equipmentId: reg.id,
+          coverMediaId: idPhoto.id,
+        )).future,
+      ))?.id,
       idPhoto.id,
     );
   });

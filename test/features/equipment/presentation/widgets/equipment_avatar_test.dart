@@ -30,7 +30,11 @@ void main() {
     await tester.pumpWidget(
       await mediaTestApp(
         overrides: [
-          equipmentCoverProvider('reg-1').overrideWith((ref) async => resolved),
+          if (item.coverMediaId case final coverId?)
+            equipmentCoverProvider((
+              equipmentId: 'reg-1',
+              coverMediaId: coverId,
+            )).overrideWith((ref) async => resolved),
         ],
         home: Scaffold(
           body: Center(child: EquipmentAvatar(item: item, radius: 20)),

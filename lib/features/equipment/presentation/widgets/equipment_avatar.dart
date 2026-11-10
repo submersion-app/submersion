@@ -45,7 +45,14 @@ class _EquipmentAvatarState extends ConsumerState<EquipmentAvatar> {
     final coverId = widget.item.coverMediaId;
     final cover = coverId == null || coverId == _failedId
         ? null
-        : ref.watch(equipmentCoverProvider(widget.item.id)).value;
+        : ref
+              .watch(
+                equipmentCoverProvider((
+                  equipmentId: widget.item.id,
+                  coverMediaId: coverId,
+                )),
+              )
+              .value;
     if (cover == null) return _icon(context);
 
     final size = widget.radius * 2;

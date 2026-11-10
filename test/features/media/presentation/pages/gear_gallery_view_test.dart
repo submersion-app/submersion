@@ -91,6 +91,41 @@ void main() {
     expect(opened, ['reg-1']);
   });
 
+  testWidgets('the header does not leave the page mid-selection', (
+    tester,
+  ) async {
+    final opened = <String>[];
+    await tester.pumpWidget(await host(data: groups, onOpenItem: opened.add));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(MediaThumbnailTile).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('XTX50 regulator'));
+    await tester.pumpAndSettle();
+
+    expect(opened, isEmpty);
+    expect(find.text('1 selected'), findsOneWidget);
+  });
+
+  testWidgets('a large gallery builds only the tiles in view', (tester) async {
+    await tester.pumpWidget(
+      await host(
+        data: [
+          GearPhotoGroup(
+            equipmentId: 'reg-1',
+            name: 'XTX50 regulator',
+            items: [for (var i = 0; i < 300; i++) photo('p$i')],
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MediaThumbnailTile).evaluate().length, lessThan(300));
+  });
+
   testWidgets('remove unlinks selected photos', (tester) async {
     final calls = <List<String>>[];
     await tester.pumpWidget(await host(data: groups, unlinkCalls: calls));

@@ -21,9 +21,11 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 
-/// Media's Gear gallery (issue #3355): every photo of the gear the viewing
-/// diver can see, identification and check-in photos alike, grouped by
-/// item. Gear photos appear nowhere else in Media.
+/// Media's Equipment gallery (issue #3355): every photo of the gear the
+/// viewing diver can see, identification and check-in photos alike, grouped
+/// by item. Gear photos stay out of the ordinary Library views; the
+/// Library shows them only when its Attached to filter picks Equipment
+/// (issue #4224).
 ///
 /// [onOpenItem] replaces the navigation to an item's page, for tests.
 class GearGalleryView extends ConsumerStatefulWidget {
@@ -191,19 +193,30 @@ class _GearGalleryViewState extends ConsumerState<GearGalleryView> {
                   onPressed: _selection.enterExplicit,
                 ),
               ),
+            // Slivers, so only the tiles scrolled into view are built: a
+            // diver's gear can hold hundreds of photos.
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                children: [
-                  for (final group in groups)
-                    _GroupSection(
-                      group: group,
-                      selection: selection,
-                      onOpenItem: () => _openItem(group.equipmentId),
-                      onTap: (item) => selection.isActive
-                          ? _selection.toggle(item.id)
-                          : _openViewer(group, item),
+              child: CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    sliver: SliverMainAxisGroup(
+                      slivers: [
+                        for (final group in groups)
+                          _GroupSection(
+                            group: group,
+                            selection: selection,
+                            // Leaving mid-selection would drop the pick.
+                            onOpenItem: selection.isActive
+                                ? null
+                                : () => _openItem(group.equipmentId),
+                            onTap: (item) => selection.isActive
+                                ? _selection.toggle(item.id)
+                                : _openViewer(group, item),
+                          ),
+                      ],
                     ),
+                  ),
                 ],
               ),
             ),
@@ -224,7 +237,10 @@ class _GroupSection extends ConsumerWidget {
 
   final GearPhotoGroup group;
   final SelectionState selection;
-  final VoidCallback onOpenItem;
+
+  /// Opens the item's page; null while selecting, which keeps the header
+  /// from leaving the page.
+  final VoidCallback? onOpenItem;
   final void Function(MediaItem) onTap;
 
   @override
@@ -233,43 +249,44 @@ class _GroupSection extends ConsumerWidget {
     final settings = ref.watch(unitFormatterProvider).settings;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: onOpenItem,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    group.name.isEmpty
-                        ? l10n.media_library_untitledEquipment
-                        : group.name,
-                    style: textTheme.titleSmall,
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: InkWell(
+            onTap: onOpenItem,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      group.name.isEmpty
+                          ? l10n.media_library_untitledEquipment
+                          : group.name,
+                      style: textTheme.titleSmall,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.media_gearGallery_count(group.items.length),
-                  style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  const SizedBox(width: 8),
+                  Text(
+                    l10n.media_gearGallery_count(group.items.length),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  size: 18,
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ],
+                  if (onOpenItem != null) ...[
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 18,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+        SliverGrid.builder(
           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: 140,
             crossAxisSpacing: 8,
