@@ -29,6 +29,22 @@ abstract final class DiveRatingScale {
     return _halve(value);
   }
 
+  /// A rating as a stored row or a logged change holds it (a number, or the
+  /// text of one) put on the star scale by [normalize].
+  ///
+  /// Returns [value] itself when it is already on the scale or is not a
+  /// number at all, so a caller can tell an untouched value by identity.
+  static Object? normalizeStored(Object? value) {
+    final rating = switch (value) {
+      final num n => n.toInt(),
+      final String s => num.tryParse(s)?.toInt(),
+      _ => null,
+    };
+    if (rating == null) return value;
+    final stars = normalize(rating);
+    return stars == rating ? value : stars;
+  }
+
   static int _halve(int value) {
     final stars = (value + 1) ~/ 2;
     return stars > maxStars ? maxStars : stars;

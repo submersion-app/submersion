@@ -46,4 +46,19 @@ void main() {
       expect(DiveRatingScale.normalize(40), 5);
     });
   });
+
+  group('normalizeStored', () {
+    test('returns a value already on the scale, or no number, itself', () {
+      for (final value in <Object?>[4, 4.0, '3', null, 'none']) {
+        expect(identical(DiveRatingScale.normalizeStored(value), value), true);
+      }
+    });
+
+    test('puts a stored number or its text on the scale', () {
+      expect(DiveRatingScale.normalizeStored(8), 4);
+      expect(DiveRatingScale.normalizeStored(8.0), 4);
+      expect(DiveRatingScale.normalizeStored('6'), 3);
+      expect(DiveRatingScale.normalizeStored(0), isNull);
+    });
+  });
 }

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_rating_repair.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -116,6 +117,32 @@ void main() {
     expect(item.current, 'Later');
     expect(item.target, 'Calm');
   });
+
+  test(
+    'a rating the v358 rung put on the scale is not changed since',
+    () async {
+      // An import logged the file's 1 to 10 rating before v358 (#4415); the
+      // rung halved it in place, which is no edit made since.
+      await db.customStatement("UPDATE dives SET rating = 3 WHERE id = 'dive'");
+      await repository.settleAll();
+      await clearLog(db);
+      await db.customStatement("UPDATE dives SET rating = 8 WHERE id = 'dive'");
+      final event = await lastEventId();
+      await repairOutOfScaleDiveRatings(db);
+      await repository.settleAll();
+      await db.customStatement(
+        'DELETE FROM change_log_events WHERE id > $event',
+      );
+
+      final plan = await service.planField(event, 'rating');
+
+      final item = plan.items.single;
+      expect(item.block, isNull);
+      expect(item.current, 4);
+      expect(item.target, 3);
+      expect(item.changedSince, isFalse);
+    },
+  );
 
   test('skipping changed since keeps that field', () async {
     await edit('Current');

@@ -90,6 +90,21 @@ void main() {
     expect((await h.one('dives', 'd1'))!['boat_name'], isNull);
   });
 
+  test('a rating of 0 clears the rating, never storing 0 (#4415)', () async {
+    await writes.update(
+      'd1',
+      kDiverA,
+      const RecordUpdate(values: {'rating': 4}),
+    );
+    await writes.update(
+      'd1',
+      kDiverA,
+      const RecordUpdate(values: {'rating': 0}),
+    );
+
+    expect((await h.one('dives', 'd1'))!['rating'], isNull);
+  });
+
   test('every codec key has a column', () async {
     const samples = <String, Object?>{
       'name': 'Morning dive',

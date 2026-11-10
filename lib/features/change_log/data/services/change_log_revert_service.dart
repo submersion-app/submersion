@@ -186,8 +186,18 @@ class ChangeLogRevertService {
         );
         continue;
       }
+      // What the logged value is now, after any rung that reshaped the
+      // column: a rating logged as 8 reads 4 since v358, which is not a
+      // change made since (issue #4415).
+      final loggedNow = changeLogRestoredValue(
+        _rewrittenColumns,
+        event.table,
+        column,
+        logged,
+        rewrittenValues: _rewrittenValues,
+      );
       final current = returning
-          ? logged
+          ? loggedNow
           : await _repository.liveValue(event.table, event.recordId, column);
       if (_same(current, target)) continue;
       items.add(
@@ -197,7 +207,7 @@ class ChangeLogRevertService {
           logged: logged,
           target: target,
           current: current,
-          changedSince: !_same(current, logged),
+          changedSince: !_same(current, loggedNow),
         ),
       );
     }

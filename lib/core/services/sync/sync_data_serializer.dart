@@ -12059,11 +12059,10 @@ class SyncDataSerializer {
     String entityType,
     Map<String, dynamic> data,
   ) {
+    if (entityType != 'dives') return data;
     final rating = data['rating'];
-    if (entityType != 'dives' || rating is! num) return data;
-    final stars = DiveRatingScale.normalize(rating.toInt());
-    if (stars == rating) return data;
-    return {...data, 'rating': stars};
+    final stars = DiveRatingScale.normalizeStored(rating);
+    return identical(stars, rating) ? data : {...data, 'rating': stars};
   }
 
   /// Hydrates missing (or explicitly null) non-nullable columns in [data]

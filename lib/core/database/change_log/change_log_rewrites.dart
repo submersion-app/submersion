@@ -39,19 +39,8 @@ typedef ChangeLogValueRepair = Object? Function(Object? value);
 /// rather than not at all. A column listed only in [changeLogRewrittenColumns]
 /// refuses every value logged before its rung.
 const Map<String, ChangeLogValueRepair> changeLogRewrittenValues = {
-  'dives.rating': _ratingOnScale,
+  'dives.rating': DiveRatingScale.normalizeStored,
 };
-
-Object? _ratingOnScale(Object? value) {
-  final rating = switch (value) {
-    final num n => n.toInt(),
-    final String s => num.tryParse(s)?.toInt(),
-    _ => null,
-  };
-  if (rating == null) return value;
-  final stars = DiveRatingScale.normalize(rating);
-  return stars == rating ? value : stars;
-}
 
 /// Whether reverting [table].[column] to [value], logged at [schemaVersion],
 /// must be refused because a rung has since rewritten what it means.
