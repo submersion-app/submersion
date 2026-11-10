@@ -138,6 +138,7 @@ void main() {
 
       final item = plan.items.single;
       expect(item.block, isNull);
+      expect(item.logged, 4);
       expect(item.current, 4);
       expect(item.target, 3);
       expect(item.changedSince, isFalse);

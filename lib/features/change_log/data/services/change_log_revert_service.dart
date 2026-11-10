@@ -212,7 +212,9 @@ class ChangeLogRevertService {
         ChangeLogRevertItem(
           event: event,
           column: column,
-          logged: logged,
+          // Shown beside current and target, so on the same scale they are,
+          // and as changedSince compares it.
+          logged: loggedNow,
           target: target,
           current: current,
           changedSince: !_same(current, loggedNow),

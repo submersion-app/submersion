@@ -50,8 +50,11 @@ abstract final class DiveRatingScale {
     return stars == rating ? value : stars;
   }
 
+  /// Capped before the arithmetic, so the largest int (a parsed
+  /// `<ratingvalue>`, or a synced row holding one) cannot wrap round to a
+  /// negative rating.
   static int _halve(int value) {
-    final stars = (value + 1) ~/ 2;
-    return stars > maxStars ? maxStars : stars;
+    if (value >= 2 * maxStars) return maxStars;
+    return (value + 1) ~/ 2;
   }
 }

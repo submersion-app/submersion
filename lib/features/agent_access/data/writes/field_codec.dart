@@ -224,8 +224,9 @@ class _IntegerCodec extends FieldCodec {
   String get describe => 'whole number';
 
   @override
-  Object? parse(Object? raw) =>
-      zeroClears && nullable && raw == 0 ? null : super.parse(raw);
+  Object? parse(Object? raw) => zeroClears && nullable && raw is int && raw == 0
+      ? null
+      : super.parse(raw);
 
   @override
   Object parseValue(Object raw) {

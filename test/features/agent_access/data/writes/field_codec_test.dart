@@ -104,6 +104,8 @@ void main() {
       const FieldCodec.integer(min: 0, max: 5, nullable: true).parse(0),
       0,
     );
+    // 0.0 is no whole number, as 1.0 is not: refused, not taken as a clear.
+    expect(() => codec.parse(0.0), throwsA(isA<FieldRefusal>()));
   });
 
   // A table that keeps a tenth of a percent cannot hold a finer fraction.

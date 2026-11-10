@@ -22,6 +22,12 @@ void main() {
     test('caps a value above the scale at 5 stars', () {
       expect(DiveRatingScale.fromUddf(14), 5);
     });
+
+    test('caps the largest int at 5 stars rather than wrapping', () {
+      // 0x7FFFFFFFFFFFFFFF is the largest int on the VM; the web's ints are
+      // doubles, where it is just a large number.
+      expect(DiveRatingScale.fromUddf(0x7FFFFFFFFFFFFFFF), 5);
+    });
   });
 
   group('normalize', () {
@@ -59,6 +65,10 @@ void main() {
       expect(DiveRatingScale.normalizeStored(8.0), 4);
       expect(DiveRatingScale.normalizeStored('6'), 3);
       expect(DiveRatingScale.normalizeStored(0), isNull);
+    });
+
+    test('caps the largest stored int at 5 stars', () {
+      expect(DiveRatingScale.normalizeStored(0x7FFFFFFFFFFFFFFF), 5);
     });
 
     test('leaves a fraction, NaN or infinity as it is, as the rung does', () {
