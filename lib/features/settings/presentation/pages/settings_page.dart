@@ -48,6 +48,7 @@ import 'package:submersion/features/settings/presentation/pages/diver_profile_hu
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/build_date_label.dart';
 import 'package:submersion/features/settings/presentation/widgets/diagnostics_card.dart';
+import 'package:submersion/features/settings/presentation/widgets/submersion_about_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/set_up_device/settings_root_set_up_card.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_list_content.dart';
 import 'package:submersion/core/router/section_navigation.dart';
@@ -2173,9 +2174,6 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                       context: context,
                       applicationName: context.l10n.settings_about_appName,
                       applicationVersion: versionString,
-                      // Matches the licenses page the About dialog opens,
-                      // which carries the build date the same way.
-                      applicationLegalese: builtOn,
                     );
                   },
                 ),
@@ -2448,14 +2446,11 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
     String versionString,
     String? builtOn,
   ) {
-    showAboutDialog(
+    showSubmersionAboutDialog(
       context: context,
       applicationName: context.l10n.settings_about_appName,
       applicationVersion: versionString,
-      // The legalese slot is the small line under the version, which is where
-      // the build date belongs (issue #4365); the app has no legalese of its
-      // own, and null leaves the line out for a build without a date.
-      applicationLegalese: builtOn,
+      builtOn: builtOn,
       applicationIcon: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Image.asset('assets/icon/icon.png', width: 64, height: 64),

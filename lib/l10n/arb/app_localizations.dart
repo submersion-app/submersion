@@ -35352,7 +35352,7 @@ abstract class AppLocalizations {
   /// **'Version {version}'**
   String settings_about_version(String version);
 
-  /// Under the app version in Settings > About, the About dialog and the licenses page: the day this build was made
+  /// Under the app version in Settings > About and the About dialog: the day this build was made
   ///
   /// In en, this message translates to:
   /// **'Built {date}'**
