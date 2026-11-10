@@ -23,6 +23,7 @@ import 'package:submersion/core/services/export/uddf/uddf_sighting_amount.dart';
 import 'package:submersion/core/services/export/uddf/uddf_sighting_species.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_attribution.dart';
 import 'package:submersion/core/services/export/uddf/uddf_tank_ref_router.dart';
+import 'package:submersion/core/utils/dive_rating_scale.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -2967,16 +2968,18 @@ class UddfFullImportService {
         }
       }
 
-      // Parse rating
+      // Parse rating. UDDF rates on 1 to 10, which Diving Log writes with 0
+      // for an unrated dive; Submersion's own files have always written the
+      // 1 to 5 star count (issue #4415).
       final ratingElement = afterElement.findElements('rating').firstOrNull;
       if (ratingElement != null) {
-        final ratingValue = UddfImportParsers.getElementText(
-          ratingElement,
-          'ratingvalue',
+        final ratingValue = UddfImportParsers.parseUddfInt(
+          UddfImportParsers.getElementText(ratingElement, 'ratingvalue'),
         );
-        if (ratingValue != null) {
-          diveData['rating'] = UddfImportParsers.parseUddfInt(ratingValue);
-        }
+        final stars = UddfImportParsers.writtenBySubmersion(diveElement)
+            ? DiveRatingScale.normalize(ratingValue)
+            : DiveRatingScale.fromUddf(ratingValue);
+        if (stars != null) diveData['rating'] = stars;
       }
 
       // Parse notes (try nested <para> first, then direct text content)

@@ -14,4 +14,7 @@ const Map<String, int> changeLogRewrittenColumns = {
   // v337 turned milliseconds back into the seconds this column holds (issue
   // #4119), so a stamp logged before it may be a thousand times too large.
   'dives.weather_fetched_at': 337,
+  // v358 halved a rating a UDDF import stored on the 1 to 10 scale, and
+  // cleared a stored 0 (issue #4415), so a logged rating may be out of scale.
+  'dives.rating': 358,
 };

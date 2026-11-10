@@ -131,5 +131,12 @@ extension RungsFromV340 on AppDatabase {
     // 357 because main holds 356; renumbered from 353, then 355.
     if (from < 357) await _assertProfileSeriesIsEditColumn();
     if (from < 357) await reportProgress();
+
+    // v358: a dive's rating back on the 1 to 5 star scale where a UDDF
+    // import stored the file's 1 to 10 value, or 0 for an unrated dive
+    // (issue #4415). Data only, so the compatibility floor does not move.
+    // It rewrites dives.rating, so changeLogRewrittenColumns lists it.
+    if (from < 358) await _repairOutOfScaleDiveRatings();
+    if (from < 358) await reportProgress();
   }
 }
