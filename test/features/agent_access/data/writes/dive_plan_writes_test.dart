@@ -170,6 +170,42 @@ void main() {
     expect(row.summaryMaxDepth, dive['max_depth_m']);
   });
 
+  test('a plan sets and clears its ascent rates and gas allowance', () async {
+    const keys = [
+      'intermediate_ascent_rate_m_min',
+      'shallow_ascent_rate_m_min',
+      'final_ascent_rate_m_min',
+      'gas_switch_stop_s',
+      'sac_factor',
+      'problem_solving_minutes',
+      'o2_narcotic',
+    ];
+    final id = await make('dive_plans', {
+      'name': 'Rates',
+      'tanks': [
+        {'volume_l': 12, 'start_pressure_bar': 200},
+      ],
+      'segments': [
+        {'target_depth_m': 30, 'duration_s': 1200, 'tank': 0},
+      ],
+      'intermediate_ascent_rate_m_min': 6,
+      'shallow_ascent_rate_m_min': 3,
+      'final_ascent_rate_m_min': 1,
+      'gas_switch_stop_s': 60,
+      'sac_factor': 1.5,
+      'problem_solving_minutes': 0,
+      'o2_narcotic': false,
+    });
+    final saved = (await h.one('dive_plans', id))!;
+    expect([for (final k in keys) saved[k]], [6, 3, 1, 60, 1.5, 0, false]);
+
+    await h.run([
+      updateOp('dive_plans', id, {for (final k in keys) k: null}),
+    ]);
+    final cleared = (await h.one('dive_plans', id))!;
+    expect([for (final k in keys) cleared[k]], everyElement(isNull));
+  });
+
   test('a plan naming a missing site is refused', () async {
     final plan = await h.preview([
       createOp('dive_plans', {'name': 'X', 'site_id': 'gone'}),

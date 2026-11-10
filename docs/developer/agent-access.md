@@ -118,6 +118,10 @@ own code and writes nothing (issue #4203). It never has a planner of its own:
   `effective_settings` says for each value whether the plan, the diver's
   Settings or the planner's default set it; values from Settings are never
   written into `resolved_inputs`, so a saved plan keeps following Settings.
+  Every value it marks as one a plan can set is an input, so an agent can
+  override any of them. That includes the ascent rate bands and the
+  problem-solving allowance (`problem_solving_minutes` at the deepest point on
+  bottom SAC times `sac_factor`), which `litres_used` includes.
 - **Following a logged dive** reads it through the planner's
   `seriesFollowProvider`, injected as a `SeriesFollowReader`, so the carry-in
   is the planner's own.

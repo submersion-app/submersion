@@ -241,6 +241,36 @@ void main() {
       expect(second.tanksGiven, isFalse);
     });
 
+    test('a later dive takes the dive before\'s ascent rates and gas '
+        'allowance', () {
+      final request = parse({
+        'dives': [
+          {
+            ...first,
+            'intermediate_ascent_rate_m_min': 6,
+            'shallow_ascent_rate_m_min': 3,
+            'final_ascent_rate_m_min': 1,
+            'gas_switch_stop_s': 60,
+            'sac_factor': 1.5,
+            'problem_solving_minutes': 0,
+            'o2_narcotic': false,
+          },
+          {
+            'surface_interval_s': 5400,
+            'bottom': {'depth_m': 18, 'time_s': 2700},
+          },
+        ],
+      });
+      final second = request.dives[1].inputs;
+      expect(second['intermediate_ascent_rate_m_min'], 6);
+      expect(second['shallow_ascent_rate_m_min'], 3);
+      expect(second['final_ascent_rate_m_min'], 1);
+      expect(second['gas_switch_stop_s'], 60);
+      expect(second['sac_factor'], 1.5);
+      expect(second['problem_solving_minutes'], 0);
+      expect(second['o2_narcotic'], false);
+    });
+
     test('a later dive starts at its start time instead', () {
       final request = parse({
         'dives': [

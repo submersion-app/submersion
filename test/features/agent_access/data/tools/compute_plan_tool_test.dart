@@ -90,6 +90,25 @@ void main() {
     );
   });
 
+  test('the schema lists what each tank and segment field takes', () {
+    final dives = tool().inputSchema['properties']! as Map;
+    final dive =
+        ((dives['dives']! as Map)['items']! as Map)['properties']! as Map;
+    final tanks = (dive['tanks']! as Map)['description']! as String;
+    // The roles a client would otherwise learn only from a refusal.
+    expect(tanks, contains('role (one of backGas'));
+    expect(tanks, contains('deco'));
+    expect(tanks, isNot(contains('inflation')));
+    expect(tanks, contains('o2_fraction (number)'));
+  });
+
+  test('the description explains the schedule\'s columns', () {
+    final description = tool().description;
+    expect(description, contains('folded_travel'));
+    expect(description, contains('deeper end'));
+    expect(description, contains('in_deco_at_bottom'));
+  });
+
   test('computes a dive with the active diver\'s settings', () async {
     final out = await tool().call({
       'dives': [dive],
@@ -102,6 +121,38 @@ void main() {
     expect(result['stops'], isNotEmpty);
     final gf = (result['effective_settings']! as Map)['gf_low'];
     expect(gf, {'value': const AppSettings().gfLow, 'source': 'settings'});
+  });
+
+  test('a dive computes with its own ascent rates and gas allowance', () async {
+    Future<Map> compute([Map<String, Object?> own = const {}]) async {
+      final out = await tool().call({
+        'dives': [
+          {...dive, ...own},
+        ],
+      }, ctx());
+      return (out['dives']! as List).single as Map;
+    }
+
+    double backGasLitres(Map result) =>
+        ((result['tank_usage']! as List).first as Map)['litres_used']!
+            as double;
+
+    final baseline = await compute();
+    final own = await compute({
+      'final_ascent_rate_m_min': 9,
+      'problem_solving_minutes': 0,
+    });
+
+    // Off the 3 m last stop at 9 m/min rather than the Settings' 1 m/min.
+    int surfacingSeconds(Map result) =>
+        ((result['schedule']! as List).last as Map)['duration_s']! as int;
+    expect(surfacingSeconds(baseline), 180);
+    expect(surfacingSeconds(own), 20);
+    // No problem-solving allowance at 40 m.
+    expect(backGasLitres(own), lessThan(backGasLitres(baseline)));
+    final settings = own['effective_settings']! as Map;
+    expect(settings['final_ascent_rate_m_min'], {'value': 9, 'source': 'plan'});
+    expect(settings['problem_solving_minutes'], {'value': 0, 'source': 'plan'});
   });
 
   test('computes with the named diver\'s settings', () async {

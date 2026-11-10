@@ -38,7 +38,10 @@ Map<String, Object?> planResultDocument(
     ],
     'runtime_s': outcome.runtimeSeconds,
     'max_depth_m': outcome.maxDepth,
-    'ndl_at_bottom_s': outcome.ndlAtBottom,
+    // The engine writes -1 for a bottom already in deco; a client reads a
+    // flag, not a sentinel.
+    'ndl_at_bottom_s': outcome.ndlAtBottom < 0 ? null : outcome.ndlAtBottom,
+    'in_deco_at_bottom': outcome.ndlAtBottom < 0,
     'tts_at_bottom_s': outcome.ttsAtBottom,
     'tank_usage': [
       for (final usage in outcome.tankUsages)
@@ -80,6 +83,18 @@ Map<String, Object?> _row(ScheduleLine line, Map<String, int> place) {
     'air_break_s': row.airBreakSeconds,
     'ppo2_bar': _round(row.ppO2, 2),
     'end_m': _round(row.endMeters, 1),
+    // Travel from the stop before, which has no row of its own: the row's
+    // whole minutes cover it, its duration_s does not.
+    if (row.kind == PlanScheduleRowKind.stop)
+      'folded_travel': [
+        for (final leg in row.foldedTravel)
+          {
+            'from_depth_m': leg.fromDepthMeters,
+            'to_depth_m': leg.toDepthMeters,
+            'duration_s': leg.seconds,
+            'tank': place[leg.tankId],
+          },
+      ],
   };
 }
 
@@ -151,6 +166,13 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
     ),
     'sac_bottom_l_min': own(plan.sacBottom, config.sacBottom),
     'sac_deco_l_min': own(plan.sacDeco, config.sacDeco),
+    // The problem-solving allowance: problem_solving_minutes at the deepest
+    // point on bottom SAC x sac_factor, included in litres_used.
+    'sac_factor': own(plan.sacFactor, config.buddyFactor),
+    'problem_solving_minutes': own(
+      plan.problemSolvingMinutes,
+      config.problemSolvingMinutes,
+    ),
     'reserve_pressure_bar': own(plan.reservePressure, config.reservePressure),
     'ppo2_bottom_bar': own(plan.ppO2Bottom, config.ppO2Working),
     'ppo2_deco_bar': own(plan.ppO2Deco, config.ppO2Deco),

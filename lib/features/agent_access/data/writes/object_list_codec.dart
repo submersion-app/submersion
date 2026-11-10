@@ -24,9 +24,13 @@ class ObjectListCodec extends FieldCodec {
   final String? Function(Map<String, Object?> item)? rule;
   final int maxItems;
 
+  /// Each key with what it takes, so a client learns an enum's names or a
+  /// nested list's shape from the schema rather than from a refusal.
   @override
   String get describe =>
-      'a list of objects with ${keys.keys.join(', ')}, replaced whole';
+      'a list of objects with '
+      '${[for (final MapEntry(:key, :value) in keys.entries) '$key (${value.describe})'].join(', ')}, '
+      'replaced whole';
 
   @override
   Object parseValue(Object raw) {

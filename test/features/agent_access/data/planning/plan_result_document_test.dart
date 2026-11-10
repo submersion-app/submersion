@@ -75,6 +75,54 @@ void main() {
     expect(doc['issues'], isA<List>());
   });
 
+  test('a deco dive has no NDL at the bottom, and says it is in deco', () {
+    final doc = compute(deco).single;
+    expect(doc['ndl_at_bottom_s'], isNull);
+    expect(doc['in_deco_at_bottom'], isTrue);
+  });
+
+  test('a no-stop dive gives its NDL at the bottom', () {
+    final doc = compute({
+      'dives': [
+        {
+          'tanks': [ean21],
+          'bottom': {'depth_m': 12, 'time_s': 600},
+        },
+      ],
+    }).single;
+    expect(doc['ndl_at_bottom_s'], greaterThan(0));
+    expect(doc['in_deco_at_bottom'], isFalse);
+  });
+
+  test('a stop row gives the travel its whole minutes fold in', () {
+    final doc = compute(deco).single;
+    final schedule = (doc['schedule']! as List).cast<Map>();
+    final stops = schedule.where((r) => r['kind'] == 'stop').toList();
+    // The first stop's travel has a row of its own; each later stop folds
+    // in the leg from the stop before.
+    expect(stops.first['folded_travel'], isEmpty);
+    final later = stops[1];
+    final travel = (later['folded_travel']! as List).cast<Map>();
+    expect(travel, isNotEmpty);
+    expect(travel.first['from_depth_m'], stops.first['depth_m']);
+    expect(travel.last['to_depth_m'], later['depth_m']);
+    expect(travel.every((t) => (t['duration_s']! as int) > 0), isTrue);
+    expect(travel.every((t) => t['tank'] is int), isTrue);
+    // The row's whole minutes cover the travel and the stop together.
+    final previousRuntime = stops.first['runtime_s']! as int;
+    expect(
+      later['runtime_s'],
+      previousRuntime +
+          travel.fold<int>(0, (s, t) => s + (t['duration_s']! as int)) +
+          (later['duration_s']! as int),
+    );
+    // Rows that are not stops fold in nothing.
+    expect(
+      schedule.where((r) => r['kind'] != 'stop'),
+      everyElement(isNot(contains('folded_travel'))),
+    );
+  });
+
   test('settings say whether the plan or the diver\'s Settings set them', () {
     final doc = compute(deco).single;
     final settings = doc['effective_settings']! as Map;
@@ -83,6 +131,15 @@ void main() {
     expect(settings['water_type'], {'value': 'salt', 'source': 'default'});
     expect(settings['ascent_rate_m_min'], {
       'value': config.ascentRate,
+      'source': 'settings',
+    });
+    // The problem-solving allowance litres_used includes.
+    expect(settings['problem_solving_minutes'], {
+      'value': config.problemSolvingMinutes,
+      'source': 'settings',
+    });
+    expect(settings['sac_factor'], {
+      'value': config.buddyFactor,
       'source': 'settings',
     });
   });
