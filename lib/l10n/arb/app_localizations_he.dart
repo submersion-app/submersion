@@ -34078,6 +34078,34 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_summary_recentTitle => 'טיולים אחרונים';
 
   @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total טיולים',
+      one: 'טיול אחד',
+    );
+    return 'מסונן: סיכום של $shown מתוך $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'טיולים מסוננים';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'צלילות בטיולים אלה';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$date • $_temp0';
+  }
+
+  @override
   String get trips_summary_stat_daysDiving => 'ימי צלילה';
 
   @override

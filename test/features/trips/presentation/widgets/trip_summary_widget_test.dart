@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,6 +31,13 @@ class _StubTripListNotifier
   _StubTripListNotifier.failed(Object error)
     : super(AsyncValue.error(error, StackTrace.empty));
 
+  /// A reload of the whole list, as a diver switch starts one.
+  void startReload() => state = const AsyncValue.loading();
+
+  /// The reloaded list lands: the new diver's trips.
+  void finishReload(List<TripWithStats> trips) =>
+      state = AsyncValue.data(trips);
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -55,12 +64,19 @@ Future<void> _pump(
   DateFormatPreference format,
   List<TripWithStats> trips, {
   Locale locale = const Locale('en'),
+  TripFilterState filter = const TripFilterState(),
+  Set<String> matchingIds = const {},
+  Future<Set<String>> Function(TripFilterState filter)? idsFor,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         tripListNotifierProvider.overrideWith(
           (ref) => _StubTripListNotifier(trips),
+        ),
+        tripFilterProvider.overrideWith((ref) => filter),
+        queryFilteredTripIdsProvider.overrideWith(
+          (ref, filter) => idsFor?.call(filter) ?? Future.value(matchingIds),
         ),
         settingsProvider.overrideWith(
           (ref) => MockSettingsNotifier(AppSettings(dateFormat: format)),
@@ -276,5 +292,248 @@ void main() {
       trip('s', 12, 18, parent: 'p'),
     ]);
     expect(find.text('17'), findsOneWidget);
+  });
+
+  // Issue #4414: an equipment item's Trips row opens the trip list filtered
+  // to the trips that used it, but the overview beside that list summed and
+  // previewed every trip, so "10 trips" landed on "82 trips" and on three
+  // trips the item never went on.
+  group('TripSummaryWidget under a trip list filter', () {
+    final year = DateTime.now().year - 1;
+    TripWithStats trip(String id, String name, int month, int dives) =>
+        TripWithStats(
+          trip: Trip(
+            id: id,
+            name: name,
+            startDate: DateTime(year, month, 1),
+            endDate: DateTime(year, month, 5),
+            createdAt: DateTime(year),
+            updatedAt: DateTime(year),
+          ),
+          diveCount: dives,
+        );
+    final all = [
+      trip('a', 'Sardinia', 8, 11),
+      trip('b', 'Belgium', 6, 3),
+      trip('c', 'Southern France', 5, 19),
+      trip('d', 'Zeeland', 2, 7),
+    ];
+    const byTank = TripFilterState(equipmentId: 'tank-1');
+
+    testWidgets('summarizes only the trips the list shows', (tester) async {
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        matchingIds: const {'b', 'd'},
+      );
+
+      expect(find.text('Filtered: summarizing 2 of 4 trips'), findsOneWidget);
+      expect(find.bySemanticsLabel('Total Trips: 2'), findsOneWidget);
+      expect(find.bySemanticsLabel('Dives on these trips: 10'), findsOneWidget);
+      expect(find.textContaining('Total Dives'), findsNothing);
+      expect(find.text('Belgium'), findsOneWidget);
+      expect(find.text('Zeeland'), findsOneWidget);
+      expect(find.text('Sardinia'), findsNothing);
+      expect(find.text('Southern France'), findsNothing);
+    });
+
+    testWidgets('Clear all drops the filter the list shares', (tester) async {
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        matchingIds: const {'b'},
+      );
+
+      await tester.tap(find.text('Clear all'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+      expect(container.read(tripFilterProvider), const TripFilterState());
+      expect(find.textContaining('Filtered:'), findsNothing);
+      expect(find.text('Sardinia'), findsOneWidget);
+    });
+
+    testWidgets('an unfiltered list shows no banner', (tester) async {
+      await _pump(tester, DateFormatPreference.mmmDYYYY, all);
+
+      expect(find.textContaining('Filtered:'), findsNothing);
+      expect(find.bySemanticsLabel('Total Trips: 4'), findsOneWidget);
+      expect(find.text('Total Dives'), findsOneWidget);
+    });
+
+    // A new filter's trip ids take a query's time and arrive with no
+    // previous value. Until they land the overview waits, as the list does:
+    // the previous filter's trips would sit under the new filter's banner
+    // as rows the list does not show.
+    testWidgets("shows no earlier filter's trips while a new filter loads", (
+      tester,
+    ) async {
+      final second = Completer<Set<String>>();
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        idsFor: (filter) =>
+            filter == byTank ? Future.value(const {'b'}) : second.future,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+
+      container.read(tripFilterProvider.notifier).state = const TripFilterState(
+        equipmentId: 'tank-2',
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Belgium'), findsNothing);
+      expect(find.textContaining('of 4 trips'), findsNothing);
+
+      second.complete(const {'a', 'd'});
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filtered: summarizing 2 of 4 trips'), findsOneWidget);
+      expect(find.text('Sardinia'), findsOneWidget);
+      expect(find.text('Belgium'), findsNothing);
+    });
+
+    // A failed id query shows the error line, never the previous filter's
+    // trips as if they were this filter's.
+    testWidgets('a failed filter query keeps no earlier trips', (tester) async {
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        idsFor: (filter) => filter == byTank
+            ? Future.value(const {'b'})
+            : Future.error(StateError('query failed')),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+      expect(find.text('Belgium'), findsOneWidget);
+
+      container.read(tripFilterProvider.notifier).state = const TripFilterState(
+        equipmentId: 'tank-2',
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Belgium'), findsNothing);
+      expect(find.text("Couldn't load your trips."), findsOneWidget);
+      // The banner still says the overview is filtered, not a blank bar.
+      expect(find.text('Filtered trips'), findsOneWidget);
+    });
+
+    // The unfiltered overview is not the filter's: it must not stand under
+    // a "Filtered" banner while the filter's ids load.
+    testWidgets('a first filter does not keep the unfiltered overview', (
+      tester,
+    ) async {
+      final pending = Completer<Set<String>>();
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        idsFor: (_) => pending.future,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+
+      container.read(tripFilterProvider.notifier).state = byTank;
+      await tester.pump();
+
+      expect(find.textContaining('of 4 trips'), findsNothing);
+      expect(find.text('Sardinia'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      pending.complete(const {'b'});
+      await tester.pumpAndSettle();
+      expect(find.text('Filtered: summarizing 1 of 4 trips'), findsOneWidget);
+    });
+
+    // A reload of the trip list itself (another diver) blanks as the list
+    // does, rather than showing the previous list's trips and count.
+    testWidgets('a trip list reload keeps no earlier trips', (tester) async {
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        matchingIds: const {'b'},
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+
+      (container.read(tripListNotifierProvider.notifier)
+              as _StubTripListNotifier)
+          .startReload();
+      await tester.pump();
+
+      expect(find.text('Belgium'), findsNothing);
+      expect(find.textContaining('of 4 trips'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    // A diver switch reloads the list; a filter change during it starts an
+    // id query with no previous value. When the new diver's list lands
+    // first, the previous diver's trips must not come back while that
+    // query is still in flight.
+    testWidgets('a diver switch leaves no earlier trips to fall back to', (
+      tester,
+    ) async {
+      final pending = Completer<Set<String>>();
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        idsFor: (filter) =>
+            filter == byTank ? Future.value(const {'b'}) : pending.future,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+      final list =
+          container.read(tripListNotifierProvider.notifier)
+              as _StubTripListNotifier;
+      expect(find.text('Belgium'), findsOneWidget);
+
+      list.startReload();
+      await tester.pump();
+      container.read(tripFilterProvider.notifier).state = const TripFilterState(
+        equipmentId: 'tank-2',
+      );
+      await tester.pump();
+      list.finishReload([trip('e', 'Malta', 9, 4)]);
+      await tester.pump();
+
+      expect(find.text('Belgium'), findsNothing);
+      expect(find.textContaining('of 4 trips'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      pending.complete(const {'e'});
+      await tester.pumpAndSettle();
+      expect(find.text('Malta'), findsOneWidget);
+      expect(find.text('Filtered: summarizing 1 of 1 trip'), findsOneWidget);
+    });
+  });
+
+  testWidgets('the recent-trips dive count is translated', (tester) async {
+    await _pump(tester, DateFormatPreference.ddmmyyyy, [
+      _trip(id: 't1', name: 'Belgien 2026', start: past),
+    ], locale: const Locale('de'));
+
+    expect(find.textContaining('4 Tauchgänge'), findsOneWidget);
+    expect(find.textContaining('dives'), findsNothing);
   });
 }

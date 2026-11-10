@@ -34352,6 +34352,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_summary_recentTitle => 'Recent Trips';
 
   @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total trips',
+      one: '$total trip',
+    );
+    return 'Filtered: summarizing $shown of $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'Filtered trips';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'Dives on these trips';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$date • $_temp0';
+  }
+
+  @override
   String get trips_summary_stat_daysDiving => 'Days Diving';
 
   @override

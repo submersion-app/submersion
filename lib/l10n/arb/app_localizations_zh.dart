@@ -32893,6 +32893,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_summary_recentTitle => '近期旅行';
 
   @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 次旅行',
+      one: '$total 次旅行',
+    );
+    return '已筛选：汇总 $shown / $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => '已筛选的旅行';
+
+  @override
+  String get trips_summary_stat_filteredDives => '这些旅行中的潜水';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$date • $_temp0';
+  }
+
+  @override
   String get trips_summary_stat_daysDiving => '潜水天数';
 
   @override

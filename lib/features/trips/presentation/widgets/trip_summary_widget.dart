@@ -7,16 +7,30 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/side_trips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/widgets/filtered_summary_banner.dart';
 
 /// Summary widget shown when no trip is selected.
+///
+/// It summarizes the trips the list beside it shows. Under a trip list
+/// filter (an equipment item's Trips row opens one) that is the filtered
+/// trips alone, with a banner saying so, never every trip (issue #4414).
+///
+/// It reads exactly what the list reads, so while a new filter's trips load
+/// it shows a spinner as the list does. It keeps no earlier trips to show
+/// meanwhile: they would sit under the new filter's banner as tappable rows
+/// the list does not show.
 class TripSummaryWidget extends ConsumerWidget {
   const TripSummaryWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tripsAsync = ref.watch(tripListNotifierProvider);
+    final isFiltered = ref.watch(tripFilterProvider).hasActiveFilters;
+    final tripsAsync = ref.watch(filteredTripsProvider);
+    final units = ref.watch(unitFormatterProvider);
+    final trips = tripsAsync.value;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -25,15 +39,19 @@ class TripSummaryWidget extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildHeader(context),
+            if (isFiltered) ...[
+              const SizedBox(height: 16),
+              const _TripSummaryFilterBanner(),
+            ],
             const SizedBox(height: 24),
-            tripsAsync.when(
-              data: (trips) => _buildOverview(context, ref, trips),
-              loading: () => const Center(child: CircularProgressIndicator()),
+            if (tripsAsync.hasError)
               // The repository logs the failure; the diver gets a plain
               // line.
-              error: (_, _) =>
-                  Center(child: Text(context.l10n.trips_list_error_loading)),
-            ),
+              Center(child: Text(context.l10n.trips_list_error_loading))
+            else if (trips == null)
+              const Center(child: CircularProgressIndicator())
+            else
+              _buildOverview(context, units, trips, isFiltered: isFiltered),
             const SizedBox(height: 24),
             _buildQuickActions(context),
             const SizedBox(height: 32),
@@ -74,34 +92,31 @@ class TripSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, WidgetRef ref, List trips) {
+  Widget _buildOverview(
+    BuildContext context,
+    UnitFormatter units,
+    List<TripWithStats> trips, {
+    required bool isFiltered,
+  }) {
     // Calculate stats
-    num totalDives = 0;
-    num totalDays = 0;
-    int liveaboardCount = 0;
-    double? maxDepth;
+    var totalDives = 0;
+    var totalDays = 0;
+    var liveaboardCount = 0;
 
     // A larger trip's figures already include its side trips' dives, and
     // its dates span theirs, so a side trip adds neither (issue #3658).
-    final tripsById = <String, Trip>{
-      for (final t in trips) (t.trip as Trip).id: t.trip as Trip,
-    };
+    final tripsById = <String, Trip>{for (final t in trips) t.trip.id: t.trip};
     for (final tripWithStats in trips) {
-      final trip = tripWithStats.trip as Trip;
+      final trip = tripWithStats.trip;
       final parentId = effectiveParentId(trip, tripsById);
       if (parentId == null) {
-        totalDives += tripWithStats.diveCount as num;
+        totalDives += tripWithStats.diveCount;
         totalDays += trip.durationDays;
       } else {
         // Only the side trip's days that fall outside its larger trip.
         totalDays += _daysOutside(trip, tripsById[parentId]!);
       }
-      if (tripWithStats.trip.isLiveaboard) liveaboardCount++;
-      if (tripWithStats.maxDepth != null) {
-        if (maxDepth == null || tripWithStats.maxDepth > maxDepth) {
-          maxDepth = tripWithStats.maxDepth;
-        }
-      }
+      if (trip.isLiveaboard) liveaboardCount++;
     }
 
     // Find upcoming trips
@@ -135,7 +150,12 @@ class TripSummaryWidget extends ConsumerWidget {
               context,
               icon: Icons.scuba_diving,
               value: '$totalDives',
-              label: context.l10n.trips_summary_stat_totalDives,
+              // Every dive on the trips shown. Under an equipment filter the
+              // item may have been on fewer of them, so the label says
+              // whose dives these are (issue #4414).
+              label: isFiltered
+                  ? context.l10n.trips_summary_stat_filteredDives
+                  : context.l10n.trips_summary_stat_totalDives,
               color: Colors.teal,
             ),
             _buildStatCard(
@@ -157,11 +177,11 @@ class TripSummaryWidget extends ConsumerWidget {
         ),
         if (trips.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildTripListPreview(context, ref, trips),
+          _buildTripListPreview(context, units, trips),
         ],
         if (upcomingTrips.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildUpcomingTrips(context, ref, upcomingTrips),
+          _buildUpcomingTrips(context, units, upcomingTrips),
         ],
       ],
     );
@@ -218,14 +238,13 @@ class TripSummaryWidget extends ConsumerWidget {
 
   Widget _buildTripListPreview(
     BuildContext context,
-    WidgetRef ref,
-    List trips,
+    UnitFormatter units,
+    List<TripWithStats> trips,
   ) {
     // Sort by start date descending and take recent 3
-    final sortedTrips = List.from(trips)
+    final sortedTrips = List<TripWithStats>.from(trips)
       ..sort((a, b) => b.trip.startDate.compareTo(a.trip.startDate));
     final previewTrips = sortedTrips.take(3).toList();
-    final units = ref.watch(unitFormatterProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,8 +271,13 @@ class TripSummaryWidget extends ConsumerWidget {
                   ),
                 ),
                 title: Text(trip.name),
+                // The separator belongs to the translation, as in the
+                // Upcoming card's subtitle: fr joins with a hyphen.
                 subtitle: Text(
-                  '${units.formatDate(trip.startDate)} • ${tripWithStats.diveCount} dives',
+                  context.l10n.trips_summary_recentSubtitle(
+                    units.formatDate(trip.startDate),
+                    tripWithStats.diveCount,
+                  ),
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
@@ -271,10 +295,9 @@ class TripSummaryWidget extends ConsumerWidget {
 
   Widget _buildUpcomingTrips(
     BuildContext context,
-    WidgetRef ref,
-    List upcomingTrips,
+    UnitFormatter units,
+    List<TripWithStats> upcomingTrips,
   ) {
-    final units = ref.watch(unitFormatterProvider);
     final nextTrip = upcomingTrips.first;
     // Whole calendar days to the start date. Subtracting the current instant
     // instead would floor away the rest of today (a trip four calendar days
@@ -369,6 +392,31 @@ class TripSummaryWidget extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// The Trips overview's [FilteredSummaryBanner], shown while the trip list
+/// is filtered. Its own widget, so a count change rebuilds the banner alone
+/// rather than the whole overview, and the count is only watched while a
+/// filter is active.
+class _TripSummaryFilterBanner extends ConsumerWidget {
+  const _TripSummaryFilterBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // The list's own entry count, so the banner and the list's "3 of 12
+    // trips" subtitle can never disagree.
+    final count = ref.watch(tripListCountProvider);
+    return FilteredSummaryBanner(
+      // Counts not known yet (loading) or at all (the filter's query
+      // failed) still say the overview is filtered, so the bar is never a
+      // blank strip with only its button.
+      message: count == null
+          ? context.l10n.trips_summary_filteredBannerPending
+          : context.l10n.trips_summary_filteredBanner(count.shown, count.total),
+      clearLabel: context.l10n.trips_list_filters_clearAll,
+      onClear: () => clearTripFilter(ref),
     );
   }
 }

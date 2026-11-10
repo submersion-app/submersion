@@ -20213,6 +20213,38 @@
   "trips_summary_quickActions_add": "Add Trip",
   "trips_summary_quickActions_title": "Quick Actions",
   "trips_summary_recentTitle": "Recent Trips",
+  "trips_summary_filteredBanner": "Filtered: summarizing {shown} of {total, plural, =1{{total} trip} other{{total} trips}}",
+  "trips_summary_filteredBannerPending": "Filtered trips",
+  "trips_summary_stat_filteredDives": "Dives on these trips",
+  "@trips_summary_stat_filteredDives": {
+    "description": "Trips overview stat card label in place of \"Total Dives\" while the trip list is filtered: every dive on the trips shown, not only the dives that matched the filter (an equipment filter's item may have been on fewer)."
+  },
+  "@trips_summary_filteredBannerPending": {
+    "description": "Trips overview filter banner text while its trip counts are not known (still loading, or the filter's query failed)."
+  },
+  "trips_summary_recentSubtitle": "{date} • {count, plural, =1{1 dive} other{{count} dives}}",
+  "@trips_summary_filteredBanner": {
+    "description": "Line under the Trips overview title while the trip list is filtered (for example by an equipment item): the overview covers {shown} of the diver's {total} trips.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@trips_summary_recentSubtitle": {
+    "description": "Subtitle of a Recent Trips row of the Trips overview: the trip's start date, then its dive count, e.g. \"20/08/2026 • 11 dives\". Join the two the way trips_summary_upcomingSubtitle does.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trips_summary_stat_daysDiving": "Days Diving",
   "trips_summary_stat_liveaboards": "Liveaboards",
   "trips_summary_stat_totalDives": "Total Dives",
