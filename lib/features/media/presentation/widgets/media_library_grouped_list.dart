@@ -121,14 +121,13 @@ class _MediaLibraryGroupedListState
     );
   }
 
+  /// A linked dive's header label. Unlinked has no plain header: its section
+  /// heading names it (issue #4224).
   String _diveHeaderLabel(
     BuildContext context,
     UnitFormatter units,
     DiveGroupHeader header,
   ) {
-    if (header.diveId == null) {
-      return context.l10n.media_library_unlinkedHeader;
-    }
     final siteName = header.siteName;
     final parts = <String>[
       if (header.diveNumber != null) '#${header.diveNumber}',
@@ -173,13 +172,49 @@ class _MediaLibraryGroupedListState
     return trimmed == null || trimmed.isEmpty ? fallback : template(trimmed);
   }
 
+  /// The section heading a by-dive group of [kind] opens when the group
+  /// before it was of another kind (issue #4224). Dives, which come first,
+  /// get none.
+  MediaGroupHeaderSpec? _sectionFor(
+    BuildContext context,
+    MediaAttachmentKind kind,
+  ) => switch (kind) {
+    MediaAttachmentKind.dive => null,
+    MediaAttachmentKind.site => MediaGroupHeaderSpec(
+      kind: MediaGroupHeaderKind.section,
+      label: context.l10n.media_library_sectionSitePictures,
+      icon: Icons.place_outlined,
+    ),
+    MediaAttachmentKind.equipment => MediaGroupHeaderSpec(
+      kind: MediaGroupHeaderKind.section,
+      label: context.l10n.media_library_sectionEquipmentPictures,
+      icon: Icons.build_outlined,
+    ),
+    MediaAttachmentKind.unlinked => MediaGroupHeaderSpec(
+      kind: MediaGroupHeaderKind.section,
+      label: context.l10n.media_library_unlinkedHeader,
+      icon: Icons.link_off,
+    ),
+  };
+
   /// Each group's headers, in order. The timeline carries a month header
-  /// whenever the month changes between groups.
+  /// whenever the month changes between groups; the by-dive view a section
+  /// heading whenever the kind of group changes (issue #4224), which the
+  /// query's group order makes once per kind.
   List<List<MediaGroupHeaderSpec>> _headers(
     BuildContext context,
     UnitFormatter units,
   ) {
     DateTime? lastMonth;
+    MediaAttachmentKind? lastKind;
+    // The section heading [kind] opens, if the kind changed here.
+    List<MediaGroupHeaderSpec> opening(MediaAttachmentKind kind) {
+      final changed = kind != lastKind;
+      lastKind = kind;
+      final section = changed ? _sectionFor(context, kind) : null;
+      return [?section];
+    }
+
     final headers = <List<MediaGroupHeaderSpec>>[];
     for (final group in widget.groups) {
       switch (group.header) {
@@ -196,17 +231,22 @@ class _MediaLibraryGroupedListState
             ),
           ]);
           lastMonth = monthStart;
+        case DiveGroupHeader(diveId: null):
+          // Unlinked: its section heading is its only header.
+          headers.add(opening(MediaAttachmentKind.unlinked));
         case final DiveGroupHeader header:
           final diveId = header.diveId;
           headers.add([
+            ...opening(MediaAttachmentKind.dive),
             _linkHeader(
               _diveHeaderLabel(context, units, header),
-              route: diveId == null ? null : '/dives/$diveId',
+              route: '/dives/$diveId',
               hint: context.l10n.media_library_diveHeaderHint,
             ),
           ]);
         case SiteGroupHeader(:final siteId, :final siteName):
           headers.add([
+            ...opening(MediaAttachmentKind.site),
             _linkHeader(
               _named(
                 siteName,
@@ -219,6 +259,7 @@ class _MediaLibraryGroupedListState
           ]);
         case EquipmentGroupHeader(:final equipmentId, :final name):
           headers.add([
+            ...opening(MediaAttachmentKind.equipment),
             _linkHeader(
               _named(
                 name,

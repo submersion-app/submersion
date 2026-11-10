@@ -17,3 +17,10 @@ String? normalizeTransmitterSerial(String? raw) {
 }
 
 final RegExp _zeros = RegExp(r'^0+$');
+
+/// Whether two start pressures, in bar, can be one cylinder's: the same log
+/// read through two paths (an export's whole psi, a raw log's 2 psi steps, a
+/// file's pascals) differs only by unit rounding, a fraction of a bar. Used
+/// to confirm a pairing before a cylinder takes a transmitter serial, since
+/// a wrong serial would carry another cylinder's role and size (#4388).
+bool sameCylinderStartPressure(double a, double b) => (a - b).abs() <= 1.0;

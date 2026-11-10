@@ -8,9 +8,11 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/dive_computer/data/services/transmitter_registry_matcher.dart';
 import 'package:submersion/features/dive_log/domain/services/ccr_bailout_timeline.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/data/services/bailout_mix_fixer.dart';
+import 'package:submersion/features/transmitters/data/services/dive_tank_serials.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_tank_fill.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 
@@ -448,16 +450,86 @@ class TransmitterRepository {
     Iterable<String> slotTankIds = const [],
   }) async {
     final candidates = await _rowsToApply(t, slotTankIds);
-    if (candidates.isEmpty) {
-      return (tanksUpdated: 0, divesUpdated: 0, mixesKept: 0);
+    return _fill([for (final row in candidates) (row, t)]);
+  }
+
+  /// Fills each set-up transmitter onto the tanks of [diveIds] that carry
+  /// its serial (issue #4388): the step a file import, resync, re-download
+  /// or dive merge runs on its own dives, so a serial the diver has already
+  /// set up arrives configured instead of waiting for "Apply to existing
+  /// dives". Matched on serial only, within each dive's own diver; a channel
+  /// entry is left to that dialog, since a file's tank order need not be the
+  /// computer's channel. What each cylinder gains is [transmitterFillFor]'s.
+  Future<ApplyToExistingResult> applyToDives(Iterable<String> diveIds) async {
+    final serialTanks = await serialTanksOfDives(_db, diveIds);
+    if (serialTanks.isEmpty) return _nothingFilled;
+
+    // Only divers with a transmitter they have set up can fill anything.
+    final matchers = <String?, TransmitterMatcher>{};
+    for (final diverId in {for (final t in serialTanks) t.diverId}) {
+      final matcher = TransmitterMatcher.fromEntries(
+        await _entriesOfDiver(diverId),
+      );
+      if (!matcher.isEmpty) matchers[diverId] = matcher;
     }
+    if (matchers.isEmpty) return _nothingFilled;
+
+    final entryByTank = <String, Transmitter>{
+      for (final t in serialTanks)
+        t.tankId: ?matchers[t.diverId]?.match(
+          serial: t.serial,
+          computerId: null,
+          index: 0,
+        ),
+    };
+    final tankIds = entryByTank.keys.toList();
+    final pairs = <(DiveTank, Transmitter)>[];
+    for (var i = 0; i < tankIds.length; i += 500) {
+      final chunk = tankIds.sublist(i, (i + 500).clamp(0, tankIds.length));
+      final rows =
+          await (_db.select(_db.diveTanks)
+                ..where((d) => d.id.isIn(chunk))
+                ..orderBy([
+                  (d) => OrderingTerm.asc(d.diveId),
+                  (d) => OrderingTerm.asc(d.tankOrder),
+                ]))
+              .get();
+      for (final row in rows) {
+        pairs.add((row, entryByTank[row.id]!));
+      }
+    }
+    return _fill(pairs);
+  }
+
+  /// [diverId]'s own registry rows; for a dive with no diver, the rows that
+  /// name none, rather than every diver's.
+  Future<List<Transmitter>> _entriesOfDiver(String? diverId) async {
+    if (diverId != null) return getForDiver(diverId);
+    final rows = await (_db.select(
+      _db.transmitters,
+    )..where((t) => t.diverId.isNull())).get();
+    return rows.map(_map).toList();
+  }
+
+  static const ApplyToExistingResult _nothingFilled = (
+    tanksUpdated: 0,
+    divesUpdated: 0,
+    mixesKept: 0,
+  );
+
+  /// Writes [transmitterFillFor] for each (cylinder, entry) pair, in one
+  /// transaction; a failure leaves no half-applied dive.
+  Future<ApplyToExistingResult> _fill(
+    List<(DiveTank, Transmitter)> pairs,
+  ) async {
+    if (pairs.isEmpty) return _nothingFilled;
     final now = DateTime.now().millisecondsSinceEpoch;
     final touchedDives = <String>{};
     var tanks = 0;
     final mixesKeptDives = <String>{};
     final mixFixer = BailoutMixFixer();
     await _db.transaction(() async {
-      for (final row in candidates) {
+      for (final (row, t) in pairs) {
         final companion = transmitterFillFor(row, t);
         if (companion == null) continue;
         // An open-circuit entry (bailout, deco, stage) also replaces the

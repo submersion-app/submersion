@@ -148,6 +148,22 @@ void main() {
     expect(await h.one('smart_albums', id), isNull);
   });
 
+  test(
+    'a filter that narrows only what pictures are attached to is kept',
+    () async {
+      // Issue #4224: Attached to alone is a real constraint, not an empty
+      // filter, so the write must not refuse it.
+      final id = await make('smart_albums', {
+        'name': 'Site pictures',
+        'filter': {
+          'attachedTo': ['site', 'equipment'],
+        },
+      });
+      final album = (await h.one('smart_albums', id))!;
+      expect((album['filter']! as Map)['attachedTo'], ['equipment', 'site']);
+    },
+  );
+
   test('an empty filter is refused', () async {
     final plan = await h.preview([
       createOp('smart_albums', {'name': 'All', 'filter': <String, Object?>{}}),

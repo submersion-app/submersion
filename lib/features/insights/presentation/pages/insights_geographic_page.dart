@@ -5,8 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/expandable_ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
-import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -58,10 +58,9 @@ class InsightsGeographicPage extends ConsumerWidget {
               : context.l10n.insights_geographic_countries_empty;
           return Semantics(
             label: summary,
-            child: RankingList(
+            child: ExpandableRankingList(
               items: data,
               countLabel: context.l10n.insights_ranking_countLabel_dives,
-              maxItems: 10,
               onItemTap: (item) => openFilteredChartDives(
                 context,
                 ref,
@@ -101,10 +100,9 @@ class InsightsGeographicPage extends ConsumerWidget {
               : context.l10n.insights_geographic_regions_empty;
           return Semantics(
             label: summary,
-            child: RankingList(
+            child: ExpandableRankingList(
               items: data,
               countLabel: context.l10n.insights_ranking_countLabel_dives,
-              maxItems: 10,
               // A region row carries its country as the subtitle.
               onItemTap: (item) => openFilteredChartDives(
                 context,
@@ -153,10 +151,9 @@ class InsightsGeographicPage extends ConsumerWidget {
               : context.l10n.insights_geographic_trips_empty;
           return Semantics(
             label: summary,
-            child: RankingList(
+            child: ExpandableRankingList(
               items: data,
               countLabel: context.l10n.insights_ranking_countLabel_dives,
-              maxItems: 10,
               onItemTap: (item) => context.push('/trips/${item.id}'),
             ),
           );

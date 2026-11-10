@@ -86,24 +86,36 @@ SurfaceBreathing? surfaceBreathingOf({
       ))
         if (r.bar >= kPressureGlitchNearZeroBar) (timestamp: r.t, bar: r.bar),
     ];
-    final trailing = _lowestAfter(ordered, underwater.endSeconds);
-    if (trailing != null && trailing <= recordingEnd) stretchTo(trailing);
-    final leading = _highestBefore(ordered, underwater.startSeconds);
-    if (leading != null && leading >= recordingStart) stretchTo(leading);
+    // Only readings inside the recording can stretch it: a transmitter that
+    // logs on past either end must not hide a fall within it.
+    final trailing = _lowestAfter(
+      ordered,
+      underwater.endSeconds,
+      until: recordingEnd,
+    );
+    if (trailing != null) stretchTo(trailing);
+    final leading = _highestBefore(
+      ordered,
+      underwater.startSeconds,
+      from: recordingStart,
+    );
+    if (leading != null) stretchTo(leading);
   }
 
   if (from == null && until == null) return null;
   return SurfaceBreathing(from: from, until: until);
 }
 
-/// When [series] first reaches its lowest after [time], if that is at least
-/// [kSurfaceBreathingMinDropBar] below its value at [time].
-int? _lowestAfter(List<PressureSample> series, int time) {
+/// When [series] first reaches its lowest after [time] and no later than
+/// [until], if that is at least [kSurfaceBreathingMinDropBar] below its value
+/// at [time].
+int? _lowestAfter(List<PressureSample> series, int time, {required int until}) {
   final base = _barAt(series, time);
   if (base == null) return null;
   PressureSample? lowest;
   for (final s in series) {
     if (s.timestamp <= time) continue;
+    if (s.timestamp > until) break;
     if (lowest == null || s.bar < lowest.bar) lowest = s;
   }
   if (lowest == null || base - lowest.bar < kSurfaceBreathingMinDropBar) {
@@ -112,13 +124,19 @@ int? _lowestAfter(List<PressureSample> series, int time) {
   return lowest.timestamp;
 }
 
-/// When [series] was last at its highest before [time], if that is at least
-/// [kSurfaceBreathingMinDropBar] above its value at [time].
-int? _highestBefore(List<PressureSample> series, int time) {
+/// When [series] was last at its highest before [time] and no earlier than
+/// [from], if that is at least [kSurfaceBreathingMinDropBar] above its value
+/// at [time].
+int? _highestBefore(
+  List<PressureSample> series,
+  int time, {
+  required int from,
+}) {
   final base = _barAt(series, time);
   if (base == null) return null;
   PressureSample? highest;
   for (final s in series) {
+    if (s.timestamp < from) continue;
     if (s.timestamp >= time) break;
     if (highest == null || s.bar >= highest.bar) highest = s;
   }

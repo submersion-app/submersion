@@ -25,6 +25,9 @@ import 'package:submersion/core/database/database.dart';
 ///   there. The first signal stops seeing that once the dive has a primary
 ///   row again, which consolidating the combined dive with another import
 ///   gives it; the slot survives that, so this one does not (issue #4367).
+///   A dive combined before v184 has a slot only where the v184 rung could
+///   classify it, so the v356 rung stamps the rest while they still have no
+///   primary row (`stampCombinedDiveSourceSlots`).
 ///   It costs one false negative: [DiveUncombineService] keeps the slots of
 ///   a restored segment that holds several strands, whose samples it has
 ///   moved back to their own frame. Such a row keeps its profile rather

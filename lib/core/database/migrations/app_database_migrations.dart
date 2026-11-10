@@ -15,6 +15,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
 import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart';
+import 'package:submersion/core/database/combine_source_slot_stamp.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/dive_water_temp_fill.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
@@ -31,6 +32,8 @@ import 'package:submersion/core/database/dive_type_uniqueness.dart';
 import 'package:submersion/core/database/imported_computer_backfill.dart';
 import 'package:submersion/core/database/last_service_date_repair.dart';
 import 'package:submersion/core/database/shearwater_serial_heal.dart';
+import 'package:submersion/core/database/snapshot_serial_heal.dart';
+import 'package:submersion/core/database/source_computer_relink.dart';
 import 'package:submersion/core/database/performance_indexes.dart';
 import 'package:submersion/core/database/profile_series_pack_coverage.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';

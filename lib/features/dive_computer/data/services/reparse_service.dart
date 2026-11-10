@@ -195,8 +195,9 @@ class ReparseService {
       // the same shape: the edit's synced mark tells them apart, live or
       // demoted (issue #4386), and for a series written before the mark,
       // liveEditIds, the rule a resync keeps an edit by, reads it off the
-      // generation demoted beneath it.
-      final keptEdits = await _ownEdits(
+      // generation demoted beneath it. An edit that lost its source is kept
+      // too, whoever re-parses.
+      final keptEdits = await _keptEdits(
         diveId,
         sourceRow.id,
         sourceRow.computerId,
@@ -793,10 +794,11 @@ class ReparseService {
   /// its non-null computer or on the dive. A series another source wrote, or
   /// one that could be either's, is never touched. Matching on `computer_id`
   /// alone took every other null-computer source's series with it, a file
-  /// import's primary among them (issue #4367). [keptEdits] are this
-  /// source's manual edits on its strand, which stay, live or demoted
-  /// (issue #4386); [liveEditKept] says one of them is the live series, so
-  /// the fresh parse lands beneath it.
+  /// import's primary among them (issue #4367). [keptEdits] are the manual
+  /// edits on this source's strand, its own and, on the null strand, any
+  /// with no source, which stay, live or demoted (issue #4386);
+  /// [liveEditKept] says one of them is the live series, so the fresh parse
+  /// lands beneath it.
   Future<void> _replaceDiveProfiles({
     required String diveId,
     required String? computerId,
@@ -862,12 +864,17 @@ class ReparseService {
               sourceId ||
           (s.sourceId == null && sources.length == 1));
 
-  /// The manual edits [sourceId] owns on [computerId]'s strand, and
-  /// whether one of them is live. A series marked as an edit counts, live or
-  /// demoted (issue #4386). On the null strand an unmarked live series counts
-  /// too when [ProfileSeriesRepository.liveEditIdsOf] reads it as one by its
-  /// shape (issue #3189).
-  Future<({Set<String> ids, bool anyLive})> _ownEdits(
+  /// The manual edits on [computerId]'s strand that a re-parse of
+  /// [sourceId] keeps, and whether one of them is live: those it owns and,
+  /// on the null strand, those with no source at all. `clearSource` strips
+  /// the source of an edit that outlives its row; on a dive with two sources
+  /// nobody owns it, so it is never deleted, and a fresh parse inserted live
+  /// beside it would leave the dive two live profiles. A series marked as an
+  /// edit counts, live or demoted (issue #4386). On the null strand an
+  /// unmarked live series counts too when
+  /// [ProfileSeriesRepository.liveEditIdsOf] reads it as one by its shape
+  /// (issue #3189).
+  Future<({Set<String> ids, bool anyLive})> _keptEdits(
     String diveId,
     String sourceId,
     String? computerId,
@@ -880,12 +887,15 @@ class ReparseService {
     final edits = [
       for (final s in series)
         if ((s.isEdit == true || byShape.contains(s.id)) &&
-            _ownsSeries(
-              s,
-              sourceId: sourceId,
-              computerId: computerId,
-              sources: sources,
-            ))
+            ((computerId == null &&
+                    s.computerId == null &&
+                    s.sourceId == null) ||
+                _ownsSeries(
+                  s,
+                  sourceId: sourceId,
+                  computerId: computerId,
+                  sources: sources,
+                )))
           s,
     ];
     return (

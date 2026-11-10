@@ -514,7 +514,12 @@ final topBuddiesProvider = FutureProvider<List<RankingItem>>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  return repository.getTopBuddies(diverId: currentDiverId, filter: filter);
+  // Every row: the card shows ten until the diver asks for the rest.
+  return repository.getTopBuddies(
+    diverId: currentDiverId,
+    limit: null,
+    filter: filter,
+  );
 });
 
 final soloVsBuddyCountProvider =
@@ -534,7 +539,12 @@ final topDiveCentersProvider = FutureProvider<List<RankingItem>>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  return repository.getTopDiveCenters(diverId: currentDiverId, filter: filter);
+  // Every row: the card shows ten until the diver asks for the rest.
+  return repository.getTopDiveCenters(
+    diverId: currentDiverId,
+    limit: null,
+    filter: filter,
+  );
 });
 
 // ============================================================================
@@ -546,8 +556,10 @@ final countriesVisitedProvider = FutureProvider<List<RankingItem>>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
+  // Every row: the card shows ten until the diver asks for the rest.
   return repository.getCountriesVisited(
     diverId: currentDiverId,
+    limit: null,
     filter: filter,
   );
 });
@@ -557,7 +569,12 @@ final regionsExploredProvider = FutureProvider<List<RankingItem>>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  return repository.getRegionsExplored(diverId: currentDiverId, filter: filter);
+  // Every row: the card shows ten until the diver asks for the rest.
+  return repository.getRegionsExplored(
+    diverId: currentDiverId,
+    limit: null,
+    filter: filter,
+  );
 });
 
 final divesPerTripProvider = FutureProvider<List<RankingItem>>((ref) async {
@@ -565,7 +582,12 @@ final divesPerTripProvider = FutureProvider<List<RankingItem>>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  return repository.getDivesPerTrip(diverId: currentDiverId, filter: filter);
+  // Every row: the card shows ten until the diver asks for the rest.
+  return repository.getDivesPerTrip(
+    diverId: currentDiverId,
+    limit: null,
+    filter: filter,
+  );
 });
 
 // ============================================================================
@@ -590,8 +612,10 @@ final mostCommonSightingsProvider = FutureProvider<List<RankingItem>>((
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
+  // Every row: the card shows ten until the diver asks for the rest.
   return repository.getMostCommonSightings(
     diverId: currentDiverId,
+    limit: null,
     filter: filter,
   );
 });
@@ -603,8 +627,10 @@ final bestSitesForMarineLifeProvider = FutureProvider<List<RankingItem>>((
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
+  // Every row: the card shows ten until the diver asks for the rest.
   return repository.getBestSitesForMarineLife(
     diverId: currentDiverId,
+    limit: null,
     filter: filter,
   );
 });

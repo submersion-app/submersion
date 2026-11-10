@@ -74,6 +74,10 @@ class SiteSpeciesSummary extends Equatable {
   final String speciesName;
   final SpeciesCategory category;
   final int sightingCount; // Total times spotted across all dives at site
+  /// Animals recorded across those dives: an exact count as recorded, a REEF
+  /// group at its lower bound (Single 1, Few 2, Many 11, Abundant 101) and
+  /// Seen as one, so a school logged as Many outweighs one fish.
+  final int animalCount;
   final int diveCount; // Number of dives where spotted
 
   const SiteSpeciesSummary({
@@ -81,6 +85,7 @@ class SiteSpeciesSummary extends Equatable {
     required this.speciesName,
     required this.category,
     required this.sightingCount,
+    required this.animalCount,
     required this.diveCount,
   });
 
@@ -90,6 +95,7 @@ class SiteSpeciesSummary extends Equatable {
     speciesName,
     category,
     sightingCount,
+    animalCount,
     diveCount,
   ];
 }

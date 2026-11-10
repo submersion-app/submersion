@@ -13309,6 +13309,42 @@ abstract class AppLocalizations {
   /// **'No species logged'**
   String get diveLog_edit_noMarineLife;
 
+  /// Heading over the one-tap species chips in the dive editor, offered because other dives at the dive's site logged them or the site's expected list names them
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested for {siteName}'**
+  String diveLog_edit_suggestions_title(String siteName);
+
+  /// Screen reader label of a suggested species chip in the dive editor; tapping it adds the species to the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Add {species}'**
+  String diveLog_edit_suggestions_add(String species);
+
+  /// Tooltip of a suggested species chip: how many other dives at this site logged the species
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Seen on {count} other dive here} other{Seen on {count} other dives here}}'**
+  String diveLog_edit_suggestions_seenOnDives(int count);
+
+  /// Tooltip of a suggested species chip for a species named on the site's expected species list but never logged there
+  ///
+  /// In en, this message translates to:
+  /// **'On this site\'s expected species list'**
+  String get diveLog_edit_suggestions_expected;
+
+  /// Chip that expands the suggested species list to show every suggestion; count is the total
+  ///
+  /// In en, this message translates to:
+  /// **'Show all ({count})'**
+  String diveLog_edit_suggestions_showAll(int count);
+
+  /// Chip that collapses the expanded suggested species list back to the first few
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get diveLog_edit_suggestions_showFewer;
+
   /// No description provided for @diveLog_edit_notSpecified.
   ///
   /// In en, this message translates to:
@@ -31328,6 +31364,252 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get marineLife_speciesPage_retry;
 
+  /// No description provided for @speciesMap_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Species Map'**
+  String get speciesMap_title;
+
+  /// No description provided for @speciesMap_openTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Species map'**
+  String get speciesMap_openTooltip;
+
+  /// No description provided for @speciesMap_pickSpeciesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a species'**
+  String get speciesMap_pickSpeciesTooltip;
+
+  /// No description provided for @speciesMap_list_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search all species'**
+  String get speciesMap_list_searchHint;
+
+  /// No description provided for @speciesMap_list_allSites.
+  ///
+  /// In en, this message translates to:
+  /// **'All sites'**
+  String get speciesMap_list_allSites;
+
+  /// No description provided for @speciesMap_list_allSitesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you have logged where'**
+  String get speciesMap_list_allSitesSubtitle;
+
+  /// No description provided for @speciesMap_list_notSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Not seen yet'**
+  String get speciesMap_list_notSeen;
+
+  /// No description provided for @speciesMap_list_counts.
+  ///
+  /// In en, this message translates to:
+  /// **'{sightings, plural, one{{sightings} sighting} other{{sightings} sightings}}, {sites, plural, one{{sites} site} other{{sites} sites}}'**
+  String speciesMap_list_counts(int sightings, int sites);
+
+  /// No description provided for @speciesMap_legend_mySightings.
+  ///
+  /// In en, this message translates to:
+  /// **'My sightings'**
+  String get speciesMap_legend_mySightings;
+
+  /// No description provided for @speciesMap_legend_expected.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected, not logged'**
+  String get speciesMap_legend_expected;
+
+  /// No description provided for @speciesMap_legend_publicRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Public records'**
+  String get speciesMap_legend_publicRecords;
+
+  /// No description provided for @speciesMap_legend_speciesLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Species logged at a site'**
+  String get speciesMap_legend_speciesLogged;
+
+  /// No description provided for @speciesMap_layers_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Map layers'**
+  String get speciesMap_layers_tooltip;
+
+  /// No description provided for @speciesMap_layers_public.
+  ///
+  /// In en, this message translates to:
+  /// **'Public records (GBIF)'**
+  String get speciesMap_layers_public;
+
+  /// No description provided for @speciesMap_layers_publicHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends the picked species, or the tapped site\'s location, to GBIF.'**
+  String get speciesMap_layers_publicHint;
+
+  /// No description provided for @speciesMap_layers_expectedHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected species from'**
+  String get speciesMap_layers_expectedHeading;
+
+  /// No description provided for @speciesMap_layers_scopeMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My sites'**
+  String get speciesMap_layers_scopeMine;
+
+  /// No description provided for @speciesMap_layers_scopeAllVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'All sites I can see'**
+  String get speciesMap_layers_scopeAllVisible;
+
+  /// No description provided for @speciesMap_card_loggedHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged here'**
+  String get speciesMap_card_loggedHere;
+
+  /// No description provided for @speciesMap_card_expectedNotLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected, not logged yet'**
+  String get speciesMap_card_expectedNotLogged;
+
+  /// No description provided for @speciesMap_card_expectedPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected here, not logged yet'**
+  String get speciesMap_card_expectedPin;
+
+  /// No description provided for @speciesMap_card_nothingLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged here yet'**
+  String get speciesMap_card_nothingLogged;
+
+  /// No description provided for @speciesMap_card_close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get speciesMap_card_close;
+
+  /// No description provided for @speciesMap_card_openSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Open site'**
+  String get speciesMap_card_openSite;
+
+  /// No description provided for @speciesMap_card_speciesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} species} other{{count} species}}'**
+  String speciesMap_card_speciesCount(int count);
+
+  /// No description provided for @speciesMap_card_sightingRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, dive {number}, ×{count}'**
+  String speciesMap_card_sightingRow(String date, String number, int count);
+
+  /// No description provided for @speciesMap_card_speciesWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{species} ×{count}'**
+  String speciesMap_card_speciesWithCount(String species, int count);
+
+  /// No description provided for @speciesMap_unplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} sighting is on a dive without a mapped site} other{{count} sightings are on dives without a mapped site}}'**
+  String speciesMap_unplaced(int count);
+
+  /// No description provided for @speciesMap_noPublicRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No public records can be shown for this species: it needs a scientific name GBIF recognises.'**
+  String get speciesMap_noPublicRecords;
+
+  /// No description provided for @speciesMap_publicUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Public records could not be loaded.'**
+  String get speciesMap_publicUnavailable;
+
+  /// No description provided for @speciesMap_error_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the species map.'**
+  String get speciesMap_error_loading;
+
+  /// No description provided for @speciesMap_suggestPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not logged this species at a mapped site. Turn on public records to see where others have.'**
+  String get speciesMap_suggestPublic;
+
+  /// No description provided for @speciesMap_attribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Records: GBIF.org'**
+  String get speciesMap_attribution;
+
+  /// No description provided for @speciesMap_semantics_sitePin.
+  ///
+  /// In en, this message translates to:
+  /// **'{site}, {count, plural, one{{count} species} other{{count} species}}'**
+  String speciesMap_semantics_sitePin(String site, int count);
+
+  /// No description provided for @speciesMap_semantics_loggedPin.
+  ///
+  /// In en, this message translates to:
+  /// **'{site}, {count, plural, one{{count} sighting} other{{count} sightings}}'**
+  String speciesMap_semantics_loggedPin(String site, int count);
+
+  /// No description provided for @speciesMap_semantics_expectedPin.
+  ///
+  /// In en, this message translates to:
+  /// **'{site}, expected'**
+  String speciesMap_semantics_expectedPin(String site);
+
+  /// Screen-reader label for a cluster of pins on the species map
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} site} other{{count} sites}}'**
+  String speciesMap_semantics_cluster(int count);
+
+  /// No description provided for @speciesMap_whereSeen_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Where seen'**
+  String get speciesMap_whereSeen_title;
+
+  /// No description provided for @speciesMap_whereSeen_openFullMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full map'**
+  String get speciesMap_whereSeen_openFullMap;
+
+  /// No description provided for @speciesMap_whereSeen_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not logged at a mapped site yet.'**
+  String get speciesMap_whereSeen_empty;
+
+  /// No description provided for @speciesMap_whereSeen_siteWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{site} ({count})'**
+  String speciesMap_whereSeen_siteWithCount(String site, int count);
+
   /// No description provided for @marineLife_speciesDetail_sightingsTitle.
   ///
   /// In en, this message translates to:
@@ -33500,6 +33782,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlinked'**
   String get media_library_unlinkedHeader;
+
+  /// By-dive view section heading above the groups of media attached to a site but to no dive
+  ///
+  /// In en, this message translates to:
+  /// **'Site pictures'**
+  String get media_library_sectionSitePictures;
+
+  /// By-dive view section heading above the groups of media attached to an equipment item but to no dive or site
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment pictures'**
+  String get media_library_sectionEquipmentPictures;
 
   /// Accessibility hint for the by-dive group header, which opens the dive
   ///
@@ -52698,6 +52992,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get tags_manage_colorLabel;
+
+  /// The light shade of a tag colour, read by screen readers. {color} is the hue name.
+  ///
+  /// In en, this message translates to:
+  /// **'{color}, light'**
+  String tags_color_shadeLight(String color);
+
+  /// The dark shade of a tag colour, read by screen readers. {color} is the hue name.
+  ///
+  /// In en, this message translates to:
+  /// **'{color}, dark'**
+  String tags_color_shadeDark(String color);
+
+  /// The tag colour picker's dot for a colour off the palette. {code} is the stored colour code.
+  ///
+  /// In en, this message translates to:
+  /// **'Current color, {code}'**
+  String tags_color_current(String code);
+
+  /// No description provided for @tags_color_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom color'**
+  String get tags_color_custom;
+
+  /// No description provided for @tags_color_hexLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hex code'**
+  String get tags_color_hexLabel;
+
+  /// No description provided for @tags_color_hexError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter six digits 0-9 or A-F, like #2E8B57'**
+  String get tags_color_hexError;
+
+  /// No description provided for @tags_color_use.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get tags_color_use;
+
+  /// No description provided for @tags_color_hueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hue'**
+  String get tags_color_hueLabel;
+
+  /// No description provided for @tags_color_squareLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation and brightness'**
+  String get tags_color_squareLabel;
 
   /// No description provided for @tags_manage_narrowDialog_confirm.
   ///
@@ -94865,6 +95213,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tags'**
   String get media_library_filter_tags;
+
+  /// Title of the library filter section that narrows media by what each item is attached to
+  ///
+  /// In en, this message translates to:
+  /// **'Attached to'**
+  String get media_library_filter_attachedTo;
+
+  /// Attached to filter choice: media attached to a dive
+  ///
+  /// In en, this message translates to:
+  /// **'Dive'**
+  String get media_library_filter_attachedDive;
+
+  /// Attached to filter choice: media attached to a dive site and to no dive, such as a site map
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get media_library_filter_attachedSite;
+
+  /// Attached to filter choice: media attached to an equipment item and to no dive or site
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get media_library_filter_attachedEquipment;
+
+  /// Attached to filter choice: media attached to nothing
+  ///
+  /// In en, this message translates to:
+  /// **'Unlinked'**
+  String get media_library_filter_attachedUnlinked;
+
+  /// Active filter chip for the Attached to facet; kinds is the picked choices joined by the list separator
+  ///
+  /// In en, this message translates to:
+  /// **'Attached to: {kinds}'**
+  String media_library_filter_attachedToChip(String kinds);
+
+  /// Joins several Attached to choices in the active filter chip, e.g. 'Site, Equipment'. Include any trailing space your language uses.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get media_library_filter_listSeparator;
 
   /// No description provided for @media_bulkTags_confirmAdding.
   ///

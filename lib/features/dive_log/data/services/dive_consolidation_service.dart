@@ -26,6 +26,8 @@ import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dar
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
 import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
+import 'package:submersion/features/dive_log/data/services/merged_tank_serial_fill.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 
 /// Result of a successful consolidation: the target dive id plus the
 /// pre-consolidation snapshot needed to undo it.
@@ -433,6 +435,14 @@ class DiveConsolidationService {
               mergeInto,
               secRow.computerId,
               sharedByTargetTank,
+              now: now,
+            );
+            await fillMergedTankSerial(
+              _db,
+              _sync,
+              merged: tank,
+              targetTankId: mergeInto,
+              tankRows: snapshot.tankRows,
               now: now,
             );
           } else {
@@ -886,6 +896,10 @@ class DiveConsolidationService {
       // let sync resurrect the folded dive).
       await _diveRepo.bulkDeleteDives(secondaryDiveIds.toList());
     });
+
+    // A serial the fold just gave a cylinder may be one the diver has set
+    // up: fill that setup in, as a download would have (issue #4388).
+    await applyTransmitterSetupToDives([targetDiveId]);
 
     SyncEventBus.notifyLocalChange();
     return DiveConsolidationOutcome(

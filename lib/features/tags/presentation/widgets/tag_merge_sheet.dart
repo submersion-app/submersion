@@ -5,7 +5,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
@@ -20,7 +20,10 @@ class TagMergeSheet extends ConsumerStatefulWidget {
 
 class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
   late final TextEditingController _nameController;
-  late String _selectedColor;
+
+  /// The kept tag's stored colour until the diver picks another; null for a
+  /// tag with no colour, which the merge then keeps without one (#4384).
+  late String? _selectedColor;
   late String _selectedNameFromTag;
 
   /// The items the merge rewrites per scope, counted as a union; null until
@@ -51,7 +54,7 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
     final mostUsed = sorted.first;
 
     _nameController = TextEditingController(text: mostUsed.tag.name);
-    _selectedColor = mostUsed.tag.colorHex ?? TagColors.predefined.first;
+    _selectedColor = mostUsed.tag.colorHex;
     _selectedNameFromTag = mostUsed.tag.id;
 
     logFailure(
@@ -168,8 +171,7 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
                 setState(() {
                   _selectedNameFromTag = value;
                   _nameController.text = stat.tag.name;
-                  _selectedColor =
-                      stat.tag.colorHex ?? TagColors.predefined.first;
+                  _selectedColor = stat.tag.colorHex;
                 });
               },
               child: Column(

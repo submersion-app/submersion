@@ -201,6 +201,7 @@ import 'package:submersion/features/marine_life/presentation/pages/species_page.
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_edit_page.dart';
 import 'package:submersion/features/marine_life/presentation/pages/species_detail_page.dart';
+import 'package:submersion/features/marine_life/presentation/pages/species_map_page.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_disclaimer_gate.dart';
@@ -2196,8 +2197,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
 
           // Species: the seen-species page, with the catalog manager, the
-          // editor and the detail page nested under it. `manage` and `new`
-          // are declared before `:speciesId` so the static segments win.
+          // species map, the editor and the detail page nested under it.
+          // `manage`, `map` and `new` are declared before `:speciesId` so the
+          // static segments win.
           GoRoute(
             path: '/species',
             name: 'species',
@@ -2212,6 +2214,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'manage',
                 name: 'speciesManage',
                 builder: (context, state) => const SpeciesManagePage(),
+              ),
+              GoRoute(
+                path: 'map',
+                name: 'speciesMap',
+                builder: (context, state) => SpeciesMapPage(
+                  initialSpeciesId: state.uri.queryParameters['species'],
+                ),
               ),
               GoRoute(
                 path: 'new',

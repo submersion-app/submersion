@@ -4,13 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v355: dive_profile_series.is_edit (issue #4386), the synced mark
+/// Schema v357: dive_profile_series.is_edit (issue #4386), the synced mark
 /// that a series is the diver's manual edit.
 void main() {
-  /// A v354 database: a live edit over the demoted parse it corrects.
+  /// A v356 database: a live edit over the demoted parse it corrects.
   NativeDatabase setupDb() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 354');
+      rawDb.execute('PRAGMA user_version = 356');
       rawDb.execute('CREATE TABLE dives (id TEXT NOT NULL PRIMARY KEY)');
       rawDb.execute('''
         CREATE TABLE dive_profile_series (
@@ -32,20 +32,20 @@ void main() {
     },
   );
 
-  test('v355 is at or below the current schema version and in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(355));
-    expect(AppDatabase.migrationVersions, contains(355));
+  test('v357 is at or below the current schema version and in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(357));
+    expect(AppDatabase.migrationVersions, contains(357));
     expect(
-      AppDatabase.migrationStepCount(354),
-      greaterThan(AppDatabase.migrationStepCount(355)),
+      AppDatabase.migrationStepCount(356),
+      greaterThan(AppDatabase.migrationStepCount(357)),
     );
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(355));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(357));
   });
 
-  test('upgrading from v354 adds the column and marks nothing', () async {
+  test('upgrading from v356 adds the column and marks nothing', () async {
     // No backfill: a series written before the rung is unknown, and keeps
     // the shape rule that told an edit apart until now.
     final db = AppDatabase(setupDb());

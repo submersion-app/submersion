@@ -5004,6 +5004,50 @@
   "diveLog_edit_nearbySitesFirst": "Nearby sites first",
   "diveLog_edit_noEquipmentSelected": "No equipment selected",
   "diveLog_edit_noMarineLife": "No species logged",
+  "diveLog_edit_suggestions_title": "Suggested for {siteName}",
+  "@diveLog_edit_suggestions_title": {
+    "description": "Heading over the one-tap species chips in the dive editor, offered because other dives at the dive's site logged them or the site's expected list names them",
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_edit_suggestions_add": "Add {species}",
+  "@diveLog_edit_suggestions_add": {
+    "description": "Screen reader label of a suggested species chip in the dive editor; tapping it adds the species to the dive",
+    "placeholders": {
+      "species": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_edit_suggestions_seenOnDives": "{count, plural, one{Seen on {count} other dive here} other{Seen on {count} other dives here}}",
+  "@diveLog_edit_suggestions_seenOnDives": {
+    "description": "Tooltip of a suggested species chip: how many other dives at this site logged the species",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_edit_suggestions_expected": "On this site's expected species list",
+  "@diveLog_edit_suggestions_expected": {
+    "description": "Tooltip of a suggested species chip for a species named on the site's expected species list but never logged there"
+  },
+  "diveLog_edit_suggestions_showAll": "Show all ({count})",
+  "@diveLog_edit_suggestions_showAll": {
+    "description": "Chip that expands the suggested species list to show every suggestion; count is the total",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "diveLog_edit_suggestions_showFewer": "Show fewer",
+  "@diveLog_edit_suggestions_showFewer": {
+    "description": "Chip that collapses the expanded suggested species list back to the first few"
+  },
   "diveLog_edit_notSpecified": "Not specified",
   "diveLog_edit_notesHint": "Add notes about this dive...",
   "diveLog_edit_overline_gasSwitches": "Gas switches",
@@ -11730,6 +11774,139 @@
     }
   },
   "marineLife_speciesPage_retry": "Retry",
+  "speciesMap_title": "Species Map",
+  "speciesMap_openTooltip": "Species map",
+  "speciesMap_pickSpeciesTooltip": "Pick a species",
+  "speciesMap_list_searchHint": "Search all species",
+  "speciesMap_list_allSites": "All sites",
+  "speciesMap_list_allSitesSubtitle": "What you have logged where",
+  "speciesMap_list_notSeen": "Not seen yet",
+  "speciesMap_list_counts": "{sightings, plural, one{{sightings} sighting} other{{sightings} sightings}}, {sites, plural, one{{sites} site} other{{sites} sites}}",
+  "@speciesMap_list_counts": {
+    "placeholders": {
+      "sightings": {
+        "type": "int"
+      },
+      "sites": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_legend_mySightings": "My sightings",
+  "speciesMap_legend_expected": "Expected, not logged",
+  "speciesMap_legend_publicRecords": "Public records",
+  "speciesMap_legend_speciesLogged": "Species logged at a site",
+  "speciesMap_layers_tooltip": "Map layers",
+  "speciesMap_layers_public": "Public records (GBIF)",
+  "speciesMap_layers_publicHint": "Sends the picked species, or the tapped site's location, to GBIF.",
+  "speciesMap_layers_expectedHeading": "Expected species from",
+  "speciesMap_layers_scopeMine": "My sites",
+  "speciesMap_layers_scopeAllVisible": "All sites I can see",
+  "speciesMap_card_loggedHere": "Logged here",
+  "speciesMap_card_expectedNotLogged": "Expected, not logged yet",
+  "speciesMap_card_expectedPin": "Expected here, not logged yet",
+  "speciesMap_card_nothingLogged": "Nothing logged here yet",
+  "speciesMap_card_close": "Close",
+  "speciesMap_card_openSite": "Open site",
+  "speciesMap_card_speciesCount": "{count, plural, one{{count} species} other{{count} species}}",
+  "@speciesMap_card_speciesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_card_sightingRow": "{date}, dive {number}, ×{count}",
+  "@speciesMap_card_sightingRow": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "number": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
+  "@speciesMap_card_speciesWithCount": {
+    "placeholders": {
+      "species": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_unplaced": "{count, plural, one{{count} sighting is on a dive without a mapped site} other{{count} sightings are on dives without a mapped site}}",
+  "@speciesMap_unplaced": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_noPublicRecords": "No public records can be shown for this species: it needs a scientific name GBIF recognises.",
+  "speciesMap_publicUnavailable": "Public records could not be loaded.",
+  "speciesMap_error_loading": "Could not load the species map.",
+  "speciesMap_suggestPublic": "You have not logged this species at a mapped site. Turn on public records to see where others have.",
+  "speciesMap_attribution": "Records: GBIF.org",
+  "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} species} other{{count} species}}",
+  "@speciesMap_semantics_sitePin": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_semantics_loggedPin": "{site}, {count, plural, one{{count} sighting} other{{count} sightings}}",
+  "@speciesMap_semantics_loggedPin": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_semantics_expectedPin": "{site}, expected",
+  "@speciesMap_semantics_expectedPin": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "speciesMap_semantics_cluster": "{count, plural, one{{count} site} other{{count} sites}}",
+  "@speciesMap_semantics_cluster": {
+    "description": "Screen-reader label for a cluster of pins on the species map",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_whereSeen_title": "Where seen",
+  "speciesMap_whereSeen_openFullMap": "Open full map",
+  "speciesMap_whereSeen_empty": "Not logged at a mapped site yet.",
+  "speciesMap_whereSeen_siteWithCount": "{site} ({count})",
+  "@speciesMap_whereSeen_siteWithCount": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "marineLife_speciesDetail_sightingsTitle": "Sightings ({count})",
   "@marineLife_speciesDetail_sightingsTitle": {
     "placeholders": {
@@ -13103,6 +13280,10 @@
   "@media_library_unlinkedHeader": {
     "description": "By-dive view header for media attached to no dive"
   },
+  "media_library_sectionSitePictures": "Site pictures",
+  "@media_library_sectionSitePictures": {"description": "By-dive view section heading above the groups of media attached to a site but to no dive"},
+  "media_library_sectionEquipmentPictures": "Equipment pictures",
+  "@media_library_sectionEquipmentPictures": {"description": "By-dive view section heading above the groups of media attached to an equipment item but to no dive or site"},
   "media_library_diveHeaderHint": "Open this dive",
   "@media_library_diveHeaderHint": {
     "description": "Accessibility hint for the by-dive group header, which opens the dive"
@@ -19345,6 +19526,39 @@
   "tags_manage_editTitle": "Edit Tag",
   "tags_manage_nameLabel": "Tag Name",
   "tags_manage_colorLabel": "Color",
+  "tags_color_shadeLight": "{color}, light",
+  "@tags_color_shadeLight": {
+    "description": "The light shade of a tag colour, read by screen readers. {color} is the hue name.",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "tags_color_shadeDark": "{color}, dark",
+  "@tags_color_shadeDark": {
+    "description": "The dark shade of a tag colour, read by screen readers. {color} is the hue name.",
+    "placeholders": {
+      "color": {
+        "type": "String"
+      }
+    }
+  },
+  "tags_color_current": "Current color, {code}",
+  "@tags_color_current": {
+    "description": "The tag colour picker's dot for a colour off the palette. {code} is the stored colour code.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "tags_color_custom": "Custom color",
+  "tags_color_hexLabel": "Hex code",
+  "tags_color_hexError": "Enter six digits 0-9 or A-F, like #2E8B57",
+  "tags_color_use": "Use",
+  "tags_color_hueLabel": "Hue",
+  "tags_color_squareLabel": "Saturation and brightness",
   "tags_manage_narrowDialog_confirm": "Remove",
   "tags_manage_narrowDialog_dives": "{count, plural, =1{This tag is on 1 dive. Turning off \"Use for dives\" removes it from that dive.} other{This tag is on {count} dives. Turning off \"Use for dives\" removes it from those dives.}}",
   "@tags_manage_narrowDialog_dives": {
@@ -35503,6 +35717,20 @@
   "media_info_showWithTag": "Show media tagged {tagName}",
   "@media_info_showWithTag": {"placeholders": {"tagName": {"type": "String"}}},
   "media_library_filter_tags": "Tags",
+  "media_library_filter_attachedTo": "Attached to",
+  "@media_library_filter_attachedTo": {"description": "Title of the library filter section that narrows media by what each item is attached to"},
+  "media_library_filter_attachedDive": "Dive",
+  "@media_library_filter_attachedDive": {"description": "Attached to filter choice: media attached to a dive"},
+  "media_library_filter_attachedSite": "Site",
+  "@media_library_filter_attachedSite": {"description": "Attached to filter choice: media attached to a dive site and to no dive, such as a site map"},
+  "media_library_filter_attachedEquipment": "Equipment",
+  "@media_library_filter_attachedEquipment": {"description": "Attached to filter choice: media attached to an equipment item and to no dive or site"},
+  "media_library_filter_attachedUnlinked": "Unlinked",
+  "@media_library_filter_attachedUnlinked": {"description": "Attached to filter choice: media attached to nothing"},
+  "media_library_filter_attachedToChip": "Attached to: {kinds}",
+  "@media_library_filter_attachedToChip": {"description": "Active filter chip for the Attached to facet; kinds is the picked choices joined by the list separator", "placeholders": {"kinds": {"type": "String"}}},
+  "media_library_filter_listSeparator": ", ",
+  "@media_library_filter_listSeparator": {"description": "Joins several Attached to choices in the active filter chip, e.g. 'Site, Equipment'. Include any trailing space your language uses."},
   "media_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 media item} other{Adding to all {count} media items}}",
   "@media_bulkTags_confirmAdding": {"placeholders": {"count": {"type": "int"}}},
   "media_bulkTags_confirmRemoving": "{count, plural, =1{Removing from 1 media item} other{Removing from all {count} media items}}",

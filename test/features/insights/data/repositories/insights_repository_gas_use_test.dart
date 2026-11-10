@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
@@ -215,6 +216,14 @@ void main() {
                 ),
               ),
             );
+        if (t.hasPressureSeries) {
+          await TankPressureRepository().insertTankPressures('d1', {
+            t.id: [
+              (timestamp: 0, pressure: t.startPressure!),
+              (timestamp: 2400, pressure: t.endPressure!),
+            ],
+          });
+        }
       }
     }
 
@@ -268,6 +277,52 @@ void main() {
           order: 1,
           surfaceBreathingDuration: Duration(minutes: 10),
         ),
+      ]);
+    });
+
+    test('a cylinder with a transmitter log adds none', () async {
+      // Its end is the transmitter's last reading, which holds none of the
+      // gas breathed after the computer stopped.
+      await expectAgrees(const [
+        domain.DiveTank(
+          id: 'back',
+          volume: 12,
+          startPressure: 200,
+          endPressure: 100,
+          role: TankRole.backGas,
+          surfaceBreathingDuration: Duration(minutes: 10),
+          hasPressureSeries: true,
+        ),
+      ]);
+      final sac = await repository.getSacPressurePerDive();
+      expect(
+        sac.single.value,
+        closeTo(
+          dropBar /
+              runtimeMinutes /
+              entity().environment.pressureAtDepth(recordedAvgDepth),
+          1e-9,
+        ),
+      );
+    });
+
+    test('a logged partner neither counts nor outdoes the other', () async {
+      // The left cylinder has a transmitter, so only the right one's
+      // minutes count, at their own length.
+      domain.DiveTank side(String id, TankRole role, int order, int minutes) =>
+          domain.DiveTank(
+            id: id,
+            volume: 11,
+            startPressure: 200,
+            endPressure: 100,
+            role: role,
+            order: order,
+            surfaceBreathingDuration: Duration(minutes: minutes),
+            hasPressureSeries: id == 'l',
+          );
+      await expectAgrees([
+        side('l', TankRole.sidemountLeft, 0, 15),
+        side('r', TankRole.sidemountRight, 1, 10),
       ]);
     });
 

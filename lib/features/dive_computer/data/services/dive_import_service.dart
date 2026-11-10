@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 
 /// Mode for importing dives.
 enum ImportMode {
@@ -440,6 +441,7 @@ class DiveImportService {
     final importedDives = <DownloadedDive>[];
     final conflicts = <ImportConflict>[];
     final duplicateCandidates = <DuplicateCandidate>[];
+    final replacedDiveIds = <String>[];
 
     // Sort dives chronologically (oldest first) so that sequential
     // getDiveNumberForDate() calls produce correct numbering.
@@ -506,6 +508,7 @@ class DiveImportService {
                 descriptorModel: descriptorModel,
                 libdivecomputerVersion: libdivecomputerVersion,
               );
+              replacedDiveIds.add(duplicateResult.matchingDiveId!);
               updated++;
             } else {
               // Import as new (importAsNew or consolidate treated as new here;
@@ -541,6 +544,7 @@ class DiveImportService {
               descriptorModel: descriptorModel,
               libdivecomputerVersion: libdivecomputerVersion,
             );
+            replacedDiveIds.add(duplicateResult.matchingDiveId!);
             updated++;
           } else {
             // Low confidence match in 'all' mode - import as new.
@@ -585,6 +589,12 @@ class DiveImportService {
         skipped++;
       }
     }
+
+    // The stored cylinders keep the diver's edits, so the registry match a
+    // new dive gets never reached them: a serial a Replace source just gave
+    // one gets its item (#3676) and that transmitter's setup, fill-only
+    // (issue #4388). Once for the batch.
+    await settleTransmittersForDives(replacedDiveIds);
 
     return ImportResult.success(
       imported: imported,
@@ -1178,6 +1188,7 @@ class DiveImportService {
           descriptorModel: descriptorModel,
           libdivecomputerVersion: libdivecomputerVersion,
         );
+        await settleTransmittersForDives([conflict.existingDiveId]);
         return conflict.existingDiveId;
 
       case ConflictResolution.importAsNew:

@@ -210,9 +210,21 @@ extension DataSourceMigrations on AppDatabase {
       _backfillImportedDiveComputers();
 
   /// Rewrite downloaded Shearwater serials to the hex the computer shows
-  /// (issue #3106). Body lives in `shearwater_serial_heal.dart`.
-  Future<void> _healShearwaterDownloadSerials() =>
-      healShearwaterDownloadSerials(this);
+  /// (issue #3106), then give downloaded sources back a computer link their
+  /// dive vouches for and bring their serial copies, and their dives', in
+  /// line with the computer (issue #4368). Relinked first, so a source that
+  /// regains its computer takes its serial in the same open. Bodies live in
+  /// `shearwater_serial_heal.dart`, `source_computer_relink.dart` and
+  /// `snapshot_serial_heal.dart`.
+  Future<void> _healDownloadedComputerSerials() async {
+    await healShearwaterDownloadSerials(this);
+    await relinkDiveAttributedSources(this);
+    await healDownloadedSnapshotSerials(this);
+  }
+
+  /// Test-only hook exercising the every-open #3106 and #4368 heals.
+  Future<void> healDownloadedComputerSerialsForTest() =>
+      _healDownloadedComputerSerials();
 
   /// The v279 rung's one-time pass, which also converts the 8-digit serials
   /// the every-open heal leaves alone (issue #3106).

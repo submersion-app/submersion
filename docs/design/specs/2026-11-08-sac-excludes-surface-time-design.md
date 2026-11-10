@@ -90,7 +90,13 @@ were breathed. Three signals, decided by the user on 2026-11-08:
 3. **Minutes the diver enters.** Each cylinder gains "Breathed at the surface"
    (`dive_tanks.surface_breathing_duration`, seconds, synced, nullable), for time after the
    computer stopped logging, which no recording shows. Those seconds count at
-   0 m.
+   0 m, but only on a cylinder with no transmitter log: a transmitter's end
+   pressure is its last reading, taken before the computer stopped, so it
+   holds none of that gas, while an end read off the gauge on the boat does
+   (decided by the user on 2026-11-09). The editor hides the field on a
+   transmitter cylinder. A transmitter cylinder whose end the diver later
+   corrected by hand does not count its minutes either; the database keeps no
+   record of where an end pressure came from.
 
 With 1 or 2 the window is still one span: it stretches to cover the surface
 breathing, and its mean depth (surface samples near 0 m) brings the ambient
@@ -115,9 +121,12 @@ Where each piece lives:
   the dive's gas switches, which never re-stamp the dive. Engine version 4 to 5.
 - **Dive entity:** reads fill `Dive.surfaceBreathing` from the cache, and
   `Dive.gasUse` passes it to `gasUseWindowOf` on the profile. `_consumptionBasis`
-  adds the breathing cylinders' entered seconds.
+  adds the breathing cylinders' entered seconds. Both reads set
+  `DiveTank.hasPressureSeries` (read, never stored) on a cylinder that has a
+  `tank_pressure_series` row, which leaves its minutes out.
 - **SQL:** `gasUseSecondsSql` adds the dive's entered seconds and
   `gasUseAvgDepthSql` blends the depth, so every whole-dive SQL rate follows.
+  A cylinder with a `tank_pressure_series` row is left out, as in the entity.
 - **Editor:** a minutes field under the cylinder's end pressure, with a line
   saying it is for time after the computer stopped logging.
 

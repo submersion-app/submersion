@@ -115,11 +115,21 @@ extension RungsFromV340 on AppDatabase {
     if (from < 354) await _assertDiveHealthRecordsTable();
     if (from < 354) await reportProgress();
 
-    // v355: dive_profile_series.is_edit, the synced mark that a series is
+    // v356: a merge slot on every source row of a dive that has no primary
+    // row and no slot yet, one per display strand, so a combine the v184
+    // rung could not classify keeps a re-parse off its rows after a
+    // consolidation gives it a primary row (issue #4367). Data only, so the
+    // compatibility floor does not move. It fills empty slots and rewrites
+    // none, so changeLogRewrittenColumns needs no entry. Numbered 356: main
+    // holds 354 and open work claims 352, 353 and 355.
+    if (from < 356) await stampCombinedDiveSourceSlots(this);
+    if (from < 356) await reportProgress();
+
+    // v357: dive_profile_series.is_edit, the synced mark that a series is
     // the diver's manual edit (issue #4386). Nullable, no backfill: a series
     // written before it stays unknown. Re-asserted in beforeOpen. Numbered
-    // 355 because main holds 354; renumbered from 353.
-    if (from < 355) await _assertProfileSeriesIsEditColumn();
-    if (from < 355) await reportProgress();
+    // 357 because main holds 356; renumbered from 353, then 355.
+    if (from < 357) await _assertProfileSeriesIsEditColumn();
+    if (from < 357) await reportProgress();
   }
 }

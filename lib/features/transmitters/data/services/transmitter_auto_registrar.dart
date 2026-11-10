@@ -9,6 +9,8 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+import 'package:submersion/features/transmitters/data/services/dive_tank_serials.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_gear_linker.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -176,24 +178,8 @@ Future<void> registerTransmittersForDives(
   try {
     final db = DatabaseService.instance.database;
     final serialsByDiver = <String?, Set<String>>{};
-    for (var i = 0; i < ids.length; i += 500) {
-      final chunk = ids.sublist(i, (i + 500).clamp(0, ids.length));
-      final rows = await db
-          .customSelect(
-            'SELECT d.diver_id AS diver_id, dt.transmitter_serial AS serial '
-            'FROM dive_tanks dt JOIN dives d ON d.id = dt.dive_id '
-            'WHERE dt.transmitter_serial IS NOT NULL AND d.id IN '
-            '(${List.filled(chunk.length, '?').join(', ')})',
-            variables: [for (final id in chunk) Variable<String>(id)],
-          )
-          .get();
-      for (final r in rows) {
-        final serial = normalizeTransmitterSerial(r.read<String?>('serial'));
-        if (serial == null) continue;
-        serialsByDiver
-            .putIfAbsent(r.read<String?>('diver_id'), () => {})
-            .add(serial);
-      }
+    for (final t in await serialTanksOfDives(db, ids)) {
+      serialsByDiver.putIfAbsent(t.diverId, () => {}).add(t.serial);
     }
     final reg =
         registrar ??
@@ -210,6 +196,40 @@ Future<void> registerTransmittersForDives(
     // Best-effort: the import has already persisted its dives.
     _log.warning(
       'Registering transmitters for imported dives failed',
+      error: e,
+      stackTrace: stackTrace,
+    );
+  }
+}
+
+/// Registers the serials on [diveIds] ([registerTransmittersForDives]) and
+/// then fills the setup the diver gave any of them
+/// ([applyTransmitterSetupToDives]), in that order, so a serial new to the
+/// diver has its item before the fill looks for configured ones. The step a
+/// file import, resync or Replace source runs on the dives it wrote (issue
+/// #4388). Best-effort, as both halves are.
+Future<void> settleTransmittersForDives(Iterable<String> diveIds) async {
+  final ids = diveIds.toSet().toList();
+  if (ids.isEmpty) return;
+  await registerTransmittersForDives(ids);
+  await applyTransmitterSetupToDives(ids);
+}
+
+/// Fills each transmitter the diver has already set up onto the tanks of
+/// [diveIds] that carry its serial (issue #4388), for the paths that write
+/// tanks without the download adapter's registry match (file import, dive
+/// merge). Fill-only, by the rules of "Apply to existing dives".
+/// Best-effort: a failure never fails the import or merge that called it.
+Future<void> applyTransmitterSetupToDives(
+  Iterable<String> diveIds, {
+  TransmitterRepository? repository,
+}) async {
+  if (DatabaseService.instance.databaseOrNull == null) return;
+  try {
+    await (repository ?? TransmitterRepository()).applyToDives(diveIds);
+  } catch (e, stackTrace) {
+    _log.warning(
+      'Applying transmitter setup to imported dives failed',
       error: e,
       stackTrace: stackTrace,
     );

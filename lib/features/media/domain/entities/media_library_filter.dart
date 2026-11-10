@@ -14,7 +14,26 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 /// (`getSweepableOrphanIds`) exists precisely to collect the unlinked rows
 /// nothing retains. The facet was simply never built, so an album saved with
 /// one decodes to no constraint.
+///
+/// The Attached to facet ([MediaAttachmentKind.unlinked]) now offers what
+/// that value meant, but an album still holding `"health": "unlinked"` keeps
+/// decoding to no constraint: such albums have shown every picture since the
+/// value was removed, and reviving it would quietly change what they show
+/// (issue #4224).
 enum MediaHealthFilter { missing }
+
+/// What a library row is attached to (issue #4224), by the row's own links
+/// and in the precedence `groupByDive` and the By dive SQL group key use, so
+/// every row is exactly one kind:
+///
+/// - [dive]: `dive_id` is set.
+/// - [site]: no dive, `site_id` is set (a site map, a rules board). A dive
+///   photo is never a site picture because its dive has a site.
+/// - [equipment]: no dive or site, `equipment_id` is set.
+/// - [unlinked]: none of the three.
+///
+/// Declared in the order the filter sheet and the active chip list them.
+enum MediaAttachmentKind { dive, site, equipment, unlinked }
 
 /// Cross-dive library filter. Compiled to SQL by MediaLibraryRepository;
 /// all fields combine with AND. Phase 5 serializes this for smart albums.
@@ -34,6 +53,7 @@ class MediaLibraryFilter {
     this.includeMe = false,
     this.noPeople = false,
     this.notPlacedInDive = false,
+    this.attachedTo = const {},
   });
 
   final MediaType? mediaType;
@@ -77,6 +97,10 @@ class MediaLibraryFilter {
   /// dive, since a row with no dive cannot be placed in one.
   final bool notPlacedInDive;
 
+  /// Rows attached to any of these kinds (issue #4224). Empty means no
+  /// constraint.
+  final Set<MediaAttachmentKind> attachedTo;
+
   /// Whether a person (a buddy or Me) narrows the rows. False for
   /// [noPeople], which asks for the rows with no person instead.
   bool get hasPeople => buddyIds.isNotEmpty || includeMe;
@@ -96,7 +120,8 @@ class MediaLibraryFilter {
       tagIds.isEmpty &&
       !hasPeople &&
       !noPeople &&
-      !notPlacedInDive;
+      !notPlacedInDive &&
+      attachedTo.isEmpty;
 
   /// Sentinel-based copyWith so callers can explicitly clear a field back to
   /// null (the plain `??` idiom cannot).
@@ -115,6 +140,7 @@ class MediaLibraryFilter {
     bool? includeMe,
     bool? noPeople,
     bool? notPlacedInDive,
+    Set<MediaAttachmentKind>? attachedTo,
   }) {
     return MediaLibraryFilter(
       mediaType: mediaType == _undefined
@@ -137,6 +163,7 @@ class MediaLibraryFilter {
       includeMe: includeMe ?? this.includeMe,
       noPeople: noPeople ?? this.noPeople,
       notPlacedInDive: notPlacedInDive ?? this.notPlacedInDive,
+      attachedTo: attachedTo ?? this.attachedTo,
     );
   }
 
@@ -171,6 +198,9 @@ class MediaLibraryFilter {
     // Left out when off, like Me (issue #4148).
     if (noPeople) 'noPeople': true,
     if (notPlacedInDive) 'notPlacedInDive': true,
+    // Left out when empty, like the tags (issue #4224).
+    if (attachedTo.isNotEmpty)
+      'attachedTo': [for (final kind in attachedTo) kind.name]..sort(),
   };
 
   /// Decodes leniently: an album written by a newer version (or a value
@@ -198,6 +228,13 @@ class MediaLibraryFilter {
       includeMe: json['me'] == true,
       noPeople: json['noPeople'] == true,
       notPlacedInDive: json['notPlacedInDive'] == true,
+      attachedTo: switch (json['attachedTo']) {
+        final List<dynamic> names => {
+          for (final name in names)
+            ?_enumByName(MediaAttachmentKind.values, name),
+        },
+        _ => const {},
+      },
     );
   }
 
@@ -232,7 +269,11 @@ class MediaLibraryFilter {
         const SetEquality<String>().equals(other.buddyIds, buddyIds) &&
         other.includeMe == includeMe &&
         other.noPeople == noPeople &&
-        other.notPlacedInDive == notPlacedInDive;
+        other.notPlacedInDive == notPlacedInDive &&
+        const SetEquality<MediaAttachmentKind>().equals(
+          other.attachedTo,
+          attachedTo,
+        );
   }
 
   @override
@@ -251,6 +292,7 @@ class MediaLibraryFilter {
     includeMe,
     noPeople,
     notPlacedInDive,
+    const SetEquality<MediaAttachmentKind>().hash(attachedTo),
   );
 }
 

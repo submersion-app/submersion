@@ -8400,6 +8400,39 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_noMarineLife => 'Geen soorten gelogd';
 
   @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'Suggesties voor $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return '$species toevoegen';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Gezien tijdens $count andere duiken hier',
+      one: 'Gezien tijdens $count andere duik hier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'Op de lijst met verwachte soorten van deze duikstek';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'Alles tonen ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'Minder tonen';
+
+  @override
   String get diveLog_edit_notSpecified => 'Niet opgegeven';
 
   @override
@@ -19502,6 +19535,199 @@ class AppLocalizationsNl extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'Opnieuw proberen';
 
   @override
+  String get speciesMap_title => 'Soortenkaart';
+
+  @override
+  String get speciesMap_openTooltip => 'Soortenkaart';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'Kies een soort';
+
+  @override
+  String get speciesMap_list_searchHint => 'Alle soorten doorzoeken';
+
+  @override
+  String get speciesMap_list_allSites => 'Alle duiklocaties';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'Wat je waar hebt gelogd';
+
+  @override
+  String get speciesMap_list_notSeen => 'Nog niet gezien';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings waarnemingen',
+      one: '$sightings waarneming',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites locaties',
+      one: '$sites locatie',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'Mijn waarnemingen';
+
+  @override
+  String get speciesMap_legend_expected => 'Verwacht, niet gelogd';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'Openbare waarnemingen';
+
+  @override
+  String get speciesMap_legend_speciesLogged =>
+      'Gelogde soorten op een locatie';
+
+  @override
+  String get speciesMap_layers_tooltip => 'Kaartlagen';
+
+  @override
+  String get speciesMap_layers_public => 'Openbare waarnemingen (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'Stuurt de gekozen soort, of de positie van de aangetikte locatie, naar GBIF.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'Verwachte soorten van';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'Mijn locaties';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible =>
+      'Alle locaties die ik kan zien';
+
+  @override
+  String get speciesMap_card_loggedHere => 'Hier gelogd';
+
+  @override
+  String get speciesMap_card_expectedNotLogged => 'Verwacht, nog niet gelogd';
+
+  @override
+  String get speciesMap_card_expectedPin => 'Hier verwacht, nog niet gelogd';
+
+  @override
+  String get speciesMap_card_nothingLogged => 'Hier nog niets gelogd';
+
+  @override
+  String get speciesMap_card_close => 'Sluiten';
+
+  @override
+  String get speciesMap_card_openSite => 'Locatie openen';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count soorten',
+      one: '$count soort',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date, duik $number, ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count waarnemingen horen bij duiken zonder locatie op de kaart',
+      one: '$count waarneming hoort bij een duik zonder locatie op de kaart',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'Voor deze soort kunnen geen openbare waarnemingen worden getoond: er is een wetenschappelijke naam nodig die GBIF kent.';
+
+  @override
+  String get speciesMap_publicUnavailable =>
+      'Openbare waarnemingen konden niet worden geladen.';
+
+  @override
+  String get speciesMap_error_loading =>
+      'De soortenkaart kon niet worden geladen.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'Je hebt deze soort niet op een locatie op de kaart gelogd. Zet openbare waarnemingen aan om te zien waar anderen hem zagen.';
+
+  @override
+  String get speciesMap_attribution => 'Waarnemingen: GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count soorten',
+      one: '$count soort',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count waarnemingen',
+      one: '$count waarneming',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site, verwacht';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count locaties',
+      one: '$count locatie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'Waar gezien';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'Volledige kaart openen';
+
+  @override
+  String get speciesMap_whereSeen_empty =>
+      'Nog niet gelogd op een locatie op de kaart.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
+
+  @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
     return 'Waarnemingen ($count)';
   }
@@ -20975,6 +21201,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_library_unlinkedHeader => 'Niet gekoppeld';
+
+  @override
+  String get media_library_sectionSitePictures =>
+      'Afbeeldingen van duikstekken';
+
+  @override
+  String get media_library_sectionEquipmentPictures =>
+      'Afbeeldingen van uitrusting';
 
   @override
   String get media_library_diveHeaderHint => 'Deze duik openen';
@@ -32945,6 +33179,40 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Kleur';
+
+  @override
+  String tags_color_shadeLight(String color) {
+    return '$color, licht';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, donker';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Huidige kleur, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Aangepaste kleur';
+
+  @override
+  String get tags_color_hexLabel => 'Hexcode';
+
+  @override
+  String get tags_color_hexError =>
+      'Voer zes tekens 0-9 of A-F in, zoals #2E8B57';
+
+  @override
+  String get tags_color_use => 'Gebruiken';
+
+  @override
+  String get tags_color_hueLabel => 'Tint';
+
+  @override
+  String get tags_color_squareLabel => 'Verzadiging en helderheid';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Verwijderen';
@@ -59835,6 +60103,29 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'Tags';
+
+  @override
+  String get media_library_filter_attachedTo => 'Gekoppeld aan';
+
+  @override
+  String get media_library_filter_attachedDive => 'Duik';
+
+  @override
+  String get media_library_filter_attachedSite => 'Duikstek';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Uitrusting';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Niet gekoppeld';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Gekoppeld aan: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

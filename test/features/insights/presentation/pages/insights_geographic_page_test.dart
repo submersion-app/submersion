@@ -78,6 +78,34 @@ void main() {
     );
   });
 
+  // Issue #4385: a long ranking shows ten rows and opens the rest behind
+  // Show all, and the summary counts every row, not the ten shown.
+  testWidgets('a long ranking shows ten rows and opens the rest', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      countries: () async => [
+        for (var i = 0; i < 14; i++) item('Country $i', 30 - i),
+      ],
+      regions: () async => [item('Caribbean', 16)],
+      trips: () async => const [],
+    );
+
+    expect(
+      findSemanticsLabelled('14 countries. Top: Country 0 with 30 dives'),
+      findsOneWidget,
+    );
+    expect(find.text('Country 9'), findsOneWidget);
+    expect(find.text('Country 10'), findsNothing);
+
+    await tester.tap(find.text('Show all'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Country 13'), findsOneWidget);
+    expect(find.text('Show less'), findsOneWidget);
+  });
+
   testWidgets('an empty ranking reads its empty message', (tester) async {
     await pumpPage(
       tester,
