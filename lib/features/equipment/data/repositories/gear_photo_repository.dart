@@ -200,8 +200,9 @@ class GearPhotoRepository {
   };
 
   /// The photo [coverId] that [equipmentId] names as its cover, or null when
-  /// the row is not on this device or is no longer one of this item's
-  /// identification photos. The caller holds the item, so its cover id is
+  /// the row is not on this device, is not a photo (a cover is a still,
+  /// never a video), or is no longer one of this item's identification
+  /// photos. The caller holds the item, so its cover id is
   /// passed in rather than read again.
   Future<MediaItem?> coverFor(String equipmentId, String coverId) async {
     final row = await (_db.select(
@@ -211,6 +212,7 @@ class GearPhotoRepository {
     final media = mediaItemFromRow(row);
     final belongs =
         media.isGearPhoto &&
+        media.mediaType == MediaType.photo &&
         media.equipmentId == equipmentId &&
         (await _existingCheckIns([media])).isEmpty;
     return belongs ? media : null;
@@ -220,8 +222,17 @@ class GearPhotoRepository {
   /// the choice when null. A targeted write: the edit form's save never
   /// touches this column. Throws a [StateError] when the item is gone (a
   /// peer's delete arriving mid-tap), so nothing is marked for sync and the
-  /// caller can say the cover did not change.
+  /// caller can say the cover did not change, and an [ArgumentError] for a
+  /// row that is not a photo: a cover is a still, never a video.
   Future<void> setCover(String equipmentId, String? mediaId) async {
+    if (mediaId != null) {
+      final row = await (_db.select(
+        _db.media,
+      )..where((t) => t.id.equals(mediaId))).getSingleOrNull();
+      if (row != null && mediaItemFromRow(row).mediaType != MediaType.photo) {
+        throw ArgumentError.value(mediaId, 'mediaId', 'not a photo');
+      }
+    }
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       final written =

@@ -136,6 +136,12 @@ class _EquipmentPhotosSectionState
     final singleChecked = selection.checkedIds.length == 1
         ? selection.checkedIds.single
         : null;
+    // A cover is a still (issue #3355): a video is never offered, though a
+    // cover that is one can still be cleared.
+    final checkedItem = photos.where((m) => m.id == singleChecked).firstOrNull;
+    final canToggleCover =
+        singleChecked != null &&
+        (singleChecked == coverId || checkedItem?.mediaType == MediaType.photo);
 
     return Card(
       child: Padding(
@@ -156,17 +162,18 @@ class _EquipmentPhotosSectionState
                     label: l10n.equipment_photos_remove,
                     onInvoke: () => _removeSelected(context),
                   ),
-                  BulkAction(
-                    id: 'setCover',
-                    icon: singleChecked != null && singleChecked == coverId
-                        ? Icons.star
-                        : Icons.star_outline,
-                    label: singleChecked != null && singleChecked == coverId
-                        ? l10n.equipment_photos_clearCover
-                        : l10n.equipment_photos_setCover,
-                    maxCount: 1,
-                    onInvoke: _toggleCover,
-                  ),
+                  if (canToggleCover)
+                    BulkAction(
+                      id: 'setCover',
+                      icon: singleChecked == coverId
+                          ? Icons.star
+                          : Icons.star_outline,
+                      label: singleChecked == coverId
+                          ? l10n.equipment_photos_clearCover
+                          : l10n.equipment_photos_setCover,
+                      maxCount: 1,
+                      onInvoke: _toggleCover,
+                    ),
                 ],
               )
             else

@@ -137,6 +137,25 @@ void main() {
     expect(gearPhotos.covers, [('reg-1', 'm2')]);
   });
 
+  testWidgets('a video is never offered as the cover', (tester) async {
+    final video = testMediaItem(
+      id: 'v1',
+      originalFilename: 'v1.mov',
+    ).copyWith(equipmentId: 'reg-1', mediaType: MediaType.video);
+    await tester.pumpWidget(await host(photos: [photo('m1'), video]));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('enter_selection')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(MediaThumbnailTile).at(1));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('selection_action_setCover')),
+      findsNothing,
+    );
+  });
+
   testWidgets('the cover photo offers to remove the cover', (tester) async {
     final gearPhotos = _RecordingGearPhotos();
     await tester.pumpWidget(

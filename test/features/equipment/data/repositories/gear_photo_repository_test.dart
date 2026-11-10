@@ -357,6 +357,21 @@ void main() {
     expect((await repository.coverFor(reg.id, regPhoto.id))!.id, regPhoto.id);
   });
 
+  test('a video is never a cover', () async {
+    final reg = await createItem('Reg');
+    final video = await addMedia(equipmentId: reg.id, type: MediaType.video);
+
+    expect(await repository.coverFor(reg.id, video.id), isNull);
+    await expectLater(
+      repository.setCover(reg.id, video.id),
+      throwsArgumentError,
+    );
+    final row = await (db.select(
+      db.equipment,
+    )..where((t) => t.id.equals(reg.id))).getSingle();
+    expect(row.coverMediaId, isNull);
+  });
+
   test('setCover on an item that is gone throws and marks nothing', () async {
     await db.delete(db.syncRecords).go();
 
