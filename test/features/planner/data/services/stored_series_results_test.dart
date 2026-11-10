@@ -266,6 +266,15 @@ void main() {
         ),
         throwsArgumentError,
       );
+      // The same, for a series never saved, with the log already read.
+      expect(
+        () => computeSeriesFromStored(
+          const StoredSeries(id: 'empty', name: 'Empty', dives: []),
+          follow: null,
+          config: config,
+        ),
+        throwsArgumentError,
+      );
     });
 
     test('a plan in no series computes on its own', () async {

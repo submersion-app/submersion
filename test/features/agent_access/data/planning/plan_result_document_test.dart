@@ -209,6 +209,22 @@ void main() {
     expect(carried, double.parse(carried.toStringAsFixed(1)));
   });
 
+  test('a water type of the plan\'s own governs while it sets no '
+      'salinity', () {
+    final settings =
+        compute({
+              'dives': [
+                {
+                  ...(deco['dives']! as List).single as Map,
+                  'water_type': 'fresh',
+                },
+              ],
+            }).single['effective_settings']!
+            as Map;
+    expect(settings['water_type'], {'value': 'fresh', 'source': 'plan'});
+    expect(settings['salinity_ppt'], {'value': null, 'source': 'default'});
+  });
+
   test('inputs are what it was computed from, in the shape a save takes', () {
     final doc = compute(deco).single;
     final inputs = doc['resolved_inputs']! as Map;

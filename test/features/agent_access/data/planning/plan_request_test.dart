@@ -236,6 +236,58 @@ void main() {
       );
     });
 
+    test('refuses an empty segment list', () {
+      expect(
+        () => parse({
+          'dives': [
+            {
+              'tanks': [tank],
+              'segments': <Object>[],
+            },
+          ],
+        }),
+        throwsA(refused('dives[0].segments')),
+      );
+    });
+
+    test('refuses a bottom that is not one', () {
+      void refusesBottom(Object? bottom) => expect(
+        () => parse({
+          'dives': [
+            {
+              'tanks': [tank],
+              'bottom': bottom,
+            },
+          ],
+        }),
+        throwsA(refused('dives[0].bottom')),
+        reason: '$bottom',
+      );
+
+      refusesBottom(18);
+      refusesBottom({'depth_m': 18, 'time_s': 60, 'gas': 'air'});
+      refusesBottom({'depth_m': 0, 'time_s': 60});
+      refusesBottom({'depth_m': 351, 'time_s': 60});
+      refusesBottom({'depth_m': 18, 'time_s': 0});
+      refusesBottom({'depth_m': 18, 'time_s': 60.5});
+      refusesBottom({'depth_m': 18, 'time_s': 60, 'tank': 'first'});
+    });
+
+    test('a first dive following nothing carries from no tank', () {
+      expect(
+        () => parse({
+          'dives': [
+            {
+              'carries_from_tank': [0],
+              'tanks': [tank],
+              'bottom': {'depth_m': 18, 'time_s': 60},
+            },
+          ],
+        }),
+        throwsA(refused('dives[0].carries_from_tank')),
+      );
+    });
+
     test('refuses no dives, and more than ten', () {
       expect(() => parse({'dives': []}), throwsA(refused('dives')));
       expect(() => parse({}), throwsA(refused('dives')));
@@ -327,6 +379,24 @@ void main() {
         request.dives[1].inputs['start_date_time'],
         '2026-11-14T11:00:00.000Z',
       );
+    });
+
+    test('a surface interval is whole seconds, not negative', () {
+      for (final interval in [-1, 90.5]) {
+        expect(
+          () => parse({
+            'dives': [
+              first,
+              {
+                'surface_interval_s': interval,
+                'bottom': {'depth_m': 18, 'time_s': 60},
+              },
+            ],
+          }),
+          throwsA(refused('dives[1].surface_interval_s')),
+          reason: '$interval',
+        );
+      }
     });
 
     test('a later dive needs a surface interval or a start, not both', () {
