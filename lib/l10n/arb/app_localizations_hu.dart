@@ -8427,6 +8427,38 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_noMarineLife => 'Nincs rögzített faj';
 
   @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'Javaslatok: $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return '$species hozzáadása';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Itt $count másik merülésen látott',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'A merülőhely várt fajainak listáján';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'Az összes ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'Kevesebb';
+
+  @override
   String get diveLog_edit_notSpecified => 'Nincs megadva';
 
   @override

@@ -8400,6 +8400,39 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_noMarineLife => 'Geen soorten gelogd';
 
   @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'Suggesties voor $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return '$species toevoegen';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Gezien tijdens $count andere duiken hier',
+      one: 'Gezien tijdens $count andere duik hier',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'Op de lijst met verwachte soorten van deze duikstek';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'Alles tonen ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'Minder tonen';
+
+  @override
   String get diveLog_edit_notSpecified => 'Niet opgegeven';
 
   @override

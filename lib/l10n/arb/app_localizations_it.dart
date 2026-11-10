@@ -8448,6 +8448,39 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_noMarineLife => 'Nessuna specie registrata';
 
   @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'Suggerimenti per $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return 'Aggiungi $species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vista in $count altre immersioni qui',
+      one: 'Vista in $count altra immersione qui',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'Nell\'elenco delle specie previste di questo sito';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'Mostra tutte ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'Mostra meno';
+
+  @override
   String get diveLog_edit_notSpecified => 'Non specificato';
 
   @override

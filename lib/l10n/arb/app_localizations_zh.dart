@@ -8027,6 +8027,37 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_noMarineLife => '未记录物种';
 
   @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return '$siteName 的推荐物种';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return '添加$species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '在此潜点的其他 $count 次潜水中见过',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected => '在此潜点的预期物种列表中';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return '显示全部（$count）';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => '收起';
+
+  @override
   String get diveLog_edit_notSpecified => '未指定';
 
   @override
