@@ -51,6 +51,24 @@ void main() {
     expect(content.background, contains('1 bar per 10m'));
   });
 
+  group('Best Mix lists only what the card shows', () {
+    test('Rec with a nitrox result: no rebreather gases, no trimix', () {
+      final content = bestMixInfo(l10n, units, isCcr: false, hasHelium: false);
+      expect(labels(content), contains(label(DiveTerm.end)));
+      expect(labels(content), contains(label(DiveTerm.gasDensity)));
+      expect(labels(content), isNot(contains(label(DiveTerm.trimix))));
+      expect(labels(content), isNot(contains(label(DiveTerm.diluent))));
+      expect(labels(content), isNot(contains(label(DiveTerm.bailout))));
+    });
+
+    test('CCR Tec with a helium result: diluent, bailout and trimix', () {
+      final content = bestMixInfo(l10n, units, isCcr: true, hasHelium: true);
+      expect(labels(content), contains(label(DiveTerm.trimix)));
+      expect(labels(content), contains(label(DiveTerm.diluent)));
+      expect(labels(content), contains(label(DiveTerm.bailout)));
+    });
+  });
+
   test('Best Mix explains END and density, Consumption explains RMV', () {
     final best = calculatorInfo(l10n, units, 'best-mix');
     final consumption = calculatorInfo(l10n, units, 'consumption');

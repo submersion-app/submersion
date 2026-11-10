@@ -974,6 +974,34 @@ void main() {
       expect(find.byType(DiveProfileChart), findsOneWidget);
     });
 
+    testWidgets('unfolded in the list layout, it keeps its info icon', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections(
+        [DiveDetailSectionId.profile],
+        layout: DiveDetailLayout.list,
+        expanded: [DiveDetailSectionId.profile],
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithProfile, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      // The fold shows the same card as the detailed layout, header and
+      // info icon included, so the fold row needs no icon of its own.
+      expect(
+        find.descendant(
+          of: find.byType(SectionFold),
+          matching: find.byTooltip('About Dive Profile'),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a dive with no samples gets no chart section', (tester) async {
       final settings = _settingsWithVisibleSections([
         DiveDetailSectionId.profile,

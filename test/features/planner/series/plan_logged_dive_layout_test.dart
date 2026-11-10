@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -142,6 +143,18 @@ void main() {
       ),
       findsOneWidget,
     );
+    expect(await openEveryInfoSheet(tester), greaterThanOrEqualTo(2));
+  });
+
+  testWidgets('the as-planned results explain their sections', (tester) async {
+    await pumpLogged(tester, planned: true, size: const Size(1400, 3000));
+
+    final headerIcons = find.descendant(
+      of: find.byType(PlanSectionHeader),
+      matching: find.byType(InfoButton),
+    );
+    // Decompression schedule and gas consumption at least.
+    expect(headerIcons, findsAtLeastNWidgets(2));
     expect(await openEveryInfoSheet(tester), greaterThanOrEqualTo(2));
   });
 

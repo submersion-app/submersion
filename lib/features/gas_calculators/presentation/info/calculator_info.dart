@@ -12,6 +12,11 @@ InfoContent calculatorInfo(
   UnitFormatter units,
   String id,
 ) {
+  // Best Mix lists what its card shows, which its live controls decide;
+  // without them it shows the Rec card with a nitrox result.
+  if (id == 'best-mix') {
+    return bestMixInfo(l10n, units, isCcr: false, hasHelium: false);
+  }
   final (title, summary, background, howToUse, terms) = switch (id) {
     'mod' => (
       l10n.gasCalculators_tab_mod,
@@ -24,20 +29,6 @@ InfoContent calculatorInfo(
         DiveTerm.ead,
         DiveTerm.end,
         DiveTerm.o2Narcotic,
-      ],
-    ),
-    'best-mix' => (
-      l10n.gasCalculators_tab_bestMix,
-      l10n.info_calculators_bestMix_summary,
-      null,
-      l10n.info_calculators_bestMix_howToUse,
-      const [
-        DiveTerm.mod,
-        DiveTerm.end,
-        DiveTerm.gasDensity,
-        DiveTerm.trimix,
-        DiveTerm.diluent,
-        DiveTerm.bailout,
       ],
     ),
     'consumption' => (
@@ -100,5 +91,28 @@ InfoContent calculatorInfo(
     terms: diveTermEntries(l10n, units, terms),
     background: background,
     howToUse: howToUse,
+  );
+}
+
+/// The Best Mix sheet. END and density show in every mode; the diluent and
+/// bailout source exists only in CCR Tec ([isCcr]), and trimix only matters
+/// when the recommended mix carries helium ([hasHelium]).
+InfoContent bestMixInfo(
+  AppLocalizations l10n,
+  UnitFormatter units, {
+  required bool isCcr,
+  required bool hasHelium,
+}) {
+  return InfoContent(
+    title: l10n.gasCalculators_tab_bestMix,
+    summary: l10n.info_calculators_bestMix_summary,
+    terms: diveTermEntries(l10n, units, [
+      DiveTerm.mod,
+      DiveTerm.end,
+      DiveTerm.gasDensity,
+      if (hasHelium) DiveTerm.trimix,
+      if (isCcr) ...[DiveTerm.diluent, DiveTerm.bailout],
+    ]),
+    howToUse: l10n.info_calculators_bestMix_howToUse,
   );
 }

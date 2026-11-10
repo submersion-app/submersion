@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
+import 'package:submersion/features/planner/presentation/info/plan_results_info.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_logged_dive_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
@@ -13,6 +14,7 @@ import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_runtime_table.dart';
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The results for a logged dive picked in the series bar (issue #3565), in
 /// the results pane's place: what it carries into the next dive, two tiles
@@ -156,7 +158,11 @@ class _AsPlanned extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 8),
-        PlanSectionHeader(l10n.divePlanner_label_decoSchedule),
+        PlanSectionHeader(
+          l10n.divePlanner_label_decoSchedule,
+          info: (context) =>
+              planDecoScheduleInfo(context.l10n, infoUnits(context)),
+        ),
         PlanRuntimeTable(
           outcome: outcome,
           units: units,
@@ -164,7 +170,10 @@ class _AsPlanned extends ConsumerWidget {
           stopMinimums: plan.plan.stopMinimums,
         ),
         const SizedBox(height: 20),
-        PlanSectionHeader(l10n.divePlanner_label_gasConsumption),
+        PlanSectionHeader(
+          l10n.divePlanner_label_gasConsumption,
+          info: (context) => planGasInfo(context.l10n, infoUnits(context)),
+        ),
         for (final usage in outcome.tankUsages)
           if (usage.litersUsed > 0)
             PlanGasRow(
@@ -174,7 +183,15 @@ class _AsPlanned extends ConsumerWidget {
             ),
         if (rangeTable != null) ...[
           const SizedBox(height: 20),
-          PlanSectionHeader(l10n.plannerCanvas_range_title),
+          PlanSectionHeader(
+            l10n.plannerCanvas_range_title,
+            info: (context) => planSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              title: context.l10n.plannerCanvas_range_title,
+              summary: context.l10n.info_planner_range_summary,
+            ),
+          ),
           RangeTableGrid(table: rangeTable, units: units),
         ],
         const SizedBox(height: 20),

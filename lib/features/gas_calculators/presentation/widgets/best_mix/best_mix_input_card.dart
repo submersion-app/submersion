@@ -64,7 +64,20 @@ class BestMixInputCard extends ConsumerWidget {
               ),
               label: context.l10n.gasCalculators_tab_bestMix,
               info: (context) =>
-                  calculatorInfo(context.l10n, infoUnits(context), 'best-mix'),
+                  // Read at tap: the sheet follows the mode and the
+                  // recommendation on screen then.
+                  bestMixInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    isCcr:
+                        ref.read(bestMixCalculatorNotifierProvider).mode ==
+                        BestMixMode.ccrTec,
+                    hasHelium: ref
+                        .read(bestMixCalculatorResultProvider)
+                        .recommended
+                        .mix
+                        .isTrimix,
+                  ),
             ),
             const SizedBox(height: 16),
             BestMixLabelled(
