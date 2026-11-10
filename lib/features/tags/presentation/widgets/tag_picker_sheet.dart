@@ -292,12 +292,7 @@ class _TagPickerSheetState extends ConsumerState<TagPickerSheet> {
       for (final stat in others)
         (context) => _tile(
           stat,
-          subtitle: l10n.tags_manage_rowScopes(
-            [
-              for (final s in TagScope.values)
-                if (stat.tag.appliesTo(s)) tagScopeName(l10n, s),
-            ].join(' · '),
-          ),
+          subtitle: l10n.tags_manage_rowScopes(tagScopeNames(l10n, stat.tag)),
         ),
     ];
 
@@ -383,10 +378,13 @@ class _SectionHeader extends StatelessWidget {
     final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        label,
-        style: theme.textTheme.titleSmall?.copyWith(
-          color: theme.colorScheme.primary,
+      child: Semantics(
+        header: true,
+        child: Text(
+          label,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: theme.colorScheme.primary,
+          ),
         ),
       ),
     );

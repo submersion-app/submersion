@@ -14,6 +14,12 @@ String tagScopeName(AppLocalizations l10n, TagScope scope) => switch (scope) {
   TagScope.documents => l10n.tags_manage_scope_documents,
 };
 
+/// Where [tag] is offered, such as "Dives · Sites", in scope order.
+String tagScopeNames(AppLocalizations l10n, Tag tag) => [
+  for (final scope in TagScope.values)
+    if (tag.appliesTo(scope)) tagScopeName(l10n, scope),
+].join(' · ');
+
 /// The scope's checkbox in the tag editor.
 String tagScopeUseForLabel(AppLocalizations l10n, TagScope scope) =>
     switch (scope) {
