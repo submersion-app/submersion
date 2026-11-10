@@ -272,10 +272,11 @@ class DiveMergeService {
       //
       // Carried as provenance; NEVER primary (a merged profile is
       // user-authored -- reparse must not rewrite it).
-      //     CAVEAT (#1164): isPrimary false only stops reparse from
-      //     rewriting the dives row and tanks. ReparseService step 4 calls
-      //     _replaceDiveProfiles unconditionally, so re-parsing a merged
-      //     dive today still wipes the merged profile. Tracked separately.
+      //     isPrimary false only stops reparse from rewriting the dives row
+      //     and tanks. The profile is kept by sourceOwnsProfileStrand: a
+      //     dive with no primary row (#1164), or a row carrying the
+      //     mergeSourceSlot stamped below (#4367), does not own its strand,
+      //     since these samples are re-based with no offset recorded.
       // DiveRepository.saveComputerReading does not call
       // markRecordPending for diveDataSources rows either -- it relies on
       // the parent dive's pending record (step 1) to carry the change, so

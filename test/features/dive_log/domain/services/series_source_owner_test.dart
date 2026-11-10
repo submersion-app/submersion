@@ -66,4 +66,35 @@ void main() {
       );
     });
   });
+
+  group('seriesSourceOwnerAmong (#4367)', () {
+    const sources = [(id: 'a', computerId: 'pc1'), (id: 'b', computerId: null)];
+
+    test('reads ownership by the same rule as seriesSourceOwner', () {
+      expect(
+        seriesSourceOwnerAmong(
+          sourceId: 'b',
+          computerId: null,
+          sources: sources,
+        ),
+        'b',
+      );
+      expect(
+        seriesSourceOwnerAmong(
+          sourceId: null,
+          computerId: 'pc1',
+          sources: sources,
+        ),
+        'a',
+      );
+      expect(
+        seriesSourceOwnerAmong(
+          sourceId: null,
+          computerId: null,
+          sources: sources,
+        ),
+        isNull,
+      );
+    });
+  });
 }
