@@ -35062,6 +35062,12 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get trips_summary_filteredBannerPending => 'Voyages filtrés';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'Plongées de ces voyages';
+
+  @override
   String trips_summary_recentSubtitle(String date, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

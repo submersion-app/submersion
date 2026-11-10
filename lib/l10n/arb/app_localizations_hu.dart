@@ -34774,6 +34774,12 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get trips_summary_filteredBannerPending => 'Szűrt utak';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'Merülések ezeken az utakon';
+
+  @override
   String trips_summary_recentSubtitle(String date, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -331,7 +331,8 @@ void main() {
 
       expect(find.text('Filtered: summarizing 2 of 4 trips'), findsOneWidget);
       expect(find.bySemanticsLabel('Total Trips: 2'), findsOneWidget);
-      expect(find.bySemanticsLabel('Total Dives: 10'), findsOneWidget);
+      expect(find.bySemanticsLabel('Dives on these trips: 10'), findsOneWidget);
+      expect(find.textContaining('Total Dives'), findsNothing);
       expect(find.text('Belgium'), findsOneWidget);
       expect(find.text('Zeeland'), findsOneWidget);
       expect(find.text('Sardinia'), findsNothing);
@@ -363,6 +364,7 @@ void main() {
 
       expect(find.textContaining('Filtered:'), findsNothing);
       expect(find.bySemanticsLabel('Total Trips: 4'), findsOneWidget);
+      expect(find.text('Total Dives'), findsOneWidget);
     });
 
     // A new filter's trip ids take a query's time and arrive with no
@@ -426,6 +428,8 @@ void main() {
 
       expect(find.text('Belgium'), findsNothing);
       expect(find.text("Couldn't load your trips."), findsOneWidget);
+      // The banner still says the overview is filtered, not a blank bar.
+      expect(find.text('Filtered trips'), findsOneWidget);
     });
 
     // The unfiltered overview is not the filter's: it must not stand under

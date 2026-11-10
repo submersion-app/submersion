@@ -10446,6 +10446,8 @@
   "trips_summary_quickActions_title": "Ações Rápidas",
   "trips_summary_recentTitle": "Viagens Recentes",
   "trips_summary_filteredBanner": "Filtrado: resumo de {shown} de {total, plural, =1{{total} viagem} other{{total} viagens}}",
+  "trips_summary_filteredBannerPending": "Viagens filtradas",
+  "trips_summary_stat_filteredDives": "Mergulhos nestas viagens",
   "trips_summary_recentSubtitle": "{date} • {count, plural, =1{{count} mergulho} other{{count} mergulhos}}",
   "trips_summary_stat_daysDiving": "Dias de Mergulho",
   "trips_summary_stat_liveaboards": "Liveaboards",

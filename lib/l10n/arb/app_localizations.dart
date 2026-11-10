@@ -55229,6 +55229,18 @@ abstract class AppLocalizations {
   /// **'Filtered: summarizing {shown} of {total, plural, =1{{total} trip} other{{total} trips}}'**
   String trips_summary_filteredBanner(int shown, int total);
 
+  /// Trips overview filter banner text while its trip counts are not known (still loading, or the filter's query failed).
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered trips'**
+  String get trips_summary_filteredBannerPending;
+
+  /// Trips overview stat card label in place of "Total Dives" while the trip list is filtered: every dive on the trips shown, not only the dives that matched the filter (an equipment filter's item may have been on fewer).
+  ///
+  /// In en, this message translates to:
+  /// **'Dives on these trips'**
+  String get trips_summary_stat_filteredDives;
+
   /// Subtitle of a Recent Trips row of the Trips overview: the trip's start date, then its dive count, e.g. "20/08/2026 • 11 dives". Join the two the way trips_summary_upcomingSubtitle does.
   ///
   /// In en, this message translates to:

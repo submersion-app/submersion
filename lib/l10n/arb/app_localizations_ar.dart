@@ -35375,6 +35375,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get trips_summary_filteredBannerPending => 'رحلات مُصفّاة';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'الغوصات في هذه الرحلات';
+
+  @override
   String trips_summary_recentSubtitle(String date, int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

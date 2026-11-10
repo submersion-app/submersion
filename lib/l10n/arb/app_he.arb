@@ -10446,6 +10446,8 @@
   "trips_summary_quickActions_title": "פעולות מהירות",
   "trips_summary_recentTitle": "טיולים אחרונים",
   "trips_summary_filteredBanner": "מסונן: סיכום של {shown} מתוך {total, plural, =1{טיול אחד} other{{total} טיולים}}",
+  "trips_summary_filteredBannerPending": "טיולים מסוננים",
+  "trips_summary_stat_filteredDives": "צלילות בטיולים אלה",
   "trips_summary_recentSubtitle": "{date} • {count, plural, =1{צלילה אחת} other{{count} צלילות}}",
   "trips_summary_stat_daysDiving": "ימי צלילה",
   "trips_summary_stat_liveaboards": "ספינות צלילה",

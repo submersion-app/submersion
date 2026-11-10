@@ -10580,6 +10580,8 @@
   "trips_summary_quickActions_title": "Schnellaktionen",
   "trips_summary_recentTitle": "Neueste Reisen",
   "trips_summary_filteredBanner": "Gefiltert: fasst {shown} von {total, plural, =1{{total} Reise} other{{total} Reisen}} zusammen",
+  "trips_summary_filteredBannerPending": "Gefilterte Reisen",
+  "trips_summary_stat_filteredDives": "Tauchgänge dieser Reisen",
   "trips_summary_recentSubtitle": "{date} • {count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",
   "trips_summary_stat_daysDiving": "Tauchtage",
   "trips_summary_stat_liveaboards": "Tauchsafaris",
