@@ -191,6 +191,19 @@ void main() {
       }
     });
 
+    test('a silent record adds no dive scope to a backup\'s, in either '
+        'order', () {
+      // Saying nothing is not saying "dives": the backup's exact scopes
+      // survive the fold untouched.
+      for (final tag in [
+        mergedTag(backup, silent),
+        mergedTag(silent, backup),
+      ]) {
+        expect(importedNewTagScopes(tag), {TagScope.media});
+        expect(importedTagScopes(tag), {TagScope.media});
+      }
+    });
+
     test('a silent record keeps it, in either order', () {
       for (final tag in [mergedTag(silent, csv), mergedTag(csv, silent)]) {
         expect(tag[importTagNewEverywhereKey], isTrue);

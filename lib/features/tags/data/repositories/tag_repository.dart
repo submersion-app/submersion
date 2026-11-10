@@ -367,14 +367,20 @@ class TagRepository {
   }) async {
     final missing = wanted.difference(tag.scopes);
     if (missing.isEmpty) return tag;
-    final widened = tag.copyWith(scopes: {...tag.scopes, ...missing});
     final now = DateTime.now().millisecondsSinceEpoch;
+    // Only the flags being added, each set true: widening never clears one,
+    // so a widening from a stale snapshot cannot undo another that landed
+    // since it was read.
     await (_db.update(_db.tags)..where((t) => t.id.equals(tag.id))).write(
       RawValuesInsertable<Tag>({
-        ...tagScopeColumns(widened.scopes),
+        for (final scope in missing)
+          scope.table.scopeColumn: const Variable<bool>(true),
         ...TagsCompanion(updatedAt: Value(now)).toColumns(false),
       }),
     );
+    final widened =
+        await getTagById(tag.id) ??
+        tag.copyWith(scopes: {...tag.scopes, ...missing});
     await _syncRepository.markRecordPending(
       entityType: 'tags',
       recordId: tag.id,

@@ -142,6 +142,19 @@ void main() {
     expect(result.appliesTo(TagScope.sites), isTrue);
   });
 
+  test('widenings from one stale snapshot both land', () async {
+    // Each widening writes only the flags it adds, so a second one read
+    // before the first was stored cannot turn the first one's flag off.
+    final snapshot = await narrow('Night', {TagScope.dives});
+    await repository.widenTag(snapshot, {TagScope.sites});
+    await repository.widenTag(snapshot, {TagScope.equipment});
+    expect((await repository.getTagById(snapshot.id))!.scopes, {
+      TagScope.dives,
+      TagScope.sites,
+      TagScope.equipment,
+    });
+  });
+
   test('createTag widens a colliding incumbent nothing by default', () async {
     // A new tag defaults to every scope, so widening by default would undo
     // a narrowing by accident (#4407).
