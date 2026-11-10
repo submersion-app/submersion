@@ -134,6 +134,18 @@ void main() {
     expect(find.text('Built 9 Nov 2026'), findsOneWidget);
   });
 
+  testWidgets('the licenses page has no date line without a date', (
+    tester,
+  ) async {
+    await pumpAbout(tester, buildDate: null);
+
+    await tester.tap(find.text('Open Source Licenses'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LicensePage), findsOneWidget);
+    expect(find.textContaining('Built'), findsNothing);
+  });
+
   testWidgets('the About dialog has no date line without a date', (
     tester,
   ) async {

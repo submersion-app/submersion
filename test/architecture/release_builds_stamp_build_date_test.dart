@@ -58,6 +58,14 @@ List<String> releaseBuildCommands(String source) {
   return commands;
 }
 
+/// A stamp computed where the build runs: `\$(...)` in a shell or PowerShell,
+/// `#{...}` in a fastlane Ruby string. A literal or a variable is refused,
+/// because an unset variable expands to an empty stamp and no date.
+final _computedStamp = RegExp(r'--dart-define=BUILD_DATE=(\$\(|#\{)');
+
+/// Whether [command] stamps BUILD_DATE with a value computed in place.
+bool stampsBuildDate(String command) => _computedStamp.hasMatch(command);
+
 List<String> _pipelineFiles() {
   final files = <String>[];
   // All of .github, so a build moved into a composite action is still read.
@@ -133,6 +141,31 @@ void main() {
     });
   });
 
+  group('stampsBuildDate', () {
+    test('accepts a date computed by the shell, PowerShell or Ruby', () {
+      expect(
+        stampsBuildDate('"--dart-define=BUILD_DATE=\$(date -u +%F)"'),
+        isTrue,
+      );
+      expect(
+        stampsBuildDate(
+          '"--dart-define=BUILD_DATE=\$((Get-Date).ToUniversalTime())"',
+        ),
+        isTrue,
+      );
+      expect(
+        stampsBuildDate('--dart-define=BUILD_DATE=#{Time.now.utc}'),
+        isTrue,
+      );
+    });
+
+    test('refuses an empty stamp, a variable or a bare mention', () {
+      expect(stampsBuildDate('--dart-define=BUILD_DATE= --x'), isFalse);
+      expect(stampsBuildDate('--dart-define=BUILD_DATE=\$BUILD_DATE'), isFalse);
+      expect(stampsBuildDate('--dart-define=NO_BUILD_DATE=1'), isFalse);
+    });
+  });
+
   test('every shipped release build stamps BUILD_DATE', () {
     final missing = <String>[];
     final found = <String, int>{};
@@ -143,7 +176,7 @@ void main() {
       );
       found[path] = commands.length;
       for (final command in commands) {
-        if (!command.contains('BUILD_DATE')) missing.add('$path: $command');
+        if (!stampsBuildDate(command)) missing.add('$path: $command');
       }
     }
 
@@ -160,8 +193,9 @@ void main() {
       missing,
       isEmpty,
       reason:
-          'Add --dart-define=BUILD_DATE=<UTC YYYY-MM-DD> so Settings > About '
-          'shows when the build was made, or exempt a file that never ships',
+          'Add --dart-define=BUILD_DATE= with the UTC YYYY-MM-DD computed in '
+          'place (\$(date -u +%F) in a shell) so Settings > About shows when '
+          'the build was made, or exempt a file that never ships',
     );
   });
 }

@@ -14135,7 +14135,7 @@
   },
   "settings_about_builtOn": "Built {date}",
   "@settings_about_builtOn": {
-    "description": "Under the app version in Settings > About and the About dialog: the day this build was made",
+    "description": "Under the app version in Settings > About, the About dialog and the licenses page: the day this build was made",
     "placeholders": {
       "date": {
         "type": "String"
