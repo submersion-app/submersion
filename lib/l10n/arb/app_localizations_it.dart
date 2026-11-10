@@ -11443,6 +11443,34 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Divisione non riuscita';
 
   @override
+  String get diveLog_sources_menu_remove => 'Rimuovi fonte';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Rimuovere questa fonte?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'Le letture di $source verranno rimosse da questa immersione: profilo, pressioni e le bombole registrate solo da questa fonte. La voce del logbook resta.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'Le letture di questa fonte verranno rimosse da questa immersione: profilo, pressioni e le bombole registrate solo da questa fonte. La voce del logbook resta.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Rimuovi';
+
+  @override
+  String get diveLog_sources_removeDone => 'Fonte rimossa';
+
+  @override
+  String get diveLog_sources_removeFailed => 'Impossibile rimuovere la fonte';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Questa fonte condivide il computer subacqueo con un\'altra fonte dell\'immersione, quindi le loro letture non si possono distinguere e non può essere rimossa da sola.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Separa le immersioni unite';
 
   @override
@@ -43916,6 +43944,123 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => 'Rimuovi fonte';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return 'Rimuovi $source';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Rimuovi bombola duplicata';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimuovere $count bombole duplicate?',
+      one: 'Rimuovere la bombola duplicata?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep resta e prende dal duplicato i dati che le mancano. Cambi gas ed eventi passano a lei.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Quale gas conteneva questa bombola?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Queste righe leggono lo stesso trasmettitore ma non concordano sul gas. La bombola che resta avrà quello che scegli.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Rimuovi';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimuovi bombole duplicate ($count immersioni)',
+      one: 'Rimuovi bombole duplicate (1 immersione)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Rimuovi bombole duplicate';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Le bombole di un\'immersione con lo stesso numero di serie del trasmettitore sono una sola bombola registrata due volte. Ne resta una per immersione, e Annulla ripristina tutto.';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Rimuovi $remove, tieni $keep';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Rimosso in $count immersioni',
+      one: 'Rimosso in 1 immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count saltate: le miscele sono diverse';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count non riuscite';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Ignora tutto ciò che è mostrato ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ignorare $count segnalazioni?',
+      one: 'Ignorare 1 segnalazione?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Restano ignorate anche dopo una nuova scansione. Annulla le ripristina.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Ignora tutto';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count segnalazioni ignorate',
+      one: '1 segnalazione ignorata',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Rendere $source la fonte principale?';
   }
@@ -61394,6 +61539,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => 'Immersione divisa';
+
+  @override
+  String get changeLog_label_removeSource => 'Fonte dati rimossa';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Bombole duplicate rimosse';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Annulla non ha potuto ripristinare tutto. Il resto è in Impostazioni > Dati > Registro modifiche.';
 
   @override
   String get changeLog_label_gearTransfer => 'Attrezzatura trasferita';

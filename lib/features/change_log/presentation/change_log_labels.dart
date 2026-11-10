@@ -56,6 +56,9 @@ String changeLogStoredLabel(AppLocalizations l, String label) =>
       ChangeLogLabels.mediaCleanup => l.changeLog_label_mediaCleanup,
       ChangeLogLabels.accountMigration => l.changeLog_label_accountMigration,
       ChangeLogLabels.tableEditor => l.changeLog_label_tableEditor,
+      ChangeLogLabels.removeSource => l.changeLog_label_removeSource,
+      ChangeLogLabels.removeDuplicateCylinders =>
+        l.changeLog_label_removeDuplicateCylinders,
       _ => label,
     };
 

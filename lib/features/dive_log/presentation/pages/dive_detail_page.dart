@@ -47,6 +47,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_draft_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/remove_source_flow.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
@@ -275,6 +276,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   late final DiveDetailActions _sectionActions = DiveDetailActions(
     setPrimarySource: _setPrimarySource,
     splitSource: _confirmAndSplit,
+    removeSource: _confirmAndRemoveSource,
     separateSegments: _confirmAndSeparate,
     scanGallery: _scanGalleryForDive,
     addPhotos: _addPhotos,

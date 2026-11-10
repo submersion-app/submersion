@@ -107,12 +107,28 @@ List<String> buildChangeLogTriggers(
       !spec.keyColumns.every(spec.columns.contains)) {
     return const [];
   }
-  final update = _updateTrigger(spec, schemaVersion);
+  final tracked = cls == ChangeLogClass.tracked;
+  final optIn = !tracked && changeLogOptInUpdateTables.contains(spec.table);
+  final update = tracked || optIn
+      ? _updateTrigger(spec, schemaVersion, optInOnly: optIn)
+      : null;
   return [
-    if (cls == ChangeLogClass.tracked) _insertTrigger(spec, schemaVersion),
-    if (cls == ChangeLogClass.tracked && update != null) update,
+    if (tracked) _insertTrigger(spec, schemaVersion),
+    ?update,
     _deleteTrigger(spec, schemaVersion),
   ];
+}
+
+/// True while the open operation carries a label that asks for updates to
+/// machine rows to be recorded (see [changeLogOptInUpdateTables]).
+String _optInOperation() {
+  final labels = (changeLogSeriesUpdateLabels.toList()..sort())
+      .map((l) => "'$l'")
+      .join(', ');
+  return 'EXISTS (SELECT 1 FROM change_log_context c '
+      'JOIN change_log_operations o ON o.id = c.operation_id '
+      'WHERE c.id = 1 AND c.scope_expires_at > $_nowSql '
+      'AND o.label IN ($labels))';
 }
 
 String changeLogTriggersHash(List<String> statements) =>
@@ -151,8 +167,13 @@ String _insertTrigger(ChangeLogTableSpec spec, int schemaVersion) =>
     'WHEN ${_guard(spec.table, 'NEW')} '
     'BEGIN ${_eventInsert(spec, 'NEW', 'I', schemaVersion)} END';
 
-/// Null when no column of the table is worth recording.
-String? _updateTrigger(ChangeLogTableSpec spec, int schemaVersion) {
+/// Null when no column of the table is worth recording. [optInOnly] limits
+/// it to operations that ask for machine-row updates.
+String? _updateTrigger(
+  ChangeLogTableSpec spec,
+  int schemaVersion, {
+  bool optInOnly = false,
+}) {
   final ignored = changeLogIgnoredColumns(spec.table);
   final columns = spec.columns.where((c) => !ignored.contains(c)).toList();
   if (columns.isEmpty) return null;
@@ -165,7 +186,9 @@ String? _updateTrigger(ChangeLogTableSpec spec, int schemaVersion) {
       .join(' UNION ALL ');
   return 'CREATE TRIGGER "${_triggerName(spec.table, 'u')}" '
       'AFTER UPDATE ON "${spec.table}" '
-      'WHEN ${_guard(spec.table, 'NEW')} AND ($differs) '
+      'WHEN ${_guard(spec.table, 'NEW')} '
+      '${optInOnly ? 'AND ${_optInOperation()} ' : ''}'
+      'AND ($differs) '
       'BEGIN ${_eventInsert(spec, 'NEW', 'U', schemaVersion)} '
       'INSERT INTO change_log_fields '
       '(event_id, column_name, old_value, new_value) '

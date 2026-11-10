@@ -11431,6 +11431,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sources_splitFailed => 'Aufteilen fehlgeschlagen';
 
   @override
+  String get diveLog_sources_menu_remove => 'Quelle entfernen';
+
+  @override
+  String get diveLog_sources_removeDialog_title => 'Diese Quelle entfernen?';
+
+  @override
+  String diveLog_sources_removeDialog_body(String source) {
+    return 'Die Messwerte von $source werden aus diesem Tauchgang entfernt: Profil, Drücke und die Flaschen, die nur diese Quelle aufgezeichnet hat. Der Logbucheintrag bleibt.';
+  }
+
+  @override
+  String get diveLog_sources_removeDialog_bodyUnnamed =>
+      'Die Messwerte dieser Quelle werden aus diesem Tauchgang entfernt: Profil, Drücke und die Flaschen, die nur diese Quelle aufgezeichnet hat. Der Logbucheintrag bleibt.';
+
+  @override
+  String get diveLog_sources_removeDialog_confirm => 'Entfernen';
+
+  @override
+  String get diveLog_sources_removeDone => 'Quelle entfernt';
+
+  @override
+  String get diveLog_sources_removeFailed =>
+      'Die Quelle konnte nicht entfernt werden';
+
+  @override
+  String get diveLog_sources_removeSharedComputer =>
+      'Diese Quelle teilt ihren Tauchcomputer mit einer anderen Quelle des Tauchgangs. Ihre Messwerte lassen sich daher nicht trennen, und sie kann nicht allein entfernt werden.';
+
+  @override
   String get diveLog_sources_menu_separate => 'Kombinierte Tauchgänge trennen';
 
   @override
@@ -43821,6 +43850,123 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeSource => 'Quelle entfernen';
+
+  @override
+  String dataQuality_repairLabel_removeSourceNamed(String source) {
+    return '$source entfernen';
+  }
+
+  @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Doppelte Flasche entfernen';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count doppelte Flaschen entfernen?',
+      one: 'Doppelte Flasche entfernen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep bleibt und übernimmt fehlende Angaben von der doppelten Flasche. Gaswechsel und Ereignisse gehen auf sie über.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Welches Gas war in dieser Flasche?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Diese Einträge lesen denselben Sender, nennen aber verschiedene Gase. Die verbleibende Flasche erhält das Gas, das du wählst.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Entfernen';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Doppelte Flaschen entfernen ($count Tauchgänge)',
+      one: 'Doppelte Flaschen entfernen (1 Tauchgang)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Doppelte Flaschen entfernen';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Flaschen eines Tauchgangs mit derselben Sender-Seriennummer sind eine doppelt erfasste Flasche. Pro Tauchgang bleibt eine, und Rückgängig stellt alles wieder her.';
+
+  @override
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return '$remove entfernen, $keep behalten';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bei $count Tauchgängen entfernt',
+      one: 'Bei 1 Tauchgang entfernt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count übersprungen: Gasgemische unterscheiden sich';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count fehlgeschlagen';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Alle angezeigten ausblenden ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Befunde ausblenden?',
+      one: '1 Befund ausblenden?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Sie bleiben auch nach einem erneuten Scan ausgeblendet. Rückgängig holt sie zurück.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Alle ausblenden';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Befunde ausgeblendet',
+      one: '1 Befund ausgeblendet',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return '$source als primäre Quelle festlegen?';
   }
@@ -61263,6 +61409,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get changeLog_label_splitDive => 'Tauchgang geteilt';
+
+  @override
+  String get changeLog_label_removeSource => 'Datenquelle entfernt';
+
+  @override
+  String get changeLog_label_removeDuplicateCylinders =>
+      'Doppelte Flaschen entfernt';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Rückgängig konnte nicht alles wiederherstellen. Der Rest steht unter Einstellungen > Daten > Änderungsprotokoll.';
 
   @override
   String get changeLog_label_gearTransfer => 'Ausrüstung übertragen';

@@ -16,6 +16,7 @@ import 'package:submersion/features/data_quality/domain/entities/quality_finding
 import 'package:submersion/features/data_quality/domain/repairs/quality_repair_action.dart';
 import 'package:submersion/features/data_quality/data/services/profile_repair_service.dart';
 import 'package:submersion/features/data_quality/domain/services/finding_ownership.dart';
+import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_actions.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/data_quality/presentation/providers/quality_inbox_providers.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/delete_duplicate_dialog.dart';
@@ -95,6 +96,10 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
   /// hold what the providers already delivered.
   Map<String, String> _lastSourceLabels = const {};
   Map<String, QualityTankRef> _lastTankRefs = const {};
+
+  /// The dive identity lookup the last build had, for the bulk duplicate
+  /// sheet the toolbar opens (issue #4393).
+  DiveIdentityLabel? Function(String? diveId)? _identityOf;
 
   void _selectChip(QualityChip chip) => setState(() => _chip = chip);
 
@@ -365,6 +370,17 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
             SnackBar(content: Text(l10n.diveLog_sources_splitFailed)),
           );
         }
+      case RemoveDuplicateCylinderRepair():
+        await runRemoveDuplicate(context, ref, finding: f);
+      case RemoveSourceRepair(:final diveId, :final sourceId):
+        await runRemoveSource(
+          context,
+          ref,
+          finding: f,
+          diveId: diveId,
+          sourceId: sourceId,
+          sourceName: sourceName,
+        );
       case DespikeRepair(:final diveId):
         await withUndo(
           () => executor.applyProfileRepair(
@@ -534,52 +550,73 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
     }
   }
 
+  /// What the page can show: open findings within the dive filter (scoped),
+  /// and of those the ones the selected chip shows (open).
+  ({List<QualityFinding> scoped, List<QualityFinding> open}) _visible(
+    List<QualityFinding> all,
+  ) {
+    // `filterDiveId` is a comma-separated set of dive ids (a single id
+    // from dive-detail, the whole imported set from the import summary),
+    // so the review deep-link never hides other flagged dives in scope.
+    final filterIds =
+        (widget.filterDiveId == null || widget.filterDiveId!.isEmpty)
+        ? null
+        : widget.filterDiveId!.split(',').toSet();
+    // Everything this page could ever show: open, and within the dive
+    // filter. The chip is applied separately below, deliberately -- it
+    // changes as the diver taps, while the dive filter is fixed for the
+    // life of the page.
+    final scoped = [
+      for (final f in all)
+        if (f.status == QualityStatus.open &&
+            (filterIds == null ||
+                filterIds.contains(f.diveId) ||
+                filterIds.contains(f.relatedDiveId)))
+          f,
+    ];
+    final open = [
+      for (final f in scoped)
+        if (categoriesFor(_chip).contains(f.category)) f,
+    ];
+    return (scoped: scoped, open: open);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final findingsAsync = ref.watch(qualityFindingsStreamProvider);
     final store = ref.watch(qualityScanStateStoreProvider);
     final formatters = buildQualityUnitFormatters(ref);
+    final allFindings = findingsAsync.value;
+    // Once per build: the toolbar and the list read the same split.
+    final visible = allFindings == null ? null : _visible(allFindings);
+    final shown = visible?.open ?? const <QualityFinding>[];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.dataQuality_inbox_title),
         actions: [
+          if (_chip == QualityChip.tanks)
+            ?bulkRemoveDuplicatesButton(
+              context,
+              ref,
+              shown: shown,
+              identityOf: (id) => _identityOf?.call(id),
+            ),
           if (_scanProgress == null)
             IconButton(
               icon: const Icon(Icons.radar),
               tooltip: l10n.dataQuality_scan_start,
               onPressed: _runFullScan,
             ),
+          ?inboxOverflowMenu(context, ref, shown: shown),
         ],
       ),
       body: findingsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('$e')),
         data: (all) {
-          // `filterDiveId` is a comma-separated set of dive ids (a single id
-          // from dive-detail, the whole imported set from the import summary),
-          // so the review deep-link never hides other flagged dives in scope.
-          final filterIds =
-              (widget.filterDiveId == null || widget.filterDiveId!.isEmpty)
-              ? null
-              : widget.filterDiveId!.split(',').toSet();
-          // Everything this page could ever show: open, and within the dive
-          // filter. The chip is applied separately below, deliberately -- it
-          // changes as the diver taps, while the dive filter is fixed for the
-          // life of the page.
-          final scoped = [
-            for (final f in all)
-              if (f.status == QualityStatus.open &&
-                  (filterIds == null ||
-                      filterIds.contains(f.diveId) ||
-                      filterIds.contains(f.relatedDiveId)))
-                f,
-          ];
-          final open = [
-            for (final f in scoped)
-              if (categoriesFor(_chip).contains(f.category)) f,
-          ];
+          final (:scoped, :open) = visible ?? _visible(all);
           // Keyed off the scoped set, not the visible one: narrowing by the
           // fixed dive filter keeps a deep link (from the import summary, say)
           // from loading identities for the whole library, while keeping the
@@ -646,6 +683,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
                   l10n: l10n,
                   formatters: formatters,
                 );
+          _identityOf = identity;
           return Column(
             children: [
               if (_scanProgress != null)

@@ -1,16 +1,14 @@
 import 'package:submersion/core/database/existing_row_ids.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
+import 'package:submersion/features/change_log/data/services/change_log_operation_undo.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
-
-final _log = LoggerService.forClass(DiveBulkDeleteService);
 
 /// What a bulk delete took, for [DiveBulkDeleteService.restore] to put back.
 class DeletedDives {
@@ -108,26 +106,11 @@ class DiveBulkDeleteService {
   /// Whether the entry brought back everything it holds. A failure costs only
   /// this route: logging never blocks work, so the entry may be missing or
   /// short, and [_rebuildMissingDives] covers that.
-  Future<bool> _revertDelete(String? operationId) async {
-    if (operationId == null) return false;
-    try {
-      await _changeLog.settleAll();
-      final result = await _revert.execute(
-        await _revert.planOperation(operationId),
-      );
-      if (result.kept > 0) {
-        _log.warning('Undo left ${result.kept} deleted records behind');
-      }
-      return result.kept == 0;
-    } catch (error, stackTrace) {
-      _log.warning(
-        'Could not revert a bulk dive delete',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return false;
-    }
-  }
+  Future<bool> _revertDelete(String? operationId) => undoChangeLogOperation(
+    operationId,
+    changeLog: _changeLog,
+    revert: _revert,
+  );
 
   /// The last resort for a delete the change log did not record, such as on
   /// a device whose triggers could not be installed: the dive comes back from

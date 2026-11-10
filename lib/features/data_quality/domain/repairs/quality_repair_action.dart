@@ -110,6 +110,28 @@ class SplitSourceRepair extends QualityRepairAction {
   final String sourceId;
 }
 
+/// Merges a twin finding's duplicate cylinder rows into one (issue #4393).
+/// [sameTransmitter] widens it to every row on the dive with that serial.
+class RemoveDuplicateCylinderRepair extends QualityRepairAction {
+  const RemoveDuplicateCylinderRepair({
+    required this.diveId,
+    required this.tankIdA,
+    required this.tankIdB,
+    required this.sameTransmitter,
+  });
+  final String diveId;
+  final String tankIdA;
+  final String tankIdB;
+  final bool sameTransmitter;
+}
+
+/// Removes the source from the dive with what it owns (issue #4393).
+class RemoveSourceRepair extends QualityRepairAction {
+  const RemoveSourceRepair({required this.diveId, required this.sourceId});
+  final String diveId;
+  final String sourceId;
+}
+
 class DespikeRepair extends QualityRepairAction {
   const DespikeRepair(this.diveId);
   final String diveId;
@@ -505,9 +527,21 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       final a = p['tankIdA'] as String?;
       final b = p['tankIdB'] as String?;
       if (a != null && b != null) {
+        final sameTransmitter = p['sameTransmitter'] == true;
+        final remove = RemoveDuplicateCylinderRepair(
+          diveId: diveId,
+          tankIdA: a,
+          tankIdB: b,
+          sameTransmitter: sameTransmitter,
+        );
+        // A shared serial proves one cylinder, so removing the copy leads.
+        // Twins matched only by curve could be a real manifolded twinset, so
+        // there the harmless swap stays first and removal comes last.
         return [
+          if (sameTransmitter) remove,
           SwapPressureSeriesRepair(diveId: diveId, tankIdA: a, tankIdB: b),
           ReassignPressureSeriesRepair(diveId: diveId, fromTankId: a),
+          if (!sameTransmitter) remove,
         ];
       }
       final tankId = p['tankId'] as String?;
@@ -525,6 +559,7 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
         return [
           SetPrimarySourceRepair(diveId: diveId, sourceId: sourceId),
           SplitSourceRepair(diveId: diveId, sourceId: sourceId),
+          RemoveSourceRepair(diveId: diveId, sourceId: sourceId),
           CompareSourcesRepair(diveId),
         ];
       }

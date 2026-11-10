@@ -6407,6 +6407,43 @@
   "diveLog_sources_splitDialog_confirm": "Split",
   "diveLog_sources_splitDone": "Dive split",
   "diveLog_sources_splitFailed": "Split failed",
+  "diveLog_sources_menu_remove": "Remove source",
+  "@diveLog_sources_menu_remove": {
+    "description": "Menu item on a dive's data source that removes it and its readings from the dive."
+  },
+  "diveLog_sources_removeDialog_title": "Remove this source?",
+  "@diveLog_sources_removeDialog_title": {
+    "description": "Title of the dialog confirming removal of a data source from a dive."
+  },
+  "diveLog_sources_removeDialog_body": "The readings from {source} will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.",
+  "@diveLog_sources_removeDialog_body": {
+    "description": "Body of the dialog confirming removal of a named data source from a dive.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_sources_removeDialog_bodyUnnamed": "This source's readings will be removed from this dive: its profile, pressures and the cylinders only it recorded. The logbook entry stays.",
+  "@diveLog_sources_removeDialog_bodyUnnamed": {
+    "description": "Body of the dialog confirming removal of a data source that has no name."
+  },
+  "diveLog_sources_removeDialog_confirm": "Remove",
+  "@diveLog_sources_removeDialog_confirm": {
+    "description": "Confirm button of the dialog that removes a data source from a dive."
+  },
+  "diveLog_sources_removeDone": "Source removed",
+  "@diveLog_sources_removeDone": {
+    "description": "Snackbar shown after a data source was removed from a dive."
+  },
+  "diveLog_sources_removeFailed": "Could not remove the source",
+  "@diveLog_sources_removeFailed": {
+    "description": "Snackbar shown when removing a data source from a dive failed."
+  },
+  "diveLog_sources_removeSharedComputer": "This source shares its dive computer with another source of the dive, so their readings cannot be told apart and it cannot be removed on its own.",
+  "@diveLog_sources_removeSharedComputer": {
+    "description": "Snackbar explaining that a data source sharing its computer with another source of the dive cannot be removed."
+  },
   "diveLog_sources_menu_separate": "Separate combined dives",
   "diveLog_sources_separateDialog_title": "Separate combined dives?",
   "diveLog_sources_separateDialog_body": "This dive was combined from {count} dives. Each one's profile, events, tanks and gas switches move back to its own dive. The rest of the logbook entry, including buddies, tags, equipment, media, notes and the dive number, stays on this dive.",
@@ -27001,6 +27038,144 @@
       }
     }
   },
+  "dataQuality_repairLabel_removeSource": "Remove source",
+  "@dataQuality_repairLabel_removeSource": {
+    "description": "Repair button that removes the disagreeing data source from the dive."
+  },
+  "dataQuality_repairLabel_removeSourceNamed": "Remove {source}",
+  "@dataQuality_repairLabel_removeSourceNamed": {
+    "description": "Repair button naming the data source that is removed from the dive.",
+    "placeholders": {
+      "source": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_repairLabel_removeDuplicate": "Remove duplicate cylinder",
+  "@dataQuality_repairLabel_removeDuplicate": {
+    "description": "Repair button on a twin-cylinder finding that merges the duplicate row into the one that stays."
+  },
+  "dataQuality_removeDuplicate_title": "{count, plural, =1{Remove the duplicate cylinder?} other{Remove {count} duplicate cylinders?}}",
+  "@dataQuality_removeDuplicate_title": {
+    "description": "Title of the dialog confirming removal of duplicate cylinder rows on one dive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_removeDuplicate_body": "{keep} stays and takes any details it lacks from the duplicate. Gas switches and events move to it.",
+  "@dataQuality_removeDuplicate_body": {
+    "description": "Body of the dialog confirming removal of duplicate cylinder rows; keep names the cylinder that stays.",
+    "placeholders": {
+      "keep": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_removeDuplicate_mixTitle": "Which gas did this cylinder hold?",
+  "@dataQuality_removeDuplicate_mixTitle": {
+    "description": "Title of the dialog asking which gas mix to keep when duplicate cylinder rows disagree."
+  },
+  "dataQuality_removeDuplicate_mixBody": "These rows read the same transmitter but disagree on the gas. The cylinder that stays will carry the one you choose.",
+  "@dataQuality_removeDuplicate_mixBody": {
+    "description": "Body of the dialog asking which gas mix to keep when duplicate cylinder rows disagree."
+  },
+  "dataQuality_removeDuplicate_confirm": "Remove",
+  "@dataQuality_removeDuplicate_confirm": {
+    "description": "Confirm button of the dialogs that remove duplicate cylinders."
+  },
+  "dataQuality_bulk_removeDuplicates": "{count, plural, =1{Remove duplicate cylinders (1 dive)} other{Remove duplicate cylinders ({count} dives)}}",
+  "@dataQuality_bulk_removeDuplicates": {
+    "description": "Inbox toolbar action that removes duplicate cylinders on every dive with a serial-proven twin finding.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_bulk_sheetTitle": "Remove duplicate cylinders",
+  "@dataQuality_bulk_sheetTitle": {
+    "description": "Title of the sheet confirming the bulk removal of duplicate cylinders."
+  },
+  "dataQuality_bulk_sheetBody": "Cylinders on one dive that share a transmitter serial are one cylinder recorded twice. One stays on each dive, and Undo puts everything back.",
+  "@dataQuality_bulk_sheetBody": {
+    "description": "Explanation at the top of the bulk duplicate cylinder removal sheet."
+  },
+  "dataQuality_bulk_sheetRow": "Remove {remove}, keep {keep}",
+  "@dataQuality_bulk_sheetRow": {
+    "description": "One dive's line in the bulk duplicate cylinder sheet: the cylinders that go and the one that stays.",
+    "placeholders": {
+      "remove": {
+        "type": "String"
+      },
+      "keep": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_bulk_removeDuplicates_done": "{count, plural, =1{Removed on 1 dive} other{Removed on {count} dives}}",
+  "@dataQuality_bulk_removeDuplicates_done": {
+    "description": "Snackbar after the bulk duplicate cylinder removal: how many dives changed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_bulk_skippedMixes": "{count} skipped: gas mixes differ",
+  "@dataQuality_bulk_skippedMixes": {
+    "description": "Added to the bulk removal summary: dives left alone because their duplicate rows disagree on gas.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_bulk_failed": "{count} failed",
+  "@dataQuality_bulk_failed": {
+    "description": "Added to the bulk removal summary: dives the removal could not change.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_action_dismissAllShown": "Dismiss all shown ({count})",
+  "@dataQuality_action_dismissAllShown": {
+    "description": "Inbox menu item that dismisses every finding the current filter shows.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_dismissAll_title": "{count, plural, =1{Dismiss 1 finding?} other{Dismiss {count} findings?}}",
+  "@dataQuality_dismissAll_title": {
+    "description": "Title of the dialog confirming Dismiss all shown.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_dismissAll_body": "They stay dismissed after a rescan. Undo brings them back.",
+  "@dataQuality_dismissAll_body": {
+    "description": "Body of the dialog confirming Dismiss all shown."
+  },
+  "dataQuality_dismissAll_confirm": "Dismiss all",
+  "@dataQuality_dismissAll_confirm": {
+    "description": "Confirm button of the dialog that dismisses every shown finding."
+  },
+  "dataQuality_dismissAll_done": "{count, plural, =1{Dismissed 1 finding} other{Dismissed {count} findings}}",
+  "@dataQuality_dismissAll_done": {
+    "description": "Snackbar after Dismiss all shown.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataQuality_setPrimary_title": "Make {source} the primary source?",
   "@dataQuality_setPrimary_title": {
     "placeholders": {
@@ -36105,6 +36280,18 @@
   "changeLog_label_tableEditor": "Table editor",
   "changeLog_label_reparse": "Reparsed dives",
   "changeLog_label_splitDive": "Split a dive",
+  "changeLog_label_removeSource": "Removed a data source",
+  "@changeLog_label_removeSource": {
+    "description": "Change log entry title for removing a data source from a dive."
+  },
+  "changeLog_label_removeDuplicateCylinders": "Removed duplicate cylinders",
+  "@changeLog_label_removeDuplicateCylinders": {
+    "description": "Change log entry title for merging duplicate cylinders on dives."
+  },
+  "changeLog_undoIncomplete": "Undo could not put everything back. The rest is in Settings > Data > Change log.",
+  "@changeLog_undoIncomplete": {
+    "description": "Snackbar shown when an Undo that reverts a change log operation left some records unrestored."
+  },
   "changeLog_label_gearTransfer": "Transferred gear",
   "changeLog_label_mediaRepair": "Repaired media links",
   "changeLog_label_gearFileConversion": "Moved gear files to Documents",

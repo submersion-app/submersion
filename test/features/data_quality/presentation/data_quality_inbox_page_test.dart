@@ -37,6 +37,7 @@ import 'package:submersion/features/dive_log/data/services/dive_split_service.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_actions.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -65,6 +66,24 @@ class _FakeFindingsRepository implements QualityFindingsRepository {
   @override
   Future<void> setStatus(String id, QualityStatus status) async {
     dismissed.add(id);
+  }
+
+  final dismissedAll = <String>[];
+  final reopened = <String>[];
+
+  bool failDismissAll = false;
+  bool failReopenAll = false;
+
+  @override
+  Future<void> dismissAll(Iterable<String> ids) async {
+    if (failDismissAll) throw StateError('database is locked');
+    dismissedAll.addAll(ids);
+  }
+
+  @override
+  Future<void> reopenAll(Iterable<String> ids) async {
+    if (failReopenAll) throw StateError('database is locked');
+    reopened.addAll(ids);
   }
 
   /// What the badge and the scan message count: the open findings only.
@@ -1935,6 +1954,108 @@ void main() {
       expect(await dcIsPrimary(), isTrue);
       await tester.pumpAndSettle(const Duration(seconds: 6));
     });
+
+    Future<bool> dcPresent() async =>
+        (await DiveRepository().getDataSources('d1')).any((s) => s.id == 'dc');
+
+    testWidgets('remove source asks first and changes nothing on cancel '
+        '(#4393)', (tester) async {
+      await seedSources();
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [conflict()]));
+      await tester.pumpAndSettle();
+
+      // Every action after the first shows on the expanded card.
+      await tester.tap(
+        find.text('Sources disagree on dive duration: 23 min vs. 68 min'),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Remove Suunto EON Core'));
+      await tester.tap(find.text('Remove Suunto EON Core'));
+      await tester.pumpAndSettle();
+      expect(find.text('Remove this source?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(await dcPresent(), isTrue);
+    });
+
+    testWidgets('remove source explains why a shared computer cannot be '
+        'removed (#4393)', (tester) async {
+      await seedSources();
+      await tester.runAsync(() async {
+        final db = DatabaseService.instance.database;
+        await db
+            .into(db.diveComputers)
+            .insert(
+              const DiveComputersCompanion(
+                id: Value('teric'),
+                name: Value('Teric'),
+                createdAt: Value(0),
+                updatedAt: Value(0),
+              ),
+            );
+        await (db.update(
+          db.diveDataSources,
+        )).write(const DiveDataSourcesCompanion(computerId: Value('teric')));
+      });
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [conflict()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(
+        find.text('Sources disagree on dive duration: 23 min vs. 68 min'),
+      );
+      await tester.pumpAndSettle();
+      // With a computer, the source is named after it, not the model.
+      final remove = find.textContaining(RegExp(r'^Remove '));
+      await tester.ensureVisible(remove);
+      await tester.tap(remove);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Remove this source?'), findsNothing);
+      expect(
+        find.text(
+          'This source shares its dive computer with another source of the '
+          'dive, so their readings cannot be told apart and it cannot be '
+          'removed on its own.',
+        ),
+        findsOneWidget,
+      );
+      // The display list merges two sources of one computer, so read the row.
+      final db = DatabaseService.instance.database;
+      final rows = await tester.runAsync(
+        () => (db.select(
+          db.diveDataSources,
+        )..where((t) => t.id.equals('dc'))).get(),
+      );
+      expect(rows, hasLength(1));
+      await tester.pumpAndSettle(const Duration(seconds: 5));
+    });
+
+    testWidgets('remove source removes it once confirmed (#4393)', (
+      tester,
+    ) async {
+      await seedSources();
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [conflict()]));
+      await tester.pumpAndSettle();
+
+      // Every action after the first shows on the expanded card.
+      await tester.tap(
+        find.text('Sources disagree on dive duration: 23 min vs. 68 min'),
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Remove Suunto EON Core'));
+      await tester.tap(find.text('Remove Suunto EON Core'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Source removed'), findsOneWidget);
+      expect(await dcPresent(), isFalse);
+      await tester.pumpAndSettle(const Duration(seconds: 11));
+    });
   });
 
   testWidgets('the logbook shift moves this dive alone, forward to the '
@@ -2622,5 +2743,254 @@ void main() {
 
     expect(find.byType(SnackBar), findsWidgets);
     await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  group('duplicate cylinders and dismiss all shown (#4393)', () {
+    QualityFinding twin({String id = 'twin-1', bool sameTransmitter = true}) =>
+        _f(
+          id: id,
+          detectorId: 'tank_assignment',
+          category: QualityCategory.tank,
+          params: {
+            'tankIdA': 'tank-a',
+            'tankIdB': 'tank-b',
+            'meanDiffBar': 0.0,
+            'sameTransmitter': sameTransmitter,
+          },
+        );
+
+    testWidgets('bulk removal shows only on the Tanks chip with serial-proven '
+        'twins', (tester) async {
+      final repo = _FakeFindingsRepository([twin()]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(bulkRemoveDuplicatesKey), findsNothing);
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(bulkRemoveDuplicatesKey), findsOneWidget);
+      expect(
+        find.byTooltip('Remove duplicate cylinders (1 dive)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('bulk removal is hidden for curve-only twins', (tester) async {
+      final repo = _FakeFindingsRepository([twin(sameTransmitter: false)]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(bulkRemoveDuplicatesKey), findsNothing);
+    });
+
+    testWidgets('dismiss all shown dismisses exactly the shown findings and '
+        'undo reopens them', (tester) async {
+      final gap = _f(
+        id: 'gap-1',
+        detectorId: 'sample_gap',
+        category: QualityCategory.profile,
+        params: const {'gapCount': 2, 'longestGapSeconds': 90},
+      );
+      final repo = _FakeFindingsRepository([twin(), gap]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(inboxOverflowMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all shown (1)'));
+      await tester.pumpAndSettle();
+      expect(find.text('Dismiss 1 finding?'), findsOneWidget);
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+
+      expect(repo.dismissedAll, ['twin-1']);
+      expect(find.text('Dismissed 1 finding'), findsOneWidget);
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(repo.reopened, ['twin-1']);
+    });
+
+    testWidgets('a failing Undo of dismiss all says so', (tester) async {
+      final repo = _FakeFindingsRepository([twin()])..failReopenAll = true;
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(inboxOverflowMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all shown (1)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Repair failed'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 6));
+    });
+
+    testWidgets('bulk removal with nothing left to merge says so', (
+      tester,
+    ) async {
+      // No tank rows: every twin finding is stale.
+      final repo = _FakeFindingsRepository([twin()]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(bulkRemoveDuplicatesKey));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Remove duplicate cylinders'), findsNothing);
+      expect(find.text('Nothing to repair here'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 6));
+    });
+
+    testWidgets('a failing dismiss all says so instead of doing nothing', (
+      tester,
+    ) async {
+      final repo = _FakeFindingsRepository([twin()])..failDismissAll = true;
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(inboxOverflowMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all shown (1)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Repair failed'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 6));
+    });
+
+    Future<void> seedTwin(WidgetTester tester) => tester.runAsync(() async {
+      await _seedDive('d1');
+      final db = DatabaseService.instance.database;
+      for (final id in ['tank-a', 'tank-b']) {
+        await db
+            .into(db.diveTanks)
+            .insert(
+              DiveTanksCompanion.insert(
+                id: id,
+                diveId: 'd1',
+                o2Percent: const Value(32),
+                transmitterSerial: const Value('X1'),
+              ),
+            );
+      }
+    });
+
+    Future<List<String>> tankIds(WidgetTester tester) async {
+      final db = DatabaseService.instance.database;
+      final rows = await tester.runAsync(() => db.select(db.diveTanks).get());
+      return [for (final t in rows!) t.id];
+    }
+
+    testWidgets('confirming a per-card removal merges and offers Undo', (
+      tester,
+    ) async {
+      await seedTwin(tester);
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [twin()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Remove duplicate cylinder'));
+      await tester.pumpAndSettle();
+      expect(find.text('Remove the duplicate cylinder?'), findsOneWidget);
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Removed on 1 dive'), findsOneWidget);
+      expect(await tankIds(tester), ['tank-a']);
+      await tester.pumpAndSettle(const Duration(seconds: 11));
+    });
+
+    testWidgets('a per-card removal whose rows have gone says so', (
+      tester,
+    ) async {
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [twin()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Remove duplicate cylinder'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Remove the duplicate cylinder?'), findsNothing);
+      expect(find.text('Nothing to repair here'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 6));
+    });
+
+    testWidgets('the bulk sheet runs the removal and reports it', (
+      tester,
+    ) async {
+      await seedTwin(tester);
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [twin()]));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(bulkRemoveDuplicatesKey));
+      await tester.pumpAndSettle();
+      expect(find.text('Remove duplicate cylinders'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Removed on 1 dive'), findsOneWidget);
+      expect(await tankIds(tester), ['tank-a']);
+      await tester.pumpAndSettle(const Duration(seconds: 11));
+    });
+
+    testWidgets('cancelling dismiss all changes nothing', (tester) async {
+      final repo = _FakeFindingsRepository([twin()]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(inboxOverflowMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all shown (1)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(repo.dismissedAll, isEmpty);
+    });
+
+    testWidgets('a twin whose mixes differ asks which mix to keep', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        await _seedDive('d1');
+        final db = DatabaseService.instance.database;
+        for (final (id, o2) in [('tank-a', 32.0), ('tank-b', 21.0)]) {
+          await db
+              .into(db.diveTanks)
+              .insert(
+                DiveTanksCompanion.insert(
+                  id: id,
+                  diveId: 'd1',
+                  o2Percent: Value(o2),
+                  transmitterSerial: const Value('X1'),
+                ),
+              );
+        }
+      });
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [twin()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Remove duplicate cylinder'));
+      await tester.pumpAndSettle();
+      expect(find.text('Which gas did this cylinder hold?'), findsOneWidget);
+      expect(find.text('EAN32'), findsOneWidget);
+      expect(find.text('Air'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
   });
 }

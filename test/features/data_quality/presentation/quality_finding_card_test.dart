@@ -565,7 +565,8 @@ void main() {
 
     testWidgets('secondary repair buttons render and fire', (tester) async {
       final repaired = <QualityRepairAction>[];
-      // source_conflict with sourceId -> SetPrimary(primary), Split, Compare
+      // source_conflict with sourceId -> SetPrimary(primary), Split, Remove,
+      // Compare
       await pumpCard(
         tester,
         finding: _finding(
@@ -577,11 +578,12 @@ void main() {
       // Primary rendered as FilledButton.tonal under the detail.
       expect(find.byType(FilledButton), findsOneWidget);
       await toggleExpand(tester);
-      // Secondary repairs (Split, Compare) + go-to-dive + dismiss = 4 TextButtons
+      // Secondary repairs (Split, Remove, Compare) + go-to-dive + dismiss = 5
+      // TextButtons
       final textButtons = tester.widgetList<TextButton>(
         find.byType(TextButton),
       );
-      expect(textButtons.length, 4);
+      expect(textButtons.length, 5);
       // Tap the first secondary repair (SplitSourceRepair).
       await tester.tap(find.byType(TextButton).first);
       await tester.pumpAndSettle();
