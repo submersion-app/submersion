@@ -124,6 +124,9 @@ final exempt = <String, String>{
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:saveComputerReadings',
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:setDiveGps',
     'lib/features/dive_log/data/repositories/safety_findings_repository.dart:saveReview',
+    // Gives a cylinder the serial a re-download of its computer reports
+    // (issue #4388).
+    'lib/features/dive_log/data/repositories/stored_tank_serial_fill.dart:writeStoredTankSerial',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyImportedMetadata',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:applyLocationDetails',
     'lib/features/dive_sites/data/repositories/site_repository_impl.dart:updateSiteAltitude',
@@ -156,6 +159,9 @@ final exempt = <String, String>{
     // Apple Health readings on a dive (issue #637).
     'lib/features/dive_log/data/repositories/dive_health_record_repository.dart:upsert',
     'lib/features/trips/data/repositories/trip_day_weather_repository.dart:upsert',
+    // Fills a set-up transmitter onto the dives an import or merge just
+    // wrote; applyToExistingDives is the agent's route (issue #4388).
+    'lib/features/transmitters/data/repositories/transmitter_repository.dart:applyToDives',
   ])
     method:
         'written by an import, a download, a device or the app\'s own derivation, not a diver\'s edit',

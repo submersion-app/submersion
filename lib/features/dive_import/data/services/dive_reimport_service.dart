@@ -23,6 +23,9 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
+import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 
 /// Outcome of one [DiveReimportService.applyReimport] call.
 class DiveReimportResult {
@@ -199,6 +202,10 @@ class DiveReimportService {
     });
 
     SyncEventBus.notifyLocalChange();
+    // A serial the resync just gave a cylinder gets its Transmitter item, as
+    // an import's does (#3676), and may be one the diver has set up (issue
+    // #4388). Best-effort, after the commit, like the computers.
+    await settleTransmittersForDives([diveId]);
     final computersAdded = await _addMissingComputers(
       diveId: diveId,
       diveData: diveData,
@@ -470,6 +477,13 @@ class DiveReimportService {
       // How long the file says the tank was breathed (issue #1496). A dive
       // imported before v259 has none stored, so this is how it gets one.
       final usageSeconds = (t['usageDuration'] as Duration?)?.inSeconds;
+      // The file's transmitter serial fills a cylinder that has none, so a
+      // dive imported before the parser read serials picks them up (issue
+      // #4388); a serial the cylinder has is never replaced, and a cylinder
+      // paired only by position must agree on its start pressure.
+      final serial = normalizeTransmitterSerial(
+        t['transmitterSerial'] as String?,
+      );
 
       final row = matched[i];
       if (row != null) {
@@ -493,6 +507,14 @@ class DiveReimportService {
             usageDuration: usageSeconds != null
                 ? Value(usageSeconds)
                 : const Value.absent(),
+            transmitterSerial: switch (serialToFill(
+              row,
+              readingSerial: serial,
+              readingStartPressure: startPressure,
+            )) {
+              final fill? => Value(fill),
+              null => const Value.absent(),
+            },
           ),
         );
         await _syncRepository.markRecordPending(
@@ -515,6 +537,7 @@ class DiveReimportService {
                 o2Percent: Value(o2Percent ?? 21.0),
                 hePercent: Value(hePercent ?? 0.0),
                 usageDuration: Value(usageSeconds),
+                transmitterSerial: Value(serial),
               ),
             );
         await _syncRepository.markRecordPending(
