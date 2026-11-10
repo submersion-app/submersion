@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "Remplacer",
   "diveLog_bulkEdit_modeUpdate": "Mettre à jour",
   "diveLog_bulkEdit_tankSpecsHint": "Choisis les attributs à écraser sur les blocs que ces plongées possèdent déjà. Les pressions de début et de fin ne sont jamais modifiées.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "Tous les blocs",
   "diveLog_bulkEdit_tankSpecsNoFields": "Choisis au moins un attribut de bloc à mettre à jour.",
   "diveLog_bulkEdit_tankFieldPreset": "Préréglage",
   "diveLog_bulkEdit_tankFieldRole": "Rôle",

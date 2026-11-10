@@ -2047,6 +2047,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Choisis les attributs à écraser sur les blocs que ces plongées possèdent déjà. Les pressions de début et de fin ne sont jamais modifiées.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Tous les blocs';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Choisis au moins un attribut de bloc à mettre à jour.';
 

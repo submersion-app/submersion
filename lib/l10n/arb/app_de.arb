@@ -477,6 +477,7 @@
   "diveLog_bulkEdit_modeReplace": "Ersetzen",
   "diveLog_bulkEdit_modeUpdate": "Aktualisieren",
   "diveLog_bulkEdit_tankSpecsHint": "Wähle aus, welche Eigenschaften der bereits vorhandenen Flaschen überschrieben werden. Anfangs- und Enddruck werden nie geändert.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "Alle Flaschen",
   "diveLog_bulkEdit_tankSpecsNoFields": "Wähle mindestens eine Flascheneigenschaft zum Aktualisieren.",
   "diveLog_bulkEdit_tankFieldPreset": "Vorlage",
   "diveLog_bulkEdit_tankFieldRole": "Rolle",

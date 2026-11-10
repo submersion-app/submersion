@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "Csere",
   "diveLog_bulkEdit_modeUpdate": "Frissítés",
   "diveLog_bulkEdit_tankSpecsHint": "Válaszd ki, mely tulajdonságok íródjanak felül a merülésekhez már tartozó palackokon. A kezdő és a záró nyomás soha nem változik.",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "Minden palack",
   "diveLog_bulkEdit_tankSpecsNoFields": "Válassz legalább egy palacktulajdonságot a frissítéshez.",
   "diveLog_bulkEdit_tankFieldPreset": "Előbeállítás",
   "diveLog_bulkEdit_tankFieldRole": "Szerep",

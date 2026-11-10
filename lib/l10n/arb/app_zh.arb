@@ -451,6 +451,7 @@
   "diveLog_bulkEdit_modeReplace": "替换",
   "diveLog_bulkEdit_modeUpdate": "更新",
   "diveLog_bulkEdit_tankSpecsHint": "选择要覆盖这些潜水已有气瓶的哪些属性。起始和结束压力不会被更改。",
+  "diveLog_bulkEdit_tankSpecsTemplateTitle": "所有气瓶",
   "diveLog_bulkEdit_tankSpecsNoFields": "请至少选择一个要更新的气瓶属性。",
   "diveLog_bulkEdit_tankFieldPreset": "预设",
   "diveLog_bulkEdit_tankFieldRole": "用途",

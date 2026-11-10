@@ -1960,6 +1960,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '选择要覆盖这些潜水已有气瓶的哪些属性。起始和结束压力不会被更改。';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => '所有气瓶';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields => '请至少选择一个要更新的气瓶属性。';
 
   @override

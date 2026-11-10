@@ -2042,6 +2042,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Elige qué atributos sobrescribir en las botellas que estas inmersiones ya tienen. Las presiones inicial y final nunca se modifican.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Todas las botellas';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'Elige al menos un atributo de botella para actualizar.';
 

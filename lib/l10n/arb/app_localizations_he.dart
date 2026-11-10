@@ -2017,6 +2017,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'בחר אילו מאפיינים לדרוס במיכלים שכבר קיימים בצלילות אלה. לחצי ההתחלה והסיום לעולם אינם משתנים.';
 
   @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'כל המכלים';
+
+  @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
       'בחר לפחות מאפיין אחד של מיכל לעדכון.';
 

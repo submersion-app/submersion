@@ -3136,6 +3136,12 @@ abstract class AppLocalizations {
   /// **'Choose which attributes to overwrite on the tanks these dives already have. Start and end pressures are never changed.'**
   String get diveLog_bulkEdit_tankSpecsHint;
 
+  /// No description provided for @diveLog_bulkEdit_tankSpecsTemplateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All tanks'**
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle;
+
   /// No description provided for @diveLog_bulkEdit_tankSpecsNoFields.
   ///
   /// In en, this message translates to:
