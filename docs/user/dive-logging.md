@@ -499,6 +499,10 @@ Words such as `ccr`, `nitrox`, `ean32`, `shore`, `salt water` and `favourite` fi
 dives by that setting. Put words in quotes to search for exactly those words.
 
 You can also write a query such as `depth > 30m`; the field suggests what to try.
+A number compares with the value as the app shows it: a dive listed at 27.1 ft
+is found by `depth = 27.1`, `depth <= 27.1` and `depth >= 27.1`, but not by
+`depth < 27.1` or `depth > 27.1`. Type more decimals than the list shows, such
+as `depth > 27.15`, to compare with the exact recorded value.
 To find dives missing something, write `trip:none` or `trip is blank`, and `trip is set` for the
 opposite. In the rule builder, choose a field such as Trip, then **Trip is not set** at the top of the list.
 You can also ask a question in plain words. The search can run **Within filters**
