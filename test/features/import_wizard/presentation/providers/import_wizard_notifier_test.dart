@@ -1598,7 +1598,11 @@ void main() {
             );
           });
           when(
-            mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+            mockTagRepo.getOrCreateTag(
+              'Vacation',
+              diverId: 'diver-1',
+              newTagScopes: TagScope.everywhere,
+            ),
           ).thenAnswer(
             (_) async => Tag(
               id: 'tag-new',
@@ -1641,7 +1645,11 @@ void main() {
         ).thenAnswer((_) async => importResult);
 
         when(
-          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+          mockTagRepo.getOrCreateTag(
+            'Vacation',
+            diverId: 'diver-1',
+            newTagScopes: TagScope.everywhere,
+          ),
         ).thenAnswer(
           (_) async => Tag(
             id: 'tag-new',
@@ -1655,7 +1663,11 @@ void main() {
         await notifier.performImport();
 
         verify(
-          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+          mockTagRepo.getOrCreateTag(
+            'Vacation',
+            diverId: 'diver-1',
+            newTagScopes: TagScope.everywhere,
+          ),
         ).called(1);
         verify(mockTagRepo.addTagToDive('dive-1', 'tag-new')).called(1);
       });
@@ -1707,13 +1719,25 @@ void main() {
           updatedAt: DateTime(2026),
         );
         when(
-          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-1'),
+          mockTagRepo.getOrCreateTag(
+            'Vacation',
+            diverId: 'diver-1',
+            newTagScopes: TagScope.everywhere,
+          ),
         ).thenAnswer((_) async => tag('v1', 'Vacation'));
         when(
-          mockTagRepo.getOrCreateTag('Existing', diverId: 'diver-2'),
+          mockTagRepo.getOrCreateTag(
+            'Existing',
+            diverId: 'diver-2',
+            newTagScopes: TagScope.everywhere,
+          ),
         ).thenAnswer((_) async => tag('e2', 'Existing'));
         when(
-          mockTagRepo.getOrCreateTag('Vacation', diverId: 'diver-2'),
+          mockTagRepo.getOrCreateTag(
+            'Vacation',
+            diverId: 'diver-2',
+            newTagScopes: TagScope.everywhere,
+          ),
         ).thenAnswer((_) async => tag('v2', 'Vacation'));
         when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});
 
