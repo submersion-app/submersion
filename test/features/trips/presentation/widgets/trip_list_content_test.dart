@@ -296,7 +296,15 @@ void main() {
       final overrides = await _buildPhoneOverrides(
         trips: all.take(1).toList(),
         allTrips: all,
-        filter: const TripFilterState(equipmentId: 'reg'),
+        // Both axes, so the test shows the query goes with the equipment.
+        filter: TripFilterState(
+          equipmentId: 'reg',
+          query: ConditionNode(
+            FieldPath(const ['tripType']),
+            QueryOp.inList,
+            ListValue(const [EnumValue('liveaboard')]),
+          ),
+        ),
       );
       await tester.pumpWidget(
         testApp(

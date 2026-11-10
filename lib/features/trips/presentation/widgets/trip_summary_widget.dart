@@ -10,7 +10,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/shared/models/list_entry_count.dart';
 import 'package:submersion/shared/widgets/filtered_summary_banner.dart';
 
 /// Summary widget shown when no trip is selected.
@@ -18,47 +17,23 @@ import 'package:submersion/shared/widgets/filtered_summary_banner.dart';
 /// It summarizes the trips the list beside it shows. Under a trip list
 /// filter (an equipment item's Trips row opens one) that is the filtered
 /// trips alone, with a banner saying so, never every trip (issue #4414).
-class TripSummaryWidget extends ConsumerStatefulWidget {
+///
+/// It reads exactly what the list reads, so while a new filter's trips load
+/// it shows a spinner as the list does. It keeps no earlier trips to show
+/// meanwhile: they would sit under the new filter's banner as tappable rows
+/// the list does not show.
+class TripSummaryWidget extends ConsumerWidget {
   const TripSummaryWidget({super.key});
 
   @override
-  ConsumerState<TripSummaryWidget> createState() => _TripSummaryWidgetState();
-}
-
-class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
-  // The last filtered trips and count shown. A change from one filter to
-  // another reloads the filtered trips with no previous value
-  // (narrowByIds), so these keep the overview and its banner on screen
-  // until the new trips land, as the Dive Log summary keeps its totals,
-  // instead of blanking to a spinner. Only a filtered result is kept: an
-  // unfiltered overview under a "Filtered" banner would misread as the
-  // filter's.
-  List<TripWithStats>? _lastTrips;
-  ListEntryCount? _lastCount;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isFiltered = ref.watch(tripFilterProvider).hasActiveFilters;
     final tripsAsync = ref.watch(filteredTripsProvider);
     // The list's own entry count, so the banner and the list's "3 of 12
     // trips" subtitle can never disagree.
-    final liveCount = ref.watch(tripListCountProvider);
-    // A reload of the trip list itself (another diver, say) or an error
-    // shows no earlier figures, as the list and its count show none: only
-    // a filter's own id query in flight falls back to them. The reload also
-    // forgets them, so a filter query still running once the new list
-    // lands cannot bring back the previous list's trips.
-    final listReloading = ref.watch(tripListNotifierProvider).isLoading;
-    final keepLast = isFiltered && tripsAsync.isLoading && !listReloading;
-    if (!isFiltered || tripsAsync.hasError || listReloading) {
-      _lastTrips = null;
-      _lastCount = null;
-    } else {
-      if (tripsAsync.hasValue) _lastTrips = tripsAsync.value;
-      if (liveCount != null) _lastCount = liveCount;
-    }
-    final trips = keepLast ? _lastTrips : tripsAsync.value;
-    final count = liveCount ?? (keepLast ? _lastCount : null);
+    final count = ref.watch(tripListCountProvider);
+    final units = ref.watch(unitFormatterProvider);
+    final trips = tripsAsync.value;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -81,14 +56,14 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
               ),
             ],
             const SizedBox(height: 24),
-            if (trips != null)
-              _buildOverview(context, ref, trips)
-            else if (tripsAsync.hasError)
+            if (tripsAsync.hasError)
               // The repository logs the failure; the diver gets a plain
               // line.
               Center(child: Text(context.l10n.trips_list_error_loading))
+            else if (trips == null)
+              const Center(child: CircularProgressIndicator())
             else
-              const Center(child: CircularProgressIndicator()),
+              _buildOverview(context, units, trips),
             const SizedBox(height: 24),
             _buildQuickActions(context),
             const SizedBox(height: 32),
@@ -131,7 +106,7 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
 
   Widget _buildOverview(
     BuildContext context,
-    WidgetRef ref,
+    UnitFormatter units,
     List<TripWithStats> trips,
   ) {
     // Calculate stats
@@ -208,11 +183,11 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
         ),
         if (trips.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildTripListPreview(context, ref, trips),
+          _buildTripListPreview(context, units, trips),
         ],
         if (upcomingTrips.isNotEmpty) ...[
           const SizedBox(height: 24),
-          _buildUpcomingTrips(context, ref, upcomingTrips),
+          _buildUpcomingTrips(context, units, upcomingTrips),
         ],
       ],
     );
@@ -269,14 +244,13 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
 
   Widget _buildTripListPreview(
     BuildContext context,
-    WidgetRef ref,
+    UnitFormatter units,
     List<TripWithStats> trips,
   ) {
     // Sort by start date descending and take recent 3
     final sortedTrips = List<TripWithStats>.from(trips)
       ..sort((a, b) => b.trip.startDate.compareTo(a.trip.startDate));
     final previewTrips = sortedTrips.take(3).toList();
-    final units = ref.watch(unitFormatterProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,10 +301,9 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
 
   Widget _buildUpcomingTrips(
     BuildContext context,
-    WidgetRef ref,
+    UnitFormatter units,
     List<TripWithStats> upcomingTrips,
   ) {
-    final units = ref.watch(unitFormatterProvider);
     final nextTrip = upcomingTrips.first;
     // Whole calendar days to the start date. Subtracting the current instant
     // instead would floor away the rest of today (a trip four calendar days

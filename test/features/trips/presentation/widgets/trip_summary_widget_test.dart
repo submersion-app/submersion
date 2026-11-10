@@ -366,9 +366,10 @@ void main() {
     });
 
     // A new filter's trip ids take a query's time and arrive with no
-    // previous value; the overview keeps what it showed until they land,
-    // rather than blanking to a spinner on every filter change.
-    testWidgets('keeps the last overview while a new filter loads', (
+    // previous value. Until they land the overview waits, as the list does:
+    // the previous filter's trips would sit under the new filter's banner
+    // as rows the list does not show.
+    testWidgets("shows no earlier filter's trips while a new filter loads", (
       tester,
     ) async {
       final second = Completer<Set<String>>();
@@ -389,9 +390,9 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('Belgium'), findsOneWidget);
-      expect(find.text('Filtered: summarizing 1 of 4 trips'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Belgium'), findsNothing);
+      expect(find.textContaining('of 4 trips'), findsNothing);
 
       second.complete(const {'a', 'd'});
       await tester.pumpAndSettle();
@@ -399,6 +400,32 @@ void main() {
       expect(find.text('Filtered: summarizing 2 of 4 trips'), findsOneWidget);
       expect(find.text('Sardinia'), findsOneWidget);
       expect(find.text('Belgium'), findsNothing);
+    });
+
+    // A failed id query shows the error line, never the previous filter's
+    // trips as if they were this filter's.
+    testWidgets('a failed filter query keeps no earlier trips', (tester) async {
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        idsFor: (filter) => filter == byTank
+            ? Future.value(const {'b'})
+            : Future.error(StateError('query failed')),
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+      expect(find.text('Belgium'), findsOneWidget);
+
+      container.read(tripFilterProvider.notifier).state = const TripFilterState(
+        equipmentId: 'tank-2',
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Belgium'), findsNothing);
+      expect(find.text("Couldn't load your trips."), findsOneWidget);
     });
 
     // The unfiltered overview is not the filter's: it must not stand under
