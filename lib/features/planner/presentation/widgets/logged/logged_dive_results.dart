@@ -15,7 +15,6 @@ import 'package:submersion/features/planner/presentation/widgets/plan_runtime_ta
 import 'package:submersion/features/planner/presentation/widgets/range_table_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
-import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 
 /// The results for a logged dive picked in the series bar (issue #3565), in
 /// the results pane's place: what it carries into the next dive, two tiles
@@ -186,12 +185,7 @@ class _AsPlanned extends ConsumerWidget {
           const SizedBox(height: 20),
           PlanSectionHeader(
             l10n.plannerCanvas_range_title,
-            info: (context) => termsInfo(
-              context.l10n,
-              infoUnits(context),
-              title: context.l10n.plannerCanvas_range_title,
-              summary: context.l10n.info_planner_range_summary,
-            ),
+            info: (context) => planRangeInfo(context.l10n, infoUnits(context)),
           ),
           RangeTableGrid(table: rangeTable, units: units),
         ],

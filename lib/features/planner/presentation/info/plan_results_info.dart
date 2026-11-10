@@ -50,6 +50,16 @@ InfoContent planGasInfo(AppLocalizations l10n, UnitFormatter units) =>
       ],
     );
 
+/// The Range section: how the schedule changes if the dive goes deeper or
+/// stays longer than planned.
+InfoContent planRangeInfo(AppLocalizations l10n, UnitFormatter units) =>
+    termsInfo(
+      l10n,
+      units,
+      title: l10n.plannerCanvas_range_title,
+      summary: l10n.info_planner_range_summary,
+    );
+
 /// The logged-dive carry card.
 InfoContent planCarryInfo(
   AppLocalizations l10n,

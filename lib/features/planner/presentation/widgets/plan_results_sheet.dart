@@ -158,12 +158,8 @@ class PlanResultsSheet extends ConsumerWidget {
             const SizedBox(height: 20),
             PlanSectionHeader(
               context.l10n.plannerCanvas_range_title,
-              info: (context) => termsInfo(
-                context.l10n,
-                infoUnits(context),
-                title: context.l10n.plannerCanvas_range_title,
-                summary: context.l10n.info_planner_range_summary,
-              ),
+              info: (context) =>
+                  planRangeInfo(context.l10n, infoUnits(context)),
             ),
             const RangeTableSection(),
           ],

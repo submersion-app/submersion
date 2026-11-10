@@ -3029,6 +3029,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.profile.isEmpty) {
+      // Drawing no overlays now, so the card's info icon lists none.
+      _legendSnapshot?.release(this);
+      _legendSnapshot = null;
       return _buildEmptyState(context);
     }
 
