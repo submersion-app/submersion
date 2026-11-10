@@ -2173,6 +2173,9 @@ class _AboutSectionContentState extends ConsumerState<_AboutSectionContent> {
                       context: context,
                       applicationName: context.l10n.settings_about_appName,
                       applicationVersion: versionString,
+                      // Matches the licenses page the About dialog opens,
+                      // which carries the build date the same way.
+                      applicationLegalese: builtOn,
                     );
                   },
                 ),

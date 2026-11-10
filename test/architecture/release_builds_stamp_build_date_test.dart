@@ -29,7 +29,11 @@ const _mustHaveReleaseBuilds = <String>[
 
 /// A `flutter build` that runs, not one a message quotes: the command starts
 /// a line or follows whitespace, `(`, `&`, `;` or `|`, never a quote mark.
-final _releaseBuild = RegExp(r'(?:^|[\s(&;|])flutter build \w+.*--release');
+final _flutterBuild = RegExp(r'(?:^|[\s(&;|])flutter build \w+');
+
+/// `flutter build` is a release build unless it asks for another mode, so a
+/// command counts as release whether or not it spells out `--release`.
+final _nonReleaseMode = RegExp(r'--(debug|profile)\b');
 
 /// The release `flutter build` commands in [source], each with its shell
 /// continuation lines (a trailing backslash) joined on, comments skipped.
@@ -47,14 +51,17 @@ List<String> releaseBuildCommands(String source) {
       buffer.write(' ${lines[j]}');
     }
     final command = buffer.toString();
-    if (_releaseBuild.hasMatch(command)) commands.add(command.trim());
+    if (_flutterBuild.hasMatch(command) && !_nonReleaseMode.hasMatch(command)) {
+      commands.add(command.trim());
+    }
   }
   return commands;
 }
 
 List<String> _pipelineFiles() {
   final files = <String>[];
-  for (final dir in ['.github/workflows', 'scripts']) {
+  // All of .github, so a build moved into a composite action is still read.
+  for (final dir in ['.github', 'scripts']) {
     for (final entity in Directory(dir).listSync(recursive: true)) {
       if (entity is! File) continue;
       final ext = p.extension(entity.path);
@@ -104,6 +111,16 @@ void main() {
         releaseBuildCommands('sh("cd ../.. && flutter build ios --release")'),
         hasLength(1),
       );
+    });
+
+    test('counts a build with no mode flag as release, its default', () {
+      expect(releaseBuildCommands('run: flutter build ipa --foo'), [
+        'run: flutter build ipa --foo',
+      ]);
+    });
+
+    test('skips profile builds', () {
+      expect(releaseBuildCommands('flutter build apk --profile'), isEmpty);
     });
 
     test('skips debug builds and comments', () {

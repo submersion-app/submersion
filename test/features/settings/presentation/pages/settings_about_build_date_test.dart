@@ -122,6 +122,18 @@ void main() {
     );
   });
 
+  testWidgets('the licenses page from the tile shows the build date', (
+    tester,
+  ) async {
+    await pumpAbout(tester, buildDate: DateTime(2026, 11, 9));
+
+    await tester.tap(find.text('Open Source Licenses'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LicensePage), findsOneWidget);
+    expect(find.text('Built 9 Nov 2026'), findsOneWidget);
+  });
+
   testWidgets('the About dialog has no date line without a date', (
     tester,
   ) async {

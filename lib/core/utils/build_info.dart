@@ -2,8 +2,9 @@
 ///
 /// The release pipelines stamp it with `--dart-define=BUILD_DATE=YYYY-MM-DD`,
 /// the build machine's UTC calendar date. Local and debug builds pass nothing,
-/// so they have no date. `test/architecture/release_builds_stamp_build_date_
-/// test.dart` keeps every shipped release build passing the flag.
+/// so they have no date. The architecture test
+/// `release_builds_stamp_build_date_test.dart` keeps every shipped release
+/// build passing the flag.
 library;
 
 /// The raw BUILD_DATE dart-define; empty on a build that did not pass it.
@@ -30,5 +31,6 @@ DateTime? parseBuildDate(String raw) {
   return date;
 }
 
-/// This build's date, or null for a build without a stamp.
-DateTime? get appBuildDate => parseBuildDate(buildDateDefine);
+/// This build's date, or null for a build without a stamp. Parsed once, on
+/// first read: the stamp cannot change while the app runs.
+final DateTime? appBuildDate = parseBuildDate(buildDateDefine);
