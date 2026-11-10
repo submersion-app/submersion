@@ -11,9 +11,6 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     // Characteristic scoring and the device-specific Tx/Rx preferences live in
     // BleCharacteristicSelector so they can be unit-tested standalone.
 
-    private static let pelagicGen1TxCharacteristic = CBUUID(
-        string: "6606AB42-89D5-4A00-A8CE-4EB5E1414EE0"
-    )
     private static let notifySettleDelaySeconds: TimeInterval = 0.3
     /// Bound on the opening credit grant.
     ///
@@ -673,10 +670,10 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
 
     private func initialWriteWithoutResponsePreference(for characteristic: CBCharacteristic) -> Bool {
         let properties = characteristic.properties
-        if characteristic.uuid == Self.pelagicGen1TxCharacteristic {
-            return true
-        }
-        return properties.contains(.writeWithoutResponse) && !properties.contains(.write)
+        return BleWriteModePolicy.prefersWithoutResponse(
+            characteristicUuid: characteristic.uuid.uuidString,
+            supportsWrite: properties.contains(.write),
+            supportsWriteWithoutResponse: properties.contains(.writeWithoutResponse))
     }
 
     private func maybeFlipWriteModeAfterReadTimeout() {

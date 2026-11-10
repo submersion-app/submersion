@@ -137,3 +137,12 @@ swiftc -o "$BUILD_DIR/read_poll_policy_tests" \
     Tests/ReadPollPolicyTests/main.swift
 
 "$BUILD_DIR/read_poll_policy_tests"
+
+# Initial BLE write mode (issue #4332). Shearwater block requests go out
+# without waiting for an ATT write response, matching the Android transport;
+# every other characteristic keeps its existing default.
+swiftc -o "$BUILD_DIR/ble_write_mode_policy_tests" \
+    Sources/LibDCDarwin/BleWriteModePolicy.swift \
+    Tests/BleWriteModePolicyTests/main.swift
+
+"$BUILD_DIR/ble_write_mode_policy_tests"
