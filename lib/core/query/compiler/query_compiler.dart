@@ -354,17 +354,10 @@ class _Ctx {
       case QueryOp.inList:
         if (value is DateRangeValue) return _dateRange(col, value, f);
         final items = (value as ListValue).items;
-        final c = col();
-        if (f.type == FieldType.text) {
-          for (final v in items) {
-            params.add((v as StringValue).value);
-          }
-          final ph = List.filled(items.length, 'unicode_lower(?)').join(', ');
-          return '(unicode_lower($c) IN ($ph))';
-        }
         if (items.any(_hasGrain)) {
-          // Each value as shown is a band, so the list is their union. The
-          // column read above is unused: every band reads its own.
+          // Each value as shown is a band, so the list is their union. Every
+          // band reads the column itself, so no read is made up front: one
+          // left unused would still bind its diver token.
           final each = [
             for (final v in items)
               _hasGrain(v)
@@ -372,6 +365,14 @@ class _Ctx {
                   : '(${_exactEq(f, col, v)})',
           ];
           return '(${each.join(' OR ')})';
+        }
+        final c = col();
+        if (f.type == FieldType.text) {
+          for (final v in items) {
+            params.add((v as StringValue).value);
+          }
+          final ph = List.filled(items.length, 'unicode_lower(?)').join(', ');
+          return '(unicode_lower($c) IN ($ph))';
         }
         for (final v in items) {
           params.add(_bind(f, v));
@@ -446,10 +447,12 @@ class _Ctx {
           ? '(unicode_lower($c) = unicode_lower(?))'
           : '(unicode_lower($c) != unicode_lower(?))';
     }
-    if (value is NumberValue && value.grain != null) {
-      final band = _shownBand(col, value);
-      if (positive) return '($band)';
+    if (_hasGrain(value)) {
+      if (positive) return '(${_shownBand(col, value as NumberValue)})';
+      // Read in the order the SQL is written, so each read's diver token
+      // binds before the band's values.
       final present = col();
+      final band = _shownBand(col, value as NumberValue);
       return '(($present) IS NOT NULL AND NOT $band)';
     }
     if (positive) return '(${_exactEq(f, col, value)})';
@@ -498,8 +501,8 @@ class _Ctx {
     String sym,
     QueryValue v,
   ) {
-    if (v is! NumberValue || v.grain == null) return _cmp(f, read, sym, v);
-    final half = v.grain! / 2;
+    if (!_hasGrain(v)) return _cmp(f, read, sym, v);
+    final half = (v as NumberValue).grain! / 2;
     final (edge, bound) = switch (sym) {
       '>' => ('>=', v.value + half),
       '>=' => ('>=', v.value - half),

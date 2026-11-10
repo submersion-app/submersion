@@ -122,7 +122,9 @@ QueryValue _readValue(Map<String, Object?> m) {
       // Absent in a query saved before issue #4398: it compares exactly,
       // as it always did.
       final g = m['g'];
-      if (g != null && g is! num) {
+      // A step is a positive width: zero would match nothing, a negative
+      // one would turn every band inside out.
+      if (g != null && (g is! num || !g.isFinite || g <= 0)) {
         throw const QueryJsonException('bad number grain');
       }
       return NumberValue(

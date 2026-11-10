@@ -1,6 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/domain/query_subject.dart';
+import 'package:submersion/core/query/registry/query_entity.dart';
+import 'package:submersion/core/query/registry/query_field.dart';
+import 'package:submersion/core/query/registry/query_registry.dart';
 
 import '../fixtures/fixture_registry.dart';
 
@@ -77,5 +81,51 @@ void main() {
     expect(gt.params, [30.0]);
     final eq = c(QueryOp.eq, const NumberValue(30, null));
     expect(eq.where, '(r0.max_depth = ?)');
+  });
+
+  test('a field read through a diver token binds in the order written', () {
+    // Every read of the column binds the diver before the band's values,
+    // and no read is made that the SQL does not use.
+    const deepest = QueryEntity(
+      subject: QuerySubject.sites,
+      table: 'dive_sites',
+      fields: [
+        QueryField(
+          key: 'deepest',
+          type: FieldType.number,
+          dimension: FieldDimension.depth,
+          sql:
+              '(SELECT MAX(x.max_depth) FROM dives x '
+              'WHERE x.site_id = {r}.id{diver:x})',
+          emptySql: 'FALSE',
+          labelKey: 'x',
+        ),
+      ],
+    );
+    final registry = QueryRegistry([deepest]);
+    CompiledQuery q(QueryOp op, QueryValue v) => compileQuery(
+      ConditionNode(FieldPath(['deepest']), op, v),
+      deepest,
+      registry,
+      diverId: 'me',
+    );
+    int marks(String sql) => '?'.allMatches(sql).length;
+
+    final neq = q(QueryOp.neq, shown);
+    expect(neq.params, hasLength(marks(neq.where)));
+    expect(neq.params[0], 'me', reason: 'the presence read comes first');
+    expect(neq.params.sublist(1, 3), ['me', closeTo(29.95, 1e-9)]);
+    expect(neq.params.sublist(3), ['me', closeTo(30.05, 1e-9)]);
+
+    final inList = q(
+      QueryOp.inList,
+      ListValue([const NumberValue(18, null, grain: 0.1), shown]),
+    );
+    expect(
+      inList.params,
+      hasLength(marks(inList.where)),
+      reason: 'no unused read leaves a diver bound',
+    );
+    expect(inList.params.first, 'me');
   });
 }

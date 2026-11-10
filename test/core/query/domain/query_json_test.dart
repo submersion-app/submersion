@@ -152,6 +152,14 @@ void main() {
         'op': 'gt',
         'value': {'k': 'num', 'v': 1},
       },
+      // a grain that is not a positive width (#4398)
+      for (final g in <Object>['wide', 0, -0.1])
+        {
+          't': 'cond',
+          'path': ['depth'],
+          'op': 'gt',
+          'value': {'k': 'num', 'v': 1, 'g': g},
+        },
       // children that are not maps
       {
         't': 'and',
