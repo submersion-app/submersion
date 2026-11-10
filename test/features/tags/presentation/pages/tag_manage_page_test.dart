@@ -978,6 +978,51 @@ void main() {
         expect(ticked(tester), labels.toSet());
         expect(find.text(note), findsNothing);
       });
+
+      testWidgets('its own scopes cannot be unticked, as Save keeps them', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(FloatingActionButton));
+        await tester.pumpAndSettle();
+        // Unticked before the name matches a dives-only tag.
+        tester
+            .widget<CheckboxListTile>(
+              find.widgetWithText(CheckboxListTile, 'Use for dives'),
+            )
+            .onChanged!(false);
+        await tester.pump();
+        await tester.enterText(find.byType(TextField).last, 'Night Dive');
+        await tester.pump();
+
+        expect(ticked(tester), contains('Use for dives'));
+        final dives = tester.widget<CheckboxListTile>(
+          find.widgetWithText(CheckboxListTile, 'Use for dives'),
+        );
+        expect(dives.onChanged, isNull);
+      });
+
+      testWidgets('is found while the tag list reloads', (tester) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+        // The real notifier drops its value while it reloads after an add.
+        // ignore: invalid_use_of_protected_member
+        notifier.state = const AsyncValue.loading();
+
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+
+        expect(ticked(tester), {'Use for dives'});
+        expect(find.text(note), findsOneWidget);
+      });
     });
 
     testWidgets('a create saves the chosen color and scope', (tester) async {

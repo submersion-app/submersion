@@ -250,10 +250,21 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
 
   /// The diver's tag named [text], matched as the repository matches names:
   /// trimmed and ignoring case. Null for no match.
+  ///
+  /// The tag list drops its value while it reloads (after any add), so the
+  /// page's own statistics, which keep theirs, stand in meanwhile. Missing a
+  /// match would tick every scope and Save would widen that tag to all.
   Tag? _tagNamed(String text) {
     final wanted = text.trim().toLowerCase();
     if (wanted.isEmpty) return null;
-    final tags = ref.read(tagListNotifierProvider).value ?? const <Tag>[];
+    final tags =
+        ref.read(tagListNotifierProvider).value ??
+        [
+          for (final stat
+              in ref.read(tagStatisticsProvider).value ??
+                  const <TagStatistic>[])
+            stat.tag,
+        ];
     for (final tag in tags) {
       if (tag.name.trim().toLowerCase() == wanted) return tag;
     }
@@ -297,8 +308,13 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                     ),
                     onChanged: (text) => setDialogState(() {
                       existing = _tagNamed(text);
+                      final held = existing?.scopes;
                       if (!scopesChosen) {
-                        scopes = existing?.scopes ?? TagScope.everywhere;
+                        scopes = held ?? TagScope.everywhere;
+                      } else if (held != null) {
+                        // Save only adds to an existing tag, so what it
+                        // already has stays ticked.
+                        scopes = scopes.union(held);
                       }
                     }),
                   ),
@@ -316,6 +332,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                   const SizedBox(height: 8),
                   ..._scopeEditor(
                     scopes: scopes,
+                    // Save never narrows an existing tag (Manage Tags' edit
+                    // dialog does), so its own scopes cannot be unticked.
+                    locked: existing?.scopes ?? const {},
                     // Applied to the dialog's current set, never replaced
                     // in place, so a Save already under way keeps its own.
                     onToggle: (scope, on) => setDialogState(() {
@@ -587,6 +606,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   List<Widget> _scopeEditor({
     required Set<TagScope> scopes,
     required void Function(TagScope scope, bool on) onToggle,
+    Set<TagScope> locked = const {},
   }) {
     final l10n = context.l10n;
     return [
@@ -595,7 +615,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           contentPadding: EdgeInsets.zero,
           title: Text(tagScopeUseForLabel(l10n, scope)),
           value: scopes.contains(scope),
-          onChanged: (v) => onToggle(scope, v ?? false),
+          onChanged: locked.contains(scope)
+              ? null
+              : (v) => onToggle(scope, v ?? false),
         ),
       if (scopes.isEmpty)
         Text(
