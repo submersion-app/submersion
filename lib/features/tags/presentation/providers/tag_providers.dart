@@ -175,7 +175,6 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
       colorHex: colorHex,
       diverId: validatedId,
       scope: scope,
-      newTagScopes: TagScope.everywhere,
     );
     await _loadTags();
     _ref.invalidate(tagStatisticsProvider);

@@ -518,9 +518,17 @@ class PayloadMerger {
     Map<String, dynamic> item,
   ) {
     if (type != ImportEntityType.tags) return;
+    // Two records that say nothing of scopes stay silent, so the tag, if
+    // new, is still offered everywhere (issue #4407).
+    bool states(Map<String, dynamic> r) =>
+        importTagScopeKeys.values.any((k) => r[k] != null);
+    if (!states(survivor) && !states(item)) return;
     final scopes = {...importedTagScopes(survivor), ...importedTagScopes(item)};
     for (final MapEntry(key: scope, value: key) in importTagScopeKeys.entries) {
       survivor[key] = scopes.contains(scope);
+    }
+    if (item[importTagNewEverywhereKey] == true) {
+      survivor[importTagNewEverywhereKey] = true;
     }
   }
 

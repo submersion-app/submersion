@@ -31,11 +31,21 @@ void main() {
         type: EquipmentType.regulator,
       ),
     )).id;
-    night = await TagRepository().getOrCreateTag('Night', diverId: 'd1');
-    rental = await TagRepository().getOrCreateTag(
-      'Rental',
-      diverId: 'd1',
-      scope: TagScope.equipment,
+    night = await TagRepository().createTag(
+      Tag.create(
+        id: '',
+        name: 'Night',
+        diverId: 'd1',
+        scopes: const {TagScope.dives},
+      ),
+    );
+    rental = await TagRepository().createTag(
+      Tag.create(
+        id: '',
+        name: 'Rental',
+        diverId: 'd1',
+        scopes: const {TagScope.equipment},
+      ),
     );
     link = ImportEquipmentTagLinker(
       tags: TagRepository(),

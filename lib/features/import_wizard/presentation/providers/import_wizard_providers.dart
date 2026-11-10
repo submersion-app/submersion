@@ -26,7 +26,6 @@ import 'package:submersion/features/rules/data/services/import_rules_pass.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 
@@ -1362,12 +1361,10 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         if (!tagSelection.isNew && diverId == _diverId) {
           tagIds.add(tagSelection.existingTagId!);
         } else {
-          // A tag the user names here is offered everywhere, as one made
-          // anywhere else in the app is (issue #4407).
+          // A new one is offered everywhere, as any new tag is (#4407).
           final tag = await _tagRepository!.getOrCreateTag(
             tagSelection.name,
             diverId: diverId,
-            newTagScopes: TagScope.everywhere,
           );
           tagIds.add(tag.id);
         }

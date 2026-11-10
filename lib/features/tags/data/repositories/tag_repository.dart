@@ -236,15 +236,14 @@ class TagRepository {
 
   /// Create a tag or get existing if name already exists. The tag comes back
   /// offered in [scope]: an existing tag lacking it is widened to [scope]
-  /// alone (issue #1765), so a tag narrowed on purpose stays narrow.
-  /// [newTagScopes] is where a newly created tag is offered, [scope] only
-  /// when null (issue #4407); [scope] is added to it either way.
+  /// alone (issue #1765), so a tag narrowed on purpose stays narrow. A new
+  /// tag is offered everywhere, so it can be reused on any kind of item
+  /// (issue #4407); a caller wanting it narrower uses [createTag].
   Future<domain.Tag> getOrCreateTag(
     String name, {
     String? colorHex,
     String? diverId,
     domain.TagScope scope = domain.TagScope.dives,
-    Set<domain.TagScope>? newTagScopes,
   }) async {
     try {
       // Check if tag with this name exists for this diver
@@ -261,7 +260,7 @@ class TagRepository {
           diverId: diverId,
           name: name.trim(),
           colorHex: colorHex,
-          scopes: {scope, ...?newTagScopes},
+          scopes: domain.TagScope.everywhere,
         ),
         widenExistingTo: {scope},
       );

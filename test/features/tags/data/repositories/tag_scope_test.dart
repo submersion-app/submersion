@@ -22,6 +22,10 @@ void main() {
 
   tearDown(() async => tearDownTestDatabase());
 
+  /// A tag offered in [scopes] only, as one narrowed in Manage Tags is.
+  Future<Tag> narrow(String name, Set<TagScope> scopes) =>
+      repository.createTag(Tag.create(id: '', name: name, scopes: scopes));
+
   Future<void> linkSite(String siteId, String tagId) =>
       DatabaseService.instance.database.customStatement(
         "INSERT INTO site_tags (id, site_id, tag_id, created_at) "
@@ -31,10 +35,7 @@ void main() {
   test(
     'site tag changes emit on the link watcher, so the site counts refresh',
     () async {
-      final tag = await repository.getOrCreateTag(
-        'To try',
-        scope: TagScope.sites,
-      );
+      final tag = await narrow('To try', {TagScope.sites});
       final emitted = <void>[];
       final sub = repository.watchTagLinkChanges().listen(emitted.add);
       addTearDown(sub.cancel);
@@ -57,26 +58,34 @@ void main() {
     },
   );
 
-  test('a tag created from the site picker applies to sites only', () async {
-    final tag = await repository.getOrCreateTag(
-      'To try',
-      scope: TagScope.sites,
-    );
-    expect(tag.appliesTo(TagScope.sites), isTrue);
-    expect(tag.appliesTo(TagScope.dives), isFalse);
-    final stored = await repository.getTagById(tag.id);
-    expect(stored!.appliesTo(TagScope.sites), isTrue);
-    expect(stored.appliesTo(TagScope.dives), isFalse);
-  });
+  test(
+    'a tag created from the site picker applies everywhere (#4407)',
+    () async {
+      final tag = await repository.getOrCreateTag(
+        'To try',
+        scope: TagScope.sites,
+      );
+      expect(tag.scopes, TagScope.everywhere);
+      final stored = await repository.getTagById(tag.id);
+      expect(stored!.scopes, TagScope.everywhere);
+    },
+  );
 
-  test('a tag created without a scope stays a dive tag', () async {
-    final tag = await repository.getOrCreateTag('Night');
-    expect(tag.appliesTo(TagScope.dives), isTrue);
-    expect(tag.appliesTo(TagScope.sites), isFalse);
+  test('a tag created by name applies everywhere (#4407)', () async {
+    // Whichever scope asked for it, so it can be reused on any kind of item.
+    for (final (name, scope) in const [
+      ('Night', TagScope.dives),
+      ('Wreck', TagScope.media),
+    ]) {
+      final tag = await repository.getOrCreateTag(name, scope: scope);
+      expect(tag.scopes, TagScope.everywhere, reason: name);
+      final stored = await repository.getTagById(tag.id);
+      expect(stored!.scopes, TagScope.everywhere, reason: name);
+    }
   });
 
   test('a name collision widens the existing tag instead of failing', () async {
-    final diveTag = await repository.getOrCreateTag('Night');
+    final diveTag = await narrow('Night', {TagScope.dives});
     final widened = await repository.getOrCreateTag(
       'night',
       scope: TagScope.sites,
@@ -89,37 +98,22 @@ void main() {
     expect(stored!.appliesTo(TagScope.sites), isTrue);
   });
 
-  test('newTagScopes sets where a newly created tag applies (#4407)', () async {
-    final tag = await repository.getOrCreateTag(
-      'Wreck',
-      scope: TagScope.media,
-      newTagScopes: TagScope.everywhere,
+  test('an existing narrowed tag is widened to the scope only', () async {
+    // A tag someone narrowed on purpose stays narrow: reusing it from
+    // another scope adds that one scope, not every scope (#4407).
+    final diveTag = await narrow('Night', {TagScope.dives});
+    final reused = await repository.getOrCreateTag(
+      'Night',
+      scope: TagScope.sites,
     );
-    expect(tag.scopes, TagScope.values.toSet());
-    final stored = await repository.getTagById(tag.id);
-    expect(stored!.scopes, TagScope.values.toSet());
+    expect(reused.id, diveTag.id);
+    expect(reused.scopes, {TagScope.dives, TagScope.sites});
   });
-
-  test(
-    'newTagScopes leaves an existing tag narrowed, widened to scope only',
-    () async {
-      // A tag someone narrowed on purpose stays narrow: reusing it from
-      // another scope adds that one scope, not every scope (#4407).
-      final diveTag = await repository.getOrCreateTag('Night');
-      final reused = await repository.getOrCreateTag(
-        'Night',
-        scope: TagScope.sites,
-        newTagScopes: TagScope.everywhere,
-      );
-      expect(reused.id, diveTag.id);
-      expect(reused.scopes, {TagScope.dives, TagScope.sites});
-    },
-  );
 
   test(
     'createTag widens a colliding incumbent only to widenExistingTo',
     () async {
-      final diveTag = await repository.getOrCreateTag('Night');
+      final diveTag = await narrow('Night', {TagScope.dives});
 
       // Untouched "everywhere" defaults leave the incumbent as it was (#4407).
       final kept = await repository.createTag(
@@ -139,7 +133,7 @@ void main() {
   );
 
   test('createTag on a colliding name widens the incumbent too', () async {
-    final diveTag = await repository.getOrCreateTag('Night');
+    final diveTag = await narrow('Night', {TagScope.dives});
     final result = await repository.createTag(
       Tag.create(id: '', name: 'NIGHT', scopes: {TagScope.sites}),
     );
@@ -148,8 +142,8 @@ void main() {
   });
 
   test('scope-filtered listing', () async {
-    await repository.getOrCreateTag('Night');
-    await repository.getOrCreateTag('To try', scope: TagScope.sites);
+    await narrow('Night', {TagScope.dives});
+    await narrow('To try', {TagScope.sites});
 
     final siteTags = await repository.getAllTags(scope: TagScope.sites);
     final diveTags = await repository.getAllTags(scope: TagScope.dives);
@@ -160,7 +154,7 @@ void main() {
   });
 
   test('a tag must apply to at least one of dives and sites', () async {
-    final tag = await repository.getOrCreateTag('Night');
+    final tag = await narrow('Night', {TagScope.dives});
     await expectLater(
       repository.updateTag(tag.copyWith(scopes: const {})),
       throwsArgumentError,
@@ -174,10 +168,7 @@ void main() {
   });
 
   test('turning off sites removes and tombstones the site links', () async {
-    final tag = await repository.getOrCreateTag(
-      'To try',
-      scope: TagScope.sites,
-    );
+    final tag = await narrow('To try', {TagScope.sites});
     await linkSite('s1', tag.id);
 
     await repository.updateTag(tag.copyWith(scopes: const {TagScope.dives}));
@@ -196,10 +187,7 @@ void main() {
   });
 
   test('a plain rename keeps the site links', () async {
-    final tag = await repository.getOrCreateTag(
-      'To try',
-      scope: TagScope.sites,
-    );
+    final tag = await narrow('To try', {TagScope.sites});
     await linkSite('s1', tag.id);
 
     await repository.updateTag(tag.copyWith(name: 'To try soon'));
@@ -210,10 +198,7 @@ void main() {
   });
 
   test('usage and statistics count dives and sites separately', () async {
-    final tag = await repository.getOrCreateTag(
-      'To try',
-      scope: TagScope.sites,
-    );
+    final tag = await narrow('To try', {TagScope.sites});
     await linkSite('s1', tag.id);
 
     expect(divesAndSites(await repository.getTagUsage(tag.id)), (
@@ -228,11 +213,8 @@ void main() {
   });
 
   test('merging ORs the scopes and relinks site tags', () async {
-    final survivor = await repository.getOrCreateTag('Night');
-    final source = await repository.getOrCreateTag(
-      'Avoid',
-      scope: TagScope.sites,
-    );
+    final survivor = await narrow('Night', {TagScope.dives});
+    final source = await narrow('Avoid', {TagScope.sites});
     await linkSite('s1', source.id);
 
     await repository.mergeTags(

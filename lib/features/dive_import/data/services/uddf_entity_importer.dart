@@ -1504,10 +1504,14 @@ class UddfEntityImporter {
         colorHex: tagData['colorHex'] as String? ?? tagData['color'] as String?,
         createdAt: now,
         updatedAt: now,
-        scopes: scopes,
+        // A backup's stated scopes, or everywhere for a tag the source
+        // gives no scopes for (issue #4407).
+        scopes: importedNewTagScopes(tagData),
       );
 
-      await repository.createTag(tag);
+      // One that took the name meanwhile is widened only as an existing
+      // tag is above.
+      await repository.createTag(tag, widenExistingTo: scopes);
       if (uddfId != null) idMapping[uddfId] = newId;
       count++;
       onProgress?.call(ImportPhase.tags, count, selected.length);
@@ -1711,7 +1715,7 @@ class UddfEntityImporter {
         ?tagIdMapping[ref],
     ];
     // The sites CSV's plain tag names (issue #2201): reuse this diver's tag
-    // of that name or create it, scoped to sites either way.
+    // of that name, widened to sites, or create it for every scope (#4407).
     final tagNames = siteData['siteTagNames'];
     for (final name
         in tagNames is List ? tagNames.whereType<String>() : const <String>[]) {
