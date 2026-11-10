@@ -29,7 +29,8 @@ class DuplicateCylinderRepository {
   /// Merges [duplicateIds] into [survivorId] on [diveId]:
   ///
   /// 1. The survivor takes each detail it lacks (volume, working pressure,
-  ///    name, preset, gear and regulator links) from the first duplicate that
+  ///    name, preset, material, gear, regulator, passport and trip cylinder
+  ///    links, record start and end pressures) from the first duplicate that
   ///    has it, [mix] when given, and every duplicate's computer among the
   ///    computers that shared it, so a later Split of that source still finds
   ///    a cylinder to take.
@@ -82,6 +83,20 @@ class DuplicateCylinderRepository {
       regulatorEquipmentId: Value(
         firstOf(survivor.regulatorEquipmentId, (d) => d.regulatorEquipmentId),
       ),
+      tankMaterial: Value(
+        firstOf(survivor.tankMaterial, (d) => d.tankMaterial),
+      ),
+      passportId: Value(firstOf(survivor.passportId, (d) => d.passportId)),
+      twinPassportId: Value(
+        firstOf(survivor.twinPassportId, (d) => d.twinPassportId),
+      ),
+      tripCylinderId: Value(
+        firstOf(survivor.tripCylinderId, (d) => d.tripCylinderId),
+      ),
+      startPressure: Value(
+        firstOf(survivor.startPressure, (d) => d.startPressure),
+      ),
+      endPressure: Value(firstOf(survivor.endPressure, (d) => d.endPressure)),
       sharedComputerIds: Value(encodeSharedComputerIds(shared)),
       o2Percent: mix == null ? const Value.absent() : Value(mix.o2),
       hePercent: mix == null ? const Value.absent() : Value(mix.he),

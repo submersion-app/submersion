@@ -109,18 +109,24 @@ Future<void> runRemoveDuplicate(
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final service = duplicateCylinderServiceFor(ref);
-  final preview = await service.previewFor(finding);
-  if (preview == null) {
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.dataQuality_repair_noChange)),
-    );
-    return;
+  // The card drops this Future, so a failure must be reported here or the
+  // tap would do nothing visible.
+  try {
+    final preview = await service.previewFor(finding);
+    if (preview == null) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.dataQuality_repair_noChange)),
+      );
+      return;
+    }
+    if (!context.mounted) return;
+    final choice = await confirmRemoveDuplicate(context, preview);
+    if (choice == null) return;
+    final result = await service.removeOne(preview, mix: choice.mix);
+    _showRemovalResult(messenger, l10n, result);
+  } catch (e) {
+    _repairFailed(messenger, l10n, e);
   }
-  if (!context.mounted) return;
-  final choice = await confirmRemoveDuplicate(context, preview);
-  if (choice == null) return;
-  final result = await service.removeOne(preview, mix: choice.mix);
-  _showRemovalResult(messenger, l10n, result);
 }
 
 /// Shows the bulk sheet for every serial-proven twin among [shown], runs it,
@@ -134,8 +140,15 @@ Future<void> runBulkRemoveDuplicates(
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
   final service = duplicateCylinderServiceFor(ref);
-  final previews = await service.previewAll(service.bulkCandidates(shown));
+  final List<CylinderMergePreview> previews;
+  try {
+    previews = await service.previewAll(service.bulkCandidates(shown));
+  } catch (e) {
+    _repairFailed(messenger, l10n, e);
+    return;
+  }
   if (!context.mounted) return;
+  // The sheet reports a run that throws as a result of its own.
   final result = await showDuplicateCylindersSheet(
     context,
     previews: previews,
@@ -144,6 +157,17 @@ Future<void> runBulkRemoveDuplicates(
   );
   if (result == null) return;
   _showRemovalResult(messenger, l10n, result);
+}
+
+/// The page's own wording for a repair that threw.
+void _repairFailed(
+  ScaffoldMessengerState messenger,
+  AppLocalizations l10n,
+  Object error,
+) {
+  messenger.showSnackBar(
+    SnackBar(content: Text('${l10n.dataQuality_repair_failed}: $error')),
+  );
 }
 
 void _showRemovalResult(
@@ -205,7 +229,12 @@ Future<void> runDismissAllShown(
   );
   if (confirmed != true) return;
   final findings = ref.read(qualityFindingsRepositoryProvider);
-  await findings.dismissAll(ids);
+  try {
+    await findings.dismissAll(ids);
+  } catch (e) {
+    _repairFailed(messenger, l10n, e);
+    return;
+  }
   messenger.showSnackBar(
     SnackBar(
       duration: inboxDestructiveUndoWindow,

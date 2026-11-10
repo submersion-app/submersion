@@ -131,15 +131,20 @@ class DiveSourceRemovalService {
           .where((r) => ownership.ownedByComputer(r.computerId))
           .toList();
 
+      // Membership by id: the domain series compare every sample for ==.
+      final leavingPressureIds = {for (final s in leavingPressures) s.id};
+      final leavingEventIds = {for (final r in leavingEvents) r.id};
+      final leavingProfileIds = {for (final s in leavingProfiles) s.id};
+
       // What stays on the dive. A tank still needed is one these rows, or
       // a computer that shares it, still use. Judged by what is leaving, not
       // by computer: a file-imported source's own series has no computer and
       // would otherwise read as another computer's.
       final remainingPressures = allPressureSeries
-          .where((s) => !leavingPressures.contains(s))
+          .where((s) => !leavingPressureIds.contains(s.id))
           .toList();
       final remainingEvents = allEvents
-          .where((r) => !leavingEvents.contains(r))
+          .where((r) => !leavingEventIds.contains(r.id))
           .toList();
       final remainingSwitches = switchRows
           .where((r) => !ownership.ownedByComputer(r.computerId))
@@ -200,10 +205,11 @@ class DiveSourceRemovalService {
       // tankStillNeeded kept every tank another computer's series sits on.
       await _tankSeries.deleteByIds([
         for (final s in allPressureSeries)
-          if (leavingPressures.contains(s) || deletedTankIds.contains(s.tankId))
+          if (leavingPressureIds.contains(s.id) ||
+              deletedTankIds.contains(s.tankId))
             s.id,
       ]);
-      await _profileSeries.deleteByIds([for (final s in leavingProfiles) s.id]);
+      await _profileSeries.deleteByIds(leavingProfileIds.toList());
       if (leavingEvents.isNotEmpty) {
         await (_db.delete(
           _db.diveProfileEvents,
@@ -255,9 +261,9 @@ class DiveSourceRemovalService {
           diveRow: diveRow,
           liveEditIds: liveEditIds,
           remainingProfileSeries: allProfileSeries.where(
-            (s) => !leavingProfiles.contains(s),
+            (s) => !leavingProfileIds.contains(s.id),
           ),
-          leavingProfileIds: {for (final s in leavingProfiles) s.id},
+          leavingProfileIds: leavingProfileIds,
           now: now,
         );
       }

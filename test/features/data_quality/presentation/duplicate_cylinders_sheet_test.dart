@@ -73,4 +73,39 @@ void main() {
     expect(closed, isTrue);
     expect(result?.merged, 1);
   });
+
+  testWidgets('a run that throws closes the sheet and reports the failure', (
+    tester,
+  ) async {
+    DuplicateRemovalResult? result;
+    var closed = false;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async {
+              result = await showDuplicateCylindersSheet(
+                context,
+                previews: const [_preview],
+                identityOf: (_) => null,
+                run: (onProgress) async => throw StateError('disk full'),
+              );
+              closed = true;
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(closed, isTrue);
+    expect(result?.merged, 0);
+    expect(result?.failed, 1);
+  });
 }

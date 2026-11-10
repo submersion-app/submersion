@@ -71,8 +71,11 @@ class _FakeFindingsRepository implements QualityFindingsRepository {
   final dismissedAll = <String>[];
   final reopened = <String>[];
 
+  bool failDismissAll = false;
+
   @override
   Future<void> dismissAll(Iterable<String> ids) async {
+    if (failDismissAll) throw StateError('database is locked');
     dismissedAll.addAll(ids);
   }
 
@@ -2754,6 +2757,24 @@ void main() {
       await tester.tap(find.text('Undo'));
       await tester.pumpAndSettle();
       expect(repo.reopened, ['twin-1']);
+    });
+
+    testWidgets('a failing dismiss all says so instead of doing nothing', (
+      tester,
+    ) async {
+      final repo = _FakeFindingsRepository([twin()])..failDismissAll = true;
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(inboxOverflowMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all shown (1)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Repair failed'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 6));
     });
 
     testWidgets('a twin whose mixes differ asks which mix to keep', (

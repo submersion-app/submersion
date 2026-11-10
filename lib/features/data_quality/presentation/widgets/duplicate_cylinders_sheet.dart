@@ -56,9 +56,21 @@ class _DuplicateCylindersSheetState extends State<_DuplicateCylindersSheet> {
 
   Future<void> _start() async {
     setState(() => _progress = 0);
-    final result = await widget.run((done, total) {
-      if (mounted) setState(() => _progress = total == 0 ? 1 : done / total);
-    });
+    DuplicateRemovalResult result;
+    try {
+      result = await widget.run((done, total) {
+        if (mounted) setState(() => _progress = total == 0 ? 1 : done / total);
+      });
+    } catch (_) {
+      // The sheet cannot be closed while it runs, so a run that throws must
+      // close it itself, reporting every dive it was going to merge as failed.
+      result = DuplicateRemovalResult(
+        merged: 0,
+        skippedMixes: 0,
+        failed: widget.previews.where((p) => !p.mixesDiffer).length,
+        operationId: null,
+      );
+    }
     if (mounted) Navigator.of(context).pop(result);
   }
 

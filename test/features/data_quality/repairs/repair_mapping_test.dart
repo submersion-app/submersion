@@ -567,6 +567,17 @@ void main() {
       expect(remove.sameTransmitter, isTrue);
     });
 
+    test('curve-only twins keep swap first, with remove offered after', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'tank_assignment',
+          params: {'tankIdA': 'a', 'tankIdB': 'b', 'sameTransmitter': false},
+        ),
+      );
+      expect(actions.first, isA<SwapPressureSeriesRepair>());
+      expect(actions.whereType<RemoveDuplicateCylinderRepair>(), hasLength(1));
+    });
+
     test('single-tank drop offers reassign then navigation', () {
       final actions = repairOptionsFor(
         f(detectorId: 'tank_assignment', params: {'tankId': 't1'}),

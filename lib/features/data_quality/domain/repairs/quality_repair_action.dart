@@ -527,15 +527,21 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       final a = p['tankIdA'] as String?;
       final b = p['tankIdB'] as String?;
       if (a != null && b != null) {
+        final sameTransmitter = p['sameTransmitter'] == true;
+        final remove = RemoveDuplicateCylinderRepair(
+          diveId: diveId,
+          tankIdA: a,
+          tankIdB: b,
+          sameTransmitter: sameTransmitter,
+        );
+        // A shared serial proves one cylinder, so removing the copy leads.
+        // Twins matched only by curve could be a real manifolded twinset, so
+        // there the harmless swap stays first and removal comes last.
         return [
-          RemoveDuplicateCylinderRepair(
-            diveId: diveId,
-            tankIdA: a,
-            tankIdB: b,
-            sameTransmitter: p['sameTransmitter'] == true,
-          ),
+          if (sameTransmitter) remove,
           SwapPressureSeriesRepair(diveId: diveId, tankIdA: a, tankIdB: b),
           ReassignPressureSeriesRepair(diveId: diveId, fromTankId: a),
+          if (!sameTransmitter) remove,
         ];
       }
       final tankId = p['tankId'] as String?;

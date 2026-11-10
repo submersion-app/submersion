@@ -113,6 +113,32 @@ void main() {
     expect(kept.workingPressure, 207);
   });
 
+  test(
+    "carries the duplicate's passport, material and record pressures",
+    () async {
+      await insertTank('keep', computerId: 'dc-a');
+      await insertTank('dup', computerId: 'dc-b');
+      await (db.update(db.diveTanks)..where((t) => t.id.equals('dup'))).write(
+        const DiveTanksCompanion(
+          passportId: Value('passport-1'),
+          twinPassportId: Value('passport-2'),
+          tankMaterial: Value('aluminum'),
+          startPressure: Value(207),
+          endPressure: Value(50),
+        ),
+      );
+
+      await merge();
+
+      final kept = (await tank('keep'))!;
+      expect(kept.passportId, 'passport-1');
+      expect(kept.twinPassportId, 'passport-2');
+      expect(kept.tankMaterial, 'aluminum');
+      expect(kept.startPressure, 207);
+      expect(kept.endPressure, 50);
+    },
+  );
+
   test('applies the chosen mix', () async {
     await insertTank('keep', computerId: 'dc-a', o2: 32);
     await insertTank('dup', computerId: 'dc-b', o2: 21);

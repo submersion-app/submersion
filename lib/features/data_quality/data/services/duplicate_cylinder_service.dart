@@ -10,6 +10,7 @@ import 'package:submersion/features/data_quality/data/services/quality_scan_serv
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/repairs/duplicate_cylinder_rules.dart';
 import 'package:submersion/features/dive_log/data/repositories/duplicate_cylinder_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
@@ -127,11 +128,12 @@ class DuplicateCylinderService {
   /// The merge [twin] asks for, or null when fewer than two of its rows are
   /// still on the dive.
   Future<CylinderMergePreview?> previewFor(QualityFinding twin) async {
-    final previews = await _previewDive(twin.diveId, [twin]);
+    final previews = await previewAll([twin]);
     return previews.firstOrNull;
   }
 
-  /// One merge per dive and serial group among [candidates].
+  /// One merge per dive and serial group among [candidates]. Every dive's
+  /// tanks and primary source come in two reads, however many dives.
   Future<List<CylinderMergePreview>> previewAll(
     List<QualityFinding> candidates,
   ) async {
@@ -139,26 +141,43 @@ class DuplicateCylinderService {
     for (final f in candidates) {
       (byDive[f.diveId] ??= []).add(f);
     }
+    if (byDive.isEmpty) return const [];
+    final diveIds = byDive.keys.toList();
+    final tanksByDive = <String, List<DiveTank>>{};
+    final primaryByDive = <String, DiveDataSourcesData>{};
+    for (final chunk in seriesIdChunks(diveIds)) {
+      final tanks =
+          await (_db.select(_db.diveTanks)
+                ..where((t) => t.diveId.isIn(chunk))
+                ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+              .get();
+      for (final t in tanks) {
+        (tanksByDive[t.diveId] ??= []).add(t);
+      }
+      final primaries = await (_db.select(
+        _db.diveDataSources,
+      )..where((s) => s.diveId.isIn(chunk) & s.isPrimary.equals(true))).get();
+      for (final s in primaries) {
+        primaryByDive.putIfAbsent(s.diveId, () => s);
+      }
+    }
     return [
       for (final entry in byDive.entries)
-        ...await _previewDive(entry.key, entry.value),
+        ..._previewDive(
+          entry.key,
+          entry.value,
+          tanksByDive[entry.key] ?? const [],
+          primaryByDive[entry.key],
+        ),
     ];
   }
 
-  Future<List<CylinderMergePreview>> _previewDive(
+  List<CylinderMergePreview> _previewDive(
     String diveId,
     List<QualityFinding> twins,
-  ) async {
-    final tanks =
-        await (_db.select(_db.diveTanks)
-              ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
-            .get();
-    final primary =
-        await (_db.select(_db.diveDataSources)
-              ..where((s) => s.diveId.equals(diveId) & s.isPrimary.equals(true))
-              ..limit(1))
-            .getSingleOrNull();
+    List<DiveTank> tanks,
+    DiveDataSourcesData? primary,
+  ) {
     final byGroup = <String, ({List<String> ids, List<String> findings})>{};
     for (final f in twins) {
       final ids = duplicateGroupFor(
