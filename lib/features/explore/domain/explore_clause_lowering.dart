@@ -247,15 +247,13 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
     if (raw is! List || raw.length != 2 || raw.any((v) => v is! num)) {
       return _fail('invalid');
     }
-    var a = raw[0] as num;
-    var b = raw[1] as num;
-    if (ground(b) < ground(a)) (a, b) = (b, a);
-    if (!field.accepts(ground(a)) || !field.accepts(ground(b))) {
-      return _fail('outOfRange');
-    }
+    var (a, b) = (raw[0] as num, raw[1] as num);
+    var (ga, gb) = (ground(a), ground(b));
+    if (gb < ga) (a, b, ga, gb) = (b, a, gb, ga);
+    if (!field.accepts(ga) || !field.accepts(gb)) return _fail('outOfRange');
     lo = at(a);
     hi = at(b);
-    chipValue = [ground(a), ground(b)];
+    chipValue = [ga, gb];
   } else {
     final raw = c.value;
     if (raw is! num) return _fail('invalid');
@@ -288,15 +286,21 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
         // "exactly 15 m" is the half unit either side of it in the unit the
         // diver used, the way it would be rounded. SAC is read to a tenth of
         // a bar or a whole psi, so "a SAC of 1.2" is 1.15 to 1.25 bar/min and
-        // "20 psi/min" is 19.5 to 20.5. Counts stay exact.
+        // "20 psi/min" is 19.5 to 20.5. Counts stay exact, and any other
+        // measured value is everything shown as the number (#4398).
         final half = switch (field.dimension) {
           FieldDimension.depth || FieldDimension.temperature => 0.5,
           FieldDimension.pressureRate =>
             rateUnitSaid(c.unit, units) == PressureUnit.psi ? 0.5 : 0.05,
           _ => 0.0,
         };
-        lo = NumberValue(half == 0 ? v : ground(raw - half), null);
-        hi = NumberValue(half == 0 ? v : ground(raw + half), null);
+        if (half == 0) {
+          lo = at(raw);
+          hi = at(raw);
+        } else {
+          lo = NumberValue(ground(raw - half), null);
+          hi = NumberValue(ground(raw + half), null);
+        }
       default:
         return _fail('invalid');
     }

@@ -55,6 +55,18 @@ void main() {
     );
   });
 
+  test('exactly a percent is everything shown as it (#4398)', () {
+    // A change stored as 31.99999 still reads as 32%.
+    final q = compile([clause('sacChange', 'eq', 32)]);
+    expect(
+      q.query,
+      AndNode([
+        cond('sacChange', QueryOp.gte, const NumberValue(32, null, grain: 0.1)),
+        cond('sacChange', QueryOp.lte, const NumberValue(32, null, grain: 0.1)),
+      ]),
+    );
+  });
+
   test('air temperature between two values is two bounds', () {
     final q = compile([
       clause('airTemp', 'between', [-20, 5]),
