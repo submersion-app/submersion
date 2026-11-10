@@ -739,7 +739,7 @@ class ProfileSeriesRepository {
   /// have no computer. [hasLiveEdit] cannot serve there: a file import's own
   /// series is primary with no computer too.
   ///
-  /// A series written since schema v353 says what it is in `is_edit`, which
+  /// A series written since schema v355 says what it is in `is_edit`, which
   /// syncs (issue #4386); that answer is final either way. Only a series
   /// written before it, with the mark null, is read by its shape below.
   ///
@@ -1153,7 +1153,7 @@ class ProfileSeriesRepository {
       (t) =>
           t.computerId.isNull() &
           // Spelled out: NOT (is_edit = 1) is null, so false, for the
-          // unmarked rows written before v353.
+          // unmarked rows written before v355.
           (t.isEdit.isNull() | t.isEdit.equals(false)) &
           t.diveId.isIn(diveIds) &
           t.diveId.isInQuery(

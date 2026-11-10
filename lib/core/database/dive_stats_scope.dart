@@ -79,6 +79,8 @@ class DiveStatsScope {
     final parts = <String>[
       '$alias.excluded_from_stats = 0',
       '$alias.is_planned = 0',
+      // A draft (issue #637) joins the totals once a download fills it.
+      '$alias.is_draft = 0',
     ];
     if (gas || consumptionRate) {
       parts.add('$alias.excluded_from_gas_stats = 0');

@@ -106,6 +106,16 @@ void main() {
       expect(diveDocument(logged)['bottom_time_s'], 45 * 60);
     });
 
+    test('a draft says it is one, in both documents (#637)', () {
+      final draft = dive().copyWith(isDraft: true);
+      expect(diveDocument(draft)['is_draft'], isTrue);
+      expect(
+        diveSummaryDocument(DiveSummary.fromDive(draft))['is_draft'],
+        isTrue,
+      );
+      expect(diveDocument(dive())['is_draft'], isFalse);
+    });
+
     test('child blocks stay out of the base document', () {
       final bare = diveDocument(dive());
       for (final block in [

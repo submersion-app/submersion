@@ -5445,6 +5445,57 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'Equipo';
 
   @override
+  String get diveLog_health_after15 => 'Después de 15 min';
+
+  @override
+  String get diveLog_health_after5 => 'Después de 5 min';
+
+  @override
+  String get diveLog_health_atSurfacing => 'Al salir a la superficie';
+
+  @override
+  String get diveLog_health_average => 'Promedio';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'Máximo';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound =>
+      'Apple Health no tiene datos para esta inmersión';
+
+  @override
+  String get diveLog_health_overnightHrv =>
+      'Variabilidad de la frecuencia cardíaca la noche siguiente';
+
+  @override
+  String get diveLog_health_readFailed => 'No se pudo leer Apple Health';
+
+  @override
+  String get diveLog_health_recovery => 'Recuperación';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'Frecuencia cardíaca al salir a la superficie y 5 y 15 minutos después, de Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return 'Dormiste $hours h $minutes min la noche anterior';
+  }
+
+  @override
+  String get diveLog_health_title => 'Frecuencia cardíaca y recuperación';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Iniciar lista previa a la inmersión';
 
@@ -6353,6 +6404,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mapa de puntos recientes';
 
   @override
+  String get settings_homeCards_card_waitingForDownload => 'Esperando descarga';
+
+  @override
   String get dashboard_allHidden_message =>
       'Todas las tarjetas de Inicio están ocultas.';
 
@@ -6573,6 +6627,20 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dashboard_semantics_greetingBanner =>
       'Banner de bienvenida del panel';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Descargar ahora';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones esperan tu computadora de buceo',
+      one: '1 inmersión espera tu computadora de buceo',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Agregar al Planificador';
@@ -9994,6 +10062,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get siteSuggestion_titleDiveComputer =>
       'Ubicación del ordenador de buceo';
+
+  @override
+  String get siteSuggestion_titleDraft => 'Lugar donde entraste al agua';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -22633,6 +22704,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveDetailSection_equipment_name => 'Equipo';
 
   @override
+  String get diveDetailSection_health_description =>
+      'Frecuencia cardíaca, recuperación y sueño de Apple Health';
+
+  @override
   String get diveDetailSection_equipment_description =>
       'Equipo utilizado en la inmersión';
 
@@ -24577,6 +24652,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Etiquetar inmersiones importadas';
 
   @override
+  String get settings_conflict_field_avgHeartRate =>
+      'Frecuencia cardíaca promedio';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Añadir las descargas al propietario del ordenador';
 
@@ -25493,6 +25572,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Corrección de rumbo en grados';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Frecuencia cardíaca al salir a la superficie';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Frecuencia cardíaca 15 min después de salir a la superficie';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Frecuencia cardíaca 5 min después de salir a la superficie';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Frecuencia cardíaca de Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor =>
       'Factor de escala del track';
 
@@ -25589,6 +25684,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_isDone => 'Hecho';
+
+  @override
+  String get settings_conflict_field_isDraft => 'Borrador de inmersión';
 
   @override
   String get settings_conflict_field_isEdit => 'Perfil editado a mano';
@@ -25747,6 +25845,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Velocidad de descenso máxima';
 
   @override
+  String get settings_conflict_field_maxHeartRate =>
+      'Frecuencia cardíaca máxima';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Velocidad máxima';
 
   @override
@@ -25816,6 +25918,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_overdueServices =>
       'Mantenimientos vencidos';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Variabilidad nocturna de la frecuencia cardíaca';
 
   @override
   String get settings_conflict_field_params => 'Detalles';
@@ -26359,6 +26465,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_size => 'Talla';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sueño de la noche anterior';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Orden';
 
   @override
@@ -26433,6 +26543,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_settingOverrides =>
       'Ajustes solo para esta inmersión';
+
+  @override
+  String get settings_conflict_field_settled =>
+      'Datos de Apple Health completos';
 
   @override
   String get settings_conflict_field_startTime => 'Hora de inicio';
@@ -27258,6 +27372,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String notifications_document_expiresToday_title(String title) {
     return '$title caduca hoy';
   }
+
+  @override
+  String get notifications_draftReminder_body =>
+      'Descarga tu computadora de buceo para completar el borrador.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'Una inmersión espera tu computadora de buceo';
 
   @override
   String get notifications_document_expiresToday_body =>
@@ -29047,6 +29169,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_notifications_disabled_title =>
       'Notificaciones desactivadas';
+
+  @override
+  String get settings_notifications_draftReminder =>
+      'Recordarme los borradores de inmersión';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'Tres días después de la salida de un borrador, si aún espera una descarga';
 
   @override
   String get settings_notifications_enableServiceReminders =>
@@ -36016,6 +36146,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este formato aún no es compatible. Por favor exporta como UDDF o CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Encaja con $count borradores. Elige el que completa.',
+      one:
+          'Otra inmersión también encaja con este borrador. Elige el borrador que completa.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Elegir borrador';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'No se pudo ejecutar la detección de duplicados, por lo que nada de esta lista está marcado como ya presente en tu cuaderno. Revísala antes de importar.';
 
@@ -36164,6 +36309,28 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get universalImport_compare_fillPlannedSubtitle =>
       'Adjuntar esta descarga a la inmersión que planificaste';
+
+  @override
+  String get universalImport_label_fillDraft => 'Completar borrador';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'Asociar esta descarga a la inmersión que marcaste en el sitio';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'Completa el borrador: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'Borrador de $start a $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'Borrador desde $start';
+  }
 
   @override
   String get universalImport_label_filledPlanned =>
@@ -37312,6 +37479,38 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gpsLogger_stopButton => 'Detener registro';
 
   @override
+  String get gpsLogger_enteredWater => 'Me metí al agua';
+
+  @override
+  String get gpsLogger_surfaced => 'Salí a la superficie';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => '¿Sigues en el agua?';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'Entraste al agua a las $time. Marca ahora la salida a la superficie, o deja la inmersión abierta y toca Salí a la superficie más tarde.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow =>
+      'Salir a la superficie ahora';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'Dejar abierta';
+
+  @override
+  String get gpsLogger_markNotification_title => 'Grabando tu track GPS';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'Toca Me metí al agua cuando entres.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'En el agua. Toca Salí a la superficie cuando salgas.';
+
+  @override
   String gpsLogger_stripStatus(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -38033,6 +38232,57 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_importAction =>
       'Importar inmersiones del Apple Watch mediante HealthKit';
+
+  @override
+  String get healthAutoImport_newDive_title =>
+      'Nueva inmersión de tu Apple Watch';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return '$count inmersiones nuevas de tu Apple Watch';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => '¿Agregar detalles?';
+
+  @override
+  String get healthAutoImport_addDetails => 'Agregar detalles';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'Una inmersión del Apple Watch necesita revisión';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'Podría corresponder a más de una inmersión. Elige en la importación de Apple Health.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'Esta inmersión podría ser una que planificaste. Revísala para completar el plan.';
+
+  @override
+  String get healthAutoImport_review => 'Revisar';
+
+  @override
+  String get settings_appleHealth_autoImport_title =>
+      'Importar automáticamente las inmersiones del Apple Watch';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'Las inmersiones nuevas de tu reloj aparecen al abrir la app.';
+
+  @override
+  String get settings_appleHealth_metrics_title =>
+      'Frecuencia cardíaca, recuperación y sueño';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'Agrega la frecuencia cardíaca durante y después de cada inmersión, la VFC nocturna y el sueño previo.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'Para: $name';
+  }
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
@@ -41825,6 +42075,54 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_planned_chip => 'Planificada';
 
   @override
+  String get diveLog_draft_chip => 'Esperando descarga';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'En el agua';
+
+  @override
+  String get diveLog_draft_title => 'Borrador de inmersión';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'Unos $minutes min según tus marcas. Descarga tu computadora de buceo para completar la profundidad y el tiempo.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen =>
+      'Toca Salí a la superficie cuando salgas del agua.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'Descargar ahora';
+
+  @override
+  String get diveLog_draft_markComplete => 'Marcar como completa';
+
+  @override
+  String get diveLog_draft_surfaced => 'Salí a la superficie';
+
+  @override
+  String get diveLog_draft_markedComplete => 'Marcada como completa';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'No se pudo marcar la inmersión como completa.';
+
+  @override
+  String get diveLog_draft_stale_title => '¿Saliste a la superficie?';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'Entraste al agua a las $time y la inmersión sigue abierta.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'Sigo en el agua';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'Fijar hora de salida';
+
+  @override
   String get diveLog_planned_bannerTitle => 'Inmersión planificada';
 
   @override
@@ -41888,6 +42186,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_detail_loggedWithPlanned =>
       'a la espera de su ordenador de buceo';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate =>
+      'Agregar frecuencia cardíaca de Apple Health';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -50976,6 +51278,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'Borrador de inmersión en $siteName';
+  }
+
+  @override
   String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
     return 'Inmersión planificada en $siteName';
   }
@@ -57607,6 +57914,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_dives_diveOperator => 'Operador';
+
+  @override
+  String get query_dives_draft => 'Borrador';
 
   @override
   String get query_dives_entryMethod => 'Método de entrada';

@@ -181,7 +181,10 @@ void main() {
     expect(adapter.targets, isEmpty);
   });
   test('a planned-fill edit keeps the choice', () {
-    notifier.setPlannedFillTarget(0, 'planned-1');
+    notifier.setFillTarget(
+      0,
+      const FillTarget(diveId: 'planned-1', kind: FillTargetKind.plan),
+    );
 
     expect(notifier.state.bundle?.targetChoice?.chosenDiverId, 'mitchell');
   });

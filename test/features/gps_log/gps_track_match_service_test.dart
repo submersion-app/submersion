@@ -98,6 +98,30 @@ void main() {
     expect(dive.exitLongitude, closeTo(20.8, 1e-9));
   });
 
+  test('sweep fills a draft that had no fix at its taps (#637)', () async {
+    await seedTrack();
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'draft',
+            diveDateTime: 1500000,
+            entryTime: const Value(1500000),
+            exitTime: const Value(1800000),
+            isDraft: const Value(true),
+            createdAt: 1500000,
+            updatedAt: 1500000,
+          ),
+        );
+
+    expect(await service.sweep(), ['draft']);
+
+    final dive = await readDive('draft');
+    expect(dive.entryLatitude, closeTo(10.5, 1e-9));
+    expect(dive.exitLatitude, closeTo(10.8, 1e-9));
+    expect(dive.isDraft, isTrue);
+  });
+
   test('sweep skips dives that already have GPS', () async {
     await seedTrack();
     await seedDive(

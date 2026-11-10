@@ -342,10 +342,10 @@ class DiveProfileSeries extends Table {
   IntColumn get activatedAt => integer().nullable()();
 
   /// True for the diver's manual edit, written by `saveEditedProfile`; false
-  /// for a series a parse or import wrote; null for one written before v353,
+  /// for a series a parse or import wrote; null for one written before v355,
   /// whose kind only its shape can suggest. Synced, unlike the revision
   /// history that also names an edit, so a re-parse on any device can keep
-  /// an edit once it is demoted (schema v353, issue #4386).
+  /// an edit once it is demoted (schema v355, issue #4386).
   BoolColumn get isEdit => boolean().nullable()();
 
   @override

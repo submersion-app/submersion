@@ -12,6 +12,7 @@ import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
+import 'package:submersion/core/database/tables/dive_health_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_condition_tables.dart';
@@ -43,6 +44,7 @@ export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/certification_currency_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
+export 'package:submersion/core/database/tables/dive_health_tables.dart';
 export 'package:submersion/core/database/tables/dive_lab_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
@@ -165,6 +167,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     GasSwitches,
     TankPressureSeries,
     TideRecords,
+    // Apple Health readings per dive (v354, issue #637)
+    DiveHealthRecords,
     // Site-species junction
     SiteSpecies,
     SiteFeatures,
@@ -315,7 +319,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 353;
+  static const int currentSchemaVersion = 355;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1626,11 +1630,17 @@ class AppDatabase extends _$AppDatabase {
     // folded group keys (issue #4184). A nullable column an older peer
     // omits, so the floor does not move.
     351,
-    // v353: dive_profile_series.is_edit, the synced mark that a series is
+    // v354: dives.is_draft, a dive marked at the site that waits for its
+    // dive computer readings, and dive_health_records, heart rate, recovery
+    // and sleep from Apple Health per dive (issue #637). Additive and
+    // defaulted; the floor does not move. Numbered 354 because main holds
+    // 351 and open work claims 352 and 353.
+    354,
+    // v355: dive_profile_series.is_edit, the synced mark that a series is
     // the diver's manual edit (issue #4386). A nullable column an older peer
-    // omits, with no backfill, so the floor does not move. Numbered 353
-    // because main holds 351 and an open PR claims 352.
-    353,
+    // omits, with no backfill, so the floor does not move. Numbered 355
+    // because main holds 354; renumbered from 353.
+    355,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

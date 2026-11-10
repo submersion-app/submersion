@@ -35,6 +35,9 @@ class _FakeNotificationService implements NotificationService {
   Future<Set<String>> pendingDocumentReminderIds() async => const {};
 
   @override
+  Future<Set<String>> pendingDraftReminderIds() async => const {};
+
+  @override
   dynamic noSuchMethod(Invocation invocation) {
     final name = invocation.memberName.toString();
     if (name.contains('scheduleServiceReminder')) return Future.value(0);

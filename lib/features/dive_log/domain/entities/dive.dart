@@ -234,6 +234,12 @@ class Dive extends Equatable {
   // Dive planner flag (v1.5)
   final bool isPlanned; // True for planned dives (not yet executed)
 
+  /// A dive marked at the site that waits for its dive computer readings
+  /// (issue #637): it has times and positions but no profile. It counts
+  /// for no-fly and surface interval, and stays out of totals and
+  /// numbering until it is filled.
+  final bool isDraft;
+
   /// Shared id across sibling dives mirrored from one save (issue #2002).
   /// Null for a dive that was never mirrored.
   final String? outingId;
@@ -354,6 +360,7 @@ class Dive extends Equatable {
     this.scrubber,
     // Dive planner (v1.5)
     this.isPlanned = false,
+    this.isDraft = false,
     this.outingId,
     // Training courses (issue #2515)
     this.courseIds = const [],
@@ -483,6 +490,9 @@ class Dive extends Equatable {
   /// 3. calculateRuntimeFromProfile() (from profile data), else [profileSpan]
   ///    for a dive read without its samples
   Duration? get measuredRuntime {
+    // A draft's times are taps at the site, and a runtime it carries came
+    // from the plan it adopted: neither is a reading (issue #637).
+    if (isDraft) return null;
     if (runtime != null) return runtime;
 
     if (entryTime != null && exitTime != null) {
@@ -500,7 +510,17 @@ class Dive extends Equatable {
   /// intervals, tissue loading), where a table-era log has nothing better.
   /// Never report it as a runtime. `effectiveRuntimeSecondsSql` is the SQL
   /// form.
-  Duration? get effectiveRuntime => measuredRuntime ?? bottomTime;
+  Duration? get effectiveRuntime {
+    // A draft's window is its taps, or nothing yet while it is open.
+    if (isDraft) return _tapSpan;
+    return measuredRuntime ?? bottomTime;
+  }
+
+  Duration? get _tapSpan {
+    if (entryTime == null || exitTime == null) return null;
+    final span = exitTime!.difference(entryTime!);
+    return span > Duration.zero ? span : null;
+  }
 
   /// Total weight from all weight entries
   double get totalWeight => weights.fold(0.0, (sum, w) => sum + w.amountKg);
@@ -901,8 +921,11 @@ class Dive extends Equatable {
     ScrubberInfo? scrubber,
     // Dive planner
     bool? isPlanned,
+    bool? isDraft,
     String? outingId,
     bool clearOutingId = false,
+    bool clearExitTime = false,
+    bool clearRuntime = false,
     bool clearSetpoints = false,
     bool clearDiluentGas = false,
     // Training courses
@@ -930,9 +953,9 @@ class Dive extends Equatable {
       name: clearName ? null : (name ?? this.name),
       dateTime: dateTime ?? this.dateTime,
       entryTime: entryTime ?? this.entryTime,
-      exitTime: exitTime ?? this.exitTime,
+      exitTime: clearExitTime ? null : (exitTime ?? this.exitTime),
       bottomTime: bottomTime ?? this.bottomTime,
-      runtime: runtime ?? this.runtime,
+      runtime: clearRuntime ? null : (runtime ?? this.runtime),
       maxDepth: maxDepth ?? this.maxDepth,
       avgDepth: avgDepth ?? this.avgDepth,
       entryLocation: entryLocation ?? this.entryLocation,
@@ -1013,6 +1036,7 @@ class Dive extends Equatable {
       scrubber: scrubber ?? this.scrubber,
       // Dive planner
       isPlanned: isPlanned ?? this.isPlanned,
+      isDraft: isDraft ?? this.isDraft,
       outingId: clearOutingId ? null : (outingId ?? this.outingId),
       // Training courses
       courseIds: courseIds ?? this.courseIds,
@@ -1125,6 +1149,7 @@ class Dive extends Equatable {
     scrubber,
     // Dive planner
     isPlanned,
+    isDraft,
     outingId,
     // Training courses
     courseIds,

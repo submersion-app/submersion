@@ -17,6 +17,7 @@ Dive row(String id) => Dive(
   diveMode: 'oc',
   cnsStart: 0,
   isPlanned: false,
+  isDraft: false,
   createdAt: 0,
   updatedAt: 0,
 );
@@ -86,6 +87,38 @@ void main() {
       final fill = fillOf(plan, [row('s1').copyWith(isPlanned: true)]);
 
       expect(fill.containsKey('is_planned'), isFalse);
+    });
+  });
+
+  group('a draft taking in a logged dive (#637)', () {
+    final draft = row('t').copyWith(isDraft: true);
+
+    test('is logged, with the first logged number there is', () {
+      final fill = fillOf(draft, [
+        row('s1').copyWith(diveNumber: const Value(42)),
+      ]);
+
+      expect(filled(fill, 'is_draft'), isFalse);
+      expect(filled(fill, 'dive_number'), 42);
+    });
+
+    test('a draft secondary is not a logged dive', () {
+      final fill = fillOf(draft, [
+        row('s1').copyWith(isDraft: true, diveNumber: const Value(7)),
+      ]);
+
+      expect(fill.containsKey('is_draft'), isFalse);
+      expect(filled(fill, 'dive_number'), isNull);
+    });
+
+    test('a plan taking in a draft becomes the draft: it happened, and it '
+        'still has no readings', () {
+      final fill = fillOf(row('t').copyWith(isPlanned: true), [
+        row('s1').copyWith(isDraft: true),
+      ]);
+
+      expect(filled(fill, 'is_planned'), isFalse);
+      expect(filled(fill, 'is_draft'), isTrue);
     });
   });
 

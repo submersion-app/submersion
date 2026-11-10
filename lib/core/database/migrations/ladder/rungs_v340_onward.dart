@@ -106,11 +106,20 @@ extension RungsFromV340 on AppDatabase {
     if (from < 351) await _assertEquipmentCollapsedGroupsColumn();
     if (from < 351) await reportProgress();
 
-    // v353: dive_profile_series.is_edit, the synced mark that a series is
+    // v354: dives.is_draft, a dive marked at the site that waits for its
+    // readings (issue #637). Defaulted, no backfill, so the compatibility
+    // floor does not move. Numbered 354: main holds 351 and open work
+    // claims 352 and 353.
+    if (from < 354) await _assertDiveIsDraftColumn();
+    // v354 too: dive_health_records, Apple Health readings per dive.
+    if (from < 354) await _assertDiveHealthRecordsTable();
+    if (from < 354) await reportProgress();
+
+    // v355: dive_profile_series.is_edit, the synced mark that a series is
     // the diver's manual edit (issue #4386). Nullable, no backfill: a series
     // written before it stays unknown. Re-asserted in beforeOpen. Numbered
-    // 353 because main holds 351 and an open PR claims 352.
-    if (from < 353) await _assertProfileSeriesIsEditColumn();
-    if (from < 353) await reportProgress();
+    // 355 because main holds 354; renumbered from 353.
+    if (from < 355) await _assertProfileSeriesIsEditColumn();
+    if (from < 355) await reportProgress();
   }
 }

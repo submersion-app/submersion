@@ -317,8 +317,15 @@ class DiveConsolidationService {
         // target; `null` keys the synthesized case, where the secondary had
         // no source row for its profiles to point at.
         final sourceIdMap = <String?, String>{};
+        // A plan or a draft folded in (issue #637) holds guesses and taps,
+        // not readings: it gets no source of its own, and its sketched
+        // profile is not copied as a second computer's.
+        final noReadings =
+            secSources.isEmpty && (secRow.isPlanned || secRow.isDraft);
 
-        if (secSources.isEmpty) {
+        if (noReadings) {
+          // Nothing to attribute: its tanks keep no source.
+        } else if (secSources.isEmpty) {
           // Synthesize from the dives row -- same companion mergeDives
           // builds today (dive_repository_impl.dart:4616-4652), attributed
           // to the secondary's own computer.
@@ -463,7 +470,7 @@ class DiveConsolidationService {
         // merged dive. Read before the delete below removes the secondary
         // dive (and, with it, ownership of these rows).
         for (final s in await _profileSeries.getSeriesForDive(secondary.id)) {
-          if (s.samples.isEmpty) continue;
+          if (s.samples.isEmpty || noReadings) continue;
           await _profileSeries.insertSeries(
             diveId: targetDiveId,
             computerId: s.computerId ?? secRow.computerId,
@@ -869,6 +876,11 @@ class DiveConsolidationService {
         now: now,
       );
 
+      // Apple Health readings (issue #637) move to the target when it has
+      // none, so a watch dive joining a download keeps its heart rate.
+      await _moveHealthRecord(secondaryDiveIds, targetDiveId, now);
+      await _moveTideRecord(secondaryDiveIds, targetDiveId, now);
+
       // Delete secondaries through the tombstone-logging path (this is the
       // fix for mergeDives' raw delete, which never logged deletions and
       // let sync resurrect the folded dive).
@@ -908,6 +920,69 @@ class DiveConsolidationService {
     await _sync.markRecordPending(
       entityType: 'diveTanks',
       recordId: tankId,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Moves the newest Apple Health record among [secondaryDiveIds] to
+  /// [targetDiveId] when the target has none (issue #637). The rest go with
+  /// their dives.
+  Future<void> _moveHealthRecord(
+    List<String> secondaryDiveIds,
+    String targetDiveId,
+    int now,
+  ) async {
+    final held = await (_db.select(
+      _db.diveHealthRecords,
+    )..where((t) => t.diveId.equals(targetDiveId))).get();
+    if (held.isNotEmpty) return;
+    final moving =
+        await (_db.select(_db.diveHealthRecords)
+              ..where((t) => t.diveId.isIn(secondaryDiveIds))
+              ..orderBy([(t) => OrderingTerm.desc(t.fetchedAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (moving == null) return;
+    await (_db.update(
+      _db.diveHealthRecords,
+    )..where((t) => t.id.equals(moving.id))).write(
+      DiveHealthRecordsCompanion(
+        diveId: Value(targetDiveId),
+        updatedAt: Value(now),
+      ),
+    );
+    await _sync.markRecordPending(
+      entityType: 'diveHealthRecords',
+      recordId: moving.id,
+      localUpdatedAt: now,
+    );
+  }
+
+  /// Moves the newest tide record among [secondaryDiveIds] to
+  /// [targetDiveId] when the target has none, as [_moveHealthRecord] does:
+  /// a draft's tide, recorded from where the diver went in, survives its
+  /// fill (issue #637).
+  Future<void> _moveTideRecord(
+    List<String> secondaryDiveIds,
+    String targetDiveId,
+    int now,
+  ) async {
+    final held = await (_db.select(
+      _db.tideRecords,
+    )..where((t) => t.diveId.equals(targetDiveId))).get();
+    if (held.isNotEmpty) return;
+    final moving =
+        await (_db.select(_db.tideRecords)
+              ..where((t) => t.diveId.isIn(secondaryDiveIds))
+              ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    if (moving == null) return;
+    await (_db.update(_db.tideRecords)..where((t) => t.id.equals(moving.id)))
+        .write(TideRecordsCompanion(diveId: Value(targetDiveId)));
+    await _sync.markRecordPending(
+      entityType: 'tideRecords',
+      recordId: moving.id,
       localUpdatedAt: now,
     );
   }
@@ -1121,6 +1196,10 @@ class DiveConsolidationService {
           (t) => t.diveId.equals(mergedId),
         );
         batch.deleteWhere(_db.tideRecords, (t) => t.diveId.equals(mergedId));
+        batch.deleteWhere(
+          _db.diveHealthRecords,
+          (t) => t.diveId.equals(mergedId),
+        );
       });
 
       // Re-insert dives with ORIGINAL ids; newer HLC beats the tombstones.
@@ -1179,6 +1258,13 @@ class DiveConsolidationService {
         for (final r in snapshot.tideRows) {
           batch.insert(
             _db.tideRecords,
+            r.toCompanion(false),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+        for (final r in snapshot.healthRows) {
+          batch.insert(
+            _db.diveHealthRecords,
             r.toCompanion(false),
             mode: InsertMode.insertOrReplace,
           );

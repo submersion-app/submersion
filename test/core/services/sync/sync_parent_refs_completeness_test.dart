@@ -87,6 +87,7 @@ void main() {
     'view_configs': 'viewConfigs',
     'field_presets': 'fieldPresets',
     'tide_records': 'tideRecords',
+    'dive_health_records': 'diveHealthRecords',
     'sightings': 'sightings',
     'incidents': 'incidents',
     'certifications': 'certifications',

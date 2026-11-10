@@ -41,7 +41,7 @@ class ProfileSeries extends Equatable {
   final int? activatedAt;
 
   /// True for the diver's manual edit, false for a series a parse or import
-  /// wrote, null for one written before schema v353 (issue #4386).
+  /// wrote, null for one written before schema v355 (issue #4386).
   final bool? isEdit;
 
   /// The samples as the chart and analysis pipeline consume them.

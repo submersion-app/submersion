@@ -42,6 +42,7 @@ Map<String, Object?> diveDocument(Dive dive) {
     'notes': dive.notes,
     'dive_mode': dive.diveMode.name,
     'is_planned': dive.isPlanned,
+    'is_draft': dive.isDraft,
     'is_favorite': dive.isFavorite,
     'excluded_from_stats': dive.excludedFromStats,
     'excluded_from_gas_stats': dive.excludedFromGasStats,

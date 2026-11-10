@@ -60,7 +60,7 @@ const profileSeriesColumns = {
   'hlc',
   // v283 (issue #3189); the ladder these tests run ends at the current rung.
   'activated_at',
-  // v353 (issue #4386), for the same reason.
+  // v355 (issue #4386), for the same reason.
   'is_edit',
 };
 

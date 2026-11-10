@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/dashboard/presentation/widgets/waiting_for_download_card.dart';
 import 'package:submersion/features/dashboard/presentation/home_cards.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/active_course_progress_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
@@ -47,6 +48,7 @@ DashboardEntry _standaloneEntry(HomeCardType card) => switch (card) {
   HomeCardType.hero => const FullBlock(HeroHeader()),
   HomeCardType.gaugeStrip => const FullBlock(GaugeStrip()),
   HomeCardType.preDive => const FullBlock(PreDiveDashboardCard()),
+  HomeCardType.waitingForDownload => const FullBlock(WaitingForDownloadCard()),
   HomeCardType.recentDives => const FullBlock(RecentDivesCard()),
   HomeCardType.quickActions => const ThirdBlock(QuickActionsCard()),
   HomeCardType.milestones => const ThirdBlock(MilestonesCard()),

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/router/track_locations.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/gps_log/presentation/widgets/dive_mark_buttons.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// App-wide slim banner shown while a GPS track recording is active.
@@ -46,6 +47,11 @@ class GpsRecordingStrip extends ConsumerWidget {
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
+              ),
+              // Its own tap target, so it marks without opening the page.
+              DiveMarkButtons(
+                compact: true,
+                foreground: colorScheme.onErrorContainer,
               ),
               Icon(Icons.chevron_right, color: colorScheme.onErrorContainer),
             ],

@@ -23,6 +23,29 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     container.invalidate(diveDataSourcesProvider(id));
   }
 
+  /// Reads heart rate, recovery and sleep from Apple Health for [dive]
+  /// (issue #637), for a dive the automatic read never reached. Says so
+  /// when Health has nothing for it.
+  Future<void> _addHeartRate(Dive dive) async {
+    final metrics = ref.read(diveHealthMetricsServiceProvider);
+    if (metrics == null) return;
+    final records = ref.read(diveHealthRecordRepositoryProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    String? problem;
+    try {
+      await metrics.refresh(dive.id);
+      if (!diveHealthHasContent(await records.forDive(dive.id))) {
+        problem = l10n.diveLog_health_noneFound;
+      }
+    } catch (_) {
+      problem = l10n.diveLog_health_readFailed;
+    }
+    if (problem != null) {
+      messenger.showSnackBar(SnackBar(content: Text(problem)));
+    }
+  }
+
   Future<void> _addPhotos(Dive dive) async {
     await PhotoImportHelper.importPhotosForDive(
       context: context,
@@ -159,22 +182,34 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
   /// Promote a planned dive by hand (issue #2002): clears the flag and takes
   /// the next dive number through the one path that does both. Invalidates
   /// through the container so the list refreshes even if this page is gone.
+  /// Marks a plan as logged, or a draft as complete (issue #637): both go
+  /// through the one promotion that clears the flag and assigns the next
+  /// number.
   Future<void> _markAsLogged(Dive dive) async {
     // The button stays enabled while the promotion runs, and the same
     // action sits in the overflow menu, so a second call can arrive after
-    // the flag is already cleared. convertPlanToActualDive throws then,
-    // and nothing awaits this callback, so it must not escape.
+    // the flag is already cleared. The promotion throws then, and nothing
+    // awaits this callback, so it must not escape.
     if (_promoting) return;
     _promoting = true;
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
-    final failureMessage = context.l10n.diveLog_planned_markLoggedFailed;
-    final loggedMessage = context.l10n.diveLog_planned_markedLogged;
+    final l10n = context.l10n;
+    final failureMessage = dive.isDraft
+        ? l10n.diveLog_draft_markCompleteFailed
+        : l10n.diveLog_planned_markLoggedFailed;
+    final loggedMessage = dive.isDraft
+        ? l10n.diveLog_draft_markedComplete
+        : l10n.diveLog_planned_markedLogged;
     // Read now: a plan marked as logged gets its rules (#3513) even if the
     // diver leaves the page while it is converted.
     final rulesAfterCreate = captureRulesAfterCreate(context, ref);
     try {
-      await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
+      if (dive.isDraft) {
+        await ref.read(diveDraftRepositoryProvider).markDraftComplete(dive.id);
+      } else {
+        await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
+      }
     } catch (_) {
       _promoting = false;
       container.invalidate(diveProvider(dive.id));
@@ -190,8 +225,38 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     container.invalidate(diveNumberingInfoProvider);
     messenger.showSnackBar(SnackBar(content: Text(loggedMessage)));
     // A plan marked as logged is a dive logged by hand for the logbook
-    // rules (#3513).
+    // rules (#3513), and so is a draft marked complete.
     await rulesAfterCreate(subject: RuleSubject.dives, ids: [dive.id]);
+  }
+
+  /// Closes an open draft now, from its banner (issue #637). The site
+  /// buttons on the GPS log record a position as well; this one has none.
+  Future<void> _surfaceDraft(Dive dive) async {
+    final container = ProviderScope.containerOf(context, listen: false);
+    try {
+      await ref
+          .read(diveDraftRepositoryProvider)
+          .closeDraft(dive.id, exitTime: asWallClockUtc(DateTime.now()));
+    } catch (e, stackTrace) {
+      // Filled or closed on another device meanwhile (closeDraft throws on
+      // a dive that is no longer a draft), or a failed write. Nothing awaits
+      // this callback, so it must not escape; the reload shows the dive as
+      // it now is.
+      _log.error(
+        'Failed to mark a draft surfaced',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+    container.invalidate(diveProvider(dive.id));
+  }
+
+  /// A draft's "Download now" (issue #637): opens the download of the
+  /// computer the diver used last, or the computer picker when there is none.
+  Future<void> _downloadForDraft() async {
+    final target = await ref.read(downloadTargetComputerProvider.future);
+    if (!mounted) return;
+    context.push(downloadRouteFor(target));
   }
 
   Future<void> _scanGalleryForDive(Dive dive) async {

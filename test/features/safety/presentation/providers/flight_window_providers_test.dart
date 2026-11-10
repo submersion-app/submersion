@@ -48,6 +48,7 @@ class _StubDiveRepository extends Fake implements DiveRepository {
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
     String? diverId,
+    DateTime? now,
   }) async {
     return inputs;
   }

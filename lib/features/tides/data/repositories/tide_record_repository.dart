@@ -94,6 +94,7 @@ class TideRecordRepository {
   Future<domain.TideRecord> createFromStatus({
     required String diveId,
     required TideStatus status,
+    String? id,
   }) async {
     // Remove existing records for this dive to prevent duplicates.
     final existing = await (_db.select(
@@ -112,7 +113,7 @@ class TideRecordRepository {
     }
 
     final record = domain.TideRecord.fromStatus(
-      id: _uuid.v4(),
+      id: id ?? _uuid.v4(),
       diveId: diveId,
       status: status,
     );
