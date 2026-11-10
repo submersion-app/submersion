@@ -123,9 +123,14 @@ class DuplicateCylinderRepository {
       _db.diveProfileEvents,
     )..where((e) => e.tankId.isIn(ids))).get();
     for (final event in events) {
-      await (_db.update(_db.diveProfileEvents)
-            ..where((e) => e.id.equals(event.id)))
-          .write(DiveProfileEventsCompanion(tankId: Value(survivorId)));
+      await (_db.update(
+        _db.diveProfileEvents,
+      )..where((e) => e.id.equals(event.id))).write(
+        DiveProfileEventsCompanion(
+          tankId: Value(survivorId),
+          hlc: Value(await _sync.issueRowClock()),
+        ),
+      );
       await _pending('diveProfileEvents', event.id, now);
     }
 

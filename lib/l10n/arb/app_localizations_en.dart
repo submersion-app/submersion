@@ -42694,6 +42694,121 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Remove duplicate cylinder';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remove $count duplicate cylinders?',
+      one: 'Remove the duplicate cylinder?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep stays and takes any details it lacks from the duplicate. Gas switches and pressures move to it.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Which gas did this cylinder hold?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'These rows read the same transmitter but disagree on the gas. The cylinder that stays will carry the one you choose.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Remove';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remove duplicate cylinders ($count dives)',
+      one: 'Remove duplicate cylinders (1 dive)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Remove duplicate cylinders';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Cylinders on one dive that share a transmitter serial are one cylinder recorded twice. One stays on each dive, and Undo puts everything back.';
+
+  @override
+  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
+    String _temp0 = intl.Intl.pluralLogic(
+      removeCount,
+      locale: localeName,
+      other: 'Remove $removeCount, keep $keep',
+      one: 'Remove 1, keep $keep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removed on $count dives',
+      one: 'Removed on 1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count skipped: gas mixes differ';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count failed';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Dismiss all shown ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dismiss $count findings?',
+      one: 'Dismiss 1 finding?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'They stay dismissed after a rescan. Undo brings them back.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Dismiss all';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dismissed $count findings',
+      one: 'Dismissed 1 finding',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Make $source the primary source?';
   }

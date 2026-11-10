@@ -44002,6 +44002,121 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'إزالة الأسطوانة المكررة';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة $count أسطوانات مكررة؟',
+      one: 'إزالة الأسطوانة المكررة؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return 'تبقى $keep وتأخذ من المكررة أي تفاصيل تنقصها. تنتقل إليها تبديلات الغاز والضغوط.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'ما الغاز الذي احتوته هذه الأسطوانة؟';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'تقرأ هذه الصفوف المرسل نفسه لكنها تختلف في الغاز. ستحمل الأسطوانة الباقية الغاز الذي تختاره.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'إزالة';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إزالة الأسطوانات المكررة ($count غطسات)',
+      one: 'إزالة الأسطوانات المكررة (غطسة واحدة)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'إزالة الأسطوانات المكررة';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'الأسطوانات في غطسة واحدة التي تشترك في الرقم التسلسلي للمرسل هي أسطوانة واحدة سُجلت مرتين. تبقى واحدة في كل غطسة، والتراجع يعيد كل شيء.';
+
+  @override
+  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
+    String _temp0 = intl.Intl.pluralLogic(
+      removeCount,
+      locale: localeName,
+      other: 'إزالة $removeCount، والإبقاء على $keep',
+      one: 'إزالة 1، والإبقاء على $keep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'أُزيلت في $count غطسات',
+      one: 'أُزيلت في غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return 'تم تخطي $count: الخلطات الغازية مختلفة';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return 'فشل $count';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'تجاهل كل المعروض ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تجاهل $count ملاحظات؟',
+      one: 'تجاهل ملاحظة واحدة؟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'تبقى متجاهلة بعد إعادة الفحص. التراجع يعيدها.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'تجاهل الكل';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم تجاهل $count ملاحظات',
+      one: 'تم تجاهل ملاحظة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'جعل $source المصدر الأساسي؟';
   }

@@ -43537,6 +43537,121 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Supprimer le bloc en double';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer $count blocs en double ?',
+      one: 'Supprimer le bloc en double ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep reste et reprend du doublon les détails qui lui manquent. Les changements de gaz et les pressions lui sont rattachés.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Quel gaz contenait ce bloc ?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Ces lignes lisent le même émetteur mais diffèrent sur le gaz. Le bloc conservé portera celui que tu choisis.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Supprimer';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimer les blocs en double ($count plongées)',
+      one: 'Supprimer les blocs en double (1 plongée)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Supprimer les blocs en double';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Les blocs d\'une plongée qui partagent le numéro de série d\'un émetteur sont un seul bloc enregistré deux fois. Un seul reste par plongée, et Annuler remet tout en place.';
+
+  @override
+  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
+    String _temp0 = intl.Intl.pluralLogic(
+      removeCount,
+      locale: localeName,
+      other: 'Supprimer $removeCount, garder $keep',
+      one: 'Supprimer 1, garder $keep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Supprimé sur $count plongées',
+      one: 'Supprimé sur 1 plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count ignorées : les mélanges diffèrent';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count en échec';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Ignorer tout ce qui est affiché ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ignorer $count constats ?',
+      one: 'Ignorer 1 constat ?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Ils restent ignorés après une nouvelle analyse. Annuler les rétablit.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Tout ignorer';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count constats ignorés',
+      one: '1 constat ignoré',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Définir $source comme source principale ?';
   }

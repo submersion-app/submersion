@@ -40880,6 +40880,118 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeDuplicate => '移除重复气瓶';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '移除 $count 个重复气瓶？',
+      one: '移除重复气瓶？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '保留 $keep，并从重复项补全其缺少的信息。换气记录和压力数据将转移到它。';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle => '这个气瓶装的是哪种气体？';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      '这些记录读取同一个发射器，但气体不一致。保留的气瓶将使用你选择的气体。';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => '移除';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '移除重复气瓶（$count 次潜水）',
+      one: '移除重复气瓶（1 次潜水）',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => '移除重复气瓶';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      '同一次潜水中发射器序列号相同的气瓶，是被记录了两次的同一个气瓶。每次潜水保留一个，撤销可以恢复全部内容。';
+
+  @override
+  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
+    String _temp0 = intl.Intl.pluralLogic(
+      removeCount,
+      locale: localeName,
+      other: '移除 $removeCount 个，保留 $keep',
+      one: '移除 1 个，保留 $keep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已在 $count 次潜水中移除',
+      one: '已在 1 次潜水中移除',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '跳过 $count 个：气体混合不一致';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count 个失败';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return '忽略全部显示项（$count）';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '忽略 $count 条发现？',
+      one: '忽略 1 条发现？',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body => '重新扫描后仍保持忽略。撤销可恢复。';
+
+  @override
+  String get dataQuality_dismissAll_confirm => '全部忽略';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已忽略 $count 条发现',
+      one: '已忽略 1 条发现',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return '将 $source 设为主要来源？';
   }

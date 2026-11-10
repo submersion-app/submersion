@@ -43179,6 +43179,121 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Ismétlődő palack eltávolítása';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Eltávolítasz $count ismétlődő palackot?',
+      one: 'Eltávolítod az ismétlődő palackot?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep megmarad, és átveszi az ismétlődő palackból a hiányzó adatokat. A gázváltások és nyomások hozzá kerülnek.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Milyen gáz volt ebben a palackban?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Ezek a sorok ugyanazt a jeladót olvassák, de eltér a gázuk. A megmaradó palack azt kapja, amelyiket választod.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Eltávolítás';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ismétlődő palackok eltávolítása ($count merülés)',
+      one: 'Ismétlődő palackok eltávolítása (1 merülés)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Ismétlődő palackok eltávolítása';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Az egy merülésen azonos jeladó-sorozatszámú palackok egyetlen, kétszer rögzített palackot jelentenek. Merülésenként egy marad, a Visszavonás mindent visszaállít.';
+
+  @override
+  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
+    String _temp0 = intl.Intl.pluralLogic(
+      removeCount,
+      locale: localeName,
+      other: '$removeCount eltávolítása, $keep marad',
+      one: '1 eltávolítása, $keep marad',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülésen eltávolítva',
+      one: '1 merülésen eltávolítva',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count kihagyva: a gázkeverékek eltérnek';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count sikertelen';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Az összes látható elvetése ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Elveted a(z) $count észrevételt?',
+      one: 'Elveted az 1 észrevételt?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Újraellenőrzés után is elvetve maradnak. A Visszavonás visszahozza őket.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Összes elvetése';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count észrevétel elvetve',
+      one: '1 észrevétel elvetve',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Beállítja elsődleges forrásként ezt: $source?';
   }

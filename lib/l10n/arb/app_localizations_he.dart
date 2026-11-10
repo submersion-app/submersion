@@ -42362,6 +42362,119 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeDuplicate => 'הסרת מכל כפול';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'להסיר $count מכלים כפולים?',
+      one: 'להסיר את המכל הכפול?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep נשאר ומקבל מהכפול פרטים שחסרים לו. החלפות הגז והלחצים עוברים אליו.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle => 'איזה גז היה במכל הזה?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'השורות האלה קוראות את אותו משדר אבל חלוקות על הגז. המכל שנשאר יקבל את הגז שתבחר.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'הסרה';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הסרת מכלים כפולים ($count צלילות)',
+      one: 'הסרת מכלים כפולים (צלילה אחת)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'הסרת מכלים כפולים';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'מכלים באותה צלילה עם אותו מספר סידורי של משדר הם מכל אחד שנרשם פעמיים. אחד נשאר בכל צלילה, וביטול מחזיר הכול.';
+
+  @override
+  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
+    String _temp0 = intl.Intl.pluralLogic(
+      removeCount,
+      locale: localeName,
+      other: 'הסרת $removeCount, השארת $keep',
+      one: 'הסרת 1, השארת $keep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הוסר ב-$count צלילות',
+      one: 'הוסר בצלילה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count דולגו: תערובות הגז שונות';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count נכשלו';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'התעלמות מכל המוצג ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'להתעלם מ-$count ממצאים?',
+      one: 'להתעלם מממצא אחד?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'הם נשארים מוסתרים גם אחרי סריקה חוזרת. ביטול מחזיר אותם.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'התעלמות מהכול';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ממצאים הוסתרו',
+      one: 'ממצא אחד הוסתר',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'להגדיר את $source כמקור הראשי?';
   }

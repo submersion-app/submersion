@@ -37,6 +37,7 @@ import 'package:submersion/features/dive_log/data/services/dive_split_service.da
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/data_quality/presentation/pages/data_quality_inbox_actions.dart';
 import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/features/transmitters/presentation/pages/transmitter_setup_redirect.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
@@ -65,6 +66,19 @@ class _FakeFindingsRepository implements QualityFindingsRepository {
   @override
   Future<void> setStatus(String id, QualityStatus status) async {
     dismissed.add(id);
+  }
+
+  final dismissedAll = <String>[];
+  final reopened = <String>[];
+
+  @override
+  Future<void> dismissAll(Iterable<String> ids) async {
+    dismissedAll.addAll(ids);
+  }
+
+  @override
+  Future<void> reopenAll(Iterable<String> ids) async {
+    reopened.addAll(ids);
   }
 
   /// What the badge and the scan message count: the open findings only.
@@ -2671,5 +2685,107 @@ void main() {
 
     expect(find.byType(SnackBar), findsWidgets);
     await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  group('duplicate cylinders and dismiss all shown (#4393)', () {
+    QualityFinding twin({String id = 'twin-1', bool sameTransmitter = true}) =>
+        _f(
+          id: id,
+          detectorId: 'tank_assignment',
+          category: QualityCategory.tank,
+          params: {
+            'tankIdA': 'tank-a',
+            'tankIdB': 'tank-b',
+            'meanDiffBar': 0.0,
+            'sameTransmitter': sameTransmitter,
+          },
+        );
+
+    testWidgets('bulk removal shows only on the Tanks chip with serial-proven '
+        'twins', (tester) async {
+      final repo = _FakeFindingsRepository([twin()]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(bulkRemoveDuplicatesKey), findsNothing);
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(bulkRemoveDuplicatesKey), findsOneWidget);
+      expect(
+        find.byTooltip('Remove duplicate cylinders (1 dive)'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('bulk removal is hidden for curve-only twins', (tester) async {
+      final repo = _FakeFindingsRepository([twin(sameTransmitter: false)]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(bulkRemoveDuplicatesKey), findsNothing);
+    });
+
+    testWidgets('dismiss all shown dismisses exactly the shown findings and '
+        'undo reopens them', (tester) async {
+      final gap = _f(
+        id: 'gap-1',
+        detectorId: 'sample_gap',
+        category: QualityCategory.profile,
+        params: const {'gapCount': 2, 'longestGapSeconds': 90},
+      );
+      final repo = _FakeFindingsRepository([twin(), gap]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(inboxOverflowMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all shown (1)'));
+      await tester.pumpAndSettle();
+      expect(find.text('Dismiss 1 finding?'), findsOneWidget);
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+
+      expect(repo.dismissedAll, ['twin-1']);
+      expect(find.text('Dismissed 1 finding'), findsOneWidget);
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(repo.reopened, ['twin-1']);
+    });
+
+    testWidgets('a twin whose mixes differ asks which mix to keep', (
+      tester,
+    ) async {
+      await tester.runAsync(() async {
+        await _seedDive('d1');
+        final db = DatabaseService.instance.database;
+        for (final (id, o2) in [('tank-a', 32.0), ('tank-b', 21.0)]) {
+          await db
+              .into(db.diveTanks)
+              .insert(
+                DiveTanksCompanion.insert(
+                  id: id,
+                  diveId: 'd1',
+                  o2Percent: Value(o2),
+                  transmitterSerial: const Value('X1'),
+                ),
+              );
+        }
+      });
+      final prefs = await _prefs();
+      await tester.pumpWidget(_scope(prefs, findings: [twin()]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Remove duplicate cylinder'));
+      await tester.pumpAndSettle();
+      expect(find.text('Which gas did this cylinder hold?'), findsOneWidget);
+      expect(find.text('EAN32'), findsOneWidget);
+      expect(find.text('Air'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    });
   });
 }

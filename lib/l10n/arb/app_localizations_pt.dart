@@ -43388,6 +43388,121 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Remover cilindro duplicado';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover $count cilindros duplicados?',
+      one: 'Remover o cilindro duplicado?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep permanece e recebe do duplicado os dados que lhe faltam. As trocas de gás e as pressões passam para ele.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Que gás este cilindro levava?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Estas linhas leem o mesmo transmissor, mas divergem no gás. O cilindro que permanece terá o que você escolher.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Remover';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Remover cilindros duplicados ($count mergulhos)',
+      one: 'Remover cilindros duplicados (1 mergulho)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Remover cilindros duplicados';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Cilindros de um mergulho com o mesmo número de série do transmissor são um único cilindro registrado duas vezes. Fica um em cada mergulho, e Desfazer restaura tudo.';
+
+  @override
+  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
+    String _temp0 = intl.Intl.pluralLogic(
+      removeCount,
+      locale: localeName,
+      other: 'Remover $removeCount, manter $keep',
+      one: 'Remover 1, manter $keep',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Removido em $count mergulhos',
+      one: 'Removido em 1 mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count ignorados: as misturas diferem';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count falharam';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Dispensar tudo o que aparece ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dispensar $count achados?',
+      one: 'Dispensar 1 achado?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Continuam dispensados após uma nova verificação. Desfazer os traz de volta.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Dispensar tudo';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count achados dispensados',
+      one: '1 achado dispensado',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return 'Tornar $source a fonte principal?';
   }

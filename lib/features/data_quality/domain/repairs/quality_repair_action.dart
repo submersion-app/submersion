@@ -110,6 +110,21 @@ class SplitSourceRepair extends QualityRepairAction {
   final String sourceId;
 }
 
+/// Merges a twin finding's duplicate cylinder rows into one (issue #4393).
+/// [sameTransmitter] widens it to every row on the dive with that serial.
+class RemoveDuplicateCylinderRepair extends QualityRepairAction {
+  const RemoveDuplicateCylinderRepair({
+    required this.diveId,
+    required this.tankIdA,
+    required this.tankIdB,
+    required this.sameTransmitter,
+  });
+  final String diveId;
+  final String tankIdA;
+  final String tankIdB;
+  final bool sameTransmitter;
+}
+
 /// Removes the source from the dive with what it owns (issue #4393).
 class RemoveSourceRepair extends QualityRepairAction {
   const RemoveSourceRepair({required this.diveId, required this.sourceId});
@@ -513,6 +528,12 @@ List<QualityRepairAction> repairOptionsFor(QualityFinding f) {
       final b = p['tankIdB'] as String?;
       if (a != null && b != null) {
         return [
+          RemoveDuplicateCylinderRepair(
+            diveId: diveId,
+            tankIdA: a,
+            tankIdB: b,
+            sameTransmitter: p['sameTransmitter'] == true,
+          ),
           SwapPressureSeriesRepair(diveId: diveId, tankIdA: a, tankIdB: b),
           ReassignPressureSeriesRepair(diveId: diveId, fromTankId: a),
         ];

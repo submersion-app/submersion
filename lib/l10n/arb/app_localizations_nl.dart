@@ -43131,6 +43131,121 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_repairLabel_removeDuplicate =>
+      'Dubbele fles verwijderen';
+
+  @override
+  String dataQuality_removeDuplicate_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dubbele flessen verwijderen?',
+      one: 'De dubbele fles verwijderen?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_removeDuplicate_body(String keep) {
+    return '$keep blijft en neemt ontbrekende gegevens over van het duplicaat. Gaswissels en drukken gaan naar deze fles.';
+  }
+
+  @override
+  String get dataQuality_removeDuplicate_mixTitle =>
+      'Welk gas zat er in deze fles?';
+
+  @override
+  String get dataQuality_removeDuplicate_mixBody =>
+      'Deze regels lezen dezelfde zender maar verschillen in gas. De fles die blijft krijgt het gas dat je kiest.';
+
+  @override
+  String get dataQuality_removeDuplicate_confirm => 'Verwijderen';
+
+  @override
+  String dataQuality_bulk_removeDuplicates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Dubbele flessen verwijderen ($count duiken)',
+      one: 'Dubbele flessen verwijderen (1 duik)',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_bulk_sheetTitle => 'Dubbele flessen verwijderen';
+
+  @override
+  String get dataQuality_bulk_sheetBody =>
+      'Flessen op één duik met hetzelfde serienummer van de zender zijn één fles die twee keer is vastgelegd. Per duik blijft er één, en Ongedaan maken zet alles terug.';
+
+  @override
+  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
+    String _temp0 = intl.Intl.pluralLogic(
+      removeCount,
+      locale: localeName,
+      other: '$removeCount verwijderen, $keep houden',
+      one: '1 verwijderen, $keep houden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_removeDuplicates_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Verwijderd bij $count duiken',
+      one: 'Verwijderd bij 1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dataQuality_bulk_skippedMixes(int count) {
+    return '$count overgeslagen: gasmengsels verschillen';
+  }
+
+  @override
+  String dataQuality_bulk_failed(int count) {
+    return '$count mislukt';
+  }
+
+  @override
+  String dataQuality_action_dismissAllShown(int count) {
+    return 'Alles wat getoond wordt negeren ($count)';
+  }
+
+  @override
+  String dataQuality_dismissAll_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bevindingen negeren?',
+      one: '1 bevinding negeren?',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dataQuality_dismissAll_body =>
+      'Ze blijven genegeerd na een nieuwe scan. Ongedaan maken haalt ze terug.';
+
+  @override
+  String get dataQuality_dismissAll_confirm => 'Alles negeren';
+
+  @override
+  String dataQuality_dismissAll_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bevindingen genegeerd',
+      one: '1 bevinding genegeerd',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_setPrimary_title(String source) {
     return '$source als primaire bron instellen?';
   }

@@ -26665,6 +26665,131 @@
       }
     }
   },
+  "dataQuality_repairLabel_removeDuplicate": "Remove duplicate cylinder",
+  "@dataQuality_repairLabel_removeDuplicate": {
+    "description": "Repair button on a twin-cylinder finding that merges the duplicate row into the one that stays."
+  },
+  "dataQuality_removeDuplicate_title": "{count, plural, =1{Remove the duplicate cylinder?} other{Remove {count} duplicate cylinders?}}",
+  "@dataQuality_removeDuplicate_title": {
+    "description": "Title of the dialog confirming removal of duplicate cylinder rows on one dive.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_removeDuplicate_body": "{keep} stays and takes any details it lacks from the duplicate. Gas switches and pressures move to it.",
+  "@dataQuality_removeDuplicate_body": {
+    "description": "Body of the dialog confirming removal of duplicate cylinder rows; keep names the cylinder that stays.",
+    "placeholders": {
+      "keep": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_removeDuplicate_mixTitle": "Which gas did this cylinder hold?",
+  "@dataQuality_removeDuplicate_mixTitle": {
+    "description": "Title of the dialog asking which gas mix to keep when duplicate cylinder rows disagree."
+  },
+  "dataQuality_removeDuplicate_mixBody": "These rows read the same transmitter but disagree on the gas. The cylinder that stays will carry the one you choose.",
+  "@dataQuality_removeDuplicate_mixBody": {
+    "description": "Body of the dialog asking which gas mix to keep when duplicate cylinder rows disagree."
+  },
+  "dataQuality_removeDuplicate_confirm": "Remove",
+  "@dataQuality_removeDuplicate_confirm": {
+    "description": "Confirm button of the dialogs that remove duplicate cylinders."
+  },
+  "dataQuality_bulk_removeDuplicates": "{count, plural, =1{Remove duplicate cylinders (1 dive)} other{Remove duplicate cylinders ({count} dives)}}",
+  "@dataQuality_bulk_removeDuplicates": {
+    "description": "Inbox toolbar action that removes duplicate cylinders on every dive with a serial-proven twin finding.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_bulk_sheetTitle": "Remove duplicate cylinders",
+  "@dataQuality_bulk_sheetTitle": {
+    "description": "Title of the sheet confirming the bulk removal of duplicate cylinders."
+  },
+  "dataQuality_bulk_sheetBody": "Cylinders on one dive that share a transmitter serial are one cylinder recorded twice. One stays on each dive, and Undo puts everything back.",
+  "@dataQuality_bulk_sheetBody": {
+    "description": "Explanation at the top of the bulk duplicate cylinder removal sheet."
+  },
+  "dataQuality_bulk_sheetRow": "{removeCount, plural, =1{Remove 1, keep {keep}} other{Remove {removeCount}, keep {keep}}}",
+  "@dataQuality_bulk_sheetRow": {
+    "description": "One dive's line in the bulk duplicate cylinder sheet: how many rows go and which cylinder stays.",
+    "placeholders": {
+      "removeCount": {
+        "type": "int"
+      },
+      "keep": {
+        "type": "String"
+      }
+    }
+  },
+  "dataQuality_bulk_removeDuplicates_done": "{count, plural, =1{Removed on 1 dive} other{Removed on {count} dives}}",
+  "@dataQuality_bulk_removeDuplicates_done": {
+    "description": "Snackbar after the bulk duplicate cylinder removal: how many dives changed.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_bulk_skippedMixes": "{count} skipped: gas mixes differ",
+  "@dataQuality_bulk_skippedMixes": {
+    "description": "Added to the bulk removal summary: dives left alone because their duplicate rows disagree on gas.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_bulk_failed": "{count} failed",
+  "@dataQuality_bulk_failed": {
+    "description": "Added to the bulk removal summary: dives the removal could not change.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_action_dismissAllShown": "Dismiss all shown ({count})",
+  "@dataQuality_action_dismissAllShown": {
+    "description": "Inbox menu item that dismisses every finding the current filter shows.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_dismissAll_title": "{count, plural, =1{Dismiss 1 finding?} other{Dismiss {count} findings?}}",
+  "@dataQuality_dismissAll_title": {
+    "description": "Title of the dialog confirming Dismiss all shown.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dataQuality_dismissAll_body": "They stay dismissed after a rescan. Undo brings them back.",
+  "@dataQuality_dismissAll_body": {
+    "description": "Body of the dialog confirming Dismiss all shown."
+  },
+  "dataQuality_dismissAll_confirm": "Dismiss all",
+  "@dataQuality_dismissAll_confirm": {
+    "description": "Confirm button of the dialog that dismisses every shown finding."
+  },
+  "dataQuality_dismissAll_done": "{count, plural, =1{Dismissed 1 finding} other{Dismissed {count} findings}}",
+  "@dataQuality_dismissAll_done": {
+    "description": "Snackbar after Dismiss all shown.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataQuality_setPrimary_title": "Make {source} the primary source?",
   "@dataQuality_setPrimary_title": {
     "placeholders": {

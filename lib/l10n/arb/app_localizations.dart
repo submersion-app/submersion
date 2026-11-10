@@ -68123,6 +68123,114 @@ abstract class AppLocalizations {
   /// **'Remove {source}'**
   String dataQuality_repairLabel_removeSourceNamed(String source);
 
+  /// Repair button on a twin-cylinder finding that merges the duplicate row into the one that stays.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove duplicate cylinder'**
+  String get dataQuality_repairLabel_removeDuplicate;
+
+  /// Title of the dialog confirming removal of duplicate cylinder rows on one dive.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Remove the duplicate cylinder?} other{Remove {count} duplicate cylinders?}}'**
+  String dataQuality_removeDuplicate_title(int count);
+
+  /// Body of the dialog confirming removal of duplicate cylinder rows; keep names the cylinder that stays.
+  ///
+  /// In en, this message translates to:
+  /// **'{keep} stays and takes any details it lacks from the duplicate. Gas switches and pressures move to it.'**
+  String dataQuality_removeDuplicate_body(String keep);
+
+  /// Title of the dialog asking which gas mix to keep when duplicate cylinder rows disagree.
+  ///
+  /// In en, this message translates to:
+  /// **'Which gas did this cylinder hold?'**
+  String get dataQuality_removeDuplicate_mixTitle;
+
+  /// Body of the dialog asking which gas mix to keep when duplicate cylinder rows disagree.
+  ///
+  /// In en, this message translates to:
+  /// **'These rows read the same transmitter but disagree on the gas. The cylinder that stays will carry the one you choose.'**
+  String get dataQuality_removeDuplicate_mixBody;
+
+  /// Confirm button of the dialogs that remove duplicate cylinders.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get dataQuality_removeDuplicate_confirm;
+
+  /// Inbox toolbar action that removes duplicate cylinders on every dive with a serial-proven twin finding.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Remove duplicate cylinders (1 dive)} other{Remove duplicate cylinders ({count} dives)}}'**
+  String dataQuality_bulk_removeDuplicates(int count);
+
+  /// Title of the sheet confirming the bulk removal of duplicate cylinders.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove duplicate cylinders'**
+  String get dataQuality_bulk_sheetTitle;
+
+  /// Explanation at the top of the bulk duplicate cylinder removal sheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders on one dive that share a transmitter serial are one cylinder recorded twice. One stays on each dive, and Undo puts everything back.'**
+  String get dataQuality_bulk_sheetBody;
+
+  /// One dive's line in the bulk duplicate cylinder sheet: how many rows go and which cylinder stays.
+  ///
+  /// In en, this message translates to:
+  /// **'{removeCount, plural, =1{Remove 1, keep {keep}} other{Remove {removeCount}, keep {keep}}}'**
+  String dataQuality_bulk_sheetRow(int removeCount, String keep);
+
+  /// Snackbar after the bulk duplicate cylinder removal: how many dives changed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Removed on 1 dive} other{Removed on {count} dives}}'**
+  String dataQuality_bulk_removeDuplicates_done(int count);
+
+  /// Added to the bulk removal summary: dives left alone because their duplicate rows disagree on gas.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} skipped: gas mixes differ'**
+  String dataQuality_bulk_skippedMixes(int count);
+
+  /// Added to the bulk removal summary: dives the removal could not change.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} failed'**
+  String dataQuality_bulk_failed(int count);
+
+  /// Inbox menu item that dismisses every finding the current filter shows.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all shown ({count})'**
+  String dataQuality_action_dismissAllShown(int count);
+
+  /// Title of the dialog confirming Dismiss all shown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Dismiss 1 finding?} other{Dismiss {count} findings?}}'**
+  String dataQuality_dismissAll_title(int count);
+
+  /// Body of the dialog confirming Dismiss all shown.
+  ///
+  /// In en, this message translates to:
+  /// **'They stay dismissed after a rescan. Undo brings them back.'**
+  String get dataQuality_dismissAll_body;
+
+  /// Confirm button of the dialog that dismisses every shown finding.
+  ///
+  /// In en, this message translates to:
+  /// **'Dismiss all'**
+  String get dataQuality_dismissAll_confirm;
+
+  /// Snackbar after Dismiss all shown.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Dismissed 1 finding} other{Dismissed {count} findings}}'**
+  String dataQuality_dismissAll_done(int count);
+
   /// No description provided for @dataQuality_setPrimary_title.
   ///
   /// In en, this message translates to:

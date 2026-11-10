@@ -73,6 +73,7 @@ class DuplicateRemovalResult {
     required this.skippedMixes,
     required this.failed,
     required this.operationId,
+    this.diveIds = const [],
   });
 
   final int merged;
@@ -82,6 +83,9 @@ class DuplicateRemovalResult {
   /// The change log operation the whole run filed under; reverting it undoes
   /// every merge. Null with no database to log to.
   final String? operationId;
+
+  /// The dives a merge changed, to rescan after an Undo.
+  final List<String> diveIds;
 }
 
 /// Removes duplicate cylinders for one twin finding or for every
@@ -111,7 +115,11 @@ class DuplicateCylinderService {
   /// The open twin findings the bulk action may act on: those whose rows
   /// share a transmitter serial. A match by pressure curve alone could be a
   /// real twinset, so it stays with the per-card action.
-  List<QualityFinding> bulkCandidates(Iterable<QualityFinding> open) => [
+  List<QualityFinding> bulkCandidates(Iterable<QualityFinding> open) =>
+      candidatesIn(open);
+
+  /// [bulkCandidates] without a service, for the toolbar's count.
+  static List<QualityFinding> candidatesIn(Iterable<QualityFinding> open) => [
     for (final f in open)
       if (_isTwin(f) && f.params['sameTransmitter'] == true) f,
   ];
@@ -285,6 +293,7 @@ class DuplicateCylinderService {
       skippedMixes: skippedMixes,
       failed: failed,
       operationId: operationId,
+      diveIds: touched.toList(),
     );
   }
 }

@@ -553,6 +553,20 @@ void main() {
       expect(actions.whereType<ReassignPressureSeriesRepair>(), hasLength(1));
     });
 
+    test('twin findings offer remove duplicate first (#4393)', () {
+      final actions = repairOptionsFor(
+        f(
+          detectorId: 'tank_assignment',
+          params: {'tankIdA': 'a', 'tankIdB': 'b', 'sameTransmitter': true},
+        ),
+      );
+      final remove = actions.first as RemoveDuplicateCylinderRepair;
+      expect(remove.diveId, 'd1');
+      expect(remove.tankIdA, 'a');
+      expect(remove.tankIdB, 'b');
+      expect(remove.sameTransmitter, isTrue);
+    });
+
     test('single-tank drop offers reassign then navigation', () {
       final actions = repairOptionsFor(
         f(detectorId: 'tank_assignment', params: {'tankId': 't1'}),

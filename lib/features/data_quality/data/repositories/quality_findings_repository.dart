@@ -264,7 +264,15 @@ class QualityFindingsRepository {
   }
 
   /// Bulk dismiss with ONE notify (fifty false positives, one tap).
-  Future<void> dismissAll(Iterable<String> ids) async {
+  Future<void> dismissAll(Iterable<String> ids) =>
+      _setAll(ids, QualityStatus.dismissed);
+
+  /// Puts [ids] back to open with one notify: the Undo of Dismiss all shown
+  /// (issue #4393).
+  Future<void> reopenAll(Iterable<String> ids) =>
+      _setAll(ids, QualityStatus.open);
+
+  Future<void> _setAll(Iterable<String> ids, QualityStatus status) async {
     final idList = ids.toList();
     if (idList.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -273,7 +281,7 @@ class QualityFindingsRepository {
         _db.qualityFindings,
       )..where((t) => t.id.isIn(idList))).write(
         QualityFindingsCompanion(
-          status: Value(QualityStatus.dismissed.name),
+          status: Value(status.name),
           updatedAt: Value(now),
         ),
       );
