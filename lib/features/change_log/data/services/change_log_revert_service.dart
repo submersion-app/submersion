@@ -36,12 +36,15 @@ class ChangeLogRevertService {
     ChangeLogRepository? repository,
     SyncRepository? sync,
     Map<String, int> rewrittenColumns = changeLogRewrittenColumns,
+    Map<String, ChangeLogValueRepair> rewrittenValues =
+        changeLogRewrittenValues,
     void Function(Iterable<String> diveIds)? afterDiveWrites,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
     Future<void> Function(String trackId)? evictTrackGeometry,
   }) : _repository = repository ?? ChangeLogRepository(),
        _sync = sync ?? SyncRepository(),
        _rewrittenColumns = rewrittenColumns,
+       _rewrittenValues = rewrittenValues,
        _afterDiveWrites = afterDiveWrites ?? refreshAfterRuleWrites,
        _media =
            mediaDeletionCoordinator ??
@@ -57,6 +60,7 @@ class ChangeLogRevertService {
   final ChangeLogRepository _repository;
   final SyncRepository _sync;
   final Map<String, int> _rewrittenColumns;
+  final Map<String, ChangeLogValueRepair> _rewrittenValues;
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
   final MediaDeletionCoordinator _media;
   final Future<void> Function(String trackId) _evictTrackGeometry;
@@ -134,7 +138,13 @@ class ChangeLogRevertService {
   }
 
   ChangeLogRecordPlanner _plannerWith(ChangeLogDependencyIndex dependencies) =>
-      ChangeLogRecordPlanner(_db, _repository, dependencies, _rewrittenColumns);
+      ChangeLogRecordPlanner(
+        _db,
+        _repository,
+        dependencies,
+        _rewrittenColumns,
+        rewrittenValues: _rewrittenValues,
+      );
 
   /// The column edits among [events], oldest first. Several edits to one
   /// column in an entry count as one: the value goes back to what the first
@@ -210,6 +220,7 @@ class ChangeLogRevertService {
       column,
       event.schemaVersion,
       target,
+      rewrittenValues: _rewrittenValues,
     )) {
       return ChangeLogBlock.rewritten;
     }
@@ -331,7 +342,14 @@ class ChangeLogRevertService {
       for (final column in await _repository.nullableDefaultedColumns(table))
         if (!changeLogDeleteCopySkips(column)) column: null,
       for (final field in event.fields)
-        if (columns.contains(field.column)) field.column: field.oldValue,
+        if (columns.contains(field.column))
+          field.column: changeLogRestoredValue(
+            _rewrittenColumns,
+            table,
+            field.column,
+            field.oldValue,
+            rewrittenValues: _rewrittenValues,
+          ),
       if (columns.contains('updated_at')) 'updated_at': now,
     };
     await _db.customInsert(

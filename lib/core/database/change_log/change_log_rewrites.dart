@@ -22,41 +22,82 @@ const Map<String, int> changeLogRewrittenColumns = {
   'dives.rating': 358,
 };
 
-/// For a column in [changeLogRewrittenColumns] whose rung rewrote only the
-/// values it found out of shape, the test for such a value.
+/// Puts a logged value into the shape a rung has since given its column.
 ///
-/// A logged value the rung would have left alone means the same now, so a
-/// revert may still put it back: a dive rated 4 stars and deleted before v358
-/// can be restored. A value the test flags is refused whenever it was
-/// logged, because an inbound sync apply runs the same repair after the rung
-/// and can log the value it replaced. A column listed only in
-/// [changeLogRewrittenColumns] refuses every value logged before its rung.
-const Map<String, bool Function(Object? value)> changeLogRewrittenValues = {
-  'dives.rating': _ratingOutOfScale,
+/// Returns the value as the rung would have left it, or the value itself
+/// when the rung would not have touched it.
+typedef ChangeLogValueRepair = Object? Function(Object? value);
+
+/// For a column in [changeLogRewrittenColumns] whose rung rewrote only the
+/// values it found out of shape, how it rewrote them.
+///
+/// The column's version there then only marks it as rewritten: a logged value
+/// the repair leaves alone means the same now, whenever it was logged, and a
+/// value it changes is out of shape whenever it was logged. So an edit back to
+/// a 4-star rating can still be reverted, an edit back to an out-of-scale one
+/// is refused, and a deleted dive returns with its rating put on the scale
+/// rather than not at all. A column listed only in [changeLogRewrittenColumns]
+/// refuses every value logged before its rung.
+const Map<String, ChangeLogValueRepair> changeLogRewrittenValues = {
+  'dives.rating': _ratingOnScale,
 };
 
-bool _ratingOutOfScale(Object? value) {
+Object? _ratingOnScale(Object? value) {
   final rating = switch (value) {
     final num n => n.toInt(),
     final String s => num.tryParse(s)?.toInt(),
     _ => null,
   };
-  return rating != null && DiveRatingScale.normalize(rating) != rating;
+  if (rating == null) return value;
+  final stars = DiveRatingScale.normalize(rating);
+  return stars == rating ? value : stars;
 }
 
-/// Whether a revert must refuse [value], logged for [table].[column] at
-/// [schemaVersion], because a rung has since rewritten what it means.
+/// Whether reverting [table].[column] to [value], logged at [schemaVersion],
+/// must be refused because a rung has since rewritten what it means.
 bool changeLogValueRewritten(
   Map<String, int> rewrittenColumns,
   String table,
   String column,
   int schemaVersion,
-  Object? value,
-) {
+  Object? value, {
+  Map<String, ChangeLogValueRepair> rewrittenValues = changeLogRewrittenValues,
+}) {
   final key = '$table.$column';
   final rewrittenAt = rewrittenColumns[key];
   if (rewrittenAt == null) return false;
-  final outOfShape = changeLogRewrittenValues[key];
-  if (outOfShape != null) return outOfShape(value);
+  final repair = rewrittenValues[key];
+  if (repair != null) return repair(value) != value;
   return schemaVersion < rewrittenAt;
+}
+
+/// Whether restoring a deleted record must be refused for its logged
+/// [table].[column] value. A column whose rung has a repair in
+/// [rewrittenValues] never refuses: [changeLogRestoredValue] repairs it.
+bool changeLogRestoreBlocked(
+  Map<String, int> rewrittenColumns,
+  String table,
+  String column,
+  int schemaVersion, {
+  Map<String, ChangeLogValueRepair> rewrittenValues = changeLogRewrittenValues,
+}) {
+  final key = '$table.$column';
+  final rewrittenAt = rewrittenColumns[key];
+  if (rewrittenAt == null || rewrittenValues.containsKey(key)) return false;
+  return schemaVersion < rewrittenAt;
+}
+
+/// The logged [table].[column] [value] a restore writes back, repaired when
+/// [rewrittenColumns] and [rewrittenValues] say a rung reshaped the column.
+Object? changeLogRestoredValue(
+  Map<String, int> rewrittenColumns,
+  String table,
+  String column,
+  Object? value, {
+  Map<String, ChangeLogValueRepair> rewrittenValues = changeLogRewrittenValues,
+}) {
+  final key = '$table.$column';
+  final repair = rewrittenValues[key];
+  if (repair == null || !rewrittenColumns.containsKey(key)) return value;
+  return repair(value);
 }

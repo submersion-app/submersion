@@ -130,8 +130,8 @@ void main() {
     expect(refused(357, 4), isFalse);
     expect(refused(357, '3'), isFalse);
     expect(refused(357, null), isFalse);
-    // An out-of-scale value is refused, even when a sync apply's repair
-    // logged it after the rung.
+    // An out-of-scale value is refused, even when it was logged after the
+    // rung, as a peer below v358 can still send one.
     expect(refused(357, 8), isTrue);
     expect(refused(357, 0), isTrue);
     expect(refused(360, 6), isTrue);
@@ -146,19 +146,6 @@ void main() {
       ),
       isTrue,
     );
-  });
-
-  test('the repair a sync apply runs reads only the dives named', () async {
-    final db = AppDatabase(
-      NativeDatabase.memory(setup: registerAppSqlFunctions),
-    );
-    addTearDown(db.close);
-    await seed(db);
-
-    expect(await repairOutOfScaleDiveRatings(db, diveIds: ['six', 'three']), 1);
-    final after = await ratings(db);
-    expect(after['six'], 3);
-    expect(after['ten'], 10);
   });
 
   test('a rating above 5 is halved and one of 0 or below is cleared', () async {
@@ -182,18 +169,15 @@ void main() {
     expect(await changeLogEvents(db), seededEvents);
   });
 
-  test(
-    'the repair a sync apply runs reports the dives it rewrote, once',
-    () async {
-      final db = AppDatabase(
-        NativeDatabase.memory(setup: registerAppSqlFunctions),
-      );
-      addTearDown(db.close);
-      await seed(db);
+  test('the repair reports the dives it rewrote, once', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    await seed(db);
 
-      expect(await repairOutOfScaleDiveRatings(db), 6);
-      expect(await ratings(db), repaired);
-      expect(await repairOutOfScaleDiveRatings(db), 0);
-    },
-  );
+    expect(await repairOutOfScaleDiveRatings(db), 6);
+    expect(await ratings(db), repaired);
+    expect(await repairOutOfScaleDiveRatings(db), 0);
+  });
 }
