@@ -22,8 +22,10 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
 import 'package:submersion/features/transmitters/presentation/providers/transmitter_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../../../helpers/info_sheets.dart';
 
 const _settings = AppSettings();
 const _units = UnitFormatter(_settings);
@@ -1329,5 +1331,14 @@ void main() {
       expect(find.byKey(const Key('tank-trip-cylinder-tank-1')), findsNothing);
       expect(find.textContaining('Bottle'), findsNothing);
     });
+  });
+
+  testWidgets('title carries an info icon', (tester) async {
+    await tester.pumpWidget(
+      _buildCard(dive: _makeDive([_makeTank()]), cylinderSacs: [_makeSac()]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsOneWidget);
+    expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 }

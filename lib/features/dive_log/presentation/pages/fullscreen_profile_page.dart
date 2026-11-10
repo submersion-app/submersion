@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/services/profile_markers_servi
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
+import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/providers/annotation_focus_provider.dart';
@@ -47,6 +48,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/viewer_fullscreen_mode_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 /// Fullscreen dive review: full-height profile chart with a dive-computer
 /// instrument bar, playback, and scrubbing (issues #443, #169).
@@ -428,362 +430,378 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     ];
 
     return Scaffold(
-      body: SafeArea(
-        child: CallbackShortcuts(
-          bindings: {
-            const SingleActivator(LogicalKeyboardKey.space): () {
-              final state = ref.read(playbackProvider(widget.diveId));
-              if (state.isActive) notifier.togglePlayPause();
+      body: ProfileLegendSnapshotScope(
+        child: SafeArea(
+          child: CallbackShortcuts(
+            bindings: {
+              const SingleActivator(LogicalKeyboardKey.space): () {
+                final state = ref.read(playbackProvider(widget.diveId));
+                if (state.isActive) notifier.togglePlayPause();
+              },
+              const SingleActivator(LogicalKeyboardKey.arrowLeft):
+                  notifier.stepBackward,
+              const SingleActivator(LogicalKeyboardKey.arrowRight):
+                  notifier.stepForward,
+              const SingleActivator(LogicalKeyboardKey.escape): () =>
+                  Navigator.of(context).pop(),
             },
-            const SingleActivator(LogicalKeyboardKey.arrowLeft):
-                notifier.stepBackward,
-            const SingleActivator(LogicalKeyboardKey.arrowRight):
-                notifier.stepForward,
-            const SingleActivator(LogicalKeyboardKey.escape): () =>
-                Navigator.of(context).pop(),
-          },
-          child: Focus(
-            autofocus: true,
-            child: Column(
-              children: [
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: isPhone
-                            ? const EdgeInsets.all(4)
-                            : const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                        child: DiveProfileChart(
-                          profile: chartProfile,
-                          overlays: overlays.isEmpty ? null : overlays,
-                          hasPlannedProfile: planned.available,
-                          activeComputerId: activeProfile?.computerId,
-                          diveDuration: dive.effectiveRuntime,
-                          maxDepth: dive.maxDepth,
-                          // Cursor-following in-chart tooltip by default
-                          // (TooltipPresentation.inChart, issue #2228
-                          // follow-up): it clamps to the plot rect itself, so
-                          // the old clipping concern that used to justify the
-                          // external presentation here no longer applies.
-                          // Optionally docked in a fixed corner instead (see
-                          // "Tooltip follows cursor" in the chart's Display
-                          // options), which never sits over the plot near
-                          // the cursor -- requested after #2228 shipped.
-                          tooltipPresentation: tooltipFollowsCursor
-                              ? TooltipPresentation.inChart
-                              : TooltipPresentation.external,
-                          onTooltipData: tooltipFollowsCursor
-                              ? null
-                              : (rows) =>
-                                    setState(() => _fixedTooltipRows = rows),
-                          playbackIsPlaying: playbackIsPlaying,
-                          // Capped so the legend and its zoom controls keep
-                          // room beside it on the narrowest phones: there the
-                          // title ellipsizes rather than the header
-                          // overflowing (#1577 added the range toggle here).
-                          legendLeading: ConstrainedBox(
-                            constraints: BoxConstraints(
-                              maxWidth: math.max(
-                                0,
-                                MediaQuery.sizeOf(context).width -
-                                    _legendReservedWidth,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.close),
-                                  tooltip: context
-                                      .l10n
-                                      .diveLog_fullscreenProfile_close,
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () => Navigator.of(context).pop(),
+            child: Focus(
+              autofocus: true,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Padding(
+                          padding: isPhone
+                              ? const EdgeInsets.all(4)
+                              : const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                          child: DiveProfileChart(
+                            profile: chartProfile,
+                            overlays: overlays.isEmpty ? null : overlays,
+                            hasPlannedProfile: planned.available,
+                            activeComputerId: activeProfile?.computerId,
+                            diveDuration: dive.effectiveRuntime,
+                            maxDepth: dive.maxDepth,
+                            // Cursor-following in-chart tooltip by default
+                            // (TooltipPresentation.inChart, issue #2228
+                            // follow-up): it clamps to the plot rect itself, so
+                            // the old clipping concern that used to justify the
+                            // external presentation here no longer applies.
+                            // Optionally docked in a fixed corner instead (see
+                            // "Tooltip follows cursor" in the chart's Display
+                            // options), which never sits over the plot near
+                            // the cursor -- requested after #2228 shipped.
+                            tooltipPresentation: tooltipFollowsCursor
+                                ? TooltipPresentation.inChart
+                                : TooltipPresentation.external,
+                            onTooltipData: tooltipFollowsCursor
+                                ? null
+                                : (rows) =>
+                                      setState(() => _fixedTooltipRows = rows),
+                            playbackIsPlaying: playbackIsPlaying,
+                            // Capped so the legend and its zoom controls keep
+                            // room beside it on the narrowest phones: there the
+                            // title ellipsizes rather than the header
+                            // overflowing (#1577 added the range toggle here).
+                            legendLeading: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: math.max(
+                                  0,
+                                  MediaQuery.sizeOf(context).width -
+                                      _legendReservedWidth,
                                 ),
-                                Flexible(
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    // A planned or draft entry has no
-                                    // number yet.
-                                    child: Text(
-                                      unfilledDiveTitle(
-                                            context,
-                                            isPlanned: dive.isPlanned,
-                                            isDraft: dive.isDraft,
-                                          ) ??
-                                          context.l10n
-                                              .diveLog_fullscreenProfile_title(
-                                                dive.diveNumber ?? 0,
-                                              ),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleSmall,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    tooltip: context
+                                        .l10n
+                                        .diveLog_fullscreenProfile_close,
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                  ),
+                                  Flexible(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(right: 4),
+                                      // A planned or draft entry has no
+                                      // number yet.
+                                      child: Text(
+                                        unfilledDiveTitle(
+                                              context,
+                                              isPlanned: dive.isPlanned,
+                                              isDraft: dive.isDraft,
+                                            ) ??
+                                            context.l10n
+                                                .diveLog_fullscreenProfile_title(
+                                                  dive.diveNumber ?? 0,
+                                                ),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: _RangeModeToggle(
-                                    diveId: widget.diveId,
-                                    isEnabled: rangeState.isEnabled,
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: _RangeModeToggle(
+                                      diveId: widget.diveId,
+                                      isEnabled: rangeState.isEnabled,
+                                    ),
                                   ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.only(right: 8),
-                                  child: AnnotationPinButton(
+                                  // No trailing gap: the info icon's slot
+                                  // after it spaces the pair, and the group
+                                  // must fit a 320 pt phone.
+                                  AnnotationPinButton(
                                     active: annotationPlacement != null,
                                     onPressed: chartActions.onPinPressed,
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Analysis curves: identical wiring to the chart on
-                          // the dive detail page (DiveProfileChartHost)
-                          ceilingCurve: analysis?.ceilingCurve,
-                          decoStopCurve: analysis?.decoStopCurve,
-                          labelCeilingAsCalculated:
-                              analysis?.computerStopsWithCalculatedCeiling ??
-                              false,
-                          ascentRates: analysis?.ascentRates,
-                          events: chartEvents,
-                          annotationPlacement: annotationPlacement != null,
-                          onAnnotationPlaced: chartActions.place,
-                          onAnnotationTap: chartActions.onMarkerTap,
-                          onSecondaryTapAt: chartActions.onSecondaryTap,
-                          focusedAnnotationId: focusedAnnotation,
-                          ndlCurve: analysis?.ndlCurve,
-                          sacCurve: analysis?.smoothedSacCurve,
-                          environment:
-                              analysis?.environment ?? DiveEnvironment.standard,
-                          ppO2Curve: analysis?.ppO2Curve,
-                          o2SensorCurves: analysis?.o2SensorCurves,
-                          o2CellMvCurves: analysis?.o2CellMvCurves,
-                          ppO2FromSensorAverage:
-                              analysis?.ppO2FromSensorAverage ?? false,
-                          ppN2Curve: analysis?.ppN2Curve,
-                          ppHeCurve: analysis?.ppHeCurve,
-                          modCurve: analysis?.modCurve,
-                          densityCurve: analysis?.densityCurve,
-                          gfCurve: analysis?.gfCurve,
-                          surfaceGfCurve: analysis?.surfaceGfCurve,
-                          meanDepthCurve: analysis?.meanDepthCurve,
-                          ttsCurve: analysis?.ttsCurve,
-                          gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
-                          gtrCurve: analysis?.gtrCurve,
-                          cnsCurve: analysis?.cnsCurve,
-                          otuCurve: analysis?.otuCurve,
-                          // In bar of the reference cylinder (#3109).
-                          tankVolume: dive.sacReferenceVolume,
-                          sacNormalizationFactor:
-                              calculateSacNormalizationFactor(dive, analysis),
-                          markers: _calculateMarkers(
-                            profile: chartProfile,
-                            tanks: dive.tanks,
-                            analysis: analysis,
-                            tankPressures: tankPressures,
-                            showMaxDepth: showMaxDepthMarker,
-                            showPressureThresholds:
-                                showPressureThresholdMarkers,
-                          ),
-                          photoMarkers: photoMarkers.isEmpty
-                              ? null
-                              : photoMarkers,
-                          showMaxDepthMarker: showMaxDepthMarker,
-                          showPressureThresholdMarkers:
-                              showPressureThresholdMarkers,
-                          tanks: dive.tanks,
-                          tankPressures: chartTankPressures?.pressures,
-                          estimatedTankIds:
-                              chartTankPressures?.estimatedTankIds,
-                          gasSwitches: gasSwitches,
-                          gasSegments:
-                              (dive.tanks.isEmpty || chartProfile.isEmpty)
-                              ? null
-                              : activeGasUsageSegments(
-                                  dive,
-                                  gasSwitches: gasSwitches,
-                                  profile: chartProfile,
-                                  computerId: resolvedActive?.computerId,
-                                ),
-                          diveDurationSeconds: chartProfile.isEmpty
-                              ? null
-                              : chartProfile.last.timestamp,
-                          highlightedTimestamp: reviewTimestamp,
-                          // Range handles, drawn by the chart itself so they
-                          // land on the plot rect at any zoom (#1579).
-                          rangeSelection: rangeState.isEnabled
-                              ? (
-                                  startSeconds:
-                                      rangeState.startTimestamp ??
-                                      rangeState.minTimestamp,
-                                  endSeconds:
-                                      rangeState.endTimestamp ??
-                                      rangeState.maxTimestamp,
-                                  minSeconds: rangeState.minTimestamp,
-                                  maxSeconds: rangeState.maxTimestamp,
-                                )
-                              : null,
-                          onRangeChanged: (start, end) => ref
-                              .read(
-                                rangeSelectionProvider(widget.diveId).notifier,
-                              )
-                              .setRange(start, end),
-                          highlightRange: profileHighlightRangeFor(
-                            visibleSelectedFinding,
-                            Theme.of(context).colorScheme,
-                          ),
-                          secondaryRanges: cellDivergenceHighlightRanges(
-                            sensorSummary,
-                            Theme.of(context).colorScheme,
-                          ),
-                          safetyFindings: laneFindings.isEmpty
-                              ? null
-                              : laneFindings,
-                          selectedSafetyFindingId: visibleSelectedFinding?.id,
-                          onSafetyFindingTap: (finding) {
-                            final selectionNotifier = ref.read(
-                              selectedSafetyFindingProvider(
-                                widget.diveId,
-                              ).notifier,
-                            );
-                            selectionNotifier.state =
-                                selectionNotifier.state?.id == finding.id
-                                ? null
-                                : finding;
-                          },
-                          onSafetyFindingDismiss: (finding) =>
-                              setSafetyFindingDismissed(
-                                ref,
-                                finding: finding,
-                                dismissed: true,
+                                  HeaderInfoButton(
+                                    title: context
+                                        .l10n
+                                        .diveLog_detail_section_diveProfile,
+                                    height: 40,
+                                    width: 40,
+                                    content: diveProfileInfoFor,
+                                  ),
+                                ],
                               ),
-                          // Time, not sample index: the surface lead-in
-                          // before the first sample reports 0, so playback
-                          // and the tooltip agree on 00:00.
-                          onTimeSelected: (timestamp) {
-                            if (timestamp == null) return;
-                            ref
-                                    .read(
-                                      profileReviewProvider(
-                                        widget.diveId,
-                                      ).notifier,
-                                    )
-                                    .state =
-                                timestamp;
-                            // Keep playback in sync so play resumes from here.
-                            final playback = ref.read(
-                              playbackProvider(widget.diveId),
-                            );
-                            if (playback.isActive) {
-                              notifier.seekTo(timestamp);
-                            }
-                          },
-                        ),
-                      ),
-                      if (!tooltipFollowsCursor)
-                        _FixedTooltipPanel(rows: _fixedTooltipRows),
-                      if (annotationPlacement != null)
-                        Positioned(
-                          top: 56,
-                          left: 16,
-                          right: 16,
-                          child: AnnotationPlacementBanner(
-                            moving: annotationPlacement.isMove,
-                            onCancel: ref
+                            ),
+                            // Analysis curves: identical wiring to the chart on
+                            // the dive detail page (DiveProfileChartHost)
+                            ceilingCurve: analysis?.ceilingCurve,
+                            decoStopCurve: analysis?.decoStopCurve,
+                            labelCeilingAsCalculated:
+                                analysis?.computerStopsWithCalculatedCeiling ??
+                                false,
+                            ascentRates: analysis?.ascentRates,
+                            events: chartEvents,
+                            annotationPlacement: annotationPlacement != null,
+                            onAnnotationPlaced: chartActions.place,
+                            onAnnotationTap: chartActions.onMarkerTap,
+                            onSecondaryTapAt: chartActions.onSecondaryTap,
+                            focusedAnnotationId: focusedAnnotation,
+                            ndlCurve: analysis?.ndlCurve,
+                            sacCurve: analysis?.smoothedSacCurve,
+                            environment:
+                                analysis?.environment ??
+                                DiveEnvironment.standard,
+                            ppO2Curve: analysis?.ppO2Curve,
+                            o2SensorCurves: analysis?.o2SensorCurves,
+                            o2CellMvCurves: analysis?.o2CellMvCurves,
+                            ppO2FromSensorAverage:
+                                analysis?.ppO2FromSensorAverage ?? false,
+                            ppN2Curve: analysis?.ppN2Curve,
+                            ppHeCurve: analysis?.ppHeCurve,
+                            modCurve: analysis?.modCurve,
+                            densityCurve: analysis?.densityCurve,
+                            gfCurve: analysis?.gfCurve,
+                            surfaceGfCurve: analysis?.surfaceGfCurve,
+                            meanDepthCurve: analysis?.meanDepthCurve,
+                            ttsCurve: analysis?.ttsCurve,
+                            gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
+                            gtrCurve: analysis?.gtrCurve,
+                            cnsCurve: analysis?.cnsCurve,
+                            otuCurve: analysis?.otuCurve,
+                            // In bar of the reference cylinder (#3109).
+                            tankVolume: dive.sacReferenceVolume,
+                            sacNormalizationFactor:
+                                calculateSacNormalizationFactor(dive, analysis),
+                            markers: _calculateMarkers(
+                              profile: chartProfile,
+                              tanks: dive.tanks,
+                              analysis: analysis,
+                              tankPressures: tankPressures,
+                              showMaxDepth: showMaxDepthMarker,
+                              showPressureThresholds:
+                                  showPressureThresholdMarkers,
+                            ),
+                            photoMarkers: photoMarkers.isEmpty
+                                ? null
+                                : photoMarkers,
+                            showMaxDepthMarker: showMaxDepthMarker,
+                            showPressureThresholdMarkers:
+                                showPressureThresholdMarkers,
+                            tanks: dive.tanks,
+                            tankPressures: chartTankPressures?.pressures,
+                            estimatedTankIds:
+                                chartTankPressures?.estimatedTankIds,
+                            gasSwitches: gasSwitches,
+                            gasSegments:
+                                (dive.tanks.isEmpty || chartProfile.isEmpty)
+                                ? null
+                                : activeGasUsageSegments(
+                                    dive,
+                                    gasSwitches: gasSwitches,
+                                    profile: chartProfile,
+                                    computerId: resolvedActive?.computerId,
+                                  ),
+                            diveDurationSeconds: chartProfile.isEmpty
+                                ? null
+                                : chartProfile.last.timestamp,
+                            highlightedTimestamp: reviewTimestamp,
+                            // Range handles, drawn by the chart itself so they
+                            // land on the plot rect at any zoom (#1579).
+                            rangeSelection: rangeState.isEnabled
+                                ? (
+                                    startSeconds:
+                                        rangeState.startTimestamp ??
+                                        rangeState.minTimestamp,
+                                    endSeconds:
+                                        rangeState.endTimestamp ??
+                                        rangeState.maxTimestamp,
+                                    minSeconds: rangeState.minTimestamp,
+                                    maxSeconds: rangeState.maxTimestamp,
+                                  )
+                                : null,
+                            onRangeChanged: (start, end) => ref
                                 .read(
-                                  annotationPlacementProvider(
+                                  rangeSelectionProvider(
                                     widget.diveId,
                                   ).notifier,
                                 )
-                                .cancel,
+                                .setRange(start, end),
+                            highlightRange: profileHighlightRangeFor(
+                              visibleSelectedFinding,
+                              Theme.of(context).colorScheme,
+                            ),
+                            secondaryRanges: cellDivergenceHighlightRanges(
+                              sensorSummary,
+                              Theme.of(context).colorScheme,
+                            ),
+                            safetyFindings: laneFindings.isEmpty
+                                ? null
+                                : laneFindings,
+                            selectedSafetyFindingId: visibleSelectedFinding?.id,
+                            onSafetyFindingTap: (finding) {
+                              final selectionNotifier = ref.read(
+                                selectedSafetyFindingProvider(
+                                  widget.diveId,
+                                ).notifier,
+                              );
+                              selectionNotifier.state =
+                                  selectionNotifier.state?.id == finding.id
+                                  ? null
+                                  : finding;
+                            },
+                            onSafetyFindingDismiss: (finding) =>
+                                setSafetyFindingDismissed(
+                                  ref,
+                                  finding: finding,
+                                  dismissed: true,
+                                ),
+                            // Time, not sample index: the surface lead-in
+                            // before the first sample reports 0, so playback
+                            // and the tooltip agree on 00:00.
+                            onTimeSelected: (timestamp) {
+                              if (timestamp == null) return;
+                              ref
+                                      .read(
+                                        profileReviewProvider(
+                                          widget.diveId,
+                                        ).notifier,
+                                      )
+                                      .state =
+                                  timestamp;
+                              // Keep playback in sync so play resumes from here.
+                              final playback = ref.read(
+                                playbackProvider(widget.diveId),
+                              );
+                              if (playback.isActive) {
+                                notifier.seekTo(timestamp);
+                              }
+                            },
                           ),
                         ),
-                    ],
-                  ),
-                ),
-                // Source switching and overlay comparison, mirroring the
-                // detail page (management actions stay on the detail page).
-                if (isMultiSource)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: SourceBar(
-                      sources: [
-                        for (final s in dataSources)
-                          SourceBarItem(
-                            sourceId: s.id,
-                            label: resolveSourceName(
-                              s,
-                              labels,
-                              edited: sourceProfiles[s.id]?.isEdited ?? false,
+                        if (!tooltipFollowsCursor)
+                          _FixedTooltipPanel(rows: _fixedTooltipRows),
+                        if (annotationPlacement != null)
+                          Positioned(
+                            top: 56,
+                            left: 16,
+                            right: 16,
+                            child: AnnotationPlacementBanner(
+                              moving: annotationPlacement.isMove,
+                              onCancel: ref
+                                  .read(
+                                    annotationPlacementProvider(
+                                      widget.diveId,
+                                    ).notifier,
+                                  )
+                                  .cancel,
                             ),
-                            color: sourceColorById[s.id] ?? sourceColorAt(0),
-                            isActive: s.id == activeSource?.id,
-                            isPrimary: s.isPrimary,
-                            isOverlaid: overlayIds.contains(s.id),
-                            hasProfile:
-                                sourceProfiles[s.id]?.points.isNotEmpty ??
-                                false,
                           ),
                       ],
-                      onActivate: (id) {
-                        ref
+                    ),
+                  ),
+                  // Source switching and overlay comparison, mirroring the
+                  // detail page (management actions stay on the detail page).
+                  if (isMultiSource)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: SourceBar(
+                        sources: [
+                          for (final s in dataSources)
+                            SourceBarItem(
+                              sourceId: s.id,
+                              label: resolveSourceName(
+                                s,
+                                labels,
+                                edited: sourceProfiles[s.id]?.isEdited ?? false,
+                              ),
+                              color: sourceColorById[s.id] ?? sourceColorAt(0),
+                              isActive: s.id == activeSource?.id,
+                              isPrimary: s.isPrimary,
+                              isOverlaid: overlayIds.contains(s.id),
+                              hasProfile:
+                                  sourceProfiles[s.id]?.points.isNotEmpty ??
+                                  false,
+                            ),
+                        ],
+                        onActivate: (id) {
+                          ref
+                                  .read(
+                                    activeDiveSourceProvider(
+                                      widget.diveId,
+                                    ).notifier,
+                                  )
+                                  .state =
+                              id;
+                          final current = ref.read(
+                            overlaySourcesProvider(widget.diveId),
+                          );
+                          if (current.contains(id)) {
+                            ref
                                 .read(
-                                  activeDiveSourceProvider(
+                                  overlaySourcesProvider(
                                     widget.diveId,
                                   ).notifier,
                                 )
-                                .state =
-                            id;
-                        final current = ref.read(
-                          overlaySourcesProvider(widget.diveId),
-                        );
-                        if (current.contains(id)) {
+                                .state = {...current}
+                              ..remove(id);
+                          }
+                        },
+                        onToggleOverlay: (id, overlaid) {
+                          final current = ref.read(
+                            overlaySourcesProvider(widget.diveId),
+                          );
                           ref
                               .read(
                                 overlaySourcesProvider(widget.diveId).notifier,
                               )
-                              .state = {...current}
-                            ..remove(id);
-                        }
-                      },
-                      onToggleOverlay: (id, overlaid) {
-                        final current = ref.read(
-                          overlaySourcesProvider(widget.diveId),
-                        );
-                        ref
-                            .read(
-                              overlaySourcesProvider(widget.diveId).notifier,
-                            )
-                            .state = overlaid
-                            ? {...current, id}
-                            : ({...current}..remove(id));
-                      },
+                              .state = overlaid
+                              ? {...current, id}
+                              : ({...current}..remove(id));
+                        },
+                      ),
                     ),
-                  ),
-                // Range statistics for the selected segment, below the chart
-                // so they never cover the trace being measured (#1577).
-                if (rangeState.isEnabled && rangeState.hasSelection)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                    child: _RangeStatsStrip(
+                  // Range statistics for the selected segment, below the chart
+                  // so they never cover the trace being measured (#1577).
+                  if (rangeState.isEnabled && rangeState.hasSelection)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                      child: _RangeStatsStrip(
+                        diveId: widget.diveId,
+                        profile: chartProfile,
+                        tanks: dive.tanks,
+                        isRebreather: dive.isRebreather,
+                        environment: dive.environment,
+                      ),
+                    ),
+                  if (!isPhone)
+                    ProfileTransportBar(
                       diveId: widget.diveId,
+                      // The same profile the chart renders: the scrub minimap
+                      // and seek range must match what is on screen.
                       profile: chartProfile,
-                      tanks: dive.tanks,
-                      isRebreather: dive.isRebreather,
-                      environment: dive.environment,
                     ),
-                  ),
-                if (!isPhone)
-                  ProfileTransportBar(
-                    diveId: widget.diveId,
-                    // The same profile the chart renders: the scrub minimap
-                    // and seek range must match what is on screen.
-                    profile: chartProfile,
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -7,6 +7,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -174,5 +175,22 @@ void main() {
 
     expect(find.text('GF: 45/80'), findsOneWidget);
     expect(find.textContaining('BUHLMANN'), findsNothing);
+  });
+
+  testWidgets('header info icon explains the deco terms', (tester) async {
+    await tester.pumpWidget(
+      buildCard(
+        const GradientFactorSource(
+          low: 45,
+          high: 80,
+          origin: GfOrigin.computer,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('TTS (time to surface)'), findsOneWidget);
   });
 }

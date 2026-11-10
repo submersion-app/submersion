@@ -74,4 +74,36 @@ void main() {
     expect(find.textContaining('A7X-20419'), findsOneWidget);
     expect(find.byTooltip('Copy'), findsNothing);
   });
+
+  Future<void> openDetailsInfo(WidgetTester tester, Dive dive) async {
+    await pumpSection(tester, dive, const []);
+    await tester.tap(find.byTooltip('About Details'));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('the info sheet names gradient factors when both show', (
+    tester,
+  ) async {
+    await openDetailsInfo(
+      tester,
+      createTestDiveWithBottomTime().copyWith(
+        gradientFactorLow: 30,
+        gradientFactorHigh: 70,
+      ),
+    );
+
+    expect(find.textContaining('GF (gradient factors)'), findsOneWidget);
+  });
+
+  testWidgets('the info sheet leaves gradient factors out with one missing', (
+    tester,
+  ) async {
+    final lowOnly = createTestDiveWithBottomTime().copyWith(
+      gradientFactorLow: 30,
+    );
+    expect(lowOnly.gradientFactorHigh, isNull);
+    await openDetailsInfo(tester, lowOnly);
+
+    expect(find.textContaining('GF (gradient factors)'), findsNothing);
+  });
 }

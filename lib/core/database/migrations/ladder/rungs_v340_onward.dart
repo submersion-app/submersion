@@ -131,5 +131,12 @@ extension RungsFromV340 on AppDatabase {
     // holds 354 and open work claims 352, 353 and 355.
     if (from < 356) await stampCombinedDiveSourceSlots(this);
     if (from < 356) await reportProgress();
+
+    // v357: dive_profile_series.is_edit, the synced mark that a series is
+    // the diver's manual edit (issue #4386). Nullable, no backfill: a series
+    // written before it stays unknown. Re-asserted in beforeOpen. Numbered
+    // 357 because main holds 356; renumbered from 353, then 355.
+    if (from < 357) await _assertProfileSeriesIsEditColumn();
+    if (from < 357) await reportProgress();
   }
 }

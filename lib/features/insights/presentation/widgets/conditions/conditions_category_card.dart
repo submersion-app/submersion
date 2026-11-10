@@ -8,6 +8,7 @@ import 'package:submersion/features/insights/presentation/widgets/conditions/con
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
 
 /// How a categorical condition is drawn: a pie for a short ordinal scale
 /// (cloud cover, current strength), horizontal bars for longer lists whose
@@ -27,7 +28,11 @@ class ConditionsCategoryCard<T extends Enum> extends ConsumerWidget {
     required this.kind,
     this.colorOf,
     this.barColor,
+    this.info,
   });
+
+  /// What the card's info icon explains; null shows no icon.
+  final InfoContentBuilder? info;
 
   final String title;
   final String subtitle;
@@ -85,6 +90,7 @@ class ConditionsCategoryCard<T extends Enum> extends ConsumerWidget {
     };
     return ConditionsChartCard(
       title: title,
+      info: info,
       subtitle: subtitle,
       description: description,
       chart: chart,

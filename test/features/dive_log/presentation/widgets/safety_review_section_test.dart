@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/safety_revie
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_review_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -148,7 +149,13 @@ void main() {
     );
     // One ListTile per finding; the switch in _titleFor ran for each rule.
     expect(find.byType(ListTile), findsNWidgets(4));
-    expect(find.byIcon(Icons.info_outline), findsNWidgets(2));
+    // Severity icons sit on the finding rows; the header's info icon is not
+    // one of them.
+    final inRows = find.descendant(
+      of: find.byType(ListTile),
+      matching: find.byIcon(Icons.info_outline),
+    );
+    expect(inRows, findsNWidgets(2));
     expect(find.byIcon(Icons.report_problem_outlined), findsNWidgets(2));
   });
 
@@ -632,6 +639,15 @@ void main() {
       expect(find.textContaining('Ausgeblendete anzeigen'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+  });
+  testWidgets('header info icon lists the rules behind the findings', (
+    tester,
+  ) async {
+    await pump(tester, reviewWith([rapidAscent()]));
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Ascent rate'), findsWidgets);
   });
 }
 

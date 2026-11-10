@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_switch_efficiency_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 class _StubSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -130,5 +131,25 @@ void main() {
       ),
     );
     expect(find.textContaining('ft'), findsWidgets);
+  });
+
+  testWidgets('header info icon explains the ideal switch depth', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        child: const GasSwitchEfficiencyCard(
+          efficiency: GasSwitchEfficiency(
+            evaluated: true,
+            windows: [late, missed],
+            totalExtraDecoSeconds: 480,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Ideal switch depth'), findsOneWidget);
   });
 }

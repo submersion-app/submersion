@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/gradient_factor_source.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/features/dive_log/presentation/info/deco_status_info.dart';
 
 /// Compact card displaying decompression status metrics.
 ///
@@ -107,6 +110,16 @@ class CompactDecoStatusCard extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+          ),
+        ),
+        HeaderInfoButton(
+          title: context.l10n.diveLog_detail_section_decoStatus,
+          height: 20,
+          content: (context) => decoStatusInfo(
+            context.l10n,
+            infoUnits(context),
+            inDeco: status.inDeco,
+            hasStops: status.decoStops.isNotEmpty,
           ),
         ),
       ],

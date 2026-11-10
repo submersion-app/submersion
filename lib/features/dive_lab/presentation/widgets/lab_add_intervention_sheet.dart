@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
+import 'package:submersion/features/dive_lab/presentation/info/lab_info.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Opens the "add an intervention" sheet for the lab draft of [diveId].
 Future<void> showLabAddInterventionSheet(
@@ -260,7 +263,15 @@ class _LabAddInterventionSheetState
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.diveLab_sheet_title, style: theme.textTheme.titleMedium),
+            InfoTitleRow(
+              title: Text(
+                l10n.diveLab_sheet_title,
+                style: theme.textTheme.titleMedium,
+              ),
+              label: l10n.diveLab_sheet_title,
+              info: (context) =>
+                  labInterventionsInfo(context.l10n, infoUnits(context)),
+            ),
             const SizedBox(height: 8),
             if (available.isEmpty)
               Text(l10n.diveLab_sheet_allAdded)

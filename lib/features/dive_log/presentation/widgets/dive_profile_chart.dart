@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
@@ -893,6 +894,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 }
 
 class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
+  /// Where this chart last published its legend for the card's info icon.
+  ProfileLegendSnapshot? _legendSnapshot;
+
   /// The diver's metric colours (issue #3012), resolved at the top of
   /// every build so tooltip and gesture code reads the same palette.
   late ProfileMetricPalette _palette;
@@ -1749,6 +1753,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   @override
   void dispose() {
+    _legendSnapshot?.release(this);
     _viewportNotifier.dispose();
     _zoomNotifier.dispose();
     _plotPointerTick.dispose();
@@ -3024,6 +3029,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.profile.isEmpty) {
+      // Drawing no overlays now, so the card's info icon lists none.
+      _legendSnapshot?.release(this);
+      _legendSnapshot = null;
       return _buildEmptyState(context);
     }
 
@@ -3186,6 +3194,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasCnsData: hasCnsData,
       hasOtuData: hasOtuData,
     );
+
+    // The card header's info icon lists the overlays drawn here.
+    final snapshot = ProfileLegendSnapshotScope.maybeOf(context);
+    if (!identical(snapshot, _legendSnapshot)) _legendSnapshot?.release(this);
+    _legendSnapshot = snapshot?..publish(this, legendConfig);
 
     _scheduleLegendMeasure();
 

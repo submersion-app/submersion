@@ -6,12 +6,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/safety/presentation/formatters/no_fly_format.dart';
+import 'package:submersion/features/safety/presentation/info/no_fly_info.dart';
 import 'package:submersion/features/safety/presentation/providers/flight_window_providers.dart';
 import 'package:submersion/features/safety/presentation/providers/no_fly_providers.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 import 'package:submersion/features/safety/presentation/widgets/flight_window_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Flying-after-diving status: the DAN/UHMS guideline countdown from the
 /// most recent dives. Lives in the Planning section.
@@ -155,6 +158,11 @@ class NoFlyStatusCard extends ConsumerWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                ),
+                HeaderInfoButton(
+                  title: l10n.safetySettings_noFlyHeader,
+                  content: (context) =>
+                      noFlyInfo(context.l10n, infoUnits(context)),
                 ),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 /// Wraps a header's trailing widget so it yields space instead of starving the
 /// title.
@@ -54,6 +55,10 @@ class CollapsibleSection extends StatelessWidget {
   /// The content to show when expanded
   final Widget child;
 
+  /// What the section's info icon explains; null shows no icon. The icon
+  /// sits immediately before the expand arrow.
+  final InfoContentBuilder? info;
+
   const CollapsibleSection({
     super.key,
     required this.title,
@@ -65,6 +70,7 @@ class CollapsibleSection extends StatelessWidget {
     required this.isExpanded,
     required this.onToggle,
     required this.child,
+    this.info,
   });
 
   @override
@@ -128,6 +134,8 @@ class CollapsibleSection extends StatelessWidget {
                       headerActions!,
                       const SizedBox(width: 4),
                     ],
+                    if (info case final builder?)
+                      HeaderInfoButton(title: title, content: builder),
                     AnimatedRotation(
                       turns: isExpanded ? 0.5 : 0,
                       duration: const Duration(milliseconds: 200),
@@ -189,6 +197,10 @@ class CollapsibleCardSection extends StatelessWidget {
   /// The content to show when expanded (this replaces the child's Card wrapper)
   final Widget Function(BuildContext context) contentBuilder;
 
+  /// What the section's info icon explains; null shows no icon. The icon
+  /// sits immediately before the expand arrow.
+  final InfoContentBuilder? info;
+
   const CollapsibleCardSection({
     super.key,
     required this.title,
@@ -200,6 +212,7 @@ class CollapsibleCardSection extends StatelessWidget {
     required this.isExpanded,
     required this.onToggle,
     required this.contentBuilder,
+    this.info,
   });
 
   @override
@@ -260,6 +273,8 @@ class CollapsibleCardSection extends StatelessWidget {
                       _flexibleTrailing(trailing!),
                       const SizedBox(width: 8),
                     ],
+                    if (info case final builder?)
+                      HeaderInfoButton(title: title, content: builder),
                     AnimatedRotation(
                       turns: isExpanded ? 0.5 : 0,
                       duration: const Duration(milliseconds: 200),

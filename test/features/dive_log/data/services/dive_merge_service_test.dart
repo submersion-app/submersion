@@ -414,6 +414,22 @@ void main() {
       );
     });
 
+    test('a surface fill with no profile beside it is marked as no edit '
+        '(#4386)', () async {
+      // Live with no source, the fill has the shape that reads as a manual
+      // edit over anything demoted beneath, so it must say it is none.
+      await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9), profile: []);
+      await seedDive('b', entry: DateTime.utc(2026, 7, 1, 10), profile: []);
+
+      final outcome = await service.apply(['a', 'b']);
+
+      final rows = await (db.select(
+        db.diveProfileSeries,
+      )..where((t) => t.diveId.equals(outcome.mergedDive.id))).get();
+      final fill = rows.singleWhere((r) => r.isPrimary && r.sourceId == null);
+      expect(fill.isEdit, isFalse);
+    });
+
     test('merged copies keep their activation times (#3189)', () async {
       await seedDive('a', entry: DateTime.utc(2026, 7, 1, 9));
       await profileSeries.insertSeries(

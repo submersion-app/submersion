@@ -7,11 +7,14 @@ import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
+import 'package:submersion/features/dive_log/presentation/info/buoyancy_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_history_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_what_if_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 import 'package:submersion/shared/widgets/twin_summary_rows.dart';
 
 /// Dive-detail section presenting the modeled net buoyancy through the dive:
@@ -67,13 +70,14 @@ class BuoyancySection extends ConsumerWidget {
                   icon: const Icon(Icons.tune, size: 16),
                   label: Text(context.l10n.buoyancy_adjust),
                 ),
-                const SizedBox(width: 4),
-                Tooltip(
-                  message: context.l10n.buoyancy_tooltip,
-                  child: Icon(
-                    Icons.info_outline,
-                    size: 18,
-                    color: theme.colorScheme.outline,
+                HeaderInfoButton(
+                  title: context.l10n.diveDetailSection_buoyancy_name,
+                  height: 40,
+                  content: (context) => buoyancyInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    hasDrysuitGas: o.drysuitGasLiters > 0,
+                    canAdjust: true,
                   ),
                 ),
               ],

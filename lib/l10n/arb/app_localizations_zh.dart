@@ -7299,13 +7299,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => '这些数值代表什么？';
-
-  @override
-  String get diveLog_deco_info_body =>
-      '负荷：隔间内惰性气体压力占其在水面可容纳最大值（M 值，即 100% 处的红线）的百分比。\n\n水面水平：每根柱上的标记表示在水面呼吸空气时，完全脱饱和的隔间最终稳定的位置。它永远不会是 0%，因为你的身体始终含有所呼吸空气中的氮气。处于标记处的柱不再带有潜水遗留的负荷。\n\n吸收与释放：气体总是向你所呼吸气体的压力方向移动。使用氧气或富氦混合气减压后，快速隔间中的氮气可能少于水面空气中的氮气。重新呼吸空气后，它们会再次吸收氮气，直到达到各自的标记。这是正常现象，并非潜水遗留的负荷。\n\n氦气：空气中不含氦气。三混气潜水后，隔间在释放氦气的同时可能吸收氮气。N₂ 和 He 旁的箭头分别显示每种气体的方向；隔间编号旁的标识显示两者的总体方向。';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return '组织饱和度图表。$count 个隔间，负荷相对于 M 值；前导隔间 $number 为 $percent%。';
   }
@@ -17316,9 +17309,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_consumption_volume => '容积';
 
   @override
-  String get gasCalculators_mod_aboutMod => '关于 MOD';
-
-  @override
   String get gasCalculators_mod_mode => '模式';
 
   @override
@@ -17512,10 +17502,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_allClear => '在所检查的深度内，均在你的 ppO₂、END 和密度限值之内。';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'MOD 是混合气达到 ppO₂ 限值的深度。它始终向下取整，从不向上。\n\nRec 按每 10 米 1 bar 计算，与日志一致。OC Tec 和 CCR Tec 按水类型计算环境压力，与气体密度计算器一致，因此同一混合气在那里的 MOD 可能略浅。\n\nEAD 将氮气视为致麻醉，END 将氮气和氧气都视为致麻醉。你的 END 限值、氧气是否致麻醉以及默认 ppO₂ 限值均来自你的潜水员档案。';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -17563,13 +17549,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      '最大麻醉深度 (MND) 是指在麻醉效应超过您的等效麻醉深度限制之前可以到达的最大深度。等效麻醉深度 (END) 表示您的气体在给定深度的麻醉效应。\n\n启用「氧气具有麻醉性」时，氧气和氮气都会导致麻醉（更保守）。禁用时，仅考虑氮气的麻醉作用。';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => '关于最大麻醉深度/等效麻醉深度';
 
   @override
   String get gasCalculators_mnd_unlimited => '无限';
@@ -17633,13 +17612,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => '应用';
-
-  @override
-  String get gasCalculators_icd_infoTitle => '关于等压逆向扩散';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      '等压逆向扩散(ICD)是指从氦气含量较高的气体切换到氮气含量较高的气体时,由于氦气扩散速度快于氮气,可能导致组织中惰性气体总张力升高的风险。五分之一法则是一个常见的经验法则:氮气比例的上升幅度不应超过氦气比例下降幅度的五分之一。\n\n各机构对于在使用标准气体、规划良好的潜水中这一风险的实际重要性存在分歧。本计算器将该经验法则应用于输入的两种气体;它不能替代培训或专业建议。';
 
   @override
   String get gasCalculators_ppO2Limit => '氧分压限制';
@@ -17775,13 +17747,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       '气瓶有压力，但既无氧气也无氦气，那将是纯氮气。请检查瓶内现有的混合气。';
-
-  @override
-  String get gasCalculators_blender_about => '关于配气';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      '按分压法配制目标混合气。依次充入每种充填气体至显示的压力，然后让气瓶静置。充填气体及其顺序可自行设置：将最后一种气体设为 32/0，即以 EAN32 而非空气收尾。下水前务必分析配好的混合气。';
 
   @override
   String get gasCalculators_blender_conditions => '配气条件';
@@ -18182,10 +18147,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_density_eaddLabel => '等效空气密度深度 (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'EADD 是空气密度与该气体相同时所处的深度。与以 g/L 表示的密度不同，它不受温度影响。';
-
-  @override
   String get gasCalculators_density_loopGasTitle => '深度处的回路气体';
 
   @override
@@ -18203,14 +18164,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return '仅稀释气体在此处即产生 $ppO2 的 ppO2，高于设定点。密度按稀释气体的 ppO2 计算。';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => '关于气体密度';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return '高密度气体更难呼吸，并会增加 CO2 潴留的风险。请将密度保持在 $warn g/L 或以下；$critical g/L 为硬性上限。\n\n在 CCR 模式下，计算的是回路气体的密度：氧气按设定点，其余按稀释气体的比例分配给氮气和氦气。\n\n较冷的气体密度更高，因此较冷的温度选项更保守。计算假定为理想气体。';
   }
 
   @override
@@ -21661,9 +21614,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_buoyancy_description => '整个潜水过程的浮力、变化和可抛弃配重';
 
   @override
-  String get buoyancy_tooltip => '根据剖面、气体消耗和装备模拟的整个潜水过程净浮力。';
-
-  @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
     return '在最后停留点（~$depth），你约有 $amount 的正浮力';
   }
@@ -24486,6 +24436,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_isDraft => '潜水草稿';
 
   @override
+  String get settings_conflict_field_isEdit => '剖面已手动编辑';
+
+  @override
   String get settings_conflict_field_isOrphaned => '文件缺失';
 
   @override
@@ -26949,13 +26902,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      '梯度因子（GF）控制减压计算的保守程度。GF Low 影响深停留，而 GF High 影响浅停留。数值越低 = 越保守 = 更长的减压停留；数值越高 = 越不保守 = 更短的减压停留';
-
-  @override
-  String get settings_decompression_aboutTitle => '关于梯度因子';
-
-  @override
   String get settings_decompression_currentSettings => '当前设置';
 
   @override
@@ -27733,13 +27679,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_notifications_header_serviceReminders => '维护提醒';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      '通知在应用启动时计划，并在后台定期刷新。您可以在每件装备的编辑界面中自定义提醒。';
-
-  @override
-  String get settings_notifications_howItWorks_title => '工作原理';
 
   @override
   String get settings_notifications_permissionRequired => '请在系统设置中启用通知';
@@ -31045,13 +30984,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      '您的身体有16个组织隔间，以不同速率吸收和释放氮气。快组织（如血液）饱和快但排气也快。慢组织（如骨骼和脂肪）吸收和排放都需要更长时间。「前导隔间」是饱和度最高的组织，通常控制您的免减压极限。在水面间隔期间，所有组织向水面饱和水平（约40%负荷）排气。';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title => '关于组织负荷';
 
   @override
   String get surfaceInterval_action_resetDefaults => '恢复默认值';
@@ -35318,13 +35250,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get divePlanner_undo => '撤销';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      '最低气量是在与潜伴共用气源进行紧急上升时所需的最低气体储备。\n\n• 使用应激耗气率（正常的 2-3 倍）\n• 假设两位潜水员共用一个气瓶\n• 启用时包含安全停留\n\n务必在到达最低气量之前折返！';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => '关于最低气量';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired => '上升气体必填';
 
   @override
@@ -39357,13 +39282,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '没有深度剖面，无法计算其 CNS% 和 OTU。下方合计不包含此次潜水。';
 
   @override
-  String get safetyHub_cnsOtu_about_title => '关于 CNS 和 OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      '潜水后 CNS%（氧气钟）以 90 分钟的半衰期衰减——大约一天后基本降回 0。\n\n每日 OTU 每晚午夜重置。每周 OTU 是过去 7 天的滚动总和：较早的潜水一旦超出该时间窗口，就会自动从计算中剔除。';
-
-  @override
   String get safetyHub_tissueLoading_clear_title => '组织无残余负荷';
 
   @override
@@ -39376,13 +39294,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       '上一次潜水没有可用于计算组织饱和度的数据，例如没有深度曲线的潜水、深度计模式下的潜水，或未设置设定点的循环呼吸器潜水。';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => '关于组织饱和度';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      '你的身体有 16 个组织隔间，它们以不同速度吸收和释放氮气（在三混气或循环呼吸器潜水中也包括氦气）。快速组织饱和与脱饱和都很快；慢速组织两者都需要长得多的时间。\n\n残余负荷仅指高于水面正常水平的部分。即使完全脱饱和，柱也不会降到 0%：每个隔间都会稳定在与所呼吸空气中氮气相对应的标记处。因此，在使用氧气减压的潜水后，快速隔间在这里的数值可能高于潜水结束时，但负荷并没有增加。\n\n含氦潜水后，隔间在释放氦气的同时会吸收氮气，直到两种气体都与所呼吸的空气达到平衡。';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -58266,4 +58177,1299 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_gearGallery_checkInBadge => '检查记录照片';
+
+  @override
+  String info_button_semantics(String title) {
+    return '关于$title';
+  }
+
+  @override
+  String get info_sheet_background => '背景';
+
+  @override
+  String get info_sheet_howToUse => '使用方法';
+
+  @override
+  String get info_sheet_close => '关闭';
+
+  @override
+  String get info_term_ndl_label => 'NDL（免减压极限）';
+
+  @override
+  String get info_term_ndl_body =>
+      '在当前深度、模型要求减压停留之前剩余的分钟数。潜水员停留在深处时它递减，上升时又会增加。';
+
+  @override
+  String get info_term_ceiling_label => '上限深度';
+
+  @override
+  String get info_term_ceiling_body => '减压模型在该时刻允许的最浅深度。为零表示直接上升到水面符合模型。';
+
+  @override
+  String get info_term_decoStops_label => '减压停留';
+
+  @override
+  String info_term_decoStops_body(String step) {
+    return '上升途中计划的停留，每次有深度和时间，让溶解的气体离开身体。停留通常相隔 $step。';
+  }
+
+  @override
+  String get info_term_tts_label => 'TTS（出水时间）';
+
+  @override
+  String get info_term_tts_body => '从此处到达水面所需的分钟数，包括上升和每一次必需的停留。';
+
+  @override
+  String get info_term_gtr_label => 'GTR（剩余气体时间）';
+
+  @override
+  String get info_term_gtr_body => '按当前深度和呼吸速率，气瓶降到储备压力前剩余的分钟数。假定直接上升且没有停留。';
+
+  @override
+  String get info_term_gf99_label => 'GF99';
+
+  @override
+  String get info_term_gf99_body =>
+      '负荷最高的组织此刻接近其 M 值的程度，以百分比表示。100% 时恰好位于未调整的 Buhlmann 极限上。';
+
+  @override
+  String get info_term_surfaceGf_label => 'SurfGF（水面梯度因子）';
+
+  @override
+  String get info_term_surfaceGf_body =>
+      '如果潜水员立即出水，组织将具有的 GF99。超过 100% 表示在水面会超出未调整的 Buhlmann 极限。';
+
+  @override
+  String get info_term_gradientFactors_label => 'GF（梯度因子）';
+
+  @override
+  String get info_term_gradientFactors_body =>
+      '两个缩小 Buhlmann 极限的百分比：GF Low 决定第一个停留的位置，GF High 决定出水时的极限。数值越低，计划越长越保守。';
+
+  @override
+  String get info_term_cns_label => 'CNS%（中枢神经系统氧暴露）';
+
+  @override
+  String get info_term_cns_body =>
+      '单次潜水中大脑和神经所受氧暴露占极限的比例，依据 NOAA 的 ppO2 表。在水面上大约每 90 分钟减半。';
+
+  @override
+  String get info_term_otu_label => 'OTU（氧耐受单位）';
+
+  @override
+  String get info_term_otu_body =>
+      '一种更缓慢、作用于全身的氧剂量，会在多天潜水中累积。一个 OTU 等于在 1 bar 下呼吸纯氧一分钟。';
+
+  @override
+  String get info_term_ppO2_label => 'ppO2（氧分压）';
+
+  @override
+  String get info_term_ppO2_body =>
+      '在此深度呼吸气体中仅由氧气产生的压力，单位为 bar。常用限值为工作阶段 1.4 bar，减压阶段 1.6 bar。';
+
+  @override
+  String get info_term_ppN2_label => 'ppN2（氮分压）';
+
+  @override
+  String get info_term_ppN2_body => '在此深度呼吸气体中氮气产生的压力，单位为 bar。它决定氮负荷和氮醉。';
+
+  @override
+  String get info_term_ppHe_label => 'ppHe（氦分压）';
+
+  @override
+  String get info_term_ppHe_body =>
+      '在此深度呼吸气体中氦气产生的压力，单位为 bar。氦的吸收和排出都比氮快，而且不会致醉。';
+
+  @override
+  String get info_term_o2Cells_label => '氧传感器';
+
+  @override
+  String get info_term_o2Cells_body =>
+      '循环呼吸器回路中各自测量 ppO2 的传感器。读数不一致说明某个传感器正在失效或进水。';
+
+  @override
+  String get info_term_mod_label => 'MOD（最大使用深度）';
+
+  @override
+  String get info_term_mod_body => '气体达到其 ppO2 极限时的深度。比这更深，氧暴露就超过该极限。';
+
+  @override
+  String get info_term_mnd_label => 'MND（最大致醉深度）';
+
+  @override
+  String get info_term_mnd_body => '气体仍在潜水员 END 限值内的最深点。混合气中的氦会使它更深。';
+
+  @override
+  String get info_term_end_label => 'END（等效致醉深度）';
+
+  @override
+  String get info_term_end_body => '在空气中与此深度下该气体致醉程度相当的深度。氦不会致醉，因此会降低它。';
+
+  @override
+  String get info_term_ead_label => 'EAD（等效空气深度）';
+
+  @override
+  String get info_term_ead_body =>
+      '在空气中与此深度下该高氧气体吸收氮气速度相同的深度。由于高氧含氮更少，它比实际深度浅。';
+
+  @override
+  String get info_term_eadd_label => 'EADD（等效空气密度深度）';
+
+  @override
+  String get info_term_eadd_body =>
+      '空气密度与此深度下该气体相同时的深度。与以 g/L 表示的密度不同，它不受温度影响。';
+
+  @override
+  String get info_term_gasDensity_label => '气体密度';
+
+  @override
+  String info_term_gasDensity_body(String warn, String critical) {
+    return '呼吸气体在深处的密度，单位为克每升，它决定呼吸的费力程度。已发表的研究以 $warn g/L 为建议上限，$critical g/L 为最高限值。';
+  }
+
+  @override
+  String get info_term_sac_label => 'SAC（水面耗气率）';
+
+  @override
+  String get info_term_sac_body =>
+      '换算到水面压力的每分钟耗气量，以每分钟压降表示。它取决于气瓶容量，因此只适合比较使用同一气瓶的潜水。';
+
+  @override
+  String get info_term_rmv_label => 'RMV（每分钟呼吸量）';
+
+  @override
+  String get info_term_rmv_body => '每分钟呼吸的气体体积，换算到水面压力。与 SAC 不同，它不受气瓶容量影响。';
+
+  @override
+  String get info_term_ascentRate_label => '上升速度';
+
+  @override
+  String info_term_ascentRate_body(String rate) {
+    return '深度每分钟减少的速度。常见培训以 $rate 为上限。';
+  }
+
+  @override
+  String get info_term_descentRate_label => '下潜速度';
+
+  @override
+  String get info_term_descentRate_body => '深度每分钟增加的速度。';
+
+  @override
+  String get info_term_meanDepth_label => '平均深度';
+
+  @override
+  String get info_term_meanDepth_body => '整次潜水按时间加权的平均深度。耗气和减压与它的关系比与最大深度更密切。';
+
+  @override
+  String get info_term_bottomTime_label => '水底时间';
+
+  @override
+  String get info_term_bottomTime_body => '从离开水面到开始最后上升的时间。由潜水曲线推算得出。';
+
+  @override
+  String get info_term_runtime_label => '总潜水时间';
+
+  @override
+  String get info_term_runtime_body => '从离开水面到出水的总时间。技术潜水计划以它为时间基准。';
+
+  @override
+  String get info_term_safetyStop_label => '安全停留';
+
+  @override
+  String info_term_safetyStop_body(String depth) {
+    return '出水前在 $depth 附近的可选停留，通常三分钟。免减压潜水时模型并不要求它。';
+  }
+
+  @override
+  String get info_term_surfaceInterval_label => '水面休息时间';
+
+  @override
+  String get info_term_surfaceInterval_body =>
+      '两次潜水之间在水面的时间。期间组织持续释放气体，因此间隔越长，带入下一潜的残余越少。';
+
+  @override
+  String get info_term_tissueCompartment_label => '组织舱室';
+
+  @override
+  String get info_term_tissueCompartment_body =>
+      '模型中的 16 个假想组织，各自以不同速度吸收和释放气体。快组织代表血流丰富的组织，慢组织代表脂肪和骨骼。';
+
+  @override
+  String get info_term_leadingCompartment_label => '主导舱室';
+
+  @override
+  String get info_term_leadingCompartment_body =>
+      '此刻最接近其极限的舱室。它决定上限深度，并会在潜水中变化。';
+
+  @override
+  String get info_term_tissueLoad_label => '负荷';
+
+  @override
+  String get info_term_tissueLoad_body => '舱室中惰性气体量相对其极限的百分比。100% 时位于其 M 值。';
+
+  @override
+  String get info_term_mValue_label => 'M 值';
+
+  @override
+  String get info_term_mValue_body =>
+      '在 Buhlmann 模型下，某舱室在特定深度可承受的最高惰性气体压力。梯度因子决定实际使用其中多少。';
+
+  @override
+  String get info_term_surfaceLevel_label => '水面水平';
+
+  @override
+  String get info_term_surfaceLevel_body =>
+      '舱室在水面呼吸空气并完全平衡时的气体压力。高于此线的条柱仍带有多余气体。';
+
+  @override
+  String get info_term_halfTime_label => '半衰期';
+
+  @override
+  String get info_term_halfTime_body => '舱室向环境压力靠近一半所需的分钟数。范围从几分钟到十多个小时。';
+
+  @override
+  String get info_term_ongassing_label => '吸气与排气';
+
+  @override
+  String get info_term_ongassing_body =>
+      '吸气指环境压力较高时舱室吸收气体，排气指舱室释放气体。颜色显示各舱室的变化方向。';
+
+  @override
+  String get info_term_heatMap_label => '热力图';
+
+  @override
+  String get info_term_heatMap_body =>
+      '每一行是一个舱室，快舱室在上、慢舱室在下，时间从左向右推进。颜色表示该舱室在那一刻的负荷。';
+
+  @override
+  String get info_term_nitrox_label => '高氧（EANx）';
+
+  @override
+  String get info_term_nitrox_body =>
+      '富含氧气的空气，以氧气百分比命名，例如 EAN32。氮气更少会延长免减压时间，额外的氧气会使 MOD 变浅。';
+
+  @override
+  String get info_term_trimix_label => '三混气';
+
+  @override
+  String get info_term_trimix_body =>
+      '氧、氦和氮的混合气，写作氧/氦，例如 18/45。氦能降低深处的氮醉和气体密度。';
+
+  @override
+  String get info_term_diluent_label => '稀释气';
+
+  @override
+  String get info_term_diluent_body => '循环呼吸器补入回路以维持容积的气体。设备再额外补充氧气以保持设定点。';
+
+  @override
+  String get info_term_setpoint_label => '设定点';
+
+  @override
+  String get info_term_setpoint_body =>
+      '闭路循环呼吸器试图在回路中维持的 ppO2。设备在潜水中常在低设定点和高设定点之间切换。';
+
+  @override
+  String get info_term_bailout_label => '应急气体';
+
+  @override
+  String get info_term_bailout_body => '循环呼吸器潜水时携带的开路气体，用于脱离回路上升。应急计划假定回路已失效。';
+
+  @override
+  String get info_term_loop_label => '回路';
+
+  @override
+  String get info_term_loop_body => '循环呼吸器的呼吸回路，呼出的气体在其中去除二氧化碳后再次吸入。';
+
+  @override
+  String get info_term_stage_label => '阶段气瓶';
+
+  @override
+  String get info_term_stage_body => '挂在身侧的额外气瓶，在潜水的某一阶段携带，并在途中切换使用。';
+
+  @override
+  String get info_term_decoGas_label => '减压气';
+
+  @override
+  String get info_term_decoGas_body => '在减压停留时呼吸的富氧气体。它能加快浅处的排气。';
+
+  @override
+  String get info_term_pony_label => '备用小气瓶';
+
+  @override
+  String get info_term_pony_body => '带独立调节器的小型独立气瓶，作为备用气源携带。';
+
+  @override
+  String get info_term_sidemount_label => '侧挂';
+
+  @override
+  String get info_term_sidemount_body => '气瓶挂在身体两侧而非背上，每个气瓶都有自己的调节器。';
+
+  @override
+  String get info_term_twinBackmount_label => '背挂双瓶';
+
+  @override
+  String get info_term_twinBackmount_body => '两只气瓶在背上相连，通常通过分流阀连接，作为一个气源使用。';
+
+  @override
+  String get info_term_altitudeGroup_label => '海拔等级';
+
+  @override
+  String get info_term_altitudeGroup_body => '共用同一套潜水表和模型设置的海拔区间。等级越高，水面气压越低。';
+
+  @override
+  String get info_term_surfacePressure_label => '水面气压';
+
+  @override
+  String get info_term_surfacePressure_body => '潜点水面的气压。在高海拔处气压较低，模型因此更保守。';
+
+  @override
+  String get info_term_salinity_label => '水体类型';
+
+  @override
+  String get info_term_salinity_body =>
+      '海水比淡水密度大，因此同样的压力在海中对应稍浅的深度。潜水电脑据此把压力换算成深度。';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_label => 'ICD（等压逆向扩散）';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_body =>
+      '当氮上升快于氦下降时，换气可在深度不变的情况下增加组织中的惰性气体总量。常用的五分之一规则将氮的增幅限制在氦降幅的五分之一以内。';
+
+  @override
+  String get info_term_hypercapnia_label => '高碳酸血症';
+
+  @override
+  String get info_term_hypercapnia_body => '体内二氧化碳积聚。气体密度高和用力大会使其更容易发生。';
+
+  @override
+  String get info_term_turnPressure_label => '折返压力';
+
+  @override
+  String get info_term_turnPressure_body => '计划让潜水折返出口方向时的气瓶压力。';
+
+  @override
+  String get info_term_minGas_label => '最低气量';
+
+  @override
+  String get info_term_minGas_body => '预留的气体，使两名潜水员能从最深点共用一个气源回到水面，包括停留。';
+
+  @override
+  String get info_term_rockBottom_label => '最低储备';
+
+  @override
+  String get info_term_rockBottom_body => '容纳最低气量所需的气瓶压力。其中包括上升前在深处处理问题的短暂时间。';
+
+  @override
+  String get info_term_thirds_label => '三分之一规则';
+
+  @override
+  String get info_term_thirds_body =>
+      '一种气体计划：进入用三分之一，返回用三分之一，留三分之一作储备。洞穴和顶部封闭环境培训教授此法。';
+
+  @override
+  String get info_term_airBreaks_label => '空气间歇';
+
+  @override
+  String get info_term_airBreaks_body => '在长时间纯氧停留中短暂改呼低氧气体。可降低 CNS 负荷。';
+
+  @override
+  String get info_term_rollingAverage_label => '滚动平均';
+
+  @override
+  String get info_term_rollingAverage_body =>
+      '每个点上最近若干次潜水的平均值，可平滑各次潜水间的波动以显示趋势。';
+
+  @override
+  String get info_term_overallTrend_label => '总体趋势';
+
+  @override
+  String get info_term_overallTrend_body => '对范围内所有潜水拟合的直线，显示数值的大致走向。';
+
+  @override
+  String get info_term_rangeBand_label => '范围带';
+
+  @override
+  String get info_term_rangeBand_body => '阴影带覆盖每个时段的最低值到最高值。';
+
+  @override
+  String get info_term_collapseGaps_label => '折叠空档';
+
+  @override
+  String get info_term_collapseGaps_body => '从时间轴上去掉潜水之间的长时间空档，使各次潜水并排显示。';
+
+  @override
+  String get info_term_degreeHeatingWeeks_label => 'DHW（度热周）';
+
+  @override
+  String get info_term_degreeHeatingWeeks_body =>
+      '过去 12 周累积的热应力，数据来自 NOAA 珊瑚礁观察。NOAA 预计从 4 开始出现明显白化，从 8 开始出现严重白化。';
+
+  @override
+  String get info_term_sstAnomaly_label => '海表温度距平';
+
+  @override
+  String get info_term_sstAnomaly_body => '海表温度高于或低于该日期长期平均值的幅度。';
+
+  @override
+  String get info_term_bleachingAlert_label => '白化警报';
+
+  @override
+  String get info_term_bleachingAlert_body => 'NOAA 珊瑚礁观察给出的该区域热应力等级，从关注到各级警报。';
+
+  @override
+  String get info_term_sourceDcCalc_label => '潜水电脑或计算值';
+
+  @override
+  String get info_term_sourceDcCalc_body =>
+      '潜水电脑值是它在潜水中记录的数据。计算值来自应用自身模型对潜水曲线的运算，两者可能不同。';
+
+  @override
+  String get info_term_scrubber_label => '二氧化碳吸收罐';
+
+  @override
+  String get info_term_scrubber_body => '循环呼吸器中从回路去除二氧化碳的罐体。其吸收剂有额定的使用小时数。';
+
+  @override
+  String get info_term_cellOutput_label => '传感器输出';
+
+  @override
+  String get info_term_cellOutput_body => '每个氧传感器的毫伏读数，循环呼吸器将其换算为 ppO2。';
+
+  @override
+  String get info_term_highO2Hours_label => '高氧使用时数';
+
+  @override
+  String get info_term_highO2Hours_body => '呼吸高氧比例气体的时间，会加快氧气专用部件的磨损。';
+
+  @override
+  String get info_term_decoStatus_label => '需减压与免减压';
+
+  @override
+  String get info_term_decoStatus_body => '免减压表示此刻直接上升符合模型。需减压表示出水前至少需要一次停留。';
+
+  @override
+  String get info_term_cnsStartAdded_label => '起始值与本次潜水';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      '起始值是之前潜水留下、并已随时间下降的 CNS%。本次潜水是这次潜水本身新增的部分。';
+
+  @override
+  String get info_term_otuWindows_label => '每日与每周 OTU';
+
+  @override
+  String get info_term_otuWindows_body =>
+      '每日 OTU 统计午夜以来的所有潜水，每周 OTU 是最近七天的滚动总和。两者都与应用对应时段的限值并列显示。';
+
+  @override
+  String get info_term_maxPpO2_label => '最大 ppO2';
+
+  @override
+  String get info_term_maxPpO2_body => '潜水过程中呼吸到的最高氧分压。';
+
+  @override
+  String get info_term_timeAboveLimit_label => '超出 ppO2 限值的时间';
+
+  @override
+  String get info_term_timeAboveLimit_body => '本次潜水中 ppO2 高于设置中限值的持续时间。';
+
+  @override
+  String get info_term_idealSwitchDepth_label => '理想换气深度';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      '上升途中下一种气体处于其 ppO2 限值内的最深点，即其 MOD。卡片将它与记录换气时的深度比较。';
+
+  @override
+  String get info_term_extraDeco_label => '额外减压';
+
+  @override
+  String get info_term_extraDeco_body => '由于换气比理想位置更浅或更晚，模型额外增加的减压时间。';
+
+  @override
+  String get info_term_stackedArea_label => '堆叠面积图';
+
+  @override
+  String get info_term_stackedArea_body =>
+      '每条色带是一个舱室随时间的负荷，叠加在其他舱室之上，因此总高度显示所有舱室的负荷。';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 与 He';
+
+  @override
+  String get info_term_nitrogenHelium_body => '每个舱室的负荷分为氮和氦两部分。氦的进出都比氮快。';
+
+  @override
+  String get info_term_missedDecoStop_label => '错过的减压停留';
+
+  @override
+  String get info_term_missedDecoStop_body => '被缩短或跳过的必需停留，通过将潜水曲线与模型的停留比较得出。';
+
+  @override
+  String get info_term_sawtooth_label => '锯齿形曲线';
+
+  @override
+  String get info_term_sawtooth_body => '潜水中反复上升和下降。减压研究认为这与更多气泡形成有关。';
+
+  @override
+  String get info_term_lateGasSwitch_label => '延迟换气';
+
+  @override
+  String get info_term_lateGasSwitch_body => '切换到减压气的位置明显比该气体可用的位置更浅或更晚。';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => '平均垂直速度';
+
+  @override
+  String get info_term_avgVerticalSpeed_body => '所选区间内深度变化的平均速率。';
+
+  @override
+  String get info_term_computedEvents_label => '计算事件';
+
+  @override
+  String get info_term_computedEvents_body =>
+      '应用通过读取潜水曲线添加的标记，例如快速上升，区别于潜水电脑记录的事件。';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => '换气标记';
+
+  @override
+  String get info_term_gasSwitchMarkers_body => '呼吸气体从一个气瓶切换到另一个气瓶的位置。';
+
+  @override
+  String get info_term_diveModes_label => '潜水模式';
+
+  @override
+  String get info_term_diveModes_body =>
+      '开路（OC）每次呼气都排入水中。闭路（CCR）和半闭路（SCR）循环呼吸器通过回路循环利用气体。';
+
+  @override
+  String get info_term_netBuoyancy_label => '净浮力';
+
+  @override
+  String get info_term_netBuoyancy_body => '所有项相加，浮力记为正、重量记为负。零即中性。';
+
+  @override
+  String get info_term_buoyancySwing_label => '浮力变化';
+
+  @override
+  String get info_term_buoyancySwing_body => '潜水开始与结束之间净浮力的变化量，主要来自所呼吸气体的重量。';
+
+  @override
+  String get info_term_peakLift_label => '所需最大浮力';
+
+  @override
+  String get info_term_peakLift_body => '为保持中性，浮力翼或干衣在潜水中任一时刻需要提供的最大浮力。';
+
+  @override
+  String get info_term_minDitchable_label => '最少可抛配重';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return '在潜水最重的时刻需要抛掉的配重，使浮力约为正 $weight。';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => '干衣补气量';
+
+  @override
+  String get info_term_drysuitGas_body => '下潜时为抵消挤压而充入干衣的气体，计为浮力。';
+
+  @override
+  String get info_term_noFlyTime_label => '禁飞时间';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      '从最后一次潜水到 DAN 与 UHMS 飞行指南间隔结束的时间。间隔取决于潜水是单次、重复还是需要减压，以及设置中的预设。';
+
+  @override
+  String get info_term_perYearRate_label => '年变化率';
+
+  @override
+  String get info_term_perYearRate_body => '总体趋势线的斜率，以一年内的变化量表示。';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label => '测量前记录';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      '在应用以距离记录能见度之前，用词语（如好或差）记录的能见度。这些潜水保留原来的词语。';
+
+  @override
+  String get info_term_spansBands_label => '跨多个区间';
+
+  @override
+  String get info_term_spansBands_body => '以跨越多个区间的范围记录的能见度，因此单独计数。';
+
+  @override
+  String get info_term_dawnDusk_label => '黎明与黄昏';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      '黎明潜水在日出前开始、日出后结束，黄昏潜水在日落前后同理。夜间表示整次潜水都在黑暗中。';
+
+  @override
+  String get info_term_calendarShading_label => '着色';
+
+  @override
+  String get info_term_calendarShading_body =>
+      '每个方块代表一年中的一天，颜色越深表示范围内各年在这一天的潜水越多。';
+
+  @override
+  String get info_term_saltWaterHours_label => '海水使用时数';
+
+  @override
+  String get info_term_saltWaterHours_body => '在海水或半咸水中的水下时间，比淡水更快磨损金属部件和密封件。';
+
+  @override
+  String get info_term_coldDives_label => '冷水潜水';
+
+  @override
+  String get info_term_coldDives_body => '最低水温低于装备状态设置中冷水阈值的潜水。';
+
+  @override
+  String get info_term_deepCycles_label => '深潜';
+
+  @override
+  String get info_term_deepCycles_body => '达到装备状态设置中深潜阈值的潜水，每次都是装备的一个完整压力循环。';
+
+  @override
+  String get info_term_conditionRules_label => '状态规则';
+
+  @override
+  String get info_term_conditionRules_body =>
+      '应用对记录的潜水和问题执行的检查，例如氧传感器读数随时间下降或问题反复出现。每项检查都可在设置中关闭。';
+
+  @override
+  String get info_term_standout_label => '突出项';
+
+  @override
+  String get info_term_standout_body => '在关注潜水中所占比例与其他潜水明显不同的因素。表格中的圆点标出它。';
+
+  @override
+  String get info_term_avgMaxDepth_label => '平均深度';
+
+  @override
+  String get info_term_avgMaxDepth_body => '每次潜水最大深度的平均值，而不是潜水中的平均深度。';
+
+  @override
+  String get info_term_diveTypeCounting_label => '潜水类型';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      '具有多种类型的潜水在每种类型下各计一次，因此条柱总和可能超过潜水次数。';
+
+  @override
+  String get info_term_gasMixCounting_label => '多种混合气';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      '使用了多种混合气的潜水在每种气体下各计一次，因此条柱总和可能超过潜水次数。';
+
+  @override
+  String get info_term_cylinderRole_label => '气瓶用途';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      '气瓶在潜水中的用途：底部气、阶段气、减压气、备用小气瓶或应急气。耗气量按此分组。';
+
+  @override
+  String get info_term_colourBy_label => '着色依据';
+
+  @override
+  String get info_term_colourBy_body =>
+      '类型按每个点的种类着色，分组为一起潜水的群体着色，新近程度会淡化近期没有潜水的连线。';
+
+  @override
+  String get info_term_weightedEdges_label => '加权连线';
+
+  @override
+  String get info_term_weightedEdges_body => '连线越粗，表示它连接的两点共同参与的潜水越多。';
+
+  @override
+  String get info_term_hops_label => '跳数';
+
+  @override
+  String get info_term_hops_body => '视图从所选点向外延伸的连线层数。一跳只显示其直接连接。';
+
+  @override
+  String get info_term_lastStop_label => '最后停留';
+
+  @override
+  String get info_term_lastStop_body => '最浅减压停留的深度。较深的最后停留在涌浪中更容易保持，但耗时更长。';
+
+  @override
+  String get info_term_ascentStages_label => '上升阶段';
+
+  @override
+  String get info_term_ascentStages_body =>
+      '计划可为上升的每一段使用不同速度：到第一个停留、停留之间以及接近水面时。';
+
+  @override
+  String get info_term_reserveGas_label => '储备';
+
+  @override
+  String get info_term_reserveGas_body => '计划在每个气瓶中保留、从不计为可用的气体。';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => '设定点切换深度';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      '计划在下潜时由低设定点切换到高设定点、上升时切回的深度。';
+
+  @override
+  String get info_term_pscrRatio_label => 'pSCR 比例';
+
+  @override
+  String get info_term_pscrRatio_body => '被动式半闭路循环呼吸器每次呼气排出的比例。它决定回路中的氧比供气低多少。';
+
+  @override
+  String get info_term_turnFraction_label => '折返比例';
+
+  @override
+  String get info_term_turnFraction_body =>
+      '计划折返前使用的初始气体比例。三分之一是洞穴及其他顶部封闭潜水的常用规则。';
+
+  @override
+  String get info_term_dpv_label => 'DPV（水下推进器）';
+
+  @override
+  String get info_term_dpv_body => '潜水员推进器。任务计划涵盖电池、行进距离以及推进器故障时游回的情况。';
+
+  @override
+  String get info_term_ceilingViolation_label => '违反上限深度';
+
+  @override
+  String get info_term_ceilingViolation_body => '某个版本的潜水比模型上限深度更浅的次数和幅度。';
+
+  @override
+  String get info_term_deepestStop_label => '最深停留';
+
+  @override
+  String get info_term_deepestStop_body => '第一个必需减压停留的深度。';
+
+  @override
+  String get info_term_minGasMargin_label => '最低气量余量';
+
+  @override
+  String get info_term_minGasMargin_body => '变更发生时，气量高于最低气量的剩余部分。';
+
+  @override
+  String get info_term_gasOutTime_label => '气体耗尽时间';
+
+  @override
+  String get info_term_gasOutTime_body => '按照重放所用的呼吸速率，气瓶何时会耗尽。';
+
+  @override
+  String get info_term_whatIf_label => '实际与假设';
+
+  @override
+  String get info_term_whatIf_body => '实际是用模型重放记录的潜水，假设是在潜水实验室加入变更后再重放。';
+
+  @override
+  String get info_term_cellGain_label => '传感器输出（每 bar 毫伏）';
+
+  @override
+  String get info_term_cellGain_body =>
+      '每个氧传感器的毫伏读数除以其测得的 ppO2。传感器正常时保持稳定，随老化而下降。';
+
+  @override
+  String get info_term_transmitterDropouts_label => '发射器信号中断';
+
+  @override
+  String get info_term_transmitterDropouts_body => '每次潜水中没有收到发射器压力读数的时间占比。';
+
+  @override
+  String get info_term_o2Narcotic_label => '氧计为致醉气体';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      '开启后，计算 END 和 MND 时氧与氮一样计为致醉气体。这会使 END 更深、MND 更浅。';
+
+  @override
+  String get info_term_ascentGasSet_label => '上升用气体';
+
+  @override
+  String get info_term_ascentGasSet_body => '模拟上升可切换的携带气瓶：所有携带的气体，或仅阶段气瓶和减压气瓶。';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      '整次潜水的深度随时间变化，每个已开启的叠加层都绘制在同一时间轴上。';
+
+  @override
+  String get info_diveLog_profile_background =>
+      '减压和氧相关叠加层来自使用设置中梯度因子的 Buhlmann ZHL-16C 模型，以及 NOAA 氧暴露表。';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      '在图表上移动可读取某一时刻的全部数值。图例用于开关叠加层，范围按钮可选取潜水的一段查看其统计。';
+
+  @override
+  String get info_diveLog_rangeStats_summary => '图表上所选潜水片段的统计数据。';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      '减压模型在光标时刻给出的结果：是否需要停留，以及剩余的时间或深度。';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      '应用使用 Buhlmann ZHL-16C 模型和 GF 标签上的梯度因子计算。使用其他模型或设置的潜水电脑可能显示不同的数字。';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      '本次潜水增加的氧暴露，分为短期的 CNS 时钟和较慢的 OTU 剂量。';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'CNS% 依据 NOAA 的 ppO2 暴露限值，潜水后以 90 分钟半衰期下降。每日 OTU 在午夜重置，每周 OTU 覆盖最近七天。';
+
+  @override
+  String get info_diveLog_gasSwitches_summary => '每次换气与该气体处于 ppO2 限值内的最深点相比如何。';
+
+  @override
+  String get info_diveLog_tissueLoading_summary => '光标时刻模型 16 个舱室各自的惰性气体负荷。';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      '模型为 Buhlmann ZHL-16C，分别追踪每个舱室中的氮和氦。负荷只计算高于水面水平的部分，因此即使完全排气，条柱也不会归零。';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      '本次潜水中触及安全复查规则的时刻，由潜水后检查潜水曲线得出。';
+
+  @override
+  String get info_diveLog_safetyReview_background => '规则及其阈值在“设置”的“安全复查”中设置。';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      '点击某项发现可在曲线上显示其发生位置。忽略某项发现会在本次潜水中隐藏它。';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      '本次潜水的每个气瓶，包括其气体、所用压力以及该气体的深度限值。';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      '按潜水阶段或时间片拆分的耗气量，便于比较各部分的用力程度。';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse => '图表上方的选择器可在 SAC 与 RMV 之间切换。';
+
+  @override
+  String get info_diveLog_details_summary => '本次潜水的记录数据；未填写的项目使用从潜水曲线推算的数值。';
+
+  @override
+  String get info_diveLog_altitude_summary => '本次潜水在高海拔进行，水面气压较低会使减压模型更保守。';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      '根据潜水曲线、所呼吸的气体和随潜水记录的装备，模拟整次潜水的净浮力。';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      '“调整”会打开一个面板，用不同的配重或潜水服浮力重新计算本次潜水。';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      '潜水日期前后潜点附近的海温和珊瑚热应力，来自 NOAA 珊瑚礁观察卫星数据。';
+
+  @override
+  String get info_diveLab_compare_summary => '本次潜水在影响减压的关键数字上与其关联计划或已保存情景的对比。';
+
+  @override
+  String get info_diveLab_compare_howToUse => '点击卡片打开潜水实验室，在本次潜水上尝试其他选择。';
+
+  @override
+  String get info_safety_noFly_summary => '最近几次潜水后的飞行指南间隔何时结束。';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      '范围按钮选择时间段，分组按钮按每次潜水、每周或每月显示。滚动平均和总体趋势用于开关各自的线，长时间空档可从菜单中折叠。';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      '每次潜水的耗气随时间的变化，每次潜水或每组一个点，按上方所选通道显示。';
+
+  @override
+  String get info_insights_roleUse_summary => '按气瓶类型显示随时间的耗气，避免底部气与阶段气混在一起。';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      '每次循环呼吸器潜水使用的氧气和稀释气，以水面压力下每分钟体积表示。';
+
+  @override
+  String get info_insights_depthTrend_summary => '每次潜水的最大深度随时间的变化。';
+
+  @override
+  String get info_insights_runtimeTrend_summary => '每次潜水从离开水面到出水的时长随时间的变化。';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      '每次潜水的水底时间随时间的变化，不含总潜水时间包括的最后上升和停留。';
+
+  @override
+  String get info_insights_waterTempTrend_summary => '每次潜水记录的水温随时间的变化。';
+
+  @override
+  String get info_insights_airTempTrend_summary => '每次潜水记录的气温随时间的变化。';
+
+  @override
+  String get info_insights_weightTrend_summary => '每次潜水携带的配重随时间的变化。';
+
+  @override
+  String get info_insights_gasMix_summary => '使用每种混合气的潜水次数。';
+
+  @override
+  String get info_insights_tankConfig_summary => '每次潜水的气瓶配置，依据记录的气瓶用途统计。';
+
+  @override
+  String get info_insights_sacRecords_summary => '范围内耗气最低和最高的潜水。';
+
+  @override
+  String get info_insights_ascentDescent_summary => '根据潜水曲线计算的平均下潜和上升速度。';
+
+  @override
+  String get info_insights_timeAtDepth_summary => '水下总时间在各深度区间的分布。';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      '根据模型对每条潜水曲线的判断，需要减压停留的潜水次数。';
+
+  @override
+  String get info_insights_cumulative_summary => '随时间累计记录的潜水总数。';
+
+  @override
+  String get info_insights_visibility_summary => '按记录的能见度分组的潜水，区间来自设置中的能见度刻度。';
+
+  @override
+  String get info_insights_waterType_summary => '在海水、淡水和半咸水中的潜水。';
+
+  @override
+  String get info_insights_seasonalTemp_summary => '一年中每个月记录的最低、平均和最高水温。';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      '按水温分组的潜水，并给出每个区间的平均耗气和深度。';
+
+  @override
+  String get info_insights_siteType_summary => '按记录的潜点类型统计的潜水，例如礁石、沉船或洞穴。';
+
+  @override
+  String get info_insights_altitude_summary => '按潜点海拔分组的潜水。';
+
+  @override
+  String get info_insights_surfacePressure_summary => '按水面记录气压分组的潜水。';
+
+  @override
+  String get info_insights_timeOfDay_summary => '潜水相对于各潜点日出和日落的时间分布。';
+
+  @override
+  String get info_insights_calendarDays_summary => '范围内各年中，一年里哪些日子有过潜水。';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      '每次潜水与前一次潜水之间水面休息的平均、最短和最长时间。';
+
+  @override
+  String get info_insights_exposure_summary => '按使用和磨损程度排列的装备，单位由菜单选择。';
+
+  @override
+  String get info_insights_conditionFindings_summary => '记录的潜水和问题中提示装备需要关注的规律。';
+
+  @override
+  String get info_insights_reportedIssues_summary => '记录在潜水上的问题，按标签分组并计数。';
+
+  @override
+  String get info_insights_focus_summary => '上方语句选出的潜水，与范围内其他所有潜水的比较。';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      '点击语句中带下划线的词可更改度量、方向和潜水数量。阈值模式则比较高于或低于某个数值的每次潜水。';
+
+  @override
+  String get info_insights_standouts_summary => '在关注潜水中明显比其他潜水更常见或更少见的因素。';
+
+  @override
+  String get info_insights_comparison_summary => '所有因素并列：它们在关注潜水和其他潜水中的占比。';
+
+  @override
+  String get info_insights_overviewStats_summary => '范围内所有潜水的总计和平均值。';
+
+  @override
+  String get info_insights_distributions_summary => '潜水在各深度区间和潜水类型中的分布。';
+
+  @override
+  String get info_insights_observations_summary =>
+      '应用在日志中发现的简短提示，例如新的最深潜水或耗气变化。';
+
+  @override
+  String get info_connections_display_summary =>
+      '每个点是潜伴、潜点、行程或装备，每条线连接共同参与潜水的两者。';
+
+  @override
+  String get info_connections_display_howToUse =>
+      '点击一个点可聚焦该点及其连线。面板用于选择颜色、线型和视图范围。';
+
+  @override
+  String get info_planner_results_summary => '当前计划的主要数字，计划变化时随之更新。';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      '模型规划的上升过程，每个停留或换气一行，包含深度、时长、累计时间和气体。';
+
+  @override
+  String get info_planner_gas_summary => '计划使用每个气瓶的气量，以及已知起始压力时的折返压力和最低气量。';
+
+  @override
+  String get info_planner_bailout_summary =>
+      '若回路失效，从潜水最不利点开始的开路上升，以及携带的应急气体是否足够。';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      '针对不同情况重新计算的计划：更深或更长的潜水，或丢失某种气体。';
+
+  @override
+  String get info_planner_range_summary => '若潜水比计划更深或更久，时间表会如何变化。';
+
+  @override
+  String get info_planner_mission_summary => '团队的推进器计划：电池消耗、距离以及推进器故障时的游回。';
+
+  @override
+  String get info_planner_carry_summary =>
+      '本次潜水留给下一次的影响：水面休息时间、仍残留的 CNS 和 OTU。';
+
+  @override
+  String get info_plannerSetup_deco_summary => '时间表的保守程度以及最后停留的位置。';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      '降低 GF Low 会使第一个停留更深，降低 GF High 会延长浅处停留。每次修改后结果都会更新。';
+
+  @override
+  String get info_plannerSetup_rates_summary => '计划在潜水各阶段的下潜和上升速度。';
+
+  @override
+  String get info_plannerSetup_rates_howToUse => '每个速率适用于潜水的对应阶段。数值变化时结果会更新。';
+
+  @override
+  String get info_plannerSetup_gas_summary => '计划用于估算气量的呼吸速率和储备。';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      '输入水底呼吸速率，或从已记录的潜水中获取，并设置每个气瓶保留的储备。';
+
+  @override
+  String get info_plannerSetup_environment_summary => '水体类型和海拔，它们决定模型起算的水面气压。';
+
+  @override
+  String get info_plannerSetup_environment_howToUse => '选择水体类型并输入潜点海拔。';
+
+  @override
+  String get info_plannerSetup_ccr_summary => '计划中闭路循环呼吸器保持的设定点。';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse => '设置低、高设定点以及计划在两者之间切换的深度。';
+
+  @override
+  String get info_plannerSetup_pscr_summary => '计划中被动式半闭路循环呼吸器的建模方式。';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse => '输入循环呼吸器制造商给出的排放比例。';
+
+  @override
+  String get info_plannerSetup_contingencies_summary => '应急计划的范围以及气体计划的折返规则。';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      '设置应急计划再加深、加长多少，然后选择折返规则和比例。';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary => '任务计划所依据的团队、推进器和条件。';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse => '输入潜水员和推进器、电池储备、水流和游速。';
+
+  @override
+  String get info_plannerSetup_gear_summary => '计划中的装备和配重，用于预测整次潜水的浮力。';
+
+  @override
+  String get info_plannerSetup_gear_howToUse => '添加潜水服、气瓶和配重即可查看预测浮力。';
+
+  @override
+  String get info_diveLab_tiles_summary => '假设重放的主要结果，按比实际潜水更好或更差着色。';
+
+  @override
+  String get info_diveLab_delta_summary => '实际潜水与假设版本的各项数值并列，并显示差值。';
+
+  @override
+  String get info_diveLab_tissues_summary => '各版本到达水面时的舱室负荷：实际与假设。';
+
+  @override
+  String get info_diveLab_buoyancy_summary => '每个潜水版本在最后停留时的浮力。';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      '可在本次潜水上尝试的变更，每项都从其生效时刻起用同一模型重放。';
+
+  @override
+  String get info_calculators_mod_summary =>
+      '所选混合气保持在 ppO2 限值内的最大深度，以及该深度的 EAD 和 END。';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      '先选择模式，再设置氧含量和工作 ppO2。可添加目标深度，以检查计划深度是否适合该混合气。END 限值以及氧是否计为致醉来自潜水员档案。';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      '针对目标深度、使 ppO2 不超限且 END 不超过致醉限值的最富混合气。';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      '设置目标深度和模式。CCR 模式下选择该混合气用作稀释气还是应急气。';
+
+  @override
+  String get info_calculators_consumption_summary => '计划潜水在给定深度、时间和呼吸速率下的耗气量。';
+
+  @override
+  String get info_calculators_consumption_howToUse => '输入深度、时间、呼吸速率和气瓶。';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      '两名潜水员从最深点共用一个气源一起上升所需的最低气体储备。';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      '按应激呼吸速率计算（通常为正常的两到三倍），并按两名潜水员共用一个气瓶计算。开启该选项时包含安全停留。';
+
+  @override
+  String get info_calculators_rockBottom_howToUse => '设置深度、应激呼吸速率、上升速度和气瓶。';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      '气体保持在 END 限值内的最大深度，以及气体在给定深度的 END。';
+
+  @override
+  String get info_calculators_mnd_howToUse => '输入气体、END 限值以及氧是否计为致醉。';
+
+  @override
+  String get info_calculators_icd_summary => '两种气体之间的切换是否符合逆向扩散的五分之一规则。';
+
+  @override
+  String get info_calculators_icd_background =>
+      '氦的扩散速度快于氮，因此切换到含氮更多的气体可能增加组织中惰性气体总量。对于标准气体这一点有多重要，各培训机构看法不一。';
+
+  @override
+  String get info_calculators_icd_howToUse => '输入当前气体和要切换的气体。';
+
+  @override
+  String get info_calculators_density_summary => '气体在深处的密度，以及空气达到同样密度的深度。';
+
+  @override
+  String get info_calculators_density_background =>
+      'CCR 模式下为回路气体的密度：氧处于设定点，其余按稀释气比例分配。气体越冷密度越大，计算假定为理想气体。';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      '输入混合气、深度和水温，并在 OC 与 CCR 间切换。';
+
+  @override
+  String get info_calculators_blender_summary => '分压混气：按顺序加入以达到目标混合气的充填气体。';
+
+  @override
+  String get info_calculators_blender_background =>
+      '每种气体加至显示的压力，静置稳定后再加下一种。充填气体及其顺序可配置，因此最后一种可以是 EAN32 而不是空气。';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      '输入气瓶中已有的气体和目标混合气。每次混气的最后一步都是分析最终混合气。';
+
+  @override
+  String get info_decoCalculator_summary =>
+      '以 Buhlmann ZHL-16C 模型计算的单一深度潜水，显示其气体限值、停留和组织负荷。';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      '设置深度、时间、气体和水况。每次修改后，气体限值、停留和组织图都会更新。';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      '根据第一次潜水遗留的组织负荷，判断水面休息后的第二次潜水能否保持在免减压限值内。';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      '水面休息期间模型的 16 个舱室持续排气，快舱室几分钟内、慢舱室需数小时。主导舱室是负荷最高的舱室，通常决定 NDL。';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      '设置第一次潜水、第二次潜水和水面休息时间。结果显示最短休息时间和第二次潜水的 NDL。';
+
+  @override
+  String get info_equipment_trend_summary => '每次潜水一个点，因此该装备的缓慢变化会在其使用期内呈现为趋势。';
+
+  @override
+  String get info_equipment_findings_summary => '状态规则在该装备的潜水和已报告问题中标记出的规律。';
+
+  @override
+  String get info_equipment_exposure_summary => '该装备的使用量，按其保养计时使用的各种单位统计。';
+
+  @override
+  String get info_site_altitude_summary => '潜点的海拔高度及当地气压，减压模型以此为起点。';
+
+  @override
+  String get info_trips_scrubberMargin_summary => '本次行程计划的循环呼吸器潜水还剩多少吸收罐额定时间。';
+
+  @override
+  String get info_settings_gradientFactors_summary => '应用减压模型的保守程度。';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      '梯度因子缩小 Buhlmann ZHL-16C 的 M 值，这一方法由 Erik Baker 提出。应用计算的所有减压数据都使用它们。';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      '应用中所有氧相关数值使用的 ppO2 限值和 CNS 计算方法。';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'NDL、减压停留、TTS、GTR 和 CNS 是取自潜水电脑，还是来自应用自身的计算。';
+
+  @override
+  String get info_settings_narcosis_summary => 'END 限值，以及应用中 END 和 MND 的计算方式。';
+
+  @override
+  String get info_settings_icd_summary => '应用对换气进行的氦氮逆向扩散检查。';
+
+  @override
+  String get info_settings_ascent_summary => '应用计算 TTS、上限深度和停留时，模拟上升可以切换到哪些气体。';
+
+  @override
+  String get info_settings_safetyRules_summary => '每次潜水记录后用于检查的规则。关闭的规则不会被报告。';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      '让潜水在保养计时中计为冷水、深潜或高氧潜水的阈值。';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      '应用为氧传感器、发射器和吸收罐保存的每次潜水数据。';
+
+  @override
+  String get info_settings_conditionRules_summary => '装备状态发现背后的检查。关闭的规则不会被报告。';
+
+  @override
+  String get info_settings_notifications_summary =>
+      '提醒在应用打开时安排，并在后台刷新。每件装备都可在其编辑界面设置自己的提醒。';
+
+  @override
+  String get info_settings_ascentRate_summary => '剖面图为上升着色并记录上升速度事件所用的速度。';
+
+  @override
+  String get gasCalculators_blender_analyseNote => '下水前务必分析配好的混合气。';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'MOD 始终向下取整，从不向上。Rec 按每 $depth 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型计算水下压力，因此同一混合气在那里显示的 MOD 可能略浅。';
+  }
 }

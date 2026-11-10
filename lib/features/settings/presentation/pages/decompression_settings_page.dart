@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/settings/presentation/info/settings_info.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
@@ -46,6 +48,11 @@ class DecompressionSettingsContent extends ConsumerWidget {
           buildSettingsSectionHeader(
             context,
             context.l10n.settings_decompression_header_gradientFactors,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.gradientFactors,
+            ),
           ),
           const SizedBox(height: 8),
           Card(
@@ -62,16 +69,15 @@ class DecompressionSettingsContent extends ConsumerWidget {
               onTap: () => _showGradientFactorPicker(context, ref, settings),
             ),
           ),
-          const SizedBox(height: 16),
-          buildSettingsInfoCard(
-            context,
-            context.l10n.settings_decompression_aboutTitle,
-            context.l10n.settings_decompression_aboutContent,
-          ),
           const SizedBox(height: 24),
           buildSettingsSectionHeader(
             context,
             context.l10n.settings_decompression_header_oxygenToxicity,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.oxygenToxicity,
+            ),
           ),
           const SizedBox(height: 8),
           Card(
@@ -112,6 +118,11 @@ class DecompressionSettingsContent extends ConsumerWidget {
           buildSettingsSectionHeader(
             context,
             context.l10n.settings_decompression_header_dataSources,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.dataSources,
+            ),
           ),
           const SizedBox(height: 4),
           Padding(
@@ -183,6 +194,11 @@ class DecompressionSettingsContent extends ConsumerWidget {
           buildSettingsSectionHeader(
             context,
             context.l10n.settings_decompression_header_narcosis,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.narcosis,
+            ),
           ),
           const SizedBox(height: 8),
           Card(
@@ -221,6 +237,11 @@ class DecompressionSettingsContent extends ConsumerWidget {
           buildSettingsSectionHeader(
             context,
             context.l10n.settings_decompression_header_icd,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.isobaricCounterdiffusion,
+            ),
           ),
           const SizedBox(height: 8),
           Card(
@@ -242,6 +263,11 @@ class DecompressionSettingsContent extends ConsumerWidget {
           buildSettingsSectionHeader(
             context,
             context.l10n.settings_decompression_header_ascent,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.ascentPlanning,
+            ),
           ),
           const SizedBox(height: 4),
           Padding(

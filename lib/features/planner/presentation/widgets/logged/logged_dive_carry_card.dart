@@ -8,10 +8,13 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/planner/domain/entities/plan_series.dart';
 import 'package:submersion/features/planner/domain/entities/series_follow.dart';
 import 'package:submersion/features/planner/domain/utils/hours_minutes.dart';
+import 'package:submersion/features/planner/presentation/info/plan_results_info.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/logged/logged_dive_label.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// What the logged dive in view passes on to the dive after it (issue
 /// #3565): the next logged dive, else the first planned one; for a dive of
@@ -79,9 +82,19 @@ class LoggedDiveCarryCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                l10n.plannerSeries_carriedInto(nextLabel),
-                style: theme.textTheme.titleSmall,
+              InfoTitleRow(
+                title: Text(
+                  l10n.plannerSeries_carriedInto(nextLabel),
+                  style: theme.textTheme.titleSmall,
+                ),
+                label: l10n.plannerSeries_carriedInto(nextLabel),
+                height: 20,
+                info: (context) => planCarryInfo(
+                  context.l10n,
+                  infoUnits(context),
+                  title: context.l10n.plannerSeries_carriedInto(nextLabel),
+                  showsOtu: analysis != null,
+                ),
               ),
               const SizedBox(height: 8),
               Wrap(

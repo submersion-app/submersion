@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -129,10 +130,14 @@ class ConditionsChartCard extends StatelessWidget {
     required this.recorded,
     required this.total,
     this.onOpenUnrecorded,
+    this.info,
   });
 
   final String title;
   final String subtitle;
+
+  /// What the card's info icon explains; null shows no icon.
+  final InfoContentBuilder? info;
 
   /// Each category or band with its dive count, read after [title].
   final String description;
@@ -148,6 +153,7 @@ class ConditionsChartCard extends StatelessWidget {
       child: StatSectionCard(
         title: title,
         subtitle: subtitle,
+        info: info,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [

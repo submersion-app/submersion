@@ -13,6 +13,8 @@ import 'package:submersion/features/insights/presentation/widgets/horizontal_cat
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/insights/presentation/widgets/twin_set_review_note.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Dives by how their tanks were carried, on the Gas page (issue #3421).
 ///
@@ -33,6 +35,17 @@ class TankConfigurationCard extends ConsumerWidget {
     final statsAsync = ref.watch(tankConfigurationStatsProvider);
     return StatSectionCard(
       title: l10n.insights_gas_tankConfig_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_gas_tankConfig_title,
+        summary: context.l10n.info_insights_tankConfig_summary,
+        terms: const [
+          DiveTerm.twinBackmount,
+          DiveTerm.sidemount,
+          DiveTerm.stage,
+        ],
+      ),
       subtitle: l10n.insights_gas_tankConfig_subtitle,
       child: statsAsync.when(
         // The re-role note reads the whole logbook, not the Insights

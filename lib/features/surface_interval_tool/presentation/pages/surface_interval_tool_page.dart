@@ -8,6 +8,7 @@ import 'package:submersion/features/surface_interval_tool/presentation/widgets/p
 import 'package:submersion/features/surface_interval_tool/presentation/widgets/surface_interval_result.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/widgets/tissue_recovery_chart.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
+import 'package:submersion/shared/widgets/safety_note.dart';
 
 /// Surface Interval Tool page for planning repetitive dives.
 ///
@@ -25,9 +26,6 @@ class SurfaceIntervalToolPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     final actions = [
       IconButton(
         icon: const Icon(Icons.refresh),
@@ -55,71 +53,9 @@ class SurfaceIntervalToolPage extends ConsumerWidget {
         const TissueRecoveryChart(),
         const SizedBox(height: 16),
 
-        // Info Card
-        Card(
-          color: colorScheme.surfaceContainerHighest,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ExcludeSemantics(
-                      child: Icon(
-                        Icons.info_outline,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      context.l10n.surfaceInterval_aboutTissueLoading_title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  context.l10n.surfaceInterval_aboutTissueLoading_body,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.errorContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ExcludeSemantics(
-                        child: Icon(
-                          Icons.warning_amber,
-                          size: 20,
-                          color: colorScheme.error,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          context.l10n.surfaceInterval_disclaimer,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        // The tool's disclaimer stays on the page; the tissue explanation
+        // moved to the Tissue Recovery card's info icon.
+        SafetyNote(text: context.l10n.surfaceInterval_disclaimer),
         const SizedBox(height: 24),
       ],
     );

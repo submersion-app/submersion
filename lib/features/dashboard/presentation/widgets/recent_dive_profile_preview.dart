@@ -5,10 +5,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 /// Depth profile of the newest dive, shown beside the recent-dives list on
 /// wide windows.
@@ -43,38 +45,42 @@ class RecentDiveProfilePreview extends ConsumerWidget {
     // would state a different, and untrue, fact about a dive that is gone.
     if (diveAsync case AsyncData(value: null)) return const SizedBox.shrink();
 
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _Header(dive: diveAsync.value ?? newest),
-            const SizedBox(height: 8),
-            Expanded(
-              child: diveAsync.when(
-                // The null arm is unreachable, and present only to satisfy
-                // the provider's nullable type: AsyncData(value: null)
-                // returned above.
-                data: (dive) => dive == null || dive.profile.isEmpty
-                    ? _Placeholder(
-                        icon: Icons.show_chart,
-                        message:
-                            context.l10n.dashboard_recentDives_noProfileData,
-                      )
-                    : DiveProfileChartHost(dive: dive),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                // A failed load and a dive with no samples are different
-                // facts. Reporting "no profile data" for a failure hides the
-                // error and tells the diver something untrue about the dive.
-                error: (_, _) => _Placeholder(
-                  icon: Icons.error_outline,
-                  message: context.l10n.dashboard_recentDives_profileLoadError,
+    return ProfileLegendSnapshotScope(
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _Header(dive: diveAsync.value ?? newest),
+              const SizedBox(height: 8),
+              Expanded(
+                child: diveAsync.when(
+                  // The null arm is unreachable, and present only to satisfy
+                  // the provider's nullable type: AsyncData(value: null)
+                  // returned above.
+                  data: (dive) => dive == null || dive.profile.isEmpty
+                      ? _Placeholder(
+                          icon: Icons.show_chart,
+                          message:
+                              context.l10n.dashboard_recentDives_noProfileData,
+                        )
+                      : DiveProfileChartHost(dive: dive),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  // A failed load and a dive with no samples are different
+                  // facts. Reporting "no profile data" for a failure hides the
+                  // error and tells the diver something untrue about the dive.
+                  error: (_, _) => _Placeholder(
+                    icon: Icons.error_outline,
+                    message:
+                        context.l10n.dashboard_recentDives_profileLoadError,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -151,6 +157,12 @@ class _Header extends ConsumerWidget {
               builder: (_) => FullscreenProfilePage(diveId: dive.id),
             ),
           ),
+        ),
+        HeaderInfoButton(
+          title: context.l10n.dashboard_recentDives_latestProfileTitle,
+          height: 40,
+          width: 40,
+          content: diveProfileInfoFor,
         ),
       ],
     );

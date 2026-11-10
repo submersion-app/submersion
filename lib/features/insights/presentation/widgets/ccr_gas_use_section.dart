@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/ccr_gas_use_trend.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/rate_average_tile.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
@@ -42,6 +43,8 @@ class CcrGasUseSection extends ConsumerWidget {
         chartId: TrendChartIds.ccrGasUse,
         onDiveSelected: (diveId) => context.push('/dives/$diveId'),
         title: l10n.insights_gas_ccrUse_title,
+        infoSummary: l10n.info_insights_ccrUse_summary,
+        infoTerms: ccrGasUseTerms(showsDiluent: trend.diluent.isNotEmpty),
         subtitle: l10n.insights_gas_ccrUse_subtitle,
         header: _averages(context, trend, units.formatRmv),
         pointsAsync: AsyncData(diluentOnly ? trend.diluent : trend.o2),

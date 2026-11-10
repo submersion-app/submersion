@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/text/blank_text.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/info/water_conditions_info.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_gates.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -12,6 +13,7 @@ import 'package:submersion/features/reef/presentation/widgets/water_conditions_l
 import 'package:submersion/features/weather/presentation/widgets/weather_description_builder.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/detail_row/detail_row_group.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The Environment card: what the diver logged about the weather and the
 /// dive conditions, then the satellite water conditions on the dive date.
@@ -201,6 +203,17 @@ class DiveEnvironmentSection extends ConsumerWidget {
                     units: units,
                     health: satellite.health,
                     reefPossible: satellite.reefPossible,
+                  ),
+                  info: (context) => waterConditionsInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    hasDhw:
+                        satellite.reefPossible &&
+                        satellite.health.degreeHeatingWeeks != null,
+                    hasAnomaly: satellite.health.sstAnomaly != null,
+                    hasAlert:
+                        satellite.reefPossible &&
+                        satellite.health.alertLevel != null,
                   ),
                 ),
             ],

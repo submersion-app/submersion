@@ -22,6 +22,7 @@ import 'package:submersion/features/bathymetry/domain/grid_sampling.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_overlay_layer.dart';
 import 'package:submersion/features/dive_3d/application/career_providers.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/career_terrain_page.dart';
+import 'package:submersion/features/dive_sites/presentation/info/site_altitude_info.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_error_text.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_marker_layer.dart';
@@ -59,6 +60,8 @@ import 'package:submersion/features/media/presentation/widgets/site_media_sectio
 import 'package:submersion/features/reef/presentation/widgets/reef_section.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
 import 'package:submersion/shared/widgets/shared_items/shared_by_banner.dart';
@@ -1837,9 +1840,16 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               children: [
                 Icon(Icons.terrain, size: 20, color: colorScheme.primary),
                 const SizedBox(width: 8),
-                Text(
-                  context.l10n.diveSites_detail_section_altitude,
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: Text(
+                    context.l10n.diveSites_detail_section_altitude,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                HeaderInfoButton(
+                  title: context.l10n.diveSites_detail_section_altitude,
+                  content: (context) =>
+                      siteAltitudeInfo(context.l10n, infoUnits(context)),
                 ),
               ],
             ),

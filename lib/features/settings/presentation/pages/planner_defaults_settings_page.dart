@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/settings/presentation/info/settings_info.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_contingency_defaults_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_dpv_team_defaults_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_gas_defaults_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/planner_rates_defaults_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Global defaults for the dive planner's Setup accordion (issue #3552,
 /// follow-up to v304-307): Rates, Gas, Contingency, and DPV Team values a
@@ -42,6 +44,11 @@ class PlannerDefaultsSettingsContent extends StatelessWidget {
           buildSettingsSectionHeader(
             context,
             l10n.settings_decompression_header_plannerRates,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.plannerRates,
+            ),
           ),
           const SizedBox(height: 4),
           subtitle(l10n.settings_decompression_header_plannerRates_subtitle),
@@ -51,6 +58,11 @@ class PlannerDefaultsSettingsContent extends StatelessWidget {
           buildSettingsSectionHeader(
             context,
             l10n.settings_decompression_header_plannerGas,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.plannerGas,
+            ),
           ),
           const SizedBox(height: 4),
           subtitle(l10n.settings_decompression_header_plannerGas_subtitle),
@@ -60,6 +72,11 @@ class PlannerDefaultsSettingsContent extends StatelessWidget {
           buildSettingsSectionHeader(
             context,
             l10n.settings_decompression_header_plannerContingency,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.plannerContingency,
+            ),
           ),
           const SizedBox(height: 4),
           subtitle(
@@ -71,6 +88,11 @@ class PlannerDefaultsSettingsContent extends StatelessWidget {
           buildSettingsSectionHeader(
             context,
             l10n.settings_decompression_header_plannerDpvTeam,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.plannerDpvTeam,
+            ),
           ),
           const SizedBox(height: 4),
           subtitle(l10n.settings_decompression_header_plannerDpvTeam_subtitle),

@@ -84,9 +84,6 @@ void main() {
       'NDL pour la 2e plongée',
     );
     expect(fr.surfaceInterval_result_ndlMinutes(42), '42 min NDL');
-    expect(
-      fr.surfaceInterval_aboutTissueLoading_body,
-      contains('limite de non-décompression (NDL)'),
-    );
+    expect(fr.info_term_ndl_label, contains('limite de non-décompression'));
   });
 }

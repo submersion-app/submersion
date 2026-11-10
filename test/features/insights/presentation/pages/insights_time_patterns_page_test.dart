@@ -10,6 +10,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_time_pa
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/semantics_finders.dart';
@@ -331,5 +332,16 @@ void main() {
         findsOneWidget,
       );
     });
+  });
+  testWidgets('the time pattern cards carry info icons', (tester) async {
+    await pumpPage(
+      tester,
+      days: () async => const [(dayOfWeek: 6, count: 4)],
+      timesOfDay: () async => timeOfDay({'Morning': 3}),
+      months: () async => const [(month: 7, count: 5)],
+      surfaceInterval: () async =>
+          (avgMinutes: 95.0, minMinutes: 40.0, maxMinutes: 180.0),
+    );
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

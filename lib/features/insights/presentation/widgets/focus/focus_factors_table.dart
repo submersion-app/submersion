@@ -12,6 +12,8 @@ import 'package:submersion/features/insights/presentation/formatters/focus_label
 import 'package:submersion/features/insights/presentation/formatters/focus_quiet_rows.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Below this width the difference column folds under the group value.
 const double focusTableNarrowWidth = 600;
@@ -76,6 +78,13 @@ class _FocusFactorsTableState extends ConsumerState<FocusFactorsTable> {
 
     return StatSectionCard(
       title: l10n.insights_focus_comparison_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_focus_comparison_title,
+        summary: context.l10n.info_insights_comparison_summary,
+        terms: const [DiveTerm.standout],
+      ),
       subtitle: l10n.insights_focus_comparison_subtitle(
         focusMetricLabel(widget.metric, l10n),
       ),

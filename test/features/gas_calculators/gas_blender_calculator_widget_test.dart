@@ -11,6 +11,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/gas_ble
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../support/fake_app_settings_repository.dart';
 
@@ -76,6 +77,17 @@ void main() {
     // Procedure heading and the target nitrox both render.
     expect(find.text('Fill procedure'), findsOneWidget);
     expect(find.textContaining('EAN32'), findsWidgets);
+  });
+
+  testWidgets('the reminder to analyze the mix stays on the page', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    expect(
+      find.text('Always analyze the finished mix before diving it.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a target pressure below the start shows an error', (
@@ -417,5 +429,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(repo.blenderPreferences?.targetPressureBar, closeTo(220, 0.001));
+  });
+  testWidgets('Blender explains itself through a header info icon', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
+    expect(find.text('About blending'), findsNothing);
   });
 }

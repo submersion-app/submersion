@@ -7641,13 +7641,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'Wat betekenen deze waarden?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Belading: de inertgasdruk van een compartiment als percentage van het maximum dat het aan de oppervlakte mag bevatten (de M-waarde, de rode lijn bij 100%).\n\nOppervlakteniveau: de markering op elke balk toont waar een volledig ontzadigd compartiment uitkomt terwijl je aan de oppervlakte lucht ademt. Die ligt nooit op 0%, omdat je lichaam altijd de stikstof uit de ingeademde lucht bevat. Een balk op zijn markering draagt geen restbelading van het duiken meer.\n\nGasopname en gasafgifte: gas beweegt altijd naar de druk van het gas dat je ademt. Na decompressie op zuurstof of op een heliumrijk mengsel kunnen de snelle compartimenten minder stikstof bevatten dan de lucht aan de oppervlakte. Terug op lucht nemen ze weer stikstof op tot ze hun markering bereiken. Dat is normaal en geen restbelading van de duik.\n\nHelium: lucht bevat geen helium. Na een trimixduik geeft een compartiment helium af terwijl het tegelijk stikstof kan opnemen. De pijlen naast N₂ en He tonen elk gas afzonderlijk; de aanduiding naast het compartimentnummer toont de netto richting van beide.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Grafiek van de weefselbelading. $count compartimenten, belading ten opzichte van de M-waarde; leidend compartiment $number op $percent%.';
   }
@@ -18084,9 +18077,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volume';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'Over MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Modus';
 
   @override
@@ -18288,10 +18278,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Binnen je ppO₂-, END- en dichtheidslimieten op de gecontroleerde dieptes.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'De MOD is de diepte waarop het mengsel de ppO₂-limiet bereikt. Hij wordt altijd naar beneden afgerond, nooit naar boven.\n\nRec rekent met 1 bar per 10 m, zoals het logboek. OC Tec en CCR Tec halen de omgevingsdruk uit het watertype, zoals de gasdichtheidscalculator, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.\n\nDe EAD telt stikstof als narcotisch, de END stikstof en zuurstof. Je END-limiet, of zuurstof als narcotisch telt en de standaard-ppO₂-limieten komen uit je duikersprofiel.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18342,13 +18328,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'Maximale Narcotische Diepte (MND) is de diepste diepte waarop je kunt duiken voordat narcose je END-limiet overschrijdt. Equivalente Narcotische Diepte (END) geeft het narcotische effect van je gas op een bepaalde diepte aan.\n\nWanneer \'O2 is narcotisch\' is ingeschakeld, dragen zowel zuurstof als stikstof bij aan narcose (conservatiever). Wanneer uitgeschakeld, wordt alleen stikstof als narcotisch beschouwd.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'Over MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'onbeperkt';
@@ -18416,13 +18395,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Toepassen';
-
-  @override
-  String get gasCalculators_icd_infoTitle => 'Over isobare tegendiffusie';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'Isobare tegendiffusie (ICD) is het risico dat het overschakelen van een heliumrijker naar een stikstofrijker gas de totale inerte gasspanning in weefsel verhoogt, omdat helium sneller diffundeert dan stikstof. De vijfde-regel is een veelgebruikte vuistregel: het stikstofaandeel mag met maximaal een vijfde van de afname van het heliumaandeel stijgen.\n\nOrganisaties zijn het er niet over eens hoe belangrijk dit in de praktijk is bij een goed geplande duik met standaardgassen. Deze rekenmachine past de vuistregel toe op de twee ingevoerde gassen; het vervangt geen training of professioneel advies.';
 
   @override
   String get gasCalculators_ppO2Limit => 'ppO₂ limiet';
@@ -18563,13 +18535,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'De fles staat onder druk maar bevat geen zuurstof en geen helium, dus pure stikstof. Controleer het mengsel dat al in de fles zit.';
-
-  @override
-  String get gasCalculators_blender_about => 'Over het mengen';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Partiaaldrukmenging voor het doelmengsel. Voeg elk vulgas op volgorde toe tot de getoonde druk en laat de fles daarna stabiliseren. Vulgassen en hun volgorde zijn instelbaar: zet je het laatste gas op 32/0, dan wordt met EAN32 in plaats van lucht afgevuld. Analyseer het uiteindelijke mengsel altijd voordat je ermee duikt.';
 
   @override
   String get gasCalculators_blender_conditions => 'Mengcondities';
@@ -19001,10 +18966,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Equivalente luchtdichtheidsdiepte (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'De EADD is de diepte waarop lucht even dicht zou zijn als dit gas. Anders dan de dichtheid in g/L hangt ze niet af van de temperatuur.';
-
-  @override
   String get gasCalculators_density_loopGasTitle => 'Loopgas op diepte';
 
   @override
@@ -19023,14 +18984,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'Het diluent alleen geeft hier een ppO2 van $ppO2, boven het setpoint. De dichtheid rekent met de ppO2 van het diluent.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'Over gasdichtheid';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Dicht gas ademt zwaarder en verhoogt het risico op CO2-retentie. Houd de dichtheid op maximaal $warn g/L; $critical g/L is de harde bovengrens.\n\nBij CCR telt de dichtheid van het loopgas: zuurstof op het setpoint, de rest verdeeld over stikstof en helium in de verhouding van het diluent.\n\nKouder gas is dichter, dus de koudere temperatuuroptie is de conservatieve keuze. De berekening gaat uit van een ideaal gas.';
   }
 
   @override
@@ -22656,10 +22609,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Drijfvermogen tijdens de duik, variatie, afwerpbaar lood';
 
   @override
-  String get buoyancy_tooltip =>
-      'Gemodelleerd netto drijfvermogen tijdens de duik op basis van profiel, gasverbruik en uitrusting.';
-
-  @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
     return 'Bij je laatste stop (~$depth) had je ongeveer $amount opdrijvend vermogen';
   }
@@ -25760,6 +25709,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_isDraft => 'Conceptduik';
 
   @override
+  String get settings_conflict_field_isEdit => 'Profiel handmatig bewerkt';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'Bestand ontbreekt';
 
   @override
@@ -28380,13 +28332,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Gradiëntfactoren (GF) bepalen hoe conservatief je decompressieberekeningen zijn. GF Low beïnvloedt diepe stops, terwijl GF High ondiepe stops beïnvloedt.\n\nLagere waarden = conservatiever = langere decostops\nHogere waarden = minder conservatief = kortere decostops';
-
-  @override
-  String get settings_decompression_aboutTitle => 'Over gradiëntfactoren';
-
-  @override
   String get settings_decompression_currentSettings => 'Huidige instellingen';
 
   @override
@@ -29215,13 +29160,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Onderhoudsherinneringen';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Meldingen worden ingepland wanneer de app opstart en worden periodiek op de achtergrond vernieuwd. Je kunt herinneringen voor individuele uitrustingsitems aanpassen in hun bewerkingsscherm.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'Hoe het werkt';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32754,14 +32692,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label: $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Je lichaam heeft 16 weefselcompartimenten die stikstof absorberen en afgeven met verschillende snelheden. Snelle weefsels (zoals bloed) verzadigen snel maar geven ook snel gas af. Langzame weefsels (zoals bot en vet) hebben langer nodig om zowel te laden als te ontladen. Het \"leidende compartiment\" is het weefsel dat het meest verzadigd is en bepaalt meestal je no-decompression limiet (NDL). Tijdens een oppervlakte-interval geven alle weefsels gas af naar oppervlakteverzadigingsniveaus (~40% belading).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title =>
-      'Over weefselbelasting';
 
   @override
   String get surfaceInterval_action_resetDefaults =>
@@ -37301,13 +37231,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get divePlanner_undo => 'Ongedaan maken';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock bottom is de minimale gasreserve voor een noodopstijging terwijl je lucht deelt met je buddy.\n\n• Gebruikt verhoogde RMV-waarden (2-3x normaal)\n• Gaat ervan uit dat beide duikers op één fles zitten\n• Inclusief veiligheidsstop indien ingeschakeld\n\nKeer de duik altijd om VOOR je rock bottom bereikt!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'Over Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Benodigd gas voor opstijging';
 
@@ -41558,13 +41481,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Zonder diepteprofiel kunnen CNS% en OTU ervan niet worden berekend. De totalen hieronder laten hem buiten beschouwing.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'Over CNS en OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'Je CNS% (zuurstofklok) neemt na de duik af met een halveringstijd van 90 minuten -- na ongeveer een dag is deze vrijwel terug op 0.\n\nDe dagelijkse OTU wordt elke nacht om middernacht gereset. De wekelijkse OTU is een voortschrijdend totaal van de afgelopen 7 dagen: oudere duiken vallen automatisch uit de berekening zodra ze buiten dat venster vallen.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Geen resterende weefselbelading';
 
@@ -41579,13 +41495,6 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'De laatste duik heeft geen gegevens om de weefselbelading uit te berekenen, bijvoorbeeld een duik zonder diepteprofiel, in dieptemetermodus of met een rebreather zonder setpoint.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'Over weefselverzadiging';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'Je lichaam heeft 16 weefselcompartimenten die stikstof (en bij trimix- of rebreatherduiken ook helium) met verschillende snelheden opnemen en afgeven. Snelle weefsels verzadigen en ontzadigen snel; langzame weefsels hebben er voor beide veel langer voor nodig.\n\nRestbelading is alleen wat boven het normale oppervlakteniveau ligt. Zelfs volledig ontzadigd zakken de balken niet naar 0%: elk compartiment komt uit op de markering die past bij de stikstof in de lucht die je ademt. Daarom kan een snel compartiment hier hoger staan dan aan het einde van een duik met zuurstofdecompressie, zonder dat de belading is gestegen.\n\nNa een duik met helium geeft een compartiment helium af terwijl het tegelijk stikstof opneemt, tot beide gassen in evenwicht zijn met de lucht die je ademt.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -61697,4 +61606,1457 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_gearGallery_checkInBadge => 'Check-in-foto';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'Over $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Achtergrond';
+
+  @override
+  String get info_sheet_howToUse => 'Gebruik';
+
+  @override
+  String get info_sheet_close => 'Sluiten';
+
+  @override
+  String get info_term_ndl_label => 'NDL (nultijd)';
+
+  @override
+  String get info_term_ndl_body =>
+      'Minuten die op de huidige diepte resten voordat het model decompressiestops vraagt. Het getal daalt zolang de duiker diep blijft en stijgt weer tijdens de opstijging.';
+
+  @override
+  String get info_term_ceiling_label => 'Plafond';
+
+  @override
+  String get info_term_ceiling_body =>
+      'De ondiepste diepte die het decompressiemodel op dat moment toestaat. Nul betekent dat een directe opstijging naar de oppervlakte binnen het model past.';
+
+  @override
+  String get info_term_decoStops_label => 'Decostops';
+
+  @override
+  String info_term_decoStops_body(String step) {
+    return 'Geplande pauzes tijdens de opstijging, elk met een diepte en een tijd, waarin opgelost gas het lichaam verlaat. Stops liggen meestal $step uit elkaar.';
+  }
+
+  @override
+  String get info_term_tts_label => 'TTS (tijd tot oppervlakte)';
+
+  @override
+  String get info_term_tts_body =>
+      'Minuten die nodig zijn om vanaf hier de oppervlakte te bereiken, inclusief opstijging en elke verplichte stop.';
+
+  @override
+  String get info_term_gtr_label => 'GTR (resterende gastijd)';
+
+  @override
+  String get info_term_gtr_body =>
+      'Minuten op de huidige diepte en ademfrequentie tot de fles op de reservedruk komt. Er wordt uitgegaan van een directe opstijging zonder stops.';
+
+  @override
+  String get info_term_gf99_label => 'GF99';
+
+  @override
+  String get info_term_gf99_body =>
+      'Hoe dicht het zwaarst beladen weefsel nu bij zijn M-waarde zit, in procenten. Bij 100% ligt het precies op de onaangepaste Buhlmann-grens.';
+
+  @override
+  String get info_term_surfaceGf_label =>
+      'SurfGF (gradiëntfactor aan de oppervlakte)';
+
+  @override
+  String get info_term_surfaceGf_body =>
+      'De GF99 die de weefsels zouden hebben als de duiker meteen bovenkwam. Boven 100% zou de onaangepaste Buhlmann-grens aan de oppervlakte overschreden worden.';
+
+  @override
+  String get info_term_gradientFactors_label => 'GF (gradiëntfactoren)';
+
+  @override
+  String get info_term_gradientFactors_body =>
+      'Twee percentages die de Buhlmann-grenzen verkleinen: GF Low bepaalt waar de eerste stop valt en GF High de grens bij het bovenkomen. Lagere getallen geven langere, conservatievere schema\'s.';
+
+  @override
+  String get info_term_cns_label =>
+      'CNS% (zuurstofbelasting centraal zenuwstelsel)';
+
+  @override
+  String get info_term_cns_body =>
+      'Deel van de zuurstofgrens van één duik voor hersenen en zenuwen, volgens de ppO2-tabel van NOAA. Aan de oppervlakte halveert het ongeveer elke 90 minuten.';
+
+  @override
+  String get info_term_otu_label => 'OTU (zuurstoftolerantie-eenheden)';
+
+  @override
+  String get info_term_otu_body =>
+      'Een tragere zuurstofdosis voor het hele lichaam die zich over meerdere duikdagen optelt. Eén OTU is één minuut zuivere zuurstof bij 1 bar.';
+
+  @override
+  String get info_term_ppO2_label => 'ppO2 (zuurstofpartiaaldruk)';
+
+  @override
+  String get info_term_ppO2_body =>
+      'De druk die alleen de zuurstof in het ademgas op deze diepte uitoefent, in bar. Gangbare grenzen zijn 1,4 bar tijdens het werk en 1,6 bar tijdens decompressie.';
+
+  @override
+  String get info_term_ppN2_label => 'ppN2 (stikstofpartiaaldruk)';
+
+  @override
+  String get info_term_ppN2_body =>
+      'De druk die de stikstof in het ademgas op deze diepte uitoefent, in bar. Die bepaalt de stikstofopname en de narcose.';
+
+  @override
+  String get info_term_ppHe_label => 'ppHe (heliumpartiaaldruk)';
+
+  @override
+  String get info_term_ppHe_body =>
+      'De druk die het helium in het ademgas op deze diepte uitoefent, in bar. Helium wordt sneller opgenomen en afgegeven dan stikstof en is niet narcotisch.';
+
+  @override
+  String get info_term_o2Cells_label => 'O2-cellen';
+
+  @override
+  String get info_term_o2Cells_body =>
+      'Sensoren in de lus van een rebreather die elk de ppO2 meten. Afwijkende waarden wijzen op een cel die faalt of nat is.';
+
+  @override
+  String get info_term_mod_label => 'MOD (maximale gebruiksdiepte)';
+
+  @override
+  String get info_term_mod_body =>
+      'De diepte waarop een gas zijn ppO2-grens bereikt. Dieper ligt de zuurstofbelasting boven die grens.';
+
+  @override
+  String get info_term_mnd_label => 'MND (maximale narcotische diepte)';
+
+  @override
+  String get info_term_mnd_body =>
+      'Het diepste punt waarop een gas binnen de END-grens van de duiker blijft. Helium in het mengsel maakt het dieper.';
+
+  @override
+  String get info_term_end_label => 'END (equivalente narcotische diepte)';
+
+  @override
+  String get info_term_end_body =>
+      'De diepte op lucht die even narcotisch zou zijn als dit gas op deze diepte. Helium verlaagt hem omdat helium niet narcotisch is.';
+
+  @override
+  String get info_term_ead_label => 'EAD (equivalente luchtdiepte)';
+
+  @override
+  String get info_term_ead_body =>
+      'De diepte op lucht die stikstof even snel zou opnemen als deze nitrox op deze diepte. Die is ondieper dan de echte diepte omdat nitrox minder stikstof bevat.';
+
+  @override
+  String get info_term_eadd_label => 'EADD (equivalente luchtdichtheidsdiepte)';
+
+  @override
+  String get info_term_eadd_body =>
+      'De diepte waarop lucht even dicht zou zijn als dit gas op deze diepte. Anders dan de dichtheid in g/L hangt ze niet af van de temperatuur.';
+
+  @override
+  String get info_term_gasDensity_label => 'Gasdichtheid';
+
+  @override
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'Hoe zwaar het ademgas op diepte is, in gram per liter, wat bepaalt hoe zwaar het ademen gaat. Gepubliceerd onderzoek noemt $warn g/L als aanbevolen maximum en $critical g/L als bovengrens.';
+  }
+
+  @override
+  String get info_term_sac_label => 'SAC (luchtverbruik aan de oppervlakte)';
+
+  @override
+  String get info_term_sac_body =>
+      'Gasverbruik per minuut omgerekend naar oppervlaktedruk, weergegeven als drukdaling per minuut. Het hangt af van de flesgrootte en vergelijkt dus duiken met dezelfde fles.';
+
+  @override
+  String get info_term_rmv_label => 'RMV (ademminuutvolume)';
+
+  @override
+  String get info_term_rmv_body =>
+      'Per minuut ingeademd gasvolume, omgerekend naar oppervlaktedruk. Anders dan SAC hangt het niet af van de flesgrootte.';
+
+  @override
+  String get info_term_ascentRate_label => 'Opstijgsnelheid';
+
+  @override
+  String info_term_ascentRate_body(String rate) {
+    return 'Hoe snel de diepte per minuut afneemt. Gangbare opleidingen hanteren $rate als maximum.';
+  }
+
+  @override
+  String get info_term_descentRate_label => 'Afdaalsnelheid';
+
+  @override
+  String get info_term_descentRate_body =>
+      'Hoe snel de diepte per minuut toeneemt.';
+
+  @override
+  String get info_term_meanDepth_label => 'Gemiddelde diepte';
+
+  @override
+  String get info_term_meanDepth_body =>
+      'De tijdgewogen gemiddelde diepte over de duik. Gasverbruik en decompressie volgen die nauwer dan de maximale diepte.';
+
+  @override
+  String get info_term_bottomTime_label => 'Bodemtijd';
+
+  @override
+  String get info_term_bottomTime_body =>
+      'Tijd vanaf het verlaten van de oppervlakte tot het begin van de laatste opstijging. Die wordt uit het profiel afgeleid.';
+
+  @override
+  String get info_term_runtime_label => 'Looptijd';
+
+  @override
+  String get info_term_runtime_body =>
+      'Totale tijd vanaf het verlaten van de oppervlakte tot het bovenkomen. Technische schema\'s worden erop geschreven.';
+
+  @override
+  String get info_term_safetyStop_label => 'Veiligheidsstop';
+
+  @override
+  String info_term_safetyStop_body(String depth) {
+    return 'Een vrijwillige pauze rond $depth, meestal drie minuten, voor het bovenkomen. Het model vraagt er bij een duik zonder stops niet om.';
+  }
+
+  @override
+  String get info_term_surfaceInterval_label => 'Oppervlakte-interval';
+
+  @override
+  String get info_term_surfaceInterval_body =>
+      'Tijd aan de oppervlakte tussen twee duiken. Weefsels geven intussen gas af, dus een langer interval neemt minder mee naar de volgende duik.';
+
+  @override
+  String get info_term_tissueCompartment_label => 'Weefselcompartimenten';
+
+  @override
+  String get info_term_tissueCompartment_body =>
+      'De 16 denkbeeldige weefsels van het model, die elk in hun eigen tempo gas opnemen en afgeven. Snelle staan voor goed doorbloed weefsel, trage voor vet en bot.';
+
+  @override
+  String get info_term_leadingCompartment_label => 'Leidend compartiment';
+
+  @override
+  String get info_term_leadingCompartment_body =>
+      'Het compartiment dat nu het dichtst bij zijn grens zit. Het bepaalt het plafond en wisselt tijdens de duik.';
+
+  @override
+  String get info_term_tissueLoad_label => 'Belasting';
+
+  @override
+  String get info_term_tissueLoad_body =>
+      'Hoeveel inert gas een compartiment bevat ten opzichte van zijn grens, in procenten. Bij 100% zit het op zijn M-waarde.';
+
+  @override
+  String get info_term_mValue_label => 'M-waarde';
+
+  @override
+  String get info_term_mValue_body =>
+      'De hoogste inertgasdruk die een compartiment volgens het Buhlmann-model op een bepaalde diepte kan bevatten. De gradiëntfactoren bepalen hoeveel daarvan gebruikt wordt.';
+
+  @override
+  String get info_term_surfaceLevel_label => 'Oppervlakteniveau';
+
+  @override
+  String get info_term_surfaceLevel_body =>
+      'De gasdruk van een compartiment dat aan de oppervlakte op lucht volledig in evenwicht is. Balken boven deze lijn dragen nog extra gas.';
+
+  @override
+  String get info_term_halfTime_label => 'Halfwaardetijd';
+
+  @override
+  String get info_term_halfTime_body =>
+      'Minuten die een compartiment nodig heeft om halverwege de omgevingsdruk te komen. Het bereik loopt van enkele minuten tot ruim tien uur.';
+
+  @override
+  String get info_term_ongassing_label => 'Verzadiging en ontzadiging';
+
+  @override
+  String get info_term_ongassing_body =>
+      'Verzadiging betekent dat een compartiment gas opneemt omdat de omgevingsdruk hoger is, ontzadiging dat het gas afgeeft. De kleur toont welke kant elk compartiment op gaat.';
+
+  @override
+  String get info_term_heatMap_label => 'Heatmap';
+
+  @override
+  String get info_term_heatMap_body =>
+      'Elke rij is één compartiment, snel bovenaan en traag onderaan, en de tijd loopt van links naar rechts. De kleur toont hoe belast dat compartiment op dat moment is.';
+
+  @override
+  String get info_term_nitrox_label => 'Nitrox (EANx)';
+
+  @override
+  String get info_term_nitrox_body =>
+      'Met zuurstof verrijkte lucht, genoemd naar het zuurstofpercentage, zoals EAN32. Minder stikstof verlengt de nultijd en de extra zuurstof maakt de MOD ondieper.';
+
+  @override
+  String get info_term_trimix_label => 'Trimix';
+
+  @override
+  String get info_term_trimix_body =>
+      'Een mengsel van zuurstof, helium en stikstof, geschreven als zuurstof over helium, zoals 18/45. Helium vermindert narcose en gasdichtheid op diepte.';
+
+  @override
+  String get info_term_diluent_label => 'Diluent';
+
+  @override
+  String get info_term_diluent_body =>
+      'Het gas dat een rebreather aan de lus toevoegt om het volume op peil te houden. Het toestel voegt daarbovenop zuurstof toe om het setpoint te houden.';
+
+  @override
+  String get info_term_setpoint_label => 'Setpoint';
+
+  @override
+  String get info_term_setpoint_body =>
+      'De ppO2 die een gesloten rebreather in de lus probeert te houden. Toestellen schakelen tijdens een duik vaak tussen een laag en een hoog setpoint.';
+
+  @override
+  String get info_term_bailout_label => 'Bailout';
+
+  @override
+  String get info_term_bailout_body =>
+      'Open-circuitgas dat bij een rebreatherduik wordt meegenomen voor een opstijging zonder lus. Bailoutplannen gaan ervan uit dat de lus wegvalt.';
+
+  @override
+  String get info_term_loop_label => 'Lus';
+
+  @override
+  String get info_term_loop_body =>
+      'Het ademcircuit van de rebreather, waarin uitgeademd gas van koolstofdioxide wordt ontdaan en opnieuw wordt ingeademd.';
+
+  @override
+  String get info_term_stage_label => 'Stage';
+
+  @override
+  String get info_term_stage_body =>
+      'Een extra fles aan de zijkant geclipt, meegenomen voor een deel van de duik en onderweg op overgeschakeld.';
+
+  @override
+  String get info_term_decoGas_label => 'Decogas';
+
+  @override
+  String get info_term_decoGas_body =>
+      'Een zuurstofrijker gas dat tijdens decostops wordt geademd. Het versnelt de ontzadiging op geringe diepte.';
+
+  @override
+  String get info_term_pony_label => 'Pony';
+
+  @override
+  String get info_term_pony_body =>
+      'Een kleine onafhankelijke fles met eigen ademautomaat, meegenomen als reservegasvoorraad.';
+
+  @override
+  String get info_term_sidemount_label => 'Sidemount';
+
+  @override
+  String get info_term_sidemount_body =>
+      'Flessen die langs elke zij worden gedragen in plaats van op de rug, elk met een eigen ademautomaat.';
+
+  @override
+  String get info_term_twinBackmount_label => 'Dubbelset';
+
+  @override
+  String get info_term_twinBackmount_body =>
+      'Twee flessen op de rug, meestal verbonden met een manifold en geademd als één voorraad.';
+
+  @override
+  String get info_term_altitudeGroup_label => 'Hoogtegroep';
+
+  @override
+  String get info_term_altitudeGroup_body =>
+      'Een hoogteband die dezelfde tabellen en modelinstellingen deelt. Hogere groepen hebben een lagere luchtdruk aan de oppervlakte.';
+
+  @override
+  String get info_term_surfacePressure_label => 'Oppervlaktedruk';
+
+  @override
+  String get info_term_surfacePressure_body =>
+      'De luchtdruk aan de oppervlakte van de duiklocatie. Op hoogte is die lager, waardoor het model conservatiever rekent.';
+
+  @override
+  String get info_term_salinity_label => 'Watertype';
+
+  @override
+  String get info_term_salinity_body =>
+      'Zout water is dichter dan zoet water, dus dezelfde druk komt in zee overeen met een iets ondiepere diepte. Duikcomputers gebruiken dit om druk in diepte om te rekenen.';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_label =>
+      'ICD (isobare tegendiffusie)';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_body =>
+      'Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling.';
+
+  @override
+  String get info_term_hypercapnia_label => 'Hypercapnie';
+
+  @override
+  String get info_term_hypercapnia_body =>
+      'Een ophoping van koolstofdioxide in het lichaam. Dicht gas en zwaar werk maken die waarschijnlijker.';
+
+  @override
+  String get info_term_turnPressure_label => 'Keerdruk';
+
+  @override
+  String get info_term_turnPressure_body =>
+      'De flesdruk waarbij het plan de duik terugkeert naar de uitgang.';
+
+  @override
+  String get info_term_minGas_label => 'Minimumgas';
+
+  @override
+  String get info_term_minGas_body =>
+      'Achtergehouden gas zodat twee duikers één voorraad kunnen delen van het diepste punt tot de oppervlakte, stops inbegrepen.';
+
+  @override
+  String get info_term_rockBottom_label => 'Rock bottom';
+
+  @override
+  String get info_term_rockBottom_body =>
+      'De flesdruk die het minimumgas bevat. Daarin zit een korte vertraging op diepte om het probleem op te lossen voor de opstijging.';
+
+  @override
+  String get info_term_thirds_label => 'Regel van derden';
+
+  @override
+  String get info_term_thirds_body =>
+      'Een gasplan dat een derde gebruikt op de heenweg, een derde op de terugweg en een derde als reserve houdt. Grot- en overheadopleidingen leren het.';
+
+  @override
+  String get info_term_airBreaks_label => 'Luchtpauzes';
+
+  @override
+  String get info_term_airBreaks_body =>
+      'Korte periodes met zuurstofarmer gas tijdens lange zuurstofstops. Ze verlagen de CNS-belasting.';
+
+  @override
+  String get info_term_rollingAverage_label => 'Voortschrijdend gemiddelde';
+
+  @override
+  String get info_term_rollingAverage_body =>
+      'Het gemiddelde van de laatste duiken op elk punt, dat schommelingen afvlakt om de trend te tonen.';
+
+  @override
+  String get info_term_overallTrend_label => 'Algemene trend';
+
+  @override
+  String get info_term_overallTrend_body =>
+      'Een rechte lijn door alle duiken in het bereik, die de algemene richting van de waarden toont.';
+
+  @override
+  String get info_term_rangeBand_label => 'Bereikband';
+
+  @override
+  String get info_term_rangeBand_body =>
+      'De gearceerde band loopt van de laagste tot de hoogste waarde in elke periode.';
+
+  @override
+  String get info_term_collapseGaps_label => 'Gaten inklappen';
+
+  @override
+  String get info_term_collapseGaps_body =>
+      'Haalt lange pauzes tussen duiken van de tijdas zodat de duiken naast elkaar staan.';
+
+  @override
+  String get info_term_degreeHeatingWeeks_label =>
+      'DHW (graadverwarmingsweken)';
+
+  @override
+  String get info_term_degreeHeatingWeeks_body =>
+      'Opgebouwde hittestress over de afgelopen 12 weken, volgens NOAA Coral Reef Watch. NOAA verwacht aanzienlijke verbleking vanaf 4 en ernstige vanaf 8.';
+
+  @override
+  String get info_term_sstAnomaly_label => 'SST-afwijking';
+
+  @override
+  String get info_term_sstAnomaly_body =>
+      'Hoeveel de zeewatertemperatuur aan het oppervlak boven of onder het langjarig gemiddelde voor die datum ligt.';
+
+  @override
+  String get info_term_bleachingAlert_label => 'Verblekingswaarschuwing';
+
+  @override
+  String get info_term_bleachingAlert_body =>
+      'Het hittestressniveau van NOAA Coral Reef Watch voor het gebied, van waakzaamheid tot de alarmniveaus.';
+
+  @override
+  String get info_term_sourceDcCalc_label => 'Duikcomputer of berekend';
+
+  @override
+  String get info_term_sourceDcCalc_body =>
+      'Duikcomputerwaarden zijn wat de computer tijdens de duik vastlegde. Berekende waarden komen uit het eigen model van de app over het profiel, dus ze kunnen verschillen.';
+
+  @override
+  String get info_term_scrubber_label => 'Kalkpot';
+
+  @override
+  String get info_term_scrubber_body =>
+      'De houder in een rebreather die koolstofdioxide uit de lus haalt. Het absorbens is goedgekeurd voor een vast aantal uren.';
+
+  @override
+  String get info_term_cellOutput_label => 'Celspanning';
+
+  @override
+  String get info_term_cellOutput_body =>
+      'De millivoltwaarde van elke zuurstofcel, die de rebreather omzet in ppO2.';
+
+  @override
+  String get info_term_highO2Hours_label => 'Uren met veel zuurstof';
+
+  @override
+  String get info_term_highO2Hours_body =>
+      'Tijd met ademgas met een verhoogde zuurstoffractie, waardoor zuurstofgeschikte onderdelen sneller slijten.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO en GEEN DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'GEEN DECO betekent dat een directe opstijging op dat moment binnen het model past. DECO betekent dat voor het bovenkomen minstens één stop nodig is.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Start en deze duik';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Start is de CNS% uit eerdere duiken, al verminderd door de tijd sindsdien. Deze duik is wat de duik zelf daarbovenop toevoegde.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU per dag en per week';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'Dag-OTU telt elke duik sinds middernacht en week-OTU is een lopend totaal van de laatste zeven dagen. Elk staat naast de limiet van de app voor die periode.';
+
+  @override
+  String get info_term_maxPpO2_label => 'Max. ppO2';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'De hoogste zuurstofpartiaaldruk die tijdens de duik is geademd.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'Tijd boven de ppO2-grens';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'Hoe lang de ppO2 tijdens deze duik boven de grenzen uit de instellingen bleef.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'Ideale wisseldiepte';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'Het diepste punt van de opstijging waarop het volgende gas binnen zijn ppO2-grens valt, dus zijn MOD. De kaart vergelijkt het met de diepte waarop de wissel is gelogd.';
+
+  @override
+  String get info_term_extraDeco_label => 'Extra decompressie';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Decompressietijd die het model toevoegt omdat een wissel ondieper of later gebeurde dan op het ideale punt.';
+
+  @override
+  String get info_term_stackedArea_label => 'Gestapeld vlak';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Elke band is de belasting van één compartiment door de tijd, gestapeld op de andere, zodat de totale hoogte de belasting van alle compartimenten toont.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 en He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'De belasting van elk compartiment is verdeeld in stikstof en helium. Helium gaat sneller in en uit dan stikstof.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'Gemiste decostop';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'Een vereiste stop die is ingekort of overgeslagen, gevonden door het profiel te vergelijken met de stops van het model.';
+
+  @override
+  String get info_term_sawtooth_label => 'Zaagtandprofiel';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Herhaald op- en afstijgen tijdens een duik. Decompressieonderzoek koppelt dit aan meer belvorming.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Late gaswissel';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'Een wissel naar een decogas, duidelijk ondieper of later dan het punt waarop dat gas bruikbaar werd.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label =>
+      'Gemiddelde verticale snelheid';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'Het gemiddelde tempo van diepteverandering over het gekozen bereik.';
+
+  @override
+  String get info_term_computedEvents_label => 'Berekende gebeurtenissen';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Markeringen die de app uit het profiel afleidt, zoals snelle opstijgingen, in tegenstelling tot gebeurtenissen die de duikcomputer logde.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Gaswisselmarkeringen';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Punten waarop het ademgas van de ene fles naar de andere wisselde.';
+
+  @override
+  String get info_term_diveModes_label => 'Duikmodus';
+
+  @override
+  String get info_term_diveModes_body =>
+      'Bij open circuit (OC) gaat elke uitademing het water in. Gesloten (CCR) en halfgesloten (SCR) rebreathers hergebruiken het gas via een lus.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Netto drijfvermogen';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Alle termen opgeteld, met lift als positief en gewicht als negatief. Nul is neutraal.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Drijfvermogenschommeling';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'Hoeveel het netto drijfvermogen tussen begin en einde van de duik veranderde, vooral door het gewicht van het geademde gas.';
+
+  @override
+  String get info_term_peakLift_label => 'Benodigde piekliftkracht';
+
+  @override
+  String get info_term_peakLift_body =>
+      'De grootste lift die wing of droogpak op enig moment van de duik moest leveren om neutraal te blijven.';
+
+  @override
+  String get info_term_minDitchable_label => 'Minimaal afwerpbaar lood';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'Het gewicht dat op het zwaarste punt van de duik zou moeten worden afgeworpen om ongeveer $weight positief te zijn.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Toegevoegd droogpakgas';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gas dat tijdens de afdaling aan het droogpak is toegevoegd om de squeeze op te vangen, en als lift telt.';
+
+  @override
+  String get info_term_noFlyTime_label => 'Niet-vliegtijd';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Tijd vanaf de laatste duik tot het richtlijninterval van DAN en UHMS voor vliegen voorbij is. Het interval hangt af van of de duiken enkelvoudig, herhaald of met decompressie waren, en van de voorinstelling.';
+
+  @override
+  String get info_term_perYearRate_label => 'Tempo per jaar';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'De helling van de algemene trendlijn, uitgedrukt als verandering per jaar.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label => 'Gelogd vóór meting';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Zicht dat als woord is gelogd, zoals goed of slecht, voordat de app het als afstand opsloeg. Die duiken houden hun oorspronkelijke woord.';
+
+  @override
+  String get info_term_spansBands_label => 'Over meerdere banden';
+
+  @override
+  String get info_term_spansBands_body =>
+      'Zicht dat als bereik is gelogd en meer dan één band overspant, en daarom apart wordt geteld.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Dageraad en schemering';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'Een dageraadduik begint vóór zonsopgang en eindigt erna, een schemerduik doet hetzelfde rond zonsondergang. Nacht betekent dat de hele duik in het donker was.';
+
+  @override
+  String get info_term_calendarShading_label => 'Kleuring';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Elk vakje is een dag van het jaar, en een donkerder vakje betekent meer duiken op die dag over alle jaren in het bereik.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Zoutwateruren';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Tijd onder water in zout of brak water, dat metalen onderdelen en afdichtingen sneller slijt dan zoet water.';
+
+  @override
+  String get info_term_coldDives_label => 'Koude duiken';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Duiken waarvan de laagste watertemperatuur onder de koudwaterdrempel in de instellingen voor uitrustingsstaat lag.';
+
+  @override
+  String get info_term_deepCycles_label => 'Diepe duiken';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Duiken die de diepteduikdrempel in de instellingen voor uitrustingsstaat haalden, elk een volledige drukcyclus voor de uitrusting.';
+
+  @override
+  String get info_term_conditionRules_label => 'Staatregels';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Controles die de app op gelogde duiken en problemen uitvoert, zoals zuurstofcellen die in de loop van de tijd lager meten of een probleem dat terugkomt. Elke controle is in de instellingen uit te zetten.';
+
+  @override
+  String get info_term_standout_label => 'Valt op';
+
+  @override
+  String get info_term_standout_body =>
+      'Een factor waarvan het aandeel onder de focusduiken duidelijk afwijkt van dat onder de andere duiken. De stip in de tabel markeert hem.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Gem. diepte';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'Het gemiddelde van de maximale diepte van elke duik, niet de gemiddelde diepte binnen duiken.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Duiktypen';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'Een duik met meerdere typen telt onder elk één keer, dus de balken kunnen samen meer zijn dan het aantal duiken.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Meerdere mengsels';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'Een duik met meer dan één mengsel telt onder elk één keer, dus de balken kunnen samen meer zijn dan het aantal duiken.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Flesrol';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'Waarvoor een fles in de duik diende: bodemgas, stage, deco, pony of bailout. Het verbruik wordt daarop gegroepeerd.';
+
+  @override
+  String get info_term_colourBy_label => 'Kleur op';
+
+  @override
+  String get info_term_colourBy_body =>
+      'Soort kleurt elk punt naar wat het is, groepen kleurt de clusters die samen duiken, en recentheid vervaagt verbanden waar lang niet mee is gedoken.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Gewogen verbanden';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'Een dikkere lijn betekent meer gedeelde duiken tussen de twee punten die hij verbindt.';
+
+  @override
+  String get info_term_hops_label => 'Stappen';
+
+  @override
+  String get info_term_hops_body =>
+      'Hoeveel verbanden ver vanaf het gekozen punt de weergave reikt. Eén stap toont alleen de directe verbanden.';
+
+  @override
+  String get info_term_lastStop_label => 'Laatste stop';
+
+  @override
+  String get info_term_lastStop_body =>
+      'De diepte van de ondiepste decostop. Een diepere laatste stop is bij deining makkelijker vast te houden, maar duurt langer.';
+
+  @override
+  String get info_term_ascentStages_label => 'Opstijgfases';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'Het plan kan voor elk deel van de opstijging een eigen snelheid gebruiken: tot de eerste stop, tussen stops en bij de oppervlakte.';
+
+  @override
+  String get info_term_reserveGas_label => 'Reserve';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gas dat het plan in elke fles achterhoudt en nooit als bruikbaar telt.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'Setpoint-wisseldiepte';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'De diepte waarop het plan bij het afdalen van het lage naar het hoge setpoint gaat, en bij het opstijgen terug.';
+
+  @override
+  String get info_term_pscrRatio_label => 'pSCR-verhouding';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'Het deel van elke uitademing dat een passieve halfgesloten rebreather afvoert. Dat bepaalt hoe ver de zuurstof in de lus onder het voedingsgas zakt.';
+
+  @override
+  String get info_term_turnFraction_label => 'Keerfractie';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'Het deel van het startgas dat het plan gebruikt voordat het omkeert. Een derde is de gangbare regel in grotten en andere overheadduiken.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (onderwaterscooter)';
+
+  @override
+  String get info_term_dpv_body =>
+      'Een onderwaterscooter. Het missieplan houdt rekening met de accu, de afgelegde afstand en het terugzwemmen als een scooter uitvalt.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Plafondoverschrijdingen';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'Hoe vaak en hoe ver een versie van de duik ondieper was dan het plafond van het model.';
+
+  @override
+  String get info_term_deepestStop_label => 'Diepste stop';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'De diepte van de eerste vereiste decostop.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Minimumgasmarge';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'Hoeveel gas er boven het minimumgas over was op het punt waar de verandering plaatsvond.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Gas-op-tijd';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'Wanneer een fles leeg zou zijn bij de ademfrequentie die de herhaling gebruikt.';
+
+  @override
+  String get info_term_whatIf_label => 'Werkelijk en wat als';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Werkelijk speelt de gelogde duik opnieuw af door het model, en wat als doet dat met de in het Duiklab toegevoegde wijzigingen.';
+
+  @override
+  String get info_term_cellGain_label => 'Celsignaal (mV per bar)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'De millivoltwaarde van elke zuurstofcel gedeeld door de gemeten ppO2. Die blijft stabiel zolang de cel gezond is en daalt naarmate de cel ouder wordt.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'Zenderuitval';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'Het deel van elke duik zonder drukwaarde van de zender.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'Zuurstof als narcotisch meetellen';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'Indien aan telt zuurstof in END en MND als narcotisch, net als stikstof. Daardoor wordt END dieper en MND ondieper.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'Gassen voor de opstijging';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'Naar welke meegenomen flessen de gesimuleerde opstijging mag wisselen: elk meegenomen gas, of alleen stage- en decoflessen.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Diepte door de tijd voor de hele duik, met elke ingeschakelde laag op dezelfde tijdas.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'Deco- en zuurstoflagen komen uit het Buhlmann-model ZHL-16C met de gradiëntfactoren uit de instellingen, en uit de zuurstoftabellen van NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Beweeg over de grafiek om alle waarden op één moment te lezen. De legenda zet lagen aan en uit, en de bereikknop selecteert een deel van de duik voor de statistieken.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Statistieken voor het deel van de duik dat in de grafiek is geselecteerd.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'Wat het decompressiemodel op het cursormoment meldt: of stops nodig zijn en hoeveel tijd of diepte er over is.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'De app rekent met het Buhlmann-model ZHL-16C en de gradiëntfactoren op het GF-label. Een duikcomputer met een ander model of andere instellingen kan andere getallen tonen.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'Hoeveel zuurstofbelasting de duik toevoegde, op de kortetermijn-CNS-klok en als tragere OTU-dosis.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'CNS% volgt de ppO2-blootstellingsgrenzen van NOAA en daalt na de duik met een halfwaardetijd van 90 minuten. Dag-OTU begint om middernacht opnieuw en week-OTU beslaat de laatste zeven dagen.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'Hoe elke gaswissel zich verhoudt tot het diepste punt waarop dat gas binnen zijn ppO2-grens viel.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'Hoe zwaar elk van de 16 compartimenten van het model op het cursormoment met inert gas belast is.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'Het model is Buhlmann ZHL-16C, dat stikstof en helium per compartiment apart bijhoudt. Belasting telt alleen wat boven het oppervlakteniveau ligt, dus volledig ontzadigde balken staan nooit op nul.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Momenten in deze duik die een van de regels van de veiligheidscontrole overschreden, gevonden door het profiel na de duik te controleren.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'De regels en hun drempels stel je in bij Instellingen, onder Veiligheidscontrole.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Tik op een bevinding om te zien waar die in het profiel gebeurde. Een genegeerde bevinding wordt voor deze duik verborgen.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Elke fles van de duik met het gas, de verbruikte druk en de dieptegrenzen van dat gas.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'Gasverbruik verdeeld over fases van de duik of tijdsblokken, zodat de inspanning per deel te vergelijken is.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'De keuzeschakelaar boven de grafiek wisselt tussen SAC en RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'De gelogde gegevens van deze duik, met uit het profiel afgeleide waarden waar niets is ingevuld.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'Deze duik was op hoogte, waar de lagere luchtdruk aan de oppervlakte het decompressiemodel conservatiever maakt.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'Een model van het netto drijfvermogen tijdens de duik, op basis van het profiel, het geademde gas en de bij de duik gelogde uitrusting.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Aanpassen opent een blad dat een andere hoeveelheid lood of pakdrijfvermogen op deze duik doorrekent.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Zeewatertemperatuur en hittestress van koraal bij de locatie rond de duikdatum, uit satellietgegevens van NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'Hoe deze duik zich verhoudt tot het gekoppelde plan of opgeslagen scenario\'s op de getallen die voor decompressie tellen.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Tik op de kaart om het Duiklab te openen en andere keuzes op deze duik uit te proberen.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'Wanneer het richtlijninterval voor vliegen na de recentste duiken afloopt.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'De bereikknop kiest de periode en de groeperingsknop toont elke duik, week of maand. Voortschrijdend gemiddelde en algemene trend zetten hun lijnen aan en uit, en lange gaten zijn via het menu in te klappen.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Gasverbruik per duik door de tijd, één punt per duik of groep, op de bovenaan gekozen baan.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Gasverbruik door de tijd per soort fles, zodat bodemgas en stages niet door elkaar lopen.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Zuurstof en diluent per rebreatherduik, als volume per minuut bij oppervlaktedruk.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'De maximale diepte van elke duik door de tijd.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'Hoe lang elke duik duurde van afdalen tot bovenkomen, door de tijd.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'De bodemtijd van elke duik door de tijd, zonder de laatste opstijging en stops die de looptijd wel telt.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'De per duik gelogde watertemperatuur door de tijd.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'De per duik gelogde luchttemperatuur door de tijd.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'Het per duik gedragen lood door de tijd.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'Hoeveel duiken elk gasmengsel ademden.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'Hoe de flessen per duik waren opgesteld, geteld uit de gelogde flesrollen.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'De duiken met het laagste en hoogste gasverbruik in het bereik.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Gemiddelde snelheid bij afdalen en opstijgen, afgeleid uit de profielen.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'Hoe de totale tijd onder water over dieptebanden is verdeeld.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'Hoeveel duiken decostops nodig hadden, volgens het model per profiel.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'Het lopende totaal van gelogde duiken door de tijd.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Duiken gegroepeerd op gelogd zicht, in de banden van de zichtschaal uit de instellingen.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Duiken in zout, zoet en brak water.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'De laagste, gemiddelde en hoogste gelogde watertemperatuur per maand van het jaar.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Duiken gegroepeerd op watertemperatuur, met gemiddeld gasverbruik en diepte per band.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Duiken naar gelogd type locatie, zoals rif, wrak of grot.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Duiken gegroepeerd op hoogte van de locatie.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Duiken gegroepeerd op de aan de oppervlakte gemeten luchtdruk.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'Wanneer de duiken plaatsvonden ten opzichte van zonsopgang en zonsondergang op elke locatie.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'Op welke dagen van het jaar is gedoken, over alle jaren in het bereik.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'De gemiddelde, kortste en langste oppervlaktetijd tussen een duik en de duik ervoor.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'Uitrusting gerangschikt naar gebruik en slijtage, in de eenheid uit het menu.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Patronen in gelogde duiken en problemen die wijzen op uitrusting die aandacht nodig heeft.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'De bij duiken gelogde problemen, gegroepeerd op label en geteld.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'De door de zin hierboven gekozen duiken, vergeleken met alle andere duiken in het bereik.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'Tik op de onderstreepte woorden in de zin om de maat, de richting en het aantal duiken te wijzigen. Een drempelmodus vergelijkt in plaats daarvan elke duik boven of onder een waarde.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'De factoren die onder de focusduiken duidelijk vaker of minder vaak voorkomen dan bij de rest.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Alle factoren naast elkaar: hun aandeel onder de focusduiken en onder de andere duiken.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Totalen en gemiddelden voor alle duiken in het bereik.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'Hoe duiken over dieptebanden en duiktypen zijn verdeeld.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Korte notities die de app in het logboek vond, zoals een nieuwe diepste duik of een verandering in gasverbruik.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Elk punt is een buddy, locatie, reis of uitrustingsstuk, en elke lijn verbindt er twee die duiken delen.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Tik op een punt om het met zijn verbanden uit te lichten. Het paneel kiest kleuren, lijnstijl en hoe ver de weergave reikt.';
+
+  @override
+  String get info_planner_results_summary =>
+      'De belangrijkste getallen van het plan zoals het nu is, bijgewerkt bij elke wijziging.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'De opstijging die het model plant, één regel per stop of gaswissel, met diepte, tijd, looptijd en gas.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'Hoeveel het plan van elke fles gebruikt, met keerdruk en minimumgas waar de begindruk bekend is.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'De opstijging op open circuit vanaf het slechtste punt als de lus uitvalt, en of het meegenomen bailoutgas volstaat.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'Het plan opnieuw doorgerekend voor afwijkingen: een diepere of langere duik, of een verloren gas.';
+
+  @override
+  String get info_planner_range_summary =>
+      'Hoe het schema verandert als de duik dieper of langer is dan gepland.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'Het scooterplan van het team: accugebruik, afstand en terugzwemmen als een scooter uitvalt.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'Wat deze duik voor de volgende achterlaat: het oppervlakte-interval, de resterende CNS en de OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'Hoe conservatief het schema is en waar de laatste stop ligt.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Een lagere GF Low legt de eerste stop dieper, een lagere GF High maakt de ondiepe stops langer. De resultaten werken bij elke wijziging bij.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'Hoe snel het plan in elk deel van de duik afdaalt en opstijgt.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Elke snelheid geldt voor zijn eigen deel van de duik. De resultaten werken bij als een waarde verandert.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'De ademfrequentie en reserve waarmee het plan het gas berekent.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Vul een bodemademfrequentie in, of neem die uit gelogde duiken, en de reserve per fles.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'Het watertype en de hoogte, die de oppervlaktedruk bepalen waarmee het model begint.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Kies het watertype en vul de hoogte van de locatie in.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'De setpoints die de gesloten rebreather tijdens het plan aanhoudt.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Stel het lage en hoge setpoint in en de diepte waarop het plan ertussen wisselt.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'Hoe de passieve halfgesloten rebreather in het plan wordt gemodelleerd.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Vul de afvoerverhouding in die de fabrikant van de rebreather opgeeft.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'Hoe ver de noodplannen gaan en volgens welke regel het gasplan omkeert.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Stel in hoeveel dieper en langer de noodplannen gaan en kies daarna keerregel en keerfractie.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'Het team, de scooters en de omstandigheden achter het missieplan.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Vul de duikers en scooters, de accureserve, de stroming en de zwemsnelheid in.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'De uitrusting en gewichten van het plan, waarmee het drijfvermogen tijdens de duik wordt voorspeld.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Voeg pak, flessen en gewichten toe om het voorspelde drijfvermogen te zien.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'De belangrijkste uitkomsten van de wat-als-herhaling, gekleurd naar of ze beter of slechter zijn dan de werkelijke duik.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Elke maat voor de werkelijke duik en de wat-als-versie naast elkaar, met het verschil.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'De compartimentbelasting als elke versie de oppervlakte bereikt, werkelijk en wat als.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'Het drijfvermogen bij de laatste stop voor elke versie van de duik.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Wijzigingen om op deze duik uit te proberen, elk door hetzelfde model afgespeeld vanaf het moment dat ze gelden.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'De grootste diepte waarop het gekozen mengsel binnen zijn ppO2-grens blijft, met de EAD en END daar.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'Kies een modus en stel dan zuurstof en werk-ppO2 in. Een doeldiepte kan worden toegevoegd om een geplande diepte aan het mengsel te toetsen. De END-grens en of zuurstof narcotisch telt, komen uit het duikersprofiel.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'Het rijkste mengsel voor een doeldiepte dat de ppO2 binnen zijn grens en de END binnen de narcosegrens houdt.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'Stel de doeldiepte en de modus in. Kies bij CCR of het mengsel diluent of bailoutgas is.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'Hoeveel gas een geplande duik gebruikt bij een gegeven diepte, tijd en ademfrequentie.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'Vul de diepte, de tijd, de ademfrequentie en de fles in.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'De minimale gasreserve om twee duikers samen op één voorraad vanaf het diepste punt te laten opstijgen.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'Er wordt gerekend met een stressademfrequentie, meestal twee tot drie keer normaal, en beide duikers op één fles. De veiligheidsstop telt mee als die optie aan staat.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'Stel de diepte, de stressademfrequentie, de opstijgsnelheid en de fles in.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'De grootste diepte waarop een gas binnen de END-grens blijft, en de END van een gas op een gegeven diepte.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'Vul het gas, de END-grens en of zuurstof narcotisch telt in.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'Of een wissel tussen twee gassen voldoet aan de vijfderegel voor tegendiffusie.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'Helium diffundeert sneller dan stikstof, dus een wissel naar een stikstofrijker gas kan het totale inerte gas in weefsels verhogen. Organisaties verschillen over hoe zwaar dat weegt bij standaardgassen.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'Vul het huidige gas en het gas na de wissel in.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'Hoe dicht een gas op diepte is en op welke diepte lucht even dicht zou zijn.';
+
+  @override
+  String get info_calculators_density_background =>
+      'Bij CCR is het de dichtheid van het lusgas: zuurstof op het setpoint, de rest in de verhouding van het diluent. Kouder gas is dichter, en de berekening gaat uit van een ideaal gas.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'Vul het mengsel, de diepte en de watertemperatuur in en wissel tussen OC en CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'Een partiaaldrukmenging: de vulgassen die in volgorde worden toegevoegd om het doelmengsel te halen.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'Elk gas wordt tot de getoonde druk toegevoegd en de fles laat men stabiliseren voor het volgende. Vulgassen en volgorde zijn instelbaar, dus het laatste gas kan EAN32 zijn in plaats van lucht.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'Vul in wat al in de fles zit en het doelmengsel. De laatste stap van elke menging is het analyseren van het eindmengsel.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'Een duik op één niveau door het Buhlmann-model ZHL-16C gerekend, met gasgrenzen, stops en weefselbelasting.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'Stel de diepte, de tijd, het gas en de wateromstandigheden in. Gasgrenzen, stops en weefselgrafiek werken bij elke wijziging bij.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'Of een tweede duik na een oppervlakte-interval binnen de nultijd past, op basis van de weefselbelasting uit de eerste duik.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      'De 16 compartimenten van het model geven tijdens het interval gas af, snelle binnen minuten en trage over uren. Het leidende compartiment is het zwaarst belaste en bepaalt meestal de nultijd.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'Stel de eerste duik, de tweede duik en het oppervlakte-interval in. Het resultaat toont het minimale interval en de nultijd van de tweede duik.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'Eén punt per duik, zodat een langzame verandering van dit item als trend over zijn levensduur zichtbaar wordt.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'Patronen in de duiken en gemelde problemen van dit item die de staatregels hebben gesignaleerd.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'Hoeveel dit item is gebruikt, geteld in elke eenheid die zijn onderhoudsklokken gebruiken.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'De hoogte van de locatie boven zeeniveau en de luchtdruk daar, waarmee het decompressiemodel begint.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'Hoeveel nominale kalktijd er over is voor de geplande rebreatherduiken van de reis.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'Hoe conservatief het decompressiemodel van de app rekent.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'Gradiëntfactoren verkleinen de M-waarden van Buhlmann ZHL-16C, een methode beschreven door Erik Baker. Elk decogetal dat de app berekent gebruikt ze.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'De ppO2-grenzen en de CNS-methode die de app overal voor zuurstofwaarden gebruikt.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'Of nultijd, decostops, TTS, GTR en CNS van de duikcomputer of uit de eigen berekening van de app komen.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'De END-grens en hoe END en MND in de app worden berekend.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'De controle die de app bij gaswissels uitvoert op tegendiffusie tussen helium en stikstof.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'Naar welke gassen de gesimuleerde opstijging mag wisselen als de app TTS, plafond en stops berekent.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'De regels waaraan elke duik na het loggen wordt getoetst. Een uitgeschakelde regel wordt nooit gemeld.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'De grenzen waardoor een duik voor onderhoudsklokken als koud, diep of zuurstofrijk telt.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'De waarden per duik die de app bijhoudt voor zuurstofcellen, zenders en kalk.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'De controles achter de bevindingen over uitrustingsstaat. Een uitgeschakelde regel wordt nooit gemeld.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'Herinneringen worden ingepland bij het openen van de app en op de achtergrond vernieuwd. Elk uitrustingsitem kan eigen herinneringen hebben in zijn bewerkscherm.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'De snelheden waarbij het profiel de opstijging kleurt en gebeurtenissen voor opstijgsnelheid vastlegt.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analyseer het uiteindelijke mengsel altijd voordat je ermee duikt.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'De MOD wordt altijd naar beneden afgerond, nooit naar boven. Rec rekent met 1 bar per $depth, zoals het logboek. OC Tec en CCR Tec berekenen de druk op diepte uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.';
+  }
 }

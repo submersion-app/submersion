@@ -11,6 +11,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/best_mi
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../helpers/mock_providers.dart';
 
@@ -326,5 +327,12 @@ void main() {
 
     expect(find.textContaining('MOD: '), findsNWidgets(6));
     await _settle(tester);
+  });
+  testWidgets('Best Mix explains itself through a header info icon', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }
