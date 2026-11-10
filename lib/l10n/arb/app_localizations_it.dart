@@ -7777,6 +7777,31 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Sosta $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Trascina per scorrere';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Passa sopra per scorrere';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Profilo dell\'immersione, scorri per spostare il cursore';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23114,6 +23139,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra un marcatore nel punto di profondità massima sui profili immersione';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Fissa il profilo durante lo scorrimento';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Mantieni un profilo sottile e scorrevole in cima ai dettagli dell\'immersione';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
 
   @override
@@ -26639,6 +26672,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Il profilo mostra la profondità massima';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Fissa il profilo durante lo scorrimento';
 
   @override
   String get settings_conflict_field_showNdlOnProfile =>

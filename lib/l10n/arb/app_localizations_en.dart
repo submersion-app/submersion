@@ -7660,6 +7660,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Stop $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Drag to scrub';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Hover to scrub';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Dive profile, scrub to move the cursor';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22773,6 +22798,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show a marker at the maximum depth point on dive profiles';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Pin profile when scrolling';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Keep a thin, scrubbable profile at the top of dive details';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
 
   @override
@@ -26181,6 +26214,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profile shows maximum depth';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Pin profile when scrolling';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'Profile shows NDL';

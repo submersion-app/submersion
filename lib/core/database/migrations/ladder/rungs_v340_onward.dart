@@ -131,5 +131,11 @@ extension RungsFromV340 on AppDatabase {
     // 357 because main holds 356; renumbered from 353, then 355.
     if (from < 357) await _assertProfileSeriesIsEditColumn();
     if (from < 357) await reportProgress();
+
+    // v359: diver_settings.pin_profile_on_scroll, whether dive details pins
+    // a profile strip (issue #4423). Column only, defaulted on; re-asserted
+    // in beforeOpen.
+    if (from < 359) await _assertPinProfileOnScrollColumn();
+    if (from < 359) await reportProgress();
   }
 }

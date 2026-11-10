@@ -7615,6 +7615,31 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes דק׳';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'עצירה $depth · $minutes דק׳';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'גרור כדי לדפדף';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'רחף כדי לדפדף';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'פרופיל הצלילה, גרור כדי להזיז את הסמן';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22606,6 +22631,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצג סמן בנקודת העומק המרבי בפרופילי צלילה';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'הצמדת הפרופיל בעת גלילה';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'השארת פרופיל צר וניתן לגרירה בראש פרטי הצלילה';
+
+  @override
   String get settings_appearance_metric_ceiling => 'תקרה';
 
   @override
@@ -25962,6 +25995,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'הפרופיל מציג עומק מרבי';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'הצמדת הפרופיל בעת גלילה';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'הפרופיל מציג NDL';

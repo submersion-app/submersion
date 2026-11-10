@@ -7729,6 +7729,31 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Stop $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Sleep om te verschuiven';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Beweeg erover om te verschuiven';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Duikprofiel, verschuif om de cursor te bewegen';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -22971,6 +22996,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon een markering bij het maximale dieptepunt op duikprofielen';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Profiel vastzetten bij scrollen';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Houd een smal, verschuifbaar profiel bovenaan de duikdetails';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Plafond';
 
   @override
@@ -26457,6 +26490,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profiel toont de maximale diepte';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Profiel vastzetten bij scrollen';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'Profiel toont NDL';

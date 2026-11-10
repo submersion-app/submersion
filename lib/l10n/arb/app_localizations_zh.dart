@@ -7385,6 +7385,30 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes 分钟';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return '停留 $depth · $minutes 分钟';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => '拖动以浏览';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => '悬停以浏览';
+
+  @override
+  String get diveLog_pinnedStrip_semantics => '潜水剖面图，拖动以移动光标';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -21943,6 +21967,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '在潜水轮廓上最大深度点显示标记';
 
   @override
+  String get settings_appearance_pinProfileOnScroll => '滚动时固定剖面图';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      '在潜水详情顶部保留一条可拖动的窄剖面图';
+
+  @override
   String get settings_appearance_metric_ceiling => '上升限制';
 
   @override
@@ -25119,6 +25150,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_showMaxDepthMarker => '剖面显示最大深度';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll => '滚动时固定剖面图';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => '剖面显示 NDL';

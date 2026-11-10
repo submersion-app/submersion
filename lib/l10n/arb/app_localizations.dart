@@ -12205,6 +12205,42 @@ abstract class AppLocalizations {
   /// **'{timestamp}'**
   String diveLog_detail_collapsed_atTime(Object timestamp);
 
+  /// No description provided for @diveLog_pinnedStrip_ndl.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL {minutes} min'**
+  String diveLog_pinnedStrip_ndl(Object minutes);
+
+  /// No description provided for @diveLog_pinnedStrip_stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop {depth} · {minutes} min'**
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes);
+
+  /// No description provided for @diveLog_pinnedStrip_ppO2.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 {value}'**
+  String diveLog_pinnedStrip_ppO2(Object value);
+
+  /// No description provided for @diveLog_pinnedStrip_hintDrag.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to scrub'**
+  String get diveLog_pinnedStrip_hintDrag;
+
+  /// No description provided for @diveLog_pinnedStrip_hintHover.
+  ///
+  /// In en, this message translates to:
+  /// **'Hover to scrub'**
+  String get diveLog_pinnedStrip_hintHover;
+
+  /// No description provided for @diveLog_pinnedStrip_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive profile, scrub to move the cursor'**
+  String get diveLog_pinnedStrip_semantics;
+
   /// No description provided for @diveLog_detail_customFieldCount.
   ///
   /// In en, this message translates to:
@@ -36576,6 +36612,18 @@ abstract class AppLocalizations {
   /// **'Show a marker at the maximum depth point on dive profiles'**
   String get settings_appearance_maxDepthMarker_subtitleFull;
 
+  /// No description provided for @settings_appearance_pinProfileOnScroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin profile when scrolling'**
+  String get settings_appearance_pinProfileOnScroll;
+
+  /// No description provided for @settings_appearance_pinProfileOnScroll_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a thin, scrubbable profile at the top of dive details'**
+  String get settings_appearance_pinProfileOnScroll_subtitle;
+
   /// No description provided for @settings_appearance_metric_ceiling.
   ///
   /// In en, this message translates to:
@@ -42290,6 +42338,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile shows maximum depth'**
   String get settings_conflict_field_showMaxDepthMarker;
+
+  /// No description provided for @settings_conflict_field_pinProfileOnScroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin profile when scrolling'**
+  String get settings_conflict_field_pinProfileOnScroll;
 
   /// No description provided for @settings_conflict_field_showNdlOnProfile.
   ///

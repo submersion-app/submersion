@@ -649,6 +649,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowMaxDepthMarker(bool value) async =>
       state = state.copyWith(showMaxDepthMarker: value);
   @override
+  Future<void> setPinProfileOnScroll(bool value) async =>
+      state = state.copyWith(pinProfileOnScroll: value);
+  @override
   Future<void> setShowPressureThresholdMarkers(bool value) async =>
       state = state.copyWith(showPressureThresholdMarkers: value);
   @override

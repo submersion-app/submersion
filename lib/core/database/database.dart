@@ -319,7 +319,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 357;
+  static const int currentSchemaVersion = 359;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1647,6 +1647,11 @@ class AppDatabase extends _$AppDatabase {
     // omits, with no backfill, so the floor does not move. Numbered 357
     // because main holds 356; renumbered from 353, then 355.
     357,
+    // v359: diver_settings.pin_profile_on_scroll, whether dive details pins
+    // a thin profile strip once the profile card scrolls away (issue #4423).
+    // Additive and defaulted; the floor does not move. Numbered 359 because
+    // main holds 357 and open PR #4417 claims 358.
+    359,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

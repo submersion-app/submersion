@@ -611,6 +611,17 @@ class SectionAppearancePage extends ConsumerWidget {
         },
       ),
       SwitchListTile(
+        title: Text(context.l10n.settings_appearance_pinProfileOnScroll),
+        subtitle: Text(
+          context.l10n.settings_appearance_pinProfileOnScroll_subtitle,
+        ),
+        secondary: const Icon(Icons.vertical_align_top),
+        value: settings.pinProfileOnScroll,
+        onChanged: (value) {
+          ref.read(settingsProvider.notifier).setPinProfileOnScroll(value);
+        },
+      ),
+      SwitchListTile(
         title: Text(context.l10n.settings_appearance_pressureThresholdMarkers),
         subtitle: Text(
           context
