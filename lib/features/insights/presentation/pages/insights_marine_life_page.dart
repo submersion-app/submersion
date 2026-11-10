@@ -8,8 +8,8 @@ import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:submersion/features/insights/presentation/widgets/expandable_ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
-import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -115,10 +115,9 @@ class InsightsMarineLifePage extends ConsumerWidget {
               : context.l10n.insights_marineLife_mostCommon_empty;
           return Semantics(
             label: summary,
-            child: RankingList(
+            child: ExpandableRankingList(
               items: data,
               countLabel: context.l10n.insights_ranking_countLabel_sightings,
-              maxItems: 10,
               onItemTap: (item) => context.push('/species/${item.id}'),
             ),
           );
@@ -152,10 +151,9 @@ class InsightsMarineLifePage extends ConsumerWidget {
               : context.l10n.insights_marineLife_bestSites_empty;
           return Semantics(
             label: summary,
-            child: RankingList(
+            child: ExpandableRankingList(
               items: data,
               countLabel: context.l10n.insights_ranking_countLabel_species,
-              maxItems: 10,
               onItemTap: (item) => context.push('/sites/${item.id}'),
             ),
           );

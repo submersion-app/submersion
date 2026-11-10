@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/reports/idle_gear.dart';
 import 'package:submersion/features/insights/presentation/providers/equipment_report_insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/equipment/gear_report_row.dart';
+import 'package:submersion/features/insights/presentation/widgets/show_all_toggle.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -71,7 +72,7 @@ class _IdleGearSectionState extends ConsumerState<IdleGearSection> {
                       trailing: _sinceText(l10n, row),
                       onTap: () => context.push('/equipment/${row.item.id}'),
                     ),
-                  GearReportShowAll(
+                  ShowAllToggle(
                     itemCount: rows.length,
                     expanded: _expanded,
                     onChanged: (value) => setState(() => _expanded = value),

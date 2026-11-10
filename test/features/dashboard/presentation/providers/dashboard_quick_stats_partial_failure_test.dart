@@ -74,7 +74,7 @@ class _FakeInsightsRepository extends InsightsRepository {
   @override
   Future<List<RankingItem>> getTopBuddies({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     if (failing == _Metric.buddies) _fail();
@@ -84,7 +84,7 @@ class _FakeInsightsRepository extends InsightsRepository {
   @override
   Future<List<RankingItem>> getCountriesVisited({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     if (failing == _Metric.countries) _fail();
