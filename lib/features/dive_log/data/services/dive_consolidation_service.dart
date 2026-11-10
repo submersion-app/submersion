@@ -487,6 +487,7 @@ class DiveConsolidationService {
             sourceId: sourceIdMap[s.sourceId] ?? sourceIdMap[null],
             isPrimary: false,
             activatedAt: Value(s.activatedAt),
+            isEdit: s.isEdit,
             samples: [for (final p in s.samples) p.shiftedBy(offset)],
             now: now,
           );

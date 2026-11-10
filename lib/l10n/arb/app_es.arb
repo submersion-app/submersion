@@ -7661,6 +7661,7 @@
   "settings_conflict_field_isCustom": "Personalizado",
   "settings_conflict_field_isDefault": "Predeterminado",
   "settings_conflict_field_isDone": "Hecho",
+  "settings_conflict_field_isEdit": "Perfil editado a mano",
   "settings_conflict_field_isOrphaned": "Falta el archivo",
   "settings_conflict_field_isPackage": "Parte de un paquete",
   "settings_conflict_field_isPlanned": "Inmersión planificada",

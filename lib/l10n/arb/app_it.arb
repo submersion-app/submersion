@@ -7560,6 +7560,7 @@
   "settings_conflict_field_isCustom": "Personalizzato",
   "settings_conflict_field_isDefault": "Predefinito",
   "settings_conflict_field_isDone": "Fatto",
+  "settings_conflict_field_isEdit": "Profilo modificato a mano",
   "settings_conflict_field_isOrphaned": "File mancante",
   "settings_conflict_field_isPackage": "Parte di un pacchetto",
   "settings_conflict_field_isPlanned": "Immersione pianificata",

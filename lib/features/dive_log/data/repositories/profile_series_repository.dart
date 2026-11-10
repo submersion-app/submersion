@@ -18,6 +18,16 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 import 'package:submersion/features/dive_log/data/repositories/profile_series_row_decoder.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
+/// The identity columns of one `dive_profile_series` row, read without its
+/// blob by [ProfileSeriesRepository.getIdentitiesForDive].
+typedef ProfileSeriesIdentity = ({
+  String id,
+  String? computerId,
+  String? sourceId,
+  bool isPrimary,
+  bool? isEdit,
+});
+
 /// Every read and write of `dive_profile_series`. The only production code
 /// that encodes or decodes profile samples, apart from the migration packer.
 ///
@@ -63,6 +73,7 @@ class ProfileSeriesRepository {
     String revisionKind = 'create',
     String? id,
     Value<int?> activatedAt = const Value.absent(),
+    bool? isEdit,
     int? now,
   }) async {
     final encoded = _codec.encode(
@@ -101,6 +112,7 @@ class ProfileSeriesRepository {
               activatedAt: activatedAt.present
                   ? activatedAt
                   : Value(isPrimary ? nowMs : null),
+              isEdit: Value(isEdit),
             ),
           );
       await _upsertHistoryNode(
@@ -631,10 +643,9 @@ class ProfileSeriesRepository {
   /// the UI isolate, per tick. It is also lossier for this purpose, because
   /// a blob that will not decode drops its whole row and with it a computer
   /// the dive really does have.
-  Future<
-    List<({String id, String? computerId, String? sourceId, bool isPrimary})>
-  >
-  getIdentitiesForDive(String diveId) async {
+  Future<List<ProfileSeriesIdentity>> getIdentitiesForDive(
+    String diveId,
+  ) async {
     final rows =
         await (_db.selectOnly(_db.diveProfileSeries)
               ..addColumns([
@@ -642,6 +653,7 @@ class ProfileSeriesRepository {
                 _db.diveProfileSeries.computerId,
                 _db.diveProfileSeries.sourceId,
                 _db.diveProfileSeries.isPrimary,
+                _db.diveProfileSeries.isEdit,
               ])
               ..where(_db.diveProfileSeries.diveId.equals(diveId))
               ..orderBy([
@@ -656,6 +668,7 @@ class ProfileSeriesRepository {
           computerId: r.read(_db.diveProfileSeries.computerId),
           sourceId: r.read(_db.diveProfileSeries.sourceId),
           isPrimary: r.read(_db.diveProfileSeries.isPrimary) ?? false,
+          isEdit: r.read(_db.diveProfileSeries.isEdit),
         ),
     ];
   }
@@ -711,7 +724,11 @@ class ProfileSeriesRepository {
                 _db.diveProfileSeries.diveId.equals(diveId) &
                     _db.diveProfileSeries.isPrimary.equals(true) &
                     _db.diveProfileSeries.computerId.isNull() &
-                    _db.diveProfileSeries.sourceId.equals(sourceId),
+                    _db.diveProfileSeries.sourceId.equals(sourceId) &
+                    // A series marked as a parse is none, whatever its
+                    // shape (issue #4386).
+                    (_db.diveProfileSeries.isEdit.isNull() |
+                        _db.diveProfileSeries.isEdit.equals(true)),
               )
               ..limit(1))
             .get();
@@ -721,6 +738,10 @@ class ProfileSeriesRepository {
   /// The live series of [diveId] that are manual edits, for a source that may
   /// have no computer. [hasLiveEdit] cannot serve there: a file import's own
   /// series is primary with no computer too.
+  ///
+  /// A series written since schema v357 says what it is in `is_edit`, which
+  /// syncs (issue #4386); that answer is final either way. Only a series
+  /// written before it, with the mark null, is read by its shape below.
   ///
   /// What gives an edit away is the generation it superseded, demoted beneath
   /// it: a series of the edit's own source, or one with no source at all. A
@@ -738,22 +759,22 @@ class ProfileSeriesRepository {
 
   /// [liveEditIds] over [series] already read by [getIdentitiesForDive], for
   /// a caller that needs the identities as well (a re-parse, issue #4367).
-  static Set<String> liveEditIdsOf(
-    List<({String id, String? computerId, String? sourceId, bool isPrimary})>
-    series,
-  ) {
+  static Set<String> liveEditIdsOf(List<ProfileSeriesIdentity> series) {
+    // A marked edit demoted beneath says the live series is the original
+    // the diver re-activated over it, not an edit (issue #4386).
+    bool editByShape(ProfileSeriesIdentity live) =>
+        live.computerId == null &&
+        series.any(
+          (s) =>
+              !s.isPrimary &&
+              s.isEdit != true &&
+              (live.sourceId == null ||
+                  s.sourceId == null ||
+                  s.sourceId == live.sourceId),
+        );
     return {
       for (final live in series)
-        if (live.isPrimary &&
-            live.computerId == null &&
-            series.any(
-              (s) =>
-                  !s.isPrimary &&
-                  (live.sourceId == null ||
-                      s.sourceId == null ||
-                      s.sourceId == live.sourceId),
-            ))
-          live.id,
+        if (live.isPrimary && (live.isEdit ?? editByShape(live))) live.id,
     };
   }
 
@@ -1115,7 +1136,11 @@ class ProfileSeriesRepository {
   /// The demoted half is still relinked. It really is the computer's own
   /// output, restoring its attribution is the point of the relink, and a
   /// reparse that replaces a superseded generation replaces exactly what that
-  /// computer produced.
+  /// computer produced. A series marked as an edit is never relinked, live or
+  /// demoted: re-activating the original in the revision picker leaves the
+  /// edit demoted beneath it, where the shape cannot tell it apart
+  /// (issue #4386). That demoted edit does not shield the original above it
+  /// either, which is relinked like any other.
   Future<int> relinkComputer(
     String computerId,
     List<String> diveIds, {
@@ -1127,6 +1152,9 @@ class ProfileSeriesRepository {
       computerId,
       (t) =>
           t.computerId.isNull() &
+          // Spelled out: NOT (is_edit = 1) is null, so false, for the
+          // unmarked rows written before v357.
+          (t.isEdit.isNull() | t.isEdit.equals(false)) &
           t.diveId.isIn(diveIds) &
           t.diveId.isInQuery(
             _db.selectOnly(_db.diveDataSources)
@@ -1142,7 +1170,12 @@ class ProfileSeriesRepository {
                   ..addColumns([sibling.id])
                   ..where(
                     sibling.diveId.equalsExp(t.diveId) &
-                        sibling.isPrimary.equals(false),
+                        sibling.isPrimary.equals(false) &
+                        // A marked edit beneath is no generation the live
+                        // series superseded, so it does not make that series
+                        // an edit (issue #4386).
+                        (sibling.isEdit.isNull() |
+                            sibling.isEdit.equals(false)),
                   ),
               )),
       now: now,

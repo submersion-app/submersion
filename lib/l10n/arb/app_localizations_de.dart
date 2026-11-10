@@ -25883,6 +25883,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settings_conflict_field_isDraft => 'Tauchgang-Entwurf';
 
   @override
+  String get settings_conflict_field_isEdit => 'Profil von Hand bearbeitet';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'Datei fehlt';
 
   @override

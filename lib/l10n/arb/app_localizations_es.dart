@@ -25925,6 +25925,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_isDraft => 'Borrador de inmersión';
 
   @override
+  String get settings_conflict_field_isEdit => 'Perfil editado a mano';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'Falta el archivo';
 
   @override

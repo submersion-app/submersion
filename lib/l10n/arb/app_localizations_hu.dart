@@ -25819,6 +25819,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_isDraft => 'Merülésvázlat';
 
   @override
+  String get settings_conflict_field_isEdit => 'Profil kézzel szerkesztve';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'Hiányzó fájl';
 
   @override

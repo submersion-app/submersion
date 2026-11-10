@@ -7813,6 +7813,7 @@
   "settings_conflict_field_isCustom": "自定义",
   "settings_conflict_field_isDefault": "默认",
   "settings_conflict_field_isDone": "已完成",
+  "settings_conflict_field_isEdit": "剖面已手动编辑",
   "settings_conflict_field_isOrphaned": "文件缺失",
   "settings_conflict_field_isPackage": "套餐的一部分",
   "settings_conflict_field_isPlanned": "计划中的潜水",

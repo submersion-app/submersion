@@ -2007,6 +2007,7 @@ class DiveComputerRepository {
           // A download is a computer import whether or not the dive already
           // had a series, matching how the v257 backfill classifies it.
           revisionKind: 'computer_import',
+          isEdit: false,
           samples: [for (final point in points) _sampleFromPointData(point)],
         );
       }

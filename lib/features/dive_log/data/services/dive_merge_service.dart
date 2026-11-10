@@ -417,6 +417,7 @@ class DiveMergeService {
             sourceId: s.sourceId,
             isPrimary: s.isPrimary,
             activatedAt: Value(s.activatedAt),
+            isEdit: s.isEdit,
             samples: [
               for (final p in s.samples)
                 p.shiftedBy(result.segmentOffsetsSeconds[s.diveId] ?? 0),
@@ -463,6 +464,9 @@ class DiveMergeService {
               computerId: null,
               sourceId: null,
               isPrimary: true,
+              // Live with no source, the shape that reads as an edit over
+              // anything demoted beneath, so it says it is none (#4386).
+              isEdit: false,
               samples: surface,
               synthetic: true,
             ),
@@ -479,6 +483,7 @@ class DiveMergeService {
               : mergedSourceIdFor(d.diveId, d.sourceId),
           isPrimary: d.isPrimary,
           activatedAt: d.activatedAt,
+          isEdit: d.isEdit,
           samples: d.samples,
           now: now,
         );
@@ -1043,6 +1048,7 @@ class _SeriesDraft {
     required this.isPrimary,
     required this.samples,
     this.activatedAt = const Value.absent(),
+    this.isEdit,
     this.synthetic = false,
   });
 
@@ -1054,6 +1060,10 @@ class _SeriesDraft {
   /// The original series' activation time, carried so the merged copies
   /// rank as the originals did (issue #3189); absent for a synthetic fill.
   final Value<int?> activatedAt;
+
+  /// The original series' `is_edit`, carried so a merged edit stays one
+  /// (issue #4386); false for a synthetic fill.
+  final bool? isEdit;
   final bool synthetic;
   final List<ProfileSample> samples;
 }

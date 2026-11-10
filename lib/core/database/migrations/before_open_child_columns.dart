@@ -71,5 +71,9 @@ extension BeforeOpenChildColumns on AppDatabase {
     // v350: sightings.abundance (issue #4337). Every sighting read selects
     // the whole row, for the same reason as the tank columns.
     await _assertSightingAbundanceColumn();
+
+    // v357: dive_profile_series.is_edit (issue #4386). Every series read
+    // selects the whole row, for the same reason as the tank columns.
+    await _assertProfileSeriesIsEditColumn();
   }
 }

@@ -468,6 +468,7 @@ class DiveSplitService {
           sourceId: newSourceId,
           isPrimary: source.isPrimary ? s.isPrimary : true,
           activatedAt: Value(s.activatedAt),
+          isEdit: s.isEdit,
           samples: [for (final p in s.samples) p.shiftedBy(-sourceOffset)],
           now: now,
         );

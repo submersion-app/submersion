@@ -26244,6 +26244,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_isDraft => 'مسودة غوصة';
 
   @override
+  String get settings_conflict_field_isEdit => 'الملف الشخصي معدّل يدويًا';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'الملف مفقود';
 
   @override

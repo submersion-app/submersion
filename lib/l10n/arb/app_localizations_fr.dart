@@ -25992,6 +25992,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_isDraft => 'Brouillon de plongée';
 
   @override
+  String get settings_conflict_field_isEdit => 'Profil modifié à la main';
+
+  @override
   String get settings_conflict_field_isOrphaned => 'Fichier manquant';
 
   @override

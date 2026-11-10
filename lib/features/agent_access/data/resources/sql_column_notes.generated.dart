@@ -229,6 +229,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   },
   'dive_profile_series': {
     'has_deco_type': 'Any sample carries deco_type',
+    'is_edit': 'True for the diver\'s manual edit, written by `saveEditedProfile`',
     'max_depth': 'Metres',
     'samples': '`ProfileSeriesCodec` output',
     'start_timestamp': 'Seconds from dive start of the first and last sample',

@@ -7794,6 +7794,7 @@
   "settings_conflict_field_isCustom": "Benutzerdefiniert",
   "settings_conflict_field_isDefault": "Standard",
   "settings_conflict_field_isDone": "Erledigt",
+  "settings_conflict_field_isEdit": "Profil von Hand bearbeitet",
   "settings_conflict_field_isOrphaned": "Datei fehlt",
   "settings_conflict_field_isPackage": "Teil eines Pakets",
   "settings_conflict_field_isPlanned": "Geplanter Tauchgang",
