@@ -52987,6 +52987,60 @@ abstract class AppLocalizations {
   /// **'Color'**
   String get tags_manage_colorLabel;
 
+  /// The light shade of a tag colour, read by screen readers. {color} is the hue name.
+  ///
+  /// In en, this message translates to:
+  /// **'{color}, light'**
+  String tags_color_shadeLight(String color);
+
+  /// The dark shade of a tag colour, read by screen readers. {color} is the hue name.
+  ///
+  /// In en, this message translates to:
+  /// **'{color}, dark'**
+  String tags_color_shadeDark(String color);
+
+  /// The tag colour picker's dot for a colour off the palette. {code} is the stored colour code.
+  ///
+  /// In en, this message translates to:
+  /// **'Current color, {code}'**
+  String tags_color_current(String code);
+
+  /// No description provided for @tags_color_custom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom color'**
+  String get tags_color_custom;
+
+  /// No description provided for @tags_color_hexLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hex code'**
+  String get tags_color_hexLabel;
+
+  /// No description provided for @tags_color_hexError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter six digits 0-9 or A-F, like #2E8B57'**
+  String get tags_color_hexError;
+
+  /// No description provided for @tags_color_use.
+  ///
+  /// In en, this message translates to:
+  /// **'Use'**
+  String get tags_color_use;
+
+  /// No description provided for @tags_color_hueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hue'**
+  String get tags_color_hueLabel;
+
+  /// No description provided for @tags_color_squareLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Saturation and brightness'**
+  String get tags_color_squareLabel;
+
   /// No description provided for @tags_manage_narrowDialog_confirm.
   ///
   /// In en, this message translates to:

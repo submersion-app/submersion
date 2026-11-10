@@ -33178,6 +33178,40 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tags_manage_colorLabel => 'Kleur';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '$color, licht';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, donker';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Huidige kleur, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Aangepaste kleur';
+
+  @override
+  String get tags_color_hexLabel => 'Hexcode';
+
+  @override
+  String get tags_color_hexError =>
+      'Voer zes tekens 0-9 of A-F in, zoals #2E8B57';
+
+  @override
+  String get tags_color_use => 'Gebruiken';
+
+  @override
+  String get tags_color_hueLabel => 'Tint';
+
+  @override
+  String get tags_color_squareLabel => 'Verzadiging en helderheid';
+
+  @override
   String get tags_manage_narrowDialog_confirm => 'Verwijderen';
 
   @override

@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/features/tags/domain/tag_palette.dart';
 
 /// Where a tag is offered (issues #1765, #1942, #1970). A tag applies to at
 /// least one. Member order follows [tagScopeTables], which is the display order.
@@ -47,18 +48,9 @@ class Tag extends Equatable {
     this.scopes = const {TagScope.dives},
   });
 
-  /// Get the color as a Flutter Color object
-  Color get color {
-    if (colorHex == null || colorHex!.isEmpty) {
-      return Colors.blue; // Default color
-    }
-    try {
-      final hex = colorHex!.replaceFirst('#', '');
-      return Color(int.parse('FF$hex', radix: 16));
-    } catch (_) {
-      return Colors.blue;
-    }
-  }
+  /// The colour the tag is drawn in. A tag with no usable colour (one an
+  /// import created, say) is drawn as the palette Blue (issue #4384).
+  Color get color => drawnTagColor(colorHex);
 
   /// Whether the tag is offered where [scope] is.
   bool appliesTo(TagScope scope) => scopes.contains(scope);

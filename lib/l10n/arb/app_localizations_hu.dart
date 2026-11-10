@@ -33236,6 +33236,40 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_manage_colorLabel => 'Szín';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '$color, világos';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, sötét';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Jelenlegi szín, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Egyéni szín';
+
+  @override
+  String get tags_color_hexLabel => 'Hexakód';
+
+  @override
+  String get tags_color_hexError =>
+      'Adjon meg hat karaktert (0-9 vagy A-F), például #2E8B57';
+
+  @override
+  String get tags_color_use => 'Használat';
+
+  @override
+  String get tags_color_hueLabel => 'Színárnyalat';
+
+  @override
+  String get tags_color_squareLabel => 'Telítettség és fényerő';
+
+  @override
   String get tags_manage_narrowDialog_confirm => 'Eltávolítás';
 
   @override

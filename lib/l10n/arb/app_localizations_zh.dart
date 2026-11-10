@@ -31450,6 +31450,39 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_colorLabel => '颜色';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '浅$color';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '深$color';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return '当前颜色，$code';
+  }
+
+  @override
+  String get tags_color_custom => '自定义颜色';
+
+  @override
+  String get tags_color_hexLabel => '十六进制代码';
+
+  @override
+  String get tags_color_hexError => '请输入六位 0-9 或 A-F 字符，例如 #2E8B57';
+
+  @override
+  String get tags_color_use => '使用';
+
+  @override
+  String get tags_color_hueLabel => '色相';
+
+  @override
+  String get tags_color_squareLabel => '饱和度和亮度';
+
+  @override
   String get tags_manage_narrowDialog_confirm => '移除';
 
   @override

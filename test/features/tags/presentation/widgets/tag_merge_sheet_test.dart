@@ -6,7 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
-import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -278,6 +278,53 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('4 equipment items'), findsOneWidget);
+    });
+
+    group('keeps the stored color (#4384)', () {
+      TagStatistic coloured(String id, String name, String? hex, int dives) =>
+          TagStatistic(
+            tag: Tag(
+              id: id,
+              diverId: 'diver1',
+              name: name,
+              colorHex: hex,
+              createdAt: DateTime(2024),
+              updatedAt: DateTime(2024),
+            ),
+            counts: {TagScope.dives: dives},
+          );
+
+      final stats = [
+        coloured('imported', 'Imported', null, 9),
+        coloured('custom', 'Custom', '#123456', 2),
+      ];
+
+      Future<void> merge(WidgetTester tester) async {
+        final button = find.widgetWithText(FilledButton, 'Merge');
+        await tester.ensureVisible(button);
+        await tester.tap(button);
+        await tester.pumpAndSettle();
+      }
+
+      testWidgets('a kept tag with no color merges with none', (tester) async {
+        await tester.pumpWidget(buildTestWidget(stats: stats));
+        await tester.pumpAndSettle();
+        await merge(tester);
+        expect(mockNotifier.mergeTagsCalled, isTrue);
+        expect(mockNotifier.lastColorHex, isNull);
+      });
+
+      testWidgets('keeping a tag off the palette keeps its color', (
+        tester,
+      ) async {
+        await tester.pumpWidget(buildTestWidget(stats: stats));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Custom'));
+        await tester.pumpAndSettle();
+        expect(find.bySemanticsLabel('Current color, #123456'), findsOne);
+        await merge(tester);
+        expect(mockNotifier.lastColorHex, '#123456');
+      });
     });
 
     testWidgets('merging equipment-only tags starts from the one on the '

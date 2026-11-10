@@ -33337,6 +33337,40 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_manage_colorLabel => 'Farbe';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '$color, hell';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, dunkel';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Aktuelle Farbe, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Eigene Farbe';
+
+  @override
+  String get tags_color_hexLabel => 'Hex-Code';
+
+  @override
+  String get tags_color_hexError =>
+      'Sechs Zeichen 0-9 oder A-F eingeben, z. B. #2E8B57';
+
+  @override
+  String get tags_color_use => 'Übernehmen';
+
+  @override
+  String get tags_color_hueLabel => 'Farbton';
+
+  @override
+  String get tags_color_squareLabel => 'Sättigung und Helligkeit';
+
+  @override
   String get tags_manage_narrowDialog_confirm => 'Entfernen';
 
   @override

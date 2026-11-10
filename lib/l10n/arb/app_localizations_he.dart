@@ -32570,6 +32570,40 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_manage_colorLabel => 'צבע';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '$color, בהיר';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, כהה';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'צבע נוכחי, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'צבע מותאם אישית';
+
+  @override
+  String get tags_color_hexLabel => 'קוד הקסדצימלי';
+
+  @override
+  String get tags_color_hexError =>
+      'יש להזין שישה תווים 0-9 או A-F, למשל #2E8B57';
+
+  @override
+  String get tags_color_use => 'שימוש';
+
+  @override
+  String get tags_color_hueLabel => 'גוון';
+
+  @override
+  String get tags_color_squareLabel => 'רוויה ובהירות';
+
+  @override
   String get tags_manage_narrowDialog_confirm => 'הסר';
 
   @override

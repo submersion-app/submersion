@@ -33419,6 +33419,40 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_manage_colorLabel => 'Colore';
 
   @override
+  String tags_color_shadeLight(String color) {
+    return '$color, chiaro';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, scuro';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Colore attuale, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Colore personalizzato';
+
+  @override
+  String get tags_color_hexLabel => 'Codice esadecimale';
+
+  @override
+  String get tags_color_hexError =>
+      'Inserisci sei caratteri 0-9 o A-F, ad esempio #2E8B57';
+
+  @override
+  String get tags_color_use => 'Usa';
+
+  @override
+  String get tags_color_hueLabel => 'Tonalità';
+
+  @override
+  String get tags_color_squareLabel => 'Saturazione e luminosità';
+
+  @override
   String get tags_manage_narrowDialog_confirm => 'Rimuovi';
 
   @override
