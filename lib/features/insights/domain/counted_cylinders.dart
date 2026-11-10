@@ -7,8 +7,13 @@ import 'package:submersion/features/dive_log/domain/services/multi_cylinder_cons
 /// _decoMinO2Percent).
 const double _decoMinO2Percent = 41.0;
 
-/// The roles of the gas a diver starts the dive on.
-const Set<TankRole> _bottomGasRoles = {...backmountRoles, ...sidemountRoles};
+/// The O2 share from which a Back Gas row is a rebreather's oxygen supply
+/// (ccrCylinderRole).
+const double _oxygenMinO2Percent = 99.0;
+
+/// The one-of-a-kind cylinders a diver carries: a bottom gas, a rebreather's
+/// diluent, its oxygen supply.
+enum _Slot { bottomGas, diluent, oxygen }
 
 /// The ids of [tanks] the Insights figures count on one dive, so a dive
 /// consolidated from two computers counts each cylinder once.
@@ -22,9 +27,10 @@ const Set<TankRole> _bottomGasRoles = {...backmountRoles, ...sidemountRoles};
 /// copy when a cylinder already counted from another recording:
 ///
 /// 1. holds the same gas, within [sameGasTolerancePct]; or
-/// 2. fills the same one-of-a-kind slot: a bottom gas (a backup computer
+/// 2. fills a one-of-a-kind slot the row fills too: a bottom gas (a backup computer
 ///    left on air beside a primary on 32% logged one cylinder on a stale
-///    mix), a diluent or an oxygen supply.
+///    mix), a diluent or an oxygen supply. A back gas row is a rebreather's
+///    diluent or oxygen as well, as the CCR figures read it.
 ///
 /// A recording is the tank's computer, and a tank that names no computer
 /// belongs to its source. The primary's are those [primaryComputerId] uses
@@ -64,9 +70,11 @@ Set<String> countedCylinderIds(
         final others = counted.where(
           (c) => recordings[c.id] != recordings[tank.id],
         );
-        final slot = _slotOf(tank);
+        final slots = _slotsOf(tank);
         final copy = others.any(
-          (c) => _sameGas(c, tank) || (slot != null && _slotOf(c) == slot),
+          (c) =>
+              _sameGas(c, tank) ||
+              slots.any((slot) => _slotsOf(c).contains(slot)),
         );
         return copy ? counted : [...counted, tank];
       })
@@ -78,14 +86,23 @@ bool _sameGas(DiveTank a, DiveTank b) =>
     (a.gasMix.o2 - b.gasMix.o2).abs() <= sameGasTolerancePct &&
     (a.gasMix.he - b.gasMix.he).abs() <= sameGasTolerancePct;
 
-/// The slot a diver carries one of, or null. Back gas and sidemount rows at
-/// deco strength are not bottom gas: an import without roles labels every
-/// cylinder back gas.
-TankRole? _slotOf(DiveTank tank) => switch (tank.role) {
-  TankRole.diluent || TankRole.oxygenSupply => tank.role,
-  final role
-      when _bottomGasRoles.contains(role) &&
-          tank.gasMix.o2 < _decoMinO2Percent =>
-    TankRole.backGas,
-  _ => null,
-};
+/// The slots [tank] fills. Back gas and sidemount rows at deco strength are
+/// not bottom gas: an import without roles labels every cylinder back gas. A
+/// back gas or twin set row is also the diluent, and at oxygen strength the
+/// oxygen supply, since a rebreather dive reads it so (ccrCylinderRole); an
+/// open-circuit dive has neither to clash with.
+Set<_Slot> _slotsOf(DiveTank tank) {
+  final role = tank.role;
+  final o2 = tank.gasMix.o2;
+  if (role == TankRole.oxygenSupply) return const {_Slot.oxygen};
+  if (role == TankRole.diluent) return const {_Slot.diluent};
+  if (role == TankRole.backGas && o2 >= _oxygenMinO2Percent) {
+    return const {_Slot.oxygen};
+  }
+  if (o2 >= _decoMinO2Percent) return const {};
+  if (backmountRoles.contains(role)) {
+    return const {_Slot.bottomGas, _Slot.diluent};
+  }
+  if (sidemountRoles.contains(role)) return const {_Slot.bottomGas};
+  return const {};
+}

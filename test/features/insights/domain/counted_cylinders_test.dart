@@ -185,5 +185,40 @@ void main() {
         {'a', 'c'},
       );
     });
+
+    test('another computer\'s back gas beside the primary\'s diluent is a '
+        'copy', () {
+      // A rebreather dive reads a back gas row as the diluent.
+      expect(
+        _counted([
+          _tank(
+            'a',
+            role: TankRole.diluent,
+            o2: 10,
+            he: 50,
+            computerId: 'primary',
+          ),
+          _tank('b', computerId: 'other'),
+          _tank('c', role: TankRole.sidemountLeft, computerId: 'other'),
+        ]),
+        {'a', 'c'},
+      );
+    });
+
+    test('another computer\'s oxygen-strength back gas beside the primary\'s '
+        'oxygen is a copy', () {
+      expect(
+        _counted([
+          _tank(
+            'a',
+            role: TankRole.oxygenSupply,
+            o2: 100,
+            computerId: 'primary',
+          ),
+          _tank('b', o2: 99, computerId: 'other'),
+        ]),
+        {'a'},
+      );
+    });
   });
 }
