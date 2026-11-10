@@ -20866,6 +20866,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_unlinkedHeader => 'לא מקושרים';
 
   @override
+  String get media_library_sectionSitePictures => 'תמונות אתר';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'תמונות ציוד';
+
+  @override
   String get media_library_diveHeaderHint => 'פתיחת צלילה זו';
 
   @override
@@ -59173,6 +59179,29 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'תגיות';
+
+  @override
+  String get media_library_filter_attachedTo => 'מקושר אל';
+
+  @override
+  String get media_library_filter_attachedDive => 'צלילה';
+
+  @override
+  String get media_library_filter_attachedSite => 'אתר';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'ציוד';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'לא מקושרים';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'מקושר אל: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

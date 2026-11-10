@@ -21266,6 +21266,12 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_library_unlinkedHeader => 'Nem csatolt';
 
   @override
+  String get media_library_sectionSitePictures => 'Merülőhely képei';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'Felszerelés képei';
+
+  @override
   String get media_library_diveHeaderHint => 'Merülés megnyitása';
 
   @override
@@ -60101,6 +60107,29 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'Címkék';
+
+  @override
+  String get media_library_filter_attachedTo => 'Csatolva ehhez';
+
+  @override
+  String get media_library_filter_attachedDive => 'Merülés';
+
+  @override
+  String get media_library_filter_attachedSite => 'Merülőhely';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Felszerelés';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Nem csatolt';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Csatolva ehhez: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

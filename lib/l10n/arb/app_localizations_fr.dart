@@ -21398,6 +21398,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_library_unlinkedHeader => 'Non liés';
 
   @override
+  String get media_library_sectionSitePictures => 'Images de site';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'Images d\'équipement';
+
+  @override
   String get media_library_diveHeaderHint => 'Ouvrir cette plongée';
 
   @override
@@ -60566,6 +60572,29 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'Étiquettes';
+
+  @override
+  String get media_library_filter_attachedTo => 'Rattaché à';
+
+  @override
+  String get media_library_filter_attachedDive => 'Plongée';
+
+  @override
+  String get media_library_filter_attachedSite => 'Site';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Équipement';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Non liés';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Rattaché à : $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

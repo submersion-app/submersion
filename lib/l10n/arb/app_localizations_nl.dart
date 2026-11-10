@@ -21203,6 +21203,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_library_unlinkedHeader => 'Niet gekoppeld';
 
   @override
+  String get media_library_sectionSitePictures =>
+      'Afbeeldingen van duikstekken';
+
+  @override
+  String get media_library_sectionEquipmentPictures =>
+      'Afbeeldingen van uitrusting';
+
+  @override
   String get media_library_diveHeaderHint => 'Deze duik openen';
 
   @override
@@ -60058,6 +60066,29 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'Tags';
+
+  @override
+  String get media_library_filter_attachedTo => 'Gekoppeld aan';
+
+  @override
+  String get media_library_filter_attachedDive => 'Duik';
+
+  @override
+  String get media_library_filter_attachedSite => 'Duikstek';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Uitrusting';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Niet gekoppeld';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Gekoppeld aan: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {

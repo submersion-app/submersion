@@ -136,7 +136,12 @@ void main() {
       findsNothing,
       reason: 'a dive-only tag',
     );
+    // Drag the sheet open first, as a diver would: at its opening height
+    // ensureVisible can leave the chip under the pinned Apply bar.
+    await tester.drag(find.text('Attached to'), const Offset(0, -600));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(wreck);
+    await tester.pumpAndSettle();
     await tester.tap(wreck);
     await tester.pumpAndSettle();
     await tester.tap(find.text('Apply'));

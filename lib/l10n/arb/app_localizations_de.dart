@@ -21320,6 +21320,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_unlinkedHeader => 'Nicht verknüpft';
 
   @override
+  String get media_library_sectionSitePictures => 'Tauchplatz-Bilder';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'Ausrüstungsbilder';
+
+  @override
   String get media_library_diveHeaderHint => 'Diesen Tauchgang öffnen';
 
   @override
@@ -60315,6 +60321,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get media_library_filter_tags => 'Tags';
+
+  @override
+  String get media_library_filter_attachedTo => 'Verknüpft mit';
+
+  @override
+  String get media_library_filter_attachedDive => 'Tauchgang';
+
+  @override
+  String get media_library_filter_attachedSite => 'Tauchplatz';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Ausrüstung';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Nicht verknüpft';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Verknüpft mit: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
 
   @override
   String media_bulkTags_confirmAdding(int count) {
