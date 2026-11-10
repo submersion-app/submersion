@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -89,6 +90,7 @@ void main() {
       await repository.addSighting(
         diveId: 'd1',
         speciesId: turtle.id,
+        abundance: SightingAbundance.exact,
         count: 3,
       );
       await repository.addSighting(diveId: 'd2', speciesId: turtle.id);
@@ -108,6 +110,38 @@ void main() {
         reason: 'animals sum each sighting count; sightings count rows',
       );
     });
+
+    test(
+      'animals count a REEF group at its lower bound and Seen as one',
+      () async {
+        await _insertSite('s1');
+        for (final id in ['d1', 'd2', 'd3', 'd4']) {
+          await _insertDive(id, siteId: 's1');
+        }
+        final jack = await repository.createSpecies(
+          commonName: 'Test Jack',
+          category: SpeciesCategory.fish,
+        );
+        final amounts = {
+          'd1': SightingAbundance.many,
+          'd2': SightingAbundance.few,
+          'd3': SightingAbundance.seen,
+          'd4': SightingAbundance.abundant,
+        };
+        for (final MapEntry(key: dive, value: abundance) in amounts.entries) {
+          await repository.addSighting(
+            diveId: dive,
+            speciesId: jack.id,
+            abundance: abundance,
+          );
+        }
+
+        final spotted = await repository.getSpeciesSpottedAtSite('s1');
+
+        // Many 11 + Few 2 + Seen 1 + Abundant 101.
+        expect(spotted.single.animalCount, 115);
+      },
+    );
 
     test('statsScope false keeps dives excluded from statistics, '
         'but never planned dives', () async {

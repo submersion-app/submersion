@@ -18,7 +18,8 @@ class SiteSpeciesSuggestion extends Equatable {
   /// the site's expected list names.
   final int diveCount;
 
-  /// Animals recorded across those dives: the sum of each sighting's count.
+  /// Animals recorded across those dives, as `SiteSpeciesSummary.animalCount`
+  /// weighs them: it only breaks ties between equal dive counts.
   final int animalCount;
 
   const SiteSpeciesSuggestion({

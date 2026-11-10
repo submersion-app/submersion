@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -146,8 +147,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final saved = await speciesRepository.getSightingsForDive(edited.id);
-    expect(saved.map((s) => (s.speciesId, s.count, s.notes)), [
-      (shark.id, 1, ''),
+    expect(saved.map((s) => (s.speciesId, s.abundance, s.notes)), [
+      (shark.id, SightingAbundance.seen, ''),
     ]);
   });
 

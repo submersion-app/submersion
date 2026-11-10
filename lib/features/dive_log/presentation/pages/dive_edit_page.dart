@@ -162,6 +162,7 @@ import 'package:submersion/features/dive_log/presentation/utils/dive_type_autofi
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_species_suggestion_chips.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/site_species_suggestions.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ccr_settings_panel.dart';
@@ -6216,8 +6217,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     );
   }
 
-  /// A suggestion chip's tap (issue #4383): the species goes on as a single
-  /// animal with no notes, which its row then edits like any other sighting.
+  /// A suggestion chip's tap (issue #4383): the species goes on as Seen with
+  /// no notes, as the picker's default does (#4337), and its row then edits
+  /// the amount and notes like any other sighting.
   void _addSuggestedSighting(SiteSpeciesSuggestion suggestion) {
     setState(() {
       _markDirty();
@@ -6228,7 +6230,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           speciesId: suggestion.speciesId,
           speciesName: suggestion.speciesName,
           speciesCategory: suggestion.category,
-          count: 1,
+          abundance: SightingAbundance.seen,
           notes: '',
         ),
       );
