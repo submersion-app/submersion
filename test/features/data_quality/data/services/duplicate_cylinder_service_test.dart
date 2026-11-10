@@ -280,6 +280,24 @@ void main() {
     },
   );
 
+  test('two serial groups on one dive count as one dive', () async {
+    await insertTank('a6', 'd3', serial: 'S6');
+    await insertTank('b6', 'd3', serial: 'S6');
+    await insertTank('a7', 'd3', serial: 'S7');
+    await insertTank('b7', 'd3', serial: 'S7');
+    final seeded = await seed([
+      twin('d3', 'a6', 'b6', sameTransmitter: true),
+      twin('d3', 'a7', 'b7', sameTransmitter: true),
+    ]);
+    final previews = await service.previewAll(service.bulkCandidates(seeded));
+    expect(previews, hasLength(2));
+
+    final result = await service.removeAll(previews);
+
+    expect(result.merged, 1);
+    expect(result.diveIds, ['d3']);
+  });
+
   test('a single twin merges its group with the chosen mix', () async {
     final seeded = await seed(allFindings());
     final finding = seeded.singleWhere((f) => f.diveId == 'd2');

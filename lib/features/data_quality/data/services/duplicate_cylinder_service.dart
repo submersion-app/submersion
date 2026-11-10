@@ -271,7 +271,6 @@ class DuplicateCylinderService {
     required bool skipMixClashes,
     void Function(int done, int total)? onProgress,
   }) async {
-    var merged = 0;
     var skippedMixes = 0;
     var failed = 0;
     String? operationId;
@@ -305,7 +304,6 @@ class DuplicateCylinderService {
               ),
             );
             if (!done) continue;
-            merged++;
             resolved.addAll(p.findingIds);
             touched.add(p.diveId);
           } catch (error, stackTrace) {
@@ -340,7 +338,8 @@ class DuplicateCylinderService {
       scheduleDerivedMetricsRefresh(dives, force: true);
     }
     return DuplicateRemovalResult(
-      merged: merged,
+      // Dives, as the summary says: one dive can hold two serial groups.
+      merged: touched.length,
       skippedMixes: skippedMixes,
       failed: failed,
       operationId: operationId,

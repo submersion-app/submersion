@@ -329,6 +329,30 @@ void main() {
     expect(await ids(db.diveProfileSeries), contains(edit));
   });
 
+  test("removing a primary file import takes its own profile and promotes "
+      'the next source', () async {
+    await insertDive('dive-1');
+    await insertSource('src-f', null, isPrimary: true, createdDay: 1);
+    await insertSource('src-b', 'dc-b', isPrimary: false, createdDay: 2);
+    final fileProfile = await insertProfile(
+      null,
+      isPrimary: true,
+      sourceId: 'src-f',
+    );
+    final computerProfile = await insertProfile(
+      'dc-b',
+      isPrimary: false,
+      sourceId: 'src-b',
+    );
+
+    await service.remove(diveId: 'dive-1', sourceId: 'src-f');
+
+    final left = await profileSeries.getSeriesForDive('dive-1');
+    expect(left.map((s) => s.id), [computerProfile]);
+    expect(left.single.isPrimary, isTrue);
+    expect(left.map((s) => s.id), isNot(contains(fileProfile)));
+  });
+
   test('refuses the only source', () async {
     await insertDive('dive-1');
     await insertSource('src-a', 'dc-a', isPrimary: true, createdDay: 1);

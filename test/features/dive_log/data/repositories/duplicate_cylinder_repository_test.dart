@@ -192,6 +192,15 @@ void main() {
     },
   );
 
+  test("a blank survivor name takes the duplicate's", () async {
+    await insertTank('keep', computerId: 'dc-a', name: '  ');
+    await insertTank('dup', computerId: 'dc-b', name: 'AL80');
+
+    await merge();
+
+    expect((await tank('keep'))!.tankName, 'AL80');
+  });
+
   test('applies the chosen mix', () async {
     await insertTank('keep', computerId: 'dc-a', o2: 32);
     await insertTank('dup', computerId: 'dc-b', o2: 21);

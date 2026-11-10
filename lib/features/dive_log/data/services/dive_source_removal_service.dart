@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 import 'package:submersion/features/dive_log/data/repositories/tank_source_links.dart';
 import 'package:submersion/features/dive_log/data/services/primary_source_promotion.dart';
 import 'package:submersion/features/dive_log/data/services/source_row_ownership.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series.dart'
+    as series;
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 
@@ -147,8 +149,18 @@ class DiveSourceRemovalService {
       // The diver's edited profile is their own work, not the source's: it
       // stays to describe the dive (Split carries it to the new dive
       // instead; a removal has nowhere else to put it).
+      // A computer-less source's own primary series (one with no computer
+      // that names it) goes too: the legacy rule leaves it behind, as Split
+      // keeps the dive's profile that way, but a removed file import's
+      // profile must not stay on as the dive's and block promotion. Another
+      // computer's series that merely names it stays, unlinked below.
+      bool ownedBySource(series.ProfileSeries s) =>
+          ownership.ownsProfile(s) ||
+          (source.computerId == null &&
+              s.computerId == null &&
+              s.sourceId == source.id);
       final leavingProfiles = allProfileSeries
-          .where((s) => ownership.ownsProfile(s) && !liveEditIds.contains(s.id))
+          .where((s) => ownedBySource(s) && !liveEditIds.contains(s.id))
           .toList();
       final leavingPressures = allPressureSeries
           .where(ownership.ownsPressure)

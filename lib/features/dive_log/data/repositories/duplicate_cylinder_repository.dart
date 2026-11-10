@@ -57,13 +57,17 @@ class DuplicateCylinderRepository {
     ];
     if (survivor == null || duplicates.isEmpty) return false;
 
+    // A blank text is missing, as the merge preview reads it, so a blank
+    // survivor name never shuts out a duplicate's real one.
+    bool present(Object? value) =>
+        value != null && (value is! String || value.trim().isNotEmpty);
     T? firstOf<T>(T? own, T? Function(DiveTank) pick) {
-      if (own != null) return own;
+      if (present(own)) return own;
       for (final d in duplicates) {
         final value = pick(d);
-        if (value != null) return value;
+        if (present(value)) return value;
       }
-      return null;
+      return own;
     }
 
     final shared = <String>{
