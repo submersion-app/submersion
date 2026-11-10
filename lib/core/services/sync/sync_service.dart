@@ -51,6 +51,7 @@ import 'package:submersion/core/services/sync/changeset_log/tombstone_horizon.da
 import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/event_scope_tombstone_applier.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
+import 'package:submersion/core/utils/dive_rating_scale.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
@@ -1494,7 +1495,7 @@ class SyncService {
   /// rows, which a consolidation then left open to a re-parse (issue
   /// #4367); that stamp reads the same touched dives too. One below v358
   /// can still import a UDDF file's 1 to 10 rating as it was, or a 0 for an
-  /// unrated dive (issue #4415).
+  /// unrated dive (issue #4415); that repair reads the touched dives as well.
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {
       final db = DatabaseService.instance.database;
@@ -1513,7 +1514,7 @@ class SyncService {
       if (await repairLastServiceDates(db) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.equipment)});
       }
-      if (await repairOutOfScaleDiveRatings(db) > 0) {
+      if (await repairOutOfScaleDiveRatings(db, diveIds: touchedDiveIds) > 0) {
         db.notifyUpdates({TableUpdate.onTable(db.dives)});
       }
     } catch (e, st) {
@@ -4718,11 +4719,27 @@ class SyncService {
   /// rather than failing with SqliteException(787) and leaving the conflict
   /// unresolvable. The repaired rows are not marked pending: every device
   /// derives the same result from the same rows.
+  ///
+  /// A dive kept from a peer below v358 can carry a UDDF import's 1 to 10
+  /// rating or a 0 (issue #4415), which no inbound apply repairs on this
+  /// path, so it lands on the 1 to 5 star scale here.
   Future<void> _applyConflictRow(String entityType, Map<String, dynamic> row) =>
       _serializer.applyInDeferredFkTransaction(() async {
-        await _serializer.upsertRecord(entityType, row);
+        await _serializer.upsertRecord(
+          entityType,
+          _withRatingInScale(entityType, row),
+        );
         await _serializer.repairAfterRowWrite(entityType);
       });
+
+  static Map<String, dynamic> _withRatingInScale(
+    String entityType,
+    Map<String, dynamic> row,
+  ) {
+    final rating = row['rating'];
+    if (entityType != 'dives' || rating is! num) return row;
+    return {...row, 'rating': DiveRatingScale.normalize(rating.toInt())};
+  }
 
   Future<void> _markPendingForConflict(
     String entityType,

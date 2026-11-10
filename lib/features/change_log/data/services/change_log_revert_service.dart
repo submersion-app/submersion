@@ -204,8 +204,13 @@ class ChangeLogRevertService {
   }) async {
     final columns = await _repository.liveColumns(event.table);
     if (!columns.contains(column)) return ChangeLogBlock.columnGone;
-    final rewrittenAt = _rewrittenColumns['${event.table}.$column'];
-    if (rewrittenAt != null && event.schemaVersion < rewrittenAt) {
+    if (changeLogValueRewritten(
+      _rewrittenColumns,
+      event.table,
+      column,
+      event.schemaVersion,
+      target,
+    )) {
       return ChangeLogBlock.rewritten;
     }
     if (!returning &&

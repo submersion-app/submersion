@@ -117,6 +117,50 @@ void main() {
     expect(changeLogRewrittenColumns['dives.rating'], 358);
   });
 
+  test('a revert refuses only an out-of-scale rating, whenever logged', () {
+    bool refused(int version, Object? value) => changeLogValueRewritten(
+      changeLogRewrittenColumns,
+      'dives',
+      'rating',
+      version,
+      value,
+    );
+
+    // A star count logged before the rung still means the same.
+    expect(refused(357, 4), isFalse);
+    expect(refused(357, '3'), isFalse);
+    expect(refused(357, null), isFalse);
+    // An out-of-scale value is refused, even when a sync apply's repair
+    // logged it after the rung.
+    expect(refused(357, 8), isTrue);
+    expect(refused(357, 0), isTrue);
+    expect(refused(360, 6), isTrue);
+    // A column with no value test keeps the version rule.
+    expect(
+      changeLogValueRewritten(
+        changeLogRewrittenColumns,
+        'dives',
+        'weather_fetched_at',
+        336,
+        1,
+      ),
+      isTrue,
+    );
+  });
+
+  test('the repair a sync apply runs reads only the dives named', () async {
+    final db = AppDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    await seed(db);
+
+    expect(await repairOutOfScaleDiveRatings(db, diveIds: ['six', 'three']), 1);
+    final after = await ratings(db);
+    expect(after['six'], 3);
+    expect(after['ten'], 10);
+  });
+
   test('a rating above 5 is halved and one of 0 or below is cleared', () async {
     final db = reopen(await databaseAt(357));
 

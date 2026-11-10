@@ -218,6 +218,24 @@ void main() {
     );
 
     test(
+      'keepRemote puts a rating from a peer below v358 on the 1 to 5 scale',
+      () async {
+        // Such a peer can still store a UDDF file's 1 to 10 rating (#4415).
+        final base = await seedDive('d-rating', 10);
+        await raiseConflict('dives', 'd-rating', {...base, 'rating': 8});
+
+        await buildService().resolveConflict(
+          'dives',
+          'd-rating',
+          ConflictResolution.keepRemote,
+        );
+
+        final dive = await DiveRepository().getDiveById('d-rating');
+        expect(dive!.rating, 4);
+      },
+    );
+
+    test(
       'keepRemote on a deletion conflict removes the local record',
       () async {
         await seedDive('d-del', 10);

@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
+import 'package:submersion/core/database/change_log/change_log_rewrites.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_dependencies.dart';
@@ -82,8 +83,13 @@ class ChangeLogRecordPlanner {
       return ChangeLogBlock.alreadyRestored;
     }
     for (final field in event.fields) {
-      final rewrittenAt = _rewrittenColumns['${event.table}.${field.column}'];
-      if (rewrittenAt != null && event.schemaVersion < rewrittenAt) {
+      if (changeLogValueRewritten(
+        _rewrittenColumns,
+        event.table,
+        field.column,
+        event.schemaVersion,
+        field.oldValue,
+      )) {
         return ChangeLogBlock.rewritten;
       }
     }
