@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/dive_log/data/services/primary_source_promotion.dart';
 import 'package:submersion/features/dive_log/data/services/source_row_ownership.dart';
+import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 
 /// What a source removal did, for its Undo.
@@ -31,8 +32,7 @@ class SourceRemoval {
 /// the dive starts over on it, as Split does. The removal runs under its own
 /// change log operation labelled [ChangeLogLabels.removeSource], which also
 /// records the series edits a promotion makes, so one revert restores the
-/// dive whole. Callers must not wrap it in another scope: [ChangeLogScope.bulk]
-/// joins a running one and the label would be lost.
+/// dive whole. It always opens its own operation, even inside another scope.
 class DiveSourceRemovalService {
   final _sync = SyncRepository();
   final _profileSeries = ProfileSeriesRepository();
@@ -48,8 +48,11 @@ class DiveSourceRemovalService {
     required String sourceId,
   }) async {
     String? operationId;
-    await ChangeLogScope.bulk(
+    // run, not bulk: bulk joins a scope already open, and the label is what
+    // records the series edits a promotion makes.
+    await ChangeLogScope.run(
       DatabaseService.instance.databaseOrNull,
+      source: ChangeLogSource.manual,
       label: ChangeLogLabels.removeSource,
       body: () async {
         operationId = ChangeLogScope.currentOperationId;
@@ -74,6 +77,18 @@ class DiveSourceRemovalService {
     }
     if (sources.length < 2) {
       throw ArgumentError('cannot remove the only source of dive $diveId');
+    }
+    // Two sources of one computer (a combined split pair, #1045) cannot be
+    // told apart by the computer rules, so removing one would take the
+    // other's tanks and events with it. Split moves them and can be undone
+    // by moving back; a removal deletes, so it refuses.
+    if (source.computerId != null &&
+        sources.any(
+          (s) => s.id != source.id && s.computerId == source.computerId,
+        )) {
+      throw ArgumentError(
+        'source $sourceId shares its computer with another source of $diveId',
+      );
     }
     // As in Split: tank_pressure_series cascades on tank_id, so a series that
     // will not decode is invisible to the reference check and would go with
@@ -116,21 +131,44 @@ class DiveSourceRemovalService {
           .where((r) => ownership.ownedByComputer(r.computerId))
           .toList();
 
+      // What stays on the dive. A tank still needed is one these rows, or
+      // a computer that shares it, still use. Judged by what is leaving, not
+      // by computer: a file-imported source's own series has no computer and
+      // would otherwise read as another computer's.
+      final remainingPressures = allPressureSeries
+          .where((s) => !leavingPressures.contains(s))
+          .toList();
+      final remainingEvents = allEvents
+          .where((r) => !leavingEvents.contains(r))
+          .toList();
+      final remainingSwitches = switchRows
+          .where((r) => !ownership.ownedByComputer(r.computerId))
+          .toList();
+      String? remainingUserOf(DiveTank tank) => [
+        for (final s in remainingPressures)
+          if (s.tankId == tank.id) s.computerId,
+        for (final r in remainingEvents)
+          if (r.tankId == tank.id) r.computerId,
+        for (final r in remainingSwitches)
+          if (r.tankId == tank.id) r.computerId,
+      ].nonNulls.firstOrNull;
+      bool stillUsed(DiveTank tank) =>
+          remainingPressures.any((s) => s.tankId == tank.id) ||
+          remainingEvents.any((r) => r.tankId == tank.id) ||
+          remainingSwitches.any((r) => r.tankId == tank.id) ||
+          (decodeSharedComputerIds(tank.sharedComputerIds)?.isNotEmpty ??
+              false);
+
       final deletedTankIds = <String>[];
       for (final tank in allTanks.where(ownership.ownsTank)) {
-        final stillNeeded = ownership.tankStillNeeded(
-          tank,
-          pressures: allPressureSeries,
-          events: allEvents,
-          switches: switchRows,
-        );
-        if (stillNeeded) {
+        if (stillUsed(tank)) {
           await ownership.handTankToHeir(
             _db,
             _sync,
             tank: tank,
             sources: sources,
             now: now,
+            fallbackHeir: remainingUserOf(tank),
           );
         } else {
           deletedTankIds.add(tank.id);

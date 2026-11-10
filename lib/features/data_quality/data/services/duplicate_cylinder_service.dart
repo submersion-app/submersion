@@ -93,8 +93,8 @@ class DuplicateRemovalResult {
 ///
 /// Each run is one change log operation labelled
 /// [ChangeLogLabels.removeDuplicateCylinders], which also records the
-/// pressure series a merge moves, so one revert restores everything. Callers
-/// must not wrap it in another scope.
+/// pressure series a merge moves, so one revert restores everything. It
+/// always opens its own operation, even inside another scope.
 class DuplicateCylinderService {
   DuplicateCylinderService({
     DuplicateCylinderRepository? repository,
@@ -238,8 +238,11 @@ class DuplicateCylinderService {
     final resolved = <String>[];
     final touched = <String>{};
 
-    await ChangeLogScope.bulk(
+    // run, not bulk: its own operation even inside another scope, so the
+    // label that records the moved pressure series is never lost.
+    await ChangeLogScope.run(
       DatabaseService.instance.databaseOrNull,
+      source: ChangeLogSource.manual,
       label: ChangeLogLabels.removeDuplicateCylinders,
       body: () async {
         operationId = ChangeLogScope.currentOperationId;

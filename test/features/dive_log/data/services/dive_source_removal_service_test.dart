@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/features/change_log/data/services/change_log_operation_undo.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -299,6 +300,103 @@ void main() {
         db.diveTanks,
       )..where((t) => t.id.equals(shared))).getSingle();
       expect(tank.computerId, 'dc-a');
+    },
+  );
+
+  test('a file-imported source takes its own cylinder with it', () async {
+    await insertDive('dive-1');
+    await insertSource('src-a', 'dc-a', isPrimary: true, createdDay: 1);
+    await insertSource('src-f', null, isPrimary: false, createdDay: 2);
+    await insertProfile('dc-a', isPrimary: true);
+    const tankId = 'tank-file';
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion.insert(
+            id: tankId,
+            diveId: 'dive-1',
+            sourceId: const Value('src-f'),
+          ),
+        );
+    await tankSeries.insertSeries(
+      diveId: 'dive-1',
+      tankId: tankId,
+      computerId: null,
+      sourceId: 'src-f',
+      samples: const [TankPressureSample(timestamp: 0, pressure: 200.0)],
+      now: 1000,
+    );
+
+    await service.remove(diveId: 'dive-1', sourceId: 'src-f');
+
+    expect((await ids(db.diveTanks)).contains(tankId), isFalse);
+    expect(await ids(db.tankPressureSeries), isEmpty);
+  });
+
+  test(
+    'refuses a source whose computer another source of the dive shares',
+    () async {
+      await insertDive('dive-1');
+      await insertSource('src-a', 'dc-a', isPrimary: true, createdDay: 1);
+      await insertSource('src-a2', 'dc-a', isPrimary: false, createdDay: 2);
+
+      expect(
+        () => service.remove(diveId: 'dive-1', sourceId: 'src-a2'),
+        throwsArgumentError,
+      );
+    },
+  );
+
+  test(
+    'a kept tank with no sharers goes to the computer still using it',
+    () async {
+      await insertComputer('dc-c');
+      await insertDive('dive-1');
+      await insertSource('src-a', 'dc-a', isPrimary: true, createdDay: 1);
+      await insertSource('src-b', 'dc-b', isPrimary: false, createdDay: 2);
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion(
+              id: const Value('src-c'),
+              diveId: const Value('dive-1'),
+              computerId: const Value('dc-c'),
+              isPrimary: const Value(false),
+              importedAt: Value(DateTime.utc(2026, 1, 3)),
+              createdAt: Value(DateTime.utc(2026, 1, 3)),
+            ),
+          );
+      await insertProfile('dc-a', isPrimary: true);
+      final tank = await insertTank('dc-b');
+      await insertPressure(tank, 'dc-c');
+
+      await service.remove(diveId: 'dive-1', sourceId: 'src-b');
+
+      final row = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.id.equals(tank))).getSingle();
+      expect(row.computerId, 'dc-c');
+    },
+  );
+
+  test(
+    'a removal inside another scope still files under its own operation',
+    () async {
+      await twoComputerDive();
+
+      String? outer;
+      late SourceRemoval removal;
+      await ChangeLogScope.bulk(
+        db,
+        label: ChangeLogLabels.qualityRepair,
+        body: () async {
+          outer = ChangeLogScope.currentOperationId;
+          removal = await service.remove(diveId: 'dive-1', sourceId: 'src-b');
+        },
+      );
+
+      expect(removal.operationId, isNotNull);
+      expect(removal.operationId, isNot(outer));
     },
   );
 

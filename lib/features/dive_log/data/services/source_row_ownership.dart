@@ -94,6 +94,7 @@ class SourceOwnership {
     required DiveTank tank,
     required List<DiveDataSourcesData> sources,
     required int now,
+    String? fallbackHeir,
   }) async {
     final sharers = [
       for (final c
@@ -101,7 +102,9 @@ class SourceOwnership {
               const <String>[])
         if (c != source.computerId) c,
     ];
-    final heir = sharers.firstOrNull;
+    // [fallbackHeir] is for a tank no computer shares but another still
+    // uses (Remove source passes the computer of a row that kept it).
+    final heir = sharers.firstOrNull ?? fallbackHeir;
     final heirSourceId = heir == null
         ? null
         : sources.where((s) => s.computerId == heir).firstOrNull?.id;
