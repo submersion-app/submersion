@@ -219,15 +219,16 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
   // listed at 27.1 ft, "at least 27.1 ft" takes it in. Its bound is the
   // exact storage value, since the band is drawn around it; the rounded one
   // could shift the band's edge by a third of its width.
+  // A unit said other than the diver's is printed in the diver's unit (the
+  // value carries no typed unit), where it is no longer on the grid, so it
+  // compares exactly, as the printed text would read back.
+  final saidUnit = queryUnitOf(c.unit, field.dimension);
+  final shownAsSaid =
+      saidUnit == null || saidUnit == unitForDimension(field.dimension, units);
   NumberValue at(num said) {
-    final grain = integral
+    final grain = integral || !shownAsSaid
         ? null
-        : displayGrain(
-            said,
-            queryUnitOf(c.unit, field.dimension),
-            field.dimension,
-            units,
-          );
+        : displayGrain(said, saidUnit, field.dimension, units);
     return grain == null
         ? NumberValue(ground(said), null)
         : NumberValue(

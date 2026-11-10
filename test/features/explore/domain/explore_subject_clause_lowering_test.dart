@@ -163,12 +163,13 @@ void main() {
       metric,
       now: now,
     );
-    // Strict, and read at the tenth of a foot it was said in (#4398).
+    // Strict (#4398). Said in feet to a diver who reads metres, it compares
+    // exactly: the list prints it in metres, where 100 ft is no tenth.
     final node = r.nodes.single as ConditionNode;
     expect(node.path, FieldPath(['maxDepth']));
     expect(node.op, QueryOp.gt);
     final v = node.value! as NumberValue;
     expect(v.value, closeTo(30.48, 1e-6));
-    expect(v.grain, closeTo(0.1 / 3.28084, 1e-12));
+    expect(v.grain, isNull);
   });
 }
