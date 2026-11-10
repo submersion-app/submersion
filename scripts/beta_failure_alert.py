@@ -79,10 +79,14 @@ _RESOLVED_RUN_RE = re.compile(r"<!-- beta-resolved-run: (\d+) -->")
 # Used when the BETA_ALERT_ASSIGNEE Actions variable is unset.
 DEFAULT_ASSIGNEE = "ericgriffin"
 
-# Job conclusions the jobs API uses for a failed job. A timeout has been seen
-# only as `cancelled` (see TIMEOUT_ANNOTATION), but `timed_out` is a
-# documented conclusion, so it counts too.
-FAILED_CONCLUSIONS = frozenset({"failure", "timed_out", "startup_failure"})
+# Job conclusions the jobs API uses for a failed job.
+FAILED_CONCLUSIONS = frozenset({"failure", "startup_failure"})
+
+# A timeout has been seen only as a `cancelled` job (see TIMEOUT_ANNOTATION),
+# but `timed_out` is a documented conclusion, so a job reported that way is
+# listed as timed out too. The step it stopped in may carry either conclusion.
+TIMED_OUT_CONCLUSION = "timed_out"
+STOPPED_STEP_CONCLUSIONS = frozenset({"cancelled", "timed_out"})
 
 # The check-run annotation GitHub writes on a job that ran out of time, as in
 # "The job has exceeded the maximum execution time of 45m0s". A preempted job
@@ -111,22 +115,24 @@ def decide(needs):
 def failed_steps(jobs, timed_out=frozenset()):
     """Return [(job name, [step names])] for every failed or timed-out job.
 
-    A failed job lists its failed steps; a job whose id is in timed_out lists
-    the step the timeout cut off, which the API marks `cancelled`.
+    A failed job lists its failed steps. A timed-out job, whether its id is in
+    timed_out (a `cancelled` job whose annotation says so) or the API reports
+    it as `timed_out`, lists the step the timeout stopped.
     """
     listed = []
     for job in jobs:
         name = job.get("name", "?")
-        if job.get("conclusion") in FAILED_CONCLUSIONS:
-            wanted = "failure"
-        elif job.get("id") in timed_out:
-            name, wanted = f"{name} (timed out)", "cancelled"
+        conclusion = job.get("conclusion")
+        if conclusion in FAILED_CONCLUSIONS:
+            wanted = frozenset({"failure"})
+        elif conclusion == TIMED_OUT_CONCLUSION or job.get("id") in timed_out:
+            name, wanted = f"{name} (timed out)", STOPPED_STEP_CONCLUSIONS
         else:
             continue
         steps = [
             step.get("name", "?")
             for step in job.get("steps") or []
-            if step.get("conclusion") == wanted
+            if step.get("conclusion") in wanted
         ]
         listed.append((name, steps))
     return listed

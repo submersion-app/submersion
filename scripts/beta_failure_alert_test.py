@@ -286,21 +286,36 @@ class FailedStepsTest(unittest.TestCase):
     def test_a_cancelled_job_that_did_not_time_out_is_not_listed(self):
         self.assertEqual(alert.failed_steps(CANCELLED_RUN_JOBS["jobs"]), [])
 
-    def test_failed_and_timed_out_conclusions_count_as_failed(self):
+    def test_a_timed_out_conclusion_is_listed_like_an_annotated_timeout(self):
         # The jobs API has been seen to report a timeout only as `cancelled`,
-        # but `timed_out` is a documented conclusion, so it is honoured too.
+        # but `timed_out` is a documented conclusion: it gets the same marker
+        # and the step it stopped in, whichever way that step is marked.
         jobs = [
             {
                 "name": "Upload macOS beta to TestFlight",
                 "conclusion": "timed_out",
-                "steps": [{"name": "Distribute to Public Beta group", "conclusion": "cancelled"}],
+                "steps": [
+                    {"name": "Upload binary to TestFlight", "conclusion": "success"},
+                    {"name": "Distribute to Public Beta group", "conclusion": "cancelled"},
+                ],
             },
-            {"name": "Build / Build Linux", "conclusion": "startup_failure", "steps": []},
+            {
+                "name": "Upload iOS beta to TestFlight",
+                "conclusion": "timed_out",
+                "steps": [{"name": "Distribute to Public Beta group", "conclusion": "timed_out"}],
+            },
         ]
         self.assertEqual(
-            [name for name, _ in alert.failed_steps(jobs)],
-            ["Upload macOS beta to TestFlight", "Build / Build Linux"],
+            alert.failed_steps(jobs),
+            [
+                ("Upload macOS beta to TestFlight (timed out)", ["Distribute to Public Beta group"]),
+                ("Upload iOS beta to TestFlight (timed out)", ["Distribute to Public Beta group"]),
+            ],
         )
+
+    def test_a_startup_failure_counts_as_failed(self):
+        jobs = [{"name": "Build / Build Linux", "conclusion": "startup_failure", "steps": []}]
+        self.assertEqual(alert.failed_steps(jobs), [("Build / Build Linux", [])])
 
     def test_a_job_that_failed_outside_any_step_is_still_listed(self):
         jobs = [{"name": "Build / Build iOS", "conclusion": "failure", "steps": []}]
