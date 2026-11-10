@@ -45,12 +45,12 @@ class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
     final liveCount = ref.watch(tripListCountProvider);
     // A reload of the trip list itself (another diver, say) or an error
     // shows no earlier figures, as the list and its count show none: only
-    // a filter's own id query in flight falls back to them.
-    final keepLast =
-        isFiltered &&
-        tripsAsync.isLoading &&
-        !ref.watch(tripListNotifierProvider).isLoading;
-    if (!isFiltered || tripsAsync.hasError) {
+    // a filter's own id query in flight falls back to them. The reload also
+    // forgets them, so a filter query still running once the new list
+    // lands cannot bring back the previous list's trips.
+    final listReloading = ref.watch(tripListNotifierProvider).isLoading;
+    final keepLast = isFiltered && tripsAsync.isLoading && !listReloading;
+    if (!isFiltered || tripsAsync.hasError || listReloading) {
       _lastTrips = null;
       _lastCount = null;
     } else {

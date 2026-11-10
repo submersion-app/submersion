@@ -34,6 +34,10 @@ class _StubTripListNotifier
   /// A reload of the whole list, as a diver switch starts one.
   void startReload() => state = const AsyncValue.loading();
 
+  /// The reloaded list lands: the new diver's trips.
+  void finishReload(List<TripWithStats> trips) =>
+      state = AsyncValue.data(trips);
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -447,6 +451,49 @@ void main() {
       expect(find.text('Belgium'), findsNothing);
       expect(find.textContaining('of 4 trips'), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    // A diver switch reloads the list; a filter change during it starts an
+    // id query with no previous value. When the new diver's list lands
+    // first, the previous diver's trips must not come back while that
+    // query is still in flight.
+    testWidgets('a diver switch leaves no earlier trips to fall back to', (
+      tester,
+    ) async {
+      final pending = Completer<Set<String>>();
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        idsFor: (filter) =>
+            filter == byTank ? Future.value(const {'b'}) : pending.future,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+      final list =
+          container.read(tripListNotifierProvider.notifier)
+              as _StubTripListNotifier;
+      expect(find.text('Belgium'), findsOneWidget);
+
+      list.startReload();
+      await tester.pump();
+      container.read(tripFilterProvider.notifier).state = const TripFilterState(
+        equipmentId: 'tank-2',
+      );
+      await tester.pump();
+      list.finishReload([trip('e', 'Malta', 9, 4)]);
+      await tester.pump();
+
+      expect(find.text('Belgium'), findsNothing);
+      expect(find.textContaining('of 4 trips'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      pending.complete(const {'e'});
+      await tester.pumpAndSettle();
+      expect(find.text('Malta'), findsOneWidget);
+      expect(find.text('Filtered: summarizing 1 of 1 trip'), findsOneWidget);
     });
   });
 
