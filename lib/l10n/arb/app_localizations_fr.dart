@@ -43573,7 +43573,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Supprimer les blocs en double ($count plongées)',
-      one: 'Supprimer les blocs en double (1 plongée)',
+      one: 'Supprimer les blocs en double ($count plongée)',
     );
     return '$_temp0';
   }
@@ -43596,7 +43596,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Supprimé sur $count plongées',
-      one: 'Supprimé sur 1 plongée',
+      one: 'Supprimé sur $count plongée',
     );
     return '$_temp0';
   }
@@ -43622,7 +43622,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Ignorer $count constats ?',
-      one: 'Ignorer 1 constat ?',
+      one: 'Ignorer $count constat ?',
     );
     return '$_temp0';
   }
@@ -43640,7 +43640,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count constats ignorés',
-      one: '1 constat ignoré',
+      one: '$count constat ignoré',
     );
     return '$_temp0';
   }

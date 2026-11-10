@@ -44010,8 +44010,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'إزالة $count أسطوانات مكررة؟',
+      other: 'إزالة $count أسطوانة مكررة؟',
+      many: 'إزالة $count أسطوانة مكررة؟',
+      few: 'إزالة $count أسطوانات مكررة؟',
+      two: 'إزالة أسطوانتين مكررتين؟',
       one: 'إزالة الأسطوانة المكررة؟',
+      zero: 'إزالة $count أسطوانة مكررة؟',
     );
     return '$_temp0';
   }
@@ -44037,8 +44041,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'إزالة الأسطوانات المكررة ($count غطسات)',
+      other: 'إزالة الأسطوانات المكررة ($count غطسة)',
+      many: 'إزالة الأسطوانات المكررة ($count غطسة)',
+      few: 'إزالة الأسطوانات المكررة ($count غطسات)',
+      two: 'إزالة الأسطوانات المكررة (غطستان)',
       one: 'إزالة الأسطوانات المكررة (غطسة واحدة)',
+      zero: 'إزالة الأسطوانات المكررة ($count غطسة)',
     );
     return '$_temp0';
   }
@@ -44060,8 +44068,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'أُزيلت في $count غطسات',
+      other: 'أُزيلت في $count غطسة',
+      many: 'أُزيلت في $count غطسة',
+      few: 'أُزيلت في $count غطسات',
+      two: 'أُزيلت في غطستين',
       one: 'أُزيلت في غطسة واحدة',
+      zero: 'أُزيلت في $count غطسة',
     );
     return '$_temp0';
   }
@@ -44086,8 +44098,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تجاهل $count ملاحظات؟',
+      other: 'تجاهل $count ملاحظة؟',
+      many: 'تجاهل $count ملاحظة؟',
+      few: 'تجاهل $count ملاحظات؟',
+      two: 'تجاهل ملاحظتين؟',
       one: 'تجاهل ملاحظة واحدة؟',
+      zero: 'تجاهل $count ملاحظة؟',
     );
     return '$_temp0';
   }
@@ -44104,8 +44120,12 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تم تجاهل $count ملاحظات',
+      other: 'تم تجاهل $count ملاحظة',
+      many: 'تم تجاهل $count ملاحظة',
+      few: 'تم تجاهل $count ملاحظات',
+      two: 'تم تجاهل ملاحظتين',
       one: 'تم تجاهل ملاحظة واحدة',
+      zero: 'تم تجاهل $count ملاحظة',
     );
     return '$_temp0';
   }

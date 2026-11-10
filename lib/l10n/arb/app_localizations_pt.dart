@@ -43424,7 +43424,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Remover cilindros duplicados ($count mergulhos)',
-      one: 'Remover cilindros duplicados (1 mergulho)',
+      one: 'Remover cilindros duplicados ($count mergulho)',
     );
     return '$_temp0';
   }
@@ -43447,7 +43447,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Removido em $count mergulhos',
-      one: 'Removido em 1 mergulho',
+      one: 'Removido em $count mergulho',
     );
     return '$_temp0';
   }
@@ -43473,7 +43473,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Dispensar $count achados?',
-      one: 'Dispensar 1 achado?',
+      one: 'Dispensar $count achado?',
     );
     return '$_temp0';
   }
@@ -43491,7 +43491,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count achados dispensados',
-      one: '1 achado dispensado',
+      one: '$count achado dispensado',
     );
     return '$_temp0';
   }
