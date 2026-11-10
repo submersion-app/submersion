@@ -358,27 +358,16 @@ class TagRepository {
     }
   }
 
-  /// [tag] widened to also cover every scope in [wanted].
+  /// [tag] widened to also cover every scope in [wanted], in one write.
+  /// [notify] false for a caller that notifies once itself.
   Future<domain.Tag> _widenTo(
     domain.Tag tag,
-    Set<domain.TagScope> wanted,
-  ) async {
-    var result = tag;
-    for (final scope in domain.TagScope.values) {
-      if (wanted.contains(scope)) result = await _widen(result, scope);
-    }
-    return result;
-  }
-
-  /// Adds [scope] to [tag] if it lacks it, returning the stored result.
-  /// [notify] false for a caller that notifies once itself.
-  Future<domain.Tag> _widen(
-    domain.Tag tag,
-    domain.TagScope scope, {
+    Set<domain.TagScope> wanted, {
     bool notify = true,
   }) async {
-    if (tag.appliesTo(scope)) return tag;
-    final widened = tag.copyWith(scopes: {...tag.scopes, scope});
+    final missing = wanted.difference(tag.scopes);
+    if (missing.isEmpty) return tag;
+    final widened = tag.copyWith(scopes: {...tag.scopes, ...missing});
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(_db.tags)..where((t) => t.id.equals(tag.id))).write(
       RawValuesInsertable<Tag>({
@@ -392,9 +381,19 @@ class TagRepository {
       localUpdatedAt: now,
     );
     if (notify) SyncEventBus.notifyLocalChange();
-    _log.info('Widened tag ${tag.id} to ${scope.name}');
+    _log.info(
+      'Widened tag ${tag.id} to ${missing.map((s) => s.name).join(', ')}',
+    );
     return widened;
   }
+
+  /// Adds [scope] to [tag] if it lacks it, returning the stored result.
+  /// [notify] false for a caller that notifies once itself.
+  Future<domain.Tag> _widen(
+    domain.Tag tag,
+    domain.TagScope scope, {
+    bool notify = true,
+  }) => _widenTo(tag, {scope}, notify: notify);
 
   /// Adds [scope] to each of [tagIds] that lacks it, before they are linked
   /// there, so a link keeps implying its scope (#1765). A logbook rule

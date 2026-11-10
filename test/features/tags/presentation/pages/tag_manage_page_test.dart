@@ -900,6 +900,33 @@ void main() {
       expect(notifier.addedWidenExistingTo.single, isEmpty);
     });
 
+    testWidgets('every scope re-ticked by hand is a choice (#4407)', (
+      tester,
+    ) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      final dives = find.widgetWithText(CheckboxListTile, 'Use for dives');
+      // Unticked, then ticked again: every box ends ticked, by hand.
+      // Toggled through the box's own callback: the focused name field
+      // scrolls the dialog between frames, which makes a second tap flaky.
+      for (final on in const [false, true]) {
+        tester.widget<CheckboxListTile>(dives).onChanged!(on);
+        await tester.pump();
+      }
+      expect(tester.widget<CheckboxListTile>(dives).value, isTrue);
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.added.single.scopes, TagScope.values.toSet());
+      // The user touched the boxes, so a name's incumbent is widened to all.
+      expect(notifier.addedWidenExistingTo.single, TagScope.values.toSet());
+    });
+
     testWidgets('a create saves the chosen color and scope', (tester) async {
       final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
       await tester.pumpWidget(

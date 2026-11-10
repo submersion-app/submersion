@@ -254,6 +254,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     // Every scope starts ticked, so a new tag can be reused anywhere unless
     // the user narrows it here (issue #4407).
     Set<TagScope> scopes = TagScope.everywhere;
+    // Whether the user changed the boxes: only a choice widens a tag that
+    // already holds the name (issue #4407).
+    bool scopesChosen = false;
     bool saving = false;
     bool failed = false;
 
@@ -295,11 +298,12 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                     scopes: scopes,
                     // Applied to the dialog's current set, never replaced
                     // in place, so a Save already under way keeps its own.
-                    onToggle: (scope, on) => setDialogState(
-                      () => scopes = on
+                    onToggle: (scope, on) => setDialogState(() {
+                      scopesChosen = true;
+                      scopes = on
                           ? scopes.union({scope})
-                          : scopes.difference({scope}),
-                    ),
+                          : scopes.difference({scope});
+                    }),
                   ),
                   if (failed) _saveErrorLine(),
                 ],
@@ -325,13 +329,12 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                           colorHex: selectedColor,
                           scopes: scopes,
                         );
-                        // Every box ticked is the default, not a choice, so
+                        // Untouched boxes are the default, not a choice, so
                         // a tag already holding this name is reused as it
-                        // is. A narrowed set was chosen and widens it.
-                        final widenExistingTo =
-                            scopes.length == TagScope.values.length
-                            ? const <TagScope>{}
-                            : scopes;
+                        // is. A set the user chose widens it.
+                        final widenExistingTo = scopesChosen
+                            ? scopes
+                            : const <TagScope>{};
                         _saveFromDialog(
                           dialogContext,
                           setSaving: (v) => setDialogState(() => saving = v),

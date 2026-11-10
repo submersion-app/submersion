@@ -17,7 +17,7 @@ enum TagScope {
   /// reused on dives, sites, media and the rest alike (issue #4407).
   /// Narrowing it is a choice made in Manage Tags. Unmodifiable, as
   /// [Tag.scopes] is read-only.
-  static Set<TagScope> get everywhere => Set.unmodifiable(values);
+  static final Set<TagScope> everywhere = Set.unmodifiable(values);
 
   /// Where this scope stores its flag and its links.
   TagScopeTable get table => switch (this) {
@@ -62,15 +62,16 @@ class Tag extends Equatable {
   bool appliesTo(TagScope scope) => scopes.contains(scope);
 
   /// Create a new tag with a default color, offered in [scopes], or in
-  /// [scope] only when [scopes] is null.
+  /// [scope] only (dives when neither is given). Pass one or the other.
   factory Tag.create({
     required String id,
     required String name,
     String? diverId,
     String? colorHex,
-    TagScope scope = TagScope.dives,
+    TagScope? scope,
     Set<TagScope>? scopes,
   }) {
+    assert(scope == null || scopes == null, 'Pass scope or scopes, not both');
     final now = DateTime.now();
     return Tag(
       id: id,
@@ -79,7 +80,7 @@ class Tag extends Equatable {
       colorHex: colorHex,
       createdAt: now,
       updatedAt: now,
-      scopes: scopes ?? {scope},
+      scopes: scopes ?? {scope ?? TagScope.dives},
     );
   }
 
