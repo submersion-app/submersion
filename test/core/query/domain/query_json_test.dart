@@ -51,6 +51,30 @@ void main() {
     expect(back, equals(tree));
   });
 
+  test('keeps a number display grain, and reads its absence as none', () {
+    // Issue #4398: a saved `depth < 27.1` still compares as shown.
+    final grained = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.lt,
+      const NumberValue(8.26, null, grain: 0.03, shown: 27.1),
+    );
+    final json = queryNodeToJson(grained);
+    final back = queryNodeFromJson(
+      jsonDecode(jsonEncode(json)) as Map<String, Object?>,
+    );
+    expect(back, equals(grained));
+    final plain = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.lt,
+      const NumberValue(8.26, null),
+    );
+    expect(
+      jsonEncode(queryNodeToJson(plain)),
+      isNot(contains('"g"')),
+      reason: 'an exact number writes what it always did',
+    );
+  });
+
   test('carries the version', () {
     expect(queryNodeToJson(tree)['version'], kQueryJsonVersion);
   });
@@ -127,6 +151,21 @@ void main() {
         'path': 'depth',
         'op': 'gt',
         'value': {'k': 'num', 'v': 1},
+      },
+      // a grain that is not a positive width (#4398)
+      for (final g in <Object>['wide', 0, -0.1])
+        {
+          't': 'cond',
+          'path': ['depth'],
+          'op': 'gt',
+          'value': {'k': 'num', 'v': 1, 'g': g},
+        },
+      // a shown number that is not one
+      {
+        't': 'cond',
+        'path': ['depth'],
+        'op': 'gt',
+        'value': {'k': 'num', 'v': 1, 'g': 0.1, 's': 'x'},
       },
       // children that are not maps
       {

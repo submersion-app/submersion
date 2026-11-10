@@ -163,8 +163,13 @@ void main() {
       metric,
       now: now,
     );
-    expect(r.nodes, [
-      cond('maxDepth', QueryOp.gte, const NumberValue(30.48, null)),
-    ]);
+    // Strict (#4398). Said in feet to a diver who reads metres, it compares
+    // exactly: the list prints it in metres, where 100 ft is no tenth.
+    final node = r.nodes.single as ConditionNode;
+    expect(node.path, FieldPath(['maxDepth']));
+    expect(node.op, QueryOp.gt);
+    final v = node.value! as NumberValue;
+    expect(v.value, closeTo(30.48, 1e-6));
+    expect(v.grain, isNull);
   });
 }

@@ -251,7 +251,11 @@ void main() {
     expect(
       q.query,
       countedDives([
-        cond(['depth'], QueryOp.gte, const NumberValue(40, null)),
+        cond(
+          ['depth'],
+          QueryOp.gt,
+          const NumberValue(40, null, grain: 0.1, shown: 40),
+        ),
       ]),
     );
     expect(q.chips.single.viaDives, isTrue);

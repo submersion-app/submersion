@@ -31,10 +31,12 @@ Map<String, Object?> _node(QueryNode n) => switch (n) {
 };
 
 Map<String, Object?> _value(QueryValue v) => switch (v) {
-  NumberValue(:final value, :final typedUnit) => {
+  NumberValue(:final value, :final typedUnit, :final grain, :final shown) => {
     'k': 'num',
     'v': value,
     if (typedUnit != null) 'u': typedUnit.name,
+    'g': ?grain,
+    's': ?shown,
   },
   StringValue(:final value) => {'k': 'str', 'v': value},
   BoolValue(:final value) => {'k': 'bool', 'v': value},
@@ -118,6 +120,18 @@ QueryValue _readValue(Map<String, Object?> m) {
       final v = m['v'];
       if (v is! num) throw const QueryJsonException('bad number');
       final u = m['u'];
+      // Absent in a query saved before issue #4398: it compares exactly,
+      // as it always did.
+      final g = m['g'];
+      // A step is a positive width: zero would match nothing, a negative
+      // one would turn every band inside out.
+      if (g != null && (g is! num || !g.isFinite || g <= 0)) {
+        throw const QueryJsonException('bad number grain');
+      }
+      final shown = m['s'];
+      if (shown != null && (shown is! num || !shown.isFinite)) {
+        throw const QueryJsonException('bad shown number');
+      }
       return NumberValue(
         v.toDouble(),
         u == null
@@ -126,6 +140,8 @@ QueryValue _readValue(Map<String, Object?> m) {
                 (x) => x.name == u,
                 orElse: () => throw QueryJsonException('unknown unit $u'),
               ),
+        grain: (g as num?)?.toDouble(),
+        shown: (shown as num?)?.toDouble(),
       );
     case 'str':
       return StringValue(_str(m['v']));

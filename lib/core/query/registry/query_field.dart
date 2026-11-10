@@ -124,6 +124,12 @@ class QueryField {
   /// Validation range in storage units, inclusive.
   final ({double min, double max})? sanity;
 
+  /// Decimal places the app shows this field with, where its dimension's
+  /// own precision does not apply: visibility is a depth shown in whole
+  /// metres or feet. A typed number compares as shown at this precision
+  /// (issue #4398). Null takes the dimension's.
+  final int? displayDecimals;
+
   /// For [FieldType.date]: the frame the column stores.
   final DateFrame dateFrame;
 
@@ -147,6 +153,7 @@ class QueryField {
     this.boolSql,
     this.rangeSql,
     this.sanity,
+    this.displayDecimals,
     this.dateFrame = DateFrame.wallClockUtc,
     this.tables = const [],
   }) : _ops = ops;

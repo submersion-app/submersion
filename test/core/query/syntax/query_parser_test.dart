@@ -55,6 +55,17 @@ void main() {
     return r as ParseFailure;
   }
 
+  test('a number typed at display precision carries its grain (#4398)', () {
+    final ft = ok(imperial(), 'depth < 27.1') as ConditionNode;
+    expect((ft.value as NumberValue).grain, closeTo(0.1 / 3.28084, 1e-12));
+    final c = ok(imperial(), 'waterTemp < 20c') as ConditionNode;
+    expect((c.value as NumberValue).grain, closeTo(0.1, 1e-12));
+    final finer = ok(imperial(), 'depth < 27.15') as ConditionNode;
+    expect((finer.value as NumberValue).grain, isNull);
+    final rating = ok(metric(), 'rating >= 4') as ConditionNode;
+    expect((rating.value as NumberValue).grain, isNull);
+  });
+
   test('empty text is an empty query', () {
     expect((metric().parse('   ') as ParseOk).node, isNull);
   });
@@ -67,7 +78,7 @@ void main() {
         ConditionNode(
           FieldPath(['depth']),
           QueryOp.gt,
-          const NumberValue(30, null),
+          const NumberValue(30, null, grain: 0.1, shown: 30),
         ),
       );
       final imp = ok(imperial(), 'depth > 100') as ConditionNode;
@@ -80,7 +91,7 @@ void main() {
         ConditionNode(
           FieldPath(['waterTemp']),
           QueryOp.lt,
-          const NumberValue(-2, null),
+          const NumberValue(-2, null, grain: 0.1, shown: -2),
         ),
       );
     },
@@ -94,7 +105,7 @@ void main() {
           ConditionNode(
             FieldPath(['depth']),
             QueryOp.gt,
-            const NumberValue(30, null),
+            const NumberValue(30, null, grain: 0.1, shown: 30),
           ),
           ConditionNode(
             FieldPath(['rating']),
@@ -145,7 +156,7 @@ void main() {
       ConditionNode(
         FieldPath(['depth']),
         QueryOp.eq,
-        const NumberValue(30, null),
+        const NumberValue(30, null, grain: 0.1, shown: 30),
       ),
     );
   });
@@ -164,7 +175,10 @@ void main() {
       ConditionNode(
         FieldPath(['depth']),
         QueryOp.between,
-        ListValue([const NumberValue(18, null), const NumberValue(30, null)]),
+        ListValue([
+          const NumberValue(18, null, grain: 0.1, shown: 18),
+          const NumberValue(30, null, grain: 0.1, shown: 30),
+        ]),
       ),
     );
     expect(
@@ -525,7 +539,10 @@ void main() {
       ConditionNode(
         FieldPath(['depth']),
         QueryOp.between,
-        ListValue([const NumberValue(18, null), const NumberValue(30, null)]),
+        ListValue([
+          const NumberValue(18, null, grain: 0.1, shown: 18),
+          const NumberValue(30, null, grain: 0.1, shown: 30),
+        ]),
       ),
     );
     expect(
@@ -608,7 +625,7 @@ void main() {
           ConditionNode(
             FieldPath(['depth']),
             QueryOp.gt,
-            const NumberValue(30, null),
+            const NumberValue(30, null, grain: 0.1, shown: 30),
           ),
         ]),
       );
