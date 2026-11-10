@@ -1117,7 +1117,10 @@ jobs:
     name: Web Smoke (Firefox and WebKit)
     needs: [changes, web-build]
     if: needs.changes.outputs.code == 'true'
-    runs-on: ubuntu-latest
+    # Pinned: ubuntu-latest moved to 26.04, where the pinned Playwright
+    # (scripts/web/requirements-smoke.txt) refuses to install Firefox, so
+    # the job failed before any smoke ran. Move both together.
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     env:
       # MinIO's community image and binaries were withdrawn when the project
