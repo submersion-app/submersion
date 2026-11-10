@@ -1,3 +1,4 @@
+import CoreBluetooth
 import Foundation
 
 /// Picks the write mode a BLE stream starts with.
@@ -14,12 +15,15 @@ import Foundation
 ///    request followed by the reply, and an acknowledged write holds the
 ///    request until the computer's ATT write response arrives, up to a
 ///    connection interval later, on every block. The Android transport has
-///    always sent these requests without response. Each request fits in one
-///    20-byte frame, and a lost one surfaces as a read timeout, which the
-///    flip above and the Shearwater driver's per-dive retry both recover.
+///    always sent these requests without response. The requests are a few
+///    bytes long (a SLIP-escaped init request can still spill into a second
+///    20-byte frame, which BleIoStream paces with canSendWriteWithoutResponse),
+///    and a lost one surfaces as a read timeout, which the flip above and the
+///    Shearwater driver's per-dive retry both recover.
 ///
-/// Pure string logic so it is unit-tested standalone via run_native_tests.sh;
-/// pass `CBUUID.uuidString`, which is upper case for 128-bit UUIDs.
+/// Dependency-free (CoreBluetooth + Foundation only) so it is unit-tested
+/// standalone via run_native_tests.sh; pass `CBUUID.uuidString`, which is
+/// upper case for 128-bit UUIDs.
 enum BleWriteModePolicy {
     static let pelagicGen1Tx = "6606AB42-89D5-4A00-A8CE-4EB5E1414EE0"
     /// The single write/notify characteristic of the Shearwater BLE service
@@ -39,5 +43,17 @@ enum BleWriteModePolicy {
             return supportsWriteWithoutResponse
         }
         return supportsWriteWithoutResponse && !supportsWrite
+    }
+
+    /// The CoreBluetooth entry point BleIoStream calls, so the mapping from
+    /// characteristic properties to the two flags is tested here as well.
+    static func prefersWithoutResponse(
+        characteristicUuid: String,
+        properties: CBCharacteristicProperties
+    ) -> Bool {
+        prefersWithoutResponse(
+            characteristicUuid: characteristicUuid,
+            supportsWrite: properties.contains(.write),
+            supportsWriteWithoutResponse: properties.contains(.writeWithoutResponse))
     }
 }

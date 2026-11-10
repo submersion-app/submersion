@@ -1,3 +1,4 @@
+import CoreBluetooth
 import Foundation
 
 // Standalone test runner for BleWriteModePolicy (no XCTest: the LibDCDarwin
@@ -80,6 +81,30 @@ expect(
         supportsWrite: true,
         supportsWriteWithoutResponse: false),
     "generic: only acknowledged write offered, used")
+
+// 8. The CoreBluetooth entry point maps each property to the right flag: a
+// swapped mapping would flip the generic write-only and without-response-only
+// cases below.
+expect(
+    BleWriteModePolicy.prefersWithoutResponse(
+        characteristicUuid: shearwater,
+        properties: [.write, .writeWithoutResponse]),
+    "properties: shearwater with both modes prefers without-response")
+expect(
+    BleWriteModePolicy.prefersWithoutResponse(
+        characteristicUuid: generic,
+        properties: [.writeWithoutResponse, .notify]),
+    "properties: without-response only is used")
+expect(
+    !BleWriteModePolicy.prefersWithoutResponse(
+        characteristicUuid: generic,
+        properties: [.write, .notify]),
+    "properties: acknowledged write only is used")
+expect(
+    !BleWriteModePolicy.prefersWithoutResponse(
+        characteristicUuid: generic,
+        properties: [.write, .writeWithoutResponse]),
+    "properties: generic with both modes keeps the acknowledged write")
 
 if failures == 0 {
     print("All BleWriteModePolicy tests passed.")

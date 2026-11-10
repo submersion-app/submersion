@@ -669,11 +669,9 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     }
 
     private func initialWriteWithoutResponsePreference(for characteristic: CBCharacteristic) -> Bool {
-        let properties = characteristic.properties
-        return BleWriteModePolicy.prefersWithoutResponse(
+        BleWriteModePolicy.prefersWithoutResponse(
             characteristicUuid: characteristic.uuid.uuidString,
-            supportsWrite: properties.contains(.write),
-            supportsWriteWithoutResponse: properties.contains(.writeWithoutResponse))
+            properties: characteristic.properties)
     }
 
     private func maybeFlipWriteModeAfterReadTimeout() {
