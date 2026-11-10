@@ -247,6 +247,22 @@ void main() {
       expect(notice.message, contains('tank pressure'));
     });
 
+    test('a tank on a transmitter carries its serial (#4419)', () async {
+      final payload = await const FitImportParser().parse(_aiFitBytes());
+      final dive = payload.entities[ImportEntityType.dives]!.single;
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+
+      expect(tanks.single['transmitterSerial'], '2772884913');
+    });
+
+    test('a tank with no transmitter carries no serial key', () async {
+      final payload = await const FitImportParser().parse(_richFitBytes());
+      final dive = payload.entities[ImportEntityType.dives]!.single;
+      final tanks = dive['tanks'] as List<Map<String, dynamic>>;
+
+      expect(tanks.single.containsKey('transmitterSerial'), isFalse);
+    });
+
     test('a file that does carry tank pressure is not flagged', () async {
       final payload = await const FitImportParser().parse(_aiFitBytes());
 

@@ -15,6 +15,12 @@ class FitTank {
 
   final int sensorId;
   final int order;
+
+  /// [sensorId] as the transmitter serial the rest of the app keys tanks on:
+  /// the raw ANT channel id in decimal, so one physical transmitter reads the
+  /// same on every dive (issue #4419).
+  String get transmitterSerial => '$sensorId';
+
   final double? startPressureBar;
   final double? endPressureBar;
   final double? volumeUsedLiters;

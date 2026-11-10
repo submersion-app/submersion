@@ -60,6 +60,8 @@ void main() {
   late MockDiveRepository mockDiveRepo;
   late MockDiveConsolidationService mockConsolidationService;
   late GarminCloudAdapter adapter;
+  // The dive ids each settleTransmitters call received, in call order.
+  late List<List<String>> settled;
 
   const diverId = 'diver-1';
 
@@ -79,6 +81,7 @@ void main() {
     mockComputerRepo = MockDiveComputerRepository();
     mockDiveRepo = MockDiveRepository();
     mockConsolidationService = MockDiveConsolidationService();
+    settled = [];
 
     adapter = GarminCloudAdapter(
       importService: mockImportService,
@@ -86,6 +89,7 @@ void main() {
       diveRepository: mockDiveRepo,
       consolidationService: mockConsolidationService,
       diverId: diverId,
+      settleTransmitters: (ids) async => settled.add(ids.toList()),
     );
 
     when(
@@ -540,6 +544,34 @@ void main() {
       verify(mockComputerRepo.updateLastDownload(any)).called(1);
     });
 
+    test(
+      'registers the transmitters on the dives it imports (#4419)',
+      () async {
+        adapter.setParsedDives([makeParsedDive()]);
+        final bundle = await adapter.buildBundle();
+        stubImportAsNew();
+
+        await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        expect(settled, [
+          ['new-dive-id'],
+        ]);
+      },
+    );
+
+    test('registers no transmitters when nothing was imported', () async {
+      adapter.setParsedDives([makeParsedDive()]);
+      final bundle = await adapter.buildBundle();
+
+      await adapter.performImport(bundle, const {}, {
+        ImportEntityType.dives: {0: DuplicateAction.skip},
+      });
+
+      expect(settled, isEmpty);
+    });
+
     test('reports progress per dive as it imports', () async {
       adapter.setParsedDives([makeParsedDive(), makeParsedDive()]);
       final bundle = await adapter.buildBundle();
@@ -728,6 +760,10 @@ void main() {
           secondaryDiveIds: ['new-dive-id'],
         ),
       ).called(1);
+      // The folded-in tanks now live on the existing dive (#4419).
+      expect(settled, [
+        ['existing-dive'],
+      ]);
     });
 
     test(
