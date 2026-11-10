@@ -72,10 +72,12 @@ void main() {
     'changeLog_clear_body',
     'changeLog_revert_note',
     'checklists_delete_content',
+    // "Sie bleiben": the dismissed findings stay hidden.
     'dataQuality_dismissAll_body',
     'dataQuality_msg_transmitterRoleBailout',
     'diveLab_link_unlinkBody',
     'diveLog_deco_info_body',
+    // "Ihre Messwerte": the source's readings.
     'diveLog_sources_removeSharedComputer',
     'emergencyCard_chambersNoneNearby',
     'equipment_transfer_keepAccessHint',
