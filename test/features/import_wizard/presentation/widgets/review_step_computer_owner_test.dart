@@ -112,7 +112,7 @@ void main() {
           ],
         ),
         nextDiveNumberProvider.overrideWith((ref) async => 7),
-        plannedFillCandidatesProvider.overrideWith((ref, diverId) async {
+        fillCandidatesProvider.overrideWith((ref, diverId) async {
           plannedFor?.add(diverId);
           return const <Dive>[];
         }),

@@ -16,12 +16,14 @@ void main() {
     certificationGroupBy: 'k',
     equipmentArrangement: 'l',
     equipmentGroupByLocation: true,
+    equipmentCollapsedGroups: '["loc:a"]',
   );
 
   test('none holds no saved value', () {
     expect(ListArrangements.none, const ListArrangements());
     expect(ListArrangements.none.diveSort, isNull);
     expect(ListArrangements.none.equipmentGroupByLocation, isNull);
+    expect(ListArrangements.none.equipmentCollapsedGroups, isNull);
   });
 
   test('copyWith keeps unset fields', () {
@@ -46,6 +48,7 @@ void main() {
       full.copyWith(certificationGroupBy: 'x'),
       full.copyWith(equipmentArrangement: 'x'),
       full.copyWith(equipmentGroupByLocation: false),
+      full.copyWith(equipmentCollapsedGroups: '[]'),
     ];
     for (final v in variants) {
       expect(v, isNot(full));

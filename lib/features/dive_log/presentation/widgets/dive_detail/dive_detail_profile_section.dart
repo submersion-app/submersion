@@ -41,6 +41,9 @@ class DiveChartInputs extends Equatable {
     // Equatable stops at the first difference, so the samples, by far the
     // costliest to compare, go last.
     dive.id,
+    // The entry places Apple Health heart rate on the timeline (issue #637).
+    dive.entryTime,
+    dive.dateTime,
     dive.effectiveRuntime,
     dive.maxDepth,
     dive.sac,

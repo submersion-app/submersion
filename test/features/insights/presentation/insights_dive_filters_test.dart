@@ -115,6 +115,7 @@ void main() {
         ConditionNode(FieldPath([key]), QueryOp.eq, value);
     final counted = [
       field('planned', const BoolValue(false)),
+      field('draft', const BoolValue(false)),
       field('excludedFromStats', const BoolValue(false)),
     ];
 
@@ -139,7 +140,7 @@ void main() {
     test('the conditions cover the whole statistics scope', () {
       expect(
         DiveStatsScope.predicate(alias: 'd'),
-        'd.excluded_from_stats = 0 AND d.is_planned = 0',
+        'd.excluded_from_stats = 0 AND d.is_planned = 0 AND d.is_draft = 0',
       );
     });
 

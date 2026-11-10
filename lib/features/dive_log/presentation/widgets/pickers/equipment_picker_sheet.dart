@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_picker_filter.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
@@ -16,7 +17,11 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_fold_summary.dart';
+import 'package:submersion/features/equipment/presentation/utils/picker_group_folds.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
+import 'package:submersion/shared/widgets/collapsible_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_picker_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
@@ -24,6 +29,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/max_width_fraction.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/picker_header_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/shared_gear_note_line.dart';
+
+part 'equipment_picker_folds.dart';
 
 /// Equipment picker bottom sheet.
 ///
@@ -109,11 +116,14 @@ class EquipmentPickerSheet extends ConsumerStatefulWidget {
       _EquipmentPickerSheetState();
 }
 
-class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
+class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet>
+    with _PickerFolds {
   /// The ticked items by id, in the order ticked. Kept as items, not ids, so
   /// a tick outlives its row being filtered out of the list.
+  @override
   Map<String, EquipmentItem> _picked = const {};
 
+  @override
   bool get _multiSelect => widget.onEquipmentConfirmed != null;
 
   void _toggle(EquipmentItem item, bool checked) {
@@ -502,28 +512,19 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ownerName: ownerName,
                     )
                   : [(ownerId: null, items: available)];
-              final rows = <_PickerRow>[
-                for (final (i, section) in sections.indexed) ...[
-                  if (section.ownerId != null &&
-                      (i == 0 || sections[i - 1].ownerId == null))
-                    _SectionRow(context.l10n.equipment_sharedWithMe),
-                  if (section.ownerId case final owner?)
-                    _SectionRow(
-                      context.l10n.equipment_picker_ownerHeader(
-                        ownerName(owner),
-                      ),
-                    ),
-                  for (final group in arrangeEquipment(
-                    section.items,
-                    arrangement,
-                    typeLabel: (type) => type.localizedName(context.l10n),
-                  )) ...[
-                    if (group.type != null) _HeaderRow(group.type!),
-                    for (final equipment in group.items)
-                      _ItemRow(equipment, showTypeLabel: group.type == null),
-                  ],
-                ],
-              ];
+              final filtered = filter.hasActiveFilters;
+              final rows = _pickerRows(
+                context,
+                sections: sections,
+                arrangement: arrangement,
+                available: available,
+                filter: filter,
+                indexSettled:
+                    componentsAsync == null ||
+                    componentsAsync.hasValue ||
+                    componentsAsync.hasError,
+                ownerName: ownerName,
+              );
 
               return ListView.builder(
                 controller: widget.scrollController,
@@ -538,9 +539,10 @@ class _EquipmentPickerSheetState extends ConsumerState<EquipmentPickerSheet> {
                       ),
                     ),
                   ),
-                  _HeaderRow(:final type) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: EquipmentGroupHeader(type: type),
+                  _OwnerHeaderRow() || _HeaderRow() => _foldHeader(
+                    context,
+                    rows[index],
+                    filtered: filtered,
                   ),
                   _ItemRow(:final item, :final showTypeLabel) => _itemTile(
                     context,
@@ -639,34 +641,6 @@ class _ConfirmButtons extends StatelessWidget {
       ),
     );
   }
-}
-
-/// One row of the picker list, as data rather than a built widget so the
-/// list stays lazy.
-sealed class _PickerRow {
-  const _PickerRow();
-}
-
-/// A section title: "Shared with me", or one owner's name (issue #2046).
-class _SectionRow extends _PickerRow {
-  const _SectionRow(this.title);
-
-  final String title;
-}
-
-class _HeaderRow extends _PickerRow {
-  const _HeaderRow(this.type);
-
-  final EquipmentType type;
-}
-
-class _ItemRow extends _PickerRow {
-  const _ItemRow(this.item, {required this.showTypeLabel});
-
-  final EquipmentItem item;
-
-  /// Only when no heading names the type already.
-  final bool showTypeLabel;
 }
 
 class _EmptyState extends StatelessWidget {

@@ -36,7 +36,8 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_query_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_type_fold_header.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -60,6 +61,8 @@ import '../../../../helpers/test_app.dart';
 import '../../../../helpers/bulk_delete_contract.dart';
 import '../../../../helpers/keyboard_navigation_contract.dart';
 import '../../../../helpers/selection_contract.dart';
+
+part 'equipment_list_content_folds.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -175,6 +178,7 @@ Future<List<Override>> _buildPhoneOverrides({
   List<Diver> divers = const [],
   String? activeDiverId,
   EquipmentFilterState? filter,
+  MockSettingsNotifier? settings,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -184,7 +188,7 @@ Future<List<Override>> _buildPhoneOverrides({
     allDiversProvider.overrideWith((ref) async => divers),
     validatedCurrentDiverIdProvider.overrideWith((ref) async => activeDiverId),
     if (filter != null) equipmentFilterProvider.overrideWith((ref) => filter),
-    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    settingsProvider.overrideWith((ref) => settings ?? MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     equipmentByStatusProvider.overrideWith((ref, status) => items),
     activeEquipmentProvider.overrideWith((ref) async => items),
@@ -298,7 +302,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-
     expect(find.text('Gear 50'), findsOneWidget);
   });
 
@@ -1196,10 +1199,18 @@ void main() {
         visibleAfterFilter: 1,
       );
 
+      // The contract walks a flat list: grouped, Home lands on the first
+      // type heading, a fold stop of its own (issue #4184), which the
+      // foldable groups tests cover.
       await verifyKeyboardNavigationContract(
         tester,
         build: (onItemSelected) => testApp(
-          overrides: overrides,
+          overrides: [
+            ...overrides,
+            equipmentArrangementProvider.overrideWithValue(
+              EquipmentArrangement.defaults.copyWith(groupByType: false),
+            ),
+          ],
           locale: const Locale('en'),
           child: EquipmentListContent(
             showAppBar: true,
@@ -1939,41 +1950,8 @@ void main() {
         'Delta Suit',
       ]);
       // Regulators head a run under both the garage and the shop.
-      expect(find.byType(EquipmentGroupHeader), findsNWidgets(4));
+      expect(find.byType(EquipmentTypeFoldHeader), findsNWidgets(4));
       expect(find.text('2 items'), findsOneWidget);
-    });
-
-    testWidgets('each place caps and expands its own run of a type (#3993)', (
-      tester,
-    ) async {
-      final bcds = [
-        for (var i = 0; i < 10; i++)
-          _makeEquipment(id: 'b$i', name: 'BCD $i', type: EquipmentType.bcd),
-      ];
-      await pumpList(
-        tester,
-        groupByLocation: true,
-        gear: bcds,
-        places: {
-          for (final (i, bcd) in bcds.indexed) bcd.id: i < 5 ? garage : shop,
-        },
-      );
-      expect(find.text('Show 2 more'), findsNWidgets(2));
-
-      await tester.tap(find.text('Show 2 more').first);
-      await tester.pumpAndSettle();
-
-      expect(find.text('Show 2 more'), findsOneWidget);
-      expect(rowNames(tester), [
-        'BCD 0',
-        'BCD 1',
-        'BCD 2',
-        'BCD 3',
-        'BCD 4',
-        'BCD 5',
-        'BCD 6',
-        'BCD 7',
-      ]);
     });
 
     testWidgets('type grouping off leaves only the place headings', (
@@ -1985,7 +1963,7 @@ void main() {
         arrangement: EquipmentArrangement.defaults.copyWith(groupByType: false),
       );
       expect(placeHeadings(tester), ['Garage', "Joe's Scuba", null]);
-      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      expect(find.byType(EquipmentTypeFoldHeader), findsNothing);
     });
 
     testWidgets('switched off, the list is grouped by type as before', (
@@ -1993,7 +1971,7 @@ void main() {
     ) async {
       await pumpList(tester, groupByLocation: false);
       expect(find.byType(EquipmentLocationGroupHeader), findsNothing);
-      expect(find.byType(EquipmentGroupHeader), findsNWidgets(3));
+      expect(find.byType(EquipmentTypeFoldHeader), findsNWidgets(3));
     });
 
     Map<String, String?> tilePlaces(WidgetTester tester) => {
@@ -2067,7 +2045,9 @@ void main() {
         .toList();
 
     List<EquipmentType> headings(WidgetTester tester) => tester
-        .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
+        .widgetList<EquipmentTypeFoldHeader>(
+          find.byType(EquipmentTypeFoldHeader),
+        )
         .map((h) => h.type)
         .toList();
 
@@ -2092,10 +2072,10 @@ void main() {
       ]);
 
       final bcdHeading = find.byKey(
-        const ValueKey('equipment-group-header-bcd'),
+        const ValueKey('equipment-type-fold-type:bcd'),
       );
       final regHeading = find.byKey(
-        const ValueKey('equipment-group-header-regulator'),
+        const ValueKey('equipment-type-fold-type:regulator'),
       );
       expect(
         top(tester, bcdHeading),
@@ -2155,7 +2135,7 @@ void main() {
         arrangement: EquipmentArrangement.defaults.copyWith(groupByType: false),
       );
 
-      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      expect(find.byType(EquipmentTypeFoldHeader), findsNothing);
       expect(rowNames(tester), [
         'Bravo BCD',
         'Charlie BCD',
@@ -2174,7 +2154,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      expect(find.byType(EquipmentTypeFoldHeader), findsNothing);
       expect(rowNames(tester), [
         'Alpha Reg',
         'Bravo BCD',
@@ -2197,7 +2177,7 @@ void main() {
       // Compact honour the arrangement.
       await pumpList(tester, viewMode: ListViewMode.dense);
 
-      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      expect(find.byType(EquipmentTypeFoldHeader), findsNothing);
       final names = tester
           .widgetList<DenseEquipmentListTile>(
             find.byType(DenseEquipmentListTile),
@@ -2215,7 +2195,7 @@ void main() {
       // The table has its own column sort, so headings there would fight it.
       await pumpList(tester, viewMode: ListViewMode.table);
 
-      expect(find.byType(EquipmentGroupHeader), findsNothing);
+      expect(find.byType(EquipmentTypeFoldHeader), findsNothing);
     });
 
     testWidgets('headings order by the localized type name', (tester) async {
@@ -2280,7 +2260,7 @@ void main() {
         await tester.tap(find.byTooltip('Close'));
         await tester.pumpAndSettle();
 
-        expect(find.byType(EquipmentGroupHeader), findsNothing);
+        expect(find.byType(EquipmentTypeFoldHeader), findsNothing);
       },
     );
 
@@ -2700,257 +2680,7 @@ void main() {
     });
   });
 
-  group('show more within a type group (#3993)', () {
-    Future<void> pumpList(
-      WidgetTester tester, {
-      required List<EquipmentItem> items,
-      String? selectedId,
-      String? highlightedId,
-      SelectionController? selection,
-      EquipmentArrangement? arrangement,
-      Size size = const Size(800, 1600),
-    }) async {
-      tester.view.physicalSize = size;
-      tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.reset);
-
-      final overrides = await _buildPhoneOverrides(
-        items: items,
-        highlightedEquipmentId: highlightedId,
-        arrangement: arrangement,
-      );
-      await tester.pumpWidget(
-        testApp(
-          locale: const Locale('en'),
-          overrides: overrides,
-          child: EquipmentListContent(
-            showAppBar: false,
-            selectedId: selectedId,
-            selectionController: selection,
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-    }
-
-    ProviderContainer containerOf(WidgetTester tester) =>
-        ProviderScope.containerOf(
-          tester.element(find.byType(EquipmentListContent)),
-        );
-
-    List<String> rowNames(WidgetTester tester) => tester
-        .widgetList<EquipmentListTile>(find.byType(EquipmentListTile))
-        .map((t) => t.item.name)
-        .toList();
-
-    List<EquipmentItem> bcds(int count) => [
-      for (var i = 0; i < count; i++)
-        _makeEquipment(
-          id: 'bcd$i',
-          name: 'BCD ${String.fromCharCode(65 + i)}',
-          type: EquipmentType.bcd,
-        ),
-    ];
-
-    testWidgets('a group of 4 or fewer shows every item, no show-more row', (
-      tester,
-    ) async {
-      await pumpList(tester, items: bcds(4));
-
-      expect(rowNames(tester), ['BCD A', 'BCD B', 'BCD C', 'BCD D']);
-      expect(find.textContaining('more'), findsNothing);
-    });
-
-    testWidgets('a group of 5 or more is capped at 3 with a show-more row', (
-      tester,
-    ) async {
-      await pumpList(tester, items: bcds(6));
-
-      expect(rowNames(tester), ['BCD A', 'BCD B', 'BCD C']);
-      expect(find.text('Show 3 more'), findsOneWidget);
-    });
-
-    testWidgets('tapping the show-more row reveals the rest of the group', (
-      tester,
-    ) async {
-      await pumpList(tester, items: bcds(6));
-
-      await tester.tap(find.text('Show 3 more'));
-      await tester.pumpAndSettle();
-
-      expect(rowNames(tester), [
-        'BCD A',
-        'BCD B',
-        'BCD C',
-        'BCD D',
-        'BCD E',
-        'BCD F',
-      ]);
-      expect(find.textContaining('more'), findsNothing);
-    });
-
-    testWidgets(
-      'a selection hidden past the cap expands its group instead of being '
-      'unreachable',
-      (tester) async {
-        // e.g. opened from dive detail or set detail: selectedId names an
-        // item the diver tapped elsewhere, which can be one the cap would
-        // otherwise hide.
-        await pumpList(tester, items: bcds(6), selectedId: 'bcd5');
-
-        expect(rowNames(tester), [
-          'BCD A',
-          'BCD B',
-          'BCD C',
-          'BCD D',
-          'BCD E',
-          'BCD F',
-        ]);
-        expect(find.textContaining('more'), findsNothing);
-      },
-    );
-
-    testWidgets('selecting a row the cap leaves visible keeps the cap', (
-      tester,
-    ) async {
-      await pumpList(tester, items: bcds(6), selectedId: 'bcd2');
-
-      expect(rowNames(tester), ['BCD A', 'BCD B', 'BCD C']);
-      expect(find.text('Show 3 more'), findsOneWidget);
-    });
-
-    testWidgets('a row highlighted behind the cap unfolds its group', (
-      tester,
-    ) async {
-      await pumpList(tester, items: bcds(6));
-
-      containerOf(tester).read(highlightedEquipmentIdProvider.notifier).state =
-          'bcd4';
-      await tester.pumpAndSettle();
-
-      expect(find.textContaining('more'), findsNothing);
-      expect(rowNames(tester), hasLength(6));
-    });
-
-    testWidgets('a group a selection unfolded stays open once it moves on', (
-      tester,
-    ) async {
-      await pumpList(tester, items: bcds(6), highlightedId: 'bcd5');
-      expect(rowNames(tester), hasLength(6));
-
-      containerOf(tester).read(highlightedEquipmentIdProvider.notifier).state =
-          'bcd0';
-      await tester.pumpAndSettle();
-
-      expect(rowNames(tester), hasLength(6));
-    });
-
-    testWidgets('the arrow keys walk into the rows behind the cap', (
-      tester,
-    ) async {
-      await pumpList(tester, items: bcds(6), highlightedId: 'bcd2');
-      for (var i = 0; i < 10; i++) {
-        if (FocusManager.instance.primaryFocus?.debugLabel ==
-            KeyboardListNavigator.focusDebugLabel) {
-          break;
-        }
-        await tester.sendKeyEvent(LogicalKeyboardKey.tab);
-        await tester.pump();
-      }
-
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-      await tester.pumpAndSettle();
-
-      expect(containerOf(tester).read(highlightedEquipmentIdProvider), 'bcd3');
-      expect(rowNames(tester), hasLength(6));
-    });
-
-    testWidgets('the show-more row is no focus stop of its own', (
-      tester,
-    ) async {
-      await pumpList(tester, items: bcds(6));
-
-      expect(
-        find.ancestor(
-          of: find.text('Show 3 more'),
-          matching: find.byType(ExcludeFocus),
-        ),
-        findsOneWidget,
-      );
-    });
-
-    testWidgets('select all shows what it checked until the selection ends', (
-      tester,
-    ) async {
-      final selection = SelectionController();
-      addTearDown(selection.dispose);
-      await pumpList(tester, items: bcds(6), selection: selection);
-
-      selection.selectAll([for (final item in bcds(6)) item.id]);
-      await tester.pumpAndSettle();
-      expect(rowNames(tester), hasLength(6));
-      expect(find.textContaining('more'), findsNothing);
-
-      selection.exit();
-      await tester.pumpAndSettle();
-      expect(rowNames(tester), ['BCD A', 'BCD B', 'BCD C']);
-    });
-
-    testWidgets('checking a visible row keeps the cap', (tester) async {
-      final selection = SelectionController();
-      addTearDown(selection.dispose);
-      await pumpList(tester, items: bcds(6), selection: selection);
-
-      selection.enterExplicit();
-      selection.toggle('bcd1');
-      await tester.pumpAndSettle();
-
-      expect(rowNames(tester), ['BCD A', 'BCD B', 'BCD C']);
-      expect(find.text('Show 3 more'), findsOneWidget);
-    });
-
-    testWidgets('scrolling to a row counts a show-more row at its own height', (
-      tester,
-    ) async {
-      const types = [
-        EquipmentType.bcd,
-        EquipmentType.fins,
-        EquipmentType.mask,
-        EquipmentType.regulator,
-        EquipmentType.wetsuit,
-      ];
-      await pumpList(
-        tester,
-        size: const Size(800, 600),
-        arrangement: const EquipmentArrangement(
-          typeOrder: EquipmentTypeOrder.alphabetical,
-          groupByType: true,
-          itemSortField: EquipmentItemSortField.name,
-          itemSortDirection: SortDirection.ascending,
-        ),
-        items: [
-          for (final type in types)
-            for (var i = 0; i < 5; i++)
-              _makeEquipment(
-                id: '${type.name}$i',
-                name: '${type.name} $i',
-                type: type,
-              ),
-        ],
-        selectedId: 'regulator0',
-      );
-
-      final position = tester
-          .state<ScrollableState>(find.byType(Scrollable).first)
-          .position;
-      // Three capped groups above it (a 32 heading, three 80 items, a 48
-      // show-more row), then its own heading.
-      expect(
-        position.pixels,
-        closeTo(3 * 320 + 32 - position.viewportDimension / 3, 0.01),
-      );
-    });
-  });
+  _foldableGroupTests();
 
   group('filter panel (#1274, PR #1435 review)', () {
     final items = [

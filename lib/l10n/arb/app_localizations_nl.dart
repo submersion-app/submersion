@@ -5410,6 +5410,57 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
+  String get diveLog_health_after15 => 'Na 15 min';
+
+  @override
+  String get diveLog_health_after5 => 'Na 5 min';
+
+  @override
+  String get diveLog_health_atSurfacing => 'Bij het bovenkomen';
+
+  @override
+  String get diveLog_health_average => 'Gemiddeld';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'Maximum';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound =>
+      'Apple Health heeft geen metingen voor deze duik';
+
+  @override
+  String get diveLog_health_overnightHrv =>
+      'Hartslagvariabiliteit de nacht erna';
+
+  @override
+  String get diveLog_health_readFailed => 'Kan Apple Health niet lezen';
+
+  @override
+  String get diveLog_health_recovery => 'Herstel';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'Hartslag bij het bovenkomen en 5 en 15 minuten later, uit Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return '$hours u $minutes min geslapen de nacht ervoor';
+  }
+
+  @override
+  String get diveLog_health_title => 'Hartslag en herstel';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Pre-dive checklist starten';
 
@@ -6313,6 +6364,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kaart met recente duikstekken';
 
   @override
+  String get settings_homeCards_card_waitingForDownload => 'Wacht op download';
+
+  @override
   String get dashboard_allHidden_message => 'Alle startkaarten zijn verborgen.';
 
   @override
@@ -6526,6 +6580,20 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get dashboard_semantics_greetingBanner =>
       'Dashboard begroetingsbanner';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Nu downloaden';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken wachten op je duikcomputer',
+      one: '1 duik wacht op je duikcomputer',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Toevoegen aan planner';
@@ -9921,6 +9989,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get siteSuggestion_titleDiveComputer => 'Locatie van duikcomputer';
+
+  @override
+  String get siteSuggestion_titleDraft => 'Plek waar je het water in ging';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -16810,6 +16881,44 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count onderhoudsbeurten nodig',
+      one: '$count onderhoudsbeurt nodig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'en nog $count',
+      one: 'en nog $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected van $total geselecteerd';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Alles uitklappen';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Alles inklappen';
+
+  @override
   String get equipment_location_activeFilter => 'Locatie';
 
   @override
@@ -22404,6 +22513,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveDetailSection_equipment_name => 'Uitrusting';
 
   @override
+  String get diveDetailSection_health_description =>
+      'Hartslag, herstel en slaap uit Apple Health';
+
+  @override
   String get diveDetailSection_equipment_description =>
       'Gebruikte uitrusting bij de duik';
 
@@ -24334,6 +24447,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geïmporteerde duiken labelen';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'Gemiddelde hartslag';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Downloads toevoegen aan de eigenaar van de computer';
 
@@ -24387,6 +24503,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Uitrusting gegroepeerd op locatie';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Ingeklapte uitrustingsgroepen';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -25237,6 +25357,22 @@ class AppLocalizationsNl extends AppLocalizations {
       'Koerscorrectie in graden';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Hartslag bij het bovenkomen';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Hartslag 15 min na het bovenkomen';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Hartslag 5 min na het bovenkomen';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Hartslag uit Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'Schaalfactor van de track';
 
   @override
@@ -25331,6 +25467,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_conflict_field_isDone => 'Klaar';
+
+  @override
+  String get settings_conflict_field_isDraft => 'Conceptduik';
 
   @override
   String get settings_conflict_field_isOrphaned => 'Bestand ontbreekt';
@@ -25481,6 +25620,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_maxDescentRate => 'Hoogste afdaalsnelheid';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximale hartslag';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Topsnelheid';
 
   @override
@@ -25550,6 +25692,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_overdueServices =>
       'Achterstallig onderhoud';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Nachtelijke hartslagvariabiliteit';
 
   @override
   String get settings_conflict_field_params => 'Details';
@@ -26081,6 +26227,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_size => 'Maat';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Slaap de nacht ervoor';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Sorteervolgorde';
 
   @override
@@ -26154,6 +26304,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_settingOverrides =>
       'Instellingen alleen voor deze duik';
+
+  @override
+  String get settings_conflict_field_settled =>
+      'Apple Health-metingen compleet';
 
   @override
   String get settings_conflict_field_startTime => 'Starttijd';
@@ -26971,6 +27125,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String notifications_document_expiresToday_title(String title) {
     return '$title verloopt vandaag';
   }
+
+  @override
+  String get notifications_draftReminder_body =>
+      'Download je duikcomputer om het concept in te vullen.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'Een duik wacht op je duikcomputer';
 
   @override
   String get notifications_document_expiresToday_body =>
@@ -28734,6 +28896,14 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_notifications_disabled_title => 'Meldingen uitgeschakeld';
+
+  @override
+  String get settings_notifications_draftReminder =>
+      'Herinner me aan conceptduiken';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'Drie dagen nadat een conceptduik boven is, als die nog op een download wacht';
 
   @override
   String get settings_notifications_enableServiceReminders =>
@@ -35631,6 +35801,22 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit formaat wordt nog niet ondersteund. Exporteer als UDDF of CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Past bij $count concepten. Kies het concept dat deze duik invult.',
+      one:
+          'Een andere duik past ook bij dit concept. Kies het concept dat deze duik invult.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Concept kiezen';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'Duplicaatdetectie kon niet worden uitgevoerd, dus niets in deze lijst is gemarkeerd als al aanwezig in je logboek. Controleer de lijst voordat je importeert.';
 
@@ -35779,6 +35965,28 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_compare_fillPlannedSubtitle =>
       'Koppel deze download aan de duik die je hebt gepland';
+
+  @override
+  String get universalImport_label_fillDraft => 'Concept invullen';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'Koppel deze download aan de duik die je op de duikplek hebt gemarkeerd';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'Vult concept: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'Concept van $start tot $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'Concept vanaf $start';
+  }
 
   @override
   String get universalImport_label_filledPlanned => 'Ingevulde geplande duiken';
@@ -36905,6 +37113,37 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gpsLogger_stopButton => 'Opname stoppen';
 
   @override
+  String get gpsLogger_enteredWater => 'Te water';
+
+  @override
+  String get gpsLogger_surfaced => 'Boven';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => 'Nog in het water?';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'Je ging om $time het water in. Markeer de duik nu als boven, of laat hem open en tik later op Boven.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow => 'Nu boven';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'Open laten';
+
+  @override
+  String get gpsLogger_markNotification_title => 'Je GPS-track wordt opgenomen';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'Tik op Te water wanneer je het water in gaat.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'In het water. Tik op Boven wanneer je eruit bent.';
+
+  @override
   String gpsLogger_stripStatus(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37622,6 +37861,55 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_importAction =>
       'Duiken importeren van de Apple Watch via HealthKit';
+
+  @override
+  String get healthAutoImport_newDive_title => 'Nieuwe duik van je Apple Watch';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return '$count nieuwe duiken van je Apple Watch';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => 'Details toevoegen?';
+
+  @override
+  String get healthAutoImport_addDetails => 'Details toevoegen';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'Een Apple Watch-duik moet worden bekeken';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'Hij kan bij meer dan één duik horen. Kies in de Apple Health-import.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'Deze duik is misschien een duik die je hebt gepland. Bekijk hem om het plan in te vullen.';
+
+  @override
+  String get healthAutoImport_review => 'Bekijken';
+
+  @override
+  String get settings_appleHealth_autoImport_title =>
+      'Apple Watch-duiken automatisch importeren';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'Nieuwe duiken van je horloge verschijnen als je de app opent.';
+
+  @override
+  String get settings_appleHealth_metrics_title => 'Hartslag, herstel en slaap';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'Voegt de hartslag tijdens en na elke duik toe, de nachtelijke HRV en de slaap ervoor.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'Voor: $name';
+  }
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
@@ -41384,6 +41672,54 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_planned_chip => 'Gepland';
 
   @override
+  String get diveLog_draft_chip => 'Wacht op download';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'In het water';
+
+  @override
+  String get diveLog_draft_title => 'Conceptduik';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'Ongeveer $minutes min volgens je tikken. Download je duikcomputer om diepte en tijd in te vullen.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen =>
+      'Tik op Boven wanneer je uit het water bent.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'Nu downloaden';
+
+  @override
+  String get diveLog_draft_markComplete => 'Markeren als voltooid';
+
+  @override
+  String get diveLog_draft_surfaced => 'Boven';
+
+  @override
+  String get diveLog_draft_markedComplete => 'Gemarkeerd als voltooid';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'Kan de duik niet als voltooid markeren.';
+
+  @override
+  String get diveLog_draft_stale_title => 'Ben je boven gekomen?';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'Je ging om $time het water in en de duik staat nog open.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'Nog in het water';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'Tijd van bovenkomen instellen';
+
+  @override
   String get diveLog_planned_bannerTitle => 'Geplande duik';
 
   @override
@@ -41446,6 +41782,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_detail_loggedWithPlanned => 'wacht op hun duikcomputer';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate =>
+      'Hartslag uit Apple Health toevoegen';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -50485,6 +50825,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'Conceptduik bij $siteName';
+  }
+
+  @override
   String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
     return 'Geplande duik bij $siteName';
   }
@@ -57053,6 +57398,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_dives_diveOperator => 'Operator';
+
+  @override
+  String get query_dives_draft => 'Concept';
 
   @override
   String get query_dives_entryMethod => 'Instapmethode';

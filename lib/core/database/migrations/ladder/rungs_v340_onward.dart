@@ -99,5 +99,20 @@ extension RungsFromV340 on AppDatabase {
     // 350: main holds 349 and open PR #4327 is to take 348.
     if (from < 350) await _assertSightingAbundanceColumn();
     if (from < 350) await reportProgress();
+
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). Nullable, no backfill. Re-asserted in
+    // beforeOpen.
+    if (from < 351) await _assertEquipmentCollapsedGroupsColumn();
+    if (from < 351) await reportProgress();
+
+    // v354: dives.is_draft, a dive marked at the site that waits for its
+    // readings (issue #637). Defaulted, no backfill, so the compatibility
+    // floor does not move. Numbered 354: main holds 351 and open work
+    // claims 352 and 353.
+    if (from < 354) await _assertDiveIsDraftColumn();
+    // v354 too: dive_health_records, Apple Health readings per dive.
+    if (from < 354) await _assertDiveHealthRecordsTable();
+    if (from < 354) await reportProgress();
   }
 }

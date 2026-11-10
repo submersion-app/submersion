@@ -11,6 +11,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
+import '../../../../../helpers/folded_groups.dart';
 
 const _reg = EquipmentItem(
   id: 'reg',
@@ -81,6 +82,8 @@ Future<_Result> _open(
   );
   await tester.tap(find.text('open'));
   await tester.pumpAndSettle();
+  // The picker opens with its groups folded (#3364).
+  await openFoldedGroups(tester);
   return result;
 }
 

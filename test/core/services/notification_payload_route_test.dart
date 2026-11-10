@@ -17,4 +17,20 @@ void main() {
     expect(notificationPayloadRoute(''), isNull);
     expect(notificationPayloadRoute('document:'), isNull);
   });
+
+  test('a new Apple Watch dive opens that dive (#637)', () {
+    expect(notificationPayloadRoute('dive:d1'), '/dives/d1');
+    expect(notificationPayloadRoute('dive:'), isNull);
+  });
+
+  test('several new dives open the dive list', () {
+    expect(notificationPayloadRoute('dives'), '/dives');
+  });
+
+  test('a workout that waits for the diver opens the Health import', () {
+    expect(
+      notificationPayloadRoute('healthReview'),
+      '/settings/wearable-import',
+    );
+  });
 }

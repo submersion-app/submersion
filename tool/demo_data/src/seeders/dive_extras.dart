@@ -4,7 +4,9 @@ import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion;
 import 'package:submersion/core/tide/entities/tide_extremes.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_health_record_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_health_record.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
@@ -20,8 +22,8 @@ import 'dive_tank_plan.dart';
 import 'seed_context.dart';
 
 /// What a dive has besides its own row: buddies and roles, sightings,
-/// profile events and gas switches, the computer reading it came from, and
-/// the tide.
+/// profile events and gas switches, the computer reading it came from, the
+/// tide, and Apple Health readings.
 class DiveExtras {
   DiveExtras(this.ctx);
 
@@ -30,6 +32,7 @@ class DiveExtras {
   final _buddies = BuddyRepository();
   final _species = SpeciesRepository();
   final _tides = TideRecordRepository();
+  final _health = DiveHealthRecordRepository();
 
   Future<void> write(
     PlannedDive d,
@@ -204,6 +207,29 @@ class DiveExtras {
             Duration(minutes: 60 + ctx.random.nextInt(180)),
           ),
           createdAt: d.start,
+        ),
+      );
+    }
+
+    // Apple Health readings on some dives (issue #637): the summary values
+    // only. Demo dates are shifted when the demo loads, which a JSON series
+    // of true times cannot follow, so the samples are left out.
+    if (d.number % 4 == 1) {
+      final average = 72 + ctx.random.nextInt(18);
+      final atExit = average + 4 + ctx.random.nextInt(10);
+      await _health.upsert(
+        DiveHealthRecord(
+          id: 'demo-health-$id',
+          diveId: id,
+          avgHeartRate: average,
+          maxHeartRate: average + 8 + ctx.random.nextInt(14),
+          heartRateAtExit: atExit,
+          heartRateExitPlus5: atExit - 8 - ctx.random.nextInt(6),
+          heartRateExitPlus15: atExit - 16 - ctx.random.nextInt(8),
+          overnightHrvMs: ctx.between(32, 72),
+          sleepBeforeMinutes: 330 + ctx.random.nextInt(150),
+          settled: true,
+          fetchedAt: d.start.add(const Duration(days: 1)),
         ),
       );
     }

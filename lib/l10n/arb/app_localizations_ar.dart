@@ -5531,6 +5531,57 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'طقم';
 
   @override
+  String get diveLog_health_after15 => 'بعد 15 دقيقة';
+
+  @override
+  String get diveLog_health_after5 => 'بعد 5 دقائق';
+
+  @override
+  String get diveLog_health_atSurfacing => 'عند الصعود إلى السطح';
+
+  @override
+  String get diveLog_health_average => 'المتوسط';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'الأقصى';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound =>
+      'لا تحتوي Apple Health على قراءات لهذه الغوصة';
+
+  @override
+  String get diveLog_health_overnightHrv =>
+      'تقلب معدل ضربات القلب في الليلة التالية';
+
+  @override
+  String get diveLog_health_readFailed => 'تعذرت قراءة Apple Health';
+
+  @override
+  String get diveLog_health_recovery => 'التعافي';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'معدل ضربات القلب عند الصعود إلى السطح وبعد 5 و15 دقيقة، من Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return 'نمت $hours س $minutes د في الليلة السابقة';
+  }
+
+  @override
+  String get diveLog_health_title => 'معدل ضربات القلب والتعافي';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'بدء قائمة تحقق ما قبل الغوص';
 
@@ -6446,6 +6497,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_homeCards_card_recentSitesMap => 'خريطة المواقع الأخيرة';
 
   @override
+  String get settings_homeCards_card_waitingForDownload => 'في انتظار التنزيل';
+
+  @override
   String get dashboard_allHidden_message => 'جميع بطاقات الرئيسية مخفية.';
 
   @override
@@ -6663,6 +6717,23 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dashboard_semantics_greetingBanner => 'شعار ترحيب لوحة التحكم';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'نزّل الآن';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة تنتظر كمبيوتر الغوص الخاص بك',
+      many: '$count غوصة تنتظر كمبيوتر الغوص الخاص بك',
+      few: '$count غوصات تنتظر كمبيوتر الغوص الخاص بك',
+      two: 'غوصتان تنتظران كمبيوتر الغوص الخاص بك',
+      one: 'غوصة واحدة تنتظر كمبيوتر الغوص الخاص بك',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'إضافة إلى المخطط';
@@ -10123,6 +10194,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get siteSuggestion_titleDiveComputer => 'الموقع من كمبيوتر الغوص';
+
+  @override
+  String get siteSuggestion_titleDraft => 'المكان الذي نزلت منه إلى الماء';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -17172,6 +17246,52 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صيانة مستحقة',
+      many: '$count صيانة مستحقة',
+      few: '$count صيانات مستحقة',
+      two: 'صيانتان مستحقتان',
+      one: 'صيانة واحدة مستحقة',
+      zero: 'لا صيانة مستحقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'و$count أخرى',
+      many: 'و$count أخرى',
+      few: 'و$count أخرى',
+      two: 'واثنان آخران',
+      one: 'وواحد آخر',
+      zero: 'و$count أخرى',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected من $total محددة';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'توسيع الكل';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'طي الكل';
+
+  @override
   String get equipment_location_activeFilter => 'الموقع';
 
   @override
@@ -22883,6 +23003,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveDetailSection_equipment_name => 'المعدات';
 
   @override
+  String get diveDetailSection_health_description =>
+      'معدل ضربات القلب والتعافي والنوم من Apple Health';
+
+  @override
   String get diveDetailSection_equipment_description =>
       'المعدات المستخدمة في الغوصة';
 
@@ -24823,6 +24947,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => 'وسم الغوصات المستوردة';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'متوسط معدل ضربات القلب';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'إضافة التنزيلات إلى مالك الكمبيوتر';
 
@@ -24873,6 +25000,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'المعدات مجمعة حسب الموقع';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'مجموعات المعدات المطوية';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';
@@ -25686,6 +25817,22 @@ class AppLocalizationsAr extends AppLocalizations {
       'تصحيح الاتجاه بالدرجات';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'معدل ضربات القلب عند الصعود';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'معدل ضربات القلب بعد 15 دقيقة من الصعود';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'معدل ضربات القلب بعد 5 دقائق من الصعود';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'معدل ضربات القلب من Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'معامل مقياس المسار';
 
   @override
@@ -25779,6 +25926,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_isDone => 'تم';
+
+  @override
+  String get settings_conflict_field_isDraft => 'مسودة غوصة';
 
   @override
   String get settings_conflict_field_isOrphaned => 'الملف مفقود';
@@ -25923,6 +26073,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_maxDescentRate => 'أقصى سرعة نزول';
 
   @override
+  String get settings_conflict_field_maxHeartRate =>
+      'الحد الأقصى لمعدل ضربات القلب';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'السرعة القصوى';
 
   @override
@@ -25989,6 +26143,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'صيانات متأخرة';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'تقلب معدل ضربات القلب الليلي';
 
   @override
   String get settings_conflict_field_params => 'التفاصيل';
@@ -26508,6 +26666,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_size => 'المقاس';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'النوم في الليلة السابقة';
+
+  @override
   String get settings_conflict_field_sortOrder => 'ترتيب الفرز';
 
   @override
@@ -26577,6 +26739,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_settingOverrides =>
       'إعدادات لهذه الغطسة فقط';
+
+  @override
+  String get settings_conflict_field_settled => 'قراءات Apple Health مكتملة';
 
   @override
   String get settings_conflict_field_startTime => 'وقت البدء';
@@ -27404,6 +27569,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String notifications_document_expiresToday_title(String title) {
     return 'تنتهي صلاحية $title اليوم';
   }
+
+  @override
+  String get notifications_draftReminder_body =>
+      'نزّل بيانات كمبيوتر الغوص لإكمال المسودة.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'غوصة تنتظر كمبيوتر الغوص الخاص بك';
 
   @override
   String get notifications_document_expiresToday_body =>
@@ -29201,6 +29374,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_notifications_disabled_title => 'الإشعارات معطلة';
+
+  @override
+  String get settings_notifications_draftReminder => 'ذكّرني بمسودات الغوص';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'بعد ثلاثة أيام من خروج مسودة الغوصة من الماء، إذا كانت لا تزال تنتظر التنزيل';
 
   @override
   String get settings_notifications_enableServiceReminders =>
@@ -36376,6 +36556,23 @@ class AppLocalizationsAr extends AppLocalizations {
       'هذه الصيغة غير مدعومة بعد. يرجى التصدير كـ UDDF أو CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تناسب $count مسودة. اختر المسودة التي تكملها.',
+      many: 'تناسب $count مسودة. اختر المسودة التي تكملها.',
+      few: 'تناسب $count مسودات. اختر المسودة التي تكملها.',
+      two: 'تناسب مسودتين. اختر المسودة التي تكملها.',
+      one: 'غوصة أخرى تناسب هذه المسودة أيضاً. اختر المسودة التي تكملها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'اختيار المسودة';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'تعذّر تشغيل كشف التكرارات، لذلك لم يُوسم أي عنصر في هذه القائمة بأنه موجود مسبقًا في سجلك. راجع القائمة قبل الاستيراد.';
 
@@ -36525,6 +36722,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_compare_fillPlannedSubtitle =>
       'إرفاق هذا التنزيل بالغوصة التي خططت لها';
+
+  @override
+  String get universalImport_label_fillDraft => 'إكمال المسودة';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'اربط هذا التنزيل بالغوصة التي حددتها في الموقع';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'تُكمل المسودة: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'مسودة من $start إلى $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'مسودة منذ $start';
+  }
 
   @override
   String get universalImport_label_filledPlanned => 'الغوصات المخططة المكتملة';
@@ -37640,6 +37859,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gpsLogger_stopButton => 'إيقاف التسجيل';
 
   @override
+  String get gpsLogger_enteredWater => 'دخلت الماء';
+
+  @override
+  String get gpsLogger_surfaced => 'صعدت';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => 'هل ما زلت في الماء؟';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'دخلت الماء في $time. حدد الآن أنك صعدت، أو اترك الغوصة مفتوحة واضغط على صعدت لاحقاً.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow => 'سجّل الصعود الآن';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'اتركها مفتوحة';
+
+  @override
+  String get gpsLogger_markNotification_title => 'جارٍ تسجيل مسار GPS الخاص بك';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'اضغط على دخلت الماء عند النزول.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'في الماء. اضغط على صعدت عند الخروج.';
+
+  @override
   String gpsLogger_stripStatus(num count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -38360,6 +38610,56 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_dataSources_appleHealth_importAction =>
       'استيراد الغوصات من Apple Watch عبر HealthKit';
+
+  @override
+  String get healthAutoImport_newDive_title => 'غوصة جديدة من Apple Watch';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return 'غوصات جديدة من Apple Watch: $count';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => 'هل تريد إضافة التفاصيل؟';
+
+  @override
+  String get healthAutoImport_addDetails => 'إضافة التفاصيل';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'غوصة من Apple Watch تحتاج إلى مراجعة';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'قد تنتمي إلى أكثر من غوصة. اختر في استيراد Apple Health.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'قد تكون هذه الغوصة واحدة خططت لها. راجعها لإكمال الخطة.';
+
+  @override
+  String get healthAutoImport_review => 'مراجعة';
+
+  @override
+  String get settings_appleHealth_autoImport_title =>
+      'استيراد غوصات Apple Watch تلقائياً';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'تظهر الغوصات الجديدة من ساعتك عند فتح التطبيق.';
+
+  @override
+  String get settings_appleHealth_metrics_title =>
+      'معدل ضربات القلب والتعافي والنوم';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'يضيف معدل ضربات القلب أثناء كل غوصة وبعدها، وتقلب معدل ضربات القلب الليلي، والنوم الذي يسبقها.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'لـ: $name';
+  }
 
   @override
   String get settings_dataSources_appleHealth_privacy =>
@@ -42171,6 +42471,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_planned_chip => 'مخططة';
 
   @override
+  String get diveLog_draft_chip => 'في انتظار التنزيل';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'في الماء';
+
+  @override
+  String get diveLog_draft_title => 'مسودة غوصة';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'حوالي $minutes دقيقة حسب نقراتك. نزّل بيانات كمبيوتر الغوص لإكمال العمق والوقت.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen =>
+      'اضغط على صعدت عندما تخرج من الماء.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'نزّل الآن';
+
+  @override
+  String get diveLog_draft_markComplete => 'وضع علامة مكتملة';
+
+  @override
+  String get diveLog_draft_surfaced => 'صعدت';
+
+  @override
+  String get diveLog_draft_markedComplete => 'تم وضع علامة مكتملة';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'تعذر وضع علامة مكتملة على الغوصة.';
+
+  @override
+  String get diveLog_draft_stale_title => 'هل صعدت؟';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'دخلت الماء في $time ولا تزال الغوصة مفتوحة.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'ما زلت في الماء';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'تعيين وقت الصعود';
+
+  @override
   String get diveLog_planned_bannerTitle => 'غوصة مخططة';
 
   @override
@@ -42232,6 +42580,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get diveLog_detail_loggedWithPlanned =>
       'في انتظار كمبيوتر الغوص الخاص بهم';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate =>
+      'إضافة معدل ضربات القلب من Apple Health';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -51466,6 +51818,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'مسودة غوصة في $siteName';
+  }
+
+  @override
   String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
     return 'غوصة مخططة في $siteName';
   }
@@ -58160,6 +58517,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_dives_diveOperator => 'المشغّل';
+
+  @override
+  String get query_dives_draft => 'مسودة';
 
   @override
   String get query_dives_entryMethod => 'طريقة الدخول';

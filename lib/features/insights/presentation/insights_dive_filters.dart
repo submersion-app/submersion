@@ -113,10 +113,10 @@ DiveFilterState tankExtraDivesFilter(
   ..._countedByStats,
 ]);
 
-/// The two parts of `DiveStatsScope.predicate` the tank configuration card
+/// The parts of `DiveStatsScope.predicate` the tank configuration card
 /// applies, which a dive filter does not.
 final List<QueryNode> _countedByStats = [
-  for (final key in const ['planned', 'excludedFromStats'])
+  for (final key in const ['planned', 'draft', 'excludedFromStats'])
     ConditionNode(FieldPath([key]), QueryOp.eq, const BoolValue(false)),
 ];
 

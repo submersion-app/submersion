@@ -41,6 +41,7 @@ void main() {
       String id, {
       bool excluded = false,
       bool planned = false,
+      bool draft = false,
       String? diverId,
     }) async {
       final at = DateTime.utc(2026, 1, 1).millisecondsSinceEpoch;
@@ -52,6 +53,7 @@ void main() {
               diveDateTime: Value(at),
               excludedFromStats: Value(excluded),
               isPlanned: Value(planned),
+              isDraft: Value(draft),
               diverId: Value(diverId),
               createdAt: Value(at),
               updatedAt: Value(at),
@@ -111,6 +113,16 @@ void main() {
             'only plans still needs the first-dive prompt',
       );
       expect(counts.counted, 0);
+    });
+
+    test('a draft is neither logged nor counted until it is filled', () async {
+      await insert('kept');
+      await insert('draft', draft: true);
+
+      final counts = await repo.countLogbookDives();
+
+      expect(counts.logged, 1);
+      expect(counts.counted, 1);
     });
 
     test('a planned dive that is also excluded is not logged', () async {

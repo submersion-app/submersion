@@ -310,6 +310,12 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_tide_records_dive '
         'ON tide_records(dive_id)',
   ),
+  (
+    name: 'idx_dive_health_records_dive',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_dive_health_records_dive '
+        'ON dive_health_records(dive_id)',
+  ),
   // -- sync ---------------------------------------------------------------
   (
     name: 'idx_sync_records_entity_record',

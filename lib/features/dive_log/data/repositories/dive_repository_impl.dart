@@ -2468,7 +2468,9 @@ class DiveRepository {
                   dive.scrubber?.remainingMinutes,
                 ),
                 // Dive planner (v1.5)
-                isPlanned: Value(dive.isPlanned),
+                // Never both (issue #637): a draft happened, so it wins.
+                isPlanned: Value(dive.isPlanned && !dive.isDraft),
+                isDraft: Value(dive.isDraft),
                 outingId: Value(dive.outingId),
                 // Training course (v1.5)
                 courseId: Value(dive.courseId),
@@ -2802,7 +2804,9 @@ class DiveRepository {
             scrubberDurationMinutes: Value(dive.scrubber?.ratedMinutes),
             scrubberRemainingMinutes: Value(dive.scrubber?.remainingMinutes),
             // Dive planner (v1.5)
-            isPlanned: Value(dive.isPlanned),
+            // Never both (issue #637): a draft happened, so it wins.
+            isPlanned: Value(dive.isPlanned && !dive.isDraft),
+            isDraft: Value(dive.isDraft),
             outingId: Value(dive.outingId),
             // Training course (v1.5)
             courseId: Value(dive.courseId),
@@ -3420,7 +3424,8 @@ class DiveRepository {
             '${measuredRuntimeSecondsSql('d')} AS runtime, '
             'd.water_temp, d.rating, '
             'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
-            'd.is_planned, '
+            'd.is_planned, d.is_draft, '
+            '(d.is_draft = 1 AND d.exit_time IS NULL) AS is_open_draft, '
             'd.dive_type, d.dive_mode, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
             's.name AS site_name, s.country AS site_country, '
@@ -4336,7 +4341,8 @@ class DiveRepository {
           '${measuredRuntimeSecondsSql('d')} AS runtime, '
           'd.water_temp, d.rating, '
           'd.is_favorite, d.excluded_from_stats, d.excluded_from_gas_stats, '
-          'd.is_planned, '
+          'd.is_planned, d.is_draft, '
+          '(d.is_draft = 1 AND d.exit_time IS NULL) AS is_open_draft, '
           'd.dive_type, d.dive_mode, '
           'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
           's.name AS site_name, s.country AS site_country, '
@@ -4453,6 +4459,8 @@ class DiveRepository {
         excludedFromStats: row.read<int>('excluded_from_stats') == 1,
         excludedFromGasStats: row.read<int>('excluded_from_gas_stats') == 1,
         isPlanned: row.read<int>('is_planned') == 1,
+        isDraft: row.read<int>('is_draft') == 1,
+        isOpenDraft: row.read<int>('is_open_draft') == 1,
         diveMode: DiveMode.fromCode(row.read<String>('dive_mode')),
         diveTypeIds: diveTypesByDive[id] ?? [row.read<String>('dive_type')],
         tags: tagsByDive[id] ?? [],
@@ -5303,6 +5311,7 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      isDraft: row.isDraft,
       outingId: row.outingId,
       // Training courses (issue #2515); callers that do not preload the set
       // get the representative alone.
@@ -5777,6 +5786,7 @@ class DiveRepository {
           : null,
       // Dive planner (v1.5)
       isPlanned: row.isPlanned,
+      isDraft: row.isDraft,
       outingId: row.outingId,
       // Training courses (issue #2515)
       courseIds: courseIds,
@@ -5915,6 +5925,55 @@ class DiveRepository {
   // Planned Dive Operations (v1.5)
   // ============================================================================
 
+  /// The drafts (issue #637) of [diverId], every diver's when null, newest
+  /// entry first. Only `is_draft` rows, read without their samples: the
+  /// draft listings (the Home card, the reminders, the conditions fill, the
+  /// open dive) run on every dive change and draw no profile.
+  Future<List<domain.Dive>> getDraftDives({String? diverId}) async {
+    final query = _db.selectOnly(_db.dives)
+      ..addColumns([_db.dives.id])
+      ..where(_db.dives.isDraft.equals(true))
+      ..orderBy([
+        OrderingTerm.desc(
+          coalesce([_db.dives.entryTime, _db.dives.diveDateTime]),
+        ),
+      ]);
+    if (diverId != null) query.where(_db.dives.diverId.equals(diverId));
+    final ids = [for (final row in await query.get()) row.read(_db.dives.id)!];
+    final byId = {
+      for (final dive in await getDivesByIdsWithoutSamples(ids)) dive.id: dive,
+    };
+    return [for (final id in ids) ?byId[id]];
+  }
+
+  /// The plans and drafts a download may fill (issue #637): every dive of
+  /// [diverId] still waiting for its dive computer readings, newest first,
+  /// scoped as [getPlannedDives] is. The fill pass reads its targets only
+  /// through this.
+  Future<List<domain.Dive>> getUnfilledDives({String? diverId}) async {
+    try {
+      final query = _db.select(_db.dives)
+        ..where((t) => t.isPlanned.equals(true) | t.isDraft.equals(true))
+        ..orderBy([
+          (t) => OrderingTerm.desc(coalesce([t.entryTime, t.diveDateTime])),
+        ]);
+
+      if (diverId != null) {
+        query.where((t) => t.diverId.equals(diverId));
+      }
+
+      final rows = await query.get();
+      return await Future.wait(rows.map(_mapRowToDive));
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get unfilled dives',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get all planned dives (not yet executed)
   Future<List<domain.Dive>> getPlannedDives({String? diverId}) async {
     try {
@@ -5975,31 +6034,7 @@ class DiveRepository {
         throw Exception('Dive is not a planned dive: $planId');
       }
 
-      // Get next dive number for the actual dive
-      final diveNumber = await getNextDiveNumber(diverId: plannedDive.diverId);
-
-      // Update the dive to mark it as actual
-      final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.dives)..where((t) => t.id.equals(planId))).write(
-        DivesCompanion(
-          isPlanned: const Value(false),
-          diveDateTime: actualDateTime != null
-              ? Value(actualDateTime.millisecondsSinceEpoch)
-              : const Value.absent(),
-          entryTime: actualDateTime != null
-              ? Value(actualDateTime.millisecondsSinceEpoch)
-              : const Value.absent(),
-          diveNumber: Value(diveNumber),
-          updatedAt: Value(now),
-        ),
-      );
-      await _syncRepository.markRecordPending(
-        entityType: 'dives',
-        recordId: planId,
-        localUpdatedAt: now,
-      );
-      SyncEventBus.notifyLocalChange();
-
+      await _promote(plannedDive, actualDateTime: actualDateTime);
       _log.info('Converted planned dive to actual: $planId');
       return planId;
     } catch (e, stackTrace) {
@@ -6010,6 +6045,47 @@ class DiveRepository {
       );
       rethrow;
     }
+  }
+
+  /// Makes the plan or draft [diveId] an ordinary logged dive (issue #637):
+  /// clears both flags and gives it the next free number of its diver, as
+  /// [convertPlanToActualDive] does for a plan. [actualDateTime], when given,
+  /// becomes its start. Throws a [StateError] for a dive that is neither.
+  Future<String> promoteToLoggedDive(
+    String diveId, {
+    DateTime? actualDateTime,
+  }) async {
+    final dive = await getDiveById(diveId);
+    if (dive == null || !(dive.isPlanned || dive.isDraft)) {
+      throw StateError('Dive $diveId is neither a plan nor a draft');
+    }
+    await _promote(dive, actualDateTime: actualDateTime);
+    return diveId;
+  }
+
+  Future<void> _promote(domain.Dive dive, {DateTime? actualDateTime}) async {
+    final diveNumber = await getNextDiveNumber(diverId: dive.diverId);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.dives)..where((t) => t.id.equals(dive.id))).write(
+      DivesCompanion(
+        isPlanned: const Value(false),
+        isDraft: const Value(false),
+        diveDateTime: actualDateTime != null
+            ? Value(actualDateTime.millisecondsSinceEpoch)
+            : const Value.absent(),
+        entryTime: actualDateTime != null
+            ? Value(actualDateTime.millisecondsSinceEpoch)
+            : const Value.absent(),
+        diveNumber: Value(diveNumber),
+        updatedAt: Value(now),
+      ),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'dives',
+      recordId: dive.id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Delete a planned dive
@@ -6581,10 +6657,15 @@ class DiveRepository {
   /// has passed still restricts nothing until it is marked executed (issue
   /// #3924). A dive mirrored from a logged dive counts, since it happened, and
   /// reads that dive's deco obligation and end, having none of its own.
+  ///
+  /// A draft (issue #637) happened but has no readings, so it counts as a
+  /// deco dive, and one still in the water ends at [now], wall clock
+  /// flagged UTC like the stored times (the device's clock by default).
   // stats-scope-exempt: flying-after-diving safety, an excluded dive still off-gassed
   Future<List<NoFlyDiveInput>> getNoFlyDiveInputs({
     required DateTime since,
     String? diverId,
+    DateTime? now,
   }) async {
     try {
       final diverClause = diverId != null ? 'AND d.diver_id = ?' : '';
@@ -6597,18 +6678,25 @@ class DiveRepository {
       const profileDives =
           'SELECT d.id UNION ALL '
           'SELECT source.id FROM dives source WHERE $loggedSource';
+      // A draft still in the water (no exit tapped yet) ends now, so its
+      // wait counts from the moment the diver surfaces (issue #637).
       const endMs =
+          'CASE WHEN d.is_draft = 1 AND d.exit_time IS NULL THEN ? ELSE '
           'COALESCE(d.exit_time, '
           '(SELECT MAX(source.exit_time) FROM dives source '
           'WHERE $loggedSource), '
           'COALESCE(d.entry_time, d.dive_date_time) '
           '+ COALESCE(d.runtime, (SELECT MAX(source.runtime) '
-          'FROM dives source WHERE $loggedSource), 0) * 1000)';
+          'FROM dives source WHERE $loggedSource), 0) * 1000) END';
+      final nowMs =
+          (now ?? asWallClockUtc(DateTime.now())).millisecondsSinceEpoch;
       final rows = await _db
           .customSelect(
             'SELECT '
             '$endMs AS end_ms, '
-            '(EXISTS(SELECT 1 FROM dive_profile_series s '
+            // A draft has no readings to say whether it needed deco, so it
+            // counts as a deco dive, the longest wait (issue #637).
+            '(d.is_draft = 1 OR EXISTS(SELECT 1 FROM dive_profile_series s '
             'WHERE s.dive_id IN ($profileDives) AND (s.has_deco_stop = 1 '
             'OR (s.has_deco_type = 0 AND s.has_positive_ceiling = 1))) '
             'OR EXISTS(SELECT 1 FROM dive_profile_events e '
@@ -6620,6 +6708,8 @@ class DiveRepository {
             'AND NOT ${diveUndivedSql('d')} '
             '$diverClause',
             variables: [
+              Variable(nowMs),
+              Variable(nowMs),
               Variable(since.millisecondsSinceEpoch),
               if (diverId != null) Variable(diverId),
             ],
@@ -7404,9 +7494,10 @@ class DiveRepository {
       );
 
       // A planned dive holds no number until it is promoted (issue #2002),
-      // so it neither takes a slot nor shifts the numbers around it.
+      // and a draft none until it is filled (issue #637), so neither takes
+      // a slot nor shifts the numbers around it.
       final query = _db.select(_db.dives)
-        ..where((t) => t.isPlanned.equals(false))
+        ..where((t) => t.isPlanned.equals(false) & t.isDraft.equals(false))
         ..orderBy([
           (t) => OrderingTerm.asc(t.entryTime),
           (t) => OrderingTerm.asc(t.diveDateTime),

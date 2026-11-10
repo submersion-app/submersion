@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/waiting_for_download_card.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -80,6 +82,10 @@ class DashboardPage extends ConsumerWidget {
       HomeCardType.recentSitesMap,
       recentSitesProvider,
     );
+    final drafts = watchUnlessHidden(
+      HomeCardType.waitingForDownload,
+      draftDivesProvider,
+    );
 
     bool hasContent(HomeCardType card) => switch (card) {
       HomeCardType.milestones => show(milestones, (m) => !m.isEmpty),
@@ -87,6 +93,10 @@ class DashboardPage extends ConsumerWidget {
       HomeCardType.onThisDay => show(onThisDay, (d) => d.isNotEmpty),
       HomeCardType.yearInReview => show(yearInReview, (y) => y != null),
       HomeCardType.activeCourses => show(courses, (c) => c.isNotEmpty),
+      HomeCardType.waitingForDownload => show(
+        drafts,
+        (d) => draftsWaitingForDownload(d).isNotEmpty,
+      ),
       // Holds for the first photo result: photos arriving later would pull
       // the map into a shared row, and moving it under that Row remounts it,
       // paying for the map twice on the way to the same layout. A hidden
@@ -144,6 +154,7 @@ class DashboardPage extends ConsumerWidget {
             // forces a fresh per-item clock evaluation on pull-to-refresh.
             ref.invalidate(activeEquipmentClocksProvider);
             ref.invalidate(activeCoursesProgressProvider);
+            ref.invalidate(draftDivesProvider);
           },
           child: CustomScrollView(
             slivers: [

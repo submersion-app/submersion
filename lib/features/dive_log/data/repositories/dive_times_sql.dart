@@ -103,11 +103,15 @@ String _supersededOriginalSql(String s) {
 /// only executed for the dives that actually reach that step. A dive with an
 /// explicit `runtime` never touches `dive_profile_series`, which is what keeps this
 /// usable in aggregates that scan the whole dive table.
+///
+/// NULL for a draft (issue #637): its times are taps at the site and any
+/// runtime it holds came from the plan it adopted, so neither is a reading
+/// to report; [effectiveRuntimeSecondsSql] still spans its taps.
 String measuredRuntimeSecondsSql(String alias) =>
-    'COALESCE('
+    'CASE WHEN $alias.is_draft = 1 THEN NULL ELSE COALESCE('
     '$alias.runtime, '
     '${timestampRuntimeSecondsSql(alias)}, '
-    '${profileSpanSecondsSql(alias)})';
+    '${profileSpanSecondsSql(alias)}) END';
 
 /// What [measuredRuntimeSecondsSql] reads beyond the dive row, by SQL name:
 /// the tables a query or a tick over a measured runtime has to follow. The
@@ -122,8 +126,13 @@ const Set<String> measuredRuntimeTables = {
 /// seconds, NULL only for a dive that carries no duration in any form: the
 /// [measuredRuntimeSecondsSql] steps, then `bottom_time`. An estimate for a
 /// time window, never a value to report as a runtime.
+///
+/// A draft's window is its taps, NULL while it is still open (issue #637).
 String effectiveRuntimeSecondsSql(String alias) =>
-    'COALESCE(${measuredRuntimeSecondsSql(alias)}, $alias.bottom_time)';
+    'CASE WHEN $alias.is_draft = 1 '
+    'THEN ${timestampRuntimeSecondsSql(alias)} '
+    'ELSE COALESCE(${measuredRuntimeSecondsSql(alias)}, $alias.bottom_time) '
+    'END';
 
 /// When the dive started, in epoch milliseconds: `entry_time`, else the dive
 /// date.
@@ -154,10 +163,19 @@ String diveExitMillisSql(String alias) {
 /// `idx_dives_outing` serves.
 String diveUndivedSql(String alias) {
   const s = 'undived_sibling';
-  return '($alias.is_planned = 1 AND NOT ($alias.outing_id IS NOT NULL AND '
+  return '($alias.is_planned = 1 AND $alias.is_draft = 0 AND '
+      'NOT ($alias.outing_id IS NOT NULL AND '
       'EXISTS (SELECT 1 FROM dives $s WHERE $s.outing_id = $alias.outing_id '
       'AND $s.is_planned = 0)))';
 }
+
+/// True for a dive that waits for its dive computer readings: a plan or a
+/// draft (issue #637). The one place "plan or draft" is spelled in SQL, for
+/// numbering and matching, which skip both. Safety reads do NOT use it: a
+/// draft happened, so no-fly and surface interval count it
+/// ([diveUndivedSql]).
+String diveUnfilledSql(String alias) =>
+    '($alias.is_planned = 1 OR $alias.is_draft = 1)';
 
 /// How far back a dive's residual load reads: the tissue lookback's window.
 const kResidualLookback = Duration(hours: 48);
@@ -212,7 +230,7 @@ SELECT id, dive_date_time, entry_time, max_depth,
   ABS($start - ?1) AS time_diff
 FROM dives
 WHERE $start BETWEEN ?2 AND ?3
-  AND is_planned = 0
+  AND NOT ${diveUnfilledSql('dives')}
   ${scopedToDiver ? 'AND diver_id = ?4' : ''}
 ORDER BY time_diff ASC
 LIMIT 10

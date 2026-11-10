@@ -15,6 +15,8 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_type_
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/equipment/presentation/widgets/foldable_type_group_rows.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
 
 /// Opens the add-components sheet for [parentId]. With [replacing], the
 /// sheet picks one item to take that row's place instead (issue #1487,
@@ -66,7 +68,8 @@ class ComponentPickerSheet extends ConsumerStatefulWidget {
       _ComponentPickerSheetState();
 }
 
-class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
+class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet>
+    with FoldableTypeGroupsState<ComponentPickerSheet> {
   final _selected = <String>{};
   bool _saving = false;
 
@@ -276,58 +279,52 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
                 for (final type in grouped.keys.sortedByLocalizedName(l10n))
                   (type, grouped[type]!),
               ];
+              final firstFold = openTypeGroups == null;
+              ensureOpenTypeGroups(groups, _selected);
+              // Replacing a part, its type is where the diver will look.
+              if (firstFold && openTypeGroups != null) {
+                final replacedId = widget.replacing?.componentEquipmentId;
+                for (final item in active) {
+                  if (item.id != replacedId) continue;
+                  openTypeGroups = {...openTypeGroups!, typeFoldKey(item.type)};
+                  break;
+                }
+              }
               return ListView(
                 controller: widget.scrollController,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                children: [
-                  for (final (type, items) in groups)
-                    Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                            child: Text(
-                              type.localizedName(l10n),
-                              style: Theme.of(context).textTheme.labelLarge
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
-                            ),
-                          ),
-                          for (final item in items)
-                            CheckboxListTile(
-                              value: _selected.contains(item.id),
-                              // Frozen while the adds run, so the selection
-                              // being saved is the one that was confirmed.
-                              onChanged: _saving
-                                  ? null
-                                  : (value) => _toggle(item.id, value == true),
-                              title: Text(item.name),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  switch (labels[item.id]?.subtitle) {
-                                    final detail? => Text(detail),
-                                    null => const SizedBox.shrink(),
-                                  },
-                                  ServiceStatusIndicatorFor(
-                                    equipmentId: item.id,
-                                    density: ServiceIndicatorDensity.compact,
-                                  ),
-                                ],
-                              ),
-                              secondary: Icon(equipmentTypeIcon(item.type)),
-                              controlAffinity: ListTileControlAffinity.trailing,
-                            ),
-                        ],
-                      ),
+                padding: const EdgeInsets.fromLTRB(0, 0, 0, 24),
+                children: foldableTypeGroupRows(
+                  context,
+                  groups: groups,
+                  open: openTypeGroups,
+                  ticked: _selected,
+                  onToggle: toggleTypeGroup,
+                  rowBuilder: (item) => CheckboxListTile(
+                    value: _selected.contains(item.id),
+                    // Frozen while the adds run, so the selection being
+                    // saved is the one that was confirmed.
+                    onChanged: _saving
+                        ? null
+                        : (value) => _toggle(item.id, value == true),
+                    title: Text(item.name),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        switch (labels[item.id]?.subtitle) {
+                          final detail? => Text(detail),
+                          null => const SizedBox.shrink(),
+                        },
+                        ServiceStatusIndicatorFor(
+                          equipmentId: item.id,
+                          density: ServiceIndicatorDensity.compact,
+                        ),
+                      ],
                     ),
-                ],
+                    secondary: Icon(equipmentTypeIcon(item.type)),
+                    controlAffinity: ListTileControlAffinity.trailing,
+                  ),
+                ),
               );
             },
           ),

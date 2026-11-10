@@ -1,6 +1,8 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_draft_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
+import 'package:submersion/features/gps_log/data/services/dive_mark_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_match_service.dart';
 import 'package:submersion/features/gps_log/data/services/gps_track_recorder.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
@@ -26,6 +28,23 @@ final gpsTrackRecorderProvider = Provider<GpsTrackRecorder>((ref) {
   );
   ref.onDispose(recorder.stop);
   return recorder;
+});
+
+/// "Entered water" and "Surfaced" (issue #637), at the running recording's
+/// position. One instance for the app, since it runs the marks one at a
+/// time: the buttons, the record card and the lock screen share its queue.
+// no-tick: builds the DiveMarkService SERVICE, not a query result. Its track
+// read runs fresh at each tap.
+final diveMarkServiceProvider = Provider<DiveMarkService>((ref) {
+  final recorder = ref.watch(gpsTrackRecorderProvider);
+  final tracks = ref.watch(gpsTrackRepositoryProvider);
+  return DiveMarkService(
+    drafts: ref.watch(diveDraftRepositoryProvider),
+    recordedPoints: () async {
+      final trackId = recorder.state.trackId;
+      return trackId == null ? const [] : tracks.getBufferPoints(trackId);
+    },
+  );
 });
 
 final gpsRecorderStateProvider = StreamProvider<GpsRecorderState>(

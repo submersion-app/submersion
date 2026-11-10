@@ -93,6 +93,7 @@ abstract final class SyncFactGroups {
       'certificationListGroupBy': 'certification_list_group_by',
       'equipmentArrangement': 'equipment_arrangement',
       'equipmentGroupByLocation': 'equipment_group_by_location',
+      'equipmentCollapsedGroups': 'equipment_collapsed_groups',
       'diveListViewMode': 'dive_list_view_mode',
       'siteListViewMode': 'site_list_view_mode',
       'tripListViewMode': 'trip_list_view_mode',
