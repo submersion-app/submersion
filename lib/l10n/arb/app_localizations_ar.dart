@@ -11514,7 +11514,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_sources_removeSharedComputer =>
-      'يشترك هذا المصدر في حاسوب الغوص مع مصدر آخر في الغطسة، لذا لا يمكن إزالته وحده. افصله في غطسة مستقلة بدلًا من ذلك.';
+      'يشترك هذا المصدر في حاسوب الغوص مع مصدر آخر في الغطسة، لذا لا يمكن التمييز بين قراءاتهما ولا يمكن إزالته وحده.';
 
   @override
   String get diveLog_sources_menu_separate => 'فصل الغوصات المدمجة';

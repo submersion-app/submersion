@@ -13,8 +13,8 @@ const _preview = CylinderMergePreview(
   survivorId: 'a',
   duplicateIds: ['b'],
   cylinders: [
-    CylinderSummary(id: 'a', order: 0, name: null, o2: 32, he: 0),
-    CylinderSummary(id: 'b', order: 2, name: null, o2: 32, he: 0),
+    CylinderSummary(id: 'a', number: 1, name: null, o2: 32, he: 0),
+    CylinderSummary(id: 'b', number: 3, name: null, o2: 32, he: 0),
   ],
   findingIds: ['f1'],
 );

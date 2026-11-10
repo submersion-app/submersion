@@ -11188,7 +11188,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_sources_removeSharedComputer =>
-      'This source shares its dive computer with another source of the dive, so it cannot be removed on its own. Split it into its own dive instead.';
+      'This source shares its dive computer with another source of the dive, so their readings cannot be told apart and it cannot be removed on its own.';
 
   @override
   String get diveLog_sources_menu_separate => 'Separate combined dives';

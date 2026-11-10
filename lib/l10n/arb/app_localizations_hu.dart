@@ -11342,7 +11342,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_sources_removeSharedComputer =>
-      'Ez a forrás a merülés egy másik forrásával közös búvárkomputert használ, ezért önmagában nem távolítható el. Válaszd le inkább külön merülésbe.';
+      'Ez a forrás a merülés egy másik forrásával közös búvárkomputert használ, ezért a méréseik nem választhatók szét, és önmagában nem távolítható el.';
 
   @override
   String get diveLog_sources_menu_separate =>

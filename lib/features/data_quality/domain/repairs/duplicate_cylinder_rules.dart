@@ -13,6 +13,12 @@ import 'package:submersion/features/dive_log/domain/services/transmitter_serial.
 /// Tolerance below which two mixes are the same (percentage points).
 const double _mixTolerance = 0.05;
 
+/// Whether two gas mixes are the same within [_mixTolerance]: the one rule
+/// the merge, its preview and the gas question all compare by.
+bool mixesClose(({double o2, double he}) a, ({double o2, double he}) b) =>
+    (a.o2 - b.o2).abs() <= _mixTolerance &&
+    (a.he - b.he).abs() <= _mixTolerance;
+
 /// The detector's canonical serial (blank and all-zero read as none),
 /// compared without case.
 String? _normalSerial(String? serial) =>
@@ -110,13 +116,6 @@ String pickSurvivor(
 /// Whether any two rows of [group] carry a different gas: then the diver,
 /// not the app, says which mix the cylinder held.
 bool mixesDiffer(List<DiveTank> group) {
-  for (final a in group) {
-    for (final b in group) {
-      if ((a.o2Percent - b.o2Percent).abs() > _mixTolerance ||
-          (a.hePercent - b.hePercent).abs() > _mixTolerance) {
-        return true;
-      }
-    }
-  }
-  return false;
+  final mixes = [for (final t in group) (o2: t.o2Percent, he: t.hePercent)];
+  return mixes.any((a) => mixes.any((b) => !mixesClose(a, b)));
 }

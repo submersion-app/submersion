@@ -18067,7 +18067,7 @@ abstract class AppLocalizations {
   /// Snackbar explaining that a data source sharing its computer with another source of the dive cannot be removed.
   ///
   /// In en, this message translates to:
-  /// **'This source shares its dive computer with another source of the dive, so it cannot be removed on its own. Split it into its own dive instead.'**
+  /// **'This source shares its dive computer with another source of the dive, so their readings cannot be told apart and it cannot be removed on its own.'**
   String get diveLog_sources_removeSharedComputer;
 
   /// No description provided for @diveLog_sources_menu_separate.

@@ -11117,7 +11117,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_sources_removeSharedComputer =>
-      'המקור הזה חולק את מחשב הצלילה שלו עם מקור אחר של הצלילה, ולכן אי אפשר להסיר אותו לבד. פצל אותו לצלילה נפרדת במקום זאת.';
+      'המקור הזה חולק את מחשב הצלילה שלו עם מקור אחר של הצלילה, ולכן אי אפשר להפריד בין הקריאות שלהם ואי אפשר להסיר אותו לבד.';
 
   @override
   String get diveLog_sources_menu_separate => 'הפרדת צלילות ממוזגות';

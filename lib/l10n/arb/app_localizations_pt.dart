@@ -11363,7 +11363,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_sources_removeSharedComputer =>
-      'Esta fonte compartilha o computador de mergulho com outra fonte do mergulho, então não pode ser removida sozinha. Separe-a em um mergulho próprio.';
+      'Esta fonte compartilha o computador de mergulho com outra fonte do mergulho, então suas leituras não podem ser separadas e ela não pode ser removida sozinha.';
 
   @override
   String get diveLog_sources_menu_separate => 'Separar mergulhos combinados';

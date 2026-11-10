@@ -3488,7 +3488,7 @@
   "diveLog_sources_removeDialog_confirm": "Rimuovi",
   "diveLog_sources_removeDone": "Fonte rimossa",
   "diveLog_sources_removeFailed": "Impossibile rimuovere la fonte",
-  "diveLog_sources_removeSharedComputer": "Questa fonte condivide il computer subacqueo con un'altra fonte dell'immersione, quindi non può essere rimossa da sola. Separala invece in un'immersione a sé.",
+  "diveLog_sources_removeSharedComputer": "Questa fonte condivide il computer subacqueo con un'altra fonte dell'immersione, quindi le loro letture non si possono distinguere e non può essere rimossa da sola.",
   "diveLog_sources_menu_separate": "Separa le immersioni unite",
   "diveLog_sources_separateDialog_title": "Separare le immersioni unite?",
   "diveLog_sources_separateDialog_body": "Questa immersione è stata unita da {count} immersioni. Il profilo, gli eventi, le bombole e i cambi gas di ciascuna tornano nella propria immersione. Il resto della voce di logbook, compresi compagni, tag, attrezzatura, media, note e il numero dell'immersione, resta su questa immersione.",

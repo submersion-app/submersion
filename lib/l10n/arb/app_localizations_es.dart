@@ -11367,7 +11367,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_sources_removeSharedComputer =>
-      'Esta fuente comparte su ordenador de buceo con otra fuente de la inmersión, así que no se puede eliminar sola. Sepárala en su propia inmersión.';
+      'Esta fuente comparte su ordenador de buceo con otra fuente de la inmersión, así que sus lecturas no se pueden separar y no se puede eliminar sola.';
 
   @override
   String get diveLog_sources_menu_separate => 'Separar inmersiones combinadas';

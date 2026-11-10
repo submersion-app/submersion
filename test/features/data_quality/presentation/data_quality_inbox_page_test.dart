@@ -72,6 +72,7 @@ class _FakeFindingsRepository implements QualityFindingsRepository {
   final reopened = <String>[];
 
   bool failDismissAll = false;
+  bool failReopenAll = false;
 
   @override
   Future<void> dismissAll(Iterable<String> ids) async {
@@ -81,6 +82,7 @@ class _FakeFindingsRepository implements QualityFindingsRepository {
 
   @override
   Future<void> reopenAll(Iterable<String> ids) async {
+    if (failReopenAll) throw StateError('database is locked');
     reopened.addAll(ids);
   }
 
@@ -2015,8 +2017,8 @@ void main() {
       expect(
         find.text(
           'This source shares its dive computer with another source of the '
-          'dive, so it cannot be removed on its own. Split it into its own '
-          'dive instead.',
+          'dive, so their readings cannot be told apart and it cannot be '
+          'removed on its own.',
         ),
         findsOneWidget,
       );
@@ -2810,6 +2812,42 @@ void main() {
       await tester.tap(find.text('Undo'));
       await tester.pumpAndSettle();
       expect(repo.reopened, ['twin-1']);
+    });
+
+    testWidgets('a failing Undo of dismiss all says so', (tester) async {
+      final repo = _FakeFindingsRepository([twin()])..failReopenAll = true;
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(inboxOverflowMenuKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all shown (1)'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dismiss all'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Repair failed'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 6));
+    });
+
+    testWidgets('bulk removal with nothing left to merge says so', (
+      tester,
+    ) async {
+      // No tank rows: every twin finding is stale.
+      final repo = _FakeFindingsRepository([twin()]);
+      await tester.pumpWidget(await _wrap(repo));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilterChip, 'Tanks (1)'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(bulkRemoveDuplicatesKey));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Remove duplicate cylinders'), findsNothing);
+      expect(find.text('Nothing to repair here'), findsOneWidget);
+      await tester.pumpAndSettle(const Duration(seconds: 6));
     });
 
     testWidgets('a failing dismiss all says so instead of doing nothing', (

@@ -10800,7 +10800,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_sources_removeSharedComputer =>
-      '此数据源与该潜水的另一个数据源共用同一台潜水电脑，因此无法单独移除。请改为将其拆分为单独的潜水。';
+      '此数据源与该潜水的另一个数据源共用同一台潜水电脑，二者的读数无法区分，因此无法单独移除。';
 
   @override
   String get diveLog_sources_menu_separate => '拆分合并的潜水';

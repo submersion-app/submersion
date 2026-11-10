@@ -20,7 +20,7 @@ const _log = LoggerService('DuplicateCylinderService');
 class CylinderSummary {
   const CylinderSummary({
     required this.id,
-    required this.order,
+    required this.number,
     required this.name,
     required this.o2,
     required this.he,
@@ -28,8 +28,11 @@ class CylinderSummary {
 
   final String id;
 
-  /// Its place on the dive (0-based), for "Cylinder 2" when it has no name.
-  final int order;
+  /// Its 1-based position among the dive's tanks (by tank order, then
+  /// insertion), the "Tank n" the finding card and the dive's screens show.
+  final int number;
+
+  /// Its own name when it has a non-blank one, as the finding card shows it.
   final String? name;
   final double o2;
   final double he;
@@ -55,19 +58,12 @@ class CylinderMergePreview {
   /// The findings this merge answers; resolved when it lands.
   final List<String> findingIds;
 
-  /// Whether the rows disagree on gas, so the diver must say which it held.
   /// Whether any two rows disagree on gas, so the diver must say which it
-  /// held. Every pair, as the merge rules compare them: rows can each sit
-  /// near the first while drifting apart from one another.
+  /// held. Every pair, by the merge rules' own [mixesClose]: rows can each
+  /// sit near the first while drifting apart from one another.
   bool get mixesDiffer {
-    for (final a in cylinders) {
-      for (final b in cylinders) {
-        if ((a.o2 - b.o2).abs() > 0.05 || (a.he - b.he).abs() > 0.05) {
-          return true;
-        }
-      }
-    }
-    return false;
+    final mixes = [for (final c in cylinders) (o2: c.o2, he: c.he)];
+    return mixes.any((a) => mixes.any((b) => !mixesClose(a, b)));
   }
 
   CylinderSummary get survivor =>
@@ -104,16 +100,22 @@ class DuplicateRemovalResult {
 /// pressure series a merge moves, so one revert restores everything. It
 /// always opens its own operation, even inside another scope.
 class DuplicateCylinderService {
+  /// [database] is the one previews read and the default repository writes,
+  /// so the two never look at different databases.
   DuplicateCylinderService({
+    AppDatabase? database,
     DuplicateCylinderRepository? repository,
     QualityFindingsRepository? findings,
-  }) : _repository = repository ?? DuplicateCylinderRepository(),
+  }) : _database = database,
+       _repository =
+           repository ?? DuplicateCylinderRepository(database: database),
        _findings = findings ?? QualityFindingsRepository();
 
+  final AppDatabase? _database;
   final DuplicateCylinderRepository _repository;
   final QualityFindingsRepository _findings;
 
-  AppDatabase get _db => DatabaseService.instance.database;
+  AppDatabase get _db => _database ?? DatabaseService.instance.database;
 
   static bool _isTwin(QualityFinding f) =>
       f.detectorId == 'tank_assignment' &&
@@ -156,7 +158,12 @@ class DuplicateCylinderService {
       final tanks =
           await (_db.select(_db.diveTanks)
                 ..where((t) => t.diveId.isIn(chunk))
-                ..orderBy([(t) => OrderingTerm.asc(t.tankOrder)]))
+                // Tank order, then insertion: the finding card numbers tanks
+                // the same way.
+                ..orderBy([
+                  (t) => OrderingTerm.asc(t.tankOrder),
+                  (_) => OrderingTerm.asc(const CustomExpression<int>('rowid')),
+                ]))
               .get();
       for (final t in tanks) {
         (tanksByDive[t.diveId] ??= []).add(t);
@@ -214,6 +221,9 @@ class DuplicateCylinderService {
       for (final t in tanks)
         if (ids.contains(t.id)) t,
     ];
+    // [tanks] holds the whole dive in card order, so a row's position is its
+    // number there.
+    final numberOf = {for (final (i, t) in tanks.indexed) t.id: i + 1};
     final survivorId = pickSurvivor(
       rows,
       primarySourceId: primary?.id,
@@ -230,8 +240,8 @@ class DuplicateCylinderService {
         for (final t in rows)
           CylinderSummary(
             id: t.id,
-            order: t.tankOrder,
-            name: t.tankName ?? t.presetName,
+            number: numberOf[t.id]!,
+            name: (t.tankName?.trim().isEmpty ?? true) ? null : t.tankName,
             o2: t.o2Percent,
             he: t.hePercent,
           ),

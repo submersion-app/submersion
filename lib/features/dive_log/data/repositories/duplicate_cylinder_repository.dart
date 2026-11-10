@@ -29,9 +29,9 @@ class DuplicateCylinderRepository {
   /// Merges [duplicateIds] into [survivorId] on [diveId]:
   ///
   /// 1. The survivor takes each detail it lacks (volume, working pressure,
-  ///    name, preset, material, gear, regulator, passport and trip cylinder
-  ///    links, record start and end pressures) from the first duplicate that
-  ///    has it, [mix] when given, and every duplicate's computer among the
+  ///    name, preset, material, transmitter serial, gear, regulator, extra
+  ///    regulator, passport and trip cylinder links, record start and end
+  ///    pressures) from the first duplicate that has it, [mix] when given, and every duplicate's computer among the
   ///    computers that shared it, so a later Split of that source still finds
   ///    a cylinder to take.
   /// 2. When the survivor has no pressure series, the first duplicate that has
@@ -85,6 +85,12 @@ class DuplicateCylinderRepository {
       regulatorEquipmentId: Value(
         firstOf(survivor.regulatorEquipmentId, (d) => d.regulatorEquipmentId),
       ),
+      transmitterSerial: Value(
+        firstOf(survivor.transmitterSerial, (d) => d.transmitterSerial),
+      ),
+      extraRegulatorIds: Value(
+        firstOf(survivor.extraRegulatorIds, (d) => d.extraRegulatorIds),
+      ),
       tankMaterial: Value(
         firstOf(survivor.tankMaterial, (d) => d.tankMaterial),
       ),
@@ -110,9 +116,11 @@ class DuplicateCylinderRepository {
         await _series.reassignTank(diveId, d.id, survivorId, now: now);
         // The survivor keeps its own sourceTankIndex: it is the parsed-tank
         // identity for the survivor's computer, not the duplicate's.
+        // A series' own record pressures win; with none, the survivor keeps
+        // what it had rather than being cleared.
         update = update.copyWith(
-          startPressure: Value(d.startPressure),
-          endPressure: Value(d.endPressure),
+          startPressure: Value(d.startPressure ?? survivor.startPressure),
+          endPressure: Value(d.endPressure ?? survivor.endPressure),
         );
         break;
       }

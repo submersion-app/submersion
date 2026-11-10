@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/data_quality/data/services/duplicate_cylinder_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
+import 'package:submersion/features/data_quality/domain/repairs/duplicate_cylinder_rules.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -17,7 +18,7 @@ class DuplicateRemovalChoice {
 
 /// How a cylinder of a merge is named: "Tank 2" or "Tank 2 · AL80".
 String duplicateCylinderLabel(AppLocalizations l10n, CylinderSummary c) =>
-    qualityTankLabel(l10n, QualityTankRef(number: c.order + 1, name: c.name));
+    qualityTankLabel(l10n, QualityTankRef(number: c.number, name: c.name));
 
 /// What a removal did, in one line, or null when it changed nothing (a
 /// stale finding whose rows had already gone).
@@ -64,12 +65,11 @@ class _RemoveDuplicateDialogState extends State<_RemoveDuplicateDialog> {
       [
         (o2: widget.preview.survivor.o2, he: widget.preview.survivor.he),
         for (final c in widget.preview.cylinders) (o2: c.o2, he: c.he),
-      ].fold(<({double o2, double he})>[], (unique, mix) {
-        final seen = unique.any(
-          (m) => (m.o2 - mix.o2).abs() <= 0.05 && (m.he - mix.he).abs() <= 0.05,
-        );
-        return seen ? unique : [...unique, mix];
-      });
+      ].fold(
+        <({double o2, double he})>[],
+        (unique, mix) =>
+            unique.any((m) => mixesClose(m, mix)) ? unique : [...unique, mix],
+      );
 
   late ({double o2, double he}) _chosen = (
     o2: widget.preview.survivor.o2,

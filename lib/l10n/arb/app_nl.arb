@@ -3589,7 +3589,7 @@
   "diveLog_sources_removeDialog_confirm": "Verwijderen",
   "diveLog_sources_removeDone": "Bron verwijderd",
   "diveLog_sources_removeFailed": "De bron kon niet worden verwijderd",
-  "diveLog_sources_removeSharedComputer": "Deze bron deelt zijn duikcomputer met een andere bron van de duik en kan daarom niet apart worden verwijderd. Splits hem in plaats daarvan af als eigen duik.",
+  "diveLog_sources_removeSharedComputer": "Deze bron deelt zijn duikcomputer met een andere bron van de duik. Hun metingen zijn daarom niet uit elkaar te houden en hij kan niet apart worden verwijderd.",
   "diveLog_sources_menu_separate": "Samengevoegde duiken scheiden",
   "diveLog_sources_separateDialog_title": "Samengevoegde duiken scheiden?",
   "diveLog_sources_separateDialog_body": "Deze duik is samengevoegd uit {count} duiken. Het profiel, de gebeurtenissen, de flessen en de gaswissels van elke duik gaan terug naar hun eigen duik. De rest van de logboekvermelding, waaronder buddy's, tags, uitrusting, media, notities en het duiknummer, blijft bij deze duik.",

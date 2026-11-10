@@ -139,6 +139,59 @@ void main() {
     },
   );
 
+  test(
+    "a moved series without record pressures keeps the survivor's",
+    () async {
+      await insertTank('keep', computerId: 'dc-a');
+      await insertTank('dup', computerId: 'dc-b');
+      await (db.update(db.diveTanks)..where((t) => t.id.equals('keep'))).write(
+        const DiveTanksCompanion(
+          startPressure: Value(210),
+          endPressure: Value(70),
+        ),
+      );
+      await insertPressure('dup', 200);
+
+      await merge();
+
+      final kept = (await tank('keep'))!;
+      expect(kept.startPressure, 210);
+      expect(kept.endPressure, 70);
+    },
+  );
+
+  test(
+    "carries the duplicate's transmitter serial and extra regulators",
+    () async {
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'keep',
+              diveId: 'dive',
+              computerId: const Value('dc-a'),
+            ),
+          );
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: 'dup',
+              diveId: 'dive',
+              computerId: const Value('dc-b'),
+              transmitterSerial: const Value('770718'),
+              extraRegulatorIds: const Value('["reg-2"]'),
+            ),
+          );
+
+      await merge();
+
+      final kept = (await tank('keep'))!;
+      expect(kept.transmitterSerial, '770718');
+      expect(kept.extraRegulatorIds, '["reg-2"]');
+    },
+  );
+
   test('applies the chosen mix', () async {
     await insertTank('keep', computerId: 'dc-a', o2: 32);
     await insertTank('dup', computerId: 'dc-b', o2: 21);

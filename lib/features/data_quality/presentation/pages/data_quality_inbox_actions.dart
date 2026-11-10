@@ -12,8 +12,7 @@ import 'package:submersion/features/data_quality/presentation/widgets/dive_ident
 import 'package:submersion/features/data_quality/presentation/widgets/duplicate_cylinder_dialogs.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/duplicate_cylinders_sheet.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/remove_source_dialog.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/remove_source_flow.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -32,10 +31,9 @@ void rescanDives(List<String> diveIds) {
   scheduleDerivedMetricsRefresh(diveIds, force: true);
 }
 
-/// Confirms and removes a source a Conflicting sources finding names. The
-/// removal opens its own change log operation, so it is called directly and
-/// never inside the executor's scope; its Undo reverts that operation and
-/// reopens the finding.
+/// Removes a source a Conflicting sources finding names, through the flow
+/// the dive page shares: the removal resolves the finding, its Undo reopens
+/// it, and both rescan the dive.
 Future<void> runRemoveSource(
   BuildContext context,
   WidgetRef ref, {
@@ -43,54 +41,18 @@ Future<void> runRemoveSource(
   required String diveId,
   required String sourceId,
   required String? sourceName,
-}) async {
-  final removal = ref.read(diveSourceRemovalServiceProvider);
-  // The finding is raised for a combined split pair too, whose two sources
-  // share a computer and cannot be removed apart: say so instead of offering
-  // a confirmation that can only fail.
-  if (await removal.sharesComputer(diveId: diveId, sourceId: sourceId)) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.l10n.diveLog_sources_removeSharedComputer),
-      ),
-    );
-    return;
-  }
-  if (!context.mounted) return;
-  if (!await confirmRemoveSource(context, source: sourceName)) return;
-  if (!context.mounted) return;
-  final l10n = context.l10n;
-  final messenger = ScaffoldMessenger.of(context);
+}) {
   final findings = ref.read(qualityFindingsRepositoryProvider);
-  try {
-    final done = await removal.remove(diveId: diveId, sourceId: sourceId);
-    await findings.setStatus(finding.id, QualityStatus.resolved);
-    rescanDives([diveId]);
-    final operationId = done.operationId;
-    messenger.showSnackBar(
-      SnackBar(
-        duration: inboxDestructiveUndoWindow,
-        persist: false,
-        content: Text(l10n.diveLog_sources_removeDone),
-        action: operationId == null
-            ? null
-            : SnackBarAction(
-                label: l10n.dataQuality_action_undo,
-                onPressed: () => unawaited(() async {
-                  final whole = await undoChangeLogOperation(operationId);
-                  await findings.setStatus(finding.id, QualityStatus.open);
-                  rescanDives([diveId]);
-                  if (!whole) _undoIncomplete(messenger, l10n);
-                }()),
-              ),
-      ),
-    );
-  } catch (_) {
-    messenger.showSnackBar(
-      SnackBar(content: Text(l10n.diveLog_sources_removeFailed)),
-    );
-  }
+  return removeSourceWithUndo(
+    context,
+    ref,
+    diveId: diveId,
+    sourceId: sourceId,
+    sourceName: sourceName,
+    afterChange: () => rescanDives([diveId]),
+    onRemoved: () => findings.setStatus(finding.id, QualityStatus.resolved),
+    onUndone: () => findings.setStatus(finding.id, QualityStatus.open),
+  );
 }
 
 /// The inbox toolbar's bulk "Remove duplicate cylinders" button.
@@ -157,6 +119,14 @@ Future<void> runBulkRemoveDuplicates(
     previews = await service.previewAll(service.bulkCandidates(shown));
   } catch (e) {
     _repairFailed(messenger, l10n, e);
+    return;
+  }
+  // Every finding was stale (its rows merged or edited since the scan):
+  // there is nothing to show a sheet for.
+  if (previews.isEmpty) {
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.dataQuality_repair_noChange)),
+    );
     return;
   }
   if (!context.mounted) return;
@@ -254,7 +224,13 @@ Future<void> runDismissAllShown(
       content: Text(l10n.dataQuality_dismissAll_done(ids.length)),
       action: SnackBarAction(
         label: l10n.dataQuality_action_undo,
-        onPressed: () => unawaited(findings.reopenAll(ids)),
+        onPressed: () => unawaited(() async {
+          try {
+            await findings.reopenAll(ids);
+          } catch (e) {
+            _repairFailed(messenger, l10n, e);
+          }
+        }()),
       ),
     ),
   );

@@ -3615,7 +3615,7 @@
   "diveLog_sources_removeDialog_confirm": "Entfernen",
   "diveLog_sources_removeDone": "Quelle entfernt",
   "diveLog_sources_removeFailed": "Die Quelle konnte nicht entfernt werden",
-  "diveLog_sources_removeSharedComputer": "Diese Quelle teilt ihren Tauchcomputer mit einer anderen Quelle des Tauchgangs und kann daher nicht allein entfernt werden. Trenne sie stattdessen als eigenen Tauchgang ab.",
+  "diveLog_sources_removeSharedComputer": "Diese Quelle teilt ihren Tauchcomputer mit einer anderen Quelle des Tauchgangs. Ihre Messwerte lassen sich daher nicht trennen, und sie kann nicht allein entfernt werden.",
   "diveLog_sources_menu_separate": "Kombinierte Tauchgänge trennen",
   "diveLog_sources_separateDialog_title": "Kombinierte Tauchgänge trennen?",
   "diveLog_sources_separateDialog_body": "Dieser Tauchgang wurde aus {count} Tauchgängen kombiniert. Profil, Ereignisse, Flaschen und Gaswechsel jedes einzelnen wandern zurück in seinen eigenen Tauchgang. Der Rest des Logbucheintrags, darunter Tauchpartner, Tags, Ausrüstung, Medien, Notizen und die Tauchgangsnummer, bleibt bei diesem Tauchgang.",

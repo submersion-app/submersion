@@ -354,20 +354,22 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
     }
   }
 
-  /// Confirms and runs Remove source (issue #4393). The removal is one change
-  /// log operation, so the snackbar's Undo reverts it whole.
+  /// Runs Remove source (issue #4393) through the flow the inbox shares.
+  /// After the removal and after its Undo the dive refreshes, and a source
+  /// the chart was showing or overlaying stops being asked for once gone.
   Future<void> _confirmAndRemoveSource(
     Dive dive,
     String sourceId,
     String sourceName,
-  ) async {
-    final l10n = context.l10n;
-    if (!await confirmRemoveSource(context, source: sourceName) || !mounted) {
-      return;
-    }
+  ) {
     final container = ProviderScope.containerOf(context, listen: false);
-    final messenger = ScaffoldMessenger.of(context);
-    void refresh() {
+    void afterChange() {
+      final active = container.read(activeDiveSourceProvider(dive.id).notifier);
+      if (active.state == sourceId) active.state = null;
+      final overlays = container.read(overlaySourcesProvider(dive.id).notifier);
+      if (overlays.state.contains(sourceId)) {
+        overlays.state = {...overlays.state}..remove(sourceId);
+      }
       scheduleQualityScan([dive.id]);
       scheduleSensorSummaryRefresh([dive.id], force: true);
       scheduleDerivedMetricsRefresh([dive.id], force: true);
@@ -376,38 +378,14 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
       container.invalidate(divesProvider);
     }
 
-    try {
-      final removal = await ref
-          .read(diveSourceRemovalServiceProvider)
-          .remove(diveId: dive.id, sourceId: sourceId);
-      refresh();
-      final operationId = removal.operationId;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.diveLog_sources_removeDone),
-          duration: const Duration(seconds: 10),
-          persist: false,
-          action: operationId == null
-              ? null
-              : SnackBarAction(
-                  label: l10n.dataQuality_action_undo,
-                  onPressed: () => unawaited(() async {
-                    final whole = await undoChangeLogOperation(operationId);
-                    refresh();
-                    if (!whole) {
-                      messenger.showSnackBar(
-                        SnackBar(content: Text(l10n.changeLog_undoIncomplete)),
-                      );
-                    }
-                  }()),
-                ),
-        ),
-      );
-    } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.diveLog_sources_removeFailed)),
-      );
-    }
+    return removeSourceWithUndo(
+      context,
+      ref,
+      diveId: dive.id,
+      sourceId: sourceId,
+      sourceName: sourceName,
+      afterChange: afterChange,
+    );
   }
 
   /// Confirms and runs "Separate combined dives": the inverse of Combine,

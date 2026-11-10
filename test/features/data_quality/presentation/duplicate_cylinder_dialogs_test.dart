@@ -32,9 +32,9 @@ void main() {
         survivorId: 'a',
         duplicateIds: ['b', 'c'],
         cylinders: [
-          CylinderSummary(id: 'a', order: 0, name: null, o2: 21.04, he: 0),
-          CylinderSummary(id: 'b', order: 1, name: null, o2: 21.00, he: 0),
-          CylinderSummary(id: 'c', order: 2, name: null, o2: 21.08, he: 0),
+          CylinderSummary(id: 'a', number: 1, name: null, o2: 21.04, he: 0),
+          CylinderSummary(id: 'b', number: 2, name: null, o2: 21.00, he: 0),
+          CylinderSummary(id: 'c', number: 3, name: null, o2: 21.08, he: 0),
         ],
         findingIds: ['f1'],
       );
@@ -65,9 +65,9 @@ void main() {
       duplicateIds: ['b', 'c'],
       // b comes first in dive order and is within tolerance of the kept a.
       cylinders: [
-        CylinderSummary(id: 'b', order: 0, name: null, o2: 32.04, he: 0),
-        CylinderSummary(id: 'a', order: 1, name: null, o2: 32, he: 0),
-        CylinderSummary(id: 'c', order: 2, name: null, o2: 21, he: 0),
+        CylinderSummary(id: 'b', number: 1, name: null, o2: 32.04, he: 0),
+        CylinderSummary(id: 'a', number: 2, name: null, o2: 32, he: 0),
+        CylinderSummary(id: 'c', number: 3, name: null, o2: 21, he: 0),
       ],
       findingIds: ['f1'],
     );

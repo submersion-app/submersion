@@ -52,10 +52,18 @@ class DiveSourceRemovalService {
       _db.diveDataSources,
     )..where((t) => t.diveId.equals(diveId))).get();
     final source = sources.where((s) => s.id == sourceId).firstOrNull;
-    final computerId = source?.computerId;
-    if (computerId == null) return false;
-    return sources.any((s) => s.id != sourceId && s.computerId == computerId);
+    return source != null && _sharesComputer(source, sources);
   }
+
+  /// The condition [sharesComputer] reports and [remove] refuses.
+  static bool _sharesComputer(
+    DiveDataSourcesData source,
+    List<DiveDataSourcesData> sources,
+  ) =>
+      source.computerId != null &&
+      sources.any(
+        (s) => s.id != source.id && s.computerId == source.computerId,
+      );
 
   /// Throws [ArgumentError] when the source is not on the dive or is its
   /// only source, and [UnreadableSeriesException] when a series of the dive
@@ -99,10 +107,7 @@ class DiveSourceRemovalService {
     // told apart by the computer rules, so removing one would take the
     // other's tanks and events with it. Split moves them and can be undone
     // by moving back; a removal deletes, so it refuses.
-    if (source.computerId != null &&
-        sources.any(
-          (s) => s.id != source.id && s.computerId == source.computerId,
-        )) {
+    if (_sharesComputer(source, sources)) {
       throw ArgumentError(
         'source $sourceId shares its computer with another source of $diveId',
       );

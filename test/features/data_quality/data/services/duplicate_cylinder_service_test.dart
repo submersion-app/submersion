@@ -258,6 +258,28 @@ void main() {
     expect(series.tankId, 'b1');
   });
 
+  test(
+    'cylinders are numbered by position and named as the card names them',
+    () async {
+      await db.customStatement(
+        "UPDATE dive_tanks SET tank_order = 0 WHERE id = 'a2'",
+      );
+      await db.customStatement(
+        "UPDATE dive_tanks SET tank_order = 5, tank_name = ' ', "
+        "preset_name = 'AL80' WHERE id = 'b2'",
+      );
+      final seeded = await seed(allFindings());
+      final finding = seeded.singleWhere((f) => f.diveId == 'd2');
+
+      final preview = (await service.previewFor(finding))!;
+
+      final byId = {for (final c in preview.cylinders) c.id: c};
+      expect(byId['a2']!.number, 1);
+      expect(byId['b2']!.number, 2);
+      expect(byId['b2']!.name, isNull);
+    },
+  );
+
   test('a single twin merges its group with the chosen mix', () async {
     final seeded = await seed(allFindings());
     final finding = seeded.singleWhere((f) => f.diveId == 'd2');
