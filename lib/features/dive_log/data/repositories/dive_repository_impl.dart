@@ -5416,6 +5416,11 @@ class DiveRepository {
       endPressureByTank[entry.key] = endpoints.end;
     }
 
+    // Which cylinders a transmitter logged, from whether a series row exists
+    // rather than from the series decoded above, which drops a row it cannot
+    // read: the list read and the SQL ask the same question (issue #2930).
+    final loggedTankIds = await _loggedTankIdsFor([row.id]);
+
     // Get profile for this dive from [_mergedSeriesPoints].
     // [getMergedProfile] mirrors this read and the two must stay in step.
     final seriesProfile = await _mergedSeriesPoints(
@@ -5767,7 +5772,7 @@ class DiveRepository {
           surfaceBreathingDuration: t.surfaceBreathingDuration != null
               ? Duration(seconds: t.surfaceBreathingDuration!)
               : null,
-          hasPressureSeries: pressuresByTank.containsKey(t.id),
+          hasPressureSeries: loggedTankIds.contains(t.id),
         );
       }).toList(),
       profile: seriesProfile,
