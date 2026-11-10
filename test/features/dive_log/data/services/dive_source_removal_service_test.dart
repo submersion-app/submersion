@@ -254,6 +254,36 @@ void main() {
     expect(series.samples.first.timestamp, 0);
   });
 
+  test("the source's gas switches and the diver's events on it go with "
+      'their own tombstones', () async {
+    final rows = await twoComputerDive();
+    await db
+        .into(db.gasSwitches)
+        .insert(
+          GasSwitchesCompanion(
+            id: const Value('switch-b'),
+            diveId: const Value('dive-1'),
+            tankId: Value(rows.tankA),
+            computerId: const Value('dc-b'),
+            timestamp: const Value(600),
+            createdAt: Value(baseTime),
+          ),
+        );
+    await (db.update(db.diveProfileEvents)
+          ..where((t) => t.id.equals(rows.eventB)))
+        .write(const DiveProfileEventsCompanion(source: Value('user')));
+
+    await service.remove(diveId: 'dive-1', sourceId: 'src-b');
+
+    expect(await ids(db.gasSwitches), isEmpty);
+    final byRecord = {
+      for (final t in await db.select(db.deletionLog).get())
+        t.recordId: t.entityType,
+    };
+    expect(byRecord['switch-b'], 'gasSwitches');
+    expect(byRecord[rows.eventB], 'diveProfileEvents');
+  });
+
   test('refuses the only source', () async {
     await insertDive('dive-1');
     await insertSource('src-a', 'dc-a', isPrimary: true, createdDay: 1);

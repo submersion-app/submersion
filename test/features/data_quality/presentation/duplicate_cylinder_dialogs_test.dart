@@ -96,4 +96,43 @@ void main() {
     ];
     expect(values, contains(group.groupValue));
   });
+
+  testWidgets('matching mixes confirm without asking for a gas', (
+    tester,
+  ) async {
+    const preview = CylinderMergePreview(
+      diveId: 'd1',
+      survivorId: 'a',
+      duplicateIds: ['b'],
+      cylinders: [
+        CylinderSummary(id: 'a', number: 1, name: 'AL80', o2: 32, he: 0),
+        CylinderSummary(id: 'b', number: 3, name: null, o2: 32, he: 0),
+      ],
+      findingIds: ['f1'],
+    );
+    DuplicateRemovalChoice? choice;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async =>
+                choice = await confirmRemoveDuplicate(context, preview),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Remove the duplicate cylinder?'), findsOneWidget);
+    expect(find.textContaining('Tank 1 · AL80 stays'), findsOneWidget);
+    expect(find.byType(RadioListTile<_Mix>), findsNothing);
+
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+    expect(choice, isNotNull);
+    expect(choice!.mix, isNull);
+  });
 }

@@ -9,10 +9,15 @@ import 'package:submersion/features/dive_log/presentation/widgets/remove_source_
 import '../../../../helpers/test_app.dart';
 
 class _FakeRemoval implements DiveSourceRemovalService {
-  _FakeRemoval({this.shares = false, this.sharesThrows = false});
+  _FakeRemoval({
+    this.shares = false,
+    this.sharesThrows = false,
+    this.removeThrows = false,
+  });
 
   final bool shares;
   final bool sharesThrows;
+  final bool removeThrows;
   final removed = <String>[];
 
   @override
@@ -29,6 +34,7 @@ class _FakeRemoval implements DiveSourceRemovalService {
     required String diveId,
     required String sourceId,
   }) async {
+    if (removeThrows) throw StateError('database is locked');
     removed.add(sourceId);
     return const SourceRemoval(operationId: 'op-1');
   }
@@ -99,6 +105,19 @@ void main() {
 
     expect(find.text('Could not remove the source'), findsOneWidget);
     expect(removal.removed, isEmpty);
+  });
+
+  testWidgets('a removal that throws says it failed and runs no hook', (
+    tester,
+  ) async {
+    removal = _FakeRemoval(removeThrows: true);
+    await pump(tester, onRemoved: () async => hooks.add('removed'));
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not remove the source'), findsOneWidget);
+    expect(hooks, isEmpty);
+    expect(changes, 0);
   });
 
   testWidgets('a confirmed removal runs the hooks and offers Undo', (

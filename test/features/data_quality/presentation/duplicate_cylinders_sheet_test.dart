@@ -108,4 +108,59 @@ void main() {
     expect(result?.merged, 0);
     expect(result?.failed, 1);
   });
+
+  testWidgets('a gas clash is counted as skipped and Cancel runs nothing', (
+    tester,
+  ) async {
+    const clash = CylinderMergePreview(
+      diveId: 'd2',
+      survivorId: 'c',
+      duplicateIds: ['d'],
+      cylinders: [
+        CylinderSummary(id: 'c', number: 1, name: null, o2: 32, he: 0),
+        CylinderSummary(id: 'd', number: 2, name: null, o2: 21, he: 0),
+      ],
+      findingIds: ['f2'],
+    );
+    var ran = false;
+    DuplicateRemovalResult? result;
+    var closed = false;
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => TextButton(
+            onPressed: () async {
+              result = await showDuplicateCylindersSheet(
+                context,
+                previews: const [_preview, clash],
+                identityOf: (_) => null,
+                run: (onProgress) async {
+                  ran = true;
+                  return const DuplicateRemovalResult(
+                    merged: 0,
+                    skippedMixes: 0,
+                    failed: 0,
+                    operationId: null,
+                  );
+                },
+              );
+              closed = true;
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1 skipped: gas mixes differ'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(closed, isTrue);
+    expect(result, isNull);
+    expect(ran, isFalse);
+  });
 }
