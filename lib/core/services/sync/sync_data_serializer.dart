@@ -31,9 +31,9 @@ import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/sync/changeset_log/gzip_temp_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
+import 'package:submersion/core/services/sync/sync_dive_rating.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/core/utils/dive_rating_scale.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/features/media/data/repositories/smart_album_tag_repoint.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
@@ -5441,7 +5441,7 @@ class SyncDataSerializer {
       entityType,
       _withDerivedDistanceUnit(
         entityType,
-        _withRatingInScale(
+        withDiveRatingInScale(
           entityType,
           (await _withLocalForOmitted(entityType, [data])).single,
         ),
@@ -6529,7 +6529,7 @@ class SyncDataSerializer {
           entityType,
           _withDerivedDistanceUnit(
             entityType,
-            _withRatingInScale(entityType, record),
+            withDiveRatingInScale(entityType, record),
           ),
         ),
     ];
@@ -12047,22 +12047,6 @@ class SyncDataSerializer {
       ...data,
       'distanceUnit': data['depthUnit'] == 'feet' ? 'miles' : 'kilometers',
     };
-  }
-
-  /// Issue #4415. A peer below v358, or a sync store written before it, can
-  /// hold a dive rated on a UDDF file's 1 to 10 scale, or 0 for an unrated
-  /// dive. Every inbound dive row (payload, base file, adoption, conflict)
-  /// lands here, so it is put on the 1 to 5 star scale once, as the v358
-  /// rung put this device's own rows. The sync stamp does not move: the
-  /// sending peer makes the same change when it upgrades.
-  static Map<String, dynamic> _withRatingInScale(
-    String entityType,
-    Map<String, dynamic> data,
-  ) {
-    if (entityType != 'dives') return data;
-    final rating = data['rating'];
-    final stars = DiveRatingScale.normalizeStored(rating);
-    return identical(stars, rating) ? data : {...data, 'rating': stars};
   }
 
   /// Hydrates missing (or explicitly null) non-nullable columns in [data]

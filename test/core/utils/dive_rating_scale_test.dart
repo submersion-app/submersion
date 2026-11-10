@@ -60,5 +60,18 @@ void main() {
       expect(DiveRatingScale.normalizeStored('6'), 3);
       expect(DiveRatingScale.normalizeStored(0), isNull);
     });
+
+    test('leaves a fraction, NaN or infinity as it is, as the rung does', () {
+      for (final value in <Object?>[
+        5.5,
+        0.5,
+        'NaN',
+        'Infinity',
+        double.nan,
+        double.infinity,
+      ]) {
+        expect(identical(DiveRatingScale.normalizeStored(value), value), true);
+      }
+    });
   });
 }

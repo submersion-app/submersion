@@ -86,7 +86,7 @@ class ChangeLogRecordPlanner {
       return ChangeLogBlock.alreadyRestored;
     }
     for (final field in event.fields) {
-      if (changeLogRestoreBlocked(
+      if (changeLogValueRewritten(
         _rewrittenColumns,
         event.table,
         field.column,

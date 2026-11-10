@@ -33,14 +33,19 @@ abstract final class DiveRatingScale {
   /// text of one) put on the star scale by [normalize].
   ///
   /// Returns [value] itself when it is already on the scale or is not a
-  /// number at all, so a caller can tell an untouched value by identity.
+  /// whole number at all, so a caller can tell an untouched value by
+  /// identity. A fraction, NaN or infinity is left as it is, as the rung
+  /// leaves it, rather than truncated (or thrown on by `toInt`).
   static Object? normalizeStored(Object? value) {
-    final rating = switch (value) {
-      final num n => n.toInt(),
-      final String s => num.tryParse(s)?.toInt(),
+    final number = switch (value) {
+      final num n => n,
+      final String s => num.tryParse(s),
       _ => null,
     };
-    if (rating == null) return value;
+    if (number == null || !number.isFinite || number != number.truncate()) {
+      return value;
+    }
+    final rating = number.toInt();
     final stars = normalize(rating);
     return stars == rating ? value : stars;
   }

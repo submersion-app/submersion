@@ -13,7 +13,7 @@ void main() {
   });
 
   test('a restore repairs a value the rung reshaped and keeps the rest', () {
-    Object? restored(Object? value) => changeLogRestoredValue(
+    Object? restored(Object? value) => changeLogRepairedValue(
       changeLogRewrittenColumns,
       'dives',
       'rating',
@@ -25,18 +25,18 @@ void main() {
     expect(restored(3), 3);
     expect(restored('5'), '5');
     expect(
-      changeLogRestoredValue(changeLogRewrittenColumns, 'dives', 'notes', 0),
+      changeLogRepairedValue(changeLogRewrittenColumns, 'dives', 'notes', 0),
       0,
     );
   });
 
-  test('a restore is refused only for a column with no repair', () {
+  test('a value is refused only for a column with no repair', () {
     expect(
-      changeLogRestoreBlocked(changeLogRewrittenColumns, 'dives', 'rating', 1),
+      changeLogValueRewritten(changeLogRewrittenColumns, 'dives', 'rating', 1),
       isFalse,
     );
     expect(
-      changeLogRestoreBlocked(
+      changeLogValueRewritten(
         changeLogRewrittenColumns,
         'dives',
         'weather_fetched_at',

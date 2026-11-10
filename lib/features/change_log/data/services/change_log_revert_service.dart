@@ -162,7 +162,15 @@ class ChangeLogRevertService {
       final column = field.column;
       if (only != null && column != only) continue;
       final logged = field.newValue;
-      final target = field.oldValue;
+      // A rung that reshaped the column (v358's ratings, issue #4415) means
+      // the value goes back as it reads now, not as it was logged.
+      final target = changeLogRepairedValue(
+        _rewrittenColumns,
+        event.table,
+        column,
+        field.oldValue,
+        rewrittenValues: _rewrittenValues,
+      );
       final returning = restoring.contains(
         changeLogRecordKey(event.table, event.recordId),
       );
@@ -189,7 +197,7 @@ class ChangeLogRevertService {
       // What the logged value is now, after any rung that reshaped the
       // column: a rating logged as 8 reads 4 since v358, which is not a
       // change made since (issue #4415).
-      final loggedNow = changeLogRestoredValue(
+      final loggedNow = changeLogRepairedValue(
         _rewrittenColumns,
         event.table,
         column,
@@ -229,7 +237,6 @@ class ChangeLogRevertService {
       event.table,
       column,
       event.schemaVersion,
-      target,
       rewrittenValues: _rewrittenValues,
     )) {
       return ChangeLogBlock.rewritten;
@@ -353,7 +360,7 @@ class ChangeLogRevertService {
         if (!changeLogDeleteCopySkips(column)) column: null,
       for (final field in event.fields)
         if (columns.contains(field.column))
-          field.column: changeLogRestoredValue(
+          field.column: changeLogRepairedValue(
             _rewrittenColumns,
             table,
             field.column,

@@ -96,10 +96,14 @@ void main() {
       kDiverA,
       const RecordUpdate(values: {'rating': 4}),
     );
+    // The planner parses what an agent sends before the write, and the plan
+    // shows that parsed value.
+    final parsed = writes.fields['rating']!.parse(0);
+    expect(parsed, isNull);
     await writes.update(
       'd1',
       kDiverA,
-      const RecordUpdate(values: {'rating': 0}),
+      RecordUpdate(values: {'rating': parsed}),
     );
 
     expect((await h.one('dives', 'd1'))!['rating'], isNull);

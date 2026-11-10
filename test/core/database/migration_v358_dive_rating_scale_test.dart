@@ -113,36 +113,36 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(358));
   });
 
-  test('a revert will not put back a rating from before the rung', () {
+  test('the change log marks the rating column as rewritten', () {
     expect(changeLogRewrittenColumns['dives.rating'], 358);
   });
 
-  test('a revert refuses only an out-of-scale rating, whenever logged', () {
-    bool refused(int version, Object? value) => changeLogValueRewritten(
+  test('a logged rating is repaired, never refused, whenever logged', () {
+    Object? now(Object? value) => changeLogRepairedValue(
       changeLogRewrittenColumns,
       'dives',
       'rating',
-      version,
       value,
     );
 
+    expect(
+      changeLogValueRewritten(changeLogRewrittenColumns, 'dives', 'rating', 1),
+      isFalse,
+    );
     // A star count logged before the rung still means the same.
-    expect(refused(357, 4), isFalse);
-    expect(refused(357, '3'), isFalse);
-    expect(refused(357, null), isFalse);
-    // An out-of-scale value is refused, even when it was logged after the
-    // rung, as a peer below v358 can still send one.
-    expect(refused(357, 8), isTrue);
-    expect(refused(357, 0), isTrue);
-    expect(refused(360, 6), isTrue);
-    // A column with no value test keeps the version rule.
+    expect(now(4), 4);
+    expect(now('3'), '3');
+    expect(now(null), isNull);
+    // An out-of-scale value reads as the rung would have left it.
+    expect(now(8), 4);
+    expect(now(0), isNull);
+    // A column with no repair keeps the version rule.
     expect(
       changeLogValueRewritten(
         changeLogRewrittenColumns,
         'dives',
         'weather_fetched_at',
         336,
-        1,
       ),
       isTrue,
     );

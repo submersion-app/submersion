@@ -4,7 +4,6 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     show Dive, DivesCompanion;
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/utils/dive_rating_scale.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/writes/families/dive_entry_rules.dart';
@@ -60,9 +59,14 @@ class DiveWrites extends WritableEntry {
     'water_temp_c': const FieldCodec.number(min: -3, max: 45, nullable: true),
     'air_temp_c': const FieldCodec.number(min: -60, max: 60, nullable: true),
     'visibility': FieldCodec.enumName(Visibility.values, nullable: true),
-    // 0 clears the rating, as it always has for an agent: it is stored as
-    // unrated, never as a rating of 0 (issue #4415).
-    'rating': const FieldCodec.integer(min: 0, max: 5, nullable: true),
+    // 0 clears the rating, so the plan shows the dive going unrated and a
+    // rating of 0 is never stored (issue #4415).
+    'rating': const FieldCodec.integer(
+      min: 0,
+      max: 5,
+      nullable: true,
+      zeroClears: true,
+    ),
     'is_favorite': const FieldCodec.flag(),
     'excluded_from_stats': const FieldCodec.flag(),
     'excluded_from_gas_stats': const FieldCodec.flag(),
@@ -441,7 +445,7 @@ class DiveWrites extends WritableEntry {
         waterTemp: v['water_temp_c'] as double?,
         airTemp: v['air_temp_c'] as double?,
         visibility: _enum(Visibility.values, v['visibility']),
-        rating: DiveRatingScale.normalize(v['rating'] as int?),
+        rating: v['rating'] as int?,
         isFavorite: v['is_favorite'] as bool? ?? false,
         excludedFromStats: v['excluded_from_stats'] as bool? ?? false,
         excludedFromGasStats: v['excluded_from_gas_stats'] as bool? ?? false,
@@ -578,9 +582,7 @@ class DiveWrites extends WritableEntry {
       waterTemp: field('water_temp_c'),
       airTemp: field('air_temp_c'),
       visibility: field('visibility'),
-      rating: v.containsKey('rating')
-          ? Value(DiveRatingScale.normalize(v['rating'] as int?))
-          : const Value.absent(),
+      rating: field('rating'),
       isFavorite: field('is_favorite'),
       excludedFromStats: field('excluded_from_stats'),
       excludedFromGasStats: field('excluded_from_gas_stats'),

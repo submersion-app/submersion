@@ -8,7 +8,8 @@ import 'package:drift/drift.dart';
 /// which it is: above 5 is halved, a half star rounding up and the result
 /// capped at 5, and 0 or below becomes null. A rating of 2 or 4 that came from
 /// a 1 to 10 file cannot be told apart from a star count and stays. This is
-/// `DiveRatingScale.normalize` in SQL; keep the two in step.
+/// `DiveRatingScale.normalize` in SQL; keep the two in step. Only a whole
+/// number is touched, as `DiveRatingScale.normalizeStored` touches only one.
 ///
 /// The sync stamp (`updated_at`, `hlc`) does not move: every device runs this
 /// same rewrite, so they agree without a sync round. A row that arrives later
@@ -21,5 +22,5 @@ Future<int> repairOutOfScaleDiveRatings(DatabaseConnectionUser db) =>
       'UPDATE dives SET rating = CASE '
       'WHEN rating > 5 THEN MIN(5, (rating + 1) / 2) '
       'ELSE NULL END '
-      'WHERE rating > 5 OR rating <= 0',
+      'WHERE typeof(rating) = \'integer\' AND (rating > 5 OR rating <= 0)',
     );

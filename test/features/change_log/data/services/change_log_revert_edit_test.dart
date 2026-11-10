@@ -144,6 +144,29 @@ void main() {
     },
   );
 
+  test(
+    'an edit away from an imported rating of 0 reverts to unrated',
+    () async {
+      // An import stored 0 for an unrated dive before v358 (#4415), and the
+      // diver then rated it. The 0 means unrated, so that is what comes back.
+      await db.customStatement("UPDATE dives SET rating = 0 WHERE id = 'dive'");
+      await repository.settleAll();
+      await clearLog(db);
+      await db.customStatement("UPDATE dives SET rating = 3 WHERE id = 'dive'");
+      final event = await lastEventId();
+
+      final plan = await service.planField(event, 'rating');
+      expect(plan.items.single.block, isNull);
+      expect(plan.items.single.target, isNull);
+      await service.execute(plan);
+
+      final row = await db
+          .customSelect("SELECT rating FROM dives WHERE id = 'dive'")
+          .getSingle();
+      expect(row.data['rating'], isNull);
+    },
+  );
+
   test('skipping changed since keeps that field', () async {
     await edit('Current');
     final event = await lastEventId();

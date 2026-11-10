@@ -90,6 +90,22 @@ void main() {
     expect(codec.parse(' L '), 'L');
   });
 
+  // A dive's rating stores 0 as unrated, so the plan shows it so (#4415).
+  test('a zero-clearing nullable integer reads 0 as null', () {
+    const codec = FieldCodec.integer(
+      min: 0,
+      max: 5,
+      nullable: true,
+      zeroClears: true,
+    );
+    expect(codec.parse(0), isNull);
+    expect(codec.parse(3), 3);
+    expect(
+      const FieldCodec.integer(min: 0, max: 5, nullable: true).parse(0),
+      0,
+    );
+  });
+
   // A table that keeps a tenth of a percent cannot hold a finer fraction.
   test('a number with fraction digits parses rounded', () {
     const codec = FieldCodec.number(min: 0, max: 1, fractionDigits: 3);
