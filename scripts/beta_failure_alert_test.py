@@ -85,6 +85,7 @@ RUN_JOBS = {
     ]
 }
 
+
 CONTEXT = {
     "repo": "submersion-app/submersion",
     "run_id": "36460341104",
@@ -181,10 +182,6 @@ class DecideTest(unittest.TestCase):
     def test_a_gated_off_run_does_nothing(self):
         self.assertEqual(alert.decide(NOTHING_TO_SHIP), ("none", []))
 
-    def test_a_cancelled_lane_neither_alerts_nor_resolves(self):
-        cancelled = dict(ALL_GREEN, **needs(upload_testflight_macos="cancelled"))
-        self.assertEqual(alert.decide(cancelled), ("none", []))
-
     def test_no_needs_does_nothing(self):
         self.assertEqual(alert.decide({}), ("none", []))
 
@@ -196,20 +193,36 @@ class FailedStepsTest(unittest.TestCase):
             [("Upload Android beta to Play open testing", ["Upload to Play open testing"])],
         )
 
-    def test_a_timed_out_job_counts_as_failed(self):
-        # needs reports a timeout as `failure`; the jobs API does not.
+    def test_a_timed_out_conclusion_is_listed_like_an_annotated_timeout(self):
+        # The jobs API has been seen to report a timeout only as `cancelled`,
+        # but `timed_out` is a documented conclusion: it gets the same marker
+        # and the step it stopped in, whichever way that step is marked.
         jobs = [
             {
                 "name": "Upload macOS beta to TestFlight",
                 "conclusion": "timed_out",
-                "steps": [{"name": "Distribute to Public Beta group", "conclusion": "cancelled"}],
+                "steps": [
+                    {"name": "Upload binary to TestFlight", "conclusion": "success"},
+                    {"name": "Distribute to Public Beta group", "conclusion": "cancelled"},
+                ],
             },
-            {"name": "Build / Build Linux", "conclusion": "startup_failure", "steps": []},
+            {
+                "name": "Upload iOS beta to TestFlight",
+                "conclusion": "timed_out",
+                "steps": [{"name": "Distribute to Public Beta group", "conclusion": "timed_out"}],
+            },
         ]
         self.assertEqual(
-            [name for name, _ in alert.failed_steps(jobs)],
-            ["Upload macOS beta to TestFlight", "Build / Build Linux"],
+            alert.failed_steps(jobs),
+            [
+                ("Upload macOS beta to TestFlight (timed out)", ["Distribute to Public Beta group"]),
+                ("Upload iOS beta to TestFlight (timed out)", ["Distribute to Public Beta group"]),
+            ],
         )
+
+    def test_a_startup_failure_counts_as_failed(self):
+        jobs = [{"name": "Build / Build Linux", "conclusion": "startup_failure", "steps": []}]
+        self.assertEqual(alert.failed_steps(jobs), [("Build / Build Linux", [])])
 
     def test_a_job_that_failed_outside_any_step_is_still_listed(self):
         jobs = [{"name": "Build / Build iOS", "conclusion": "failure", "steps": []}]
@@ -258,8 +271,8 @@ class AlertTest(unittest.TestCase):
         self.assertEqual(comment[2], "2650")
 
     def test_lists_every_failed_job_even_when_the_api_misses_one(self):
-        # A timed-out build is `failure` in needs but may be missing from the
-        # API's failed jobs. Step details for Play must not hide it.
+        # needs and the API's per-job details can disagree (a failed build
+        # whose jobs list no failure). Step details for Play must not hide it.
         both = dict(PLAY_RED, **needs(build="failure"))
         gh = FakeGh()
         _quiet(alert.run, both, CONTEXT, gh)
@@ -561,19 +574,27 @@ class WorkflowWiringTest(unittest.TestCase):
             block.append(line)
         return " ".join(" ".join(block).split())
 
-    def test_the_alert_runs_on_any_failure_and_on_a_full_publish_only(self):
+    def test_the_alert_runs_on_a_failure_a_cancellation_or_a_full_publish(self):
         # always() so a failed need does not skip it; the failure clause so
-        # any failed job alerts; the no-skipped/no-cancelled clause so it can
-        # resolve, while gated-off runs stay skipped; main only.
+        # any failed job alerts; the cancelled clause so the script can tell a
+        # timeout (reported as `cancelled`) from a preemption; the no-skipped
+        # clause so it can resolve, while gated-off runs stay skipped; main
+        # only.
         condition = self._alert_condition()
         for clause in (
             "always()",
             "github.ref == 'refs/heads/main'",
             "contains(needs.*.result, 'failure') ||",
-            "!contains(needs.*.result, 'skipped') &&",
-            "!contains(needs.*.result, 'cancelled')",
+            "contains(needs.*.result, 'cancelled') ||",
+            "!contains(needs.*.result, 'skipped')",
         ):
             self.assertIn(clause, condition)
+
+    def test_the_alert_job_may_read_check_run_annotations(self):
+        # Annotations are the only place a timeout is told apart from a
+        # preemption, and they sit behind the checks permission.
+        body = dict(gate._job_lines(self.text))[alert.ALERT_JOB]
+        self.assertTrue(any(line.strip() == "checks: read" for line in body))
 
     def test_the_alert_job_has_no_concurrency_group(self):
         # A concurrency group keeps one pending job and cancels the one it
