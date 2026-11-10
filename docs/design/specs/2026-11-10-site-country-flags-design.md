@@ -74,6 +74,11 @@ alpha-2 code, or null:
   3-letter alpha-3 code.
 - Accept country names in all eleven place-name languages, generated from
   CLDR territory names.
+- Also accept each country's name in its own official languages (CLDR
+  `territoryInfo` languages with an official status), because real data
+  stores local names: the sample logbook holds "República Dominicana",
+  Arabic for Egypt and Dhivehi for the Maldives. Decided with the user after
+  the before screenshots.
 - On top of that, a small hand-kept alias list (my call): every alias already
   in `_isoFromCountry` (USA, Czech Republic, and so on), plus UK, England,
   Scotland, Wales and Northern Ireland to GB, Holland to NL, and Bonaire,
