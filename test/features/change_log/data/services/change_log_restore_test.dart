@@ -182,6 +182,22 @@ void main() {
     );
   });
 
+  test('a deleted dive rated off the star scale returns on it', () async {
+    // A UDDF import stored the file's 1 to 10 rating before v358 (#4415).
+    await db.customStatement("UPDATE dives SET rating = 8 WHERE id = 'dive'");
+    await forget();
+    await DiveRepository().deleteDive('dive');
+
+    final plan = await service.planOperation(await newestOperation());
+    final result = await service.execute(plan);
+
+    expect(result.reverted, greaterThan(0));
+    final row = await db
+        .customSelect("SELECT rating FROM dives WHERE id = 'dive'")
+        .getSingle();
+    expect(row.data['rating'], 4);
+  });
+
   test('a null with a non-null default comes back null', () async {
     await db.customStatement(
       'INSERT INTO diver_settings (id, diver_id, default_tank_preset, '

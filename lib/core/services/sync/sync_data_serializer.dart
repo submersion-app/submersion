@@ -31,6 +31,7 @@ import 'package:submersion/core/services/sync/view_config_merge.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/sync/changeset_log/gzip_temp_sink.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_files.dart';
+import 'package:submersion/core/services/sync/sync_dive_rating.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
@@ -5440,7 +5441,10 @@ class SyncDataSerializer {
       entityType,
       _withDerivedDistanceUnit(
         entityType,
-        (await _withLocalForOmitted(entityType, [data])).single,
+        withDiveRatingInScale(
+          entityType,
+          (await _withLocalForOmitted(entityType, [data])).single,
+        ),
       ),
     );
     switch (entityType) {
@@ -6523,7 +6527,10 @@ class SyncDataSerializer {
       for (final record in records)
         _withSchemaDefaults(
           entityType,
-          _withDerivedDistanceUnit(entityType, record),
+          _withDerivedDistanceUnit(
+            entityType,
+            withDiveRatingInScale(entityType, record),
+          ),
         ),
     ];
     switch (entityType) {

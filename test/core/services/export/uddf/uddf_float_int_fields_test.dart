@@ -49,7 +49,7 @@ const _diveFieldsUddf = '''<?xml version="1.0" encoding="UTF-8" ?>
         <informationafterdive>
           <greatestdepth>12.0</greatestdepth>
           <diveduration>1800.0</diveduration>
-          <rating><ratingvalue>4.0</ratingvalue></rating>
+          <rating><ratingvalue>8.0</ratingvalue></rating>
         </informationafterdive>
       </dive>
     </repetitiongroup>
@@ -134,6 +134,7 @@ void main() {
 
     test('dive duration and rating', () {
       expect(dive['runtime'], const Duration(seconds: 1800));
+      // UDDF rates on 1 to 10, so 8.0 is 4 stars (issue #4415).
       expect(dive['rating'], 4);
     });
   });
