@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/constants/sort_options.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -89,6 +90,20 @@ class MediaLibraryRepository {
   Expression<bool> get _gearOnly {
     final m = _db.media;
     return m.equipmentId.isNotNull() & m.diveId.isNull() & m.siteId.isNull();
+  }
+
+  /// A gear photo [diverId] may see: its item still exists and is theirs or
+  /// shared with them (issue #2046), the rule the Equipment gallery scopes
+  /// by. With no diver, any existing item's. A subquery, so the library
+  /// query needs no join through `equipment`.
+  Expression<bool> _visibleGearPhoto(String? diverId) {
+    final e = _db.equipment;
+    final visible = VisibilityFilter.equipmentVisibleTo(_db, e, diverId);
+    return _db.media.equipmentId.isInQuery(
+      _db.selectOnly(e)
+        ..addColumns([e.id])
+        ..where(visible ?? const Constant(true)),
+    );
   }
 
   /// Dive-linked rows belong to their dive's diver; unlinked and site-only
@@ -209,10 +224,12 @@ class MediaLibraryRepository {
     final d = _db.dives;
 
     // Gear photos show only when the Attached to facet asks for Equipment
-    // (issue #4224), which then narrows the rows to the kinds picked.
+    // (issue #4224), which then narrows the rows to the kinds picked. Their
+    // rows carry no dive, so [_diverScope] passes them all; the gear's own
+    // visibility decides instead.
     Expression<bool> where =
         (filter.attachedTo.contains(MediaAttachmentKind.equipment)
-            ? _galleryFileType
+            ? _galleryFileType & (_gearOnly.not() | _visibleGearPhoto(diverId))
             : _galleryRow) &
         _diverScope(diverId);
     final type = filter.mediaType;
@@ -708,7 +725,8 @@ class MediaLibraryRepository {
   /// points are in scope, changes: the media row itself, a dive's entry fix,
   /// a site's coordinates, or a species, tag or people tag (each filter is
   /// an EXISTS over its link table), or a time in the dive (the "not placed"
-  /// facet's EXISTS over `media_enrichment`). Built and debounced exactly like
+  /// facet's EXISTS over `media_enrichment`), or which gear an Equipment pick
+  /// may show (`equipment`, `equipment_shares`). Built and debounced exactly like
   /// [watchMediaChanges]; see its notes on why a `tableUpdates` stream and
   /// not a watched query.
   Stream<void> watchMapChanges() => _db
@@ -721,6 +739,8 @@ class MediaLibraryRepository {
           _db.mediaTags,
           _db.mediaPeople,
           _db.mediaEnrichment,
+          _db.equipment,
+          _db.equipmentShares,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
@@ -760,7 +780,9 @@ class MediaLibraryRepository {
   /// the side-trip links its trip filter takes in (issue #3658), `dives` and
   /// `dive_sites` give the trip and site filters, each row's dive header and
   /// the name of the site a dive-less row is attached to, `equipment` names
-  /// an equipment-attached row's group (issue #4149), and `tags`, `buddies`
+  /// an equipment-attached row's group (issue #4149), `equipment_shares`
+  /// decides whose gear photos an Equipment pick shows (issue #3355), and
+  /// `tags`, `buddies`
   /// and `divers` decide whether a facet applies at all
   /// and who Me names. Deleting a tag or buddy already ticks through its
   /// cascade; these catch one arriving late or changing owner.
@@ -778,6 +800,7 @@ class MediaLibraryRepository {
           _db.dives,
           _db.diveSites,
           _db.equipment,
+          _db.equipmentShares,
           _db.tags,
           _db.buddies,
           _db.divers,

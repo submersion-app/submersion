@@ -51,15 +51,17 @@ class GearPhotoRepository {
       )
       .debounce(MediaRepository.changeTickDebounce);
 
-  /// [watchGearPhotoChanges] plus the equipment rows, for the readers that
-  /// also read an item: the gallery's names and the cover. The photo lists
-  /// do not, so an unrelated gear edit does not re-read them.
+  /// [watchGearPhotoChanges] plus the equipment rows and their shares, for
+  /// the readers that also read an item: the gallery's names, which items
+  /// the diver may see, and the cover. The photo lists do not, so an
+  /// unrelated gear edit does not re-read them.
   Stream<void> watchGearItemPhotoChanges() => _db
       .tableUpdates(
         TableUpdateQuery.onAllTables([
           _db.media,
           _db.equipmentObservations,
           _db.equipment,
+          _db.equipmentShares,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
