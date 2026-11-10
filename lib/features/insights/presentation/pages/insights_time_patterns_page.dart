@@ -18,6 +18,8 @@ import 'package:submersion/features/insights/presentation/widgets/stat_charts.da
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 class InsightsTimePatternsPage extends ConsumerWidget {
   final bool embedded;
@@ -143,6 +145,13 @@ class InsightsTimePatternsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_timePatterns_timeOfDay_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_timePatterns_timeOfDay_title,
+        summary: context.l10n.info_insights_timeOfDay_summary,
+        terms: const [DiveTerm.dawnDusk],
+      ),
       subtitle: context.l10n.insights_timePatterns_timeOfDay_subtitle,
       child: timeOfDayAsync.when(
         data: (raw) {
@@ -284,6 +293,13 @@ class InsightsTimePatternsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_timePatterns_surfaceInterval_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_timePatterns_surfaceInterval_title,
+        summary: context.l10n.info_insights_surfaceIntervals_summary,
+        terms: const [DiveTerm.surfaceInterval],
+      ),
       subtitle: context.l10n.insights_timePatterns_surfaceInterval_subtitle,
       child: siStatsAsync.when(
         data: (data) {

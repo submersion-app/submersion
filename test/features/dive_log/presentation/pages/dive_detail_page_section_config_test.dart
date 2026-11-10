@@ -33,6 +33,7 @@ import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/signatures/presentation/providers/signature_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import '../../../../helpers/info_sheets.dart';
 
 typedef Override = riverpod.Override;
 
@@ -621,6 +622,29 @@ void main() {
       expect(find.text('#-'), findsOneWidget);
     });
 
+    for (final (name, dive) in [
+      ('a rich dive', _richDive),
+      ('a dive with a profile', _diveWithProfile),
+    ]) {
+      testWidgets('every info icon on $name opens its sheet', (tester) async {
+        await tester.binding.setSurfaceSize(const Size(900, 12000));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+
+        await tester.pumpWidget(
+          _buildTestWidget(
+            dive: dive,
+            settings: _settingsWithVisibleSections(
+              DiveDetailSectionId.values.toList(),
+            ),
+            extraOverrides: _alwaysRenderOverrides(dive.id, prefs),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(await openEveryInfoSheet(tester), greaterThanOrEqualTo(3));
+      });
+    }
+
     testWidgets('buddies section shows the Me row with the localized role '
         'when diverRoleId is set', (tester) async {
       await tester.binding.setSurfaceSize(const Size(800, 4000));
@@ -948,6 +972,34 @@ void main() {
       await tester.tap(find.text('Dive Profile'));
       await tester.pumpAndSettle();
       expect(find.byType(DiveProfileChart), findsOneWidget);
+    });
+
+    testWidgets('unfolded in the list layout, it keeps its info icon', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(800, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final settings = _settingsWithVisibleSections(
+        [DiveDetailSectionId.profile],
+        layout: DiveDetailLayout.list,
+        expanded: [DiveDetailSectionId.profile],
+      );
+
+      await tester.pumpWidget(
+        _buildTestWidget(dive: _diveWithProfile, settings: settings),
+      );
+      await tester.pumpAndSettle();
+
+      // The fold shows the same card as the detailed layout, header and
+      // info icon included, so the fold row needs no icon of its own.
+      expect(
+        find.descendant(
+          of: find.byType(SectionFold),
+          matching: find.byTooltip('About Dive Profile'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a dive with no samples gets no chart section', (tester) async {

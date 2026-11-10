@@ -8,6 +8,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_profile
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 class _MockSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -81,5 +82,9 @@ void main() {
     // 9 m/min is 29.5 ft/min; 18 m/min is 59.1 ft/min.
     expect(find.text('29.5 ft/min'), findsOneWidget);
     expect(find.text('59.1 ft/min'), findsOneWidget);
+  });
+  testWidgets('the profile cards carry info icons', (tester) async {
+    await pumpPage(tester, const AppSettings());
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

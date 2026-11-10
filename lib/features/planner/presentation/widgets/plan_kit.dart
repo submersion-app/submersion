@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+
 /// Shared visual vocabulary for planner surfaces. Phase 1 introduces the
 /// pieces the results sheet already needs; later phases extend this file as
 /// panes are restyled (see the redesign spec, section 6.1).
 class PlanSectionHeader extends StatelessWidget {
-  const PlanSectionHeader(this.label, {super.key});
+  const PlanSectionHeader(this.label, {super.key, this.info});
 
   final String label;
+
+  /// What the section's info icon explains; null shows no icon.
+  final InfoContentBuilder? info;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Padding(
+    final text = Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         label.toUpperCase(),
@@ -21,6 +26,9 @@ class PlanSectionHeader extends StatelessWidget {
         ),
       ),
     );
+    // The icon's slot spans the label and the padding under it, so the
+    // header keeps its height.
+    return InfoTitleRow(title: text, label: label, info: info);
   }
 }
 

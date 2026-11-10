@@ -8,6 +8,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/otu_limit_progress_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
+import 'package:submersion/features/dive_log/presentation/info/o2_toxicity_info.dart';
 
 /// Fill and label of the solid WARNING / CRITICAL badge.
 ///
@@ -154,6 +157,17 @@ class O2ToxicityCard extends StatelessWidget {
                     ),
                   ),
                 ),
+              HeaderInfoButton(
+                title: context.l10n.diveLog_o2tox_title,
+                content: (context) => o2ToxicityInfo(
+                  context.l10n,
+                  infoUnits(context),
+                  showsDetails: showDetails,
+                  showsTimeAbove:
+                      exposure.timeAboveWarning > 0 ||
+                      exposure.timeAboveCritical > 0,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -609,6 +623,18 @@ class CompactO2ToxicityPanel extends StatelessWidget {
             ),
           ),
         ],
+        const Spacer(),
+        HeaderInfoButton(
+          title: context.l10n.diveLog_detail_section_oxygenToxicity,
+          height: 20,
+          content: (context) => o2ToxicityInfo(
+            context.l10n,
+            infoUnits(context),
+            showsDetails: true,
+            showsTimeAbove:
+                exposure.timeAboveWarning > 0 || exposure.timeAboveCritical > 0,
+          ),
+        ),
       ],
     );
   }

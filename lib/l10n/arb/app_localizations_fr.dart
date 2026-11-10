@@ -7710,13 +7710,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'Que signifient ces valeurs ?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Charge : la pression de gaz inerte d\'un compartiment en pourcentage du maximum qu\'il peut contenir en surface (sa valeur M, la ligne rouge à 100 %).\n\nNiveau de surface : le repère sur chaque barre indique où se stabilise un compartiment entièrement désaturé pendant que vous respirez de l\'air en surface. Il n\'est jamais à 0 %, car votre corps contient toujours l\'azote de l\'air que vous respirez. Une barre à son repère ne porte plus aucune charge résiduelle de la plongée.\n\nAbsorption et élimination : le gaz se déplace toujours vers la pression du gaz que vous respirez. Après une décompression à l\'oxygène ou avec un mélange riche en hélium, les compartiments rapides peuvent contenir moins d\'azote que l\'air en surface. De retour à l\'air, ils absorbent à nouveau de l\'azote jusqu\'à atteindre leur repère. C\'est normal et ce n\'est pas une charge résiduelle de la plongée.\n\nHélium : l\'air ne contient pas d\'hélium. Après une plongée au trimix, un compartiment élimine l\'hélium tout en pouvant absorber de l\'azote en même temps. Les flèches à côté de N₂ et He montrent chaque gaz séparément ; l\'indication à côté du numéro du compartiment montre la direction globale des deux.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Graphique de saturation des tissus. $count compartiments, charge par rapport à la valeur M ; compartiment directeur $number à $percent %.';
   }
@@ -18254,9 +18247,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volume';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'À propos de la MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Mode';
 
   @override
@@ -18459,10 +18449,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Dans tes limites de ppO₂, END et densité aux profondeurs vérifiées.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'La MOD est la profondeur à laquelle le mélange atteint la limite de ppO₂. Elle est toujours arrondie vers le bas, jamais vers le haut.\n\nRec utilise 1 bar par 10 m, comme le carnet. OC Tec et CCR Tec tirent la pression ambiante du type d\'eau, comme le calculateur de densité ; le même mélange peut donc y afficher une MOD un peu moins profonde.\n\nL\'EAD compte l\'azote comme narcotique, l\'END l\'azote et l\'oxygène. Ta limite END, le caractère narcotique de l\'oxygène et les limites de ppO₂ par défaut viennent de ton profil de plongeur.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18514,13 +18500,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'La profondeur narcotique maximale (MND) est la profondeur maximale à laquelle vous pouvez descendre avant que la narcose ne dépasse votre limite END. La profondeur narcotique équivalente (END) indique l\'effet narcotique de votre gaz à une profondeur donnée.\n\nLorsque \"O2 est narcotique\" est activé, l\'oxygène et l\'azote contribuent tous deux à la narcose (plus conservateur). Lorsque désactivé, seul l\'azote est considéré comme narcotique.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'À propos de MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'illimitée';
@@ -18588,14 +18567,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Appliquer';
-
-  @override
-  String get gasCalculators_icd_infoTitle =>
-      'À propos de la contre-diffusion isobare';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'La contre-diffusion isobare (ICD) est le risque qu\'un passage d\'un gaz plus riche en hélium à un gaz plus riche en azote augmente la tension totale des gaz inertes dans les tissus, l\'hélium diffusant plus vite que l\'azote. La règle du cinquième est une règle empirique courante : la fraction d\'azote ne devrait pas augmenter de plus d\'un cinquième de la baisse de la fraction d\'hélium.\n\nLes avis divergent sur l\'importance réelle de ce phénomène pour une plongée bien planifiée avec des gaz standards. Ce calculateur applique la règle empirique aux deux gaz saisis ; il ne remplace ni une formation ni un avis professionnel.';
 
   @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
@@ -18736,13 +18707,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'Le bloc est sous pression mais ne contient ni oxygène ni hélium, ce qui serait de l\'azote pur. Vérifiez le mélange déjà présent dans le bloc.';
-
-  @override
-  String get gasCalculators_blender_about => 'À propos du mélange';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Mélange par pressions partielles pour le mélange cible. Ajoutez chaque gaz de remplissage dans l\'ordre, jusqu\'à la pression indiquée, puis laissez le bloc se stabiliser. Les gaz de remplissage et leur ordre sont configurables : en réglant le dernier gaz sur 32/0, le complément se fait à l\'EAN32 au lieu de l\'air. Analysez toujours le mélange final avant de le plonger.';
 
   @override
   String get gasCalculators_blender_conditions => 'Conditions de mélange';
@@ -19178,10 +19142,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Profondeur équivalente en densité d\'air (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'L\'EADD est la profondeur à laquelle l\'air serait aussi dense que ce gaz. Contrairement à la densité en g/L, elle ne dépend pas de la température.';
-
-  @override
   String get gasCalculators_density_loopGasTitle =>
       'Gaz de la boucle en profondeur';
 
@@ -19201,15 +19161,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'Le diluant seul donne ici une ppO2 de $ppO2, au-dessus du setpoint. La densité utilise la ppO2 du diluant.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle =>
-      'À propos de la densité du gaz';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Un gaz dense est plus difficile à respirer et augmente le risque de rétention de CO2. Gardez la densité à $warn g/L au maximum ; $critical g/L est la limite absolue.\n\nEn CCR, c\'est la densité du gaz de la boucle qui compte : l\'oxygène au setpoint, le reste réparti entre azote et hélium selon le rapport du diluant.\n\nUn gaz plus froid est plus dense : l\'option de température la plus froide est donc la plus prudente. Le calcul suppose un gaz parfait.';
   }
 
   @override
@@ -22862,10 +22813,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get diveDetailSection_buoyancy_description =>
       'Flottabilité pendant la plongée, variation, lest largable';
-
-  @override
-  String get buoyancy_tooltip =>
-      'Flottabilité nette modélisée pendant la plongée d\'après le profil, la consommation de gaz et l\'équipement.';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -28644,14 +28591,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Les Gradient Factors (GF) contrôlent le niveau de conservatisme de vos calculs de décompression. Le GF Low affecte les paliers profonds, tandis que le GF High affecte les paliers peu profonds.\n\nValeurs plus basses = plus conservateur = paliers déco plus longs\nValeurs plus hautes = moins conservateur = paliers déco plus courts';
-
-  @override
-  String get settings_decompression_aboutTitle =>
-      'À propos des Gradient Factors';
-
-  @override
   String get settings_decompression_currentSettings => 'Réglages actuels';
 
   @override
@@ -29497,13 +29436,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Rappels d\'entretien';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Les notifications sont programmées au lancement de l\'application et se rafraîchissent périodiquement en arrière-plan. Vous pouvez personnaliser les rappels pour chaque équipement dans son écran de modification.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'Comment ça fonctionne';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -33085,14 +33017,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String insights_valueCard_semanticLabel(Object label, Object value) {
     return '$label : $value';
   }
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Votre corps possède 16 compartiments tissulaires qui absorbent et libèrent l\'azote à des vitesses différentes. Les tissus rapides (comme le sang) se saturent rapidement mais se désaturent aussi rapidement. Les tissus lents (comme les os et la graisse) mettent plus de temps à se charger et à se décharger. Le « compartiment directeur » est celui qui est le plus saturé et contrôle généralement votre limite de non-décompression (NDL). Pendant un intervalle de surface, tous les tissus se désaturent vers les niveaux de saturation de surface (~40% de charge).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title =>
-      'À propos du chargement tissulaire';
 
   @override
   String get surfaceInterval_action_resetDefaults =>
@@ -37667,13 +37591,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get divePlanner_undo => 'Annuler';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Le rock bottom est la réserve de gaz minimale pour une remontée d\'urgence en partageant l\'air avec votre binôme.\n\n- Utilise des consommations majorées (2-3x la normale)\n- Suppose les deux plongeurs sur un seul bloc\n- Inclut le palier de sécurité si activé\n\nFaites toujours demi-tour AVANT d\'atteindre le rock bottom !';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'À propos du Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Gaz nécessaire pour la remontée';
 
@@ -41959,13 +41876,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Sans profil de profondeur, son CNS% et ses OTU ne peuvent pas être calculés. Les totaux ci-dessous l\'excluent.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'À propos du CNS et de l\'OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'Votre CNS% (horloge à oxygène) décroît après la plongée avec une demi-vie de 90 minutes -- il est pratiquement revenu à 0 au bout d\'un jour environ.\n\nL\'OTU quotidien est remis à zéro chaque nuit à minuit. L\'OTU hebdomadaire est un total glissant sur les 7 derniers jours : les plongées plus anciennes sortent automatiquement du calcul dès qu\'elles quittent cette fenêtre.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Aucune charge tissulaire résiduelle';
 
@@ -41980,14 +41890,6 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'La dernière plongée n\'a pas de données permettant de calculer la saturation des tissus, par exemple une plongée sans profil de profondeur, en mode profondimètre ou au recycleur sans consigne.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title =>
-      'À propos de la saturation des tissus';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'Votre corps compte 16 compartiments tissulaires qui absorbent et éliminent l\'azote (et, en plongée au trimix ou au recycleur, l\'hélium aussi) à des vitesses différentes. Les tissus rapides se saturent et se désaturent vite ; les tissus lents mettent beaucoup plus de temps dans les deux cas.\n\nLa charge résiduelle correspond seulement à ce qui dépasse le niveau normal en surface. Même entièrement désaturées, les barres ne descendent pas à 0 % : chaque compartiment se stabilise au repère correspondant à l\'azote de l\'air que vous respirez. C\'est pourquoi un compartiment rapide peut afficher ici une valeur plus élevée qu\'à la fin d\'une plongée avec décompression à l\'oxygène, sans que la charge ait augmenté.\n\nAprès une plongée à l\'hélium, un compartiment élimine l\'hélium tout en absorbant de l\'azote, jusqu\'à ce que les deux gaz soient en équilibre avec l\'air que vous respirez.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -62145,4 +62047,1459 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Passeport de la bouteille partenaire';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'À propos de $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Contexte';
+
+  @override
+  String get info_sheet_howToUse => 'Utilisation';
+
+  @override
+  String get info_sheet_close => 'Fermer';
+
+  @override
+  String get info_term_ndl_label => 'NDL (limite de non-décompression)';
+
+  @override
+  String get info_term_ndl_body =>
+      'Minutes restantes à la profondeur actuelle avant que le modèle impose des paliers de décompression. La valeur diminue tant que le plongeur reste en profondeur et remonte pendant la remontée.';
+
+  @override
+  String get info_term_ceiling_label => 'Plafond';
+
+  @override
+  String get info_term_ceiling_body =>
+      'La profondeur la plus faible que le modèle de décompression autorise à cet instant. Zéro signifie qu\'une remontée directe vers la surface respecte le modèle.';
+
+  @override
+  String get info_term_decoStops_label => 'Paliers de décompression';
+
+  @override
+  String info_term_decoStops_body(String step) {
+    return 'Pauses prévues pendant la remontée, chacune avec une profondeur et une durée, qui laissent le gaz dissous quitter le corps. Les paliers sont en général espacés de $step.';
+  }
+
+  @override
+  String get info_term_tts_label => 'TTS (temps jusqu\'à la surface)';
+
+  @override
+  String get info_term_tts_body =>
+      'Minutes nécessaires pour atteindre la surface d\'ici, remontée et paliers obligatoires compris.';
+
+  @override
+  String get info_term_gtr_label => 'GTR (autonomie en gaz)';
+
+  @override
+  String get info_term_gtr_body =>
+      'Minutes à la profondeur et au rythme respiratoire actuels avant que le bloc descende à sa pression de réserve. Le calcul suppose une remontée directe sans palier.';
+
+  @override
+  String get info_term_gf99_label => 'GF99';
+
+  @override
+  String get info_term_gf99_body =>
+      'La proximité actuelle du tissu le plus chargé avec sa valeur M, en pourcentage. À 100 %, il se trouve exactement sur la limite de Buhlmann brute.';
+
+  @override
+  String get info_term_surfaceGf_label =>
+      'SurfGF (facteur de gradient en surface)';
+
+  @override
+  String get info_term_surfaceGf_body =>
+      'Le GF99 qu\'auraient les tissus si le plongeur faisait surface instantanément. Au-delà de 100 %, la limite de Buhlmann brute serait dépassée en surface.';
+
+  @override
+  String get info_term_gradientFactors_label => 'GF (facteurs de gradient)';
+
+  @override
+  String get info_term_gradientFactors_body =>
+      'Deux pourcentages qui réduisent les limites de Buhlmann : GF Low fixe la profondeur du premier palier et GF High la limite à l\'arrivée en surface. Des valeurs plus basses donnent des profils plus longs et plus prudents.';
+
+  @override
+  String get info_term_cns_label => 'CNS% (oxygène et système nerveux central)';
+
+  @override
+  String get info_term_cns_body =>
+      'Part de la limite d\'oxygène d\'une plongée pour le cerveau et les nerfs, selon la table ppO2 de la NOAA. Elle diminue environ de moitié toutes les 90 minutes en surface.';
+
+  @override
+  String get info_term_otu_label => 'OTU (unités de tolérance à l\'oxygène)';
+
+  @override
+  String get info_term_otu_body =>
+      'Une dose d\'oxygène plus lente, pour tout le corps, qui s\'accumule sur plusieurs jours de plongée. Une OTU correspond à une minute d\'oxygène pur à 1 bar.';
+
+  @override
+  String get info_term_ppO2_label => 'ppO2 (pression partielle d\'oxygène)';
+
+  @override
+  String get info_term_ppO2_body =>
+      'La pression exercée par le seul oxygène du gaz respiré à cette profondeur, en bar. Les limites courantes sont 1,4 bar en phase active et 1,6 bar pendant la décompression.';
+
+  @override
+  String get info_term_ppN2_label => 'ppN2 (pression partielle d\'azote)';
+
+  @override
+  String get info_term_ppN2_body =>
+      'La pression exercée par l\'azote du gaz respiré à cette profondeur, en bar. Elle détermine la charge en azote et la narcose.';
+
+  @override
+  String get info_term_ppHe_label => 'ppHe (pression partielle d\'hélium)';
+
+  @override
+  String get info_term_ppHe_body =>
+      'La pression exercée par l\'hélium du gaz respiré à cette profondeur, en bar. L\'hélium se charge et se décharge plus vite que l\'azote et n\'est pas narcotique.';
+
+  @override
+  String get info_term_o2Cells_label => 'Cellules O2';
+
+  @override
+  String get info_term_o2Cells_body =>
+      'Capteurs de la boucle d\'un recycleur qui mesurent chacun la ppO2. Des valeurs divergentes signalent une cellule défaillante ou mouillée.';
+
+  @override
+  String get info_term_mod_label => 'MOD (profondeur maximale d\'utilisation)';
+
+  @override
+  String get info_term_mod_body =>
+      'La profondeur à laquelle un gaz atteint sa limite de ppO2. Plus profond, l\'exposition à l\'oxygène dépasse cette limite.';
+
+  @override
+  String get info_term_mnd_label => 'MND (profondeur narcotique maximale)';
+
+  @override
+  String get info_term_mnd_body =>
+      'Le point le plus profond où un gaz reste dans la limite d\'END du plongeur. L\'hélium dans le mélange la rend plus profonde.';
+
+  @override
+  String get info_term_end_label => 'END (profondeur narcotique équivalente)';
+
+  @override
+  String get info_term_end_body =>
+      'La profondeur à l\'air qui serait aussi narcotique que ce gaz à cette profondeur. L\'hélium la réduit car il n\'est pas narcotique.';
+
+  @override
+  String get info_term_ead_label => 'EAD (profondeur air équivalente)';
+
+  @override
+  String get info_term_ead_body =>
+      'La profondeur à l\'air qui chargerait l\'azote au même rythme que ce nitrox à cette profondeur. Elle est inférieure à la profondeur réelle car le nitrox contient moins d\'azote.';
+
+  @override
+  String get info_term_eadd_label =>
+      'EADD (profondeur de densité air équivalente)';
+
+  @override
+  String get info_term_eadd_body =>
+      'La profondeur à laquelle l\'air serait aussi dense que ce gaz à cette profondeur. Contrairement à la densité en g/L, elle ne dépend pas de la température.';
+
+  @override
+  String get info_term_gasDensity_label => 'Densité du gaz';
+
+  @override
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'Le poids du gaz respiré en profondeur, en grammes par litre, qui fixe l\'effort pour le respirer. La recherche publiée cite $warn g/L comme maximum recommandé et $critical g/L comme limite haute.';
+  }
+
+  @override
+  String get info_term_sac_label => 'SAC (consommation en surface)';
+
+  @override
+  String get info_term_sac_body =>
+      'Consommation de gaz par minute ramenée à la pression de surface, affichée en baisse de pression par minute. Elle dépend de la taille du bloc et compare donc des plongées faites avec le même bloc.';
+
+  @override
+  String get info_term_rmv_label => 'RMV (volume respiratoire par minute)';
+
+  @override
+  String get info_term_rmv_body =>
+      'Volume de gaz respiré par minute, ramené à la pression de surface. Contrairement au SAC, il ne dépend pas de la taille du bloc.';
+
+  @override
+  String get info_term_ascentRate_label => 'Vitesse de remontée';
+
+  @override
+  String info_term_ascentRate_body(String rate) {
+    return 'La vitesse à laquelle la profondeur diminue, par minute. La formation courante retient $rate comme maximum.';
+  }
+
+  @override
+  String get info_term_descentRate_label => 'Vitesse de descente';
+
+  @override
+  String get info_term_descentRate_body =>
+      'La vitesse à laquelle la profondeur augmente, par minute.';
+
+  @override
+  String get info_term_meanDepth_label => 'Profondeur moyenne';
+
+  @override
+  String get info_term_meanDepth_body =>
+      'La profondeur moyenne pondérée par le temps sur toute la plongée. La consommation et la décompression la suivent davantage que la profondeur maximale.';
+
+  @override
+  String get info_term_bottomTime_label => 'Temps au fond';
+
+  @override
+  String get info_term_bottomTime_body =>
+      'Temps entre le départ de la surface et le début de la remontée finale. Il est déduit du profil.';
+
+  @override
+  String get info_term_runtime_label => 'Durée totale';
+
+  @override
+  String get info_term_runtime_body =>
+      'Temps total entre le départ de la surface et le retour en surface. Les profils techniques sont écrits en fonction de lui.';
+
+  @override
+  String get info_term_safetyStop_label => 'Palier de sécurité';
+
+  @override
+  String info_term_safetyStop_body(String depth) {
+    return 'Une pause facultative vers $depth, en général de trois minutes, avant de faire surface. Le modèle ne l\'impose pas sur une plongée sans palier.';
+  }
+
+  @override
+  String get info_term_surfaceInterval_label => 'Intervalle de surface';
+
+  @override
+  String get info_term_surfaceInterval_body =>
+      'Temps passé en surface entre deux plongées. Les tissus continuent d\'éliminer du gaz, donc un intervalle plus long en reporte moins sur la plongée suivante.';
+
+  @override
+  String get info_term_tissueCompartment_label => 'Compartiments tissulaires';
+
+  @override
+  String get info_term_tissueCompartment_body =>
+      'Les 16 tissus fictifs du modèle, qui absorbent et libèrent le gaz chacun à son rythme. Les rapides représentent les tissus très irrigués, les lents la graisse et les os.';
+
+  @override
+  String get info_term_leadingCompartment_label => 'Compartiment directeur';
+
+  @override
+  String get info_term_leadingCompartment_body =>
+      'Le compartiment le plus proche de sa limite à cet instant. Il fixe le plafond et change au cours de la plongée.';
+
+  @override
+  String get info_term_tissueLoad_label => 'Charge';
+
+  @override
+  String get info_term_tissueLoad_body =>
+      'La quantité de gaz inerte d\'un compartiment par rapport à sa limite, en pourcentage. À 100 %, il est sur sa valeur M.';
+
+  @override
+  String get info_term_mValue_label => 'Valeur M';
+
+  @override
+  String get info_term_mValue_body =>
+      'La pression de gaz inerte maximale qu\'un compartiment peut tenir à une profondeur donnée selon le modèle de Buhlmann. Les facteurs de gradient fixent la part utilisée.';
+
+  @override
+  String get info_term_surfaceLevel_label => 'Niveau de surface';
+
+  @override
+  String get info_term_surfaceLevel_body =>
+      'La pression de gaz d\'un compartiment entièrement stabilisé en surface à l\'air. Les barres au-dessus de cette ligne portent encore du gaz en excès.';
+
+  @override
+  String get info_term_halfTime_label => 'Demi-période';
+
+  @override
+  String get info_term_halfTime_body =>
+      'Minutes nécessaires à un compartiment pour faire la moitié du chemin vers la pression ambiante. La plage va de quelques minutes à plus de dix heures.';
+
+  @override
+  String get info_term_ongassing_label => 'Saturation et désaturation';
+
+  @override
+  String get info_term_ongassing_body =>
+      'La saturation signifie qu\'un compartiment absorbe du gaz car la pression ambiante est plus forte, la désaturation qu\'il en libère. La couleur montre le sens de chaque compartiment.';
+
+  @override
+  String get info_term_heatMap_label => 'Carte de chaleur';
+
+  @override
+  String get info_term_heatMap_body =>
+      'Chaque ligne est un compartiment, les rapides en haut et les lents en bas, et le temps va de gauche à droite. La couleur montre la charge de ce compartiment à cet instant.';
+
+  @override
+  String get info_term_nitrox_label => 'Nitrox (EANx)';
+
+  @override
+  String get info_term_nitrox_body =>
+      'Air enrichi en oxygène, désigné par son pourcentage d\'oxygène, comme EAN32. Moins d\'azote allonge les temps sans palier et l\'oxygène supplémentaire rend la MOD moins profonde.';
+
+  @override
+  String get info_term_trimix_label => 'Trimix';
+
+  @override
+  String get info_term_trimix_body =>
+      'Un mélange d\'oxygène, d\'hélium et d\'azote, noté oxygène sur hélium, comme 18/45. L\'hélium réduit la narcose et la densité du gaz en profondeur.';
+
+  @override
+  String get info_term_diluent_label => 'Diluant';
+
+  @override
+  String get info_term_diluent_body =>
+      'Le gaz qu\'un recycleur ajoute à la boucle pour en maintenir le volume. L\'appareil ajoute de l\'oxygène en plus pour tenir le setpoint.';
+
+  @override
+  String get info_term_setpoint_label => 'Setpoint';
+
+  @override
+  String get info_term_setpoint_body =>
+      'La ppO2 qu\'un recycleur en circuit fermé cherche à maintenir dans la boucle. Les appareils passent souvent d\'un setpoint bas à un setpoint haut pendant la plongée.';
+
+  @override
+  String get info_term_bailout_label => 'Bailout';
+
+  @override
+  String get info_term_bailout_body =>
+      'Gaz en circuit ouvert emporté lors d\'une plongée en recycleur pour remonter hors de la boucle. Les plans de bailout supposent la perte de la boucle.';
+
+  @override
+  String get info_term_loop_label => 'Boucle';
+
+  @override
+  String get info_term_loop_body =>
+      'Le circuit respiratoire du recycleur, où le gaz expiré est débarrassé du dioxyde de carbone puis respiré à nouveau.';
+
+  @override
+  String get info_term_stage_label => 'Relais';
+
+  @override
+  String get info_term_stage_body =>
+      'Un bloc supplémentaire accroché sur le côté, emporté pour une partie de la plongée et sur lequel on passe en route.';
+
+  @override
+  String get info_term_decoGas_label => 'Gaz de décompression';
+
+  @override
+  String get info_term_decoGas_body =>
+      'Un gaz plus riche en oxygène respiré pendant les paliers. Il accélère la désaturation aux faibles profondeurs.';
+
+  @override
+  String get info_term_pony_label => 'Pony';
+
+  @override
+  String get info_term_pony_body =>
+      'Un petit bloc indépendant avec son propre détendeur, emporté comme réserve de gaz de secours.';
+
+  @override
+  String get info_term_sidemount_label => 'Sidemount';
+
+  @override
+  String get info_term_sidemount_body =>
+      'Blocs portés sur chaque côté plutôt que sur le dos, chacun avec son propre détendeur.';
+
+  @override
+  String get info_term_twinBackmount_label => 'Bi-bouteille';
+
+  @override
+  String get info_term_twinBackmount_body =>
+      'Deux blocs réunis sur le dos, en général par un robinet séparateur, et respirés comme une seule réserve.';
+
+  @override
+  String get info_term_altitudeGroup_label => 'Classe d\'altitude';
+
+  @override
+  String get info_term_altitudeGroup_body =>
+      'Une tranche d\'altitudes qui partage les mêmes tables et réglages du modèle. Les classes plus hautes ont une pression atmosphérique plus faible en surface.';
+
+  @override
+  String get info_term_surfacePressure_label => 'Pression en surface';
+
+  @override
+  String get info_term_surfacePressure_body =>
+      'La pression atmosphérique à la surface du site. En altitude elle est plus faible, ce qui rend le modèle plus prudent.';
+
+  @override
+  String get info_term_salinity_label => 'Type d\'eau';
+
+  @override
+  String get info_term_salinity_body =>
+      'L\'eau de mer est plus dense que l\'eau douce, donc une même pression correspond en mer à une profondeur un peu plus faible. Les ordinateurs s\'en servent pour convertir la pression en profondeur.';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_label =>
+      'ICD (contre-diffusion isobare)';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_body =>
+      'Un changement de gaz peut augmenter le gaz inerte total dans les tissus sans changer de profondeur quand l\'azote monte plus vite que l\'hélium ne baisse. La vérification courante, la règle des cinquièmes, limite la hausse d\'azote au cinquième de la baisse d\'hélium.';
+
+  @override
+  String get info_term_hypercapnia_label => 'Hypercapnie';
+
+  @override
+  String get info_term_hypercapnia_body =>
+      'Une accumulation de dioxyde de carbone dans le corps. Un gaz dense et un effort intense la rendent plus probable.';
+
+  @override
+  String get info_term_turnPressure_label => 'Pression de demi-tour';
+
+  @override
+  String get info_term_turnPressure_body =>
+      'La pression du bloc à laquelle le plan fait faire demi-tour vers la sortie.';
+
+  @override
+  String get info_term_minGas_label => 'Gaz minimum';
+
+  @override
+  String get info_term_minGas_body =>
+      'Gaz mis de côté pour que deux plongeurs partagent une réserve du point le plus profond jusqu\'à la surface, paliers compris.';
+
+  @override
+  String get info_term_rockBottom_label => 'Réserve de remontée';
+
+  @override
+  String get info_term_rockBottom_body =>
+      'La pression du bloc qui contient le gaz minimum. Elle inclut un court délai au fond pour gérer le problème avant la remontée.';
+
+  @override
+  String get info_term_thirds_label => 'Règle des tiers';
+
+  @override
+  String get info_term_thirds_body =>
+      'Un plan de gaz qui utilise un tiers à l\'aller, un tiers au retour et garde un tiers en réserve. La formation spéléo et en milieu fermé l\'enseigne.';
+
+  @override
+  String get info_term_airBreaks_label => 'Pauses air';
+
+  @override
+  String get info_term_airBreaks_body =>
+      'Courtes périodes à respirer un gaz moins riche en oxygène pendant de longs paliers à l\'oxygène. Elles réduisent la charge CNS.';
+
+  @override
+  String get info_term_rollingAverage_label => 'Moyenne glissante';
+
+  @override
+  String get info_term_rollingAverage_body =>
+      'La moyenne des dernières plongées en chaque point, qui lisse les variations pour montrer la tendance.';
+
+  @override
+  String get info_term_overallTrend_label => 'Tendance générale';
+
+  @override
+  String get info_term_overallTrend_body =>
+      'Une droite ajustée sur toutes les plongées de la période, qui montre la direction générale des valeurs.';
+
+  @override
+  String get info_term_rangeBand_label => 'Bande d\'étendue';
+
+  @override
+  String get info_term_rangeBand_body =>
+      'La bande ombrée va de la valeur la plus basse à la plus haute de chaque période.';
+
+  @override
+  String get info_term_collapseGaps_label => 'Masquer les pauses';
+
+  @override
+  String get info_term_collapseGaps_body =>
+      'Retire de l\'axe du temps les longues pauses entre plongées pour qu\'elles se suivent.';
+
+  @override
+  String get info_term_degreeHeatingWeeks_label =>
+      'DHW (semaines-degrés de chaleur)';
+
+  @override
+  String get info_term_degreeHeatingWeeks_body =>
+      'Stress thermique accumulé sur les 12 dernières semaines, d\'après NOAA Coral Reef Watch. La NOAA prévoit un blanchissement important dès 4 et sévère dès 8.';
+
+  @override
+  String get info_term_sstAnomaly_label => 'Anomalie de SST';
+
+  @override
+  String get info_term_sstAnomaly_body =>
+      'L\'écart de la température de surface de la mer au-dessus ou au-dessous de sa moyenne à long terme pour cette date.';
+
+  @override
+  String get info_term_bleachingAlert_label => 'Alerte de blanchissement';
+
+  @override
+  String get info_term_bleachingAlert_body =>
+      'Le niveau de stress thermique de NOAA Coral Reef Watch pour la zone, de la veille jusqu\'aux niveaux d\'alerte.';
+
+  @override
+  String get info_term_sourceDcCalc_label => 'Ordinateur ou calculé';
+
+  @override
+  String get info_term_sourceDcCalc_body =>
+      'Les valeurs de l\'ordinateur sont celles qu\'il a enregistrées pendant la plongée. Les valeurs calculées viennent du modèle de l\'application appliqué au profil, donc les deux peuvent différer.';
+
+  @override
+  String get info_term_scrubber_label => 'Cartouche de chaux';
+
+  @override
+  String get info_term_scrubber_body =>
+      'La cartouche du recycleur qui retire le dioxyde de carbone de la boucle. Son absorbant est prévu pour un nombre d\'heures donné.';
+
+  @override
+  String get info_term_cellOutput_label => 'Sortie de cellule';
+
+  @override
+  String get info_term_cellOutput_body =>
+      'La tension en millivolts de chaque cellule à oxygène, que le recycleur convertit en ppO2.';
+
+  @override
+  String get info_term_highO2Hours_label => 'Heures à oxygène élevé';
+
+  @override
+  String get info_term_highO2Hours_body =>
+      'Temps passé à respirer un gaz à fraction d\'oxygène élevée, qui use plus vite les pièces compatibles oxygène.';
+
+  @override
+  String get info_term_decoStatus_label => 'DÉCO et SANS DÉCO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'SANS DÉCO signifie qu\'une remontée directe respecte le modèle à cet instant. DÉCO signifie qu\'au moins un palier est requis avant de faire surface.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Départ et cette plongée';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Départ est le CNS% hérité des plongées précédentes, déjà réduit par le temps écoulé. Cette plongée est ce que la plongée elle-même a ajouté.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU quotidien et hebdomadaire';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'L\'OTU quotidien compte chaque plongée depuis minuit et l\'OTU hebdomadaire est un total glissant des sept derniers jours. Chacun est affiché face à la limite de l\'application pour cette période.';
+
+  @override
+  String get info_term_maxPpO2_label => 'ppO2 maximale';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'La pression partielle d\'oxygène la plus élevée respirée pendant la plongée.';
+
+  @override
+  String get info_term_timeAboveLimit_label =>
+      'Temps au-dessus de la limite de ppO2';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'Combien de temps la ppO2 est restée au-dessus des limites définies dans les réglages pendant cette plongée.';
+
+  @override
+  String get info_term_idealSwitchDepth_label =>
+      'Profondeur de changement idéale';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'Le point le plus profond de la remontée où le gaz suivant est dans sa limite de ppO2, c\'est-à-dire sa MOD. La carte le compare à la profondeur où le changement a été enregistré.';
+
+  @override
+  String get info_term_extraDeco_label => 'Déco supplémentaire';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Temps de décompression que le modèle ajoute parce qu\'un changement a eu lieu moins profond ou plus tard que le point idéal.';
+
+  @override
+  String get info_term_stackedArea_label => 'Aires empilées';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Chaque bande est la charge d\'un compartiment dans le temps, empilée sur les autres, si bien que la hauteur totale montre la charge de tous les compartiments.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 et He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'La charge de chaque compartiment est répartie entre azote et hélium. L\'hélium entre et sort plus vite que l\'azote.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'Palier de décompression manqué';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'Un palier requis écourté ou sauté, repéré en comparant le profil aux paliers du modèle.';
+
+  @override
+  String get info_term_sawtooth_label => 'Profil en dents de scie';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Des remontées et descentes répétées pendant une plongée. La recherche sur la décompression les associe à plus de bulles.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Changement de gaz tardif';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'Un passage à un gaz de déco nettement moins profond ou plus tardif que le point où ce gaz devenait utilisable.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'Vitesse verticale moyenne';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'Le rythme moyen de variation de profondeur sur la plage sélectionnée.';
+
+  @override
+  String get info_term_computedEvents_label => 'Événements calculés';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Repères que l\'application ajoute en lisant le profil, comme les remontées rapides, par opposition aux événements enregistrés par l\'ordinateur.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Repères de changement de gaz';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Points où le gaz respiré est passé d\'un bloc à un autre.';
+
+  @override
+  String get info_term_diveModes_label => 'Mode de plongée';
+
+  @override
+  String get info_term_diveModes_body =>
+      'En circuit ouvert (OC), chaque expiration part dans l\'eau. Les recycleurs fermés (CCR) et semi-fermés (SCR) réutilisent le gaz dans une boucle.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Flottabilité nette';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Tous les termes additionnés, la portance comptée en positif et le poids en négatif. Zéro est neutre.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Variation de flottabilité';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'De combien la flottabilité nette a changé entre le début et la fin de la plongée, surtout à cause du poids du gaz respiré.';
+
+  @override
+  String get info_term_peakLift_label => 'Portance maximale nécessaire';
+
+  @override
+  String get info_term_peakLift_body =>
+      'La plus grande portance que la wing ou l\'étanche a dû fournir à un moment de la plongée pour rester neutre.';
+
+  @override
+  String get info_term_minDitchable_label => 'Lest largable minimum';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'Le poids à larguer au point le plus lourd de la plongée pour se retrouver environ $weight positif.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Gaz ajouté dans l\'étanche';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gaz ajouté dans l\'étanche pour compenser son placage à la descente, compté comme portance.';
+
+  @override
+  String get info_term_noFlyTime_label => 'Délai avant de prendre l\'avion';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Temps entre la dernière plongée et la fin de l\'intervalle recommandé par le DAN et l\'UHMS avant de voler. L\'intervalle dépend du caractère unique, successif ou décompressif des plongées et du préréglage choisi.';
+
+  @override
+  String get info_term_perYearRate_label => 'Taux annuel';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'La pente de la ligne de tendance générale, exprimée en variation sur un an.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label => 'Saisi avant la mesure';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Visibilité saisie par un mot, comme bonne ou mauvaise, avant que l\'application l\'enregistre en distance. Ces plongées gardent leur mot d\'origine.';
+
+  @override
+  String get info_term_spansBands_label => 'Sur plusieurs tranches';
+
+  @override
+  String get info_term_spansBands_body =>
+      'Une visibilité saisie comme une plage couvrant plus d\'une tranche, donc comptée à part.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Aube et crépuscule';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'Une plongée à l\'aube commence avant le lever du soleil et finit après, et une plongée au crépuscule fait de même autour du coucher. Nuit signifie que toute la plongée était dans l\'obscurité.';
+
+  @override
+  String get info_term_calendarShading_label => 'Teinte';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Chaque case est un jour de l\'année, et une case plus foncée signifie plus de plongées ce jour-là sur toutes les années de la période.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Heures en eau salée';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Temps sous l\'eau en eau salée ou saumâtre, qui use plus vite les pièces métalliques et les joints que l\'eau douce.';
+
+  @override
+  String get info_term_coldDives_label => 'Plongées froides';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Plongées dont la température d\'eau la plus basse était sous le seuil d\'eau froide des réglages d\'état du matériel.';
+
+  @override
+  String get info_term_deepCycles_label => 'Plongées profondes';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Plongées ayant atteint le seuil de plongée profonde des réglages d\'état du matériel, chacune un cycle de pression complet pour le matériel.';
+
+  @override
+  String get info_term_conditionRules_label => 'Règles d\'état';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Vérifications que l\'application passe sur les plongées et problèmes enregistrés, comme des cellules O2 qui baissent avec le temps ou un problème récurrent. Chacune se désactive dans les réglages.';
+
+  @override
+  String get info_term_standout_label => 'Se démarque';
+
+  @override
+  String get info_term_standout_body =>
+      'Un facteur dont la part parmi les plongées ciblées diffère nettement de sa part parmi les autres. Le point dans le tableau le signale.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Profondeur moyenne';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'La moyenne de la profondeur maximale de chaque plongée, pas la profondeur moyenne au sein des plongées.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Types de plongée';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'Une plongée de plusieurs types compte une fois sous chacun, donc les barres peuvent totaliser plus que le nombre de plongées.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Plusieurs mélanges';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'Une plongée avec plus d\'un mélange compte une fois sous chacun, donc les barres peuvent totaliser plus que le nombre de plongées.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Rôle du bloc';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'À quoi servait un bloc pendant la plongée : gaz fond, relais, déco, pony ou bailout. La consommation est regroupée ainsi.';
+
+  @override
+  String get info_term_colourBy_label => 'Couleur selon';
+
+  @override
+  String get info_term_colourBy_body =>
+      'Type colore chaque point selon ce qu\'il est, groupes colore les ensembles qui plongent ensemble, et récence estompe les liens sans plongée récente.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Liens pondérés';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'Une ligne plus épaisse signifie plus de plongées partagées par les deux points qu\'elle relie.';
+
+  @override
+  String get info_term_hops_label => 'Sauts';
+
+  @override
+  String get info_term_hops_body =>
+      'Combien de liens à partir du point choisi la vue atteint. Un saut montre seulement ses connexions directes.';
+
+  @override
+  String get info_term_lastStop_label => 'Dernier palier';
+
+  @override
+  String get info_term_lastStop_body =>
+      'La profondeur du palier le moins profond. Un dernier palier plus profond se tient plus facilement avec la houle mais dure plus longtemps.';
+
+  @override
+  String get info_term_ascentStages_label => 'Étapes de la remontée';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'Le plan peut utiliser une vitesse différente pour chaque partie de la remontée : jusqu\'au premier palier, entre paliers et près de la surface.';
+
+  @override
+  String get info_term_reserveGas_label => 'Réserve';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gaz que le plan garde dans chaque bloc et ne compte jamais comme utilisable.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label =>
+      'Profondeur de changement de setpoint';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'La profondeur où le plan passe du setpoint bas au haut à la descente, et inversement à la remontée.';
+
+  @override
+  String get info_term_pscrRatio_label => 'Ratio pSCR';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'La part de chaque expiration qu\'un recycleur semi-fermé passif rejette. Elle fixe l\'écart entre l\'oxygène de la boucle et le gaz d\'alimentation.';
+
+  @override
+  String get info_term_turnFraction_label => 'Fraction de demi-tour';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'La part du gaz de départ que le plan utilise avant de faire demi-tour. Un tiers est la règle courante en grotte et autres milieux fermés.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (propulseur)';
+
+  @override
+  String get info_term_dpv_body =>
+      'Un propulseur sous-marin. Le plan de mission couvre la batterie, la distance parcourue et le retour à la nage si un scooter tombe en panne.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Dépassements du plafond';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'Combien de fois et de combien une version de la plongée est passée au-dessus du plafond du modèle.';
+
+  @override
+  String get info_term_deepestStop_label => 'Palier le plus profond';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'La profondeur du premier palier obligatoire.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Marge de gaz minimum';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'Combien de gaz restait au-dessus du gaz minimum au moment du changement.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Heure de panne de gaz';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'Quand un bloc serait vide au rythme respiratoire utilisé par la relecture.';
+
+  @override
+  String get info_term_whatIf_label => 'Réel et et si';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Réel rejoue la plongée enregistrée dans le modèle, et et si la rejoue avec les changements ajoutés dans le labo de plongée.';
+
+  @override
+  String get info_term_cellGain_label => 'Signal de cellule (mV par bar)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'Le signal en millivolts de chaque cellule à oxygène divisé par la ppO2 mesurée. Il reste stable tant que la cellule est saine et baisse avec son vieillissement.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'Coupures de l\'émetteur';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'La part de chaque plongée sans valeur de pression de l\'émetteur.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'Oxygène compté comme narcotique';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'Activé, l\'oxygène compte comme narcotique, comme l\'azote, dans l\'END et la MND. L\'END devient plus profonde et la MND moins profonde.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'Gaz pour la remontée';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'Sur quels blocs emportés la remontée simulée peut basculer : tous les gaz emportés, ou seulement les relais et blocs de déco.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Profondeur dans le temps sur toute la plongée, avec chaque superposition activée tracée sur le même axe du temps.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'Les superpositions de déco et d\'oxygène viennent du modèle Buhlmann ZHL-16C avec les facteurs de gradient des réglages, et des tables d\'oxygène de la NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Parcourez le graphique pour lire toutes les valeurs à un instant. La légende active ou masque les superpositions, et le bouton de plage sélectionne une partie de la plongée pour ses statistiques.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Statistiques de la partie de la plongée sélectionnée sur le graphique.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'Ce que le modèle de décompression indique à l\'heure du curseur : si des paliers sont nécessaires et combien de temps ou de profondeur il reste.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'L\'application utilise le modèle Buhlmann ZHL-16C avec les facteurs de gradient de la pastille GF. Un ordinateur avec un autre modèle ou d\'autres réglages peut afficher d\'autres valeurs.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'Quelle exposition à l\'oxygène la plongée a ajoutée, sur l\'horloge CNS à court terme et la dose OTU plus lente.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'Le CNS% suit les limites d\'exposition à la ppO2 de la NOAA et diminue avec une demi-vie de 90 minutes après la plongée. L\'OTU quotidien repart à minuit et l\'OTU hebdomadaire couvre les sept derniers jours.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'Comment chaque changement de gaz se compare au point le plus profond où ce gaz était dans sa limite de ppO2.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'La charge en gaz inerte de chacun des 16 compartiments du modèle à l\'heure du curseur.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'Le modèle est Buhlmann ZHL-16C, qui suit l\'azote et l\'hélium séparément dans chaque compartiment. La charge ne compte que ce qui dépasse le niveau de surface, donc des barres désaturées n\'affichent jamais zéro.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Moments de cette plongée qui ont franchi une règle de la revue de sécurité, repérés en vérifiant le profil après la plongée.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'Les règles et leurs seuils se règlent dans Réglages, sous Revue de sécurité.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Toucher un constat montre où il s\'est produit sur le profil. Un constat ignoré est masqué pour cette plongée.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Chaque bloc de la plongée avec son gaz, la pression utilisée et les limites de profondeur de ce gaz.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'La consommation de gaz répartie par phases de la plongée ou par tranches de temps, pour comparer l\'effort de chaque partie.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'Le sélecteur au-dessus du graphique bascule entre SAC et RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'Les données enregistrées de cette plongée, avec des valeurs déduites du profil là où rien n\'a été saisi.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'Cette plongée était en altitude, où la pression atmosphérique plus faible en surface rend le modèle de décompression plus prudent.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'Un modèle de la flottabilité nette pendant la plongée, à partir du profil, du gaz respiré et du matériel enregistré avec la plongée.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Ajuster ouvre une feuille qui essaie une autre quantité de lest ou de flottabilité de combinaison sur cette plongée.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Température de la mer et stress thermique des coraux près du site autour de la date de plongée, d\'après les données satellite de NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'Comment cette plongée se compare à son plan lié ou aux scénarios enregistrés sur les chiffres qui comptent pour la décompression.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Touchez la carte pour ouvrir le labo de plongée et essayer d\'autres choix sur cette plongée.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'Quand se termine l\'intervalle recommandé avant de voler après les plongées les plus récentes.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'Le bouton de période choisit l\'intervalle et le bouton de regroupement montre chaque plongée, chaque semaine ou chaque mois. Moyenne glissante et tendance générale affichent ou masquent leurs lignes, et les longues pauses se masquent depuis le menu.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Consommation de gaz par plongée dans le temps, un point par plongée ou par groupe, selon la voie choisie au-dessus.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Consommation dans le temps pour chaque type de bloc, pour ne pas mélanger gaz fond et relais.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Oxygène et diluant utilisés par plongée en recycleur, en volume par minute à pression de surface.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'La profondeur maximale de chaque plongée dans le temps.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'La durée de chaque plongée, du départ de la surface au retour, dans le temps.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'Le temps au fond de chaque plongée dans le temps, sans la remontée finale ni les paliers que compte la durée totale.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'La température de l\'eau enregistrée à chaque plongée dans le temps.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'La température de l\'air enregistrée à chaque plongée dans le temps.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'Le lest porté à chaque plongée dans le temps.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'Combien de plongées ont utilisé chaque mélange.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'Comment les blocs étaient configurés à chaque plongée, d\'après les rôles enregistrés des blocs.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'Les plongées à la plus faible et à la plus forte consommation de la période.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Vitesse moyenne à la descente et à la remontée, calculée depuis les profils.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'Comment le temps total sous l\'eau se répartit par tranches de profondeur.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'Combien de plongées ont nécessité des paliers, selon la lecture de chaque profil par le modèle.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'Le total cumulé des plongées enregistrées dans le temps.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Plongées regroupées selon la visibilité saisie, dans les tranches de l\'échelle de visibilité des réglages.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Plongées en eau salée, douce et saumâtre.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'La température de l\'eau la plus basse, moyenne et la plus haute pour chaque mois de l\'année.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Plongées regroupées par température de l\'eau, avec la consommation et la profondeur moyennes par tranche.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Plongées selon le type de site saisi, comme récif, épave ou grotte.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Plongées regroupées selon l\'altitude du site.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Plongées regroupées selon la pression atmosphérique relevée en surface.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'Quand les plongées ont eu lieu par rapport au lever et au coucher du soleil sur chaque site.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'Quels jours de l\'année ont eu des plongées, sur toutes les années de la période.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'Le temps en surface moyen, le plus court et le plus long entre une plongée et la précédente.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'Matériel classé selon son usage et son usure, dans l\'unité choisie dans le menu.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Tendances dans les plongées et problèmes enregistrés qui signalent du matériel à surveiller.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'Les problèmes enregistrés sur les plongées, regroupés par étiquette et comptés.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'Les plongées choisies par la phrase ci-dessus, comparées à toutes les autres de la période.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'Touchez les mots soulignés de la phrase pour changer la mesure, le sens et le nombre de plongées. Un mode seuil compare plutôt chaque plongée au-dessus ou au-dessous d\'une valeur.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'Les facteurs nettement plus ou moins fréquents parmi les plongées ciblées que parmi les autres.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Tous les facteurs côte à côte : leur part parmi les plongées ciblées et parmi les autres.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Totaux et moyennes de toutes les plongées de la période.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'Comment les plongées se répartissent entre tranches de profondeur et types de plongée.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Courtes remarques trouvées par l\'application dans le carnet, comme une nouvelle plongée la plus profonde ou un changement de consommation.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Chaque point est un binôme, un site, un voyage ou un équipement, et chaque ligne relie deux éléments qui partagent des plongées.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Touchez un point pour le mettre en avant avec ses liens. Le panneau choisit les couleurs, le style des lignes et la portée de la vue.';
+
+  @override
+  String get info_planner_results_summary =>
+      'Les chiffres principaux du plan actuel, mis à jour à chaque changement.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'La remontée planifiée par le modèle, une ligne par palier ou changement de gaz, avec profondeur, durée, temps cumulé et gaz.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'Ce que le plan utilise de chaque bloc, avec la pression de demi-tour et le gaz minimum quand la pression de départ est connue.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'La remontée en circuit ouvert depuis le pire point de la plongée si la boucle est perdue, et si le gaz de bailout emporté suffit.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'Le plan recalculé si les choses changent : plongée plus profonde ou plus longue, ou perte d\'un gaz.';
+
+  @override
+  String get info_planner_range_summary =>
+      'Comment le profil change si la plongée va plus profond ou dure plus que prévu.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'Le plan scooter de l\'équipe : batterie, distance et retour à la nage si un scooter tombe en panne.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'Ce que cette plongée laisse à la suivante : l\'intervalle de surface, le CNS encore présent et les OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'La prudence du profil et la place du dernier palier.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Un GF Low plus bas rend le premier palier plus profond et un GF High plus bas allonge les paliers peu profonds. Les résultats se mettent à jour à chaque changement.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'Les vitesses de descente et de remontée du plan dans chaque partie de la plongée.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Chaque vitesse s\'applique à sa propre partie de la plongée. Les résultats se mettent à jour à chaque changement.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'Le rythme respiratoire et la réserve que le plan utilise pour dimensionner le gaz.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Saisissez un rythme respiratoire au fond, ou reprenez celui des plongées enregistrées, et la réserve à garder dans chaque bloc.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'Le type d\'eau et l\'altitude, qui fixent la pression de surface de départ du modèle.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Choisissez le type d\'eau et saisissez l\'altitude du site.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'Les setpoints que le recycleur en circuit fermé maintient pendant le plan.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Réglez les setpoints bas et haut et la profondeur où le plan passe de l\'un à l\'autre.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'Comment le recycleur semi-fermé passif est modélisé dans le plan.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Saisissez le ratio de rejet indiqué par le fabricant du recycleur.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'Jusqu\'où vont les plans de secours et la règle de demi-tour du plan de gaz.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Réglez de combien les plans de secours vont plus profond et plus longtemps, puis choisissez la règle et la fraction de demi-tour.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'L\'équipe, les scooters et les conditions du plan de mission.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Saisissez les plongeurs et scooters, la réserve de batterie, le courant et la vitesse de nage.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'Le matériel et le lest du plan, utilisés pour prédire la flottabilité pendant la plongée.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Ajoutez la combinaison, les blocs et le lest pour voir la flottabilité prévue.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'Les principaux résultats de la relecture et si, teintés selon qu\'ils sont meilleurs ou pires que la plongée réelle.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Chaque mesure de la plongée réelle et de la version et si, côte à côte, avec l\'écart.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'La charge des compartiments quand chaque version arrive en surface, réelle et et si.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'La flottabilité au dernier palier pour chaque version de la plongée.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Changements à essayer sur cette plongée, chacun rejoué dans le même modèle à partir du moment où il s\'applique.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'La profondeur maximale où le mélange choisi reste dans sa limite de ppO2, avec l\'EAD et l\'END à cette profondeur.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'Choisissez un mode, puis réglez l\'oxygène et la ppO2 de travail. Une profondeur cible peut être ajoutée pour vérifier une profondeur prévue avec le mélange. La limite d\'END et le caractère narcotique de l\'oxygène viennent du profil du plongeur.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'Le mélange le plus riche pour une profondeur cible qui garde la ppO2 dans sa limite et l\'END dans la limite de narcose.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'Réglez la profondeur cible et le mode. En CCR, choisissez si le mélange est un diluant ou un gaz de bailout.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'La quantité de gaz qu\'une plongée prévue utilise à une profondeur, une durée et un rythme respiratoire donnés.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'Saisissez la profondeur, la durée, le rythme respiratoire et le bloc.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'La réserve minimale de gaz pour que deux plongeurs remontent ensemble sur une seule réserve depuis le point le plus profond.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'Le calcul utilise un rythme respiratoire de stress, en général deux à trois fois le normal, et compte les deux plongeurs sur un seul bloc. Le palier de sécurité est inclus si l\'option est activée.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'Réglez la profondeur, le rythme respiratoire de stress, la vitesse de remontée et le bloc.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'La profondeur maximale où un gaz reste dans la limite d\'END, et l\'END d\'un gaz à une profondeur donnée.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'Saisissez le gaz, la limite d\'END et si l\'oxygène compte comme narcotique.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'Si un changement entre deux gaz respecte la règle des cinquièmes pour la contre-diffusion.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'L\'hélium diffuse plus vite que l\'azote, donc passer à un gaz plus riche en azote peut augmenter le gaz inerte total dans les tissus. Les organismes divergent sur l\'importance de ce point avec des gaz standards.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'Saisissez le gaz actuel et le gaz de destination.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'La densité d\'un gaz en profondeur et la profondeur où l\'air serait aussi dense.';
+
+  @override
+  String get info_calculators_density_background =>
+      'En CCR, c\'est la densité du gaz de la boucle : oxygène au setpoint, le reste dans la proportion du diluant. Un gaz plus froid est plus dense, et le calcul suppose un gaz parfait.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'Saisissez le mélange, la profondeur et la température de l\'eau, et basculez entre OC et CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'Un mélange par pressions partielles : les gaz de remplissage à ajouter, dans l\'ordre, pour obtenir le mélange cible.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'Chaque gaz est ajouté jusqu\'à la pression indiquée et le bloc se stabilise avant le suivant. Les gaz de remplissage et leur ordre sont réglables, donc le dernier gaz peut être de l\'EAN32 au lieu de l\'air.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'Saisissez ce qui est déjà dans le bloc et le mélange cible. La dernière étape de tout mélange est l\'analyse du mélange obtenu.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'Une plongée à un seul palier passée dans le modèle Buhlmann ZHL-16C, avec ses limites de gaz, ses paliers et la charge tissulaire.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'Réglez la profondeur, la durée, le gaz et les conditions de l\'eau. Les limites du gaz, les paliers et le graphique des tissus se mettent à jour à chaque changement.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'Si une deuxième plongée tient dans les limites sans palier après un intervalle de surface, d\'après la charge tissulaire héritée de la première.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      'Les 16 compartiments du modèle libèrent du gaz pendant l\'intervalle, les rapides en quelques minutes et les lents sur des heures. Le compartiment directeur est le plus chargé et fixe en général la NDL.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'Réglez la première plongée, la deuxième et l\'intervalle de surface. Le résultat montre l\'intervalle minimum et la NDL de la deuxième plongée.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'Un point par plongée, pour qu\'un changement lent de cet équipement apparaisse comme une tendance sur sa durée de vie.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'Tendances dans les plongées et problèmes signalés de cet équipement relevées par les règles d\'état.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'L\'usage de cet équipement, compté dans chaque unité utilisée par ses compteurs d\'entretien.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'L\'altitude du site et la pression atmosphérique sur place, point de départ du modèle de décompression.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'Combien de temps nominal de chaux reste pour les plongées en recycleur prévues du voyage.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'Le niveau de prudence du modèle de décompression de l\'application.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'Les facteurs de gradient réduisent les valeurs M de Buhlmann ZHL-16C, une méthode décrite par Erik Baker. Chaque valeur de déco calculée par l\'application les utilise.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'Les limites de ppO2 et la méthode CNS utilisées pour les valeurs d\'oxygène dans toute l\'application.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'Si la NDL, les paliers, le TTS, le GTR et le CNS viennent de l\'ordinateur de plongée ou du calcul de l\'application.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'La limite d\'END et la façon de calculer l\'END et la MND dans l\'application.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'La vérification que l\'application applique aux changements de gaz pour la contre-diffusion entre hélium et azote.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'Sur quels gaz la remontée simulée peut basculer quand l\'application calcule le TTS, le plafond et les paliers.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'Les règles appliquées à chaque plongée une fois enregistrée. Une règle désactivée n\'est jamais signalée.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'Les seuils qui font compter une plongée comme froide, profonde ou à oxygène élevé pour les compteurs d\'entretien.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'Les valeurs par plongée que l\'application conserve pour les cellules O2, les émetteurs et la chaux.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'Les vérifications derrière les constats d\'état du matériel. Une règle désactivée n\'est jamais signalée.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'Les rappels sont planifiés à l\'ouverture de l\'application et actualisés en arrière-plan. Chaque équipement peut avoir ses propres rappels dans son écran d\'édition.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'Les vitesses à partir desquelles le profil colore la remontée et enregistre des événements de vitesse de remontée.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analysez toujours le mélange final avant de le plonger.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'La MOD est toujours arrondie vers le bas, jamais vers le haut. Rec utilise 1 bar par $depth, comme le carnet. OC Tec et CCR Tec calculent la pression en profondeur à partir du type d\'eau, donc le même mélange peut y afficher une MOD un peu moins profonde.';
+  }
 }

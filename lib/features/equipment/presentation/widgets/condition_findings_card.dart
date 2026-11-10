@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/info/equipment_info.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/equipment/presentation/utils/condition_findi
 import 'package:submersion/features/equipment/presentation/widgets/condition_evidence_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Whether [findings] has anything to show once the master toggle ([enabled])
 /// and the [disabled] rules are applied. Rules always compute; hiding happens
@@ -130,6 +133,11 @@ class _ConditionFindingsCardState extends ConsumerState<ConditionFindingsCard> {
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
+                  ),
+                  HeaderInfoButton(
+                    title: l10n.equipmentCondition_findings_title,
+                    content: (context) =>
+                        equipmentFindingsInfo(context.l10n, infoUnits(context)),
                   ),
                 ],
               ),

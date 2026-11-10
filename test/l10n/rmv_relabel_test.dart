@@ -23,7 +23,6 @@ void main() {
     l10n.gasCalculators_rockBottom_stressedSacRates,
     l10n.gasCalculators_rockBottom_stressedSacHint,
     l10n.gasCalculators_rockBottom_combinedStressedSac,
-    l10n.gasCalculators_rockBottom_aboutDescription,
     l10n.settings_units_gasModel_explanation,
   ];
 

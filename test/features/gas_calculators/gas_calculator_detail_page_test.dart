@@ -14,6 +14,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/mod_cal
 import 'package:submersion/features/gas_calculators/presentation/widgets/rock_bottom_calculator.dart';
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 
+import '../../helpers/info_sheets.dart';
 import '../../helpers/mock_providers.dart';
 import '../../helpers/test_app.dart';
 
@@ -93,6 +94,16 @@ void main() {
       expect(find.byType(entry.value), findsOneWidget);
       expect(find.byType(AppBar), findsOneWidget);
       expect(find.byType(PlanningToolPane), findsNothing);
+    });
+  }
+
+  for (final id in kGasCalculatorIds) {
+    testWidgets('$id has one info icon, and it opens its sheet', (
+      tester,
+    ) async {
+      await pump(tester, GasCalculatorDetailPage(toolId: id, embedded: true));
+
+      expect(await openEveryInfoSheet(tester), 1);
     });
   }
 

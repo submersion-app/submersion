@@ -5,7 +5,6 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_input_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_limits_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_result_card.dart';
-import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Maximum Operating Depth (MOD) calculator.
 ///
@@ -35,50 +34,8 @@ class ModCalculator extends StatelessWidget {
               ModAssessmentCard(),
               SizedBox(height: 16),
               ModDepthCard(),
-              SizedBox(height: 16),
-              _InfoCard(),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _InfoCard extends StatelessWidget {
-  const _InfoCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.info_outline, size: 20, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  context.l10n.gasCalculators_mod_aboutMod,
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              context.l10n.gasCalculators_mod_aboutModesBody,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
         ),
       ),
     );

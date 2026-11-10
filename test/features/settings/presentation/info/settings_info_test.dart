@@ -1,0 +1,134 @@
+import 'package:flutter/widgets.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_sites/presentation/info/site_altitude_info.dart';
+import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
+import 'package:submersion/features/equipment/presentation/info/equipment_info.dart';
+import 'package:submersion/features/settings/presentation/info/settings_info.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/presentation/info/scrubber_margin_info.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
+
+void main() {
+  final l10n = lookupAppLocalizations(const Locale('en'));
+  const units = UnitFormatter(AppSettings());
+
+  String label(DiveTerm term) => diveTermEntry(l10n, units, term).term;
+  List<String> labels(InfoContent content) =>
+      content.terms.map((e) => e.term).toList();
+
+  test('every settings section has a summary', () {
+    for (final section in SettingsInfoSection.values) {
+      final content = settingsSectionInfo(l10n, units, section);
+      expect(content.summary, isNotEmpty, reason: '$section');
+    }
+  });
+
+  test('no settings sheet repeats a term as its summary', () {
+    for (final section in SettingsInfoSection.values) {
+      final content = settingsSectionInfo(l10n, units, section);
+      expect(
+        content.terms.map((e) => e.body),
+        isNot(contains(content.summary)),
+        reason: '$section',
+      );
+    }
+  });
+
+  test('planner default sheets describe no per-plan controls', () {
+    // The defaults pages have no results and fewer controls than a plan's
+    // setup, so the setup sections' How to use does not fit them.
+    for (final section in [
+      SettingsInfoSection.plannerRates,
+      SettingsInfoSection.plannerGas,
+      SettingsInfoSection.plannerContingency,
+      SettingsInfoSection.plannerDpvTeam,
+    ]) {
+      final content = settingsSectionInfo(l10n, units, section);
+      expect(content.howToUse, isNull, reason: '$section');
+      expect(content.terms, isNotEmpty, reason: '$section');
+    }
+  });
+
+  test('the gradient factors section explains GF and cites its source', () {
+    final content = settingsSectionInfo(
+      l10n,
+      units,
+      SettingsInfoSection.gradientFactors,
+    );
+    expect(labels(content), contains(label(DiveTerm.gradientFactors)));
+    expect(content.background, contains('Erik Baker'));
+  });
+
+  test('the cell output trend explains mV per bar', () {
+    final content = equipmentTrendInfo(
+      l10n,
+      units,
+      ConditionTrendKind.cellGain,
+      title: 'Cell output per dive',
+    );
+    expect(labels(content), [label(DiveTerm.cellGain)]);
+    expect(content.terms.single.term, contains('mV per bar'));
+  });
+
+  test('the site altitude sheet explains altitude groups', () {
+    final content = siteAltitudeInfo(l10n, units);
+    expect(labels(content), contains(label(DiveTerm.altitudeGroup)));
+  });
+
+  test('the scrubber margin sheet explains the scrubber', () {
+    expect(
+      labels(scrubberMarginInfo(l10n, units)),
+      contains(label(DiveTerm.scrubber)),
+    );
+  });
+
+  group('equipment', () {
+    test('each condition trend explains its own measure', () {
+      for (final kind in ConditionTrendKind.values) {
+        final content = equipmentTrendInfo(l10n, units, kind, title: 'Trend');
+        expect(content.title, 'Trend');
+        expect(content.summary, isNotEmpty, reason: '$kind');
+      }
+    });
+
+    test('the minimum temperature chart lists no cold-dive count', () {
+      // The chart plots each dive's lowest temperature; cold dives is a
+      // threshold count it does not show.
+      final content = equipmentTrendInfo(
+        l10n,
+        units,
+        ConditionTrendKind.minTemperature,
+        title: 'Trend',
+      );
+      expect(labels(content), isNot(contains(label(DiveTerm.coldDives))));
+    });
+
+    test('the findings card explains the condition rules', () {
+      final content = equipmentFindingsInfo(l10n, units);
+      expect(labels(content), [label(DiveTerm.conditionRules)]);
+    });
+
+    test('the exposure card explains only the units it shows', () {
+      final content = equipmentExposureInfo(
+        l10n,
+        units,
+        shown: const {ExposureUnit.dives, ExposureUnit.saltHours},
+      );
+      expect(labels(content), [label(DiveTerm.saltWaterHours)]);
+    });
+
+    test('plain dive and hour counts need no term', () {
+      final content = equipmentExposureInfo(
+        l10n,
+        units,
+        shown: const {ExposureUnit.dives, ExposureUnit.hours},
+      );
+      expect(content.terms, isEmpty);
+    });
+  });
+}

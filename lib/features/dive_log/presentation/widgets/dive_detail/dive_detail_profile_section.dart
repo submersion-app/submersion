@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/helpers/source_name_labels.dart';
+import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
 import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profile_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 /// The parts of a dive the chart subtree draws from.
 ///
@@ -107,89 +109,97 @@ class DiveDetailProfileSection extends ConsumerWidget {
     // What follows a provider around the chart watches it in a widget of its
     // own. A watch here would hand the chart a new host each time it fired,
     // whatever the host's own narrowed reads decided.
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.diveLog_detail_section_diveProfile,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                Row(
-                  children: [
-                    _RangeToggle(diveId: dive.id),
-                    AnnotationPinButton(
-                      active: placement != null,
-                      onPressed: annotationActions.onPinPressed,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.view_in_ar),
-                      tooltip: context.l10n.dive3d_previewTitle,
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => Dive3dPage(diveId: dive.id),
+    return ProfileLegendSnapshotScope(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    context.l10n.diveLog_detail_section_diveProfile,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Row(
+                    children: [
+                      _RangeToggle(diveId: dive.id),
+                      AnnotationPinButton(
+                        active: placement != null,
+                        onPressed: annotationActions.onPinPressed,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.view_in_ar),
+                        tooltip: context.l10n.dive3d_previewTitle,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => Dive3dPage(diveId: dive.id),
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.terrain),
-                      tooltip: context.l10n.dive3d_spatial_title,
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => SpatialSitePage(diveId: dive.id),
+                      IconButton(
+                        icon: const Icon(Icons.terrain),
+                        tooltip: context.l10n.dive3d_spatial_title,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => SpatialSitePage(diveId: dive.id),
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.fullscreen),
-                      tooltip:
-                          context.l10n.diveLog_detail_tooltip_viewFullscreen,
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => _showFullscreenProfile(context),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (placement != null) ...[
-              AnnotationPlacementBanner(
-                moving: placement.isMove,
-                onCancel: ref
-                    .read(annotationPlacementProvider(dive.id).notifier)
-                    .cancel,
+                      IconButton(
+                        icon: const Icon(Icons.fullscreen),
+                        tooltip:
+                            context.l10n.diveLog_detail_tooltip_viewFullscreen,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _showFullscreenProfile(context),
+                      ),
+                      HeaderInfoButton(
+                        title: context.l10n.diveLog_detail_section_diveProfile,
+                        height: 40,
+                        width: 40,
+                        content: diveProfileInfoFor,
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
+              if (placement != null) ...[
+                AnnotationPlacementBanner(
+                  moving: placement.isMove,
+                  onCancel: ref
+                      .read(annotationPlacementProvider(dive.id).notifier)
+                      .cancel,
+                ),
+                const SizedBox(height: 8),
+              ],
+              // Chart with optional range selection overlay
+              DiveProfileChartHost(
+                dive: dive,
+                exportKey: exportKey,
+                annotationActions: annotationActions,
+                onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
+                // fl_chart's own tooltip bubble (issue #2228 follow-up): this
+                // is the exact pre-#2228 presentation for the embedded chart,
+                // positioned above the chart box by fl_chart itself rather
+                // than by the custom ProfileCursorTooltip used elsewhere.
+                // Restored after the custom in-chart tooltip's own upward-
+                // growth approximation still did not land in the same place.
+                tooltipPresentation: TooltipPresentation.nativeBubble,
+              ),
+              _ProfilePointCount(dive: dive),
+              _ProfileSourceBar(
+                diveId: dive.id,
+                onSetPrimarySource: onSetPrimarySource,
+              ),
+              _ProfileRangeStats(dive: dive),
             ],
-            // Chart with optional range selection overlay
-            DiveProfileChartHost(
-              dive: dive,
-              exportKey: exportKey,
-              annotationActions: annotationActions,
-              onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
-              // fl_chart's own tooltip bubble (issue #2228 follow-up): this
-              // is the exact pre-#2228 presentation for the embedded chart,
-              // positioned above the chart box by fl_chart itself rather
-              // than by the custom ProfileCursorTooltip used elsewhere.
-              // Restored after the custom in-chart tooltip's own upward-
-              // growth approximation still did not land in the same place.
-              tooltipPresentation: TooltipPresentation.nativeBubble,
-            ),
-            _ProfilePointCount(dive: dive),
-            _ProfileSourceBar(
-              diveId: dive.id,
-              onSetPrimarySource: onSetPrimarySource,
-            ),
-            _ProfileRangeStats(dive: dive),
-          ],
+          ),
         ),
       ),
     );

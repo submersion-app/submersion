@@ -8,6 +8,7 @@ import 'package:submersion/features/insights/presentation/widgets/dive_trend_cha
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_control_strip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 List<TrendDataPoint> series(int n) => List.generate(
   n,
@@ -47,6 +48,7 @@ Widget host(
             lineColor: Colors.indigo,
             valueFormatter: (v) => '${v.toStringAsFixed(1)}m',
             rateFormatter: (v) => '${v.toStringAsFixed(1)}m',
+            infoSummary: 'The maximum depth of each dive over time.',
           ),
         ),
       ),
@@ -226,5 +228,17 @@ void main() {
     expect(range.preset, TrendRangePreset.custom);
     expect(range.start, DateTime.utc(2022, 1, 3));
     expect(find.text('Custom'), findsOneWidget);
+  });
+
+  testWidgets('the info icon lists the overlays the controls have on', (
+    tester,
+  ) async {
+    await tester.pumpWidget(host(AsyncValue.data(fourYears())));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Rolling average'), findsWidgets);
+    expect(find.textContaining('Range band'), findsNothing);
   });
 }

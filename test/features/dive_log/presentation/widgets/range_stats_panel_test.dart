@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_rang
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import '../../../../helpers/info_sheets.dart';
 
 final _profile = List.generate(
   61,
@@ -568,5 +570,11 @@ void main() {
       // The oxygen cylinder's 25 bar, of the same size, joins the 50.
       expect(find.text('7.5 bar/min'), findsOneWidget);
     });
+  });
+
+  testWidgets('header carries an info icon', (tester) async {
+    await _pumpPanel(tester, width: 1400);
+    expect(find.byType(InfoButton), findsOneWidget);
+    expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 }

@@ -7,10 +7,13 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_sweep.dart';
+import 'package:submersion/features/settings/presentation/info/settings_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Exposure thresholds for service clocks, edited in the diver's units and
 /// stored metric, the sensor summary rebuild (phase 2) and the condition
@@ -65,10 +68,19 @@ class _EquipmentConditionSettingsPageState
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text(
-            l10n.equipmentConditionSettings_thresholdsHeader,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
+          InfoTitleRow(
+            title: Text(
+              l10n.equipmentConditionSettings_thresholdsHeader,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            label: l10n.equipmentConditionSettings_thresholdsHeader,
+            height: 20,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.conditionThresholds,
             ),
           ),
           const SizedBox(height: 4),
@@ -111,10 +123,19 @@ class _EquipmentConditionSettingsPageState
             onSubmit: notifier.setHighO2ThresholdPercent,
           ),
           const SizedBox(height: 24),
-          Text(
-            l10n.equipmentConditionSettings_sensorHeader,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: Theme.of(context).colorScheme.primary,
+          InfoTitleRow(
+            title: Text(
+              l10n.equipmentConditionSettings_sensorHeader,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            label: l10n.equipmentConditionSettings_sensorHeader,
+            height: 20,
+            info: (context) => settingsSectionInfo(
+              context.l10n,
+              infoUnits(context),
+              SettingsInfoSection.sensorSummaries,
             ),
           ),
           const SizedBox(height: 4),
@@ -168,10 +189,19 @@ class _EquipmentConditionSettingsPageState
           const Divider(height: 1),
           Padding(
             padding: const EdgeInsets.fromLTRB(0, 16, 0, 4),
-            child: Text(
-              l10n.equipmentConditionSettings_rulesHeader,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                color: Theme.of(context).colorScheme.primary,
+            child: InfoTitleRow(
+              title: Text(
+                l10n.equipmentConditionSettings_rulesHeader,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              label: l10n.equipmentConditionSettings_rulesHeader,
+              height: 20,
+              info: (context) => settingsSectionInfo(
+                context.l10n,
+                infoUnits(context),
+                SettingsInfoSection.conditionRules,
               ),
             ),
           ),

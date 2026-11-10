@@ -33,6 +33,7 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/pump_until.dart';
@@ -584,5 +585,16 @@ void main() {
         () => chip('Planned').evaluate().isEmpty,
       );
     });
+  });
+
+  testWidgets('header info icon opens a sheet, not the Dive Lab', (
+    tester,
+  ) async {
+    await pump(tester, comparison: _comparison());
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Surface GF'), findsWidgets);
+    expect(find.textContaining('NDL (no-decompression limit)'), findsOneWidget);
   });
 }

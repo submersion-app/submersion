@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_rates_section.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/presentation/info/plan_setup_info.dart';
 import 'package:submersion/features/planner/presentation/mission/mission_team_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/planner_layout_providers.dart';
@@ -17,6 +18,8 @@ import 'package:submersion/features/planner/presentation/widgets/contingency_set
 import 'package:submersion/features/planner/presentation/widgets/plan_setting_scope.dart';
 import 'package:submersion/features/planner/presentation/widgets/pscr_settings_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The Plan Setup accordion: every plan-level setting grouped by topic.
 /// Sized for the full parity control set - later phases add controls into
@@ -138,6 +141,32 @@ class _PlanSetupAccordionState extends ConsumerState<PlanSetupAccordion> {
                     expanded;
               },
               title: Text(title, style: Theme.of(context).textTheme.titleSmall),
+              // A trailing replaces the tile's own arrow, so this one draws
+              // its arrow too, turning with the controller as the default
+              // does. The info icon sits just left of it.
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (planSetupSectionKeys.contains(key))
+                    HeaderInfoButton(
+                      title: title,
+                      content: (context) => planSetupSectionInfo(
+                        context.l10n,
+                        infoUnits(context),
+                        key,
+                        title: title,
+                      ),
+                    ),
+                  ListenableBuilder(
+                    listenable: _controllerFor(key),
+                    builder: (context, _) => AnimatedRotation(
+                      turns: _controllerFor(key).isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(Icons.expand_more),
+                    ),
+                  ),
+                ],
+              ),
               // In a series, whose settings these are (issue #3565). Null,
               // not empty, elsewhere: any subtitle lays the header out at
               // two-line height.

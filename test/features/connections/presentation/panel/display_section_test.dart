@@ -8,6 +8,7 @@ import 'package:submersion/features/connections/presentation/panel/display_secti
 import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -90,5 +91,14 @@ void main() {
     await tester.drag(slider, const Offset(150, 0));
     await tester.pumpAndSettle();
     expect(c.read(connectionsDisplayProvider).spacing, greaterThan(1.0));
+  });
+
+  testWidgets('the panel title carries an info icon on the links', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Weighted links'), findsOneWidget);
   });
 }

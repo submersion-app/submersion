@@ -221,15 +221,6 @@ class CnsOtuStatusCard extends StatelessWidget {
       timeline: tissueTimeline,
       atSurfaceEquilibrium: tissueState == TissueLoadState.settled,
     );
-    final tissueAbout = [
-      if (currentTissue != null) ...[
-        const SizedBox(height: 8),
-        _AboutCard(
-          title: l10n.safetyHub_tissueLoading_about_title,
-          body: l10n.safetyHub_tissueLoading_about_body,
-        ),
-      ],
-    ];
 
     final exposure = snap.exposure;
     if (exposure == null) {
@@ -241,7 +232,6 @@ class CnsOtuStatusCard extends StatelessWidget {
           _clearCard(l10n, theme),
           const SizedBox(height: 8),
           tissueSection,
-          ...tissueAbout,
         ]);
       }
       return _withLastDiveHeader(snap, elapsed, l10n, theme, [
@@ -253,7 +243,6 @@ class CnsOtuStatusCard extends StatelessWidget {
         if (currentTissue != null) ...[
           const SizedBox(height: 8),
           tissueSection,
-          ...tissueAbout,
         ],
       ]);
     }
@@ -290,7 +279,6 @@ class CnsOtuStatusCard extends StatelessWidget {
         _clearCard(l10n, theme),
         const SizedBox(height: 8),
         tissueSection,
-        ...tissueAbout,
       ]);
     }
 
@@ -307,15 +295,8 @@ class CnsOtuStatusCard extends StatelessWidget {
         showCnsMinimumNote: cnsMayBeHigher,
       ),
       const SizedBox(height: 8),
+      // Each card explains itself through its header info icon.
       tissueSection,
-      // Explanations last, below every readout they describe, so they never
-      // push the numbers themselves further down the page.
-      const SizedBox(height: 8),
-      _AboutCard(
-        title: l10n.safetyHub_cnsOtu_about_title,
-        body: l10n.safetyHub_cnsOtu_about_body,
-      ),
-      ...tissueAbout,
     ]);
   }
 
@@ -503,61 +484,6 @@ class _OtuTotalsCard extends StatelessWidget {
               label: l10n.o2Toxicity_weekly,
               value: weeklyOtu,
               limit: O2Exposure.weeklyOtuLimit,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// A short plain-language explanation card, same shape as the "About Tissue
-/// Loading" card on the Surface Interval Tool page: an info icon, a title,
-/// and a body paragraph. Used here so a diver can understand what the
-/// numbers above mean (CNS/OTU decay and reset, or tissue off-gassing and
-/// counter-diffusion) without leaving the page.
-class _AboutCard extends StatelessWidget {
-  final String title;
-  final String body;
-
-  const _AboutCard({required this.title, required this.body});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Card(
-      color: colorScheme.surfaceContainerHighest,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                ExcludeSemantics(
-                  child: Icon(
-                    Icons.info_outline,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              body,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
             ),
           ],
         ),

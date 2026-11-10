@@ -7,6 +7,7 @@ import 'package:submersion/features/gas_calculators/presentation/providers/icd_c
 import 'package:submersion/features/gas_calculators/presentation/widgets/icd_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -170,5 +171,11 @@ void main() {
 
     expect(find.textContaining('31,0'), findsOneWidget);
     expect(find.textContaining('9,0'), findsOneWidget);
+  });
+  testWidgets('ICD explains itself through a header info icon', (tester) async {
+    await _pump(tester);
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
+    expect(find.text('About Isobaric Counterdiffusion'), findsNothing);
   });
 }

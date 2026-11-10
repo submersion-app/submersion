@@ -6,6 +6,7 @@ import 'package:submersion/features/insights/presentation/pages/insights_conditi
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -78,5 +79,9 @@ void main() {
   testWidgets('renders an empty distribution without throwing', (tester) async {
     await pumpWithSegments(tester, const []);
     expect(find.byType(InsightsConditionsPage), findsOneWidget);
+  });
+  testWidgets('the visibility card carries an info icon', (tester) async {
+    await pumpWithSegments(tester, [seg('excellent', 3, 50)]);
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

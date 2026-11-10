@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/dive_log/presentation/info/sac_segments_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_analysis_providers.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_v
 import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The Gas consumption by segment card. The same card in the normal section
 /// flow and beside Cylinders; it watches the tracking index itself, so hovering
@@ -100,6 +102,14 @@ class DiveSacSegmentsSection extends ConsumerWidget {
         collapsedSubtitle:
             context.l10n.diveLog_detail_sacSegmentsNoPressure_subtitle,
         isExpanded: isExpanded,
+        info: (context) => sacSegmentsInfo(
+          context.l10n,
+          infoUnits(context),
+          showsSac: display.showsSac,
+          showsRmv: display.showsRmv,
+          // This branch shows a note, not the chart and its selector.
+          hasSelector: false,
+        ),
         onToggle: (expanded) {
           ref
               .read(collapsibleSectionProvider.notifier)
@@ -160,6 +170,13 @@ class DiveSacSegmentsSection extends ConsumerWidget {
         rates.formatAverage(timeSegments),
       ),
       isExpanded: isExpanded,
+      info: (context) => sacSegmentsInfo(
+        context.l10n,
+        infoUnits(context),
+        showsSac: display.showsSac,
+        showsRmv: display.showsRmv,
+        hasSelector: display == GasConsumptionDisplay.both,
+      ),
       onToggle: (expanded) {
         ref
             .read(collapsibleSectionProvider.notifier)

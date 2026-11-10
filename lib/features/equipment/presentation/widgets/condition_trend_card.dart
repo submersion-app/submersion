@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/condition_trend.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/info/equipment_info.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_trend_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
@@ -12,6 +13,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The item's per-dive condition chart: cell gain per slot, transmitter
 /// dropout share, scrubber minutes, or minimum temperature with the
@@ -96,6 +99,15 @@ class ConditionTrendCard extends ConsumerWidget {
                     child: Text(
                       _title(l10n, trend.kind),
                       style: theme.textTheme.titleMedium,
+                    ),
+                  ),
+                  HeaderInfoButton(
+                    title: _title(l10n, trend.kind),
+                    content: (context) => equipmentTrendInfo(
+                      context.l10n,
+                      infoUnits(context),
+                      trend.kind,
+                      title: _title(context.l10n, trend.kind),
                     ),
                   ),
                 ],

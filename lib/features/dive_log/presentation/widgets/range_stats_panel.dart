@@ -8,10 +8,13 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/range_gas_consumption.dart';
 import 'package:submersion/features/dive_log/domain/services/range_profile_stats.dart';
+import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/chart_tank_pressures_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Panel showing statistics for a selected range of the dive profile.
 ///
@@ -125,6 +128,19 @@ class RangeStatsPanel extends ConsumerWidget {
                   ),
                 ),
                 const Spacer(),
+                HeaderInfoButton(
+                  title: context.l10n.diveLog_rangeStats_title,
+                  height: 40,
+                  content: (context) {
+                    final display = ref.read(gasConsumptionDisplayProvider);
+                    return rangeStatsInfo(
+                      context.l10n,
+                      infoUnits(context),
+                      showsSac: display.showsSac,
+                      showsRmv: display.showsRmv,
+                    );
+                  },
+                ),
                 IconButton(
                   onPressed: () {
                     ref

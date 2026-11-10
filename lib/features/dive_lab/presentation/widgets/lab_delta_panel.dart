@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_lab/domain/entities/compare_column.dart
 import 'package:submersion/features/dive_lab/domain/entities/scenario_consumption.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_delta.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
+import 'package:submersion/features/dive_lab/presentation/info/lab_info.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_buoyancy_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
@@ -24,6 +25,8 @@ import 'package:submersion/features/planner/presentation/widgets/plan_status_chi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Verdict, tiles, the actual | what-if | delta table, tissue strips, gas
 /// rows, engine issues, the counterfactual runtime table and notes.
@@ -123,17 +126,27 @@ class LabDeltaPanel extends ConsumerWidget {
           CompareTable(columns: planColumns, units: units),
           const SizedBox(height: 16),
         ],
-        PlanSectionHeader(l10n.diveLab_panel_delta),
+        PlanSectionHeader(
+          l10n.diveLab_panel_delta,
+          info: (context) => labDeltaInfo(context.l10n, infoUnits(context)),
+        ),
         _DeltaTable(outcome: value, units: units, tankName: tankName),
         const SizedBox(height: 16),
-        PlanSectionHeader(l10n.diveLab_panel_tissues),
+        PlanSectionHeader(
+          l10n.diveLab_panel_tissues,
+          info: (context) => labTissuesInfo(context.l10n, infoUnits(context)),
+        ),
         _TissueStrips(outcome: value, colorFn: colorFn),
         const SizedBox(height: 16),
         PlanSectionHeader(l10n.diveLab_panel_gas),
         _GasRows(outcome: value, units: units, tankName: tankName),
         if (buoyancy != null) ...[
           const SizedBox(height: 16),
-          PlanSectionHeader(l10n.diveLab_panel_buoyancy),
+          PlanSectionHeader(
+            l10n.diveLab_panel_buoyancy,
+            info: (context) =>
+                labBuoyancyInfo(context.l10n, infoUnits(context)),
+          ),
           _BuoyancyRows(comparison: buoyancy!, units: units),
         ],
         if (value.planOutcome != null) ...[
@@ -265,23 +278,27 @@ class _Tiles extends StatelessWidget {
           _find(DeltaMetric.tankEndPressure, tankId: back),
         ),
     ];
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      childAspectRatio: 2.2,
-      children: [
-        for (final (label, d) in entries)
-          PlanStatTile(
-            label: label,
-            value: d == null
-                ? l10n.diveLab_value_none
-                : labMetricValue(l10n, units, d.metric, d.counterfactual),
-            emphasisColor: d == null ? null : labDeltaColor(scheme, d),
-          ),
-      ],
+    return InfoCorner(
+      title: l10n.diveLab_panel_delta,
+      info: (context) => labTilesInfo(context.l10n, infoUnits(context)),
+      child: GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        childAspectRatio: 2.2,
+        children: [
+          for (final (label, d) in entries)
+            PlanStatTile(
+              label: label,
+              value: d == null
+                  ? l10n.diveLab_value_none
+                  : labMetricValue(l10n, units, d.metric, d.counterfactual),
+              emphasisColor: d == null ? null : labDeltaColor(scheme, d),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:submersion/features/insights/presentation/open_chart_dives.dart'
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_card_parts.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_charts.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_content.dart';
 
 /// Dives per band of a numeric condition, with its coverage line (issue
 /// #3118). Renders nothing when no dive has the value.
@@ -19,7 +20,11 @@ class ConditionsBandCard extends ConsumerWidget {
     required this.totalDives,
     required this.unitSymbol,
     required this.barColor,
+    this.info,
   });
+
+  /// What the card's info icon explains; null shows no icon.
+  final InfoContentBuilder? info;
 
   final String title;
   final String subtitle;
@@ -59,6 +64,7 @@ class ConditionsBandCard extends ConsumerWidget {
     );
     return ConditionsChartCard(
       title: title,
+      info: info,
       subtitle: subtitle,
       description: description,
       chart: chart,

@@ -3,10 +3,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/connections/domain/layout/connections_layout.dart';
 import 'package:submersion/features/connections/domain/views/connections_display.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
+import 'package:submersion/features/connections/presentation/info/connections_info.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_display_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 String layoutLabel(AppLocalizations l10n, ConnectionsLayout layout) =>
     switch (layout) {
@@ -49,7 +52,19 @@ class _DisplaySectionState extends ConsumerState<DisplaySection> {
       key: const ValueKey('connections-display'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.connections_display_title, style: theme.textTheme.titleSmall),
+        InfoTitleRow(
+          title: Text(
+            l10n.connections_display_title,
+            style: theme.textTheme.titleSmall,
+          ),
+          label: l10n.connections_display_title,
+          height: 20,
+          info: (context) => connectionsInfo(
+            context.l10n,
+            infoUnits(context),
+            showsHops: around,
+          ),
+        ),
         const SizedBox(height: 8),
         Text(l10n.connections_layout_title, style: theme.textTheme.labelLarge),
         const SizedBox(height: 6),

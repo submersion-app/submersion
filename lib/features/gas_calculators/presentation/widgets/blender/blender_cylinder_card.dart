@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/gas_calculators/presentation/info/calculator_info.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_field_parsing.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -17,6 +18,8 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/mix_template_menu.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 final _log = LoggerService.forClass(BlenderCylinderCard);
 
@@ -56,9 +59,23 @@ class BlenderCylinderCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             BlenderResponsiveHeaderRow(
-              leading: BlenderSectionTitle(
-                context.l10n.gasCalculators_blender_startCylinder,
-                bottomPadding: 0,
+              leading: Row(
+                children: [
+                  Expanded(
+                    child: BlenderSectionTitle(
+                      context.l10n.gasCalculators_blender_startCylinder,
+                      bottomPadding: 0,
+                    ),
+                  ),
+                  HeaderInfoButton(
+                    title: context.l10n.gasCalculators_tab_blender,
+                    content: (context) => calculatorInfo(
+                      context.l10n,
+                      infoUnits(context),
+                      'blender',
+                    ),
+                  ),
+                ],
               ),
               trailing: TextButton.icon(
                 key: const Key('blender-choose-cylinder'),

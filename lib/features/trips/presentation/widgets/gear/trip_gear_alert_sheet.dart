@@ -6,9 +6,12 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
+import 'package:submersion/features/trips/presentation/info/scrubber_margin_info.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_scrubber_margin_details.dart';
 import 'package:submersion/features/trips/presentation/widgets/trip_service_alert_list.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The detail behind a Gear row's state line (#2845): every service clock
 /// falling due before the trip ends, and the rebreather's scrubber margin
@@ -47,6 +50,11 @@ Future<void> showTripGearAlertSheet(
                       sheetContext.l10n.trips_scrubber_title,
                       style: theme.textTheme.titleMedium,
                     ),
+                  ),
+                  HeaderInfoButton(
+                    title: sheetContext.l10n.trips_scrubber_title,
+                    content: (context) =>
+                        scrubberMarginInfo(context.l10n, infoUnits(context)),
                   ),
                 ],
               ),
