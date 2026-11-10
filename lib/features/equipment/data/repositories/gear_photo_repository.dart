@@ -41,18 +41,27 @@ class GearPhotoRepository {
 
   AppDatabase get _db => _dbOverride ?? DatabaseService.instance.database;
 
-  /// Ticks when gear photos or an item's name or cover can have changed:
-  /// the media rows themselves and the equipment rows the gallery names and
-  /// the cover lives on.
+  /// Ticks when the gear photo lists can have changed: the media rows
+  /// themselves, and the check-ins that sort a photo onto a check-in or
+  /// back to the item when its check-in is gone (deleted here or by a
+  /// sync, which touches no media row).
   Stream<void> watchGearPhotoChanges() => _db
-      .tableUpdates(TableUpdateQuery.onAllTables([_db.media]))
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([_db.media, _db.equipmentObservations]),
+      )
       .debounce(MediaRepository.changeTickDebounce);
 
   /// [watchGearPhotoChanges] plus the equipment rows, for the readers that
   /// also read an item: the gallery's names and the cover. The photo lists
   /// do not, so an unrelated gear edit does not re-read them.
   Stream<void> watchGearItemPhotoChanges() => _db
-      .tableUpdates(TableUpdateQuery.onAllTables([_db.media, _db.equipment]))
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([
+          _db.media,
+          _db.equipmentObservations,
+          _db.equipment,
+        ]),
+      )
       .debounce(MediaRepository.changeTickDebounce);
 
   /// The gear photos among the rows [w] selects, newest first.

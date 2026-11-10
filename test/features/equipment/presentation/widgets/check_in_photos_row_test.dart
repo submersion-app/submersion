@@ -10,6 +10,15 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 
 import '../../../media/presentation/support/media_widget_harness.dart';
 
+class _FailingUnlink extends MediaUnlinkService {
+  _FailingUnlink()
+    : super(repository: MediaRepository(), deleteMedia: (_) async {});
+
+  @override
+  Future<EquipmentUnlinkOutcome> unlinkFromEquipment(List<String> mediaIds) =>
+      Future.error(StateError('database is locked'));
+}
+
 class _RecordingUnlink extends MediaUnlinkService {
   _RecordingUnlink(this.calls)
     : super(repository: MediaRepository(), deleteMedia: (_) async {});
@@ -34,12 +43,14 @@ void main() {
   Future<Widget> host({
     List<MediaItem> photos = const [],
     List<List<String>>? calls,
+    MediaUnlinkService? unlink,
     DeviceCapabilities? capabilities,
   }) => mediaTestApp(
     overrides: [
       observationPhotosProvider('obs-1').overrideWith((ref) async => photos),
       if (calls != null)
         mediaUnlinkServiceProvider.overrideWithValue(_RecordingUnlink(calls)),
+      if (unlink != null) mediaUnlinkServiceProvider.overrideWithValue(unlink),
       if (capabilities != null)
         deviceCapabilitiesProvider.overrideWithValue(capabilities),
     ],
@@ -48,17 +59,39 @@ void main() {
     ),
   );
 
-  testWidgets('the remove control is small, not most of the tile', (
+  testWidgets('the remove control is easy to hit yet leaves the tile', (
     tester,
   ) async {
     await tester.pumpWidget(await host(photos: [photo]));
     await tester.pumpAndSettle();
 
-    final size = tester.getSize(
+    final target = tester.getSize(
       find.byKey(const ValueKey('remove_checkin_photo_m1')),
     );
-    expect(size.width, lessThanOrEqualTo(28));
-    expect(size.height, lessThanOrEqualTo(28));
+    // At least the WCAG 2.2 AA target size, and well short of the 56dp
+    // tile, whose tap opens the photo.
+    expect(target.width, inInclusiveRange(24, 36));
+    expect(target.height, inInclusiveRange(24, 36));
+    // The visible badge stays small.
+    final badge = tester.getSize(
+      find.byKey(const ValueKey('remove_checkin_badge_m1')),
+    );
+    expect(badge, const Size(22, 22));
+  });
+
+  testWidgets('a failed remove says so', (tester) async {
+    await tester.pumpWidget(
+      await host(photos: [photo], unlink: _FailingUnlink()),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('remove_checkin_photo_m1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Remove'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(find.textContaining('database is locked'), findsOneWidget);
   });
 
   testWidgets('remove asks first and unlinks only when confirmed', (

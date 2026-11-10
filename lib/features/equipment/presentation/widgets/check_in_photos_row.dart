@@ -28,6 +28,7 @@ class CheckInPhotosRow extends ConsumerWidget {
   final String observationId;
 
   static const double _thumb = 56;
+  static const double _removeTarget = 32;
 
   Future<void> _confirmRemove(
     BuildContext context,
@@ -36,7 +37,22 @@ class CheckInPhotosRow extends ConsumerWidget {
   ) async {
     // The sheet may close while the dialog is up, taking this row's ref.
     if (!await confirmRemoveGearPhotos(context, 1) || !context.mounted) return;
-    await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([mediaId]);
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final errorColor = Theme.of(context).colorScheme.error;
+    try {
+      await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([mediaId]);
+    } catch (e) {
+      // As the Photos card and the Gear gallery do: the photo stays, so
+      // say why rather than leaving the tap looking ignored.
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l10n.media_siteMediaSection_unlinkError(e)),
+          backgroundColor: errorColor,
+        ),
+      );
+      return;
+    }
     ref.invalidate(observationPhotosProvider(observationId));
   }
 
@@ -81,31 +97,45 @@ class CheckInPhotosRow extends ConsumerWidget {
                         semanticsLabel: l10n.equipment_photos_photoLabel,
                       ),
                     ),
-                    // A small corner badge, so most of the tile still opens
-                    // the photo; removing asks first, as everywhere else.
+                    // A small corner badge in a larger corner target: easy
+                    // to hit (above the WCAG AA 24px minimum) while most of
+                    // the tile still opens the photo. Removing asks first,
+                    // as everywhere else.
                     if (canAttach)
                       Positioned(
-                        top: 2,
-                        right: 2,
+                        top: 0,
+                        right: 0,
                         child: Tooltip(
                           message: l10n.equipment_photos_remove,
                           child: InkWell(
                             key: ValueKey('remove_checkin_photo_${photo.id}'),
                             customBorder: const CircleBorder(),
                             onTap: () => _confirmRemove(context, ref, photo.id),
-                            child: Container(
-                              width: 22,
-                              height: 22,
-                              decoration: BoxDecoration(
-                                color: colorScheme.surface.withValues(
-                                  alpha: 0.85,
+                            child: SizedBox.square(
+                              dimension: _removeTarget,
+                              child: Align(
+                                alignment: Alignment.topRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(2),
+                                  child: Container(
+                                    key: ValueKey(
+                                      'remove_checkin_badge_${photo.id}',
+                                    ),
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.surface.withValues(
+                                        alpha: 0.85,
+                                      ),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.close,
+                                      size: 14,
+                                      color: colorScheme.error,
+                                    ),
+                                  ),
                                 ),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.close,
-                                size: 14,
-                                color: colorScheme.error,
                               ),
                             ),
                           ),

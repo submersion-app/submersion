@@ -66,6 +66,29 @@ void main() {
     );
   }
 
+  // A check-in deleted here or by a sync moves its photos to the item's
+  // identification photos without touching a media row, so the photo
+  // readers must tick on the check-ins table too.
+  for (final (name, watch) in [
+    ('watchGearPhotoChanges', () => repository.watchGearPhotoChanges()),
+    ('watchGearItemPhotoChanges', () => repository.watchGearItemPhotoChanges()),
+  ]) {
+    test('$name ticks when a check-in is deleted', () async {
+      final reg = await createItem('Reg');
+      final obs = await checkIn(reg.id, 'obs-tick');
+      var ticks = 0;
+      final sub = watch().listen((_) => ticks++);
+      addTearDown(sub.cancel);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      final before = ticks;
+
+      await EquipmentObservationRepository().delete(obs);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+
+      expect(ticks, greaterThan(before));
+    });
+  }
+
   test('identificationPhotos excludes check-in photos and documents', () async {
     final item = await createItem('Reg');
     final idPhoto = await addMedia(equipmentId: item.id);
