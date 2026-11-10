@@ -482,15 +482,24 @@ class _Ctx {
   static bool _hasGrain(QueryValue v) => v is NumberValue && v.grain != null;
 
   /// The stored values the app shows as [v] (issue #4398): half a grain
-  /// either side, half-open like the rounding that produced the display.
+  /// either side, its edges open or closed as the display rounds a tie.
   String _shownBand(String Function() read, NumberValue v) {
     final half = v.grain! / 2;
+    final (loIn, hiIn) = _tiesIn(v);
     final lo = read();
     params.add(v.value - half);
     final hi = read();
     params.add(v.value + half);
-    return '($lo >= ? AND $hi < ?)';
+    return '($lo ${loIn ? '>=' : '>'} ? AND $hi ${hiIn ? '<=' : '<'} ?)';
   }
+
+  /// Whether each edge of [v]'s band is shown as [v]. The display rounds a
+  /// tie away from zero (toStringAsFixed), so a positive value keeps its
+  /// lower edge, a negative one its upper edge, and zero neither: 27.05
+  /// shows as 27.1, -1.25 as -1.3, and both -0.05 and 0.05 leave 0.0. The
+  /// sign is the stored value's; only temperature has an offset, and a
+  /// Fahrenheit tie converts to no exact Celsius double.
+  static (bool, bool) _tiesIn(NumberValue v) => (v.value > 0, v.value < 0);
 
   /// [_cmp] for a number typed at display precision: the bound moves to the
   /// edge of the band shown as [v], so `< 27.1` stops below everything shown
@@ -503,11 +512,14 @@ class _Ctx {
   ) {
     if (!_hasGrain(v)) return _cmp(f, read, sym, v);
     final half = (v as NumberValue).grain! / 2;
+    final (loIn, hiIn) = _tiesIn(v);
+    // Above the band starts past its upper edge, or at it when that tie is
+    // not shown as v; the other three bounds mirror that.
     final (edge, bound) = switch (sym) {
-      '>' => ('>=', v.value + half),
-      '>=' => ('>=', v.value - half),
-      '<' => ('<', v.value - half),
-      _ => ('<', v.value + half),
+      '>' => (hiIn ? '>' : '>=', v.value + half),
+      '>=' => (loIn ? '>=' : '>', v.value - half),
+      '<' => (loIn ? '<' : '<=', v.value - half),
+      _ => (hiIn ? '<=' : '<', v.value + half),
     };
     final c = read();
     params.add(bound);

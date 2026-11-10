@@ -40,9 +40,10 @@ for that dimension (see `list_divers` or the `submersion://units` resource);
 an explicit unit suffix (`m`, `ft`, `c`, `f`, `bar`, `psi`, `kg`, `lb`,
 `min`) converts to the storage unit. A unit on a unitless field is an error.
 A number typed at the precision the app displays (one decimal for depth,
-temperature, weight and percent, whole numbers for pressure) compares with
-the value as displayed: `depth = 27.1` matches every value shown as 27.1,
-`depth < 27.1` none of them. A number with more decimals compares exactly.
+temperature, weight and percent, whole numbers for pressure and visibility)
+compares with the value as displayed: `depth = 27.1` matches every value
+shown as 27.1, `depth < 27.1` none of them. A number with more decimals
+compares exactly.
 
 Dates: `2025` (a year), `2025-03` (a month), `2025-03-14`, and the phrases
 `last N days|weeks|months|years`, `this year`, `last year`, `since 2024`.

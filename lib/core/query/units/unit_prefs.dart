@@ -155,8 +155,9 @@ double groundToStorage(
 /// typed number compares with the value as the diver reads it (issue
 /// #4398). Depth, temperature and weight follow UnitFormatter's defaults,
 /// pressure its whole numbers, a pressure rate its sacDecimals. Volume and
-/// percent take a step finer than some screens show: a finer step only
-/// narrows the reading, it never matches a value shown as another number.
+/// percent take a step finer than some screens show (litres to the
+/// hundredth a cylinder under 3 L is shown at): a finer step only narrows
+/// the reading, it never matches a value shown as another number.
 /// Null for the dimensions the app shows whole or never rounds.
 int? _displayDecimals(FieldDimension dimension, QueryUnit? unit) =>
     switch (dimension) {
@@ -166,7 +167,7 @@ int? _displayDecimals(FieldDimension dimension, QueryUnit? unit) =>
       FieldDimension.percent => 1,
       FieldDimension.pressure => 0,
       FieldDimension.pressureRate => unit == QueryUnit.barMin ? 1 : 0,
-      FieldDimension.volume => unit == QueryUnit.l ? 1 : 2,
+      FieldDimension.volume => 2,
       FieldDimension.minutes ||
       FieldDimension.count ||
       FieldDimension.none => null,
@@ -175,17 +176,21 @@ int? _displayDecimals(FieldDimension dimension, QueryUnit? unit) =>
 /// The step, in storage units, that a number typed as [value] in [unit]
 /// (the diver's unit when null) is shown at, for [NumberValue.grain]. Null
 /// when the field is never rounded, or when [value] is finer than the
-/// display: a diver who types `27.15` means that value exactly.
+/// display: a diver who types `27.15` means that value exactly. [decimals]
+/// is the field's own precision (QueryField.displayDecimals), when it has
+/// one.
 double? displayGrain(
   num value,
   QueryUnit? unit,
   FieldDimension dimension,
-  UnitPrefs prefs,
-) {
+  UnitPrefs prefs, {
+  int? decimals,
+}) {
   final shownIn = unit ?? unitForDimension(dimension, prefs);
-  final decimals = _displayDecimals(dimension, shownIn);
-  if (decimals == null) return null;
-  final scale = math.pow(10, decimals).toDouble();
+  final dimensionDecimals = _displayDecimals(dimension, shownIn);
+  if (dimensionDecimals == null) return null;
+  final places = decimals ?? dimensionDecimals;
+  final scale = math.pow(10, places).toDouble();
   final steps = value * scale;
   if ((steps - steps.round()).abs() > 1e-6) return null;
   // The width of one step, so an offset unit (Fahrenheit) converts only the

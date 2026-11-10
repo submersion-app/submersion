@@ -46,6 +46,8 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
+  Future<void> set(String sql) => db.customStatement(sql);
+
   final dives = appQueryRegistry.entityFor(QuerySubject.dives);
   const imperial = UnitPrefs(
     depth: DepthUnit.feet,
@@ -170,5 +172,34 @@ void main() {
     test('a number finer than the display compares exactly', () async {
       expect(await explore('depth', 'lt', 27.15), {'d1', 'd2'});
     });
+  });
+
+  test('a negative value rounds its tie away from zero, as shown', () async {
+    // -1.25 C is shown as -1.3 C: toStringAsFixed rounds the tie away from
+    // zero, so it belongs to -1.3 and not to -1.2.
+    await set("UPDATE dives SET water_temp = -1.25 WHERE id = 'd4'");
+    expect(await ids('waterTemp = -1.3', prefs: kMetricPrefs), {'d4'});
+    expect(await ids('waterTemp = -1.2', prefs: kMetricPrefs), isEmpty);
+    expect(await ids('waterTemp < -1.2', prefs: kMetricPrefs), {'d4'});
+    expect(await ids('waterTemp > -1.3', prefs: kMetricPrefs), {
+      'd1',
+      'd3',
+      'd5',
+    });
+    expect(await ids('waterTemp >= -1.3', prefs: kMetricPrefs), {
+      'd1',
+      'd3',
+      'd4',
+      'd5',
+    });
+  });
+
+  test('visibility reads in the whole metres it is shown in', () async {
+    // 26.6 m is listed as 27 m.
+    await set("UPDATE dives SET visibility_meters = 26.6 WHERE id = 'd1'");
+    expect(await ids('visibility = 27', prefs: kMetricPrefs), {'d1'});
+    expect(await ids('visibility < 27', prefs: kMetricPrefs), isEmpty);
+    expect(await ids('visibility <= 27', prefs: kMetricPrefs), {'d1'});
+    expect(await ids('visibility > 26', prefs: kMetricPrefs), {'d1'});
   });
 }

@@ -211,6 +211,7 @@ class QueryValueEditor extends StatelessWidget {
               unit,
               field.dimension,
               context.prefs,
+              decimals: field.displayDecimals,
             ),
           ),
         );

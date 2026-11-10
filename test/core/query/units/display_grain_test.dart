@@ -96,4 +96,24 @@ void main() {
       closeTo(0.1, 1e-12),
     );
   });
+
+  test('litres read to the hundredth a small cylinder is shown at', () {
+    expect(
+      displayGrain(1.23, QueryUnit.l, FieldDimension.volume, imperial),
+      closeTo(0.01, 1e-12),
+    );
+  });
+
+  test('a field shown at its own precision overrides the dimension', () {
+    // Visibility is a depth shown in whole metres or feet.
+    expect(
+      displayGrain(27, null, FieldDimension.depth, kMetricPrefs, decimals: 0),
+      closeTo(1, 1e-12),
+    );
+    expect(
+      displayGrain(27.5, null, FieldDimension.depth, kMetricPrefs, decimals: 0),
+      isNull,
+      reason: 'finer than the display compares exactly',
+    );
+  });
 }

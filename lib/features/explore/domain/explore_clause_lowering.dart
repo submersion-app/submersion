@@ -228,7 +228,13 @@ LoweredClause _number(QueryClause c, ExploreField field, UnitPrefs units) {
   NumberValue at(num said) {
     final grain = integral || !shownAsSaid
         ? null
-        : displayGrain(said, saidUnit, field.dimension, units);
+        : displayGrain(
+            said,
+            saidUnit,
+            field.dimension,
+            units,
+            decimals: field.field?.displayDecimals,
+          );
     return grain == null
         ? NumberValue(ground(said), null)
         : NumberValue(

@@ -75,6 +75,21 @@ void main() {
     expectParams(i.params, [17.95, 18.05, 29.95, 30.05]);
   });
 
+  test('a negative value keeps its away-from-zero tie (#4398)', () {
+    const cold = NumberValue(-1.3, null, grain: 0.1);
+    CompiledQuery t(QueryOp op) => compileQuery(
+      ConditionNode(FieldPath(['waterTemp']), op, cold),
+      fixtureDives,
+      fixtureRegistry,
+    );
+    expect(t(QueryOp.eq).where, '((r0.water_temp > ? AND r0.water_temp <= ?))');
+    expect(t(QueryOp.gt).where, '(r0.water_temp > ?)');
+    expect(t(QueryOp.gte).where, '(r0.water_temp > ?)');
+    expect(t(QueryOp.lt).where, '(r0.water_temp <= ?)');
+    expect(t(QueryOp.lte).where, '(r0.water_temp <= ?)');
+    expectParams(t(QueryOp.eq).params, [-1.35, -1.25]);
+  });
+
   test('a number with no grain still compares exactly', () {
     final gt = c(QueryOp.gt, const NumberValue(30, null));
     expect(gt.where, '(r0.max_depth > ?)');

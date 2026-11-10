@@ -748,7 +748,13 @@ class QueryParser {
         return NumberValue(
           groundToStorage(raw, unit, field.dimension, context.prefs),
           unit,
-          grain: displayGrain(raw, unit, field.dimension, context.prefs),
+          grain: displayGrain(
+            raw,
+            unit,
+            field.dimension,
+            context.prefs,
+            decimals: field.displayDecimals,
+          ),
         );
       case FieldType.text:
       case FieldType.id:
