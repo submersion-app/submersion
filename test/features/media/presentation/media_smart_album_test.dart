@@ -217,6 +217,7 @@ void main() {
           const MediaLibraryFilter(
             siteId: 'site-1',
             mediaType: MediaType.video,
+            attachedTo: {MediaAttachmentKind.site},
           ),
         ),
         album('a2', 'Everything else', MediaLibraryFilter.none),
@@ -238,6 +239,7 @@ void main() {
       final filter = container.read(mediaLibraryFilterProvider);
       expect(filter.siteId, 'site-1');
       expect(filter.mediaType, MediaType.video);
+      expect(filter.attachedTo, {MediaAttachmentKind.site});
     });
 
     testWidgets('an album brings its own source, or none (#4149)', (

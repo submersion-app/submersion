@@ -9,6 +9,7 @@ import 'package:submersion/features/gas_calculators/domain/best_mix.dart';
 import 'package:submersion/features/gas_calculators/domain/best_mix_calculator_preferences.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart'
     show modFlushPpO2Max, modFlushPpO2Min, tecTargetMaxMeters;
+import 'package:submersion/features/gas_calculators/presentation/info/calculator_info.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/best_mix_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_end_limit_slider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix/best_mix_formatting.dart';
@@ -18,6 +19,8 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/profile
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Mode, CCR gas source, target depth and, in Rec, the ppO2 chips.
 class BestMixInputCard extends ConsumerWidget {
@@ -52,11 +55,29 @@ class BestMixInputCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.gasCalculators_bestMix_targetDive,
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+            InfoTitleRow(
+              title: Text(
+                l10n.gasCalculators_bestMix_targetDive,
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
+              label: context.l10n.gasCalculators_tab_bestMix,
+              info: (context) =>
+                  // Read at tap: the sheet follows the mode and the
+                  // recommendation on screen then.
+                  bestMixInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    isCcr:
+                        ref.read(bestMixCalculatorNotifierProvider).mode ==
+                        BestMixMode.ccrTec,
+                    hasHelium: ref
+                        .read(bestMixCalculatorResultProvider)
+                        .recommended
+                        .mix
+                        .isTrimix,
+                  ),
             ),
             const SizedBox(height: 16),
             BestMixLabelled(

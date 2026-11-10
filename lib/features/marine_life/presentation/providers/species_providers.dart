@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
@@ -96,6 +97,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
     required String speciesId,
     required String speciesName,
     SpeciesCategory? speciesCategory,
+    SightingAbundance abundance = SightingAbundance.seen,
     int count = 1,
     String notes = '',
   }) async {
@@ -108,6 +110,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
         speciesId: speciesId,
         speciesName: speciesName,
         speciesCategory: speciesCategory,
+        abundance: abundance,
         count: count,
         notes: notes,
       );
@@ -117,6 +120,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
       final sighting = await _repository.addSighting(
         diveId: _diveId,
         speciesId: speciesId,
+        abundance: abundance,
         count: count,
         notes: notes,
       );
@@ -148,6 +152,7 @@ class SightingsNotifier extends StateNotifier<List<Sighting>> {
       await _repository.addSighting(
         diveId: diveId,
         speciesId: sighting.speciesId,
+        abundance: sighting.abundance,
         count: sighting.count,
         notes: sighting.notes,
       );
@@ -290,6 +295,40 @@ final siteExpectedSpeciesProvider =
       ref.invalidateSelfWhen(repository.watchSiteSpeciesChanges());
       ref.invalidateSelfWhen(repository.watchSpeciesChanges());
       return repository.getExpectedSpeciesForSite(siteId);
+    });
+
+/// What the dive editor suggests for a site (issue #4383): the species other
+/// dives there logged, with [excludeDiveId]'s own sightings left out, and the
+/// site's expected list. Merged and ordered by `buildSiteSpeciesSuggestions`,
+/// which needs the diver's language for alphabetical order.
+///
+/// Every logged dive counts, including one kept out of the statistics: it
+/// still saw what it logged.
+final siteSpeciesSuggestionSourcesProvider = FutureProvider.autoDispose
+    .family<
+      ({List<SiteSpeciesSummary> spotted, List<SiteSpeciesEntry> expected}),
+      ({String siteId, String? excludeDiveId})
+    >((ref, key) async {
+      final repository = ref.watch(speciesRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchSpeciesChanges());
+      // Sightings are dive detail: a merge or a sync that applies remote
+      // sightings writes them without touching the species table.
+      ref.invalidateSelfWhen(
+        ref.read(diveRepositoryProvider).watchDiveDetailChanges(),
+      );
+      // The expected list keeps its own refresh rules (#1156); reuse them.
+      final expectedFuture = ref.watch(
+        siteExpectedSpeciesProvider(key.siteId).future,
+      );
+      final (spotted, expected) = await (
+        repository.getSpeciesSpottedAtSite(
+          key.siteId,
+          excludeDiveId: key.excludeDiveId,
+          statsScope: false,
+        ),
+        expectedFuture,
+      ).wait;
+      return (spotted: spotted, expected: expected);
     });
 
 /// Notifier for managing expected species at a site

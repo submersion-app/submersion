@@ -35,7 +35,6 @@ class SeenSpeciesTile extends ConsumerWidget {
     final scientific = species.scientificName;
     final hasScientific = scientific != null && scientific.isNotEmpty;
     final counts = [
-      l10n.marineLife_speciesPage_sightingsCount(entry.totalSightings),
       l10n.marineLife_speciesPage_divesCount(entry.diveCount),
       l10n.marineLife_speciesPage_lastSeen(units.formatDate(entry.lastSeen)),
     ].join(' · ');

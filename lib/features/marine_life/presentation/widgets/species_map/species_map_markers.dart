@@ -1,0 +1,196 @@
+import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+
+import 'package:submersion/features/marine_life/domain/entities/species_map_pins.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Pin size on the places view: 32 at one species, growing by 8 for each
+/// doubling, capped at 52 so a rich site never swallows its neighbours.
+double siteSpeciesMarkerSize(int speciesCount) {
+  final count = math.max(1, speciesCount);
+  return (32 + 8 * math.log(count) / math.ln2).clamp(32, 52).toDouble();
+}
+
+/// A site on the places view, labelled with the species logged there.
+class SiteSpeciesMarker extends StatelessWidget {
+  final int speciesCount;
+  final bool selected;
+
+  const SiteSpeciesMarker({
+    super.key,
+    required this.speciesCount,
+    required this.selected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return _FilledCircle(
+      size: siteSpeciesMarkerSize(speciesCount),
+      fill: scheme.primary,
+      foreground: scheme.onPrimary,
+      selected: selected,
+      label: '$speciesCount',
+    );
+  }
+}
+
+/// A site where the diver logged the picked species, labelled with the
+/// summed sighting count there.
+class LoggedSpeciesMarker extends StatelessWidget {
+  final int sightingCount;
+  final bool selected;
+
+  const LoggedSpeciesMarker({
+    super.key,
+    required this.sightingCount,
+    required this.selected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return _FilledCircle(
+      size: 34,
+      fill: scheme.primary,
+      foreground: scheme.onPrimary,
+      selected: selected,
+      label: '$sightingCount',
+    );
+  }
+}
+
+/// A site whose expected list names the picked species, not yet logged
+/// there: hollow, so it never reads as a sighting.
+class ExpectedSpeciesMarker extends StatelessWidget {
+  final bool selected;
+
+  const ExpectedSpeciesMarker({super.key, required this.selected});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final size = selected ? 26.0 : 22.0;
+    return Center(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          shape: BoxShape.circle,
+          border: Border.all(color: scheme.primary, width: 2),
+          boxShadow: _shadow,
+        ),
+      ),
+    );
+  }
+}
+
+const _shadow = [
+  BoxShadow(color: Color(0x55000000), blurRadius: 3, offset: Offset(0, 1)),
+];
+
+class _FilledCircle extends StatelessWidget {
+  final double size;
+  final Color fill;
+  final Color foreground;
+  final bool selected;
+  final String label;
+
+  const _FilledCircle({
+    required this.size,
+    required this.fill,
+    required this.foreground,
+    required this.selected,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final diameter = selected ? size + 6 : size;
+    return Center(
+      child: Container(
+        width: diameter,
+        height: diameter,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: fill,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? scheme.onSurface : scheme.surface,
+            width: selected ? 3 : 2,
+          ),
+          boxShadow: _shadow,
+        ),
+        child: FittedBox(
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: foreground,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The key a species-mode marker carries, so a cluster can tell logged pins
+/// from expected ones.
+ValueKey<String> speciesPinMarkerKey(SpeciesPinKind kind, String siteId) =>
+    ValueKey('${kind.name}:$siteId');
+
+bool _isExpectedPin(Marker marker) {
+  final key = marker.key;
+  return key is ValueKey<String> &&
+      key.value.startsWith('${SpeciesPinKind.expected.name}:');
+}
+
+/// A cluster of pins, labelled with how many it holds. Hollow when every
+/// pin in it is an expected one, so a group of "expected here" marks never
+/// reads as sightings; filled otherwise.
+class SpeciesMapClusterMarker extends StatelessWidget {
+  final List<Marker> markers;
+
+  const SpeciesMapClusterMarker({super.key, required this.markers});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final expectedOnly = markers.every(_isExpectedPin);
+    // Named for a screen reader, which would otherwise hear a bare number;
+    // the cluster layer's own detector supplies the tap.
+    return Semantics(
+      button: true,
+      label: context.l10n.speciesMap_semantics_cluster(markers.length),
+      excludeSemantics: true,
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: expectedOnly ? scheme.surface : scheme.secondaryContainer,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: expectedOnly ? scheme.primary : scheme.secondary,
+            width: 2,
+          ),
+          boxShadow: _shadow,
+        ),
+        child: Text(
+          '${markers.length}',
+          style: TextStyle(
+            color: expectedOnly ? scheme.primary : scheme.onSecondaryContainer,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+}

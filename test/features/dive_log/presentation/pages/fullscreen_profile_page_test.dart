@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/util/wall_clock_utc.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_health_record.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_health_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
@@ -112,6 +115,35 @@ void main() {
     expect(find.byType(DiveProfileChart), findsOneWidget);
     expect(find.byType(ProfileTransportBar), findsOneWidget);
     expect(find.byIcon(Icons.close), findsOneWidget);
+  });
+
+  testWidgets('the chart draws heart rate from Apple Health, as the detail '
+      'page does (issue #637)', (tester) async {
+    final entry =
+        fromWallClockUtc(_dive().dateTime).millisecondsSinceEpoch ~/ 1000;
+    await tester.pumpWidget(
+      _wrap([
+        ..._defaultOverrides(),
+        diveHealthRecordProvider('d1').overrideWith(
+          (ref) async => DiveHealthRecord(
+            id: 'h1',
+            diveId: 'd1',
+            heartRateSamples: [
+              [entry, 80],
+              [entry + 300, 90],
+            ],
+            fetchedAt: DateTime.utc(2026),
+          ),
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    final chart = tester.widget<DiveProfileChart>(
+      find.byType(DiveProfileChart),
+    );
+    expect(chart.profile.first.heartRate, 80);
+    expect(chart.profile.first.heartRateSource, 'appleWatch');
   });
 
   testWidgets('a planned dive is titled as one, not Dive #0', (tester) async {

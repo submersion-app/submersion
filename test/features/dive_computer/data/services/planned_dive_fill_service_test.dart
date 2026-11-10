@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -124,7 +125,7 @@ void main() {
       final planned = await plannedDive();
 
       final outcome = await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -156,7 +157,7 @@ void main() {
       final planned = await plannedDive();
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(surfacePressure: 0.961),
         computerId: computerId,
       );
@@ -171,7 +172,7 @@ void main() {
       final planned = await plannedDive();
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -189,7 +190,7 @@ void main() {
       final planned = await plannedDive(dateTime: plannedAt);
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(startTime: DateTime.utc(2026, 6, 1, 9, 3)),
         computerId: computerId,
       );
@@ -206,7 +207,7 @@ void main() {
       final nextDay = DateTime.utc(2026, 6, 2, 0, 30);
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(startTime: nextDay),
         computerId: computerId,
       );
@@ -222,7 +223,7 @@ void main() {
       final planned = await plannedDive(dateTime: plannedAt);
 
       final outcome = await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(startTime: DateTime.utc(2026, 6, 2, 0, 30)),
         computerId: computerId,
       );
@@ -244,7 +245,7 @@ void main() {
     final planned = await plannedDive();
 
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(computerTissue: tissue),
       computerId: computerId,
     );
@@ -271,7 +272,7 @@ void main() {
       );
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -299,7 +300,7 @@ void main() {
       );
 
       await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(reportsDecoSettings: false),
         computerId: computerId,
       );
@@ -315,7 +316,7 @@ void main() {
   test('the sketched profile is replaced, not merged', () async {
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -349,7 +350,7 @@ void main() {
         final planned = await withSwitch();
 
         await service.fill(
-          plannedDiveId: planned.id,
+          targetDiveId: planned.id,
           dive: download(),
           computerId: computerId,
         );
@@ -362,7 +363,7 @@ void main() {
     test('comes back when the download is undone', () async {
       final planned = await withSwitch();
       final outcome = await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -377,7 +378,7 @@ void main() {
   test('planned tanks are matched by gas mix and receive pressures', () async {
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -391,7 +392,7 @@ void main() {
   test('an unmatched downloaded tank is added', () async {
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(
         tanks: const [
           DownloadedTank(index: 0, o2Percent: 32, startPressure: 200),
@@ -409,7 +410,7 @@ void main() {
       'from (#2595)', () async {
     final planned = await plannedDive();
     final outcome = await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(
         tanks: const [
           DownloadedTank(index: 0, o2Percent: 32, startPressure: 200),
@@ -438,7 +439,7 @@ void main() {
   test('a data source with the fingerprint exists after the fill', () async {
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -459,7 +460,7 @@ void main() {
     );
     final planned = await plannedDive();
     await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -471,7 +472,7 @@ void main() {
     final planned = await plannedDive();
     final before = await dives.getDiveById(planned.id);
     final outcome = await service.fill(
-      plannedDiveId: planned.id,
+      targetDiveId: planned.id,
       dive: download(),
       computerId: computerId,
     );
@@ -496,7 +497,7 @@ void main() {
     );
     await expectLater(
       service.fill(
-        plannedDiveId: logged.id,
+        targetDiveId: logged.id,
         dive: download(),
         computerId: computerId,
       ),
@@ -538,7 +539,7 @@ void main() {
       };
 
       final outcome = await service.fill(
-        plannedDiveId: planned.id,
+        targetDiveId: planned.id,
         dive: download(),
         computerId: computerId,
       );
@@ -548,4 +549,66 @@ void main() {
       expect(await junction(), {'c1', 'c2'});
     },
   );
+
+  group('a draft (#637)', () {
+    Future<Dive> draftDive() => dives.createDive(
+      Dive(
+        id: '',
+        diverId: eric,
+        dateTime: DateTime(2026, 6, 1, 9),
+        entryTime: DateTime(2026, 6, 1, 9),
+        exitTime: DateTime(2026, 6, 1, 9, 50),
+        entryLocation: const GeoPoint(27.9, 34.3),
+        exitLocation: const GeoPoint(27.91, 34.31),
+        notes: 'turtle at the wall',
+        isDraft: true,
+      ),
+    );
+
+    test('fill keeps what the diver typed and the tap positions, takes the '
+        'readings, and numbers it', () async {
+      await dives.createDive(
+        Dive(
+          id: '',
+          diverId: eric,
+          dateTime: DateTime(2026, 5, 1),
+          diveNumber: 41,
+        ),
+      );
+      final draft = await draftDive();
+
+      await service.fill(
+        targetDiveId: draft.id,
+        dive: download(),
+        computerId: computerId,
+      );
+
+      final filled = (await dives.getDiveById(draft.id))!;
+      expect(filled.isDraft, isFalse);
+      expect(filled.isPlanned, isFalse);
+      expect(filled.diveNumber, 42);
+      expect(filled.notes, 'turtle at the wall');
+      expect(filled.entryLocation, const GeoPoint(27.9, 34.3));
+      expect(filled.exitLocation, const GeoPoint(27.91, 34.31));
+      expect(filled.maxDepth, 18.4);
+      expect(filled.runtime, const Duration(seconds: 2700));
+      expect(filled.computerId, computerId);
+    });
+
+    test('undo puts the draft back', () async {
+      final draft = await draftDive();
+      final outcome = await service.fill(
+        targetDiveId: draft.id,
+        dive: download(),
+        computerId: computerId,
+      );
+
+      await service.undo(outcome);
+
+      final restored = (await dives.getDiveById(draft.id))!;
+      expect(restored.isDraft, isTrue);
+      expect(restored.diveNumber, isNull);
+      expect(restored.maxDepth, isNull);
+    });
+  });
 }

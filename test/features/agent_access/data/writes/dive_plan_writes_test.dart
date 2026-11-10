@@ -5,8 +5,11 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/planner/data/repositories/dive_plan_series_repository.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../records/record_harness.dart';
 import 'child_write_harness.dart';
 
 /// Saved dive plans and repetitive series, as the planner saves them.
@@ -148,4 +151,43 @@ void main() {
 
     expect(plan.items.single.block!.reason, BlockReason.invalidValue);
   });
+
+  test(
+    "a plan's summary is worked out with its owner's planner settings",
+    () async {
+      Future<int?> ttsOf(String id) async => (await (db.select(
+        db.divePlans,
+      )..where((p) => p.id.equals(id))).getSingle()).summaryTtsSeconds;
+      Future<String> deep() => make('dive_plans', {
+        'name': 'Deep',
+        'tanks': [
+          {'volume_l': 15, 'start_pressure_bar': 230, 'o2_fraction': 0.21},
+        ],
+        'segments': [
+          {'target_depth_m': 40, 'duration_s': 1500, 'tank': 0},
+        ],
+      });
+
+      final atDefaultsId = await deep();
+      final atDefaults = await ttsOf(atDefaultsId);
+      await DiverSettingsRepository().createSettingsForDiver(
+        kDiverA,
+        settings: const AppSettings(gfLow: 20, gfHigh: 50),
+      );
+      final strict = await deep();
+
+      expect(await ttsOf(strict), greaterThan(atDefaults!));
+
+      // An update works it out again for the plan's owner too.
+      await h.run([
+        updateOp('dive_plans', strict, {'name': 'Deeper'}),
+      ]);
+      expect(await ttsOf(strict), greaterThan(atDefaults));
+
+      // A bare copy works it out again too, rather than keeping the
+      // summary its source was saved with.
+      final copy = await make('dive_plans', {'duplicate_of': atDefaultsId});
+      expect(await ttsOf(copy), await ttsOf(strict));
+    },
+  );
 }

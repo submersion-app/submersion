@@ -11,6 +11,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/services/shared_library/library_edit_stamper.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
     as domain;
@@ -195,10 +196,12 @@ class SpeciesRepository {
   Future<domain.Sighting> addSighting({
     required String diveId,
     required String speciesId,
+    SightingAbundance abundance = SightingAbundance.seen,
     int count = 1,
     String notes = '',
   }) async {
     final id = _uuid.v4();
+    final stored = _storedCount(abundance, count);
     await _db
         .into(_db.sightings)
         .insert(
@@ -206,7 +209,8 @@ class SpeciesRepository {
             id: Value(id),
             diveId: Value(diveId),
             speciesId: Value(speciesId),
-            count: Value(count),
+            abundance: Value(abundance.storageValue),
+            count: Value(stored),
             notes: Value(notes),
           ),
         );
@@ -233,10 +237,26 @@ class SpeciesRepository {
       speciesId: speciesId,
       speciesName: species?.commonName ?? 'Unknown',
       speciesCategory: species?.category,
-      count: count,
+      abundance: abundance,
+      count: stored,
       notes: notes,
     );
   }
+
+  /// The count a sighting stores: the number itself for an exact count, and
+  /// 1 for Seen and the REEF groups, so a reader that only knows the count
+  /// shows no made-up number.
+  static int _storedCount(SightingAbundance abundance, int count) =>
+      abundance == SightingAbundance.exact ? (count < 1 ? 1 : count) : 1;
+
+  /// [companion] with [sighting]'s abundance and stored count.
+  static SightingsCompanion _withAmount(
+    SightingsCompanion companion,
+    domain.Sighting sighting,
+  ) => companion.copyWith(
+    abundance: Value(sighting.abundance.storageValue),
+    count: Value(_storedCount(sighting.abundance, sighting.count)),
+  );
 
   /// Get sightings for a dive
   Future<List<domain.Sighting>> getSightingsForDive(String diveId) async {
@@ -266,6 +286,9 @@ class SpeciesRepository {
         speciesCategory: SpeciesCategory.values.firstWhere(
           (c) => c.name == row.data['category'],
           orElse: () => SpeciesCategory.other,
+        ),
+        abundance: SightingAbundance.fromStorage(
+          row.data['abundance'] as String?,
         ),
         count: row.data['count'] as int,
         notes: (row.data['notes'] as String?) ?? '',
@@ -319,6 +342,9 @@ class SpeciesRepository {
             (c) => c.name == row.data['category'],
             orElse: () => SpeciesCategory.other,
           ),
+          abundance: SightingAbundance.fromStorage(
+            row.data['abundance'] as String?,
+          ),
           count: row.data['count'] as int,
           notes: (row.data['notes'] as String?) ?? '',
         );
@@ -333,10 +359,7 @@ class SpeciesRepository {
     await (_db.update(
       _db.sightings,
     )..where((t) => t.id.equals(sighting.id))).write(
-      SightingsCompanion(
-        count: Value(sighting.count),
-        notes: Value(sighting.notes),
-      ),
+      _withAmount(SightingsCompanion(notes: Value(sighting.notes)), sighting),
     );
     final now = DateTime.now().millisecondsSinceEpoch;
     await _syncRepository.markRecordPending(
@@ -428,12 +451,14 @@ class SpeciesRepository {
         await _db
             .into(_db.sightings)
             .insert(
-              SightingsCompanion(
-                id: Value(id),
-                diveId: Value(diveId),
-                speciesId: Value(sighting.speciesId),
-                count: Value(sighting.count),
-                notes: Value(sighting.notes),
+              _withAmount(
+                SightingsCompanion(
+                  id: Value(id),
+                  diveId: Value(diveId),
+                  speciesId: Value(sighting.speciesId),
+                  notes: Value(sighting.notes),
+                ),
+                sighting,
               ),
             );
         await _syncRepository.markRecordPending(
@@ -471,12 +496,14 @@ class SpeciesRepository {
         await _db
             .into(_db.sightings)
             .insert(
-              SightingsCompanion(
-                id: Value(id),
-                diveId: Value(diveId),
-                speciesId: Value(sighting.speciesId),
-                count: Value(sighting.count),
-                notes: Value(sighting.notes),
+              _withAmount(
+                SightingsCompanion(
+                  id: Value(id),
+                  diveId: Value(diveId),
+                  speciesId: Value(sighting.speciesId),
+                  notes: Value(sighting.notes),
+                ),
+                sighting,
               ),
             );
         await _syncRepository.markRecordPending(
@@ -769,9 +796,23 @@ class SpeciesRepository {
   // ===========================================================================
 
   /// Get species spotted at a site (derived from actual dive sightings)
+  ///
+  /// [excludeDiveId] leaves one dive's sightings out of the counts: the dive
+  /// editor suggests what *other* dives at the site saw (issue #4383), and a
+  /// saved dive's own sightings would otherwise count toward its suggestions.
+  ///
+  /// [statsScope] limits the counts to dives in the statistics, as the site
+  /// page's "Spotted here" does. The editor's suggestions pass false: a dive
+  /// kept out of the statistics still saw what it logged. Planned dives never
+  /// count either way, because nothing was seen on a dive not yet made.
   Future<List<domain.SiteSpeciesSummary>> getSpeciesSpottedAtSite(
-    String siteId,
-  ) async {
+    String siteId, {
+    String? excludeDiveId,
+    bool statsScope = true,
+  }) async {
+    final scope = statsScope
+        ? DiveStatsScope.and(alias: 'd')
+        : ' AND d.is_planned = 0';
     final results = await _db
         .customSelect(
           '''
@@ -780,15 +821,25 @@ class SpeciesRepository {
         sp.common_name,
         sp.category,
         COUNT(*) as sighting_count,
+        COALESCE(SUM(CASE s.abundance
+          WHEN 'few' THEN 2
+          WHEN 'many' THEN 11
+          WHEN 'abundant' THEN 101
+          ELSE s.count
+        END), 0) as animal_count,
         COUNT(DISTINCT d.id) as dive_count
       FROM sightings s
       JOIN species sp ON s.species_id = sp.id
       JOIN dives d ON s.dive_id = d.id
-      WHERE d.site_id = ?${DiveStatsScope.and(alias: 'd')}
+      WHERE d.site_id = ?$scope
+        ${excludeDiveId == null ? '' : 'AND d.id <> ?'}
       GROUP BY sp.id
       ORDER BY sighting_count DESC, sp.common_name ASC
     ''',
-          variables: [Variable.withString(siteId)],
+          variables: [
+            Variable.withString(siteId),
+            if (excludeDiveId != null) Variable.withString(excludeDiveId),
+          ],
         )
         .get();
 
@@ -801,6 +852,7 @@ class SpeciesRepository {
           orElse: () => SpeciesCategory.other,
         ),
         sightingCount: row.data['sighting_count'] as int,
+        animalCount: row.data['animal_count'] as int,
         diveCount: row.data['dive_count'] as int,
       );
     }).toList();

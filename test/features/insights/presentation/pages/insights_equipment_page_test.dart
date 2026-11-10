@@ -11,6 +11,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_fil
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -219,5 +220,9 @@ void main() {
     );
     expect(scope.read(exposureRankingUnitProvider), ExposureUnit.dives);
     expect(find.text('12 dives'), findsOneWidget);
+  });
+  testWidgets('the weight trend carries an info icon', (tester) async {
+    await pumpPage(tester);
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

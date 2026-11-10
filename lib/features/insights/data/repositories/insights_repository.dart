@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/sql/dive_weight_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -273,6 +274,9 @@ class InsightsRepository with InsightsChartDives {
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.diveProfileSeries),
+          // Whole-dive SAC and RMV read the stored gas-use window (#2930),
+          // which the derived metrics sweep writes after the dive itself.
+          TableUpdateQuery.onTable(_db.diveDerivedMetricsRows),
           // The deco card classifies a dive from its stop events, which a
           // sync pull can write without touching the dive.
           TableUpdateQuery.onTable(_db.diveProfileEvents),
@@ -397,8 +401,8 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           d.id AS dive_id,
           d.dive_date_time,
-          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          ${measuredRuntimeSecondsSql('d')} AS duration_sec,
+          ${diveAmbientBarSql('d', gasUseAvgDepthSql('d', lane: GasUseLane.volume))} AS ambient_bar,
+          ${gasUseSecondsSql('d', lane: GasUseLane.volume)} AS duration_sec,
           t.start_pressure,
           t.end_pressure,
           ${consumptionVolumeSql('t')} AS volume,
@@ -608,8 +612,8 @@ class InsightsRepository with InsightsChartDives {
           d.id AS dive_id,
           d.dive_number,
           d.dive_date_time,
-          ${diveAmbientBarSql('d', 'd.avg_depth')} AS ambient_bar,
-          ${measuredRuntimeSecondsSql('d')} AS duration_sec,
+          ${diveAmbientBarSql('d', gasUseAvgDepthSql('d', lane: GasUseLane.volume))} AS ambient_bar,
+          ${gasUseSecondsSql('d', lane: GasUseLane.volume)} AS duration_sec,
           ds.name AS site_name,
           t.start_pressure,
           t.end_pressure,
@@ -1725,17 +1729,17 @@ class InsightsRepository with InsightsChartDives {
   /// A buddy excluded from the rankings is left out here rather than dropped
   /// by the caller, so the [limit] is filled by buddies who rank (issue
   /// #3624).
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getTopBuddies({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1748,7 +1752,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE b.excluded_from_rankings = 0 $diverFilter ${df.clause}
         GROUP BY b.id
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -1839,17 +1843,17 @@ class InsightsRepository with InsightsChartDives {
   }
 
   /// Get top dive centers by dive count
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getTopDiveCenters({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         WITH dc_clean AS (
@@ -1884,7 +1888,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY dc.id
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -1919,17 +1923,17 @@ class InsightsRepository with InsightsChartDives {
   /// Like every Insights card, the count leaves out planned dives and dives
   /// excluded from statistics (DiveStatsScope), and so does the dive list a
   /// row opens.
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getCountriesVisited({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1940,7 +1944,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE TRIM(ds.country, $dartWhitespaceSqlChars) != '' $diverFilter ${df.clause}
         GROUP BY unicode_lower(TRIM(ds.country, $dartWhitespaceSqlChars))
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -1964,17 +1968,17 @@ class InsightsRepository with InsightsChartDives {
   /// Get regions explored with dive counts, one row per region and
   /// country. Grouped like [getCountriesVisited]; a blank country reads as
   /// none, the same way `site.country :none` does.
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getRegionsExplored({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -1987,7 +1991,7 @@ class InsightsRepository with InsightsChartDives {
         GROUP BY unicode_lower(TRIM(ds.region, $dartWhitespaceSqlChars)),
           unicode_lower(NULLIF(TRIM(ds.country, $dartWhitespaceSqlChars), ''))
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2013,9 +2017,11 @@ class InsightsRepository with InsightsChartDives {
   /// the side trips are left out of the ranking so no dive counts twice
   /// (issue #3658). With [diverId], only trips the profile can see rank, and
   /// a side trip of a parent it cannot see ranks as itself (issue #3933).
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getDivesPerTrip({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
@@ -2025,9 +2031,7 @@ class InsightsRepository with InsightsChartDives {
       );
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db
           .customSelect(
@@ -2042,7 +2046,7 @@ class InsightsRepository with InsightsChartDives {
         ${topLevel.whereClause} $diverFilter ${df.clause}
         GROUP BY t.id
         ORDER BY dive_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''',
             variables: [
               ...topLevel.variables,
@@ -2101,32 +2105,34 @@ class InsightsRepository with InsightsChartDives {
     }
   }
 
-  /// Get most common sightings
+  /// Get most common sightings, ranked by the number of dives a species was
+  /// seen on. Not by a sum of counts: a sighting may be Seen or a REEF group
+  /// rather than an exact number (issue #4337).
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getMostCommonSightings({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
           sp.id,
           sp.common_name,
           sp.category,
-          SUM(s.count) AS total_count
+          COUNT(DISTINCT s.dive_id) AS total_count
         FROM sightings s
         JOIN species sp ON sp.id = s.species_id
         JOIN dives d ON d.id = s.dive_id
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY sp.id
         ORDER BY total_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2134,7 +2140,7 @@ class InsightsRepository with InsightsChartDives {
           id: row.read<String>('id'),
           name: row.read<String>('common_name'),
           count: row.read<int>('total_count'),
-          subtitle: row.read<String?>('category'),
+          kind: row.read<String?>('category'),
         );
       }).toList();
     } catch (e, stackTrace) {
@@ -2148,17 +2154,17 @@ class InsightsRepository with InsightsChartDives {
   }
 
   /// Get best sites for marine life (most species variety)
+  ///
+  /// A null [limit] returns every row.
   Future<List<RankingItem>> getBestSitesForMarineLife({
     String? diverId,
-    int limit = 10,
+    int? limit = 10,
     DiveFilterState filter = const DiveFilterState(),
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null
-          ? [diverId, ...df.params, limit]
-          : [...df.params, limit];
+      final params = [?diverId, ...df.params, ?limit];
 
       final results = await _db.customSelect('''
         SELECT
@@ -2171,7 +2177,7 @@ class InsightsRepository with InsightsChartDives {
         WHERE 1=1 $diverFilter ${df.clause}
         GROUP BY ds.id
         ORDER BY species_count DESC
-        LIMIT ?
+        ${limit == null ? '' : 'LIMIT ?'}
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       return results.map((row) {
@@ -2191,7 +2197,8 @@ class InsightsRepository with InsightsChartDives {
     }
   }
 
-  /// Get detailed statistics for a single species
+  /// Get detailed statistics for a single species. Sighting totals count
+  /// sightings and dives, never animals (issue #4337).
   Future<SpeciesInsights> getSpeciesInsights({
     required String speciesId,
     String? diverId,
@@ -2207,7 +2214,7 @@ class InsightsRepository with InsightsChartDives {
       // Aggregate stats: total sightings, dive count, depth range, date range
       final statsResult = await _db.customSelect('''
         SELECT
-          COALESCE(SUM(s.count), 0) AS total_sightings,
+          COUNT(DISTINCT s.dive_id) AS total_sightings,
           COUNT(DISTINCT s.dive_id) AS dive_count,
           MIN(d.max_depth) AS min_depth,
           MAX(d.max_depth) AS max_depth,
@@ -2230,7 +2237,7 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           ds.id,
           ds.name,
-          SUM(s.count) AS sighting_count
+          COUNT(DISTINCT s.dive_id) AS sighting_count
         FROM sightings s
         JOIN dives d ON d.id = s.dive_id
         JOIN dive_sites ds ON ds.id = d.site_id
@@ -2930,7 +2937,7 @@ class InsightsRepository with InsightsChartDives {
         .customSelect(
           'SELECT COUNT(*) AS logged, '
           'COUNT(*) FILTER (WHERE ${DiveStatsScope.predicate()}) AS counted '
-          'FROM dives d WHERE d.is_planned = 0 $diverFilter',
+          'FROM dives d WHERE NOT ${diveUnfilledSql('d')} $diverFilter',
           variables: diverId != null
               ? [Variable<String>(diverId)]
               : const <Variable<Object>>[],

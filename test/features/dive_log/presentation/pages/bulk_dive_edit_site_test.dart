@@ -11,10 +11,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/bulk_collection_mode_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/bulk_field_gate.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as site_domain;
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -169,6 +171,52 @@ void main() {
       expect(dive.site?.id, 's1');
       expect(dive.waterType, WaterType.salt);
     }
+  });
+
+  // Issue #4383: the single-dive editor suggests species other dives at the
+  // site logged. Bulk edit spans dives that may sit at different sites, so a
+  // site picked for all of them must not bring suggestions with it.
+  testWidgets('a picked site offers no species suggestions', (tester) async {
+    await repository.createDive(
+      domain.Dive(id: 'd1', dateTime: DateTime(2026, 1, 1), notes: ''),
+    );
+    await repository.createDive(
+      domain.Dive(
+        id: 'earlier',
+        dateTime: DateTime(2025, 1, 1),
+        notes: '',
+        site: _reef,
+      ),
+    );
+    final species = SpeciesRepository();
+    final shark = await species.createSpecies(
+      commonName: 'Test Shark',
+      category: SpeciesCategory.shark,
+    );
+    await species.addSighting(diveId: 'earlier', speciesId: shark.id);
+    await pumpBulk(tester);
+
+    await enableSiteGate(tester);
+    await tester.tap(find.text('Site'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('House Reef'));
+    await tester.pumpAndSettle();
+
+    // Turn on every owned collection so the species editor is on screen.
+    final selectors = find.byType(BulkCollectionModeSelector);
+    for (var i = 0; i < tester.widgetList(selectors).length; i++) {
+      final addChip = find.descendant(
+        of: selectors.at(i),
+        matching: find.widgetWithText(ChoiceChip, 'Add'),
+      );
+      await tester.ensureVisible(addChip);
+      await tester.tap(addChip);
+      await tester.pumpAndSettle();
+    }
+
+    expect(find.text('No species logged'), findsOneWidget);
+    expect(find.textContaining('Suggested for'), findsNothing);
+    expect(find.textContaining('Test Shark'), findsNothing);
   });
 
   testWidgets('picking a site leaves the Water Type row as it was', (

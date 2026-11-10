@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
@@ -181,6 +182,7 @@ class DiveMergeService {
               id: row.id,
               speciesId: row.speciesId,
               speciesName: '',
+              abundance: SightingAbundance.fromStorage(row.abundance),
               count: row.count,
               notes: row.notes,
             ),
@@ -270,10 +272,11 @@ class DiveMergeService {
       //
       // Carried as provenance; NEVER primary (a merged profile is
       // user-authored -- reparse must not rewrite it).
-      //     CAVEAT (#1164): isPrimary false only stops reparse from
-      //     rewriting the dives row and tanks. ReparseService step 4 calls
-      //     _replaceDiveProfiles unconditionally, so re-parsing a merged
-      //     dive today still wipes the merged profile. Tracked separately.
+      //     isPrimary false only stops reparse from rewriting the dives row
+      //     and tanks. The profile is kept by sourceOwnsProfileStrand: a
+      //     dive with no primary row (#1164), or a row carrying the
+      //     mergeSourceSlot stamped below (#4367), does not own its strand,
+      //     since these samples are re-based with no offset recorded.
       // DiveRepository.saveComputerReading does not call
       // markRecordPending for diveDataSources rows either -- it relies on
       // the parent dive's pending record (step 1) to carry the change, so
@@ -414,6 +417,7 @@ class DiveMergeService {
             sourceId: s.sourceId,
             isPrimary: s.isPrimary,
             activatedAt: Value(s.activatedAt),
+            isEdit: s.isEdit,
             samples: [
               for (final p in s.samples)
                 p.shiftedBy(result.segmentOffsetsSeconds[s.diveId] ?? 0),
@@ -460,6 +464,9 @@ class DiveMergeService {
               computerId: null,
               sourceId: null,
               isPrimary: true,
+              // Live with no source, the shape that reads as an edit over
+              // anything demoted beneath, so it says it is none (#4386).
+              isEdit: false,
               samples: surface,
               synthetic: true,
             ),
@@ -476,6 +483,7 @@ class DiveMergeService {
               : mergedSourceIdFor(d.diveId, d.sourceId),
           isPrimary: d.isPrimary,
           activatedAt: d.activatedAt,
+          isEdit: d.isEdit,
           samples: d.samples,
           now: now,
         );
@@ -641,6 +649,7 @@ class DiveMergeService {
                 id: s.id,
                 diveId: mergedId,
                 speciesId: s.speciesId,
+                abundance: Value(s.abundance.storageValue),
                 count: Value(s.count),
                 notes: Value(s.notes),
               ),
@@ -670,6 +679,35 @@ class DiveMergeService {
         await _sync.markRecordPending(
           entityType: 'tideRecords',
           recordId: tideId,
+          localUpdatedAt: now,
+        );
+      }
+
+      // 11b. Apple Health readings (issue #637): the first dive's that has
+      // any, so a watch dive merged after a downloaded one keeps its own.
+      final sourceOrder = [for (final d in result.sortedSources) d.id];
+      final health = [...snapshot.healthRows]
+        ..sort(
+          (a, b) => sourceOrder
+              .indexOf(a.diveId)
+              .compareTo(sourceOrder.indexOf(b.diveId)),
+        );
+      if (health.isNotEmpty) {
+        final healthId = _uuid.v4();
+        await _db
+            .into(_db.diveHealthRecords)
+            .insert(
+              health.first
+                  .toCompanion(false)
+                  .copyWith(
+                    id: Value(healthId),
+                    diveId: Value(mergedId),
+                    updatedAt: Value(now),
+                  ),
+            );
+        await _sync.markRecordPending(
+          entityType: 'diveHealthRecords',
+          recordId: healthId,
           localUpdatedAt: now,
         );
       }
@@ -761,6 +799,10 @@ class DiveMergeService {
           (t) => t.diveId.equals(mergedId),
         );
         batch.deleteWhere(_db.tideRecords, (t) => t.diveId.equals(mergedId));
+        batch.deleteWhere(
+          _db.diveHealthRecords,
+          (t) => t.diveId.equals(mergedId),
+        );
       });
       // cascadeMedia: false - this undo re-points the merged dive's media
       // back to the restored sources below; the cascade would delete (and
@@ -823,6 +865,13 @@ class DiveMergeService {
         for (final r in snapshot.tideRows) {
           batch.insert(
             _db.tideRecords,
+            r.toCompanion(false),
+            mode: InsertMode.insertOrReplace,
+          );
+        }
+        for (final r in snapshot.healthRows) {
+          batch.insert(
+            _db.diveHealthRecords,
             r.toCompanion(false),
             mode: InsertMode.insertOrReplace,
           );
@@ -999,6 +1048,7 @@ class _SeriesDraft {
     required this.isPrimary,
     required this.samples,
     this.activatedAt = const Value.absent(),
+    this.isEdit,
     this.synthetic = false,
   });
 
@@ -1010,6 +1060,10 @@ class _SeriesDraft {
   /// The original series' activation time, carried so the merged copies
   /// rank as the originals did (issue #3189); absent for a synthetic fill.
   final Value<int?> activatedAt;
+
+  /// The original series' `is_edit`, carried so a merged edit stays one
+  /// (issue #4386); false for a synthetic fill.
+  final bool? isEdit;
   final bool synthetic;
   final List<ProfileSample> samples;
 }

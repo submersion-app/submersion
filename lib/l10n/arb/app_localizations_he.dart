@@ -1900,6 +1900,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'זמני הצלילה ביום זה';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise, שקיעה $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'זמני הצלילה ביום זה. שקיעה $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'מפת יום $number';
   }
@@ -1997,6 +2015,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_tankSpecsHint =>
       'בחר אילו מאפיינים לדרוס במיכלים שכבר קיימים בצלילות אלה. לחצי ההתחלה והסיום לעולם אינם משתנים.';
+
+  @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'כל המכלים';
 
   @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
@@ -5305,6 +5326,55 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'סט';
 
   @override
+  String get diveLog_health_after15 => 'אחרי 15 דק׳';
+
+  @override
+  String get diveLog_health_after5 => 'אחרי 5 דק׳';
+
+  @override
+  String get diveLog_health_atSurfacing => 'ביציאה לפני המים';
+
+  @override
+  String get diveLog_health_average => 'ממוצע';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'מקסימום';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound => 'ב-Apple Health אין נתונים לצלילה הזו';
+
+  @override
+  String get diveLog_health_overnightHrv => 'השתנות קצב הלב בלילה שאחרי';
+
+  @override
+  String get diveLog_health_readFailed => 'לא ניתן לקרוא את Apple Health';
+
+  @override
+  String get diveLog_health_recovery => 'התאוששות';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'קצב הלב ביציאה לפני המים ו-5 ו-15 דקות אחר כך, מ-Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return 'ישנתם $hours ש׳ $minutes דק׳ בלילה שלפני';
+  }
+
+  @override
+  String get diveLog_health_title => 'קצב לב והתאוששות';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'התחל רשימת בדיקה לפני צלילה';
 
@@ -6194,6 +6264,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_homeCards_card_recentSitesMap => 'מפת אתרים אחרונים';
 
   @override
+  String get settings_homeCards_card_waitingForDownload => 'ממתין להורדה';
+
+  @override
   String get dashboard_allHidden_message => 'כל כרטיסי דף הבית מוסתרים.';
 
   @override
@@ -6406,6 +6479,20 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dashboard_semantics_greetingBanner => 'באנר ברכה בלוח המחוונים';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'להורדה עכשיו';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות ממתינות למחשב הצלילה שלכם',
+      one: 'צלילה אחת ממתינה למחשב הצלילה שלכם',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'הוסף למתכנן';
@@ -7441,13 +7528,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'מה המשמעות של הערכים האלה?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'עומס: לחץ הגז האינרטי בתא כאחוז מהמקסימום שהוא רשאי להכיל על פני המים (ערך ה-M שלו, הקו האדום ב-100%).\n\nרמת פני המים: הסימון על כל עמודה מראה היכן מתייצב תא שהתרוקן לגמרי בזמן שאתה נושם אוויר על פני המים. הוא אף פעם לא ב-0%, כי הגוף שלך תמיד מכיל את החנקן שבאוויר שאתה נושם. עמודה שעומדת על הסימון שלה כבר לא נושאת עומס שנותר מהצלילה.\n\nספיגה ושחרור: גז נע תמיד לכיוון הלחץ של הגז שאתה נושם. אחרי דקומפרסיה בחמצן או בתערובת עשירה בהליום, התאים המהירים עשויים להכיל פחות חנקן מהאוויר על פני המים. כשחוזרים לנשום אוויר, הם סופגים שוב חנקן עד שהם מגיעים לסימון שלהם. זה תקין ואינו עומס שנותר מהצלילה.\n\nהליום: אוויר אינו מכיל הליום. אחרי צלילת טרימיקס, תא משחרר הליום ובאותו זמן יכול לספוג חנקן. החיצים ליד N₂ ו-He מציגים כל גז בנפרד; הציון ליד מספר התא מציג את הכיוון הכולל של שניהם.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'תרשים רוויית רקמות. $count תאים, עומס ביחס לערך M; תא מוביל $number ב-$percent%.';
   }
@@ -7914,9 +7994,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_diveMode_title => 'מצב צלילה';
 
   @override
-  String get diveLog_editSighting_count => 'כמות';
-
-  @override
   String get diveLog_editSighting_notes => 'הערות';
 
   @override
@@ -8055,6 +8132,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מילוי $count החלפות מלחצי המיכלים',
+      one: 'מילוי החלפה אחת מלחצי המיכלים',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'מקבל מיקום...';
 
   @override
@@ -8179,6 +8267,39 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_edit_noMarineLife => 'לא נרשמו מינים';
+
+  @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'הצעות עבור $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return 'הוספת $species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נצפה ב-$count צלילות נוספות כאן',
+      one: 'נצפה בצלילה אחת נוספת כאן',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'ברשימת המינים הצפויים באתר זה';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'הצג הכול ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'הצג פחות';
 
   @override
   String get diveLog_edit_notSpecified => 'לא צוין';
@@ -9015,6 +9136,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'סימונים';
 
   @override
+  String get diveLog_legend_label_plan => 'תוכנית';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'אירועים מחושבים';
 
   @override
@@ -9271,6 +9395,36 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ב-$count מתוך $total הצלילות שנבחרו חסרים תנאים.',
+      one: 'בצלילה אחת מתוך $total הצלילות שנבחרו חסרים תנאים.',
+    );
+    return '$_temp0 רק שדות ריקים ימולאו, ושום דבר שכבר הזנת לא ישתנה.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ל-$count צלילות אין קואורדינטות אתר או מיקום GPS, והן ידולגו.',
+      one: 'לצלילה אחת אין קואורדינטות אתר או מיקום GPS, והיא תדולג.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'לא חסרים תנאים באף אחת מהצלילות שנבחרו.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'לצלילות שנבחרו וחסרים בהן תנאים אין קואורדינטות אתר או מיקום GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -9710,6 +9864,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get siteSuggestion_titleDiveComputer => 'מיקום ממחשב הצלילה';
+
+  @override
+  String get siteSuggestion_titleDraft => 'המקום שבו נכנסתם למים';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -10653,6 +10810,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'לחץ סיום';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'נשימה על פני המים';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'דקות על מכל זה אחרי שהמחשב הפסיק לתעד, למשל חמצן על הסירה';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'דקות';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -16510,6 +16677,44 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיפולים נדרשים',
+      one: 'טיפול אחד נדרש',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ועוד $count',
+      one: 'ועוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected מתוך $total נבחרו';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'הרחב הכול';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'כווץ הכול';
+
+  @override
   String get equipment_location_activeFilter => 'מיקום';
 
   @override
@@ -17598,9 +17803,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'נפח';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'אודות MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'מצב';
 
   @override
@@ -17798,10 +18000,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'בתוך מגבלות ה-ppO₂, END והצפיפות שלך בעומקים שנבדקו.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'ה-MOD הוא העומק שבו התערובת מגיעה למגבלת ה-ppO₂. הוא תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה.\n\nRec משתמש ב-1 בר לכל 10 מ׳, כמו היומן. OC Tec ו-CCR Tec לוקחים את לחץ הסביבה מסוג המים, כמו מחשבון צפיפות הגז, ולכן אותה תערובת עשויה להציג שם MOD רדוד מעט יותר.\n\nEAD מחשיב חנקן כנרקוטי, END חנקן וחמצן. מגבלת ה-END שלך, האם חמצן נחשב נרקוטי ומגבלות ה-ppO₂ ברירת המחדל מגיעים מפרופיל הצולל שלך.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -17852,13 +18050,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'עומק נרקוטי מרבי (MND) הוא העומק הגדול ביותר שאליו אפשר לצלול לפני שהנרקוזה חורגת ממגבלת ה-END שלך. עומק נרקוטי שווה ערך (END) מציין את ההשפעה הנרקוטית של הגז שלך בעומק נתון.\n\nכאשר \'O2 נרקוטי\' מופעל, גם חמצן וגם חנקן תורמים לנרקוזה (שמרני יותר). כאשר מושבת, רק חנקן נחשב נרקוטי.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'אודות MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'ללא הגבלה';
@@ -17924,13 +18115,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'החל';
-
-  @override
-  String get gasCalculators_icd_infoTitle => 'על דיפוזיה הפכית איזובארית';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'דיפוזיה הפכית איזובארית (ICD) היא הסיכון שמעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן יגדיל את מתח הגזים האינרטיים הכולל ברקמה, מכיוון שהליום מתפזר מהר יותר מחנקן. כלל החמישית הוא כלל אצבע נפוץ: חלקיק החנקן לא אמור לעלות ביותר מחמישית מהירידה בחלקיק ההליום.\n\nארגונים חלוקים בדעתם עד כמה זה חשוב בפועל בצלילה מתוכננת היטב עם גזים סטנדרטיים. מחשבון זה מחיל את כלל האצבע על שני הגזים שהוזנו; הוא אינו מחליף הכשרה או ייעוץ מקצועי.';
 
   @override
   String get gasCalculators_ppO2Limit => 'מגבלת ppO₂';
@@ -18071,13 +18255,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'הבלון תחת לחץ אך ללא חמצן וללא הליום, כלומר חנקן טהור. בדוק את התערובת שכבר נמצאת בבלון.';
-
-  @override
-  String get gasCalculators_blender_about => 'על הערבוב';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'ערבוב בלחצים חלקיים לתערובת היעד. הוסף כל גז מילוי לפי הסדר עד ללחץ המוצג, ואז תן לבלון להתייצב. גזי המילוי וסדרם ניתנים להגדרה, כך שקביעת הגז האחרון ל-32/0 משלימה את המילוי ב-EAN32 במקום באוויר. תמיד נתח את התערובת הסופית לפני צלילה איתה.';
 
   @override
   String get gasCalculators_blender_conditions => 'תנאי הערבוב';
@@ -18497,10 +18674,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'עומק שקול לצפיפות אוויר (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
-
-  @override
   String get gasCalculators_density_loopGasTitle => 'גז הלולאה בעומק';
 
   @override
@@ -18519,14 +18692,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'הגז המדלל לבדו נותן כאן ppO2 של $ppO2, מעל ה-Setpoint. הצפיפות מחושבת לפי ה-ppO2 של הגז המדלל.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'על צפיפות גז';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של $warn g/L לכל היותר; $critical g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.';
   }
 
   @override
@@ -18626,9 +18791,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_topSitesTitle => 'אתרים מובילים';
-
-  @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'סה\"כ תצפיות';
 
   @override
   String get marineLife_speciesEdit_addTitle => 'הוסף מין';
@@ -18930,7 +19092,32 @@ class AppLocalizationsHe extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'מיון';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'הכי הרבה תצפיות';
+  String get marineLife_speciesPage_sort_mostDives => 'הכי הרבה צלילות';
+
+  @override
+  String get marineLife_abundance_label => 'כמה';
+
+  @override
+  String get marineLife_abundance_seen => 'נצפה';
+
+  @override
+  String get marineLife_abundance_single => 'יחיד';
+
+  @override
+  String get marineLife_abundance_few => 'מעטים';
+
+  @override
+  String get marineLife_abundance_many => 'רבים';
+
+  @override
+  String get marineLife_abundance_abundant => 'בשפע';
+
+  @override
+  String get marineLife_abundance_exact => 'מדויק';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'מעטים 2 עד 10, רבים 11 עד 100, בשפע מעל 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'נראו לאחרונה';
@@ -18996,6 +19183,195 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'ניסיון חוזר';
+
+  @override
+  String get speciesMap_title => 'מפת מינים';
+
+  @override
+  String get speciesMap_openTooltip => 'מפת מינים';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'בחירת מין';
+
+  @override
+  String get speciesMap_list_searchHint => 'חיפוש בכל המינים';
+
+  @override
+  String get speciesMap_list_allSites => 'כל האתרים';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'מה תיעדת ואיפה';
+
+  @override
+  String get speciesMap_list_notSeen => 'טרם נצפה';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings תצפיות',
+      one: 'תצפית אחת',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites אתרים',
+      one: 'אתר אחד',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'התצפיות שלי';
+
+  @override
+  String get speciesMap_legend_expected => 'צפוי, לא תועד';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'רשומות ציבוריות';
+
+  @override
+  String get speciesMap_legend_speciesLogged => 'מינים שתועדו באתר';
+
+  @override
+  String get speciesMap_layers_tooltip => 'שכבות מפה';
+
+  @override
+  String get speciesMap_layers_public => 'רשומות ציבוריות (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'שולח ל-GBIF את המין שנבחר, או את מיקום האתר שנגעת בו.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'מינים צפויים לפי';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'האתרים שלי';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible => 'כל האתרים שאני רואה';
+
+  @override
+  String get speciesMap_card_loggedHere => 'תועדו כאן';
+
+  @override
+  String get speciesMap_card_expectedNotLogged => 'צפויים, טרם תועדו';
+
+  @override
+  String get speciesMap_card_expectedPin => 'צפוי כאן, טרם תועד';
+
+  @override
+  String get speciesMap_card_nothingLogged => 'עדיין לא תועד כאן דבר';
+
+  @override
+  String get speciesMap_card_close => 'סגירה';
+
+  @override
+  String get speciesMap_card_openSite => 'פתיחת האתר';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים',
+      one: 'מין אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date, צלילה $number, ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תצפיות נמצאות בצלילות ללא אתר במפה',
+      one: 'תצפית אחת נמצאת בצלילה ללא אתר במפה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'לא ניתן להציג רשומות ציבוריות למין זה: נדרש לו שם מדעי ש-GBIF מכיר.';
+
+  @override
+  String get speciesMap_publicUnavailable =>
+      'לא ניתן היה לטעון את הרשומות הציבוריות.';
+
+  @override
+  String get speciesMap_error_loading => 'לא ניתן היה לטעון את מפת המינים.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'לא תיעדת מין זה באף אתר במפה. הפעל רשומות ציבוריות כדי לראות היכן אחרים ראו אותו.';
+
+  @override
+  String get speciesMap_attribution => 'רשומות: GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מינים',
+      one: 'מין אחד',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תצפיות',
+      one: 'תצפית אחת',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site, צפוי';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרים',
+      one: 'אתר אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'היכן נצפה';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'פתיחת המפה המלאה';
+
+  @override
+  String get speciesMap_whereSeen_empty => 'טרם תועד באתר שבמפה.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
 
   @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
@@ -19947,6 +20323,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'קובץ הסרטון לא נמצא';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'כדי להפעיל את הסרטון הזה נדרש חלון דפדפן רגיל. חלונות פרטיים אינם יכולים להזרים מ-Google Drive או מ-WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'הסרטון אינו מקושר לספרייה';
 
   @override
@@ -20335,6 +20715,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_empty => 'אין מדיה עדיין';
 
   @override
+  String get media_library_emptyFiltered => 'אין מדיה שתואמת למסננים אלה';
+
+  @override
   String get media_library_filter_all => 'הכול';
 
   @override
@@ -20365,6 +20748,42 @@ class AppLocalizationsHe extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'קבצים חסרים ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'אף אחד לא מתויג';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אנשים',
+      one: 'אדם אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'חיפוש אנשים';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'אין אנשים תואמים';
+
+  @override
+  String get media_library_filter_peopleClear => 'ניקוי אנשים';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'לא ממוקם בצלילה';
 
   @override
   String get media_library_filter_clear => 'ניקוי מסננים';
@@ -20401,6 +20820,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get media_library_unlinkedHeader => 'לא מקושרים';
+
+  @override
+  String get media_library_sectionSitePictures => 'תמונות אתר';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'תמונות ציוד';
 
   @override
   String get media_library_diveHeaderHint => 'פתיחת צלילה זו';
@@ -21828,10 +22253,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'ציפה לאורך הצלילה, שינוי ומשקל הניתן להשלכה';
 
   @override
-  String get buoyancy_tooltip =>
-      'ציפה נטו מודלת לאורך הצלילה מהפרופיל, צריכת הגז והציוד.';
-
-  @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
     return 'בעצירה האחרונה (~$depth) היית בערך $amount ציפה';
   }
@@ -21971,6 +22392,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveDetailSection_equipment_name => 'ציוד';
+
+  @override
+  String get diveDetailSection_health_description =>
+      'קצב לב, התאוששות ושינה מ-Apple Health';
 
   @override
   String get diveDetailSection_equipment_description => 'ציוד שהשתמש בצלילה';
@@ -23846,6 +24271,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => 'תיוג צלילות מיובאות';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'קצב לב ממוצע';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'הוספת הורדות לבעלים של המחשב';
 
@@ -23894,6 +24322,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'ציוד מקובץ לפי מיקום';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'קבוצות ציוד מקופלות';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
@@ -24700,6 +25132,22 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_headingOffsetDeg => 'תיקון כיוון במעלות';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'קצב לב ביציאה לפני המים';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'קצב לב 15 דק׳ אחרי היציאה';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'קצב לב 5 דק׳ אחרי היציאה';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'קצב לב מ-Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'מקדם קנה המידה של המסלול';
 
   @override
@@ -24791,6 +25239,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_isDone => 'בוצע';
+
+  @override
+  String get settings_conflict_field_isDraft => 'טיוטת צלילה';
+
+  @override
+  String get settings_conflict_field_isEdit => 'הפרופיל נערך ידנית';
 
   @override
   String get settings_conflict_field_isOrphaned => 'הקובץ חסר';
@@ -24935,6 +25389,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_maxDescentRate => 'קצב ירידה מרבי';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'קצב לב מרבי';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'מהירות מרבית';
 
   @override
@@ -25001,6 +25458,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'טיפולים שעבר מועדם';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs => 'השתנות קצב הלב הלילית';
 
   @override
   String get settings_conflict_field_params => 'פרטים';
@@ -25510,6 +25970,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_size => 'מידה';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes => 'שינה בלילה שלפני';
+
+  @override
   String get settings_conflict_field_sortOrder => 'סדר מיון';
 
   @override
@@ -25580,6 +26043,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'הגדרות לצלילה זו בלבד';
 
   @override
+  String get settings_conflict_field_settled => 'נתוני Apple Health מלאים';
+
+  @override
   String get settings_conflict_field_startTime => 'שעת התחלה';
 
   @override
@@ -25618,6 +26084,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_supersedesRuleId => 'מחליף כלל מובנה';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'זמן נשימה על פני המים';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'תנאים בפני המים';
@@ -26376,6 +26846,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String notifications_document_expiresToday_title(String title) {
     return '$title פג היום';
   }
+
+  @override
+  String get notifications_draftReminder_body =>
+      'הורידו את מחשב הצלילה כדי למלא את הטיוטה.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'צלילה ממתינה למחשב הצלילה שלכם';
 
   @override
   String get notifications_document_expiresToday_body =>
@@ -27325,13 +27803,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'גורמי שיפוע (GF) קובעים עד כמה שמרניים חישובי הדקומפרסיה שלך. GF Low משפיע על עצירות עמוקות, בעוד GF High משפיע על עצירות רדודות.\n\nערכים נמוכים יותר = שמרני יותר = עצירות דקו ארוכות יותר\nערכים גבוהים יותר = פחות שמרני = עצירות דקו קצרות יותר';
-
-  @override
-  String get settings_decompression_aboutTitle => 'אודות גורמי שיפוע';
-
-  @override
   String get settings_decompression_currentSettings => 'הגדרות נוכחיות';
 
   @override
@@ -28123,6 +28594,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_notifications_disabled_title => 'התראות מושבתות';
 
   @override
+  String get settings_notifications_draftReminder =>
+      'להזכיר לי על טיוטות צלילה';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'שלושה ימים אחרי היציאה מהמים של טיוטה, אם היא עדיין ממתינה להורדה';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'אפשר תזכורות תחזוקה';
 
@@ -28136,13 +28615,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_notifications_header_serviceReminders => 'תזכורות תחזוקה';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'התראות מתוזמנות בעת הפעלת האפליקציה ומתעדכנות מעת לעת ברקע. ניתן להתאים אישית תזכורות לפריטי ציוד בודדים במסך העריכה שלהם.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'איך זה עובד';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -31620,13 +32092,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'לגופך יש 16 תאי רקמה הקולטים ומשחררים חנקן בקצבים שונים. רקמות מהירות (כמו דם) נספגות במהירות אך גם משחררות גז במהירות. רקמות איטיות (כמו עצם ושומן) לוקחות יותר זמן גם לספיגה וגם לפריקה. \"תא מוביל\" הוא התא הכי רווי הקובע בדרך כלל את מגבלת הזמן ללא דקומפרסיה (NDL) שלך. במהלך מרווח שטח, כל הרקמות משחררות גז לעבר רמות רוויה של פני השטח (~40% העמסה).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title => 'אודות העמסת רקמות';
-
-  @override
   String get surfaceInterval_action_resetDefaults => 'אפס לברירת מחדל';
 
   @override
@@ -32037,6 +32502,40 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'צבע';
+
+  @override
+  String tags_color_shadeLight(String color) {
+    return '$color, בהיר';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, כהה';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'צבע נוכחי, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'צבע מותאם אישית';
+
+  @override
+  String get tags_color_hexLabel => 'קוד הקסדצימלי';
+
+  @override
+  String get tags_color_hexError =>
+      'יש להזין שישה תווים 0-9 או A-F, למשל #2E8B57';
+
+  @override
+  String get tags_color_use => 'שימוש';
+
+  @override
+  String get tags_color_hueLabel => 'גוון';
+
+  @override
+  String get tags_color_squareLabel => 'רוויה ובהירות';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'הסר';
@@ -34936,6 +35435,20 @@ class AppLocalizationsHe extends AppLocalizations {
       'פורמט זה אינו נתמך עדיין. נא לייצא כ-UDDF או CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'מתאימה ל-$count טיוטות. בחרו את זו שהיא ממלאת.',
+      one: 'גם צלילה אחרת מתאימה לטיוטה הזו. בחרו את הטיוטה שהיא ממלאת.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'בחירת טיוטה';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'לא ניתן היה להריץ זיהוי כפילויות, ולכן שום פריט ברשימה הזו אינו מסומן כקיים כבר ביומן. בדוק את הרשימה לפני הייבוא.';
 
@@ -35082,6 +35595,28 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_compare_fillPlannedSubtitle =>
       'שיוך ההורדה הזו לצלילה שתכננתם';
+
+  @override
+  String get universalImport_label_fillDraft => 'מילוי טיוטה';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'צירוף ההורדה הזו לצלילה שסימנתם באתר';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'ממלא טיוטה: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'טיוטה מ-$start עד $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'טיוטה מ-$start';
+  }
 
   @override
   String get universalImport_label_filledPlanned => 'צלילות מתוכננות שהושלמו';
@@ -36031,13 +36566,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get divePlanner_undo => 'בטל';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock Bottom הוא מינימום עתודת הגז הנדרש לעלייה חירומית תוך שיתוף אוויר עם השותף שלך.\n\n• משתמש בקצבי RMV במצב לחץ (2-3 כפול מהרגיל)\n• מניח ששני הצוללים על מיכל אחד\n• כולל עצירת בטיחות כשמופעלת\n\nתמיד סיים את הצלילה לפני שמגיעים ל-Rock Bottom!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'אודות Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired => 'גז נדרש לעלייה';
 
   @override
@@ -36187,6 +36715,37 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gpsLogger_stopButton => 'עצור הקלטה';
+
+  @override
+  String get gpsLogger_enteredWater => 'נכנסתי למים';
+
+  @override
+  String get gpsLogger_surfaced => 'יצאתי';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => 'עדיין במים?';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'נכנסתם למים ב-$time. סמנו עכשיו שיצאתם, או השאירו את הצלילה פתוחה והקישו על יצאתי מאוחר יותר.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow => 'יציאה עכשיו';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'להשאיר פתוחה';
+
+  @override
+  String get gpsLogger_markNotification_title => 'מסלול ה-GPS שלכם מוקלט';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'הקישו על נכנסתי למים כשאתם נכנסים.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'במים. הקישו על יצאתי כשאתם בחוץ.';
 
   @override
   String gpsLogger_stripStatus(num count) {
@@ -36901,6 +37460,55 @@ class AppLocalizationsHe extends AppLocalizations {
       'ייבוא צלילות מ-Apple Watch באמצעות HealthKit';
 
   @override
+  String get healthAutoImport_newDive_title => 'צלילה חדשה מה-Apple Watch שלכם';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return '$count צלילות חדשות מה-Apple Watch שלכם';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => 'להוסיף פרטים?';
+
+  @override
+  String get healthAutoImport_addDetails => 'הוספת פרטים';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'צלילה מה-Apple Watch דורשת בדיקה';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'היא עשויה להשתייך ליותר מצלילה אחת. בחרו בייבוא מ-Apple Health.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'ייתכן שזו צלילה שתכננתם. בדקו אותה כדי למלא את התכנון.';
+
+  @override
+  String get healthAutoImport_review => 'בדיקה';
+
+  @override
+  String get settings_appleHealth_autoImport_title =>
+      'ייבוא אוטומטי של צלילות Apple Watch';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'צלילות חדשות מהשעון מופיעות כשפותחים את האפליקציה.';
+
+  @override
+  String get settings_appleHealth_metrics_title => 'קצב לב, התאוששות ושינה';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'מוסיף את קצב הלב במהלך כל צלילה ואחריה, את ה-HRV הלילי ואת השינה שלפניה.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'עבור: $name';
+  }
+
+  @override
   String get settings_dataSources_appleHealth_privacy =>
       'נתוני הבריאות שלך מאוחסנים מקומית במכשיר זה ולעולם אינם משותפים עם צדדים שלישיים. Submersion רק קורא נתונים מ-Apple HealthKit ואינו כותב נתונים בחזרה ל-HealthKit.';
 
@@ -37489,6 +38097,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'לאף אחת מהצלילות שנבחרו אין נתונים גולמיים שמורים לניתוח מחדש.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'אחזור תנאים';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'נתח מחדש';
@@ -40124,13 +40735,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'ללא פרופיל עומק לא ניתן לחשב את ה-CNS% וה-OTU שלה. הסיכומים שלהלן אינם כוללים אותה.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'אודות CNS ו-OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'אחוז ה-CNS שלך (שעון החמצן) דועך לאחר הצלילה עם מחצית חיים של 90 דקות -- הוא חוזר כמעט לגמרי ל-0 אחרי כיום אחד בערך.\n\nה-OTU היומי מתאפס בכל לילה בחצות. ה-OTU השבועי הוא סכום מתגלגל של 7 הימים האחרונים: צלילות ישנות יותר נופלות אוטומטית מהחישוב ברגע שהן יוצאות מחלון הזמן הזה.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title => 'אין עומס שארי ברקמות';
 
   @override
@@ -40144,13 +40748,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'לצלילה האחרונה אין נתונים לחישוב רוויית הרקמות, למשל צלילה ללא פרופיל עומק, במצב מד עומק או במחזר ללא נקודת כיוון.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'אודות רוויית הרקמות';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'בגוף שלך יש 16 תאי רקמה שסופגים ומשחררים חנקן (ובצלילות טרימיקס או מחזר גם הליום) במהירויות שונות. רקמות מהירות נרוות ומתרוקנות במהירות; רקמות איטיות צריכות הרבה יותר זמן לשני התהליכים.\n\nעומס שארי הוא רק מה שנמצא מעל הרמה הרגילה על פני המים. גם אחרי התרוקנות מלאה העמודות לא יורדות ל-0%: כל תא מתייצב על הסימון שמתאים לחנקן שבאוויר שאתה נושם. לכן תא מהיר יכול להראות כאן ערך גבוה יותר מאשר בסוף צלילה עם דקומפרסיה בחמצן, בלי שהעומס גדל.\n\nאחרי צלילה עם הליום, תא משחרר הליום ובאותו זמן סופג חנקן, עד ששני הגזים בשיווי משקל עם האוויר שאתה נושם.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -40593,6 +41190,53 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_planned_chip => 'מתוכננת';
 
   @override
+  String get diveLog_draft_chip => 'ממתין להורדה';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'במים';
+
+  @override
+  String get diveLog_draft_title => 'טיוטת צלילה';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'כ-$minutes דק׳ לפי ההקשות שלכם. הורידו את מחשב הצלילה כדי למלא עומק וזמן.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen => 'הקישו על יצאתי כשאתם מחוץ למים.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'להורדה עכשיו';
+
+  @override
+  String get diveLog_draft_markComplete => 'סימון כהושלמה';
+
+  @override
+  String get diveLog_draft_surfaced => 'יצאתי';
+
+  @override
+  String get diveLog_draft_markedComplete => 'סומנה כהושלמה';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'לא ניתן לסמן את הצלילה כהושלמה.';
+
+  @override
+  String get diveLog_draft_stale_title => 'יצאתם מהמים?';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'נכנסתם למים ב-$time והצלילה עדיין פתוחה.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'עדיין במים';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'קביעת שעת היציאה';
+
+  @override
   String get diveLog_planned_bannerTitle => 'צלילה מתוכננת';
 
   @override
@@ -40654,6 +41298,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_loggedWithPlanned => 'ממתין למחשב הצלילה שלהם';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate => 'הוספת קצב לב מ-Apple Health';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -49672,6 +50319,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'טיוטת צלילה ב-$siteName';
+  }
+
+  @override
   String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
     return 'צלילה מתוכננת ב־$siteName';
   }
@@ -52091,6 +52743,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_profilePanel_noProfileData => 'אין נתוני פרופיל לצלילה זו';
+
+  @override
+  String get diveLog_estimatedProfile_caption =>
+      'הערכה לפי עומק מרבי וזמן, לא פרופיל מוקלט';
 
   @override
   String get settings_export_progress_divesCsv => 'מייצא צלילות ל-CSV...';
@@ -54775,7 +55431,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks מיכלים ב-$dives צלילות נושאים משדר זה. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
+    return '$tanks מיכלים ב-$dives צלילות הנושאים משדר זה זקוקים להגדרות שלו. שדות ריקים של נפח, חומר, שם וציוד ימולאו, ותפקיד שעדיין מוגדר כגז גב או שנקרא משם המשדר יוחלף.';
   }
 
   @override
@@ -54784,7 +55440,43 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing => 'אף מיכל אינו נושא משדר זה';
+  String transmitters_apply_slot_label(String computer) {
+    return 'חריץ ב-$computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'ללא התאמה לפי חריץ';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives צלילות',
+      one: 'צלילה אחת',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'קריאת קבצים מיובאים';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'למיכלים שיובאו מקובץ אין מספר סידורי. אפשר למלא אותם לפי החריץ שבו ישב משדר זה במחשב הצלילה.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'צלילות שמולאו לפי מספר סידורי: $serialDives, לפי חריץ: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'אף מיכל אינו צריך את הגדרות המשדר הזה';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'לא ניתן היה לקרוא את הקבצים המיובאים, ולכן לא ניתן להתאים מיכלים לפי חריץ';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -56120,6 +56812,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_dives_diveOperator => 'מפעיל';
+
+  @override
+  String get query_dives_draft => 'טיוטה';
 
   @override
   String get query_dives_entryMethod => 'שיטת כניסה';
@@ -58433,6 +59128,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_filter_tags => 'תגיות';
 
   @override
+  String get media_library_filter_attachedTo => 'מקושר אל';
+
+  @override
+  String get media_library_filter_attachedDive => 'צלילה';
+
+  @override
+  String get media_library_filter_attachedSite => 'אתר';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'ציוד';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'לא מקושרים';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'מקושר אל: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
+
+  @override
   String media_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -59896,4 +60614,1450 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => 'דרכון הבלון השותף';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'אודות $title';
+  }
+
+  @override
+  String get info_sheet_background => 'רקע';
+
+  @override
+  String get info_sheet_howToUse => 'אופן השימוש';
+
+  @override
+  String get info_sheet_close => 'סגירה';
+
+  @override
+  String get info_term_ndl_label => 'NDL (גבול ללא דקומפרסיה)';
+
+  @override
+  String get info_term_ndl_body =>
+      'הדקות שנותרו בעומק הנוכחי לפני שהמודל דורש עצירות דקומפרסיה. הערך יורד כל עוד הצולל נשאר עמוק ועולה שוב בזמן העלייה.';
+
+  @override
+  String get info_term_ceiling_label => 'תקרה';
+
+  @override
+  String get info_term_ceiling_body =>
+      'העומק הרדוד ביותר שמודל הדקומפרסיה מתיר באותו רגע. אפס פירושו שעלייה ישירה לפני המים תואמת את המודל.';
+
+  @override
+  String get info_term_decoStops_label => 'עצירות דקומפרסיה';
+
+  @override
+  String info_term_decoStops_body(String step) {
+    return 'עצירות מתוכננות בזמן העלייה, כל אחת עם עומק ומשך, שמאפשרות לגז המומס לצאת מהגוף. העצירות מרוחקות בדרך כלל $step זו מזו.';
+  }
+
+  @override
+  String get info_term_tts_label => 'TTS (זמן עד פני המים)';
+
+  @override
+  String get info_term_tts_body =>
+      'הדקות הנדרשות כדי להגיע לפני המים מכאן, כולל העלייה וכל עצירה נדרשת.';
+
+  @override
+  String get info_term_gtr_label => 'GTR (זמן גז שנותר)';
+
+  @override
+  String get info_term_gtr_body =>
+      'הדקות בעומק ובקצב הנשימה הנוכחיים עד שלחץ המיכל יורד ללחץ הרזרבה. ההנחה היא עלייה ישירה ללא עצירות.';
+
+  @override
+  String get info_term_gf99_label => 'GF99';
+
+  @override
+  String get info_term_gf99_body =>
+      'עד כמה הרקמה העמוסה ביותר קרובה כעת לערך ה-M שלה, באחוזים. ב-100% היא נמצאת בדיוק על גבול בילמן הגולמי.';
+
+  @override
+  String get info_term_surfaceGf_label => 'SurfGF (מקדם שיפוע בפני המים)';
+
+  @override
+  String get info_term_surfaceGf_body =>
+      'ערך ה-GF99 שהיה לרקמות אילו הצולל עלה לפני המים מיד. מעל 100% גבול בילמן הגולמי היה נחצה בפני המים.';
+
+  @override
+  String get info_term_gradientFactors_label => 'GF (מקדמי שיפוע)';
+
+  @override
+  String get info_term_gradientFactors_body =>
+      'שני אחוזים שמצמצמים את גבולות בילמן: GF Low קובע היכן נופלת העצירה הראשונה ו-GF High קובע את הגבול ביציאה לפני המים. ערכים נמוכים יותר נותנים תוכניות ארוכות ושמרניות יותר.';
+
+  @override
+  String get info_term_cns_label => 'CNS% (חמצן ומערכת העצבים המרכזית)';
+
+  @override
+  String get info_term_cns_body =>
+      'החלק מגבול החמצן לצלילה אחת עבור המוח והעצבים, לפי טבלת ה-ppO2 של NOAA. הערך יורד בערך בחצי כל 90 דקות בפני המים.';
+
+  @override
+  String get info_term_otu_label => 'OTU (יחידות סבילות לחמצן)';
+
+  @override
+  String get info_term_otu_body =>
+      'מנת חמצן איטית יותר לכל הגוף שמצטברת לאורך כמה ימי צלילה. OTU אחת היא דקה של חמצן טהור ב-1 בר.';
+
+  @override
+  String get info_term_ppO2_label => 'ppO2 (לחץ חלקי של חמצן)';
+
+  @override
+  String get info_term_ppO2_body =>
+      'הלחץ שהחמצן לבדו מפעיל בגז הנשימה בעומק הזה, בבר. הגבולות המקובלים הם 1.4 בר בזמן עבודה ו-1.6 בר בזמן דקומפרסיה.';
+
+  @override
+  String get info_term_ppN2_label => 'ppN2 (לחץ חלקי של חנקן)';
+
+  @override
+  String get info_term_ppN2_body =>
+      'הלחץ שהחנקן מפעיל בגז הנשימה בעומק הזה, בבר. הוא קובע את העמסת החנקן ואת הנרקוזה.';
+
+  @override
+  String get info_term_ppHe_label => 'ppHe (לחץ חלקי של הליום)';
+
+  @override
+  String get info_term_ppHe_body =>
+      'הלחץ שההליום מפעיל בגז הנשימה בעומק הזה, בבר. הליום נספג ומשתחרר מהר יותר מחנקן ואינו גורם לנרקוזה.';
+
+  @override
+  String get info_term_o2Cells_label => 'תאי חמצן';
+
+  @override
+  String get info_term_o2Cells_body =>
+      'חיישנים בלולאה של מכשיר מחזור, שכל אחד מהם מודד ppO2. קריאות שאינן תואמות מצביעות על תא שכושל או רטוב.';
+
+  @override
+  String get info_term_mod_label => 'MOD (עומק פעולה מרבי)';
+
+  @override
+  String get info_term_mod_body =>
+      'העומק שבו גז מגיע לגבול ה-ppO2 שלו. עמוק יותר, החשיפה לחמצן גבוהה מהגבול הזה.';
+
+  @override
+  String get info_term_mnd_label => 'MND (עומק נרקוטי מרבי)';
+
+  @override
+  String get info_term_mnd_body =>
+      'הנקודה העמוקה ביותר שבה גז נשאר בתוך גבול ה-END של הצולל. הליום בתערובת מעמיק אותה.';
+
+  @override
+  String get info_term_end_label => 'END (עומק נרקוטי שקול)';
+
+  @override
+  String get info_term_end_body =>
+      'העומק באוויר שהיה גורם לנרקוזה כמו הגז הזה בעומק הזה. הליום מוריד אותו כי אינו נרקוטי.';
+
+  @override
+  String get info_term_ead_label => 'EAD (עומק אוויר שקול)';
+
+  @override
+  String get info_term_ead_body =>
+      'העומק באוויר שהיה טוען חנקן באותו קצב כמו הנייטרוקס הזה בעומק הזה. הוא רדוד מהעומק האמיתי כי בנייטרוקס פחות חנקן.';
+
+  @override
+  String get info_term_eadd_label => 'EADD (עומק צפיפות אוויר שקול)';
+
+  @override
+  String get info_term_eadd_body =>
+      'העומק שבו אוויר היה צפוף כמו הגז הזה בעומק הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
+
+  @override
+  String get info_term_gasDensity_label => 'צפיפות הגז';
+
+  @override
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'כמה כבד גז הנשימה בעומק, בגרם לליטר, וזה קובע כמה קשה לנשום אותו. מחקרים שפורסמו מציינים $warn גרם לליטר כמקסימום מומלץ ו-$critical גרם לליטר כגבול עליון.';
+  }
+
+  @override
+  String get info_term_sac_label => 'SAC (צריכת אוויר בפני המים)';
+
+  @override
+  String get info_term_sac_body =>
+      'צריכת גז בדקה מומרת ללחץ פני המים, ומוצגת כירידת לחץ בדקה. היא תלויה בגודל המיכל, ולכן משווה צלילות עם אותו מיכל.';
+
+  @override
+  String get info_term_rmv_label => 'RMV (נפח נשימה לדקה)';
+
+  @override
+  String get info_term_rmv_body =>
+      'נפח הגז הנשאף בדקה, מומר ללחץ פני המים. בניגוד ל-SAC הוא אינו תלוי בגודל המיכל.';
+
+  @override
+  String get info_term_ascentRate_label => 'קצב עלייה';
+
+  @override
+  String info_term_ascentRate_body(String rate) {
+    return 'כמה מהר העומק יורד בדקה. ההכשרה המקובלת משתמשת ב-$rate כמקסימום.';
+  }
+
+  @override
+  String get info_term_descentRate_label => 'קצב ירידה';
+
+  @override
+  String get info_term_descentRate_body => 'כמה מהר העומק עולה בדקה.';
+
+  @override
+  String get info_term_meanDepth_label => 'עומק ממוצע';
+
+  @override
+  String get info_term_meanDepth_body =>
+      'העומק הממוצע לאורך הצלילה, משוקלל לפי זמן. צריכת הגז והדקומפרסיה עוקבות אחריו יותר מאשר אחרי העומק המרבי.';
+
+  @override
+  String get info_term_bottomTime_label => 'זמן קרקעית';
+
+  @override
+  String get info_term_bottomTime_body =>
+      'הזמן מעזיבת פני המים ועד תחילת העלייה הסופית. הוא מחושב מפרופיל הצלילה.';
+
+  @override
+  String get info_term_runtime_label => 'זמן ריצה';
+
+  @override
+  String get info_term_runtime_body =>
+      'הזמן הכולל מעזיבת פני המים ועד העלייה אליהם. לוחות זמנים טכניים נכתבים לפיו.';
+
+  @override
+  String get info_term_safetyStop_label => 'עצירת ביטחון';
+
+  @override
+  String info_term_safetyStop_body(String depth) {
+    return 'עצירה רשות ליד $depth, בדרך כלל שלוש דקות, לפני היציאה לפני המים. המודל אינו דורש אותה בצלילה ללא עצירות.';
+  }
+
+  @override
+  String get info_term_surfaceInterval_label => 'מרווח שטח';
+
+  @override
+  String get info_term_surfaceInterval_body =>
+      'הזמן בפני המים בין שתי צלילות. הרקמות ממשיכות לשחרר גז בזמן הזה, ולכן מרווח ארוך יותר מעביר פחות לצלילה הבאה.';
+
+  @override
+  String get info_term_tissueCompartment_label => 'תאי רקמה';
+
+  @override
+  String get info_term_tissueCompartment_body =>
+      '16 הרקמות הדמיוניות של המודל, שכל אחת סופגת ומשחררת גז בקצב משלה. המהירות מייצגות רקמה עשירה בדם והאיטיות שומן ועצם.';
+
+  @override
+  String get info_term_leadingCompartment_label => 'התא המוביל';
+
+  @override
+  String get info_term_leadingCompartment_body =>
+      'התא הקרוב ביותר לגבול שלו כרגע. הוא קובע את התקרה ומתחלף במהלך הצלילה.';
+
+  @override
+  String get info_term_tissueLoad_label => 'עומס';
+
+  @override
+  String get info_term_tissueLoad_body =>
+      'כמה גז אינרטי מכיל תא ביחס לגבול שלו, באחוזים. ב-100% הוא נמצא על ערך ה-M שלו.';
+
+  @override
+  String get info_term_mValue_label => 'ערך M';
+
+  @override
+  String get info_term_mValue_body =>
+      'לחץ הגז האינרטי הגבוה ביותר שתא יכול להחזיק בעומק נתון לפי מודל בילמן. מקדמי השיפוע קובעים כמה ממנו מנוצל.';
+
+  @override
+  String get info_term_surfaceLevel_label => 'רמת פני המים';
+
+  @override
+  String get info_term_surfaceLevel_body =>
+      'לחץ הגז בתא כשהוא מאוזן לגמרי בפני המים בנשימת אוויר. עמודות מעל הקו הזה עדיין נושאות גז עודף.';
+
+  @override
+  String get info_term_halfTime_label => 'זמן מחצית';
+
+  @override
+  String get info_term_halfTime_body =>
+      'הדקות שתא צריך כדי לעבור חצי מהדרך אל הלחץ הסובב. הטווח נע מכמה דקות ועד יותר מעשר שעות.';
+
+  @override
+  String get info_term_ongassing_label => 'ספיגת גז ושחרור גז';
+
+  @override
+  String get info_term_ongassing_body =>
+      'ספיגת גז פירושה שהתא קולט גז כי הלחץ הסובב גבוה יותר, ושחרור גז פירושו שהוא פולט אותו. הצבע מראה לאיזה כיוון כל תא נע.';
+
+  @override
+  String get info_term_heatMap_label => 'מפת חום';
+
+  @override
+  String get info_term_heatMap_body =>
+      'כל שורה היא תא אחד, המהירים למעלה והאיטיים למטה, והזמן נע משמאל לימין. הצבע מראה עד כמה התא עמוס באותו רגע.';
+
+  @override
+  String get info_term_nitrox_label => 'נייטרוקס (EANx)';
+
+  @override
+  String get info_term_nitrox_body =>
+      'אוויר מועשר בחמצן, הנקרא לפי אחוז החמצן בו, כמו EAN32. פחות חנקן מאריך את זמני הצלילה ללא עצירות, והחמצן הנוסף הופך את ה-MOD לרדוד יותר.';
+
+  @override
+  String get info_term_trimix_label => 'טרימיקס';
+
+  @override
+  String get info_term_trimix_body =>
+      'תערובת של חמצן, הליום וחנקן, הנכתבת כחמצן ואחריו הליום, כמו 18/45. ההליום מפחית נרקוזה וצפיפות גז בעומק.';
+
+  @override
+  String get info_term_diluent_label => 'גז מדלל';
+
+  @override
+  String get info_term_diluent_body =>
+      'הגז שמכשיר המחזור מוסיף ללולאה כדי לשמור על הנפח שלה. המכשיר מוסיף מעליו חמצן כדי להחזיק את נקודת הכיוון.';
+
+  @override
+  String get info_term_setpoint_label => 'נקודת כיוון';
+
+  @override
+  String get info_term_setpoint_body =>
+      'ה-ppO2 שמכשיר מחזור במעגל סגור מנסה להחזיק בלולאה. מכשירים עוברים לעיתים קרובות בין נקודת כיוון נמוכה לגבוהה במהלך הצלילה.';
+
+  @override
+  String get info_term_bailout_label => 'גז חילוץ';
+
+  @override
+  String get info_term_bailout_body =>
+      'גז במעגל פתוח שנישא בצלילת מכשיר מחזור לעלייה מחוץ ללולאה. תוכניות חילוץ מניחות שהלולאה אבדה.';
+
+  @override
+  String get info_term_loop_label => 'לולאה';
+
+  @override
+  String get info_term_loop_body =>
+      'מעגל הנשימה של מכשיר המחזור, שבו הגז הננשף מנוקה מפחמן דו-חמצני ונשאף שוב.';
+
+  @override
+  String get info_term_stage_label => 'מיכל במה';
+
+  @override
+  String get info_term_stage_body =>
+      'מיכל נוסף המחובר לצד, נישא לחלק מהצלילה ועוברים אליו בדרך.';
+
+  @override
+  String get info_term_decoGas_label => 'גז דקומפרסיה';
+
+  @override
+  String get info_term_decoGas_body =>
+      'גז עשיר יותר בחמצן שנושמים בעצירות הדקומפרסיה. הוא מאיץ את שחרור הגז בעומקים רדודים.';
+
+  @override
+  String get info_term_pony_label => 'פוני';
+
+  @override
+  String get info_term_pony_body =>
+      'מיכל קטן ועצמאי עם וסת משלו, הנישא כאספקת גז גיבוי.';
+
+  @override
+  String get info_term_sidemount_label => 'סיידמאונט';
+
+  @override
+  String get info_term_sidemount_body =>
+      'מיכלים הנישאים לאורך כל צד במקום על הגב, לכל אחד וסת משלו.';
+
+  @override
+  String get info_term_twinBackmount_label => 'מיכל כפול על הגב';
+
+  @override
+  String get info_term_twinBackmount_body =>
+      'שני מיכלים המחוברים על הגב, בדרך כלל במגוון, ונשאפים כאספקה אחת.';
+
+  @override
+  String get info_term_altitudeGroup_label => 'קבוצת גובה';
+
+  @override
+  String get info_term_altitudeGroup_body =>
+      'טווח גבהים שחולקים מערכת טבלאות והגדרות מודל אחת. בקבוצות גבוהות יותר לחץ האוויר בפני המים נמוך יותר.';
+
+  @override
+  String get info_term_surfacePressure_label => 'לחץ בפני המים';
+
+  @override
+  String get info_term_surfacePressure_body =>
+      'לחץ האוויר בפני המים באתר הצלילה. בגובה הוא נמוך יותר, וזה הופך את המודל לשמרני יותר.';
+
+  @override
+  String get info_term_salinity_label => 'סוג המים';
+
+  @override
+  String get info_term_salinity_body =>
+      'מים מלוחים צפופים ממים מתוקים, ולכן אותו לחץ מתאים בים לעומק רדוד מעט יותר. מחשבי צלילה משתמשים בזה כדי להמיר לחץ לעומק.';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_label =>
+      'ICD (דיפוזיה נגדית איזוברית)';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_body =>
+      'החלפת גז יכולה להעלות את סך הגז האינרטי ברקמות בלי שינוי עומק כשהחנקן עולה מהר יותר משההליום יורד. הבדיקה המקובלת, כלל החמישיות, מגבילה את עליית החנקן לחמישית מירידת ההליום.';
+
+  @override
+  String get info_term_hypercapnia_label => 'היפרקפניה';
+
+  @override
+  String get info_term_hypercapnia_body =>
+      'הצטברות של פחמן דו-חמצני בגוף. גז צפוף ומאמץ קשה מגבירים את הסיכוי לה.';
+
+  @override
+  String get info_term_turnPressure_label => 'לחץ חזרה';
+
+  @override
+  String get info_term_turnPressure_body =>
+      'לחץ המיכל שבו התוכנית מחזירה את הצלילה לכיוון היציאה.';
+
+  @override
+  String get info_term_minGas_label => 'גז מינימלי';
+
+  @override
+  String get info_term_minGas_body =>
+      'גז שנשמר כדי ששני צוללים יוכלו לחלוק אספקה אחת מהנקודה העמוקה ביותר עד פני המים, כולל עצירות.';
+
+  @override
+  String get info_term_rockBottom_label => 'רוק בוטום';
+
+  @override
+  String get info_term_rockBottom_body =>
+      'לחץ המיכל שמחזיק את הגז המינימלי. הוא כולל השהיה קצרה בעומק לטיפול בבעיה לפני העלייה.';
+
+  @override
+  String get info_term_thirds_label => 'כלל השלישים';
+
+  @override
+  String get info_term_thirds_body =>
+      'תוכנית גז שמשתמשת בשליש בדרך פנימה, בשליש בדרך החוצה ושומרת שליש כרזרבה. היא נלמדת בהכשרות מערות וסביבות סגורות.';
+
+  @override
+  String get info_term_airBreaks_label => 'הפסקות אוויר';
+
+  @override
+  String get info_term_airBreaks_body =>
+      'פרקי זמן קצרים של נשימת גז דל יותר בחמצן בזמן עצירות חמצן ארוכות. הם מפחיתים את עומס ה-CNS.';
+
+  @override
+  String get info_term_rollingAverage_label => 'ממוצע נע';
+
+  @override
+  String get info_term_rollingAverage_body =>
+      'הממוצע של כמה הצלילות האחרונות בכל נקודה, שמחליק את התנודות בין צלילות כדי להראות את המגמה.';
+
+  @override
+  String get info_term_overallTrend_label => 'מגמה כללית';
+
+  @override
+  String get info_term_overallTrend_body =>
+      'קו ישר שמותאם לכל הצלילות בטווח ומראה את הכיוון הכללי של הערכים.';
+
+  @override
+  String get info_term_rangeBand_label => 'רצועת טווח';
+
+  @override
+  String get info_term_rangeBand_body =>
+      'הרצועה המוצללת משתרעת מהערך הנמוך ביותר לגבוה ביותר בכל תקופה.';
+
+  @override
+  String get info_term_collapseGaps_label => 'כיווץ פערים';
+
+  @override
+  String get info_term_collapseGaps_body =>
+      'מסיר מציר הזמן הפסקות ארוכות בין צלילות כך שהצלילות יושבות זו לצד זו.';
+
+  @override
+  String get info_term_degreeHeatingWeeks_label => 'DHW (שבועות חימום מעלות)';
+
+  @override
+  String get info_term_degreeHeatingWeeks_body =>
+      'עקת חום שהצטברה ב-12 השבועות האחרונים, לפי NOAA Coral Reef Watch. NOAA צופה הלבנה משמעותית מ-4 והלבנה חמורה מ-8.';
+
+  @override
+  String get info_term_sstAnomaly_label => 'חריגת טמפרטורת פני הים';
+
+  @override
+  String get info_term_sstAnomaly_body =>
+      'בכמה טמפרטורת פני הים גבוהה או נמוכה מהממוצע ארוך הטווח שלה לתאריך.';
+
+  @override
+  String get info_term_bleachingAlert_label => 'התראת הלבנה';
+
+  @override
+  String get info_term_bleachingAlert_body =>
+      'רמת עקת החום של NOAA Coral Reef Watch לאזור, ממעקב ועד רמות ההתראה.';
+
+  @override
+  String get info_term_sourceDcCalc_label => 'ממחשב הצלילה או מחושב';
+
+  @override
+  String get info_term_sourceDcCalc_body =>
+      'ערכי מחשב הצלילה הם מה שהוא רשם במהלך הצלילה. ערכים מחושבים מגיעים מהמודל של האפליקציה על הפרופיל, ולכן הם עשויים להיות שונים.';
+
+  @override
+  String get info_term_scrubber_label => 'מסנן CO2';
+
+  @override
+  String get info_term_scrubber_body =>
+      'המכל במכשיר המחזור שמסלק פחמן דו-חמצני מהלולאה. החומר הסופח בו מדורג למספר שעות קבוע.';
+
+  @override
+  String get info_term_cellOutput_label => 'תפוקת התא';
+
+  @override
+  String get info_term_cellOutput_body =>
+      'קריאת המיליוולט של כל תא חמצן, שמכשיר המחזור ממיר ל-ppO2.';
+
+  @override
+  String get info_term_highO2Hours_label => 'שעות חמצן גבוה';
+
+  @override
+  String get info_term_highO2Hours_body =>
+      'זמן נשימת גז עם שיעור חמצן מוגבר, שמבלה מהר יותר חלקים לשירות חמצן.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO ו-NO DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'NO DECO פירושו שעלייה ישירה תואמת את המודל באותו רגע. DECO פירושו שנדרשת לפחות עצירה אחת לפני היציאה לפני המים.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'התחלה והצלילה הזו';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'התחלה הוא ה-CNS% שנותר מצלילות קודמות, אחרי שכבר ירד עם הזמן שעבר. הצלילה הזו היא מה שהצלילה עצמה הוסיפה מעליו.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU יומי ושבועי';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'OTU יומי סופר כל צלילה מאז חצות, ו-OTU שבועי הוא סכום מתגלגל של שבעת הימים האחרונים. כל אחד מוצג מול הגבול של האפליקציה לאותה תקופה.';
+
+  @override
+  String get info_term_maxPpO2_label => 'ppO2 מרבי';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'הלחץ החלקי הגבוה ביותר של חמצן שנשאף במהלך הצלילה.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'זמן מעל גבול ה-ppO2';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'כמה זמן ה-ppO2 נשאר מעל הגבולות שנקבעו בהגדרות במהלך הצלילה הזו.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'עומק החלפה אידיאלי';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'הנקודה העמוקה ביותר בעלייה שבה הגז הבא נמצא בתוך גבול ה-ppO2 שלו, כלומר ה-MOD שלו. הכרטיס משווה אותה לעומק שבו נרשמה ההחלפה.';
+
+  @override
+  String get info_term_extraDeco_label => 'דקומפרסיה נוספת';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'זמן דקומפרסיה שהמודל מוסיף משום שההחלפה נעשתה רדודה יותר או מאוחר יותר מהנקודה האידיאלית.';
+
+  @override
+  String get info_term_stackedArea_label => 'שטח מוערם';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'כל רצועה היא העומס של תא אחד לאורך זמן, מוערמת על האחרות, כך שהגובה הכולל מראה את העומס בכל התאים.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 ו-He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'העומס של כל תא מחולק לחנקן ולהליום. הליום נכנס ויוצא מהר יותר מחנקן.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'עצירת דקומפרסיה שהוחמצה';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'עצירה נדרשת שקוצרה או דולגה, שנמצאה בהשוואת הפרופיל לעצירות של המודל.';
+
+  @override
+  String get info_term_sawtooth_label => 'פרופיל משונן';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'עליות וירידות חוזרות במהלך הצלילה. מחקר הדקומפרסיה מקשר אותן ליותר היווצרות בועות.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'החלפת גז מאוחרת';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'החלפה לגז דקומפרסיה שנעשתה רדודה או מאוחרת בבירור מהנקודה שבה הגז נעשה שמיש.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'מהירות אנכית ממוצעת';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'הקצב הממוצע של שינוי העומק לאורך הטווח שנבחר.';
+
+  @override
+  String get info_term_computedEvents_label => 'אירועים מחושבים';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'סימונים שהאפליקציה מוסיפה מקריאת הפרופיל, כמו עליות מהירות, לעומת אירועים שמחשב הצלילה רשם.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'סימוני החלפת גז';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'נקודות שבהן גז הנשימה עבר ממיכל אחד לאחר.';
+
+  @override
+  String get info_term_diveModes_label => 'מצב צלילה';
+
+  @override
+  String get info_term_diveModes_body =>
+      'במעגל פתוח (OC) כל נשיפה יוצאת למים. מכשירי מחזור סגורים (CCR) וחצי-סגורים (SCR) ממחזרים את הגז דרך לולאה.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'ציפה נטו';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'כל הרכיבים יחד, כשעילוי נספר כחיובי ומשקל כשלילי. אפס הוא ניטרלי.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'שינוי ציפה';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'בכמה השתנתה הציפה נטו בין תחילת הצלילה לסופה, בעיקר בגלל משקל הגז שנשאף.';
+
+  @override
+  String get info_term_peakLift_label => 'עילוי מרבי נדרש';
+
+  @override
+  String get info_term_peakLift_body =>
+      'העילוי הגדול ביותר שהכנף או החליפה היבשה נאלצו להוסיף בנקודה כלשהי בצלילה כדי להישאר ניטרליים.';
+
+  @override
+  String get info_term_minDitchable_label => 'משקל מינימלי להשלכה';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'המשקל שיהיה צורך להשליך בנקודה הכבדה ביותר בצלילה כדי להגיע לציפה חיובית של כ-$weight.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'גז שהוסף לחליפה היבשה';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'גז שהוסף לחליפה היבשה כדי לפצות על הלחיצה שלה בירידה, ונספר כעילוי.';
+
+  @override
+  String get info_term_noFlyTime_label => 'זמן ללא טיסה';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'הזמן מהצלילה האחרונה עד שחולף מרווח ההנחיה של DAN ו-UHMS לטיסה. המרווח תלוי בכך שהצלילות היו בודדות, חוזרות או דרשו דקומפרסיה, ובהגדרה המוגדרת מראש.';
+
+  @override
+  String get info_term_perYearRate_label => 'קצב שנתי';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'השיפוע של קו המגמה הכללית, מבוטא כשינוי במשך שנה.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label => 'נרשם לפני המדידה';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'ראות שנרשמה כמילה, כמו טובה או גרועה, לפני שהאפליקציה רשמה אותה כמרחק. צלילות אלה שומרות על המילה המקורית.';
+
+  @override
+  String get info_term_spansBands_label => 'חוצה טווחים';
+
+  @override
+  String get info_term_spansBands_body =>
+      'ראות שנרשמה כטווח שחוצה יותר מתחום אחד, ולכן היא נספרת בנפרד.';
+
+  @override
+  String get info_term_dawnDusk_label => 'שחר ודמדומים';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'צלילת שחר מתחילה לפני הזריחה ומסתיימת אחריה, וצלילת דמדומים עושה את אותו הדבר סביב השקיעה. לילה פירושו שכל הצלילה הייתה בחושך.';
+
+  @override
+  String get info_term_calendarShading_label => 'הצללה';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'כל ריבוע הוא יום בשנה, וריבוע כהה יותר פירושו יותר צלילות באותו יום בכל השנים שבטווח.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'שעות במים מלוחים';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'זמן מתחת למים במים מלוחים או מליחים, שמבלים חלקי מתכת ואטמים מהר יותר ממים מתוקים.';
+
+  @override
+  String get info_term_coldDives_label => 'צלילות קרות';
+
+  @override
+  String get info_term_coldDives_body =>
+      'צלילות שבהן טמפרטורת המים הנמוכה ביותר הייתה מתחת לסף המים הקרים בהגדרות מצב הציוד.';
+
+  @override
+  String get info_term_deepCycles_label => 'צלילות עמוקות';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'צלילות שהגיעו לסף הצלילה העמוקה בהגדרות מצב הציוד, כל אחת מחזור לחץ מלא לציוד.';
+
+  @override
+  String get info_term_conditionRules_label => 'כללי מצב';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'בדיקות שהאפליקציה מריצה על צלילות ובעיות שנרשמו, כמו תאי חמצן שקריאתם יורדת עם הזמן או בעיה שחוזרת. ניתן לכבות כל אחת בהגדרות.';
+
+  @override
+  String get info_term_standout_label => 'בולט';
+
+  @override
+  String get info_term_standout_body =>
+      'גורם שחלקו בצלילות המיקוד שונה בבירור מחלקו בשאר הצלילות. הנקודה בטבלה מסמנת אותו.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'עומק ממוצע';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'הממוצע של העומק המרבי של כל צלילה, לא העומק הממוצע בתוך הצלילות.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'סוגי צלילה';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'צלילה עם כמה סוגים נספרת פעם אחת תחת כל אחד, ולכן סכום העמודות יכול לעלות על מספר הצלילות.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'כמה תערובות';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'צלילה שבה נשאפה יותר מתערובת אחת נספרת פעם אחת תחת כל אחת, ולכן סכום העמודות יכול לעלות על מספר הצלילות.';
+
+  @override
+  String get info_term_cylinderRole_label => 'תפקיד המיכל';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'למה שימש המיכל בצלילה: גז קרקעית, במה, דקומפרסיה, פוני או חילוץ. הצריכה מקובצת לפי זה.';
+
+  @override
+  String get info_term_colourBy_label => 'צביעה לפי';
+
+  @override
+  String get info_term_colourBy_body =>
+      'סוג צובע כל נקודה לפי מה שהיא, קבוצות צובע את האשכולות שצוללים יחד, ועדכניות מעמעמת קשרים שלא נצללו לאחרונה.';
+
+  @override
+  String get info_term_weightedEdges_label => 'קשרים משוקללים';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'קו עבה יותר פירושו יותר צלילות משותפות לשתי הנקודות שהוא מחבר.';
+
+  @override
+  String get info_term_hops_label => 'קפיצות';
+
+  @override
+  String get info_term_hops_body =>
+      'לכמה קשרים מהנקודה שנבחרה התצוגה מגיעה. קפיצה אחת מציגה רק את הקשרים הישירים שלה.';
+
+  @override
+  String get info_term_lastStop_label => 'העצירה האחרונה';
+
+  @override
+  String get info_term_lastStop_body =>
+      'עומק עצירת הדקומפרסיה הרדודה ביותר. עצירה אחרונה עמוקה יותר קלה יותר להחזקה בגלים אך נמשכת יותר זמן.';
+
+  @override
+  String get info_term_ascentStages_label => 'שלבי העלייה';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'התוכנית יכולה להשתמש במהירות שונה לכל חלק בעלייה: עד העצירה הראשונה, בין עצירות וליד פני המים.';
+
+  @override
+  String get info_term_reserveGas_label => 'רזרבה';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'גז שהתוכנית שומרת בכל מיכל ולעולם אינה סופרת כזמין.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'עומק החלפת נקודת הכיוון';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'העומק שבו התוכנית עוברת מנקודת הכיוון הנמוכה לגבוהה בירידה, ובחזרה בעלייה.';
+
+  @override
+  String get info_term_pscrRatio_label => 'יחס pSCR';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'החלק מכל נשיפה שמכשיר מחזור חצי-סגור פסיבי משליך. הוא קובע כמה החמצן בלולאה נמוך מגז האספקה.';
+
+  @override
+  String get info_term_turnFraction_label => 'שבר החזרה';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'החלק מהגז ההתחלתי שהתוכנית מנצלת לפני החזרה. שליש הוא הכלל המקובל במערות ובצלילות סגורות אחרות.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (סקוטר)';
+
+  @override
+  String get info_term_dpv_body =>
+      'רכב הנעה לצוללים. תוכנית המשימה מכסה את הסוללה, המרחק שנעבר והשחייה חזרה אם סקוטר מתקלקל.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'חציות תקרה';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'כמה פעמים ועד כמה גרסה של הצלילה הייתה רדודה מתקרת המודל.';
+
+  @override
+  String get info_term_deepestStop_label => 'העצירה העמוקה ביותר';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'עומק עצירת הדקומפרסיה הנדרשת הראשונה.';
+
+  @override
+  String get info_term_minGasMargin_label => 'מרווח גז מינימלי';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'כמה גז נותר מעל הגז המינימלי בנקודה שבה קרה השינוי.';
+
+  @override
+  String get info_term_gasOutTime_label => 'זמן אזילת גז';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'מתי מיכל היה מתרוקן בקצב הנשימה שבו ההרצה החוזרת משתמשת.';
+
+  @override
+  String get info_term_whatIf_label => 'בפועל ומה אם';
+
+  @override
+  String get info_term_whatIf_body =>
+      'בפועל מריץ מחדש את הצלילה שנרשמה דרך המודל, ומה אם מריץ אותה עם השינויים שהוספו במעבדת הצלילה.';
+
+  @override
+  String get info_term_cellGain_label => 'תפוקת התא (מיליוולט לבר)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'קריאת המיליוולט של כל תא חמצן מחולקת ב-ppO2 שהוא מודד. היא נשארת יציבה כל עוד התא תקין ויורדת כשהוא מזדקן.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'ניתוקי משדר';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'החלק מכל צלילה ללא קריאת לחץ מהמשדר.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'חמצן נספר כנרקוטי';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'כשמופעל, חמצן נספר כנרקוטי כמו חנקן ב-END וב-MND. זה מעמיק את ה-END ומרדד את ה-MND.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'גזים לעלייה';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'לאילו מיכלים נישאים העלייה המדומה רשאית לעבור: כל גז שנישא, או רק מיכלי במה ודקומפרסיה.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'עומק לאורך זמן לכל הצלילה, כשכל שכבה מופעלת מצוירת על אותו ציר זמן.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'שכבות הדקומפרסיה והחמצן מגיעות ממודל Buhlmann ZHL-16C עם מקדמי השיפוע מההגדרות, ומטבלאות החמצן של NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'מעבר על התרשים מציג את כל הערכים ברגע אחד. המקרא מפעיל ומכבה שכבות, וכפתור הטווח בוחר חלק מהצלילה כדי לראות את הנתונים שלו.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'נתונים עבור החלק שנבחר מהצלילה בתרשים.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'מה שמודל הדקומפרסיה מדווח בזמן הסמן: האם נדרשות עצירות, וכמה זמן או עומק נותרו.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'האפליקציה מריצה את מודל Buhlmann ZHL-16C עם מקדמי השיפוע שעל תווית ה-GF. מחשב צלילה עם מודל או הגדרות אחרים עשוי להציג מספרים שונים.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'כמה חשיפה לחמצן הוסיפה הצלילה, בשעון ה-CNS לטווח קצר ובמנת ה-OTU האיטית יותר.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'ה-CNS% עוקב אחר גבולות החשיפה ל-ppO2 של NOAA ויורד בזמן מחצית של 90 דקות אחרי הצלילה. ה-OTU היומי מתאפס בחצות וה-OTU השבועי מכסה את שבעת הימים האחרונים.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'איך כל החלפת גז משתווה לנקודה העמוקה ביותר שבה הגז היה בתוך גבול ה-ppO2 שלו.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'עד כמה כל אחד מ-16 התאים של המודל עמוס בגז אינרטי בזמן הסמן.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'המודל הוא Buhlmann ZHL-16C, שעוקב אחר חנקן והליום בנפרד בכל תא. העומס סופר רק את מה שמעל רמת פני המים, ולכן עמודות שפלטו את כל הגז לעולם אינן מגיעות לאפס.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'רגעים בצלילה הזו שחצו אחד מכללי סקירת הבטיחות, שנמצאו בבדיקת הפרופיל אחרי הצלילה.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'הכללים והספים שלהם נקבעים בהגדרות, תחת סקירת בטיחות.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'הקשה על ממצא מראה היכן הוא קרה בפרופיל. דחיית ממצא מסתירה אותו בצלילה הזו.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'כל מיכל בצלילה עם הגז שלו, הלחץ שנוצל וגבולות העומק של הגז הזה.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'צריכת הגז מחולקת לשלבי הצלילה או לפרוסות זמן, כדי להשוות את המאמץ בכל חלק.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'הבורר מעל התרשים מחליף בין SAC ל-RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'העובדות שנרשמו בצלילה הזו, עם ערכים שחושבו מהפרופיל במקומות שבהם לא הוזן דבר.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'הצלילה הזו הייתה בגובה, שבו לחץ האוויר הנמוך בפני המים הופך את מודל הדקומפרסיה לשמרני יותר.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'מודל של הציפה נטו לאורך הצלילה, מתוך הפרופיל, הגז שנשאף והציוד שנרשם עם הצלילה.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'כוונון פותח חלונית שמנסה כמות משקולות או ציפת חליפה אחרת על הצלילה הזו.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'טמפרטורת הים ועקת החום של האלמוגים ליד האתר סביב תאריך הצלילה, מנתוני הלוויין של NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'איך הצלילה הזו משתווה לתוכנית המקושרת או לתרחישים שנשמרו במספרים החשובים לדקומפרסיה.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'הקשה על הכרטיס פותחת את מעבדת הצלילה לניסוי בחירות אחרות על הצלילה הזו.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'מתי מסתיים מרווח ההנחיה לטיסה אחרי הצלילות האחרונות.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'כפתור הטווח בוחר את התקופה, וכפתור הקיבוץ מציג כל צלילה, כל שבוע או כל חודש. ממוצע נע ומגמה כללית מפעילים ומכבים את הקווים שלהם, ואת הפערים הארוכים אפשר לכווץ מהתפריט.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'צריכת גז לכל צלילה לאורך זמן, נקודה לכל צלילה או קבוצה, במסלול שנבחר למעלה.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'צריכת גז לאורך זמן לכל סוג מיכל, כדי שגז הקרקעית והבמות לא יתערבבו.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'חמצן וגז מדלל שנוצלו בכל צלילת מכשיר מחזור, כנפח לדקה בלחץ פני המים.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'העומק המרבי של כל צלילה לאורך זמן.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'כמה זמן נמשכה כל צלילה מעזיבת פני המים ועד העלייה, לאורך זמן.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'זמן הקרקעית של כל צלילה לאורך זמן, ללא העלייה הסופית והעצירות שזמן הריצה כולל.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'טמפרטורת המים שנרשמה בכל צלילה לאורך זמן.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'טמפרטורת האוויר שנרשמה בכל צלילה לאורך זמן.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'המשקולות שנישאו בכל צלילה לאורך זמן.';
+
+  @override
+  String get info_insights_gasMix_summary => 'בכמה צלילות נשאפה כל תערובת גז.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'איך הוגדרו המיכלים בכל צלילה, לפי התפקידים שנרשמו למיכלים.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'הצלילות עם צריכת הגז הנמוכה והגבוהה ביותר בטווח.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'מהירות ממוצעת בירידה ובעלייה, מחושבת מהפרופילים.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'איך הזמן הכולל מתחת למים מתחלק בין טווחי עומק.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'כמה צלילות דרשו עצירות דקומפרסיה, לפי קריאת המודל של כל פרופיל.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'הסכום המצטבר של הצלילות שנרשמו לאורך זמן.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'צלילות מקובצות לפי הראות שנרשמה, בטווחים של סולם הראות בהגדרות.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'צלילות במים מלוחים, מתוקים ומליחים.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'טמפרטורת המים הנמוכה, הממוצעת והגבוהה שנרשמה בכל חודש בשנה.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'צלילות מקובצות לפי טמפרטורת המים, עם צריכת הגז והעומק הממוצעים לכל טווח.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'צלילות לפי סוג האתר שנרשם, כמו שונית, ספינה טרופה או מערה.';
+
+  @override
+  String get info_insights_altitude_summary => 'צלילות מקובצות לפי גובה האתר.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'צלילות מקובצות לפי לחץ האוויר שנרשם בפני המים.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'מתי התקיימו הצלילות ביחס לזריחה ולשקיעה בכל אתר.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'באילו ימים בשנה היו צלילות, בכל השנים שבטווח.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'הזמן הממוצע, הקצר והארוך ביותר בפני המים בין צלילה לצלילה שלפניה.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'ציוד מדורג לפי מידת השימוש והבלאי, ביחידה שנבחרה בתפריט.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'דפוסים בצלילות ובבעיות שנרשמו שמצביעים על ציוד שדורש תשומת לב.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'הבעיות שנרשמו לצלילות, מקובצות לפי תגית וספורות.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'הצלילות שנבחרו במשפט שלמעלה, בהשוואה לכל שאר הצלילות בטווח.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'הקשה על המילים המסומנות בקו במשפט משנה את המדד, הכיוון ומספר הצלילות. מצב סף משווה במקום זאת כל צלילה מעל ערך או מתחתיו.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'הגורמים הנפוצים יותר או פחות בבירור בצלילות המיקוד מאשר בשאר.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'כל הגורמים זה לצד זה: חלקם בצלילות המיקוד ובשאר הצלילות.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'סכומים וממוצעים לכל הצלילות בטווח.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'איך הצלילות מתפזרות בין טווחי עומק לסוגי צלילה.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'הערות קצרות שהאפליקציה מצאה ביומן, כמו צלילה עמוקה חדשה או שינוי בצריכת הגז.';
+
+  @override
+  String get info_connections_display_summary =>
+      'כל נקודה היא שותף, אתר, טיול או פריט ציוד, וכל קו מחבר שניים שחולקים צלילות.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'הקשה על נקודה מתמקדת בה ובקשרים שלה. הלוח בוחר צבעים, סגנון קו ועד כמה התצוגה מגיעה.';
+
+  @override
+  String get info_planner_results_summary =>
+      'המספרים העיקריים של התוכנית במצבה הנוכחי, מתעדכנים כשהתוכנית משתנה.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'העלייה שהמודל מתכנן, שורה לכל עצירה או החלפת גז, עם עומק, זמן, זמן ריצה וגז.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'כמה מכל מיכל התוכנית מנצלת, עם לחץ החזרה והגז המינימלי היכן שלחץ ההתחלה ידוע.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'העלייה במעגל פתוח מהנקודה הגרועה ביותר בצלילה אם הלולאה אובדת, והאם גז החילוץ שנישא מספיק לה.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'התוכנית מחושבת מחדש למקרה שדברים יתנהלו אחרת: צלילה עמוקה או ארוכה יותר, או אובדן גז.';
+
+  @override
+  String get info_planner_range_summary =>
+      'איך לוח הזמנים משתנה אם הצלילה עמוקה יותר או ארוכה יותר מהמתוכנן.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'תוכנית הסקוטרים של הצוות: שימוש בסוללה, מרחק ושחייה חזרה אם סקוטר מתקלקל.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'מה הצלילה הזו משאירה לבאה: מרווח השטח, ה-CNS שעדיין נישא וה-OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'עד כמה לוח הזמנים שמרני והיכן נמצאת העצירה האחרונה.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'הורדת GF Low מעמיקה את העצירה הראשונה, והורדת GF High מאריכה את העצירות הרדודות. התוצאות מתעדכנות עם כל שינוי.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'באיזו מהירות התוכנית יורדת ועולה בכל חלק של הצלילה.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'כל קצב חל על החלק שלו בצלילה. התוצאות מתעדכנות כשערך משתנה.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'קצב הנשימה והרזרבה שהתוכנית משתמשת בהם כדי לחשב את הגז.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'הזינו קצב נשימה בקרקעית, או קחו אותו מצלילות שנרשמו, ואת הרזרבה לשמירה בכל מיכל.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'סוג המים והגובה, שקובעים את לחץ פני המים שממנו המודל מתחיל.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'בחרו את סוג המים והזינו את גובה האתר.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'נקודות הכיוון שמכשיר המחזור הסגור מחזיק במהלך התוכנית.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'קבעו את נקודות הכיוון הנמוכה והגבוהה ואת העומק שבו התוכנית מחליפה ביניהן.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'איך מכשיר המחזור החצי-סגור הפסיבי ממודל בתוכנית.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'הזינו את יחס ההשלכה שיצרן מכשיר המחזור מציין.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'עד כמה מגיעות תוכניות החירום והכלל שלפיו תוכנית הגז חוזרת.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'קבעו בכמה עמוק וארוך יותר תוכניות החירום מגיעות, ואז בחרו כלל חזרה ושבר.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'הצוות, הסקוטרים והתנאים שמאחורי תוכנית המשימה.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'הזינו את הצוללים והסקוטרים, רזרבת הסוללה, הזרם ומהירות השחייה.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'הציוד והמשקולות בתוכנית, שמשמשים לחיזוי הציפה לאורך הצלילה.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'הוסיפו חליפה, מיכלים ומשקולות כדי לראות את הציפה החזויה.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'התוצאות העיקריות של הרצת מה אם, צבועות לפי האם השתפרו או הורעו לעומת הצלילה בפועל.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'כל מדד לצלילה בפועל ולגרסת מה אם זה לצד זה, עם ההפרש.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'העומס בתאים כשכל גרסה מגיעה לפני המים, בפועל ומה אם.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'הציפה בעצירה האחרונה לכל גרסה של הצלילה.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'שינויים לניסוי על הצלילה הזו, שכל אחד מהם מורץ מחדש דרך אותו מודל מהרגע שבו הוא חל.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'העומק העמוק ביותר שבו התערובת שנבחרה נשארת בגבול ה-ppO2 שלה, עם ה-EAD וה-END שם.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'בחרו מצב, ואז קבעו את החמצן ואת ה-ppO2 לעבודה. אפשר להוסיף עומק יעד כדי לבדוק עומק מתוכנן מול התערובת. גבול ה-END והאם חמצן נספר כנרקוטי מגיעים מפרופיל הצולל.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'התערובת העשירה ביותר לעומק יעד שמשאירה את ה-ppO2 בגבולו ואת ה-END בגבול הנרקוזה.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'קבעו את עומק היעד ואת המצב. ב-CCR בחרו אם התערובת היא גז מדלל או גז חילוץ.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'כמה גז צלילה מתוכננת מנצלת בעומק, זמן וקצב נשימה נתונים.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'הזינו את העומק, הזמן, קצב הנשימה והמיכל.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'רזרבת הגז המינימלית לכך ששני צוללים יעלו יחד על אספקה אחת מהנקודה העמוקה ביותר.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'החישוב משתמש בקצב נשימה בלחץ, בדרך כלל פי שניים עד שלושה מהרגיל, וסופר את שני הצוללים על מיכל אחד. עצירת הביטחון נכללת כשהאפשרות מופעלת.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'קבעו את העומק, קצב הנשימה בלחץ, קצב העלייה והמיכל.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'העומק העמוק ביותר שבו גז נשאר בגבול ה-END, וה-END של גז בעומק נתון.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'הזינו את הגז, גבול ה-END והאם חמצן נספר כנרקוטי.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'האם החלפה בין שני גזים עומדת בכלל החמישיות לדיפוזיה נגדית.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'הליום מתפזר מהר יותר מחנקן, ולכן מעבר לגז עשיר יותר בחנקן יכול להעלות את סך הגז האינרטי ברקמות. הארגונים חלוקים בשאלה עד כמה זה משנה בגזים סטנדרטיים.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'הזינו את הגז הנוכחי ואת הגז שעוברים אליו.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'כמה צפוף גז בעומק, והעומק שבו אוויר היה צפוף באותה מידה.';
+
+  @override
+  String get info_calculators_density_background =>
+      'ב-CCR זו צפיפות גז הלולאה: חמצן בנקודת הכיוון והשאר מחולק ביחס הגז המדלל. גז קר יותר צפוף יותר, והחישוב מניח גז אידיאלי.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'הזינו את התערובת, העומק וטמפרטורת המים, ועברו בין OC ל-CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'ערבול בלחצים חלקיים: גזי המילוי שמוסיפים לפי הסדר כדי להגיע לתערובת היעד.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'כל גז מוסף עד הלחץ המוצג והמיכל מושאר להתייצב לפני הבא. גזי המילוי וסדרם ניתנים להגדרה, כך שהגז האחרון יכול להיות EAN32 במקום אוויר.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'הזינו מה כבר נמצא במיכל ואת תערובת היעד. השלב האחרון בכל ערבול הוא ניתוח התערובת המוגמרת.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'צלילה ברמה אחת שמורצת דרך מודל Buhlmann ZHL-16C, ומציגה את גבולות הגז, העצירות ועומס הרקמות.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'קבעו את העומק, הזמן, הגז ותנאי המים. גבולות הגז, העצירות ותרשים הרקמות מתעדכנים עם כל שינוי.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'האם צלילה שנייה נכנסת לגבולות ללא עצירות אחרי מרווח שטח, לפי עומס הרקמות שנותר מהצלילה הראשונה.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      '16 התאים של המודל משחררים גז במהלך המרווח, המהירים תוך דקות והאיטיים במשך שעות. התא המוביל הוא העמוס ביותר ובדרך כלל קובע את ה-NDL.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'קבעו את הצלילה הראשונה, השנייה ומרווח השטח. התוצאה מציגה את המרווח המינימלי ואת ה-NDL לצלילה השנייה.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'נקודה לכל צלילה, כך ששינוי איטי בפריט הזה נראה כמגמה לאורך חייו.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'דפוסים בצלילות ובבעיות שדווחו לפריט הזה, שכללי המצב סימנו.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'כמה שימוש עבר הפריט הזה, נספר בכל יחידה ששעוני השירות שלו משתמשים בה.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'גובה האתר מעל פני הים ולחץ האוויר שם, שממנו מודל הדקומפרסיה מתחיל.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'כמה זמן מדורג של מסנן ה-CO2 נותר לצלילות המחזור המתוכננות בטיול.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'עד כמה מודל הדקומפרסיה של האפליקציה שמרני.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'מקדמי שיפוע מצמצמים את ערכי ה-M של Buhlmann ZHL-16C, שיטה שתיאר אריק בייקר. כל נתון דקומפרסיה שהאפליקציה מחשבת משתמש בהם.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'גבולות ה-ppO2 ושיטת ה-CNS המשמשים לנתוני החמצן בכל האפליקציה.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'האם NDL, עצירות דקומפרסיה, TTS, GTR ו-CNS מגיעים ממחשב הצלילה או מהחישוב של האפליקציה.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'גבול ה-END ואופן חישוב ה-END וה-MND בכל האפליקציה.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'הבדיקה שהאפליקציה מריצה על החלפות גז לדיפוזיה נגדית בין הליום לחנקן.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'לאילו גזים העלייה המדומה רשאית לעבור כשהאפליקציה מחשבת TTS, תקרה ועצירות.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'הכללים שמולם נבדקת כל צלילה אחרי שנרשמה. כלל כבוי לעולם אינו מדווח.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'הקווים שגורמים לצלילה להיספר כקרה, עמוקה או עתירת חמצן לשעוני השירות.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'הנתונים לכל צלילה שהאפליקציה שומרת לתאי חמצן, משדרים ומסנני CO2.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'הבדיקות שמאחורי ממצאי מצב הציוד. כלל כבוי לעולם אינו מדווח.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'התזכורות מתוזמנות כשהאפליקציה נפתחת ומתעדכנות ברקע. לכל פריט ציוד אפשר לקבוע תזכורות משלו במסך העריכה שלו.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'המהירויות שבהן הפרופיל צובע את העלייה ורושם אירועי קצב עלייה.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'תמיד נתח את התערובת הסופית לפני צלילה איתה.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'ה-MOD תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה. Rec משתמש בבר אחד לכל $depth, כמו יומן הצלילות. OC Tec ו-CCR Tec מחשבים את הלחץ בעומק לפי סוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.';
+  }
 }

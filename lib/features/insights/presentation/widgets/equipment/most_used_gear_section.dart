@@ -6,24 +6,15 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
-import 'package:submersion/features/insights/presentation/widgets/equipment/gear_report_row.dart';
-import 'package:submersion/features/insights/presentation/widgets/ranking_list.dart';
+import 'package:submersion/features/insights/presentation/widgets/expandable_ranking_list.dart';
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Gear by dive count, under the Insights filter, which is what makes usage
 /// by year or by trip work: the diver sets a date range or a trip.
-class MostUsedGearSection extends ConsumerStatefulWidget {
+class MostUsedGearSection extends ConsumerWidget {
   const MostUsedGearSection({super.key});
-
-  @override
-  ConsumerState<MostUsedGearSection> createState() =>
-      _MostUsedGearSectionState();
-}
-
-class _MostUsedGearSectionState extends ConsumerState<MostUsedGearSection> {
-  bool _expanded = false;
 
   /// The row's brand, its type in the viewer's language, and its hours. A row
   /// with no recorded time says nothing about hours rather than "0 hours".
@@ -46,7 +37,7 @@ class _MostUsedGearSectionState extends ConsumerState<MostUsedGearSection> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final gearAsync = ref.watch(mostUsedGearProvider);
 
@@ -54,22 +45,10 @@ class _MostUsedGearSectionState extends ConsumerState<MostUsedGearSection> {
       title: l10n.insights_equipment_mostUsedGear_title,
       subtitle: l10n.insights_equipment_mostUsedGear_subtitle,
       child: gearAsync.when(
-        data: (data) => Column(
-          children: [
-            RankingList(
-              items: [
-                for (final item in showAllSlice(data, expanded: _expanded))
-                  _described(l10n, item),
-              ],
-              countLabel: l10n.insights_ranking_countLabel_dives,
-              onItemTap: (item) => context.push('/equipment/${item.id}'),
-            ),
-            GearReportShowAll(
-              itemCount: data.length,
-              expanded: _expanded,
-              onChanged: (value) => setState(() => _expanded = value),
-            ),
-          ],
+        data: (data) => ExpandableRankingList(
+          items: [for (final item in data) _described(l10n, item)],
+          countLabel: l10n.insights_ranking_countLabel_dives,
+          onItemTap: (item) => context.push('/equipment/${item.id}'),
         ),
         loading: () => const SizedBox(
           height: 200,

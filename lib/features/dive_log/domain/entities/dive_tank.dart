@@ -109,6 +109,20 @@ class DiveTank extends Equatable {
   /// like [transmitterSerial]: edit flows never write it.
   final Duration? usageDuration;
 
+  /// How long the diver breathed this cylinder at the surface after the
+  /// computer stopped logging, as they entered it (issue #2930): oxygen on the
+  /// boat after a deco dive. An end pressure read off the gauge includes that
+  /// gas, so SAC counts this time at 0 m, unless [hasPressureSeries] says the
+  /// end is a transmitter's last reading. Null when none.
+  final Duration? surfaceBreathingDuration;
+
+  /// Whether a transmitter logged this cylinder's pressure (issue #2930): its
+  /// end pressure is then the last reading, taken before the computer
+  /// stopped, so it holds none of the gas breathed after and
+  /// [surfaceBreathingDuration] does not count. Read, never stored: the dive
+  /// reads set it from `tank_pressure_series`.
+  final bool hasPressureSeries;
+
   /// Deco gas-switch depth override in meters (planning only); null = auto
   /// (MOD at the deco pO2). Subsurface per-cylinder "Deco switch at", v120.
   /// Unused for logged-dive tanks.
@@ -147,6 +161,8 @@ class DiveTank extends Equatable {
     this.twinPassportId,
     this.equipmentId,
     this.usageDuration,
+    this.surfaceBreathingDuration,
+    this.hasPressureSeries = false,
     this.decoSwitchDepth,
     this.isTravelGas = false,
   });
@@ -210,6 +226,9 @@ class DiveTank extends Equatable {
     String? equipmentId,
     Duration? usageDuration,
     bool clearUsageDuration = false,
+    Duration? surfaceBreathingDuration,
+    bool clearSurfaceBreathingDuration = false,
+    bool? hasPressureSeries,
     bool clearRegulatorEquipmentId = false,
     bool clearMaterial = false,
     String? tripCylinderId,
@@ -259,6 +278,10 @@ class DiveTank extends Equatable {
       usageDuration: clearUsageDuration
           ? null
           : (usageDuration ?? this.usageDuration),
+      surfaceBreathingDuration: clearSurfaceBreathingDuration
+          ? null
+          : (surfaceBreathingDuration ?? this.surfaceBreathingDuration),
+      hasPressureSeries: hasPressureSeries ?? this.hasPressureSeries,
       decoSwitchDepth: clearDecoSwitchDepth
           ? null
           : (decoSwitchDepth ?? this.decoSwitchDepth),
@@ -292,6 +315,8 @@ class DiveTank extends Equatable {
     passportId,
     twinPassportId,
     usageDuration,
+    surfaceBreathingDuration,
+    hasPressureSeries,
     decoSwitchDepth,
     isTravelGas,
   ];

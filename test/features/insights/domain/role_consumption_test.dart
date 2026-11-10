@@ -420,6 +420,42 @@ void main() {
       );
     });
 
+    test('a recorded pair counts surface minutes at the surface whichever '
+        'cylinder holds them (#2930)', () {
+      // Only the right cylinder carries the ten minutes entered for the
+      // surface, and the left one comes first. The group's time gains them
+      // at 0 m, so its depth blends them in whatever order the rows come.
+      const left = DiveTank(
+        id: 'left',
+        volume: 11,
+        startPressure: 200,
+        endPressure: 100,
+        gasMix: GasMix(o2: 21),
+        role: TankRole.sidemountLeft,
+        order: 0,
+        usageDuration: Duration(minutes: 50),
+      );
+      final right = left.copyWith(
+        id: 'right',
+        role: TankRole.sidemountRight,
+        order: 1,
+        usageDuration: const Duration(minutes: 55),
+        surfaceBreathingDuration: const Duration(minutes: 10),
+      );
+      final dive = _dive([left, right]);
+      final run = _run(dive);
+      final l = _row(run.rows, 'left');
+      final r = _row(run.rows, 'right');
+      final ambient = dive.environment.pressureAtDepth(
+        l.avgDepthDuringUse! * 55 / 65,
+      );
+
+      expect(
+        run.result.rmv[ConsumptionRoleGroup.bottomGas],
+        closeTo((_liters(l) + _liters(r)) / 65 / ambient, 1e-9),
+      );
+    });
+
     test('two stages breathed one after the other add their time', () {
       final a = _deco.copyWith(id: 'a', role: TankRole.stage, order: 1);
       final b = _deco.copyWith(

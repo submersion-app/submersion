@@ -33,6 +33,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 import '../../../../helpers/role_sheet.dart';
+import '../../../../helpers/folded_groups.dart';
 
 /// Covers the bulk tri-state membership wiring in DiveEditPage: loading members
 /// for every reference collection, the add-affordance dialogs/sheets, and the
@@ -152,6 +153,8 @@ void main() {
       await tester.ensureVisible(btn);
       await tester.tap(btn);
       await tester.pumpAndSettle();
+      // Equipment pickers open with their groups folded (#3364).
+      await openFoldedGroups(tester);
     }
 
     testWidgets(

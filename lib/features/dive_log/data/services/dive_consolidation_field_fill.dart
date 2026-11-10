@@ -166,6 +166,9 @@ const Map<String, String> consolidationUnfilledColumns = {
       'one that takes in a logged dive adopts its number',
   'is_favorite': 'a secondary does not make the dive a favorite',
   'is_planned': 'stands unless a plan takes in a logged dive, which logs it',
+  'is_draft':
+      'stands unless a draft takes in a logged dive, which logs it, or a '
+      'plan takes in a draft, which makes the plan the draft',
   'gradient_factor_low': 'how the target computer computed its deco',
   'gradient_factor_high': 'how the target computer computed its deco',
   'deco_algorithm': 'how the target computer computed its deco',
@@ -217,14 +220,21 @@ Map<String, Expression> consolidationFieldFill(
   }
   // A plan that takes in a logged dive was dived, so it stops being a plan:
   // still flagged, the real dive would drop out of no-fly and residual
-  // exposure (issue #3924). It takes that dive's place in the logbook too.
-  final logged = secondaries.where((s) => !s.isPlanned);
-  if (target.isPlanned && logged.isNotEmpty) {
-    fill['is_planned'] = const Variable<bool>(false);
+  // exposure (issue #3924). A draft that takes one in has its readings now
+  // (issue #637). Either takes that dive's place in the logbook too.
+  final logged = secondaries.where((s) => !s.isPlanned && !s.isDraft);
+  if ((target.isPlanned || target.isDraft) && logged.isNotEmpty) {
+    if (target.isPlanned) fill['is_planned'] = const Variable<bool>(false);
+    if (target.isDraft) fill['is_draft'] = const Variable<bool>(false);
     final number = logged.map((s) => s.diveNumber).nonNulls.firstOrNull;
     if (target.diveNumber == null && number != null) {
       fill['dive_number'] = Variable<int>(number);
     }
+  } else if (target.isPlanned && secondaries.any((s) => s.isDraft)) {
+    // A plan that takes in a draft was dived but still has no readings, so
+    // it becomes the draft: kept a plan, today's dive would leave no-fly.
+    fill['is_planned'] = const Variable<bool>(false);
+    fill['is_draft'] = const Variable<bool>(true);
   }
   return fill;
 }

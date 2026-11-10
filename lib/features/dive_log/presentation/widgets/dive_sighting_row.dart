@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_color.dart';
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/sighting_amount_badge.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// One sighting on the dive detail page: the category avatar, the localized
-/// species name, the note, the animal count, and, when the dive's photos
+/// species name, the note, how many animals (an exact count or a REEF
+/// group; nothing for Seen), and, when the dive's photos
 /// carry this species' tag, a chip that opens those photos.
 class DiveSightingRow extends StatelessWidget {
   const DiveSightingRow({
@@ -101,25 +104,10 @@ class DiveSightingRow extends StatelessWidget {
                     visualDensity: VisualDensity.compact,
                   ),
                 ),
-              if (sighting.count > 1)
-                Container(
-                  margin: const EdgeInsets.only(left: 8),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'x${sighting.count}',
-                    style: TextStyle(
-                      color: theme.colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
+              if (sighting.abundance != SightingAbundance.seen)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 8),
+                  child: SightingAmountBadge(amount: sighting.amount),
                 ),
             ],
           ),

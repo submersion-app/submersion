@@ -1924,6 +1924,24 @@ class AppLocalizationsEs extends AppLocalizations {
       'Horarios de inmersión de este día';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Horarios de inmersión de este día. Salida del sol $sunrise, puesta del sol $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Horarios de inmersión de este día. Salida del sol $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Horarios de inmersión de este día. Puesta del sol $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Mapa del día $number';
   }
@@ -2022,6 +2040,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_tankSpecsHint =>
       'Elige qué atributos sobrescribir en las botellas que estas inmersiones ya tienen. Las presiones inicial y final nunca se modifican.';
+
+  @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'Todas las botellas';
 
   @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
@@ -5427,6 +5448,57 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'Equipo';
 
   @override
+  String get diveLog_health_after15 => 'Después de 15 min';
+
+  @override
+  String get diveLog_health_after5 => 'Después de 5 min';
+
+  @override
+  String get diveLog_health_atSurfacing => 'Al salir a la superficie';
+
+  @override
+  String get diveLog_health_average => 'Promedio';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'Máximo';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound =>
+      'Apple Health no tiene datos para esta inmersión';
+
+  @override
+  String get diveLog_health_overnightHrv =>
+      'Variabilidad de la frecuencia cardíaca la noche siguiente';
+
+  @override
+  String get diveLog_health_readFailed => 'No se pudo leer Apple Health';
+
+  @override
+  String get diveLog_health_recovery => 'Recuperación';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'Frecuencia cardíaca al salir a la superficie y 5 y 15 minutos después, de Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return 'Dormiste $hours h $minutes min la noche anterior';
+  }
+
+  @override
+  String get diveLog_health_title => 'Frecuencia cardíaca y recuperación';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Iniciar lista previa a la inmersión';
 
@@ -6335,6 +6407,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mapa de puntos recientes';
 
   @override
+  String get settings_homeCards_card_waitingForDownload => 'Esperando descarga';
+
+  @override
   String get dashboard_allHidden_message =>
       'Todas las tarjetas de Inicio están ocultas.';
 
@@ -6555,6 +6630,20 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dashboard_semantics_greetingBanner =>
       'Banner de bienvenida del panel';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Descargar ahora';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones esperan tu computadora de buceo',
+      one: '1 inmersión espera tu computadora de buceo',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Agregar al Planificador';
@@ -7602,13 +7691,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => '¿Qué significan estos valores?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Carga: la presión de gas inerte de un compartimento como porcentaje del máximo que puede contener en superficie (su valor M, la línea roja al 100%).\n\nNivel de superficie: la marca en cada barra indica dónde se estabiliza un compartimento totalmente desaturado mientras respiras aire en superficie. Nunca está en 0%, porque tu cuerpo siempre contiene el nitrógeno del aire que respiras. Una barra en su marca ya no tiene carga residual del buceo.\n\nAbsorción y liberación: el gas siempre se mueve hacia la presión del gas que respiras. Tras una descompresión con oxígeno o con una mezcla rica en helio, los compartimentos rápidos pueden contener menos nitrógeno que el aire en superficie. Al volver a respirar aire, absorben nitrógeno de nuevo hasta alcanzar su marca. Es normal y no es una carga residual de la inmersión.\n\nHelio: el aire no contiene helio. Tras una inmersión con trimix, un compartimento libera helio mientras puede absorber nitrógeno al mismo tiempo. Las flechas junto a N₂ y He muestran cada gas por separado; la indicación junto al número del compartimento muestra la dirección neta de ambos.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Gráfico de carga tisular. $count compartimentos, carga respecto al valor M; compartimento líder $number al $percent%.';
   }
@@ -8086,9 +8168,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_diveMode_title => 'Modo de buceo';
 
   @override
-  String get diveLog_editSighting_count => 'Cantidad';
-
-  @override
   String get diveLog_editSighting_notes => 'Notas';
 
   @override
@@ -8227,6 +8306,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Completar $count cambios a partir de las presiones de las botellas',
+      one: 'Completar 1 cambio a partir de las presiones de las botellas',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Obteniendo ubicación...';
 
   @override
@@ -8354,6 +8445,39 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_edit_noMarineLife => 'No se registraron especies';
+
+  @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'Sugerencias para $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return 'Agregar $species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Vista en $count otras inmersiones aquí',
+      one: 'Vista en $count otra inmersión aquí',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'En la lista de especies esperadas de este sitio';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'Mostrar todas ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'Mostrar menos';
 
   @override
   String get diveLog_edit_notSpecified => 'No especificado';
@@ -9221,6 +9345,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Anotaciones';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Eventos calculados';
 
   @override
@@ -9482,6 +9609,40 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'A $count de $total inmersiones seleccionadas les faltan las condiciones.',
+      one:
+          'A $count de $total inmersiones seleccionadas le faltan las condiciones.',
+    );
+    return '$_temp0 Solo se rellenan los campos vacíos, así que no cambiará nada de lo que ya hayas introducido.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count inmersiones no tienen coordenadas del sitio ni posición GPS y se omitirán.',
+      one:
+          '$count inmersión no tiene coordenadas del sitio ni posición GPS y se omitirá.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'A ninguna de las inmersiones seleccionadas le faltan condiciones.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'Las inmersiones seleccionadas a las que les faltan condiciones no tienen coordenadas del sitio ni posición GPS.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -9930,6 +10091,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get siteSuggestion_titleDiveComputer =>
       'Ubicación del ordenador de buceo';
+
+  @override
+  String get siteSuggestion_titleDraft => 'Lugar donde entraste al agua';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -10894,6 +11058,16 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'Presión final';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'Respirado en superficie';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minutos con esta botella tras detenerse el registro del ordenador, como oxígeno en el barco';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'min';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -16846,6 +17020,44 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mantenimientos pendientes',
+      one: '$count mantenimiento pendiente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'y $count más',
+      one: 'y $count más',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected de $total seleccionados';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Expandir todo';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Contraer todo';
+
+  @override
   String get equipment_location_activeFilter => 'Ubicación';
 
   @override
@@ -17973,9 +18185,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volumen';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'Acerca de MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Modo';
 
   @override
@@ -18176,10 +18385,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Dentro de tus límites de ppO₂, END y densidad en las profundidades comprobadas.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'La MOD es la profundidad a la que la mezcla alcanza el límite de ppO₂. Siempre se redondea hacia abajo, nunca hacia arriba.\n\nRec usa 1 bar cada 10 m, como el registro. OC Tec y CCR Tec toman la presión ambiente del tipo de agua, como la calculadora de densidad, por lo que la misma mezcla puede mostrar allí una MOD algo menor.\n\nLa EAD considera narcótico el nitrógeno; la END, el nitrógeno y el oxígeno. Tu límite END, si el oxígeno cuenta como narcótico y los límites de ppO₂ por defecto provienen de tu perfil de buceador.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -18231,13 +18436,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'La Profundidad Narcótica Máxima (MND) es la profundidad máxima a la que puedes descender antes de que la narcosis supere tu límite de END. La Profundidad Narcótica Equivalente (END) te indica el efecto narcótico de tu gas a una profundidad determinada.\n\nCuando \'O2 es narcótico\' está activado, tanto el oxígeno como el nitrógeno contribuyen a la narcosis (más conservador). Cuando está desactivado, solo el nitrógeno se considera narcótico.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'Acerca de MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'ilimitado';
@@ -18305,14 +18503,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Aplicar';
-
-  @override
-  String get gasCalculators_icd_infoTitle =>
-      'Acerca de la contradifusión isobárica';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'La contradifusión isobárica (ICD) es el riesgo de que cambiar de un gas más rico en helio a uno más rico en nitrógeno aumente la tensión total de gases inertes en el tejido, porque el helio difunde más rápido que el nitrógeno. La regla del quinto es una norma habitual: la fracción de nitrógeno no debería aumentar más de un quinto de lo que disminuye la fracción de helio.\n\nLas agencias no coinciden en la importancia real de esto en una inmersión bien planificada con gases estándar. Esta calculadora aplica la regla a los dos gases introducidos; no sustituye la formación ni el asesoramiento profesional.';
 
   @override
   String get gasCalculators_ppO2Limit => 'Límite ppO₂';
@@ -18453,13 +18643,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'El cilindro tiene presión pero ni oxígeno ni helio, lo que sería nitrógeno puro. Comprueba la mezcla que ya hay en el cilindro.';
-
-  @override
-  String get gasCalculators_blender_about => 'Sobre la mezcla';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Mezcla por presiones parciales para la mezcla objetivo. Añade cada gas de llenado en orden, hasta la presión indicada, y deja que el cilindro se estabilice. Los gases de llenado y su orden son configurables: si ajustas el último gas a 32/0, el remate se hace con EAN32 en lugar de aire. Analiza siempre la mezcla final antes de bucearla.';
 
   @override
   String get gasCalculators_blender_conditions => 'Condiciones de mezcla';
@@ -18895,10 +19078,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Profundidad equivalente de densidad de aire (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'La EADD es la profundidad a la que el aire sería tan denso como este gas. A diferencia de la densidad en g/L, no depende de la temperatura.';
-
-  @override
   String get gasCalculators_density_loopGasTitle =>
       'Gas del circuito en profundidad';
 
@@ -18918,15 +19097,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'El diluyente por sí solo da aquí una ppO2 de $ppO2, por encima del setpoint. La densidad usa la ppO2 del diluyente.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle =>
-      'Acerca de la densidad del gas';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Un gas denso cuesta más respirarlo y aumenta el riesgo de retención de CO2. Mantén la densidad en $warn g/L o menos; $critical g/L es el límite absoluto.\n\nEn CCR cuenta la densidad del gas del circuito: oxígeno al setpoint y el resto repartido entre nitrógeno y helio según la proporción del diluyente.\n\nUn gas más frío es más denso, así que la opción de temperatura más fría es la conservadora. El cálculo supone un gas ideal.';
   }
 
   @override
@@ -19034,10 +19204,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_topSitesTitle => 'Mejores puntos';
-
-  @override
-  String get marineLife_speciesDetail_totalSightingsLabel =>
-      'Total de avistamientos';
 
   @override
   String get marineLife_speciesEdit_addTitle => 'Agregar especie';
@@ -19347,7 +19513,32 @@ class AppLocalizationsEs extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Ordenar';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Más avistamientos';
+  String get marineLife_speciesPage_sort_mostDives => 'Más inmersiones';
+
+  @override
+  String get marineLife_abundance_label => 'Cuántos';
+
+  @override
+  String get marineLife_abundance_seen => 'Visto';
+
+  @override
+  String get marineLife_abundance_single => 'Uno solo';
+
+  @override
+  String get marineLife_abundance_few => 'Pocos';
+
+  @override
+  String get marineLife_abundance_many => 'Muchos';
+
+  @override
+  String get marineLife_abundance_abundant => 'Abundantes';
+
+  @override
+  String get marineLife_abundance_exact => 'Exacto';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Pocos de 2 a 10, Muchos de 11 a 100, Abundantes más de 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Vistas recientemente';
@@ -19414,6 +19605,200 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'Reintentar';
+
+  @override
+  String get speciesMap_title => 'Mapa de especies';
+
+  @override
+  String get speciesMap_openTooltip => 'Mapa de especies';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'Elegir una especie';
+
+  @override
+  String get speciesMap_list_searchHint => 'Buscar todas las especies';
+
+  @override
+  String get speciesMap_list_allSites => 'Todos los sitios';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'Qué has registrado y dónde';
+
+  @override
+  String get speciesMap_list_notSeen => 'Aún no vista';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings avistamientos',
+      one: '$sightings avistamiento',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites sitios',
+      one: '$sites sitio',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'Mis avistamientos';
+
+  @override
+  String get speciesMap_legend_expected => 'Esperada, no registrada';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'Registros públicos';
+
+  @override
+  String get speciesMap_legend_speciesLogged =>
+      'Especies registradas en un sitio';
+
+  @override
+  String get speciesMap_layers_tooltip => 'Capas del mapa';
+
+  @override
+  String get speciesMap_layers_public => 'Registros públicos (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'Envía a GBIF la especie elegida o la ubicación del sitio tocado.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'Especies esperadas de';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'Mis sitios';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible =>
+      'Todos los sitios que puedo ver';
+
+  @override
+  String get speciesMap_card_loggedHere => 'Registradas aquí';
+
+  @override
+  String get speciesMap_card_expectedNotLogged =>
+      'Esperadas, aún no registradas';
+
+  @override
+  String get speciesMap_card_expectedPin => 'Esperada aquí, aún no registrada';
+
+  @override
+  String get speciesMap_card_nothingLogged => 'Aún no hay nada registrado aquí';
+
+  @override
+  String get speciesMap_card_close => 'Cerrar';
+
+  @override
+  String get speciesMap_card_openSite => 'Abrir sitio';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count especies',
+      one: '$count especie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date, inmersión $number, ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count avistamientos están en inmersiones sin sitio en el mapa',
+      one: '$count avistamiento está en una inmersión sin sitio en el mapa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'No se pueden mostrar registros públicos de esta especie: necesita un nombre científico que GBIF reconozca.';
+
+  @override
+  String get speciesMap_publicUnavailable =>
+      'No se pudieron cargar los registros públicos.';
+
+  @override
+  String get speciesMap_error_loading =>
+      'No se pudo cargar el mapa de especies.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'No has registrado esta especie en ningún sitio del mapa. Activa los registros públicos para ver dónde la han visto otros.';
+
+  @override
+  String get speciesMap_attribution => 'Registros: GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count especies',
+      one: '$count especie',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count avistamientos',
+      one: '$count avistamiento',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site, esperada';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sitios',
+      one: '$count sitio',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'Dónde se ha visto';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'Abrir mapa completo';
+
+  @override
+  String get speciesMap_whereSeen_empty =>
+      'Aún no registrada en un sitio del mapa.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
 
   @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
@@ -20385,6 +20770,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Archivo de video no encontrado';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Para reproducir este vídeo se necesita una ventana normal del navegador. Las ventanas privadas no pueden transmitir desde Google Drive ni WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked =>
       'Video no vinculado a la biblioteca';
 
@@ -20784,6 +21173,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_library_empty => 'Todavía no hay contenido multimedia';
 
   @override
+  String get media_library_emptyFiltered =>
+      'Ningún contenido multimedia coincide con estos filtros';
+
+  @override
   String get media_library_filter_all => 'Todo';
 
   @override
@@ -20814,6 +21207,43 @@ class AppLocalizationsEs extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Archivos faltantes ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'Nadie etiquetado';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count personas',
+      one: '$count persona',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Buscar personas';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'Ninguna persona coincide';
+
+  @override
+  String get media_library_filter_peopleClear => 'Quitar personas';
+
+  @override
+  String get media_library_filter_notPlacedInDive =>
+      'Sin ubicar en la inmersión';
 
   @override
   String get media_library_filter_clear => 'Borrar filtros';
@@ -20850,6 +21280,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get media_library_unlinkedHeader => 'Sin vincular';
+
+  @override
+  String get media_library_sectionSitePictures => 'Imágenes del sitio';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'Imágenes del equipo';
 
   @override
   String get media_library_diveHeaderHint => 'Abrir esta inmersión';
@@ -22308,10 +22744,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Flotabilidad durante la inmersión, variación, lastre soltable';
 
   @override
-  String get buoyancy_tooltip =>
-      'Flotabilidad neta modelada durante la inmersión a partir del perfil, el consumo de gas y el equipo.';
-
-  @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
     return 'En tu última parada (~$depth) tenías unos $amount de flotabilidad';
   }
@@ -22453,6 +22885,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveDetailSection_equipment_name => 'Equipo';
+
+  @override
+  String get diveDetailSection_health_description =>
+      'Frecuencia cardíaca, recuperación y sueño de Apple Health';
 
   @override
   String get diveDetailSection_equipment_description =>
@@ -24399,6 +24835,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Etiquetar inmersiones importadas';
 
   @override
+  String get settings_conflict_field_avgHeartRate =>
+      'Frecuencia cardíaca promedio';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Añadir las descargas al propietario del ordenador';
 
@@ -24451,6 +24891,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Equipo agrupado por ubicación';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Grupos de equipo plegados';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -25311,6 +25755,22 @@ class AppLocalizationsEs extends AppLocalizations {
       'Corrección de rumbo en grados';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Frecuencia cardíaca al salir a la superficie';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Frecuencia cardíaca 15 min después de salir a la superficie';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Frecuencia cardíaca 5 min después de salir a la superficie';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Frecuencia cardíaca de Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor =>
       'Factor de escala del track';
 
@@ -25407,6 +25867,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_conflict_field_isDone => 'Hecho';
+
+  @override
+  String get settings_conflict_field_isDraft => 'Borrador de inmersión';
+
+  @override
+  String get settings_conflict_field_isEdit => 'Perfil editado a mano';
 
   @override
   String get settings_conflict_field_isOrphaned => 'Falta el archivo';
@@ -25562,6 +26028,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Velocidad de descenso máxima';
 
   @override
+  String get settings_conflict_field_maxHeartRate =>
+      'Frecuencia cardíaca máxima';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Velocidad máxima';
 
   @override
@@ -25631,6 +26101,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_overdueServices =>
       'Mantenimientos vencidos';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Variabilidad nocturna de la frecuencia cardíaca';
 
   @override
   String get settings_conflict_field_params => 'Detalles';
@@ -26174,6 +26648,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_field_size => 'Talla';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sueño de la noche anterior';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Orden';
 
   @override
@@ -26250,6 +26728,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ajustes solo para esta inmersión';
 
   @override
+  String get settings_conflict_field_settled =>
+      'Datos de Apple Health completos';
+
+  @override
   String get settings_conflict_field_startTime => 'Hora de inicio';
 
   @override
@@ -26295,6 +26777,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Sustituye a la regla integrada';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'Tiempo respirado en superficie';
 
   @override
   String get settings_conflict_field_surfaceConditions =>
@@ -27069,6 +27555,14 @@ class AppLocalizationsEs extends AppLocalizations {
   String notifications_document_expiresToday_title(String title) {
     return '$title caduca hoy';
   }
+
+  @override
+  String get notifications_draftReminder_body =>
+      'Descarga tu computadora de buceo para completar el borrador.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'Una inmersión espera tu computadora de buceo';
 
   @override
   String get notifications_document_expiresToday_body =>
@@ -28035,14 +28529,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Los factores de gradiente (GF) controlan qué tan conservadores son tus cálculos de descompresión. GF Low afecta las paradas profundas, mientras que GF High afecta las paradas someras.\n\nValores más bajos = más conservador = paradas de deco más largas\nValores más altos = menos conservador = paradas de deco más cortas';
-
-  @override
-  String get settings_decompression_aboutTitle =>
-      'Acerca de los factores de gradiente';
-
-  @override
   String get settings_decompression_currentSettings => 'Ajustes actuales';
 
   @override
@@ -28860,6 +29346,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Notificaciones desactivadas';
 
   @override
+  String get settings_notifications_draftReminder =>
+      'Recordarme los borradores de inmersión';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'Tres días después de la salida de un borrador, si aún espera una descarga';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Activar recordatorios de servicio';
 
@@ -28874,13 +29368,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Recordatorios de servicio';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Las notificaciones se programan cuando la app se inicia y se actualizan periódicamente en segundo plano. Puedes personalizar los recordatorios para cada equipo individual en su pantalla de edición.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'Cómo funciona';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -32451,14 +32938,6 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Tu cuerpo tiene 16 compartimentos de tejido que absorben y liberan nitrógeno a diferentes velocidades. Los tejidos rápidos (como la sangre) se saturan rápidamente pero también desgasifican rápidamente. Los tejidos lentos (como hueso y grasa) tardan más en cargarse y descargarse. El \"compartimento líder\" es el tejido más saturado y típicamente controla tu límite de no descompresión (NDL). Durante un intervalo de superficie, todos los tejidos desgasifican hacia niveles de saturación de superficie (~40% de carga).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title =>
-      'Acerca de la Carga de Tejidos';
-
-  @override
   String get surfaceInterval_action_resetDefaults =>
       'Restablecer valores predeterminados';
 
@@ -32877,6 +33356,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Color';
+
+  @override
+  String tags_color_shadeLight(String color) {
+    return '$color, claro';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, oscuro';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Color actual, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Color personalizado';
+
+  @override
+  String get tags_color_hexLabel => 'Código hexadecimal';
+
+  @override
+  String get tags_color_hexError =>
+      'Introduce seis caracteres 0-9 o A-F, como #2E8B57';
+
+  @override
+  String get tags_color_use => 'Usar';
+
+  @override
+  String get tags_color_hueLabel => 'Tono';
+
+  @override
+  String get tags_color_squareLabel => 'Saturación y brillo';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Quitar';
@@ -35827,6 +36340,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este formato aún no es compatible. Por favor exporta como UDDF o CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Encaja con $count borradores. Elige el que completa.',
+      one:
+          'Otra inmersión también encaja con este borrador. Elige el borrador que completa.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Elegir borrador';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'No se pudo ejecutar la detección de duplicados, por lo que nada de esta lista está marcado como ya presente en tu cuaderno. Revísala antes de importar.';
 
@@ -35975,6 +36503,28 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get universalImport_compare_fillPlannedSubtitle =>
       'Adjuntar esta descarga a la inmersión que planificaste';
+
+  @override
+  String get universalImport_label_fillDraft => 'Completar borrador';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'Asociar esta descarga a la inmersión que marcaste en el sitio';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'Completa el borrador: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'Borrador de $start a $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'Borrador desde $start';
+  }
 
   @override
   String get universalImport_label_filledPlanned =>
@@ -36956,13 +37506,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get divePlanner_undo => 'Deshacer';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'La reserva mínima (rock bottom) es la cantidad mínima de gas para un ascenso de emergencia compartiendo aire con tu compañero.\n\n- Usa tasas RMV de estrés (2-3x lo normal)\n- Asume ambos buceadores con un solo tanque\n- Incluye parada de seguridad cuando está activada\n\nSiempre inicia el regreso ANTES de alcanzar la reserva mínima!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'Sobre la reserva mínima';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Gas de ascenso requerido';
 
@@ -37121,6 +37664,38 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gpsLogger_stopButton => 'Detener registro';
+
+  @override
+  String get gpsLogger_enteredWater => 'Me metí al agua';
+
+  @override
+  String get gpsLogger_surfaced => 'Salí a la superficie';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => '¿Sigues en el agua?';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'Entraste al agua a las $time. Marca ahora la salida a la superficie, o deja la inmersión abierta y toca Salí a la superficie más tarde.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow =>
+      'Salir a la superficie ahora';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'Dejar abierta';
+
+  @override
+  String get gpsLogger_markNotification_title => 'Grabando tu track GPS';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'Toca Me metí al agua cuando entres.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'En el agua. Toca Salí a la superficie cuando salgas.';
 
   @override
   String gpsLogger_stripStatus(num count) {
@@ -37846,6 +38421,57 @@ class AppLocalizationsEs extends AppLocalizations {
       'Importar inmersiones del Apple Watch mediante HealthKit';
 
   @override
+  String get healthAutoImport_newDive_title =>
+      'Nueva inmersión de tu Apple Watch';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return '$count inmersiones nuevas de tu Apple Watch';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => '¿Agregar detalles?';
+
+  @override
+  String get healthAutoImport_addDetails => 'Agregar detalles';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'Una inmersión del Apple Watch necesita revisión';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'Podría corresponder a más de una inmersión. Elige en la importación de Apple Health.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'Esta inmersión podría ser una que planificaste. Revísala para completar el plan.';
+
+  @override
+  String get healthAutoImport_review => 'Revisar';
+
+  @override
+  String get settings_appleHealth_autoImport_title =>
+      'Importar automáticamente las inmersiones del Apple Watch';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'Las inmersiones nuevas de tu reloj aparecen al abrir la app.';
+
+  @override
+  String get settings_appleHealth_metrics_title =>
+      'Frecuencia cardíaca, recuperación y sueño';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'Agrega la frecuencia cardíaca durante y después de cada inmersión, la VFC nocturna y el sueño previo.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'Para: $name';
+  }
+
+  @override
   String get settings_dataSources_appleHealth_privacy =>
       'Sus datos de salud se almacenan localmente en este dispositivo y nunca se comparten con terceros. Submersion solo lee datos de Apple HealthKit y no escribe ningún dato en HealthKit.';
 
@@ -38449,6 +39075,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'Ninguna de las inmersiones seleccionadas tiene datos sin procesar almacenados para reanalizar.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Obtener condiciones';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Reanalizar';
@@ -41153,13 +41782,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Sin perfil de profundidad no se pueden calcular su CNS% ni sus OTU. Los totales de abajo no la incluyen.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'Sobre CNS y OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'Su CNS% (reloj de oxígeno) decae tras la inmersión con una semivida de 90 minutos; prácticamente vuelve a 0 al cabo de un día.\n\nLa OTU diaria se reinicia cada noche a medianoche. La OTU semanal es un total móvil de los últimos 7 días: las inmersiones más antiguas salen automáticamente del cálculo en cuanto quedan fuera de esa ventana.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title =>
       'Sin carga tisular residual';
 
@@ -41174,13 +41796,6 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'La última inmersión no tiene datos para calcular la carga tisular, por ejemplo una inmersión sin perfil de profundidad, en modo profundímetro o con recirculador sin setpoint.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'Sobre la carga tisular';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'Tu cuerpo tiene 16 compartimentos tisulares que absorben y liberan nitrógeno (y, en inmersiones con trimix o recirculador, también helio) a distintas velocidades. Los tejidos rápidos se saturan y desaturan enseguida; los lentos tardan mucho más en ambos casos.\n\nLa carga residual es solo lo que queda por encima del nivel normal en superficie. Incluso totalmente desaturadas, las barras no bajan a 0%: cada compartimento se estabiliza en la marca que corresponde al nitrógeno del aire que respiras. Por eso un compartimento rápido puede marcar aquí más que al final de una inmersión con descompresión con oxígeno, sin que la carga haya aumentado.\n\nTras una inmersión con helio, un compartimento libera helio mientras absorbe nitrógeno al mismo tiempo, hasta que ambos gases están en equilibrio con el aire que respiras.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -41633,6 +42248,54 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_planned_chip => 'Planificada';
 
   @override
+  String get diveLog_draft_chip => 'Esperando descarga';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'En el agua';
+
+  @override
+  String get diveLog_draft_title => 'Borrador de inmersión';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'Unos $minutes min según tus marcas. Descarga tu computadora de buceo para completar la profundidad y el tiempo.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen =>
+      'Toca Salí a la superficie cuando salgas del agua.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'Descargar ahora';
+
+  @override
+  String get diveLog_draft_markComplete => 'Marcar como completa';
+
+  @override
+  String get diveLog_draft_surfaced => 'Salí a la superficie';
+
+  @override
+  String get diveLog_draft_markedComplete => 'Marcada como completa';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'No se pudo marcar la inmersión como completa.';
+
+  @override
+  String get diveLog_draft_stale_title => '¿Saliste a la superficie?';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'Entraste al agua a las $time y la inmersión sigue abierta.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'Sigo en el agua';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'Fijar hora de salida';
+
+  @override
   String get diveLog_planned_bannerTitle => 'Inmersión planificada';
 
   @override
@@ -41696,6 +42359,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_detail_loggedWithPlanned =>
       'a la espera de su ordenador de buceo';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate =>
+      'Agregar frecuencia cardíaca de Apple Health';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -50784,6 +51451,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'Borrador de inmersión en $siteName';
+  }
+
+  @override
   String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
     return 'Inmersión planificada en $siteName';
   }
@@ -53232,6 +53904,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveLog_profilePanel_noProfileData =>
       'Sin datos de perfil para esta inmersión';
+
+  @override
+  String get diveLog_estimatedProfile_caption =>
+      'Estimado a partir de la profundidad máxima y el tiempo, no es un perfil registrado';
 
   @override
   String get settings_export_progress_divesCsv =>
@@ -56007,7 +56683,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks botellas en $dives inmersiones llevan este transmisor. Se rellenarán los campos vacíos de tamaño, material, nombre y equipo, y se sustituirá un rol que siga en Gas de fondo o que se haya leído del nombre del transmisor.';
+    return '$tanks botellas en $dives inmersiones que llevan este transmisor necesitan su configuración. Se rellenarán los campos vacíos de tamaño, material, nombre y equipo, y se sustituirá un rol que siga en Gas de fondo o que se haya leído del nombre del transmisor.';
   }
 
   @override
@@ -56016,8 +56692,43 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'Ninguna botella lleva este transmisor';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Ranura en $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'No emparejar por ranura';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives inmersiones',
+      one: '$dives inmersión',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Leyendo archivos importados';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Las botellas importadas de un archivo no tienen número de serie. Se pueden rellenar según la ranura que ocupaba este transmisor en el ordenador de buceo.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Inmersiones rellenadas por número de serie: $serialDives, por ranura: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'Ninguna botella necesita la configuración de este transmisor';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'No se pudieron leer los archivos importados, por lo que las botellas no se pueden asociar por ranura';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -57376,6 +58087,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get query_dives_diveOperator => 'Operador';
+
+  @override
+  String get query_dives_draft => 'Borrador';
 
   @override
   String get query_dives_entryMethod => 'Método de entrada';
@@ -59711,6 +60425,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_library_filter_tags => 'Etiquetas';
 
   @override
+  String get media_library_filter_attachedTo => 'Vinculado a';
+
+  @override
+  String get media_library_filter_attachedDive => 'Inmersión';
+
+  @override
+  String get media_library_filter_attachedSite => 'Sitio';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Equipo';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Sin vincular';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Vinculado a: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
+
+  @override
   String media_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -61208,4 +61945,1460 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Pasaporte de la botella pareja';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'Acerca de $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Contexto';
+
+  @override
+  String get info_sheet_howToUse => 'Cómo se usa';
+
+  @override
+  String get info_sheet_close => 'Cerrar';
+
+  @override
+  String get info_term_ndl_label => 'NDL (límite sin descompresión)';
+
+  @override
+  String get info_term_ndl_body =>
+      'Minutos que quedan a la profundidad actual antes de que el modelo exija paradas de descompresión. Disminuye mientras el buceador sigue a fondo y vuelve a crecer al ascender.';
+
+  @override
+  String get info_term_ceiling_label => 'Techo';
+
+  @override
+  String get info_term_ceiling_body =>
+      'La profundidad más somera que el modelo de descompresión permite en ese momento. Cero significa que un ascenso directo a superficie encaja en el modelo.';
+
+  @override
+  String get info_term_decoStops_label => 'Paradas de descompresión';
+
+  @override
+  String info_term_decoStops_body(String step) {
+    return 'Pausas planificadas durante el ascenso, cada una con una profundidad y un tiempo, que dejan salir el gas disuelto del cuerpo. Las paradas suelen estar separadas $step.';
+  }
+
+  @override
+  String get info_term_tts_label => 'TTS (tiempo hasta superficie)';
+
+  @override
+  String get info_term_tts_body =>
+      'Minutos necesarios para llegar a superficie desde aquí, contando el ascenso y cada parada obligatoria.';
+
+  @override
+  String get info_term_gtr_label => 'GTR (tiempo de gas restante)';
+
+  @override
+  String get info_term_gtr_body =>
+      'Minutos a la profundidad y el ritmo respiratorio actuales hasta que la botella baja a su presión de reserva. Supone un ascenso directo sin paradas.';
+
+  @override
+  String get info_term_gf99_label => 'GF99';
+
+  @override
+  String get info_term_gf99_body =>
+      'Lo cerca que está ahora el tejido más cargado de su valor M, en porcentaje. Al 100 % se sitúa justo en el límite de Buhlmann sin ajustar.';
+
+  @override
+  String get info_term_surfaceGf_label =>
+      'SurfGF (factor de gradiente en superficie)';
+
+  @override
+  String get info_term_surfaceGf_body =>
+      'El GF99 que tendrían los tejidos si el buceador saliera a superficie al instante. Por encima del 100 % se superaría en superficie el límite de Buhlmann sin ajustar.';
+
+  @override
+  String get info_term_gradientFactors_label => 'GF (factores de gradiente)';
+
+  @override
+  String get info_term_gradientFactors_body =>
+      'Dos porcentajes que reducen los límites de Buhlmann: GF Low fija dónde cae la primera parada y GF High fija el límite al salir a superficie. Valores más bajos dan planes más largos y conservadores.';
+
+  @override
+  String get info_term_cns_label =>
+      'CNS% (oxígeno del sistema nervioso central)';
+
+  @override
+  String get info_term_cns_body =>
+      'Parte del límite de oxígeno de una inmersión para el cerebro y los nervios, según la tabla de ppO2 de NOAA. Baja aproximadamente a la mitad cada 90 minutos en superficie.';
+
+  @override
+  String get info_term_otu_label => 'OTU (unidades de tolerancia al oxígeno)';
+
+  @override
+  String get info_term_otu_body =>
+      'Una dosis de oxígeno más lenta, para todo el cuerpo, que se acumula durante varios días de buceo. Una OTU es un minuto de oxígeno puro a 1 bar.';
+
+  @override
+  String get info_term_ppO2_label => 'ppO2 (presión parcial de oxígeno)';
+
+  @override
+  String get info_term_ppO2_body =>
+      'La presión que ejerce solo el oxígeno del gas respirable a esta profundidad, en bar. Los límites habituales son 1,4 bar en la fase de trabajo y 1,6 bar durante la descompresión.';
+
+  @override
+  String get info_term_ppN2_label => 'ppN2 (presión parcial de nitrógeno)';
+
+  @override
+  String get info_term_ppN2_body =>
+      'La presión que ejerce el nitrógeno del gas respirable a esta profundidad, en bar. Determina la carga de nitrógeno y la narcosis.';
+
+  @override
+  String get info_term_ppHe_label => 'ppHe (presión parcial de helio)';
+
+  @override
+  String get info_term_ppHe_body =>
+      'La presión que ejerce el helio del gas respirable a esta profundidad, en bar. El helio se carga y descarga más rápido que el nitrógeno y no es narcótico.';
+
+  @override
+  String get info_term_o2Cells_label => 'Células de O2';
+
+  @override
+  String get info_term_o2Cells_body =>
+      'Sensores del circuito de un reciclador que miden cada uno la ppO2. Las lecturas que no coinciden señalan una célula que falla o está mojada.';
+
+  @override
+  String get info_term_mod_label => 'MOD (profundidad máxima operativa)';
+
+  @override
+  String get info_term_mod_body =>
+      'La profundidad a la que un gas alcanza su límite de ppO2. Más abajo, la exposición al oxígeno supera ese límite.';
+
+  @override
+  String get info_term_mnd_label => 'MND (profundidad narcótica máxima)';
+
+  @override
+  String get info_term_mnd_body =>
+      'El punto más profundo en el que un gas se mantiene dentro del límite de END del buceador. El helio en la mezcla lo hace más profundo.';
+
+  @override
+  String get info_term_end_label => 'END (profundidad narcótica equivalente)';
+
+  @override
+  String get info_term_end_body =>
+      'La profundidad con aire que resultaría tan narcótica como este gas a esta profundidad. El helio la reduce porque no es narcótico.';
+
+  @override
+  String get info_term_ead_label => 'EAD (profundidad de aire equivalente)';
+
+  @override
+  String get info_term_ead_body =>
+      'La profundidad con aire que cargaría nitrógeno al mismo ritmo que este nitrox a esta profundidad. Es menor que la real porque el nitrox lleva menos nitrógeno.';
+
+  @override
+  String get info_term_eadd_label =>
+      'EADD (profundidad de densidad de aire equivalente)';
+
+  @override
+  String get info_term_eadd_body =>
+      'La profundidad a la que el aire sería tan denso como este gas a esta profundidad. A diferencia de la densidad en g/L, no depende de la temperatura.';
+
+  @override
+  String get info_term_gasDensity_label => 'Densidad del gas';
+
+  @override
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'Lo pesado que es el gas respirable en profundidad, en gramos por litro, lo que marca el esfuerzo para respirarlo. La investigación publicada cita $warn g/L como máximo recomendado y $critical g/L como límite superior.';
+  }
+
+  @override
+  String get info_term_sac_label => 'SAC (consumo de aire en superficie)';
+
+  @override
+  String get info_term_sac_body =>
+      'Consumo de gas por minuto llevado a presión de superficie, mostrado como caída de presión por minuto. Depende del tamaño de la botella, así que compara inmersiones con la misma botella.';
+
+  @override
+  String get info_term_rmv_label => 'RMV (volumen respiratorio por minuto)';
+
+  @override
+  String get info_term_rmv_body =>
+      'Volumen de gas respirado por minuto, llevado a presión de superficie. A diferencia del SAC, no depende del tamaño de la botella.';
+
+  @override
+  String get info_term_ascentRate_label => 'Velocidad de ascenso';
+
+  @override
+  String info_term_ascentRate_body(String rate) {
+    return 'Lo rápido que disminuye la profundidad por minuto. La formación habitual usa $rate como máximo.';
+  }
+
+  @override
+  String get info_term_descentRate_label => 'Velocidad de descenso';
+
+  @override
+  String get info_term_descentRate_body =>
+      'Lo rápido que aumenta la profundidad por minuto.';
+
+  @override
+  String get info_term_meanDepth_label => 'Profundidad media';
+
+  @override
+  String get info_term_meanDepth_body =>
+      'La profundidad media ponderada por el tiempo a lo largo de la inmersión. El consumo de gas y la descompresión la siguen más que a la profundidad máxima.';
+
+  @override
+  String get info_term_bottomTime_label => 'Tiempo de fondo';
+
+  @override
+  String get info_term_bottomTime_body =>
+      'Tiempo desde que se deja la superficie hasta el inicio del ascenso final. Se calcula a partir del perfil.';
+
+  @override
+  String get info_term_runtime_label => 'Tiempo total';
+
+  @override
+  String get info_term_runtime_body =>
+      'Tiempo total desde que se deja la superficie hasta que se vuelve a ella. Los planes técnicos se escriben sobre él.';
+
+  @override
+  String get info_term_safetyStop_label => 'Parada de seguridad';
+
+  @override
+  String info_term_safetyStop_body(String depth) {
+    return 'Una pausa opcional cerca de $depth, normalmente de tres minutos, antes de salir a superficie. El modelo no la exige en una inmersión sin paradas.';
+  }
+
+  @override
+  String get info_term_surfaceInterval_label => 'Intervalo en superficie';
+
+  @override
+  String get info_term_surfaceInterval_body =>
+      'Tiempo en superficie entre dos inmersiones. Los tejidos siguen liberando gas, así que un intervalo más largo lleva menos a la siguiente inmersión.';
+
+  @override
+  String get info_term_tissueCompartment_label => 'Compartimentos tisulares';
+
+  @override
+  String get info_term_tissueCompartment_body =>
+      'Los 16 tejidos imaginarios del modelo, que absorben y liberan gas cada uno a su ritmo. Los rápidos representan tejido muy irrigado y los lentos grasa y hueso.';
+
+  @override
+  String get info_term_leadingCompartment_label => 'Compartimento dominante';
+
+  @override
+  String get info_term_leadingCompartment_body =>
+      'El compartimento más cerca de su límite en este momento. Fija el techo y cambia durante la inmersión.';
+
+  @override
+  String get info_term_tissueLoad_label => 'Carga';
+
+  @override
+  String get info_term_tissueLoad_body =>
+      'Cuánto gas inerte contiene un compartimento respecto a su límite, en porcentaje. Al 100 % está en su valor M.';
+
+  @override
+  String get info_term_mValue_label => 'Valor M';
+
+  @override
+  String get info_term_mValue_body =>
+      'La mayor presión de gas inerte que un compartimento puede contener a una profundidad dada según el modelo de Buhlmann. Los factores de gradiente fijan cuánto se usa.';
+
+  @override
+  String get info_term_surfaceLevel_label => 'Nivel de superficie';
+
+  @override
+  String get info_term_surfaceLevel_body =>
+      'La presión de gas de un compartimento totalmente estabilizado en superficie respirando aire. Las barras por encima de esta línea aún llevan gas de más.';
+
+  @override
+  String get info_term_halfTime_label => 'Semiperiodo';
+
+  @override
+  String get info_term_halfTime_body =>
+      'Minutos que tarda un compartimento en recorrer la mitad del camino hacia la presión ambiente. El rango va de pocos minutos a más de diez horas.';
+
+  @override
+  String get info_term_ongassing_label => 'Saturación y desaturación';
+
+  @override
+  String get info_term_ongassing_body =>
+      'Saturación significa que un compartimento absorbe gas porque la presión ambiente es mayor, y desaturación que lo libera. El color muestra hacia dónde va cada compartimento.';
+
+  @override
+  String get info_term_heatMap_label => 'Mapa de calor';
+
+  @override
+  String get info_term_heatMap_body =>
+      'Cada fila es un compartimento, los rápidos arriba y los lentos abajo, y el tiempo avanza de izquierda a derecha. El color muestra lo cargado que está ese compartimento en ese momento.';
+
+  @override
+  String get info_term_nitrox_label => 'Nitrox (EANx)';
+
+  @override
+  String get info_term_nitrox_body =>
+      'Aire enriquecido con oxígeno, nombrado por su porcentaje de oxígeno, como EAN32. Menos nitrógeno alarga los tiempos sin paradas y el oxígeno extra hace la MOD menos profunda.';
+
+  @override
+  String get info_term_trimix_label => 'Trimix';
+
+  @override
+  String get info_term_trimix_body =>
+      'Una mezcla de oxígeno, helio y nitrógeno que se escribe como oxígeno sobre helio, como 18/45. El helio reduce la narcosis y la densidad del gas en profundidad.';
+
+  @override
+  String get info_term_diluent_label => 'Diluyente';
+
+  @override
+  String get info_term_diluent_body =>
+      'El gas que un reciclador añade al circuito para mantener su volumen. El equipo añade oxígeno además para mantener el setpoint.';
+
+  @override
+  String get info_term_setpoint_label => 'Setpoint';
+
+  @override
+  String get info_term_setpoint_body =>
+      'La ppO2 que un reciclador de circuito cerrado intenta mantener en el circuito. Los equipos suelen cambiar entre un setpoint bajo y uno alto durante la inmersión.';
+
+  @override
+  String get info_term_bailout_label => 'Bailout';
+
+  @override
+  String get info_term_bailout_body =>
+      'Gas de circuito abierto que se lleva en una inmersión con reciclador para ascender fuera del circuito. Los planes de bailout suponen que el circuito se pierde.';
+
+  @override
+  String get info_term_loop_label => 'Circuito';
+
+  @override
+  String get info_term_loop_body =>
+      'El circuito respiratorio del reciclador, donde el gas exhalado se limpia de dióxido de carbono y se vuelve a respirar.';
+
+  @override
+  String get info_term_stage_label => 'Stage';
+
+  @override
+  String get info_term_stage_body =>
+      'Una botella extra enganchada al costado, que se lleva para una parte de la inmersión y a la que se cambia por el camino.';
+
+  @override
+  String get info_term_decoGas_label => 'Gas de descompresión';
+
+  @override
+  String get info_term_decoGas_body =>
+      'Un gas más rico en oxígeno que se respira durante las paradas de descompresión. Acelera la desaturación a poca profundidad.';
+
+  @override
+  String get info_term_pony_label => 'Pony';
+
+  @override
+  String get info_term_pony_body =>
+      'Una botella pequeña e independiente con su propio regulador, que se lleva como suministro de gas de respaldo.';
+
+  @override
+  String get info_term_sidemount_label => 'Sidemount';
+
+  @override
+  String get info_term_sidemount_body =>
+      'Botellas que se llevan a cada costado en lugar de a la espalda, cada una con su propio regulador.';
+
+  @override
+  String get info_term_twinBackmount_label => 'Bibotella';
+
+  @override
+  String get info_term_twinBackmount_body =>
+      'Dos botellas unidas a la espalda, normalmente con un grifo puente, que se respiran como un solo suministro.';
+
+  @override
+  String get info_term_altitudeGroup_label => 'Grupo de altitud';
+
+  @override
+  String get info_term_altitudeGroup_body =>
+      'Una franja de altitudes que comparte un mismo juego de tablas y ajustes del modelo. Los grupos más altos tienen menos presión atmosférica en superficie.';
+
+  @override
+  String get info_term_surfacePressure_label => 'Presión en superficie';
+
+  @override
+  String get info_term_surfacePressure_body =>
+      'La presión atmosférica en la superficie del punto de buceo. En altitud es menor, lo que hace el modelo más conservador.';
+
+  @override
+  String get info_term_salinity_label => 'Tipo de agua';
+
+  @override
+  String get info_term_salinity_body =>
+      'El agua salada es más densa que la dulce, así que la misma presión equivale en el mar a una profundidad algo menor. Los ordenadores la usan para pasar de presión a profundidad.';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_label =>
+      'ICD (contradifusión isobárica)';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_body =>
+      'Un cambio de gas puede subir el gas inerte total en los tejidos sin cambiar de profundidad cuando el nitrógeno sube más rápido de lo que baja el helio. La comprobación habitual, la regla de los quintos, limita la subida de nitrógeno a un quinto de la bajada de helio.';
+
+  @override
+  String get info_term_hypercapnia_label => 'Hipercapnia';
+
+  @override
+  String get info_term_hypercapnia_body =>
+      'Una acumulación de dióxido de carbono en el cuerpo. El gas denso y el esfuerzo intenso la hacen más probable.';
+
+  @override
+  String get info_term_turnPressure_label => 'Presión de retorno';
+
+  @override
+  String get info_term_turnPressure_body =>
+      'La presión de la botella a la que el plan da la vuelta a la inmersión hacia la salida.';
+
+  @override
+  String get info_term_minGas_label => 'Gas mínimo';
+
+  @override
+  String get info_term_minGas_body =>
+      'Gas reservado para que dos buceadores compartan un suministro desde el punto más profundo hasta superficie, paradas incluidas.';
+
+  @override
+  String get info_term_rockBottom_label => 'Rock bottom';
+
+  @override
+  String get info_term_rockBottom_body =>
+      'La presión de la botella que contiene el gas mínimo. Incluye una breve demora en el fondo para resolver el problema antes del ascenso.';
+
+  @override
+  String get info_term_thirds_label => 'Regla de los tercios';
+
+  @override
+  String get info_term_thirds_body =>
+      'Un plan de gas que usa un tercio a la ida, un tercio a la vuelta y guarda un tercio de reserva. Se enseña en la formación de cuevas y entornos cerrados.';
+
+  @override
+  String get info_term_airBreaks_label => 'Pausas de aire';
+
+  @override
+  String get info_term_airBreaks_body =>
+      'Periodos cortos respirando un gas con menos oxígeno durante paradas largas de oxígeno. Reducen la carga de CNS.';
+
+  @override
+  String get info_term_rollingAverage_label => 'Media móvil';
+
+  @override
+  String get info_term_rollingAverage_body =>
+      'La media de las últimas inmersiones en cada punto, que suaviza el ruido entre inmersiones para mostrar la tendencia.';
+
+  @override
+  String get info_term_overallTrend_label => 'Tendencia general';
+
+  @override
+  String get info_term_overallTrend_body =>
+      'Una recta ajustada a todas las inmersiones del rango, que muestra la dirección general de los valores.';
+
+  @override
+  String get info_term_rangeBand_label => 'Banda de rango';
+
+  @override
+  String get info_term_rangeBand_body =>
+      'La banda sombreada va del valor más bajo al más alto de cada periodo.';
+
+  @override
+  String get info_term_collapseGaps_label => 'Contraer huecos';
+
+  @override
+  String get info_term_collapseGaps_body =>
+      'Quita del eje temporal las pausas largas entre inmersiones para que queden una junto a otra.';
+
+  @override
+  String get info_term_degreeHeatingWeeks_label =>
+      'DHW (semanas de calentamiento)';
+
+  @override
+  String get info_term_degreeHeatingWeeks_body =>
+      'Estrés térmico acumulado en las últimas 12 semanas, según NOAA Coral Reef Watch. NOAA prevé blanqueamiento significativo desde 4 y grave desde 8.';
+
+  @override
+  String get info_term_sstAnomaly_label => 'Anomalía de TSM';
+
+  @override
+  String get info_term_sstAnomaly_body =>
+      'Cuánto está la temperatura de la superficie del mar por encima o por debajo de su media a largo plazo para esa fecha.';
+
+  @override
+  String get info_term_bleachingAlert_label => 'Alerta de blanqueamiento';
+
+  @override
+  String get info_term_bleachingAlert_body =>
+      'El nivel de estrés térmico de NOAA Coral Reef Watch para la zona, desde vigilancia hasta los niveles de alerta.';
+
+  @override
+  String get info_term_sourceDcCalc_label => 'Ordenador de buceo o calculado';
+
+  @override
+  String get info_term_sourceDcCalc_body =>
+      'Los valores del ordenador son los que registró durante la inmersión. Los calculados salen del propio modelo de la aplicación aplicado al perfil, así que pueden diferir.';
+
+  @override
+  String get info_term_scrubber_label => 'Filtro de cal';
+
+  @override
+  String get info_term_scrubber_body =>
+      'El recipiente del reciclador que elimina el dióxido de carbono del circuito. Su absorbente está homologado para un número fijo de horas.';
+
+  @override
+  String get info_term_cellOutput_label => 'Salida de la célula';
+
+  @override
+  String get info_term_cellOutput_body =>
+      'La lectura en milivoltios de cada célula de oxígeno, que el reciclador convierte en ppO2.';
+
+  @override
+  String get info_term_highO2Hours_label => 'Horas con oxígeno alto';
+
+  @override
+  String get info_term_highO2Hours_body =>
+      'Tiempo respirando gas con una fracción de oxígeno elevada, que desgasta antes las piezas para servicio de oxígeno.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO y SIN DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'SIN DECO significa que un ascenso directo encaja en el modelo en ese momento. DECO significa que hace falta al menos una parada antes de salir a superficie.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Inicio y esta inmersión';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Inicio es el CNS% arrastrado de inmersiones anteriores, ya reducido por el tiempo transcurrido. Esta inmersión es lo que la propia inmersión añadió encima.';
+
+  @override
+  String get info_term_otuWindows_label => 'OTU diario y semanal';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'El OTU diario cuenta cada inmersión desde medianoche y el semanal es un total móvil de los últimos siete días. Cada uno se muestra frente al límite de la aplicación para ese periodo.';
+
+  @override
+  String get info_term_maxPpO2_label => 'ppO2 máxima';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'La presión parcial de oxígeno más alta respirada durante la inmersión.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'Tiempo sobre el límite de ppO2';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'Cuánto tiempo estuvo la ppO2 por encima de los límites fijados en ajustes durante esta inmersión.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'Profundidad ideal de cambio';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'El punto más profundo del ascenso en el que el siguiente gas está dentro de su límite de ppO2, es decir, su MOD. La tarjeta lo compara con la profundidad a la que se registró el cambio.';
+
+  @override
+  String get info_term_extraDeco_label => 'Descompresión extra';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Tiempo de descompresión que el modelo añade porque un cambio ocurrió más somero o más tarde que el punto ideal.';
+
+  @override
+  String get info_term_stackedArea_label => 'Área apilada';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Cada banda es la carga de un compartimento en el tiempo, apilada sobre las demás, así que la altura total muestra la carga de todos los compartimentos.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 y He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'La carga de cada compartimento se divide en nitrógeno y helio. El helio entra y sale más rápido que el nitrógeno.';
+
+  @override
+  String get info_term_missedDecoStop_label =>
+      'Parada de descompresión omitida';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'Una parada obligatoria acortada u omitida, detectada al comparar el perfil con las paradas del modelo.';
+
+  @override
+  String get info_term_sawtooth_label => 'Perfil en diente de sierra';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Ascensos y descensos repetidos durante una inmersión. La investigación sobre descompresión los relaciona con más formación de burbujas.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Cambio de gas tardío';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'Un cambio a un gas de descompresión hecho claramente más somero o más tarde que el punto en que ese gas se volvió utilizable.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'Velocidad vertical media';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'El ritmo medio de cambio de profundidad en el rango seleccionado.';
+
+  @override
+  String get info_term_computedEvents_label => 'Eventos calculados';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Marcas que la aplicación añade leyendo el perfil, como ascensos rápidos, a diferencia de los eventos que registró el ordenador.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Marcas de cambio de gas';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Puntos donde el gas respirado cambió de una botella a otra.';
+
+  @override
+  String get info_term_diveModes_label => 'Modo de inmersión';
+
+  @override
+  String get info_term_diveModes_body =>
+      'En circuito abierto (OC) cada exhalación sale al agua. Los recicladores cerrados (CCR) y semicerrados (SCR) reutilizan el gas a través de un circuito.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Flotabilidad neta';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Todos los términos sumados, con la sustentación como positiva y el peso como negativo. Cero es neutro.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Variación de flotabilidad';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'Cuánto cambió la flotabilidad neta entre el inicio y el final de la inmersión, sobre todo por el peso del gas respirado.';
+
+  @override
+  String get info_term_peakLift_label => 'Sustentación máxima necesaria';
+
+  @override
+  String get info_term_peakLift_body =>
+      'La mayor sustentación que el ala o el traje seco tuvo que aportar en algún momento de la inmersión para mantenerse neutro.';
+
+  @override
+  String get info_term_minDitchable_label => 'Lastre mínimo liberable';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'El peso que habría que soltar en el punto más pesado de la inmersión para quedar unos $weight positivo.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Gas añadido al traje seco';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gas añadido al traje seco para compensar su compresión al bajar, que cuenta como sustentación.';
+
+  @override
+  String get info_term_noFlyTime_label => 'Tiempo sin volar';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Tiempo desde la última inmersión hasta que pasa el intervalo de las directrices de DAN y UHMS para volar. El intervalo depende de si las inmersiones fueron únicas, repetitivas o con descompresión, y del preajuste en ajustes.';
+
+  @override
+  String get info_term_perYearRate_label => 'Ritmo anual';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'La pendiente de la línea de tendencia general, expresada como el cambio en un año.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label =>
+      'Registrado antes de la medición';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Visibilidad registrada con una palabra, como buena o mala, de cuando la aplicación aún no la guardaba como distancia. Esas inmersiones conservan su palabra original.';
+
+  @override
+  String get info_term_spansBands_label => 'Abarca varias franjas';
+
+  @override
+  String get info_term_spansBands_body =>
+      'Una visibilidad registrada como rango que cruza más de una franja, por lo que se cuenta aparte.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Amanecer y anochecer';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'Una inmersión al amanecer empieza antes de salir el sol y termina después, y una al anochecer hace lo mismo en torno a la puesta. Noche significa que toda la inmersión fue a oscuras.';
+
+  @override
+  String get info_term_calendarShading_label => 'Sombreado';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Cada casilla es un día del año, y una más oscura significa más inmersiones ese día en todos los años del rango.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Horas en agua salada';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Tiempo bajo el agua en agua salada o salobre, que desgasta antes las piezas metálicas y las juntas que el agua dulce.';
+
+  @override
+  String get info_term_coldDives_label => 'Inmersiones frías';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Inmersiones cuya temperatura mínima del agua quedó por debajo del umbral de agua fría de los ajustes de estado del equipo.';
+
+  @override
+  String get info_term_deepCycles_label => 'Inmersiones profundas';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Inmersiones que alcanzaron el umbral de inmersión profunda de los ajustes de estado del equipo, cada una un ciclo de presión completo para el equipo.';
+
+  @override
+  String get info_term_conditionRules_label => 'Reglas de estado';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Comprobaciones que la aplicación aplica a inmersiones y problemas registrados, como células de oxígeno que leen menos con el tiempo o un problema que se repite. Cada una se puede desactivar en ajustes.';
+
+  @override
+  String get info_term_standout_label => 'Destaca';
+
+  @override
+  String get info_term_standout_body =>
+      'Un factor cuya proporción entre las inmersiones de enfoque difiere claramente de la del resto. El punto de la tabla lo marca.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Profundidad media';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'La media de la profundidad máxima de cada inmersión, no la profundidad media dentro de las inmersiones.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Tipos de inmersión';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'Una inmersión con varios tipos cuenta una vez en cada uno, así que las barras pueden sumar más que el número de inmersiones.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Varias mezclas';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'Una inmersión en la que se respiró más de una mezcla cuenta una vez en cada una, así que las barras pueden sumar más que el número de inmersiones.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Función de la botella';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'Para qué sirvió una botella en la inmersión: gas de fondo, stage, descompresión, pony o bailout. El consumo se agrupa según ello.';
+
+  @override
+  String get info_term_colourBy_label => 'Colorear por';
+
+  @override
+  String get info_term_colourBy_body =>
+      'Tipo colorea cada punto según lo que es, grupos colorea los conjuntos que bucean juntos y reciente atenúa los vínculos sin inmersiones recientes.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Vínculos ponderados';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'Una línea más gruesa significa más inmersiones compartidas por los dos puntos que une.';
+
+  @override
+  String get info_term_hops_label => 'Saltos';
+
+  @override
+  String get info_term_hops_body =>
+      'Cuántos vínculos desde el punto elegido abarca la vista. Con uno se ven solo sus conexiones directas.';
+
+  @override
+  String get info_term_lastStop_label => 'Última parada';
+
+  @override
+  String get info_term_lastStop_body =>
+      'La profundidad de la parada de descompresión más somera. Una última parada más profunda es más fácil de mantener con oleaje, pero dura más.';
+
+  @override
+  String get info_term_ascentStages_label => 'Tramos del ascenso';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'El plan puede usar una velocidad distinta para cada parte del ascenso: hasta la primera parada, entre paradas y cerca de la superficie.';
+
+  @override
+  String get info_term_reserveGas_label => 'Reserva';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gas que el plan reserva en cada botella y nunca cuenta como utilizable.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label =>
+      'Profundidad de cambio de setpoint';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'La profundidad a la que el plan pasa del setpoint bajo al alto al bajar, y al revés al subir.';
+
+  @override
+  String get info_term_pscrRatio_label => 'Relación pSCR';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'La parte de cada exhalación que descarta un reciclador semicerrado pasivo. Fija cuánto baja el oxígeno del circuito respecto al gas de suministro.';
+
+  @override
+  String get info_term_turnFraction_label => 'Fracción de retorno';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'La parte del gas inicial que el plan usa antes de dar la vuelta. Un tercio es la regla habitual en cuevas y otros entornos cerrados.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (propulsor)';
+
+  @override
+  String get info_term_dpv_body =>
+      'Un vehículo de propulsión para buceadores. El plan de misión cubre la batería, la distancia recorrida y el regreso a nado si falla un scooter.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Violaciones del techo';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'Cuántas veces y cuánto una versión de la inmersión subió por encima del techo del modelo.';
+
+  @override
+  String get info_term_deepestStop_label => 'Parada más profunda';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'La profundidad de la primera parada de descompresión obligatoria.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Margen de gas mínimo';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'Cuánto gas quedaba por encima del gas mínimo en el punto donde se aplicó el cambio.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Momento sin gas';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'Cuándo se vaciaría una botella al ritmo respiratorio que usa la repetición.';
+
+  @override
+  String get info_term_whatIf_label => 'Real y qué pasaría si';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Real repite la inmersión registrada con el modelo, y qué pasaría si la repite con los cambios añadidos en el Laboratorio de inmersión.';
+
+  @override
+  String get info_term_cellGain_label => 'Salida de la célula (mV por bar)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'La lectura en milivoltios de cada célula de oxígeno dividida por la ppO2 que mide. Se mantiene estable mientras la célula está sana y baja al envejecer.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'Cortes del transmisor';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'La parte de cada inmersión sin lectura de presión del transmisor.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'Oxígeno contado como narcótico';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'Si está activado, el oxígeno cuenta como narcótico igual que el nitrógeno en END y MND. Así la END es más profunda y la MND más somera.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'Gases para el ascenso';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'A qué botellas llevadas puede cambiar el ascenso simulado: a todos los gases llevados o solo a stages y botellas de descompresión.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Profundidad en el tiempo de toda la inmersión, con cada capa activada dibujada sobre el mismo eje temporal.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'Las capas de descompresión y oxígeno salen del modelo Buhlmann ZHL-16C con los factores de gradiente de ajustes y de las tablas de oxígeno de NOAA.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Recorre el gráfico para leer todos los valores en un instante. La leyenda activa y desactiva capas, y el botón de rango selecciona una parte de la inmersión para ver sus estadísticas.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Estadísticas de la parte de la inmersión seleccionada en el gráfico.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'Lo que indica el modelo de descompresión en el momento del cursor: si hacen falta paradas y cuánto tiempo o profundidad queda.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'La aplicación usa el modelo Buhlmann ZHL-16C con los factores de gradiente de la etiqueta GF. Un ordenador con otro modelo u otros ajustes puede mostrar cifras distintas.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'Cuánta exposición al oxígeno añadió la inmersión, en el reloj CNS a corto plazo y en la dosis OTU más lenta.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'El CNS% sigue los límites de exposición a ppO2 de NOAA y baja con una semivida de 90 minutos tras la inmersión. El OTU diario se reinicia a medianoche y el semanal cubre los últimos siete días.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'Cómo se compara cada cambio de gas con el punto más profundo en que ese gas estaba dentro de su límite de ppO2.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'Lo cargado de gas inerte que está cada uno de los 16 compartimentos del modelo en el momento del cursor.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'El modelo es Buhlmann ZHL-16C, que sigue el nitrógeno y el helio por separado en cada compartimento. La carga cuenta solo lo que está sobre el nivel de superficie, así que las barras nunca marcan cero aunque estén desaturadas.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Momentos de esta inmersión que superaron alguna regla de la revisión de seguridad, detectados al revisar el perfil después de la inmersión.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'Las reglas y sus umbrales se configuran en Ajustes, dentro de Revisión de seguridad.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Al tocar un hallazgo se muestra dónde ocurrió en el perfil. Descartarlo lo oculta en esta inmersión.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Cada botella de la inmersión con su gas, la presión usada y los límites de profundidad de ese gas.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'El consumo de gas dividido en fases de la inmersión o en tramos de tiempo, para comparar el esfuerzo de cada parte.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'El selector sobre el gráfico cambia entre SAC y RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'Los datos registrados de esta inmersión, con valores calculados a partir del perfil donde no hay ningún dato introducido.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'Esta inmersión fue en altitud, donde la menor presión atmosférica en superficie hace más conservador el modelo de descompresión.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'Un modelo de la flotabilidad neta durante la inmersión, a partir del perfil, el gas respirado y el equipo registrado con la inmersión.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Ajustar abre una hoja que prueba otra cantidad de lastre u otra flotabilidad del traje en esta inmersión.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Temperatura del mar y estrés térmico del coral cerca del punto en torno a la fecha de la inmersión, con datos satelitales de NOAA Coral Reef Watch.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'Cómo se compara esta inmersión con su plan vinculado o con escenarios guardados en las cifras que importan para la descompresión.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Toca la tarjeta para abrir el Laboratorio de inmersión y probar otras opciones con esta inmersión.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'Cuándo termina el intervalo recomendado para volar tras las inmersiones más recientes.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'El botón de rango elige el periodo y el de agrupación muestra cada inmersión, cada semana o cada mes. Media móvil y tendencia general activan y desactivan sus líneas, y los huecos largos se pueden contraer desde el menú.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Consumo de gas por inmersión a lo largo del tiempo, un punto por inmersión o grupo, en el carril elegido arriba.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Consumo de gas en el tiempo para cada tipo de botella, para no mezclar gas de fondo y stages.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Oxígeno y diluyente usados por inmersión con reciclador, como volumen por minuto a presión de superficie.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'La profundidad máxima de cada inmersión a lo largo del tiempo.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'Cuánto duró cada inmersión desde dejar la superficie hasta volver a ella, a lo largo del tiempo.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'El tiempo de fondo de cada inmersión en el tiempo, que deja fuera el ascenso final y las paradas que incluye el tiempo total.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'La temperatura del agua registrada en cada inmersión a lo largo del tiempo.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'La temperatura del aire registrada en cada inmersión a lo largo del tiempo.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'El lastre llevado en cada inmersión a lo largo del tiempo.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'Cuántas inmersiones respiraron cada mezcla de gas.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'Cómo se configuraron las botellas en cada inmersión, contado a partir de las funciones registradas.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'Las inmersiones con el consumo de gas más bajo y más alto del rango.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Velocidad media al bajar y al subir, calculada a partir de los perfiles.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'Cómo se reparte el tiempo total bajo el agua entre franjas de profundidad.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'Cuántas inmersiones necesitaron paradas de descompresión, según la lectura del modelo de cada perfil.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'El total acumulado de inmersiones registradas a lo largo del tiempo.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Inmersiones agrupadas por la visibilidad registrada, en las franjas de la escala de visibilidad de ajustes.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Inmersiones en agua salada, dulce y salobre.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'La temperatura del agua mínima, media y máxima registrada en cada mes del año.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Inmersiones agrupadas por temperatura del agua, con el consumo y la profundidad medios de cada franja.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Inmersiones por el tipo de punto registrado, como arrecife, pecio o cueva.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Inmersiones agrupadas por la altitud del punto.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Inmersiones agrupadas por la presión atmosférica registrada en superficie.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'Cuándo ocurrieron las inmersiones respecto a la salida y la puesta del sol en cada punto.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'Qué días del año han tenido inmersiones, en todos los años del rango.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'El tiempo en superficie medio, más corto y más largo entre una inmersión y la anterior.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'Equipo ordenado por cuánto uso y desgaste ha tenido, en la unidad elegida en el menú.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Patrones en las inmersiones y problemas registrados que apuntan a equipo que requiere atención.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'Los problemas registrados en las inmersiones, agrupados por etiqueta y contados.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'Las inmersiones que elige la frase de arriba, comparadas con todas las demás del rango.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'Toca las palabras subrayadas de la frase para cambiar la medida, el sentido y el número de inmersiones. Un modo de umbral compara en cambio cada inmersión por encima o por debajo de un valor.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'Los factores claramente más o menos comunes entre las inmersiones de enfoque que entre el resto.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Todos los factores juntos: su proporción entre las inmersiones de enfoque y entre las demás.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Totales y medias de todas las inmersiones del rango.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'Cómo se reparten las inmersiones entre franjas de profundidad y tipos de inmersión.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Notas breves que la aplicación encontró en el registro, como una nueva inmersión más profunda o un cambio en el consumo.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Cada punto es un compañero, punto de buceo, viaje o pieza de equipo, y cada línea une dos que comparten inmersiones.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Toca un punto para centrarte en él y sus vínculos. El panel elige los colores, el estilo de línea y el alcance de la vista.';
+
+  @override
+  String get info_planner_results_summary =>
+      'Las cifras principales del plan tal como está, actualizadas al cambiarlo.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'El ascenso que planifica el modelo, una fila por parada o cambio de gas, con profundidad, tiempo, tiempo total y gas.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'Cuánto usa el plan de cada botella, con su presión de retorno y gas mínimo donde se conoce la presión inicial.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'El ascenso en circuito abierto desde el peor punto de la inmersión si se pierde el circuito, y si el gas de bailout llevado lo cubre.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'El plan recalculado por si las cosas cambian: una inmersión más profunda o larga, o la pérdida de un gas.';
+
+  @override
+  String get info_planner_range_summary =>
+      'Cómo cambia el plan si la inmersión es más profunda o dura más de lo previsto.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'El plan de scooters del equipo: uso de batería, distancia y regreso a nado si falla un scooter.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'Lo que esta inmersión deja a la siguiente: el intervalo en superficie, el CNS que aún se arrastra y las OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'Lo conservador que es el plan y dónde queda la última parada.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Bajar GF Low hace más profunda la primera parada y bajar GF High alarga las paradas someras. Los resultados se actualizan con cada cambio.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'La velocidad de descenso y ascenso del plan en cada parte de la inmersión.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Cada velocidad se aplica a su propia parte de la inmersión. Los resultados se actualizan al cambiar un valor.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'El ritmo respiratorio y la reserva que el plan usa para calcular el gas.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Introduce un ritmo respiratorio de fondo, o tómalo de las inmersiones registradas, y la reserva de cada botella.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'El tipo de agua y la altitud, que fijan la presión de superficie desde la que parte el modelo.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Elige el tipo de agua e introduce la altitud del punto.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'Los setpoints que mantiene el reciclador de circuito cerrado durante el plan.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Fija los setpoints bajo y alto y la profundidad a la que el plan cambia entre ellos.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'Cómo se modela el reciclador semicerrado pasivo en el plan.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Introduce la relación de descarte que indica el fabricante del reciclador.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'Hasta dónde llegan los planes de contingencia y la regla de retorno del plan de gas.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Fija cuánto más profundo y largo van los planes de contingencia, y elige la regla y la fracción de retorno.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'El equipo, los scooters y las condiciones del plan de misión.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Introduce los buceadores y scooters, la reserva de batería, la corriente y la velocidad a nado.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'El equipo y los lastres del plan, usados para predecir la flotabilidad durante la inmersión.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Añade el traje, las botellas y el lastre para ver la flotabilidad prevista.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'Los resultados principales de la repetición qué pasaría si, teñidos según mejoren o empeoren respecto a la inmersión real.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Cada medida de la inmersión real y de la versión qué pasaría si, lado a lado, con la diferencia.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'La carga de los compartimentos al llegar a superficie cada versión, real y qué pasaría si.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'La flotabilidad en la última parada para cada versión de la inmersión.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Cambios para probar con esta inmersión, cada uno repetido con el mismo modelo desde el momento en que se aplica.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'La profundidad máxima a la que la mezcla elegida se mantiene dentro de su límite de ppO2, con la EAD y la END allí.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'Elige un modo y fija el oxígeno y la ppO2 de trabajo. Se puede añadir una profundidad objetivo para comprobar una profundidad prevista con la mezcla. El límite de END y si el oxígeno cuenta como narcótico vienen del perfil del buceador.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'La mezcla más rica para una profundidad objetivo que mantiene la ppO2 en su límite y la END en el límite de narcosis.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'Fija la profundidad objetivo y el modo. En CCR, elige si la mezcla es diluyente o gas de bailout.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'Cuánto gas usa una inmersión prevista a una profundidad, tiempo y ritmo respiratorio dados.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'Introduce la profundidad, el tiempo, el ritmo respiratorio y la botella.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'La reserva mínima de gas para que dos buceadores asciendan juntos con un solo suministro desde el punto más profundo.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'Usa un ritmo respiratorio bajo estrés, habitualmente dos a tres veces el normal, y cuenta a ambos buceadores con una botella. La parada de seguridad se incluye si esa opción está activada.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'Fija la profundidad, el ritmo respiratorio bajo estrés, la velocidad de ascenso y la botella.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'La profundidad máxima a la que un gas se mantiene dentro del límite de END, y la END de un gas a una profundidad dada.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'Introduce el gas, el límite de END y si el oxígeno cuenta como narcótico.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'Si un cambio entre dos gases cumple la regla de los quintos para la contradifusión.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'El helio se difunde más rápido que el nitrógeno, así que cambiar a un gas más rico en nitrógeno puede subir el gas inerte total en los tejidos. Las agencias difieren en cuánto importa con gases estándar.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'Introduce el gas actual y el gas al que se cambia.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'Lo denso que es un gas en profundidad y la profundidad a la que el aire sería igual de denso.';
+
+  @override
+  String get info_calculators_density_background =>
+      'En CCR es la densidad del gas del circuito: oxígeno en el setpoint y el resto en la proporción del diluyente. El gas más frío es más denso y el cálculo supone un gas ideal.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'Introduce la mezcla, la profundidad y la temperatura del agua, y cambia entre OC y CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'Una mezcla por presiones parciales: los gases de llenado que se añaden en orden para llegar a la mezcla objetivo.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'Cada gas se añade hasta la presión indicada y la botella se deja asentar antes del siguiente. Los gases de llenado y su orden son configurables, así que el último puede ser EAN32 en lugar de aire.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'Introduce lo que ya hay en la botella y la mezcla objetivo. La última etapa de toda mezcla es analizar la mezcla terminada.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'Una inmersión a un solo nivel pasada por el modelo Buhlmann ZHL-16C, con sus límites de gas, paradas y carga tisular.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'Fija la profundidad, el tiempo, el gas y las condiciones del agua. Los límites del gas, las paradas y el gráfico de tejidos se actualizan con cada cambio.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'Si una segunda inmersión cabe en los límites sin paradas tras un intervalo en superficie, según la carga tisular arrastrada de la primera.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      'Los 16 compartimentos del modelo liberan gas durante el intervalo, los rápidos en minutos y los lentos en horas. El compartimento dominante es el más cargado y suele fijar el NDL.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'Fija la primera inmersión, la segunda y el intervalo en superficie. El resultado muestra el intervalo mínimo y el NDL de la segunda inmersión.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'Un punto por inmersión, así que un cambio lento en este equipo se ve como tendencia a lo largo de su vida.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'Patrones en las inmersiones y problemas registrados de este equipo que señalaron las reglas de estado.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'Cuánto uso ha tenido este equipo, contado en cada unidad que usan sus relojes de mantenimiento.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'La altura del punto sobre el nivel del mar y la presión atmosférica allí, desde la que parte el modelo de descompresión.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'Cuánto tiempo homologado de filtro queda para las inmersiones con reciclador previstas del viaje.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'Lo conservador que es el modelo de descompresión de la aplicación.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'Los factores de gradiente reducen los valores M de Buhlmann ZHL-16C, un método descrito por Erik Baker. Todas las cifras de descompresión que calcula la aplicación los usan.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'Los límites de ppO2 y el método de CNS usados para las cifras de oxígeno en toda la aplicación.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'Si el NDL, las paradas, el TTS, el GTR y el CNS vienen del ordenador de buceo o del cálculo de la aplicación.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'El límite de END y cómo se calculan la END y la MND en toda la aplicación.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'La comprobación que hace la aplicación en los cambios de gas por contradifusión entre helio y nitrógeno.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'A qué gases puede cambiar el ascenso simulado cuando la aplicación calcula el TTS, el techo y las paradas.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'Las reglas con las que se revisa cada inmersión tras registrarla. Una regla desactivada nunca se informa.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'Los límites que hacen que una inmersión cuente como fría, profunda o de oxígeno alto para los relojes de mantenimiento.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'Las cifras por inmersión que guarda la aplicación para células de oxígeno, transmisores y filtros.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'Las comprobaciones detrás de los hallazgos del estado del equipo. Una regla desactivada nunca se informa.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'Los recordatorios se programan al abrir la aplicación y se actualizan en segundo plano. Cada equipo puede tener sus propios recordatorios en su pantalla de edición.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'Las velocidades a partir de las cuales el perfil colorea el ascenso y registra eventos de velocidad de ascenso.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Analiza siempre la mezcla final antes de bucearla.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'La MOD siempre se redondea hacia abajo, nunca hacia arriba. Rec usa 1 bar por cada $depth, como el registro. OC Tec y CCR Tec calculan la presión en profundidad a partir del tipo de agua, así que la misma mezcla puede mostrar allí una MOD algo menor.';
+  }
 }

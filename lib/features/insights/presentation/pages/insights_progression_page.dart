@@ -16,6 +16,8 @@ import 'package:submersion/features/insights/presentation/widgets/stat_section_c
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Whole minutes, for the runtime and bottom time charts' axis and tooltips.
 String _minutes(BuildContext context, double value) =>
@@ -69,6 +71,7 @@ class InsightsProgressionPage extends ConsumerWidget {
       chartId: TrendChartIds.depth,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.insights_progression_depthProgression_title,
+      infoSummary: context.l10n.info_insights_depthTrend_summary,
       subtitle: context.l10n.insights_progression_depthProgression_subtitle,
       pointsAsync: ref.watch(depthProgressionTrendProvider),
       errorMessage: context.l10n.insights_progression_depthProgression_error,
@@ -85,6 +88,8 @@ class InsightsProgressionPage extends ConsumerWidget {
       chartId: TrendChartIds.runtime,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.insights_progression_runtime_title,
+      infoSummary: context.l10n.info_insights_runtimeTrend_summary,
+      infoTerms: const [DiveTerm.runtime],
       subtitle: context.l10n.insights_progression_runtime_subtitle,
       pointsAsync: ref.watch(runtimeTrendProvider),
       errorMessage: context.l10n.insights_progression_runtime_error,
@@ -101,6 +106,8 @@ class InsightsProgressionPage extends ConsumerWidget {
       chartId: TrendChartIds.bottomTime,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.insights_progression_bottomTime_title,
+      infoSummary: context.l10n.info_insights_bottomTimeTrend_summary,
+      infoTerms: const [DiveTerm.bottomTime, DiveTerm.runtime],
       subtitle: context.l10n.insights_progression_bottomTime_subtitle,
       pointsAsync: ref.watch(bottomTimeTrendProvider),
       errorMessage: context.l10n.insights_progression_bottomTime_error,
@@ -270,6 +277,12 @@ class InsightsProgressionPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_progression_cumulative_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_progression_cumulative_title,
+        summary: context.l10n.info_insights_cumulative_summary,
+      ),
       subtitle: context.l10n.insights_progression_cumulative_subtitle,
       child: cumulativeAsync.when(
         // A date axis, not the index axis: the count now steps once per dive,

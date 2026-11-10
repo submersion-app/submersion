@@ -73,6 +73,9 @@ class DiveComparisonCard extends ConsumerWidget {
   /// the only case where the fill-planned button belongs.
   final bool showFillPlanned;
 
+  /// The fill target is a draft (issue #637): the fill button says so.
+  final bool fillsDraft;
+
   /// The other copy, when the match is another dive in this same import
   /// rather than a stored one (an empty [existingDiveId]). Shown side by
   /// side so the diver can choose which copy to keep (#3110). Null keeps the
@@ -95,6 +98,7 @@ class DiveComparisonCard extends ConsumerWidget {
     this.embedded = false,
     this.isPending = false,
     this.showFillPlanned = false,
+    this.fillsDraft = false,
     this.inBatchPartner,
   });
 
@@ -587,8 +591,12 @@ class DiveComparisonCard extends ConsumerWidget {
     if (showFillPlanned && showAction(DuplicateAction.fillPlanned)) {
       buttons.add(
         _ActionButton(
-          label: context.l10n.universalImport_label_fillPlanned,
-          subtitle: context.l10n.universalImport_compare_fillPlannedSubtitle,
+          label: fillsDraft
+              ? context.l10n.universalImport_label_fillDraft
+              : context.l10n.universalImport_label_fillPlanned,
+          subtitle: fillsDraft
+              ? context.l10n.universalImport_compare_fillDraftSubtitle
+              : context.l10n.universalImport_compare_fillPlannedSubtitle,
           onPressed: callbackFor(DuplicateAction.fillPlanned, null),
           style: styleFor(
             DuplicateAction.fillPlanned,

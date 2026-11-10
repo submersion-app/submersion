@@ -12,6 +12,8 @@ import 'package:submersion/features/tides/domain/services/tide_status_for_dive.d
 /// [waterType] is the dive's effective water type (the dive's own, else its
 /// site's). Freshwater dives have no tides, so nothing is recorded and a
 /// nearby ocean model or station cannot leak in; the result is then null.
+/// [id] names the record, for a writer that wants every device to write the
+/// same row (a draft's, issue #637); a fresh id otherwise.
 Future<TideRecord?> recordDiveTide({
   required TideRecordRepository repository,
   required TideCalculator calculator,
@@ -19,6 +21,7 @@ Future<TideRecord?> recordDiveTide({
   required DateTime entryWallClock,
   required GeoPoint location,
   required WaterType? waterType,
+  String? id,
 }) async {
   if (waterType == WaterType.fresh) return null;
   final status = await tideStatusForDive(
@@ -26,5 +29,5 @@ Future<TideRecord?> recordDiveTide({
     entryWallClock: entryWallClock,
     location: location,
   );
-  return repository.createFromStatus(diveId: diveId, status: status);
+  return repository.createFromStatus(diveId: diveId, status: status, id: id);
 }

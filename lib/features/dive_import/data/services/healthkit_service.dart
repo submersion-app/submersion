@@ -3,6 +3,7 @@ import 'package:health/health.dart';
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/time_weighted_mean.dart';
+import 'package:submersion/features/dive_import/domain/entities/health_sample.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 
@@ -86,6 +87,23 @@ class HealthKitService implements HealthImportService {
     HealthDataType.WATER_TEMPERATURE,
   ];
 
+  /// Read for heart rate, recovery and sleep on dives (issue #637).
+  static const List<HealthDataType> _metricsTypes = [
+    HealthDataType.HEART_RATE,
+    HealthDataType.HEART_RATE_VARIABILITY_SDNN,
+    ..._sleepTypes,
+  ];
+
+  /// Asleep, however it was logged: since watchOS 9 the watch writes the
+  /// stages (core, deep, REM) and leaves "asleep" to older watches and other
+  /// apps. All four read under the one sleep permission.
+  static const List<HealthDataType> _sleepTypes = [
+    HealthDataType.SLEEP_ASLEEP,
+    HealthDataType.SLEEP_LIGHT,
+    HealthDataType.SLEEP_DEEP,
+    HealthDataType.SLEEP_REM,
+  ];
+
   /// Types used to probe permission state.
   ///
   /// Deliberately narrower than [_readTypes]. Where `requestAuthorization`
@@ -136,6 +154,22 @@ class HealthKitService implements HealthImportService {
   @override
   Future<bool> hasPermissions() async =>
       await permissionStatus() == HealthPermissionStatus.granted;
+
+  @override
+  Future<bool> requestMetricsPermissions() async {
+    if (!_isPlatformSupported || !await _healthKitExists) {
+      return false;
+    }
+    try {
+      await _health.configure();
+      return await _health.requestAuthorization(
+        _metricsTypes,
+        permissions: _metricsTypes.map((_) => HealthDataAccess.READ).toList(),
+      );
+    } catch (_) {
+      return false;
+    }
+  }
 
   @override
   Future<bool> requestPermissions() async {
@@ -208,6 +242,42 @@ class HealthKitService implements HealthImportService {
     // This method exists for lazy loading if needed in the future
     return [];
   }
+
+  @override
+  Future<List<HealthSample>> fetchHeartRate({
+    required DateTime start,
+    required DateTime end,
+  }) => _samples(HealthDataType.HEART_RATE, start, end);
+
+  @override
+  Future<List<HealthSample>> fetchHrv({
+    required DateTime start,
+    required DateTime end,
+  }) => _samples(HealthDataType.HEART_RATE_VARIABILITY_SDNN, start, end);
+
+  @override
+  Future<List<SleepInterval>> fetchSleep({
+    required DateTime start,
+    required DateTime end,
+  }) async {
+    // One type at a time, so a type this device cannot read costs only its
+    // own samples. Overlaps (a phone and a watch both logging) are joined
+    // by the calculator.
+    return [
+      for (final type in _sleepTypes)
+        for (final p in await _fetchType(type, start, end))
+          SleepInterval(start: p.dateFrom.toUtc(), end: p.dateTo.toUtc()),
+    ]..sort((a, b) => a.start.compareTo(b.start));
+  }
+
+  Future<List<HealthSample>> _samples(
+    HealthDataType type,
+    DateTime start,
+    DateTime end,
+  ) async => [
+    for (final v in _numericSeries(await _fetchType(type, start, end)))
+      HealthSample(at: v.time.toUtc(), value: v.value),
+  ];
 
   /// Read one data type, isolating its failures.
   ///

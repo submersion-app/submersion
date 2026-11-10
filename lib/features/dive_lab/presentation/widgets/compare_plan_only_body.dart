@@ -39,7 +39,11 @@ class ComparePlanOnlyBody extends ConsumerWidget {
           CompareChart(
             profile: profile,
             overlays: [
-              if (comparison.overlay.points.isNotEmpty) comparison.overlay,
+              // Named as the plan's line is everywhere else (#4215).
+              if (comparison.overlay.points.isNotEmpty)
+                comparison.overlay.copyWith(
+                  name: l10n.diveLab_compare_line_planned,
+                ),
             ],
             durationSeconds: diveEnd > planEnd ? diveEnd : planEnd,
             decoStartSeconds: dived?.decoStartSeconds,

@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/services/cloud_storage/google_drive/google_drive_access.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
+import 'package:submersion/core/services/media_store/media_streaming.dart';
 
 /// Google Drive-backed media object store (design spec section 8.2), raw
 /// REST over an authenticated client. One folder in appDataFolder holds
@@ -17,7 +18,7 @@ import 'package:submersion/core/services/media_store/media_object_store.dart';
 /// photos and videos - with resume via the `Content-Range: bytes */total`
 /// probe. [chunkSizeBytes] must be a multiple of 256 KiB (Drive rule).
 class GoogleDriveMediaObjectStore
-    implements MediaObjectStore, DuplicateKeyStore {
+    implements MediaObjectStore, DuplicateKeyStore, RangeReadStore {
   /// [clientSupplier] is asked for the authenticator's *current* client on
   /// every request. It must not be replaced by a captured client: the
   /// Google authenticators close and replace theirs on every re-auth
@@ -398,6 +399,56 @@ class GoogleDriveMediaObjectStore
     final decoded = jsonDecode(response.body) as Map<String, Object?>;
     return decoded['id'] as String;
   }
+
+  /// File ids of the objects a player is streaming, so each chunk of a
+  /// video is one GET rather than a folder query and a GET.
+  final Map<String, String> _streamIds = {};
+
+  /// One byte range of [key], for the media stream relay (issue #4162).
+  @override
+  Future<Uint8List> readRange(
+    String key, {
+    required int start,
+    required int endInclusive,
+  }) async {
+    final cachedId = _streamIds[key];
+    var response = await _rangeGet(
+      cachedId ?? await _streamIdFor(key),
+      start,
+      endInclusive,
+    );
+    if (response.statusCode == 404 && cachedId != null) {
+      // Replaced since it was looked up: look it up once more.
+      _streamIds.remove(key);
+      response = await _rangeGet(await _streamIdFor(key), start, endInclusive);
+    }
+    if (response.statusCode != 206 && response.statusCode != 200) {
+      throw _forStatus('read range of', key, response);
+    }
+    return rangeOfAnswer(
+      response.statusCode,
+      response.bodyBytes,
+      start: start,
+      endInclusive: endInclusive,
+    );
+  }
+
+  Future<String> _streamIdFor(String key) async {
+    final found = await _findByKey(key);
+    if (found == null) {
+      throw MediaStoreException(
+        'not found: $key',
+        kind: MediaStoreErrorKind.notFound,
+      );
+    }
+    return _streamIds[key] = found.id;
+  }
+
+  Future<http.Response> _rangeGet(String id, int start, int endInclusive) =>
+      _send(
+        http.Request('GET', Uri.parse('$_apiBase/drive/v3/files/$id?alt=media'))
+          ..headers['Range'] = 'bytes=$start-$endInclusive',
+      );
 
   Future<_DriveFile?> _findByKey(String key) async {
     final files = await _filesByKey(key);

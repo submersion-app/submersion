@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/widgets/depth_pie_card.dart';
@@ -19,6 +20,9 @@ import 'package:submersion/features/insights/presentation/widgets/insights_filte
 import 'package:submersion/features/insights/presentation/widgets/insights_overview_empty_state.dart';
 import 'package:submersion/features/insights/presentation/widgets/observations_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 class InsightsOverviewPage extends ConsumerWidget {
   final bool embedded;
@@ -237,14 +241,20 @@ class _AggregateGrid extends StatelessWidget {
         ),
     ];
 
-    return GridView.count(
-      crossAxisCount: crossAxis,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      childAspectRatio: 1.0,
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      children: cards,
+    // The stat cards have no header, so one icon in the grid's corner
+    // explains them all.
+    return InfoCorner(
+      title: context.l10n.insights_category_overview_title,
+      info: (context) => overviewStatsInfo(context.l10n, infoUnits(context)),
+      child: GridView.count(
+        crossAxisCount: crossAxis,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        childAspectRatio: 1.0,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        children: cards,
+      ),
     );
   }
 }
@@ -669,11 +679,21 @@ class _DistributionsSection extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              child: Text(
-                context.l10n.insights_summary_distributions_title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              child: InfoTitleRow(
+                title: Text(
+                  context.l10n.insights_summary_distributions_title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                label: context.l10n.insights_summary_distributions_title,
+                info: (context) => termsInfo(
+                  context.l10n,
+                  infoUnits(context),
+                  title: context.l10n.insights_summary_distributions_title,
+                  summary: context.l10n.info_insights_distributions_summary,
+                  terms: const [DiveTerm.diveTypeCounting],
+                ),
               ),
             ),
             const SizedBox(height: 8),

@@ -7,31 +7,33 @@ import 'package:submersion/features/dashboard/presentation/widgets/milestones_ca
 import 'package:submersion/features/dashboard/presentation/widgets/quick_actions_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/recent_dives_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/recent_sites_map_card.dart';
+import 'package:submersion/features/dashboard/presentation/widgets/waiting_for_download_card.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/year_in_review_card.dart';
 
 void main() {
   group('buildDashboardEntries', () {
     test('default order builds the reorganized block structure', () {
       final entries = buildDashboardEntries(HomeCardType.values);
-      // hero, gaugeStrip, preDive as FullBlocks; recentDives absorbs
-      // quickActions + milestones + yearInReview into a LeadSideGroup;
-      // photoRibbon + recentSitesMap pair up; onThisDay and activeCourses
-      // trail as Thirds.
-      expect(entries, hasLength(7));
+      // hero, gaugeStrip, preDive and waitingForDownload as FullBlocks;
+      // recentDives absorbs quickActions + milestones + yearInReview into a
+      // LeadSideGroup; photoRibbon + recentSitesMap pair up; onThisDay and
+      // activeCourses trail as Thirds.
+      expect(entries, hasLength(8));
       expect(entries[0], isA<FullBlock>());
       expect(entries[1], isA<FullBlock>());
       expect(entries[2], isA<FullBlock>());
-      final group = entries[3] as LeadSideGroup;
+      expect((entries[3] as FullBlock).child, isA<WaitingForDownloadCard>());
+      final group = entries[4] as LeadSideGroup;
       expect(group.lead, isA<RecentDivesCard>());
       expect(group.side, hasLength(3));
       expect(group.side[0], isA<QuickActionsCard>());
       expect(group.side[1], isA<MilestonesCard>());
       expect(group.side[2], isA<YearInReviewCard>());
-      final pair = entries[4] as PairBlock;
+      final pair = entries[5] as PairBlock;
       expect(pair.first, isA<MediaRibbonCard>());
       expect(pair.second, isA<RecentSitesMapCard>());
-      expect(entries[5], isA<ThirdBlock>());
       expect(entries[6], isA<ThirdBlock>());
+      expect(entries[7], isA<ThirdBlock>());
     });
 
     test('paired media ribbon asks for two rows', () {

@@ -1908,6 +1908,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Dive times during this day';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Dive times during this day. Sunrise $sunrise, sunset $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Dive times during this day. Sunrise $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Dive times during this day. Sunset $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Map of day $number';
   }
@@ -2006,6 +2024,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_bulkEdit_tankSpecsHint =>
       'Choose which attributes to overwrite on the tanks these dives already have. Start and end pressures are never changed.';
+
+  @override
+  String get diveLog_bulkEdit_tankSpecsTemplateTitle => 'All tanks';
 
   @override
   String get diveLog_bulkEdit_tankSpecsNoFields =>
@@ -5341,6 +5362,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
+  String get diveLog_health_after15 => 'After 15 min';
+
+  @override
+  String get diveLog_health_after5 => 'After 5 min';
+
+  @override
+  String get diveLog_health_atSurfacing => 'At surfacing';
+
+  @override
+  String get diveLog_health_average => 'Average';
+
+  @override
+  String diveLog_health_bpm(int value) {
+    return '$value bpm';
+  }
+
+  @override
+  String get diveLog_health_maximum => 'Maximum';
+
+  @override
+  String diveLog_health_ms(int value) {
+    return '$value ms';
+  }
+
+  @override
+  String get diveLog_health_noneFound =>
+      'Apple Health has no readings for this dive';
+
+  @override
+  String get diveLog_health_overnightHrv =>
+      'Heart rate variability the night after';
+
+  @override
+  String get diveLog_health_readFailed => 'Could not read Apple Health';
+
+  @override
+  String get diveLog_health_recovery => 'Recovery';
+
+  @override
+  String get diveLog_health_recoveryExplain =>
+      'Heart rate at surfacing and 5 and 15 minutes later, from Apple Health.';
+
+  @override
+  String diveLog_health_sleepBefore(int hours, int minutes) {
+    return 'Slept $hours h $minutes min the night before';
+  }
+
+  @override
+  String get diveLog_health_title => 'Heart rate and recovery';
+
+  @override
   String get diveLog_listPage_bottomSheet_preDiveChecklist =>
       'Start pre-dive checklist';
 
@@ -6234,6 +6306,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_homeCards_card_recentSitesMap => 'Recent sites map';
 
   @override
+  String get settings_homeCards_card_waitingForDownload =>
+      'Waiting for download';
+
+  @override
   String get dashboard_allHidden_message => 'All Home cards are hidden.';
 
   @override
@@ -6445,6 +6521,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dashboard_semantics_greetingBanner => 'Dashboard greeting banner';
+
+  @override
+  String get dashboard_waitingForDownload_download => 'Download now';
+
+  @override
+  String dashboard_waitingForDownload_title(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives waiting for your dive computer',
+      one: '1 dive waiting for your dive computer',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get decoCalculator_addToPlanner => 'Add to Planner';
@@ -7483,13 +7573,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_info_title => 'What do these values mean?';
-
-  @override
-  String get diveLog_deco_info_body =>
-      'Load: a compartment\'s inert gas pressure as a percentage of the most it may hold at the surface (its M-value, the red line at 100%).\n\nSurface level: the marker on each bar shows where a fully desaturated compartment settles while you breathe air at the surface. It is never 0%, because your body always holds the nitrogen of the air you breathe. A bar at its marker carries no load left over from diving.\n\nOngassing and offgassing: gas always moves toward the pressure of the gas you breathe. After decompression on oxygen or on a mix rich in helium, the fast compartments can hold less nitrogen than the air at the surface. Back on air, they take nitrogen up again until they reach their marker. That is normal and not a residual load from the dive.\n\nHelium: air contains no helium. After a trimix dive, a compartment releases helium while it can take nitrogen up at the same time. The arrows next to N₂ and He show each gas on its own; the badge next to the compartment number shows the net direction of both.';
-
-  @override
   String diveLog_deco_barChartSemantics(int count, int number, String percent) {
     return 'Tissue loading chart. $count compartments, loading relative to the M-value; leading compartment $number at $percent%.';
   }
@@ -7959,9 +8042,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_diveMode_title => 'Dive Mode';
 
   @override
-  String get diveLog_editSighting_count => 'Count';
-
-  @override
   String get diveLog_editSighting_notes => 'Notes';
 
   @override
@@ -8099,6 +8179,17 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_edit_gasSwitches_fillDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fill in $count switches from the cylinder pressures',
+      one: 'Fill in 1 switch from the cylinder pressures',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveLog_edit_gettingLocation => 'Getting location...';
 
   @override
@@ -8223,6 +8314,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_edit_noMarineLife => 'No species logged';
+
+  @override
+  String diveLog_edit_suggestions_title(String siteName) {
+    return 'Suggested for $siteName';
+  }
+
+  @override
+  String diveLog_edit_suggestions_add(String species) {
+    return 'Add $species';
+  }
+
+  @override
+  String diveLog_edit_suggestions_seenOnDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Seen on $count other dives here',
+      one: 'Seen on $count other dive here',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_expected =>
+      'On this site\'s expected species list';
+
+  @override
+  String diveLog_edit_suggestions_showAll(int count) {
+    return 'Show all ($count)';
+  }
+
+  @override
+  String get diveLog_edit_suggestions_showFewer => 'Show fewer';
 
   @override
   String get diveLog_edit_notSpecified => 'Not specified';
@@ -9072,6 +9196,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_annotations => 'Annotations';
 
   @override
+  String get diveLog_legend_label_plan => 'Plan';
+
+  @override
   String get diveLog_legend_label_computedEvents => 'Computed events';
 
   @override
@@ -9329,6 +9456,37 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String diveLog_fetchConditions_confirmBodySelected(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count of $total selected dives are missing conditions.',
+      one: '$count of $total selected dives is missing conditions.',
+    );
+    return '$_temp0 Only empty fields are filled, so nothing you have already entered will change.';
+  }
+
+  @override
+  String diveLog_fetchConditions_skippedNoLocation(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count dives have no site location or GPS fix and will be skipped.',
+      one: '$count dive has no site location or GPS fix and will be skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get diveLog_fetchConditions_noneNeededSelected =>
+      'None of the selected dives are missing conditions.';
+
+  @override
+  String get diveLog_fetchConditions_noneLocatedSelected =>
+      'The selected dives that are missing conditions have no site location or GPS fix.';
 
   @override
   String diveLog_fetchConditions_summaryCancelled(int count) {
@@ -9771,6 +9929,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get siteSuggestion_titleDiveComputer => 'Location from dive computer';
+
+  @override
+  String get siteSuggestion_titleDraft => 'Location where you went in';
 
   @override
   String siteSuggestion_assignButton(Object name) {
@@ -10721,6 +10882,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_label_endPressure => 'End Pressure';
+
+  @override
+  String get diveLog_tank_label_surfaceBreathing => 'Breathed at the surface';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_helper =>
+      'Minutes on this cylinder after the computer stopped logging, such as oxygen on the boat';
+
+  @override
+  String get diveLog_tank_surfaceBreathing_unit => 'min';
 
   @override
   String get diveLog_tank_label_he => 'He';
@@ -16615,6 +16786,44 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count service due',
+      one: '$count service due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'and $count more',
+      one: 'and $count more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected of $total selected';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Expand all';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Collapse all';
+
+  @override
   String get equipment_location_activeFilter => 'Location';
 
   @override
@@ -17718,9 +17927,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_consumption_volume => 'Volume';
 
   @override
-  String get gasCalculators_mod_aboutMod => 'About MOD';
-
-  @override
   String get gasCalculators_mod_mode => 'Mode';
 
   @override
@@ -17919,10 +18125,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Within your ppO₂, END and density limits at the depths checked.';
 
   @override
-  String get gasCalculators_mod_aboutModesBody =>
-      'The MOD is the depth at which the mix reaches the ppO₂ limit. It is always rounded down, never up.\n\nRec uses 1 bar per 10 m, like the dive log. OC Tec and CCR Tec take the ambient pressure from the water type, like the gas density calculator, so the same mix can show a slightly shallower MOD there.\n\nEAD counts nitrogen as narcotic, END nitrogen and oxygen. Your END limit, whether oxygen counts as narcotic and the default ppO₂ limits come from your diver profile.';
-
-  @override
   String get gasCalculators_mod_modeRec => 'Rec';
 
   @override
@@ -17974,13 +18176,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_hePercent => 'He %';
-
-  @override
-  String get gasCalculators_mnd_infoContent =>
-      'Maximum Narcotic Depth (MND) is the deepest you can go before narcosis exceeds your END limit. Equivalent Narcotic Depth (END) tells you the narcotic effect of your gas at a given depth.\n\nWhen \'O2 is narcotic\' is enabled, both oxygen and nitrogen contribute to narcosis (more conservative). When disabled, only nitrogen is considered narcotic.';
-
-  @override
-  String get gasCalculators_mnd_infoTitle => 'About MND/END';
 
   @override
   String get gasCalculators_mnd_unlimited => 'unlimited';
@@ -18047,13 +18242,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_icd_applyButton => 'Apply';
-
-  @override
-  String get gasCalculators_icd_infoTitle => 'About Isobaric Counterdiffusion';
-
-  @override
-  String get gasCalculators_icd_infoContent =>
-      'Isobaric counterdiffusion (ICD) is the risk that switching from a more helium-rich to a more nitrogen-rich gas increases total inert gas tension in tissue, because helium diffuses faster than nitrogen. The rule of fifths is a common rule of thumb: the nitrogen fraction should not rise by more than a fifth of how much the helium fraction falls.\n\nAgencies disagree on how much this matters in practice for a well-planned dive with standard gases. This calculator applies the rule of thumb to whichever two gases you enter; it is not a substitute for training or professional advice.';
 
   @override
   String get gasCalculators_ppO2Limit => 'ppO₂ Limit';
@@ -18194,13 +18382,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get gasCalculators_blender_error_implausibleStartMix =>
       'The cylinder is holding pressure but no oxygen and no helium, which would be pure nitrogen. Check the mix already in the cylinder.';
-
-  @override
-  String get gasCalculators_blender_about => 'About blending';
-
-  @override
-  String get gasCalculators_blender_aboutBody =>
-      'Partial-pressure blend for the target mix. Add each fill gas in order, up to the pressure shown, then let the cylinder settle. Fill gases and their order are configurable, so setting the last gas to 32/0 tops off with EAN32 instead of air. Always analyse the finished mix before diving it.';
 
   @override
   String get gasCalculators_blender_conditions => 'Blending conditions';
@@ -18624,10 +18805,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Equivalent air density depth (EADD)';
 
   @override
-  String get gasCalculators_density_eaddInfo =>
-      'EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.';
-
-  @override
   String get gasCalculators_density_loopGasTitle => 'Loop gas at depth';
 
   @override
@@ -18646,14 +18823,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
     return 'The diluent alone gives ppO2 $ppO2 here, above the setpoint. The density uses the diluent\'s ppO2.';
-  }
-
-  @override
-  String get gasCalculators_density_infoTitle => 'About Gas Density';
-
-  @override
-  String gasCalculators_density_infoContent(Object warn, Object critical) {
-    return 'Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below $warn g/L; $critical g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent\'s ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.';
   }
 
   @override
@@ -18757,9 +18926,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marineLife_speciesDetail_topSitesTitle => 'Top Sites';
-
-  @override
-  String get marineLife_speciesDetail_totalSightingsLabel => 'Total Sightings';
 
   @override
   String get marineLife_speciesEdit_addTitle => 'Add Species';
@@ -19066,7 +19232,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get marineLife_speciesPage_sortTooltip => 'Sort';
 
   @override
-  String get marineLife_speciesPage_sort_mostSightings => 'Most sightings';
+  String get marineLife_speciesPage_sort_mostDives => 'Most dives';
+
+  @override
+  String get marineLife_abundance_label => 'How many';
+
+  @override
+  String get marineLife_abundance_seen => 'Seen';
+
+  @override
+  String get marineLife_abundance_single => 'Single';
+
+  @override
+  String get marineLife_abundance_few => 'Few';
+
+  @override
+  String get marineLife_abundance_many => 'Many';
+
+  @override
+  String get marineLife_abundance_abundant => 'Abundant';
+
+  @override
+  String get marineLife_abundance_exact => 'Exact';
+
+  @override
+  String get marineLife_abundance_ranges =>
+      'Few 2 to 10, Many 11 to 100, Abundant over 100';
 
   @override
   String get marineLife_speciesPage_sort_recentlySeen => 'Recently seen';
@@ -19132,6 +19323,195 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get marineLife_speciesPage_retry => 'Retry';
+
+  @override
+  String get speciesMap_title => 'Species Map';
+
+  @override
+  String get speciesMap_openTooltip => 'Species map';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'Pick a species';
+
+  @override
+  String get speciesMap_list_searchHint => 'Search all species';
+
+  @override
+  String get speciesMap_list_allSites => 'All sites';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'What you have logged where';
+
+  @override
+  String get speciesMap_list_notSeen => 'Not seen yet';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings sightings',
+      one: '$sightings sighting',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites sites',
+      one: '$sites site',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'My sightings';
+
+  @override
+  String get speciesMap_legend_expected => 'Expected, not logged';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'Public records';
+
+  @override
+  String get speciesMap_legend_speciesLogged => 'Species logged at a site';
+
+  @override
+  String get speciesMap_layers_tooltip => 'Map layers';
+
+  @override
+  String get speciesMap_layers_public => 'Public records (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'Sends the picked species, or the tapped site\'s location, to GBIF.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'Expected species from';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'My sites';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible => 'All sites I can see';
+
+  @override
+  String get speciesMap_card_loggedHere => 'Logged here';
+
+  @override
+  String get speciesMap_card_expectedNotLogged => 'Expected, not logged yet';
+
+  @override
+  String get speciesMap_card_expectedPin => 'Expected here, not logged yet';
+
+  @override
+  String get speciesMap_card_nothingLogged => 'Nothing logged here yet';
+
+  @override
+  String get speciesMap_card_close => 'Close';
+
+  @override
+  String get speciesMap_card_openSite => 'Open site';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count species',
+      one: '$count species',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date, dive $number, ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sightings are on dives without a mapped site',
+      one: '$count sighting is on a dive without a mapped site',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'No public records can be shown for this species: it needs a scientific name GBIF recognises.';
+
+  @override
+  String get speciesMap_publicUnavailable =>
+      'Public records could not be loaded.';
+
+  @override
+  String get speciesMap_error_loading => 'Could not load the species map.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'You have not logged this species at a mapped site. Turn on public records to see where others have.';
+
+  @override
+  String get speciesMap_attribution => 'Records: GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count species',
+      one: '$count species',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sightings',
+      one: '$count sighting',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site, expected';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '$count site',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'Where seen';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'Open full map';
+
+  @override
+  String get speciesMap_whereSeen_empty => 'Not logged at a mapped site yet.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
 
   @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
@@ -20094,6 +20474,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_photoViewer_videoFileNotFound => 'Video file not found';
 
   @override
+  String get media_photoViewer_videoNeedsNormalWindow =>
+      'Playing this video needs a normal browser window. Private windows cannot stream from Google Drive or WebDAV.';
+
+  @override
   String get media_photoViewer_videoNotLinked => 'Video not linked to library';
 
   @override
@@ -20483,6 +20867,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_empty => 'No media yet';
 
   @override
+  String get media_library_emptyFiltered => 'No media matches these filters';
+
+  @override
   String get media_library_filter_all => 'All';
 
   @override
@@ -20513,6 +20900,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String media_library_filter_missingCount(int count) {
     return 'Missing files ($count)';
   }
+
+  @override
+  String get media_library_filter_noPeople => 'No one tagged';
+
+  @override
+  String media_library_filter_peopleTwo(String first, String second) {
+    return '$first, $second';
+  }
+
+  @override
+  String media_library_filter_peopleAndMore(String names, int count) {
+    return '$names +$count';
+  }
+
+  @override
+  String media_library_filter_peopleCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count people',
+      one: '$count person',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_library_filter_peopleSearchHint => 'Search people';
+
+  @override
+  String get media_library_filter_peopleNoMatch => 'No people match';
+
+  @override
+  String get media_library_filter_peopleClear => 'Clear people';
+
+  @override
+  String get media_library_filter_notPlacedInDive => 'Not placed in the dive';
 
   @override
   String get media_library_filter_clear => 'Clear filters';
@@ -20549,6 +20972,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_library_unlinkedHeader => 'Unlinked';
+
+  @override
+  String get media_library_sectionSitePictures => 'Site pictures';
+
+  @override
+  String get media_library_sectionEquipmentPictures => 'Equipment pictures';
 
   @override
   String get media_library_diveHeaderHint => 'Open this dive';
@@ -21986,10 +22415,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Buoyancy through the dive, swing, ditchable weight';
 
   @override
-  String get buoyancy_tooltip =>
-      'Modeled net buoyancy through the dive from your profile, gas use, and gear.';
-
-  @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
     return 'At your final stop (~$depth) you were about $amount buoyant';
   }
@@ -22128,6 +22553,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveDetailSection_equipment_name => 'Equipment';
+
+  @override
+  String get diveDetailSection_health_description =>
+      'Heart rate, recovery and sleep from Apple Health';
 
   @override
   String get diveDetailSection_equipment_description =>
@@ -24030,6 +24459,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_autoTagImports => 'Tag imported dives';
 
   @override
+  String get settings_conflict_field_avgHeartRate => 'Average heart rate';
+
+  @override
   String get settings_conflict_field_downloadsFollowComputerOwner =>
       'Add downloads to the computer\'s owner';
 
@@ -24080,6 +24512,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Equipment grouped by location';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Equipment folded groups';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>
@@ -24903,6 +25339,22 @@ class AppLocalizationsEn extends AppLocalizations {
       'Heading correction in degrees';
 
   @override
+  String get settings_conflict_field_heartRateAtExit =>
+      'Heart rate at surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus15 =>
+      'Heart rate 15 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateExitPlus5 =>
+      'Heart rate 5 min after surfacing';
+
+  @override
+  String get settings_conflict_field_heartRateSamples =>
+      'Heart rate from Apple Health';
+
+  @override
   String get settings_conflict_field_scaleFactor => 'Track scale factor';
 
   @override
@@ -24996,6 +25448,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_isDone => 'Done';
+
+  @override
+  String get settings_conflict_field_isDraft => 'Draft dive';
+
+  @override
+  String get settings_conflict_field_isEdit => 'Profile edited by hand';
 
   @override
   String get settings_conflict_field_isOrphaned => 'File missing';
@@ -25140,6 +25598,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_maxDescentRate => 'Maximum descent rate';
 
   @override
+  String get settings_conflict_field_maxHeartRate => 'Maximum heart rate';
+
+  @override
   String get settings_conflict_field_maxSpeed => 'Top speed';
 
   @override
@@ -25206,6 +25667,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_conflict_field_overdueServices => 'Overdue services';
+
+  @override
+  String get settings_conflict_field_overnightHrvMs =>
+      'Overnight heart rate variability';
 
   @override
   String get settings_conflict_field_params => 'Details';
@@ -25725,6 +26190,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_size => 'Size';
 
   @override
+  String get settings_conflict_field_sleepBeforeMinutes =>
+      'Sleep the night before';
+
+  @override
   String get settings_conflict_field_sortOrder => 'Sort order';
 
   @override
@@ -25797,6 +26266,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Settings for this dive only';
 
   @override
+  String get settings_conflict_field_settled =>
+      'Apple Health readings complete';
+
+  @override
   String get settings_conflict_field_startTime => 'Start time';
 
   @override
@@ -25837,6 +26310,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_supersedesRuleId =>
       'Replaces built-in rule';
+
+  @override
+  String get settings_conflict_field_surfaceBreathingDuration =>
+      'Time breathed at the surface';
 
   @override
   String get settings_conflict_field_surfaceConditions => 'Surface conditions';
@@ -26598,6 +27075,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String notifications_document_expiresToday_title(String title) {
     return '$title expires today';
   }
+
+  @override
+  String get notifications_draftReminder_body =>
+      'Download your dive computer to fill in the draft.';
+
+  @override
+  String get notifications_draftReminder_title =>
+      'A dive is waiting for your dive computer';
 
   @override
   String get notifications_document_expiresToday_body =>
@@ -27551,13 +28036,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_aboutContent =>
-      'Gradient Factors (GF) control how conservative your decompression calculations are. GF Low affects deep stops, while GF High affects shallow stops.  Lower values = more conservative = longer deco stops Higher values = less conservative = shorter deco stops';
-
-  @override
-  String get settings_decompression_aboutTitle => 'About Gradient Factors';
-
-  @override
   String get settings_decompression_currentSettings => 'Current Settings';
 
   @override
@@ -28358,6 +28836,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_notifications_disabled_title => 'Notifications Disabled';
 
   @override
+  String get settings_notifications_draftReminder =>
+      'Remind me about draft dives';
+
+  @override
+  String get settings_notifications_draftReminder_subtitle =>
+      'Three days after a draft dive\'s exit, if it is still waiting for a download';
+
+  @override
   String get settings_notifications_enableServiceReminders =>
       'Enable Service Reminders';
 
@@ -28372,13 +28858,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_notifications_header_serviceReminders =>
       'Service Reminders';
-
-  @override
-  String get settings_notifications_howItWorks_content =>
-      'Notifications are scheduled when the app launches and refresh periodically in the background. You can customize reminders for individual equipment items in their edit screen.';
-
-  @override
-  String get settings_notifications_howItWorks_title => 'How it works';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -31878,13 +32357,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get surfaceInterval_aboutTissueLoading_body =>
-      'Your body has 16 tissue compartments that absorb and release nitrogen at different rates. Fast tissues (like blood) saturate quickly but also off-gas quickly. Slow tissues (like bone and fat) take longer to both load and unload.  The \"leading compartment\" is whichever tissue is most saturated and typically controls your no-decompression limit (NDL). During a surface interval, all tissues off-gas toward surface saturation levels (~40% loading).';
-
-  @override
-  String get surfaceInterval_aboutTissueLoading_title => 'About Tissue Loading';
-
-  @override
   String get surfaceInterval_action_resetDefaults => 'Reset to defaults';
 
   @override
@@ -32297,6 +32769,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tags_manage_colorLabel => 'Color';
+
+  @override
+  String tags_color_shadeLight(String color) {
+    return '$color, light';
+  }
+
+  @override
+  String tags_color_shadeDark(String color) {
+    return '$color, dark';
+  }
+
+  @override
+  String tags_color_current(String code) {
+    return 'Current color, $code';
+  }
+
+  @override
+  String get tags_color_custom => 'Custom color';
+
+  @override
+  String get tags_color_hexLabel => 'Hex code';
+
+  @override
+  String get tags_color_hexError => 'Enter six digits 0-9 or A-F, like #2E8B57';
+
+  @override
+  String get tags_color_use => 'Use';
+
+  @override
+  String get tags_color_hueLabel => 'Hue';
+
+  @override
+  String get tags_color_squareLabel => 'Saturation and brightness';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remove';
@@ -35208,6 +35713,20 @@ class AppLocalizationsEn extends AppLocalizations {
       'This format is not yet supported. Please export as UDDF or CSV.';
 
   @override
+  String universalImport_fillDraft_ambiguous(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Fits $count drafts. Choose the one it fills.',
+      one: 'Another dive fits this draft too. Choose the draft it fills.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_fillDraft_choose => 'Choose draft';
+
+  @override
   String get universalImport_error_duplicateCheckFailed =>
       'Duplicate detection could not run, so nothing in this list is marked as already in your logbook. Check it before importing.';
 
@@ -35355,6 +35874,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_compare_fillPlannedSubtitle =>
       'Attach this download to the dive you planned';
+
+  @override
+  String get universalImport_label_fillDraft => 'Fill draft';
+
+  @override
+  String get universalImport_compare_fillDraftSubtitle =>
+      'Attach this download to the dive you marked at the site';
+
+  @override
+  String universalImport_fillDraft_target(String label) {
+    return 'Fills draft: $label';
+  }
+
+  @override
+  String universalImport_fillDraft_window(String start, String end) {
+    return 'Draft from $start to $end';
+  }
+
+  @override
+  String universalImport_fillDraft_windowOpen(String start) {
+    return 'Draft from $start';
+  }
 
   @override
   String get universalImport_label_filledPlanned => 'Filled planned dives';
@@ -36312,13 +36853,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get divePlanner_undo => 'Undo';
 
   @override
-  String get gasCalculators_rockBottom_aboutDescription =>
-      'Rock bottom is the minimum gas reserve for an emergency ascent while sharing air with your buddy.\n\n• Uses a stressed RMV (2-3x normal)\n• Assumes both divers on one tank\n• Includes safety stop when enabled\n\nAlways turn the dive BEFORE reaching rock bottom!';
-
-  @override
-  String get gasCalculators_rockBottom_aboutTitle => 'About Rock Bottom';
-
-  @override
   String get gasCalculators_rockBottom_ascentGasRequired =>
       'Ascent gas required';
 
@@ -36473,6 +37007,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gpsLogger_stopButton => 'Stop logging';
+
+  @override
+  String get gpsLogger_enteredWater => 'Entered water';
+
+  @override
+  String get gpsLogger_surfaced => 'Surfaced';
+
+  @override
+  String get gpsLogger_surfaceOnStop_title => 'Still in the water?';
+
+  @override
+  String gpsLogger_surfaceOnStop_body(String time) {
+    return 'You entered the water at $time. Mark the dive surfaced now, or leave it open and tap Surfaced later.';
+  }
+
+  @override
+  String get gpsLogger_surfaceOnStop_surfaceNow => 'Surface now';
+
+  @override
+  String get gpsLogger_surfaceOnStop_leaveOpen => 'Leave open';
+
+  @override
+  String get gpsLogger_markNotification_title => 'Recording your GPS track';
+
+  @override
+  String get gpsLogger_markNotification_bodyEnter =>
+      'Tap Entered water when you go in.';
+
+  @override
+  String get gpsLogger_markNotification_bodySurface =>
+      'In the water. Tap Surfaced when you are out.';
 
   @override
   String gpsLogger_stripStatus(num count) {
@@ -37189,6 +37754,56 @@ class AppLocalizationsEn extends AppLocalizations {
       'Import Dives from Apple Watch via HealthKit';
 
   @override
+  String get healthAutoImport_newDive_title => 'New dive from your Apple Watch';
+
+  @override
+  String healthAutoImport_newDives_title(int count) {
+    return '$count new dives from your Apple Watch';
+  }
+
+  @override
+  String get healthAutoImport_newDive_body => 'Add details?';
+
+  @override
+  String get healthAutoImport_addDetails => 'Add details';
+
+  @override
+  String get healthAutoImport_review_title =>
+      'An Apple Watch dive needs a look';
+
+  @override
+  String get healthAutoImport_review_body =>
+      'It could belong to more than one dive. Choose in the Apple Health import.';
+
+  @override
+  String get healthAutoImport_planReview_body =>
+      'This dive may be one you planned. Review it to fill the plan.';
+
+  @override
+  String get healthAutoImport_review => 'Review';
+
+  @override
+  String get settings_appleHealth_autoImport_title =>
+      'Import Apple Watch dives automatically';
+
+  @override
+  String get settings_appleHealth_autoImport_subtitle =>
+      'New dives from your watch appear when you open the app.';
+
+  @override
+  String get settings_appleHealth_metrics_title =>
+      'Heart rate, recovery and sleep';
+
+  @override
+  String get settings_appleHealth_metrics_subtitle =>
+      'Adds heart rate during and after each dive, overnight HRV and the sleep before it.';
+
+  @override
+  String settings_appleHealth_boundDiver(String name) {
+    return 'For: $name';
+  }
+
+  @override
   String get settings_dataSources_appleHealth_privacy =>
       'Your health data is stored locally on this device and is never shared with third parties. Submersion only reads data from Apple HealthKit and does not write any data back to HealthKit.';
 
@@ -37778,6 +38393,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reparseBatch_noneWithRawData =>
       'None of the selected dives have stored raw data to re-parse.';
+
+  @override
+  String get diveLog_selection_tooltip_fetchConditions => 'Fetch Conditions';
 
   @override
   String get diveLog_selection_tooltip_reparse => 'Re-parse';
@@ -40440,13 +41058,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Its CNS% and OTU can\'t be calculated without depth samples. The totals below leave it out.';
 
   @override
-  String get safetyHub_cnsOtu_about_title => 'About CNS and OTU';
-
-  @override
-  String get safetyHub_cnsOtu_about_body =>
-      'Your CNS% (oxygen clock) decays after a dive with a 90-minute half-life -- it\'s practically back to 0 after about a day.\n\nDaily OTU resets every night at midnight. Weekly OTU is a rolling total of the last 7 days: older dives automatically drop out of the calculation once they fall outside that window.';
-
-  @override
   String get safetyHub_tissueLoading_clear_title => 'No residual tissue load';
 
   @override
@@ -40460,13 +41071,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get safetyHub_tissueLoading_unavailable_body =>
       'The last dive has no data to calculate tissue loading from, for example a dive without a depth profile, in gauge mode or on a rebreather without a setpoint.';
-
-  @override
-  String get safetyHub_tissueLoading_about_title => 'About Tissue Loading';
-
-  @override
-  String get safetyHub_tissueLoading_about_body =>
-      'Your body has 16 tissue compartments that take up and release nitrogen (and, on trimix or rebreather dives, helium too) at different speeds. Fast tissues saturate and desaturate quickly; slow tissues take much longer for both.\n\nResidual load is only what sits above the normal surface level. Even fully desaturated, the bars do not drop to 0%: each compartment settles at the marker that matches the nitrogen in the air you breathe. That is why a fast compartment can read higher here than at the end of a dive with oxygen decompression, without the load having grown.\n\nAfter a dive with helium, a compartment releases helium while it takes up nitrogen at the same time, until both gases are in equilibrium with the air you breathe.';
 
   @override
   String safetyHub_noFly_category_single(int hours) {
@@ -40915,6 +41519,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_planned_chip => 'Planned';
 
   @override
+  String get diveLog_draft_chip => 'Waiting for download';
+
+  @override
+  String get diveLog_draft_inWaterChip => 'In the water';
+
+  @override
+  String get diveLog_draft_title => 'Draft dive';
+
+  @override
+  String diveLog_draft_bannerBody(int minutes) {
+    return 'About $minutes min from your taps. Download your dive computer to fill in depth and time.';
+  }
+
+  @override
+  String get diveLog_draft_bannerBodyOpen =>
+      'Tap Surfaced when you are out of the water.';
+
+  @override
+  String get diveLog_draft_downloadNow => 'Download now';
+
+  @override
+  String get diveLog_draft_markComplete => 'Mark as complete';
+
+  @override
+  String get diveLog_draft_surfaced => 'Surfaced';
+
+  @override
+  String get diveLog_draft_markedComplete => 'Marked as complete';
+
+  @override
+  String get diveLog_draft_markCompleteFailed =>
+      'Couldn\'t mark the dive as complete.';
+
+  @override
+  String get diveLog_draft_stale_title => 'Did you surface?';
+
+  @override
+  String diveLog_draft_stale_body(String time) {
+    return 'You entered the water at $time and the dive is still open.';
+  }
+
+  @override
+  String get diveLog_draft_stale_stillIn => 'Still in the water';
+
+  @override
+  String get diveLog_draft_stale_setTime => 'Set surfacing time';
+
+  @override
   String get diveLog_planned_bannerTitle => 'Planned dive';
 
   @override
@@ -40976,6 +41628,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_detail_loggedWithPlanned => 'awaiting their dive computer';
+
+  @override
+  String get diveLog_detail_menu_addHeartRate =>
+      'Add heart rate from Apple Health';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -49998,6 +50654,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsDraftDiveAtSite(String siteName) {
+    return 'Draft dive at $siteName';
+  }
+
+  @override
   String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
     return 'Planned dive at $siteName';
   }
@@ -52370,6 +53031,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get diveLog_profilePanel_noProfileData =>
       'No profile data for this dive';
+
+  @override
+  String get diveLog_estimatedProfile_caption =>
+      'Estimated from max depth and time, not a recorded profile';
 
   @override
   String get settings_export_progress_divesCsv => 'Exporting dives to CSV...';
@@ -55077,7 +55742,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String transmitters_apply_content(int tanks, int dives) {
-    return '$tanks cylinders on $dives dives carry this transmitter. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.';
+    return '$tanks cylinders on $dives dives carrying this transmitter need its setup. Empty size, material, name and gear fields will be filled, and a role still set to Back Gas or read from the transmitter\'s name will be replaced.';
   }
 
   @override
@@ -55086,8 +55751,43 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get transmitters_apply_nothing =>
-      'No cylinders carry this transmitter';
+  String transmitters_apply_slot_label(String computer) {
+    return 'Slot on $computer';
+  }
+
+  @override
+  String get transmitters_apply_slot_none => 'Don\'t match by slot';
+
+  @override
+  String transmitters_apply_slot_option(int slot, int dives) {
+    String _temp0 = intl.Intl.pluralLogic(
+      dives,
+      locale: localeName,
+      other: '$dives dives',
+      one: '$dives dive',
+    );
+    return 'T$slot: $_temp0';
+  }
+
+  @override
+  String get transmitters_apply_slot_reading => 'Reading imported files';
+
+  @override
+  String get transmitters_apply_slot_intro =>
+      'Cylinders imported from a file carry no serial. They can be filled by the slot this transmitter sat in on the dive computer.';
+
+  @override
+  String transmitters_apply_summary(int serialDives, int slotDives) {
+    return 'Dives filled by serial: $serialDives, by slot: $slotDives';
+  }
+
+  @override
+  String get transmitters_apply_nothing_to_fill =>
+      'No cylinder needs this transmitter\'s setup';
+
+  @override
+  String get transmitters_apply_slot_read_failed =>
+      'The imported files could not be read, so cylinders cannot be matched by slot';
 
   @override
   String transmitters_channel(String computer, int channel) {
@@ -56426,6 +57126,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_dives_diveOperator => 'Operator';
+
+  @override
+  String get query_dives_draft => 'Draft';
 
   @override
   String get query_dives_entryMethod => 'Entry method';
@@ -58730,6 +59433,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_filter_tags => 'Tags';
 
   @override
+  String get media_library_filter_attachedTo => 'Attached to';
+
+  @override
+  String get media_library_filter_attachedDive => 'Dive';
+
+  @override
+  String get media_library_filter_attachedSite => 'Site';
+
+  @override
+  String get media_library_filter_attachedEquipment => 'Equipment';
+
+  @override
+  String get media_library_filter_attachedUnlinked => 'Unlinked';
+
+  @override
+  String media_library_filter_attachedToChip(String kinds) {
+    return 'Attached to: $kinds';
+  }
+
+  @override
+  String get media_library_filter_listSeparator => ', ';
+
+  @override
   String media_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -60206,4 +60932,1454 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Twin set partner passport';
+
+  @override
+  String info_button_semantics(String title) {
+    return 'About $title';
+  }
+
+  @override
+  String get info_sheet_background => 'Background';
+
+  @override
+  String get info_sheet_howToUse => 'How to use';
+
+  @override
+  String get info_sheet_close => 'Close';
+
+  @override
+  String get info_term_ndl_label => 'NDL (no-decompression limit)';
+
+  @override
+  String get info_term_ndl_body =>
+      'Minutes left at the current depth before the model calls for decompression stops. It counts down while the diver stays deep and grows again on the way up.';
+
+  @override
+  String get info_term_ceiling_label => 'Ceiling';
+
+  @override
+  String get info_term_ceiling_body =>
+      'The shallowest depth the decompression model allows at that moment. Zero means a direct ascent to the surface fits the model.';
+
+  @override
+  String get info_term_decoStops_label => 'Deco stops';
+
+  @override
+  String info_term_decoStops_body(String step) {
+    return 'Planned pauses on the way up, each a depth and a time, that let dissolved gas leave the body. Stops are usually $step apart.';
+  }
+
+  @override
+  String get info_term_tts_label => 'TTS (time to surface)';
+
+  @override
+  String get info_term_tts_body =>
+      'Minutes needed to reach the surface from here, counting the ascent and every required stop.';
+
+  @override
+  String get info_term_gtr_label => 'GTR (gas time remaining)';
+
+  @override
+  String get info_term_gtr_body =>
+      'Minutes at the current depth and breathing rate until the cylinder falls to its reserve pressure. It assumes a direct ascent with no stops.';
+
+  @override
+  String get info_term_gf99_label => 'GF99';
+
+  @override
+  String get info_term_gf99_body =>
+      'How close the most loaded tissue is to its M-value right now, as a percent. At 100% it sits exactly on the raw Buhlmann limit.';
+
+  @override
+  String get info_term_surfaceGf_label => 'SurfGF (surface gradient factor)';
+
+  @override
+  String get info_term_surfaceGf_body =>
+      'The GF99 the tissues would have if the diver surfaced instantly. Above 100% the raw Buhlmann limit would be exceeded at the surface.';
+
+  @override
+  String get info_term_gradientFactors_label => 'GF (gradient factors)';
+
+  @override
+  String get info_term_gradientFactors_body =>
+      'Two percentages that scale back the Buhlmann limits: GF Low sets where the first stop falls and GF High sets the limit on surfacing. Lower numbers give longer, more conservative schedules.';
+
+  @override
+  String get info_term_cns_label => 'CNS% (central nervous system oxygen)';
+
+  @override
+  String get info_term_cns_body =>
+      'Share of the single-dive oxygen limit for the brain and nerves, taken from the NOAA ppO2 table. It falls by about half every 90 minutes on the surface.';
+
+  @override
+  String get info_term_otu_label => 'OTU (oxygen tolerance units)';
+
+  @override
+  String get info_term_otu_body =>
+      'A slower, whole-body oxygen dose that adds up over several days of diving. One OTU is one minute of pure oxygen at 1 bar.';
+
+  @override
+  String get info_term_ppO2_label => 'ppO2 (oxygen partial pressure)';
+
+  @override
+  String get info_term_ppO2_body =>
+      'The pressure oxygen alone exerts in the breathing gas at this depth, in bar. Common limits are 1.4 bar while working and 1.6 bar during decompression.';
+
+  @override
+  String get info_term_ppN2_label => 'ppN2 (nitrogen partial pressure)';
+
+  @override
+  String get info_term_ppN2_body =>
+      'The pressure nitrogen exerts in the breathing gas at this depth, in bar. It drives nitrogen loading and narcosis.';
+
+  @override
+  String get info_term_ppHe_label => 'ppHe (helium partial pressure)';
+
+  @override
+  String get info_term_ppHe_body =>
+      'The pressure helium exerts in the breathing gas at this depth, in bar. Helium loads and unloads faster than nitrogen and is not narcotic.';
+
+  @override
+  String get info_term_o2Cells_label => 'O2 cells';
+
+  @override
+  String get info_term_o2Cells_body =>
+      'Sensors in a rebreather loop that each measure ppO2. Readings that disagree point to a cell that is failing or wet.';
+
+  @override
+  String get info_term_mod_label => 'MOD (maximum operating depth)';
+
+  @override
+  String get info_term_mod_body =>
+      'The depth at which a gas reaches its ppO2 limit. Deeper than this the oxygen exposure is above that limit.';
+
+  @override
+  String get info_term_mnd_label => 'MND (maximum narcotic depth)';
+
+  @override
+  String get info_term_mnd_body =>
+      'The deepest point where a gas stays within the diver\'s END limit. Helium in the mix makes it deeper.';
+
+  @override
+  String get info_term_end_label => 'END (equivalent narcotic depth)';
+
+  @override
+  String get info_term_end_body =>
+      'The depth on air that would feel as narcotic as this gas at this depth. Helium lowers it because helium is not narcotic.';
+
+  @override
+  String get info_term_ead_label => 'EAD (equivalent air depth)';
+
+  @override
+  String get info_term_ead_body =>
+      'The depth on air that would load nitrogen at the same rate as this nitrox at this depth. It is shallower than the real depth because nitrox carries less nitrogen.';
+
+  @override
+  String get info_term_eadd_label => 'EADD (equivalent air density depth)';
+
+  @override
+  String get info_term_eadd_body =>
+      'The depth at which air would be as dense as this gas at this depth. Unlike the density in g/L, it does not depend on the temperature.';
+
+  @override
+  String get info_term_gasDensity_label => 'Gas density';
+
+  @override
+  String info_term_gasDensity_body(String warn, String critical) {
+    return 'How heavy the breathing gas is at depth, in grams per liter, which sets how hard it is to breathe. Published research names $warn g/L as a recommended maximum and $critical g/L as an upper limit.';
+  }
+
+  @override
+  String get info_term_sac_label => 'SAC (surface air consumption)';
+
+  @override
+  String get info_term_sac_body =>
+      'Gas use per minute converted to surface pressure, shown as pressure drop per minute. It depends on cylinder size, so it compares dives on the same cylinder.';
+
+  @override
+  String get info_term_rmv_label => 'RMV (respiratory minute volume)';
+
+  @override
+  String get info_term_rmv_body =>
+      'Gas volume breathed per minute, converted to surface pressure. Unlike SAC it does not depend on cylinder size.';
+
+  @override
+  String get info_term_ascentRate_label => 'Ascent rate';
+
+  @override
+  String info_term_ascentRate_body(String rate) {
+    return 'How fast depth decreases, per minute. Common training uses $rate as the maximum.';
+  }
+
+  @override
+  String get info_term_descentRate_label => 'Descent rate';
+
+  @override
+  String get info_term_descentRate_body =>
+      'How fast depth increases, per minute.';
+
+  @override
+  String get info_term_meanDepth_label => 'Mean depth';
+
+  @override
+  String get info_term_meanDepth_body =>
+      'The time-weighted average depth across the dive. Gas use and decompression follow it more closely than maximum depth.';
+
+  @override
+  String get info_term_bottomTime_label => 'Bottom time';
+
+  @override
+  String get info_term_bottomTime_body =>
+      'Time from leaving the surface to the start of the final ascent. It is worked out from the profile.';
+
+  @override
+  String get info_term_runtime_label => 'Runtime';
+
+  @override
+  String get info_term_runtime_body =>
+      'Total time from leaving the surface to surfacing. Technical schedules are written against it.';
+
+  @override
+  String get info_term_safetyStop_label => 'Safety stop';
+
+  @override
+  String info_term_safetyStop_body(String depth) {
+    return 'An optional pause near $depth, usually three minutes, before surfacing. The model does not require it on a no-stop dive.';
+  }
+
+  @override
+  String get info_term_surfaceInterval_label => 'Surface interval';
+
+  @override
+  String get info_term_surfaceInterval_body =>
+      'Time on the surface between two dives. Tissues keep releasing gas during it, so a longer interval carries less into the next dive.';
+
+  @override
+  String get info_term_tissueCompartment_label => 'Tissue compartments';
+
+  @override
+  String get info_term_tissueCompartment_body =>
+      'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.';
+
+  @override
+  String get info_term_leadingCompartment_label => 'Leading compartment';
+
+  @override
+  String get info_term_leadingCompartment_body =>
+      'The compartment closest to its limit right now. It sets the ceiling and changes during the dive.';
+
+  @override
+  String get info_term_tissueLoad_label => 'Load';
+
+  @override
+  String get info_term_tissueLoad_body =>
+      'How much inert gas a compartment holds compared with its limit, as a percent. At 100% it sits on its M-value.';
+
+  @override
+  String get info_term_mValue_label => 'M-value';
+
+  @override
+  String get info_term_mValue_body =>
+      'The most inert gas pressure a compartment can hold at a given depth under the Buhlmann model. Gradient factors set how much of it is used.';
+
+  @override
+  String get info_term_surfaceLevel_label => 'Surface level';
+
+  @override
+  String get info_term_surfaceLevel_body =>
+      'The gas pressure a compartment holds when fully settled at the surface on air. Bars above this line are still carrying extra gas.';
+
+  @override
+  String get info_term_halfTime_label => 'Half-time';
+
+  @override
+  String get info_term_halfTime_body =>
+      'Minutes a compartment takes to move halfway toward the surrounding pressure. The range runs from a few minutes to over ten hours.';
+
+  @override
+  String get info_term_ongassing_label => 'On-gassing and off-gassing';
+
+  @override
+  String get info_term_ongassing_body =>
+      'On-gassing means a compartment is taking up gas because the surrounding pressure is higher, and off-gassing means it is releasing gas. The color shows which way each compartment is going.';
+
+  @override
+  String get info_term_heatMap_label => 'Heat map';
+
+  @override
+  String get info_term_heatMap_body =>
+      'Each row is one compartment, fast at the top and slow at the bottom, and time runs left to right. The color shows how loaded that compartment is at that moment.';
+
+  @override
+  String get info_term_nitrox_label => 'Nitrox (EANx)';
+
+  @override
+  String get info_term_nitrox_body =>
+      'Air enriched with oxygen, named by its oxygen percent, as in EAN32. Less nitrogen lengthens no-stop times, and the extra oxygen makes the MOD shallower.';
+
+  @override
+  String get info_term_trimix_label => 'Trimix';
+
+  @override
+  String get info_term_trimix_body =>
+      'A mix of oxygen, helium and nitrogen, written as oxygen over helium, as in 18/45. Helium reduces narcosis and gas density at depth.';
+
+  @override
+  String get info_term_diluent_label => 'Diluent';
+
+  @override
+  String get info_term_diluent_body =>
+      'The gas a rebreather adds to the loop to keep up its volume. The unit adds oxygen on top to hold the setpoint.';
+
+  @override
+  String get info_term_setpoint_label => 'Setpoint';
+
+  @override
+  String get info_term_setpoint_body =>
+      'The ppO2 a closed-circuit rebreather tries to hold in the loop. Units often switch between a low and a high setpoint during a dive.';
+
+  @override
+  String get info_term_bailout_label => 'Bailout';
+
+  @override
+  String get info_term_bailout_body =>
+      'Open-circuit gas carried on a rebreather dive for an ascent off the loop. Bailout plans assume the loop is lost.';
+
+  @override
+  String get info_term_loop_label => 'Loop';
+
+  @override
+  String get info_term_loop_body =>
+      'The rebreather\'s breathing circuit, where exhaled gas is cleared of carbon dioxide and breathed again.';
+
+  @override
+  String get info_term_stage_label => 'Stage';
+
+  @override
+  String get info_term_stage_body =>
+      'An extra cylinder clipped to the side, carried for one part of the dive and swapped to on the way.';
+
+  @override
+  String get info_term_decoGas_label => 'Deco gas';
+
+  @override
+  String get info_term_decoGas_body =>
+      'A gas richer in oxygen breathed during decompression stops. It speeds up off-gassing at shallow depths.';
+
+  @override
+  String get info_term_pony_label => 'Pony';
+
+  @override
+  String get info_term_pony_body =>
+      'A small independent cylinder with its own regulator, carried as a backup gas supply.';
+
+  @override
+  String get info_term_sidemount_label => 'Sidemount';
+
+  @override
+  String get info_term_sidemount_body =>
+      'Cylinders worn along each side instead of on the back, each with its own regulator.';
+
+  @override
+  String get info_term_twinBackmount_label => 'Twin backmount';
+
+  @override
+  String get info_term_twinBackmount_body =>
+      'Two cylinders joined on the back, usually by a manifold, and breathed as one supply.';
+
+  @override
+  String get info_term_altitudeGroup_label => 'Altitude group';
+
+  @override
+  String get info_term_altitudeGroup_body =>
+      'A band of altitudes that share one set of tables and model settings. Higher groups have lower air pressure at the surface.';
+
+  @override
+  String get info_term_surfacePressure_label => 'Surface pressure';
+
+  @override
+  String get info_term_surfacePressure_body =>
+      'The air pressure at the dive site\'s surface. At altitude it is lower, which makes the model more conservative.';
+
+  @override
+  String get info_term_salinity_label => 'Water type';
+
+  @override
+  String get info_term_salinity_body =>
+      'Salt water is denser than fresh water, so the same pressure reads as a slightly shallower depth in the sea. Computers use it to turn pressure into depth.';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_label =>
+      'ICD (isobaric counterdiffusion)';
+
+  @override
+  String get info_term_isobaricCounterdiffusion_body =>
+      'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.';
+
+  @override
+  String get info_term_hypercapnia_label => 'Hypercapnia';
+
+  @override
+  String get info_term_hypercapnia_body =>
+      'A build-up of carbon dioxide in the body. Dense gas and hard work make it more likely.';
+
+  @override
+  String get info_term_turnPressure_label => 'Turn pressure';
+
+  @override
+  String get info_term_turnPressure_body =>
+      'The cylinder pressure at which the plan turns the dive back toward the exit.';
+
+  @override
+  String get info_term_minGas_label => 'Minimum gas';
+
+  @override
+  String get info_term_minGas_body =>
+      'Gas held back so two divers can share one supply from the deepest point to the surface, including stops.';
+
+  @override
+  String get info_term_rockBottom_label => 'Rock bottom';
+
+  @override
+  String get info_term_rockBottom_body =>
+      'The cylinder pressure that holds the minimum gas. It includes a short delay at depth to deal with the problem before the ascent.';
+
+  @override
+  String get info_term_thirds_label => 'Rule of thirds';
+
+  @override
+  String get info_term_thirds_body =>
+      'A gas plan that uses one third going in, one third coming out and keeps one third in reserve. Cave and overhead training teaches it.';
+
+  @override
+  String get info_term_airBreaks_label => 'Air breaks';
+
+  @override
+  String get info_term_airBreaks_body =>
+      'Short periods breathing a lower-oxygen gas during long oxygen stops. They reduce the CNS load.';
+
+  @override
+  String get info_term_rollingAverage_label => 'Rolling average';
+
+  @override
+  String get info_term_rollingAverage_body =>
+      'The mean of the last several dives at each point, which smooths dive-to-dive noise to show the trend.';
+
+  @override
+  String get info_term_overallTrend_label => 'Overall trend';
+
+  @override
+  String get info_term_overallTrend_body =>
+      'A straight line fitted through every dive in range, showing the general direction of the values.';
+
+  @override
+  String get info_term_rangeBand_label => 'Range band';
+
+  @override
+  String get info_term_rangeBand_body =>
+      'The shaded band spans the lowest to the highest value in each period.';
+
+  @override
+  String get info_term_collapseGaps_label => 'Collapse gaps';
+
+  @override
+  String get info_term_collapseGaps_body =>
+      'Removes long breaks between dives from the time axis so dives sit side by side.';
+
+  @override
+  String get info_term_degreeHeatingWeeks_label => 'DHW (degree heating weeks)';
+
+  @override
+  String get info_term_degreeHeatingWeeks_body =>
+      'Heat stress built up over the past 12 weeks, from NOAA Coral Reef Watch. NOAA expects significant bleaching from 4 and severe bleaching from 8.';
+
+  @override
+  String get info_term_sstAnomaly_label => 'SST anomaly';
+
+  @override
+  String get info_term_sstAnomaly_body =>
+      'How far the sea surface temperature sits above or below its long-term average for the date.';
+
+  @override
+  String get info_term_bleachingAlert_label => 'Bleaching alert';
+
+  @override
+  String get info_term_bleachingAlert_body =>
+      'NOAA Coral Reef Watch\'s heat-stress level for the area, from watch up to the alert levels.';
+
+  @override
+  String get info_term_sourceDcCalc_label => 'Dive computer or calculated';
+
+  @override
+  String get info_term_sourceDcCalc_body =>
+      'Dive computer values are what it recorded during the dive. Calculated values come from the app\'s own model run over the profile, so the two can differ.';
+
+  @override
+  String get info_term_scrubber_label => 'Scrubber';
+
+  @override
+  String get info_term_scrubber_body =>
+      'The canister in a rebreather that removes carbon dioxide from the loop. Its absorbent is rated for a set number of hours.';
+
+  @override
+  String get info_term_cellOutput_label => 'Cell output';
+
+  @override
+  String get info_term_cellOutput_body =>
+      'Each oxygen cell\'s millivolt reading, which the rebreather turns into ppO2.';
+
+  @override
+  String get info_term_highO2Hours_label => 'High-oxygen hours';
+
+  @override
+  String get info_term_highO2Hours_body =>
+      'Time spent breathing gas with a raised oxygen fraction, which wears oxygen-service parts faster.';
+
+  @override
+  String get info_term_decoStatus_label => 'DECO and NO DECO';
+
+  @override
+  String get info_term_decoStatus_body =>
+      'NO DECO means a direct ascent fits the model at that moment. DECO means at least one stop is required before surfacing.';
+
+  @override
+  String get info_term_cnsStartAdded_label => 'Start and this dive';
+
+  @override
+  String get info_term_cnsStartAdded_body =>
+      'Start is the CNS% carried in from earlier dives, already reduced by the time since. This dive is what the dive itself added on top.';
+
+  @override
+  String get info_term_otuWindows_label => 'Daily and weekly OTU';
+
+  @override
+  String get info_term_otuWindows_body =>
+      'Daily OTU counts every dive since midnight, and weekly OTU is a rolling total of the last seven days. Each is shown against the app\'s limit for that period.';
+
+  @override
+  String get info_term_maxPpO2_label => 'Max ppO2';
+
+  @override
+  String get info_term_maxPpO2_body =>
+      'The highest oxygen partial pressure breathed during the dive.';
+
+  @override
+  String get info_term_timeAboveLimit_label => 'Time above the ppO2 limit';
+
+  @override
+  String get info_term_timeAboveLimit_body =>
+      'How long the ppO2 stayed above the limits set in settings during this dive.';
+
+  @override
+  String get info_term_idealSwitchDepth_label => 'Ideal switch depth';
+
+  @override
+  String get info_term_idealSwitchDepth_body =>
+      'The deepest point on the ascent where the next gas is within its ppO2 limit, which is its MOD. The card compares it with the depth where the switch was logged.';
+
+  @override
+  String get info_term_extraDeco_label => 'Extra deco';
+
+  @override
+  String get info_term_extraDeco_body =>
+      'Decompression time the model adds because a switch happened shallower or later than the ideal point.';
+
+  @override
+  String get info_term_stackedArea_label => 'Stacked area';
+
+  @override
+  String get info_term_stackedArea_body =>
+      'Each band is one compartment\'s load over time, stacked on the others, so the total height shows the load across all compartments.';
+
+  @override
+  String get info_term_nitrogenHelium_label => 'N2 and He';
+
+  @override
+  String get info_term_nitrogenHelium_body =>
+      'Each compartment\'s load is split into nitrogen and helium. Helium enters and leaves faster than nitrogen.';
+
+  @override
+  String get info_term_missedDecoStop_label => 'Missed deco stop';
+
+  @override
+  String get info_term_missedDecoStop_body =>
+      'A required stop that was cut short or skipped, found by comparing the profile with the model\'s stops.';
+
+  @override
+  String get info_term_sawtooth_label => 'Sawtooth profile';
+
+  @override
+  String get info_term_sawtooth_body =>
+      'Repeated ascents and descents during a dive. Decompression research links them to more bubble formation.';
+
+  @override
+  String get info_term_lateGasSwitch_label => 'Late gas switch';
+
+  @override
+  String get info_term_lateGasSwitch_body =>
+      'A switch to a deco gas made clearly shallower or later than the point where that gas became usable.';
+
+  @override
+  String get info_term_avgVerticalSpeed_label => 'Average vertical speed';
+
+  @override
+  String get info_term_avgVerticalSpeed_body =>
+      'The average rate of depth change across the selected range.';
+
+  @override
+  String get info_term_computedEvents_label => 'Computed events';
+
+  @override
+  String get info_term_computedEvents_body =>
+      'Markers the app adds by reading the profile, such as fast ascents, as opposed to events the dive computer logged.';
+
+  @override
+  String get info_term_gasSwitchMarkers_label => 'Gas switch markers';
+
+  @override
+  String get info_term_gasSwitchMarkers_body =>
+      'Points where the breathing gas changed from one cylinder to another.';
+
+  @override
+  String get info_term_diveModes_label => 'Dive mode';
+
+  @override
+  String get info_term_diveModes_body =>
+      'Open circuit (OC) breathes each breath out into the water. Closed-circuit (CCR) and semi-closed (SCR) rebreathers recycle the gas through a loop.';
+
+  @override
+  String get info_term_netBuoyancy_label => 'Net buoyancy';
+
+  @override
+  String get info_term_netBuoyancy_body =>
+      'Every term added together, with lift counted as positive and weight as negative. Zero is neutral.';
+
+  @override
+  String get info_term_buoyancySwing_label => 'Buoyancy swing';
+
+  @override
+  String get info_term_buoyancySwing_body =>
+      'How much the net buoyancy changed between the start and the end of the dive, mostly from the weight of the gas breathed.';
+
+  @override
+  String get info_term_peakLift_label => 'Peak lift needed';
+
+  @override
+  String get info_term_peakLift_body =>
+      'The most lift the wing or drysuit had to add at any point in the dive to stay neutral.';
+
+  @override
+  String get info_term_minDitchable_label => 'Min ditchable weight';
+
+  @override
+  String info_term_minDitchable_body(String weight) {
+    return 'The weight that would need to be dropped at the heaviest point of the dive to end up about $weight buoyant.';
+  }
+
+  @override
+  String get info_term_drysuitGas_label => 'Drysuit gas added';
+
+  @override
+  String get info_term_drysuitGas_body =>
+      'Gas added to the drysuit to offset its squeeze on the way down, which counts as lift.';
+
+  @override
+  String get info_term_noFlyTime_label => 'No-fly time';
+
+  @override
+  String get info_term_noFlyTime_body =>
+      'Time from the last dive until the DAN and UHMS guideline interval for flying has passed. The interval depends on whether the dives were single, repetitive or needed decompression, and on the preset in settings.';
+
+  @override
+  String get info_term_perYearRate_label => 'Rate per year';
+
+  @override
+  String get info_term_perYearRate_body =>
+      'The slope of the overall trend line, expressed as the change over one year.';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_label =>
+      'Logged before measurement';
+
+  @override
+  String get info_term_loggedBeforeMeasurement_body =>
+      'Visibility logged as a word, such as good or poor, before the app recorded it as a distance. Those dives keep their original word.';
+
+  @override
+  String get info_term_spansBands_label => 'Spans bands';
+
+  @override
+  String get info_term_spansBands_body =>
+      'A visibility logged as a range that crosses more than one band, so it is counted on its own.';
+
+  @override
+  String get info_term_dawnDusk_label => 'Dawn and dusk';
+
+  @override
+  String get info_term_dawnDusk_body =>
+      'A dawn dive starts before sunrise and ends after it, and a dusk dive does the same around sunset. Night means the whole dive was in darkness.';
+
+  @override
+  String get info_term_calendarShading_label => 'Shading';
+
+  @override
+  String get info_term_calendarShading_body =>
+      'Each square is one day of the year, and a darker square means more dives on that day across all the years in range.';
+
+  @override
+  String get info_term_saltWaterHours_label => 'Salt-water hours';
+
+  @override
+  String get info_term_saltWaterHours_body =>
+      'Time underwater in salt or brackish water, which wears metal parts and seals faster than fresh water.';
+
+  @override
+  String get info_term_coldDives_label => 'Cold dives';
+
+  @override
+  String get info_term_coldDives_body =>
+      'Dives whose lowest water temperature was below the cold-water threshold in the equipment condition settings.';
+
+  @override
+  String get info_term_deepCycles_label => 'Deep dives';
+
+  @override
+  String get info_term_deepCycles_body =>
+      'Dives that reached the deep-dive threshold in the equipment condition settings, each one a full pressure cycle for the gear.';
+
+  @override
+  String get info_term_conditionRules_label => 'Condition rules';
+
+  @override
+  String get info_term_conditionRules_body =>
+      'Checks the app runs over logged dives and issues, such as oxygen cells reading lower over time or a problem that keeps coming back. Each can be turned off in settings.';
+
+  @override
+  String get info_term_standout_label => 'Stands out';
+
+  @override
+  String get info_term_standout_body =>
+      'A factor whose share among the focus dives differs clearly from its share among the other dives. The dot in the table marks it.';
+
+  @override
+  String get info_term_avgMaxDepth_label => 'Avg Depth';
+
+  @override
+  String get info_term_avgMaxDepth_body =>
+      'The average of each dive\'s maximum depth, not the mean depth within dives.';
+
+  @override
+  String get info_term_diveTypeCounting_label => 'Dive types';
+
+  @override
+  String get info_term_diveTypeCounting_body =>
+      'A dive with several types counts once under each, so the bars can add up to more than the number of dives.';
+
+  @override
+  String get info_term_gasMixCounting_label => 'Several mixes';
+
+  @override
+  String get info_term_gasMixCounting_body =>
+      'A dive that breathed more than one mix counts once under each, so the bars can add up to more than the number of dives.';
+
+  @override
+  String get info_term_cylinderRole_label => 'Cylinder role';
+
+  @override
+  String get info_term_cylinderRole_body =>
+      'What a cylinder was for on the dive: bottom gas, stage, deco, pony or bailout. Consumption is grouped by it.';
+
+  @override
+  String get info_term_colourBy_label => 'Color by';
+
+  @override
+  String get info_term_colourBy_body =>
+      'Kind colors each point by what it is, groups colors the clusters that dive together, and recency fades links that have not been dived lately.';
+
+  @override
+  String get info_term_weightedEdges_label => 'Weighted links';
+
+  @override
+  String get info_term_weightedEdges_body =>
+      'A thicker line means more dives shared by the two points it joins.';
+
+  @override
+  String get info_term_hops_label => 'Hops';
+
+  @override
+  String get info_term_hops_body =>
+      'How many links away from the chosen point the view reaches. One hop shows its direct connections only.';
+
+  @override
+  String get info_term_lastStop_label => 'Last stop';
+
+  @override
+  String get info_term_lastStop_body =>
+      'The depth of the shallowest decompression stop. A deeper last stop is easier to hold in swell but takes longer.';
+
+  @override
+  String get info_term_ascentStages_label => 'Ascent stages';
+
+  @override
+  String get info_term_ascentStages_body =>
+      'The plan can use a different speed for each part of the ascent: to the first stop, between stops and near the surface.';
+
+  @override
+  String get info_term_reserveGas_label => 'Reserve';
+
+  @override
+  String get info_term_reserveGas_body =>
+      'Gas the plan holds back in each cylinder and never counts as usable.';
+
+  @override
+  String get info_term_setpointSwitchDepth_label => 'Setpoint switch depth';
+
+  @override
+  String get info_term_setpointSwitchDepth_body =>
+      'The depth at which the plan moves from the low to the high setpoint on the way down, and back on the way up.';
+
+  @override
+  String get info_term_pscrRatio_label => 'pSCR ratio';
+
+  @override
+  String get info_term_pscrRatio_body =>
+      'The share of each exhaled breath a passive semi-closed rebreather discards. It sets how far the loop oxygen falls below the supply gas.';
+
+  @override
+  String get info_term_turnFraction_label => 'Turn fraction';
+
+  @override
+  String get info_term_turnFraction_body =>
+      'The share of the starting gas the plan uses before turning back. A third is the common rule for caves and other overhead dives.';
+
+  @override
+  String get info_term_dpv_label => 'DPV (scooter)';
+
+  @override
+  String get info_term_dpv_body =>
+      'A diver propulsion vehicle. The mission plan covers the battery, the distance covered and the swim back if a scooter fails.';
+
+  @override
+  String get info_term_ceilingViolation_label => 'Ceiling violations';
+
+  @override
+  String get info_term_ceilingViolation_body =>
+      'How often and how far a version of the dive went shallower than the model\'s ceiling.';
+
+  @override
+  String get info_term_deepestStop_label => 'Deepest stop';
+
+  @override
+  String get info_term_deepestStop_body =>
+      'The depth of the first required decompression stop.';
+
+  @override
+  String get info_term_minGasMargin_label => 'Min gas margin';
+
+  @override
+  String get info_term_minGasMargin_body =>
+      'How much gas was left above the minimum gas at the point where the change happened.';
+
+  @override
+  String get info_term_gasOutTime_label => 'Gas out time';
+
+  @override
+  String get info_term_gasOutTime_body =>
+      'When a cylinder would run empty at the breathing rate the replay uses.';
+
+  @override
+  String get info_term_whatIf_label => 'Actual and what if';
+
+  @override
+  String get info_term_whatIf_body =>
+      'Actual replays the logged dive through the model, and what if replays it with the changes added in the Dive Lab.';
+
+  @override
+  String get info_term_cellGain_label => 'Cell output (mV per bar)';
+
+  @override
+  String get info_term_cellGain_body =>
+      'Each oxygen cell\'s millivolt reading divided by the ppO2 it measures. It stays steady while a cell is healthy and falls as the cell ages.';
+
+  @override
+  String get info_term_transmitterDropouts_label => 'Transmitter dropouts';
+
+  @override
+  String get info_term_transmitterDropouts_body =>
+      'The share of each dive with no pressure reading from the transmitter.';
+
+  @override
+  String get info_term_o2Narcotic_label => 'Oxygen counted as narcotic';
+
+  @override
+  String get info_term_o2Narcotic_body =>
+      'When on, oxygen counts as narcotic like nitrogen in END and MND. This makes END deeper and MND shallower.';
+
+  @override
+  String get info_term_ascentGasSet_label => 'Gases for the ascent';
+
+  @override
+  String get info_term_ascentGasSet_body =>
+      'Which carried cylinders the simulated ascent may switch to: every gas carried, or only stage and deco cylinders.';
+
+  @override
+  String get info_diveLog_profile_summary =>
+      'Depth over time for the whole dive, with each overlay that is switched on drawn on the same time axis.';
+
+  @override
+  String get info_diveLog_profile_background =>
+      'Deco and oxygen overlays come from the Buhlmann ZHL-16C model with the gradient factors in settings, and from the NOAA oxygen tables.';
+
+  @override
+  String get info_diveLog_profile_howToUse =>
+      'Move across the chart to read every value at one moment. The legend turns overlays on and off, and the range button selects part of the dive to see its statistics.';
+
+  @override
+  String get info_diveLog_rangeStats_summary =>
+      'Statistics for the part of the dive selected on the chart.';
+
+  @override
+  String get info_diveLog_decoStatus_summary =>
+      'What the decompression model reports at the cursor time: whether stops are needed, and how much time or depth remains.';
+
+  @override
+  String get info_diveLog_decoStatus_background =>
+      'The app runs the Buhlmann ZHL-16C model with the gradient factors on the GF chip. A dive computer with another model or settings can show different numbers.';
+
+  @override
+  String get info_diveLog_o2Toxicity_summary =>
+      'How much oxygen exposure the dive added, on the short-term CNS clock and the slower OTU dose.';
+
+  @override
+  String get info_diveLog_o2Toxicity_background =>
+      'CNS% follows the NOAA ppO2 exposure limits and falls with a 90-minute half-life after the dive. Daily OTU resets at midnight and weekly OTU covers the last seven days.';
+
+  @override
+  String get info_diveLog_gasSwitches_summary =>
+      'How each gas switch compared with the deepest point where that gas was within its ppO2 limit.';
+
+  @override
+  String get info_diveLog_tissueLoading_summary =>
+      'How loaded each of the model\'s 16 compartments is with inert gas at the cursor time.';
+
+  @override
+  String get info_diveLog_tissueLoading_background =>
+      'The model is Buhlmann ZHL-16C, which tracks nitrogen and helium separately in each compartment. Load counts only what sits above the surface level, so fully off-gassed bars never read zero.';
+
+  @override
+  String get info_diveLog_safetyReview_summary =>
+      'Moments in this dive that crossed one of the safety review rules, found by checking the profile after the dive.';
+
+  @override
+  String get info_diveLog_safetyReview_background =>
+      'The rules and their thresholds are set in Settings, under Safety review.';
+
+  @override
+  String get info_diveLog_safetyReview_howToUse =>
+      'Tap a finding to show where it happened on the profile. Dismissing a finding hides it for this dive.';
+
+  @override
+  String get info_diveLog_cylinders_summary =>
+      'Each cylinder on the dive with its gas, the pressure used and the depth limits of that gas.';
+
+  @override
+  String get info_diveLog_sacSegments_summary =>
+      'Gas use split into phases of the dive or into time slices, so the effort of each part can be compared.';
+
+  @override
+  String get info_diveLog_sacSegments_howToUse =>
+      'The selector above the chart switches between SAC and RMV.';
+
+  @override
+  String get info_diveLog_details_summary =>
+      'The logged facts of this dive, with values worked out from the profile where nothing was entered.';
+
+  @override
+  String get info_diveLog_altitude_summary =>
+      'This dive was at altitude, where lower air pressure at the surface makes the decompression model more conservative.';
+
+  @override
+  String get info_diveLog_buoyancy_summary =>
+      'A model of net buoyancy through the dive, from the profile, the gas breathed and the gear logged with the dive.';
+
+  @override
+  String get info_diveLog_buoyancy_howToUse =>
+      'Adjust opens a sheet that tries a different amount of lead or suit buoyancy against this dive.';
+
+  @override
+  String get info_diveLog_waterConditions_summary =>
+      'Sea temperature and coral heat stress near the site around the dive date, from NOAA Coral Reef Watch satellite data.';
+
+  @override
+  String get info_diveLab_compare_summary =>
+      'How this dive compares with its linked plan or saved scenarios on the numbers that matter for decompression.';
+
+  @override
+  String get info_diveLab_compare_howToUse =>
+      'Tap the card to open the Dive Lab and try other choices against this dive.';
+
+  @override
+  String get info_safety_noFly_summary =>
+      'When the guideline interval for flying ends after the most recent dives.';
+
+  @override
+  String get info_insights_trendControls_howToUse =>
+      'The range button picks the period, and the grouping button shows each dive, each week or each month. Rolling average and overall trend switch their lines on and off, and long gaps can be collapsed from the menu.';
+
+  @override
+  String get info_insights_sacTrend_summary =>
+      'Gas use per dive over time, one point per dive or per group, on the lane chosen above.';
+
+  @override
+  String get info_insights_roleUse_summary =>
+      'Gas use over time for each kind of cylinder, so bottom gas and stages are not mixed together.';
+
+  @override
+  String get info_insights_ccrUse_summary =>
+      'Oxygen and diluent used per rebreather dive, as volume per minute at surface pressure.';
+
+  @override
+  String get info_insights_depthTrend_summary =>
+      'The maximum depth of each dive over time.';
+
+  @override
+  String get info_insights_runtimeTrend_summary =>
+      'How long each dive lasted from leaving the surface to surfacing, over time.';
+
+  @override
+  String get info_insights_bottomTimeTrend_summary =>
+      'Each dive\'s bottom time over time, which leaves out the final ascent and stops that runtime includes.';
+
+  @override
+  String get info_insights_waterTempTrend_summary =>
+      'The water temperature logged on each dive over time.';
+
+  @override
+  String get info_insights_airTempTrend_summary =>
+      'The air temperature logged on each dive over time.';
+
+  @override
+  String get info_insights_weightTrend_summary =>
+      'The lead carried on each dive over time.';
+
+  @override
+  String get info_insights_gasMix_summary =>
+      'How many dives breathed each gas mix.';
+
+  @override
+  String get info_insights_tankConfig_summary =>
+      'How the cylinders were set up on each dive, counted from the cylinders\' logged roles.';
+
+  @override
+  String get info_insights_sacRecords_summary =>
+      'The dives with the lowest and highest gas use in the range.';
+
+  @override
+  String get info_insights_ascentDescent_summary =>
+      'Average speed going down and coming up, worked out from the profiles.';
+
+  @override
+  String get info_insights_timeAtDepth_summary =>
+      'How the total time underwater divides across depth bands.';
+
+  @override
+  String get info_insights_decoObligation_summary =>
+      'How many dives needed decompression stops, by the model\'s reading of each profile.';
+
+  @override
+  String get info_insights_cumulative_summary =>
+      'The running total of dives logged over time.';
+
+  @override
+  String get info_insights_visibility_summary =>
+      'Dives grouped by the visibility logged, in the bands of the visibility scale in settings.';
+
+  @override
+  String get info_insights_waterType_summary =>
+      'Dives in salt, fresh and brackish water.';
+
+  @override
+  String get info_insights_seasonalTemp_summary =>
+      'The lowest, average and highest water temperature logged in each month of the year.';
+
+  @override
+  String get info_insights_waterTempBands_summary =>
+      'Dives grouped by water temperature, with the average gas use and depth for each band.';
+
+  @override
+  String get info_insights_siteType_summary =>
+      'Dives by the kind of site logged, such as reef, wreck or cave.';
+
+  @override
+  String get info_insights_altitude_summary =>
+      'Dives grouped by the altitude of the site.';
+
+  @override
+  String get info_insights_surfacePressure_summary =>
+      'Dives grouped by the air pressure recorded at the surface.';
+
+  @override
+  String get info_insights_timeOfDay_summary =>
+      'When dives happened relative to sunrise and sunset at each site.';
+
+  @override
+  String get info_insights_calendarDays_summary =>
+      'Which days of the year have had dives, across every year in range.';
+
+  @override
+  String get info_insights_surfaceIntervals_summary =>
+      'The average, shortest and longest time on the surface between one dive and the one before it.';
+
+  @override
+  String get info_insights_exposure_summary =>
+      'Gear ranked by how much use and wear it has seen, in the unit chosen from the menu.';
+
+  @override
+  String get info_insights_conditionFindings_summary =>
+      'Patterns in the logged dives and issues that point to gear needing attention.';
+
+  @override
+  String get info_insights_reportedIssues_summary =>
+      'The problems logged against dives, grouped by their tag and counted.';
+
+  @override
+  String get info_insights_focus_summary =>
+      'The dives picked by the sentence above, compared with all the other dives in range.';
+
+  @override
+  String get info_insights_focus_howToUse =>
+      'Tap the underlined words in the sentence to change the measure, the direction and the number of dives. A threshold mode compares every dive above or below a value instead.';
+
+  @override
+  String get info_insights_standouts_summary =>
+      'The factors that are clearly more or less common among the focus dives than among the rest.';
+
+  @override
+  String get info_insights_comparison_summary =>
+      'Every factor side by side: its share among the focus dives and among the other dives.';
+
+  @override
+  String get info_insights_overviewStats_summary =>
+      'Totals and averages for every dive in range.';
+
+  @override
+  String get info_insights_distributions_summary =>
+      'How dives spread across depth bands and dive types.';
+
+  @override
+  String get info_insights_observations_summary =>
+      'Short notes the app found in the logbook, such as a new deepest dive or a change in gas use.';
+
+  @override
+  String get info_connections_display_summary =>
+      'Each point is a buddy, site, trip or piece of gear, and each line joins two that share dives.';
+
+  @override
+  String get info_connections_display_howToUse =>
+      'Tap a point to focus on it and its links. The panel chooses the colors, the line style and how far the view reaches.';
+
+  @override
+  String get info_planner_results_summary =>
+      'The headline numbers for the plan as it stands, updated as the plan changes.';
+
+  @override
+  String get info_planner_decoSchedule_summary =>
+      'The ascent the model plans, one row per stop or gas switch, with its depth, time, running time and gas.';
+
+  @override
+  String get info_planner_gas_summary =>
+      'How much of each cylinder the plan uses, with its turn pressure and minimum gas where the start pressure is known.';
+
+  @override
+  String get info_planner_bailout_summary =>
+      'The open-circuit ascent from the worst point of the dive if the loop is lost, and whether the bailout gas carried covers it.';
+
+  @override
+  String get info_planner_contingencies_summary =>
+      'The plan worked again for things going differently: a deeper or longer dive, or a lost gas.';
+
+  @override
+  String get info_planner_range_summary =>
+      'How the schedule changes if the dive goes deeper or stays longer than planned.';
+
+  @override
+  String get info_planner_mission_summary =>
+      'The scooter plan for the team: battery use, distance and the swim back if a scooter fails.';
+
+  @override
+  String get info_planner_carry_summary =>
+      'What this dive leaves for the next one: the surface interval, the CNS still carried and the OTU.';
+
+  @override
+  String get info_plannerSetup_deco_summary =>
+      'How conservative the schedule is and where the last stop sits.';
+
+  @override
+  String get info_plannerSetup_deco_howToUse =>
+      'Lower GF Low moves the first stop deeper, and lower GF High lengthens the shallow stops. The results update as each value changes.';
+
+  @override
+  String get info_plannerSetup_rates_summary =>
+      'How fast the plan descends and ascends in each part of the dive.';
+
+  @override
+  String get info_plannerSetup_rates_howToUse =>
+      'Each rate applies to its own part of the dive. The results update as a value changes.';
+
+  @override
+  String get info_plannerSetup_gas_summary =>
+      'The breathing rate and reserve the plan uses to size the gas.';
+
+  @override
+  String get info_plannerSetup_gas_howToUse =>
+      'Enter a bottom breathing rate, or take it from logged dives, and the reserve to keep in each cylinder.';
+
+  @override
+  String get info_plannerSetup_environment_summary =>
+      'The water type and altitude, which set the surface pressure the model starts from.';
+
+  @override
+  String get info_plannerSetup_environment_howToUse =>
+      'Pick the water type and enter the site\'s altitude.';
+
+  @override
+  String get info_plannerSetup_ccr_summary =>
+      'The setpoints the closed-circuit rebreather holds during the plan.';
+
+  @override
+  String get info_plannerSetup_ccr_howToUse =>
+      'Set the low and high setpoints and the depth where the plan switches between them.';
+
+  @override
+  String get info_plannerSetup_pscr_summary =>
+      'How the passive semi-closed rebreather is modelled in the plan.';
+
+  @override
+  String get info_plannerSetup_pscr_howToUse =>
+      'Enter the discard ratio given by the rebreather\'s maker.';
+
+  @override
+  String get info_plannerSetup_contingencies_summary =>
+      'How far the contingency plans go and the rule the gas plan turns on.';
+
+  @override
+  String get info_plannerSetup_contingencies_howToUse =>
+      'Set how much deeper and longer the contingency plans go, then pick a turn rule and fraction.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_summary =>
+      'The team, scooters and conditions behind the mission plan.';
+
+  @override
+  String get info_plannerSetup_dpvTeam_howToUse =>
+      'Enter the divers and scooters, the battery reserve, the current and the swim speed.';
+
+  @override
+  String get info_plannerSetup_gear_summary =>
+      'The gear and weights on the plan, used to predict buoyancy through the dive.';
+
+  @override
+  String get info_plannerSetup_gear_howToUse =>
+      'Add the suit, cylinders and weights to see the predicted buoyancy.';
+
+  @override
+  String get info_diveLab_tiles_summary =>
+      'The main results of the what if replay, tinted by whether each got better or worse than the actual dive.';
+
+  @override
+  String get info_diveLab_delta_summary =>
+      'Each measure for the actual dive and the what if version side by side, with the difference.';
+
+  @override
+  String get info_diveLab_tissues_summary =>
+      'Compartment loads as each version reaches the surface, actual and what if.';
+
+  @override
+  String get info_diveLab_buoyancy_summary =>
+      'Buoyancy at the last stop for each version of the dive.';
+
+  @override
+  String get info_diveLab_interventions_summary =>
+      'Changes to try against this dive, each replayed through the same model from the moment it applies.';
+
+  @override
+  String get info_calculators_mod_summary =>
+      'The deepest depth where the chosen mix stays within its ppO2 limit, with the EAD and END there.';
+
+  @override
+  String get info_calculators_mod_howToUse =>
+      'Pick a mode, then set the oxygen and the working ppO2. A target depth can be added to check a planned depth against the mix. The END limit and whether oxygen counts as narcotic come from the diver profile.';
+
+  @override
+  String get info_calculators_bestMix_summary =>
+      'The richest mix for a target depth that keeps ppO2 within its limit and END within the narcosis limit.';
+
+  @override
+  String get info_calculators_bestMix_howToUse =>
+      'Set the target depth and the mode. On CCR, choose whether the mix is a diluent or a bailout gas.';
+
+  @override
+  String get info_calculators_consumption_summary =>
+      'How much gas a planned dive uses at a given depth, time and breathing rate.';
+
+  @override
+  String get info_calculators_consumption_howToUse =>
+      'Enter the depth, the time, the breathing rate and the cylinder.';
+
+  @override
+  String get info_calculators_rockBottom_summary =>
+      'The minimum gas reserve for two divers to ascend together on one supply from the deepest point.';
+
+  @override
+  String get info_calculators_rockBottom_background =>
+      'It uses a stressed breathing rate, commonly two to three times normal, and counts both divers on one cylinder. The safety stop is included when that option is on.';
+
+  @override
+  String get info_calculators_rockBottom_howToUse =>
+      'Set the depth, the stressed breathing rate, the ascent rate and the cylinder.';
+
+  @override
+  String get info_calculators_mnd_summary =>
+      'The deepest depth a gas stays within the END limit, and the END of a gas at a given depth.';
+
+  @override
+  String get info_calculators_mnd_howToUse =>
+      'Enter the gas, the END limit and whether oxygen counts as narcotic.';
+
+  @override
+  String get info_calculators_icd_summary =>
+      'Whether a switch between two gases passes the rule of fifths for counterdiffusion.';
+
+  @override
+  String get info_calculators_icd_background =>
+      'Helium diffuses faster than nitrogen, so a switch to a more nitrogen-rich gas can raise total inert gas in tissue. Agencies differ on how much this matters for standard gases.';
+
+  @override
+  String get info_calculators_icd_howToUse =>
+      'Enter the current gas and the gas switched to.';
+
+  @override
+  String get info_calculators_density_summary =>
+      'How dense a gas is at depth, and the depth at which air would be as dense.';
+
+  @override
+  String get info_calculators_density_background =>
+      'On CCR the density is that of the loop gas: oxygen at the setpoint, the rest split in the diluent\'s ratio. Colder gas is denser, and the calculation assumes an ideal gas.';
+
+  @override
+  String get info_calculators_density_howToUse =>
+      'Enter the mix, the depth and the water temperature, and switch between OC and CCR.';
+
+  @override
+  String get info_calculators_blender_summary =>
+      'A partial-pressure blend: the fill gases to add, in order, to reach the target mix.';
+
+  @override
+  String get info_calculators_blender_background =>
+      'Each gas is added up to the pressure shown and the cylinder is left to settle before the next. Fill gases and their order are configurable, so the last gas can be EAN32 instead of air.';
+
+  @override
+  String get info_calculators_blender_howToUse =>
+      'Enter what is already in the cylinder and the target mix. The last step of every blend is analyzing the finished mix.';
+
+  @override
+  String get info_decoCalculator_summary =>
+      'A single-level dive run through the Buhlmann ZHL-16C model, showing its gas limits, stops and tissue loading.';
+
+  @override
+  String get info_decoCalculator_howToUse =>
+      'Set the depth, the time, the gas and the water conditions. The gas limits, the stops and the tissue chart update as each value changes.';
+
+  @override
+  String get info_surfaceIntervalTool_summary =>
+      'Whether a second dive fits within no-stop limits after a surface interval, from the tissue loading carried over from the first dive.';
+
+  @override
+  String get info_surfaceIntervalTool_background =>
+      'The model\'s 16 compartments release gas during the interval, fast ones within minutes and slow ones over hours. The leading compartment is the most loaded one and usually sets the NDL.';
+
+  @override
+  String get info_surfaceIntervalTool_howToUse =>
+      'Set the first dive, the second dive and the surface interval. The result shows the minimum interval and the NDL for the second dive.';
+
+  @override
+  String get info_equipment_trend_summary =>
+      'One point per dive, so a slow change in this item shows as a trend over its life.';
+
+  @override
+  String get info_equipment_findings_summary =>
+      'Patterns in this item\'s dives and reported issues that the condition rules flagged.';
+
+  @override
+  String get info_equipment_exposure_summary =>
+      'How much use this item has seen, counted in each of the units its service clocks use.';
+
+  @override
+  String get info_site_altitude_summary =>
+      'The site\'s height above sea level and the air pressure there, which the decompression model starts from.';
+
+  @override
+  String get info_trips_scrubberMargin_summary =>
+      'How much rated scrubber time is left for the trip\'s planned rebreather dives.';
+
+  @override
+  String get info_settings_gradientFactors_summary =>
+      'How conservative the app\'s decompression model is.';
+
+  @override
+  String get info_settings_gradientFactors_background =>
+      'Gradient factors scale back the Buhlmann ZHL-16C M-values, a method described by Erik Baker. Every deco figure the app calculates uses them.';
+
+  @override
+  String get info_settings_oxygenToxicity_summary =>
+      'The ppO2 limits and the CNS method used for oxygen figures across the app.';
+
+  @override
+  String get info_settings_dataSources_summary =>
+      'Whether NDL, deco stops, TTS, GTR and CNS come from the dive computer or from the app\'s own calculation.';
+
+  @override
+  String get info_settings_narcosis_summary =>
+      'The END limit and how END and MND are worked out across the app.';
+
+  @override
+  String get info_settings_icd_summary =>
+      'The check the app runs on gas switches for counterdiffusion between helium and nitrogen.';
+
+  @override
+  String get info_settings_ascent_summary =>
+      'Which gases the simulated ascent may switch to when the app works out TTS, the ceiling and stops.';
+
+  @override
+  String get info_settings_safetyRules_summary =>
+      'The rules each dive is checked against after it is logged. A rule that is off is never reported.';
+
+  @override
+  String get info_settings_conditionThresholds_summary =>
+      'The lines that make a dive count as cold, deep or high-oxygen for service clocks.';
+
+  @override
+  String get info_settings_sensorSummaries_summary =>
+      'The per-dive figures the app keeps for oxygen cells, transmitters and scrubbers.';
+
+  @override
+  String get info_settings_conditionRules_summary =>
+      'The checks behind the equipment condition findings. A rule that is off is never reported.';
+
+  @override
+  String get info_settings_notifications_summary =>
+      'Reminders are scheduled when the app opens and refreshed in the background. Each equipment item can set its own reminders in its edit screen.';
+
+  @override
+  String get info_settings_ascentRate_summary =>
+      'The speeds at which the profile colors the ascent and logs ascent rate events.';
+
+  @override
+  String get gasCalculators_blender_analyseNote =>
+      'Always analyze the finished mix before diving it.';
+
+  @override
+  String info_calculators_mod_background(String depth) {
+    return 'The MOD is always rounded down, never up. Rec uses 1 bar per $depth, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.';
+  }
 }

@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/features/dive_log/presentation/info/tissue_loading_info.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_compartment_detail.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tissue_values_info.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Glyph size for every control in the card header.
 const double _headerIconSize = 16;
@@ -32,7 +34,7 @@ const _headerButtonStyle = ButtonStyle(visualDensity: VisualDensity.compact);
 /// - Tissue pressure bar chart (Subsurface-style, 16 compartments) with a
 ///   surface level marker per bar
 /// - Tissue loading heat map or stacked area chart over time
-/// - A collapsible explanation of the values
+/// - An info icon in the header explaining the values
 ///
 /// Used by the dive detail view and the current dive load page; both show
 /// the same card, so every change here reaches both.
@@ -168,6 +170,21 @@ class _CompactTissueLoadingCardState
                 _buildColorSchemeSelector(colorScheme),
                 if (widget.onOpen3dView != null)
                   _build3dViewButton(colorScheme),
+                // Laid out to the compact buttons' 40 px box, like its
+                // neighbours.
+                HeaderInfoButton(
+                  title: context.l10n.diveLog_deco_sectionTissueLoading,
+                  width: 40,
+                  height: 40,
+                  content: (context) => tissueLoadingInfo(
+                    context.l10n,
+                    infoUnits(context),
+                    view: hasViz ? vizMode : null,
+                    hasHelium: widget.status.compartments.any(
+                      (c) => c.currentPHe > 0.001,
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 14),
@@ -198,10 +215,6 @@ class _CompactTissueLoadingCardState
             // Visualization (expanded to fill remaining space when possible)
             if (vizWidget != null)
               if (expand) Expanded(child: vizWidget) else vizWidget,
-
-            // Opens as a dialog when the card is stretched to a fixed height:
-            // expanding in place would overflow it.
-            TissueValuesInfo(inline: !expand),
           ],
         ),
       ),

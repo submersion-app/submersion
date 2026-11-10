@@ -22,5 +22,8 @@ class RecordingNotificationService implements NotificationService {
   Future<Set<String>> pendingDocumentReminderIds() async => const {};
 
   @override
+  Future<Set<String>> pendingDraftReminderIds() async => const {};
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => Future.value();
 }

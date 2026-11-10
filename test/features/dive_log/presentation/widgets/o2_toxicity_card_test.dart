@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/contrast_ratio.dart';
 import '../../../../helpers/l10n_test_helpers.dart';
+import '../../../../helpers/info_sheets.dart';
 
 void main() {
   const units = UnitFormatter(AppSettings());
@@ -273,5 +276,19 @@ void main() {
         });
       }
     }
+  });
+
+  testWidgets('the header carries an info icon', (tester) async {
+    // The sheet reads the diver's units, which the app's ProviderScope holds.
+    await tester.pumpWidget(
+      ProviderScope(
+        child: buildCard(
+          const O2Exposure(cnsStart: 10, cnsEnd: 20),
+          locale: const Locale('en'),
+        ),
+      ),
+    );
+    expect(find.byType(InfoButton), findsOneWidget);
+    expect(await openEveryInfoSheet(tester), greaterThan(0));
   });
 }

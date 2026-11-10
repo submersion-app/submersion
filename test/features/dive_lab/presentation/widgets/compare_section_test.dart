@@ -33,6 +33,7 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_overlay_provider.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/pump_until.dart';
@@ -212,6 +213,15 @@ void main() {
 
     expect(chip('Planned'), findsOneWidget);
     expect(columnIds(tester), ['planned', 'dived']);
+    // The plan's line is named as its chip is (#4215).
+    expect(
+      tester
+          .widget<DiveProfileChart>(find.byType(DiveProfileChart))
+          .overlays
+          ?.where((o) => o.sourceId.startsWith('plan:'))
+          .map((o) => o.name),
+      ['Planned'],
+    );
   });
 
   testWidgets('a plan with no schedule draws no line and has no column', (
@@ -575,5 +585,16 @@ void main() {
         () => chip('Planned').evaluate().isEmpty,
       );
     });
+  });
+
+  testWidgets('header info icon opens a sheet, not the Dive Lab', (
+    tester,
+  ) async {
+    await pump(tester, comparison: _comparison());
+
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Surface GF'), findsWidgets);
+    expect(find.textContaining('NDL (no-decompression limit)'), findsOneWidget);
   });
 }

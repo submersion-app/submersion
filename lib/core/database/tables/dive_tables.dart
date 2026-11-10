@@ -89,7 +89,8 @@ class Dives extends Table {
   RealColumn get altitude => real().nullable()(); // meters above sea level
   // Surface pressure for altitude/weather corrections
   RealColumn get surfacePressure => real().nullable()(); // bar (default ~1.013)
-  // Surface interval before this dive
+  // Surface interval before this dive as the computer or diver gave it, NULL
+  // when neither did: the app then shows the gap from the previous dive's exit
   IntColumn get surfaceIntervalSeconds => integer().nullable()(); // seconds
   // Decompression gradient factors
   IntColumn get gradientFactorLow => integer().nullable()(); // 0-100
@@ -178,6 +179,12 @@ class Dives extends Table {
   // Dive planner flag (v1.5)
   BoolColumn get isPlanned =>
       boolean().withDefault(const Constant(false))(); // True for planned dives
+
+  // Draft dive flag (v354, issue #637): marked at the site, waiting for its
+  // dive computer readings. A draft really happened, so unlike a plan it
+  // counts for no-fly and surface interval; it stays out of totals and has
+  // no dive number until it is filled.
+  BoolColumn get isDraft => boolean().withDefault(const Constant(false))();
 
   /// Shared id across the sibling dives created by one mirror action (issue
   /// #2002). Not a foreign key: a lone dive with an outing id is valid, and a
@@ -275,6 +282,14 @@ class DiveTanks extends Table {
   /// log recorded it (issue #1496). Null when the source recorded none,
   /// and on every row from before v259.
   IntColumn get usageDuration => integer().nullable()();
+
+  /// v348: seconds the diver breathed this cylinder at the surface after the
+  /// computer stopped logging, as they entered it (issue #2930): oxygen on
+  /// the boat after a deco dive. Whole-dive and per-cylinder SAC count it at
+  /// 0 m, since no recording shows it, on a cylinder with no
+  /// tank_pressure_series row, whose end was read off the gauge. Null when
+  /// none was entered.
+  IntColumn get surfaceBreathingDuration => integer().nullable()();
   TextColumn get tankMaterial =>
       text().nullable()(); // aluminum, steel, carbonFiber
   TextColumn get tankName =>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
 
 /// A consistent card container for statistics sections
@@ -11,6 +12,9 @@ class StatSectionCard extends StatelessWidget {
   final Widget? trailing;
   final EdgeInsetsGeometry? padding;
 
+  /// What the card's info icon explains; null shows no icon.
+  final InfoContentBuilder? info;
+
   const StatSectionCard({
     super.key,
     required this.title,
@@ -19,6 +23,7 @@ class StatSectionCard extends StatelessWidget {
     this.onTap,
     this.trailing,
     this.padding,
+    this.info,
   });
 
   @override
@@ -34,6 +39,7 @@ class StatSectionCard extends StatelessWidget {
               subtitle: subtitle,
               trailing: trailing,
               showChevron: onTap != null && trailing == null,
+              info: info,
             ),
             const SizedBox(height: 12),
             child,
@@ -66,12 +72,16 @@ class StatSectionHeader extends StatelessWidget {
   final Widget? trailing;
   final bool showChevron;
 
+  /// What the header's info icon explains; null shows no icon.
+  final InfoContentBuilder? info;
+
   const StatSectionHeader({
     super.key,
     required this.title,
     this.subtitle,
     this.trailing,
     this.showChevron = false,
+    this.info,
   });
 
   @override
@@ -86,7 +96,7 @@ class StatSectionHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           LabelWithControl(
-            label: Text(title, style: theme.textTheme.titleMedium),
+            label: _titleLine(theme),
             control: showChevron
                 ? Row(
                     mainAxisSize: MainAxisSize.min,
@@ -108,7 +118,7 @@ class StatSectionHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: theme.textTheme.titleMedium),
+              _titleLine(theme),
               if (subtitle != null) ...[
                 const SizedBox(height: 2),
                 _subtitle(theme),
@@ -120,6 +130,13 @@ class StatSectionHeader extends StatelessWidget {
       ],
     );
   }
+
+  /// The title, with the info icon at its end when [info] is set.
+  Widget _titleLine(ThemeData theme) => InfoTitleRow(
+    title: Text(title, style: theme.textTheme.titleMedium),
+    label: title,
+    info: info,
+  );
 
   Widget _chevron(ThemeData theme) =>
       Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant);

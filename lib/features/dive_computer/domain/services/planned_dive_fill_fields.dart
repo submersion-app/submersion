@@ -4,13 +4,13 @@
 /// constructor stays exhaustive: every field is either measured or human.
 const Set<String> kMeasuredDiveFields = {
   // lifecycle, set by the fill
-  'isPlanned', 'diveNumber', 'computerId',
+  'isPlanned', 'isDraft', 'diveNumber', 'computerId',
   // when the computer says the dive ran
   'entryTime', 'exitTime', 'bottomTime', 'runtime', 'surfaceInterval',
   // depths, temperature and the surface pressure
   'maxDepth', 'avgDepth', 'waterTemp', 'surfacePressure',
   // the record itself
-  'profile', 'profileSpan', 'tanks',
+  'profile', 'profileSpan', 'storedGasUse', 'surfaceBreathing', 'tanks',
   // deco and exposure the computer reports
   'gradientFactorLow', 'gradientFactorHigh', 'decoAlgorithm',
   'decoConservatism', 'computerTissue',

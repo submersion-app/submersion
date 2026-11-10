@@ -20,6 +20,7 @@ import 'package:submersion/features/insights/presentation/widgets/dive_trend_cha
 import 'package:submersion/features/insights/presentation/widgets/horizontal_category_bar_chart.dart';
 import 'package:submersion/features/insights/presentation/widgets/tank_configuration_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -328,5 +329,9 @@ void main() {
     await pumpPage(tester, const AppSettings());
     await tester.pump(const Duration(seconds: 1));
     expect(find.byKey(const ValueKey('gas-records-see-top')), findsNothing);
+  });
+  testWidgets('the gas cards carry info icons', (tester) async {
+    await pumpPage(tester, const AppSettings());
+    expect(find.byType(InfoButton), findsWidgets);
   });
 }

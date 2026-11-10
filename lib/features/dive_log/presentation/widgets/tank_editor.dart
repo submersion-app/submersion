@@ -29,6 +29,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/computer_recorded_tank.dart';
 import 'package:submersion/features/dive_log/domain/services/logged_tank_mod.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_surface_breathing_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/computer_mix_note.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/own_cylinder_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
@@ -62,6 +63,12 @@ class TankEditor extends ConsumerStatefulWidget {
   /// cylinder rather than one dive's use of it, such as the bulk spec update
   /// (#797), which never writes pressures.
   final bool showPressures;
+
+  /// Replaces the numbered "Tank N" header with this title and a stacked
+  /// icon. Used where the editor is a template written to many tanks, such
+  /// as the bulk spec update, where "Tank 1" read as only the first tank
+  /// (#3367). Null keeps the number.
+  final String? headerTitle;
 
   /// Called with the diver's own cylinder when its tag is scanned (issue
   /// #2335) or it is picked from "My cylinders" (issue #2599), so the host
@@ -113,6 +120,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.showPressures = true,
+    this.headerTitle,
     this.onOwnCylinderUsed,
     this.diveDate,
     this.onScanPending,
@@ -153,6 +161,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// or a cylinder pick, cleared by a preset or a trip slot, kept by hand
   /// edits.
   String? _passportId;
+
+  /// Minutes breathed on the surface after the computer stopped (#2930).
+  Duration? _surfaceBreathing;
+
+  /// Whether the minutes field shows: only on a breathing cylinder with no
+  /// transmitter log, whose end pressure was read off the gauge (#2930).
+  bool get _showsSurfaceBreathing =>
+      _role.isBreathingGas && !widget.tank.hasPressureSeries;
 
   /// The partner's passport id when this tank is a twin set (issue #4242).
   String? _twinPassportId;
@@ -253,6 +269,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     _material = widget.tank.material;
     _regulatorIds = widget.tank.regulatorIds;
     _passportId = widget.tank.passportId;
+    _surfaceBreathing = widget.tank.surfaceBreathingDuration;
     _twinPassportId = widget.tank.twinPassportId;
     // Initialize selected preset from tank's presetName
     // Check built-in presets first, async lookup for custom presets happens in build
@@ -485,6 +502,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       // Import-owned (issue #1496): carried so the edited tank still
       // reports what the source log recorded.
       usageDuration: widget.tank.usageDuration,
+      // Only a cylinder that shows the field keeps it.
+      surfaceBreathingDuration: _showsSurfaceBreathing
+          ? _surfaceBreathing
+          : null,
+      hasPressureSeries: widget.tank.hasPressureSeries,
     ).withRegulators(_regulatorIds);
   }
 
@@ -563,6 +585,20 @@ class _TankEditorState extends ConsumerState<TankEditor> {
 
               // Start/end pressure
               _buildPressureRow(units),
+
+              // Breathed after the computer stopped logging (issue #2930); a
+              // suit inflation bottle is not breathed, and a transmitter's
+              // last reading holds none of that gas.
+              if (_showsSurfaceBreathing) ...[
+                const SizedBox(height: 12),
+                TankSurfaceBreathingField(
+                  value: _surfaceBreathing,
+                  onChanged: (value) {
+                    _surfaceBreathing = value;
+                    _notifyChange();
+                  },
+                ),
+              ],
             ],
 
             // MOD display: a suit inflation bottle is not breathed, so it
@@ -576,17 +612,21 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   Widget _buildHeader(GasMix gasMix) {
+    final onContainer = Theme.of(context).colorScheme.onPrimaryContainer;
+    final headerTitle = widget.headerTitle;
     return Row(
       children: [
         CircleAvatar(
           backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          child: Text(
-            '${widget.tankNumber}',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child: headerTitle != null
+              ? Icon(Icons.layers_outlined, color: onContainer)
+              : Text(
+                  '${widget.tankNumber}',
+                  style: TextStyle(
+                    color: onContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -594,7 +634,8 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                context.l10n.diveLog_tank_title(widget.tankNumber),
+                headerTitle ??
+                    context.l10n.diveLog_tank_title(widget.tankNumber),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(

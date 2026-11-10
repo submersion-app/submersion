@@ -10,6 +10,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
+import 'package:submersion/features/dive_log/presentation/info/dive_profile_info.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
 import 'package:submersion/features/dive_log/presentation/utils/profile_time_domain.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gtr_format.dart';
@@ -224,6 +225,24 @@ class ChartSourceOverlay {
   /// temperature, which are read straight off [points]. Null while still
   /// loading.
   final ProfileAnalysis? analysis;
+
+  ChartSourceOverlay copyWith({
+    String? sourceId,
+    String? name,
+    Color? color,
+    String? computerId,
+    List<DiveProfilePoint>? points,
+    ProfileAnalysis? analysis,
+    bool? tintByMetric,
+  }) => ChartSourceOverlay(
+    sourceId: sourceId ?? this.sourceId,
+    name: name ?? this.name,
+    color: color ?? this.color,
+    computerId: computerId ?? this.computerId,
+    points: points ?? this.points,
+    analysis: analysis ?? this.analysis,
+    tintByMetric: tintByMetric ?? this.tintByMetric,
+  );
 }
 
 /// The extents of a chart's data, in display units: scans of every sample that
@@ -538,6 +557,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Overlay sources drawn for comparison alongside the active source
   /// ([profile]). Each overlay renders dashed, in its own color.
   final List<ChartSourceOverlay>? overlays;
+
+  /// The dive has a linked plan the host can draw (#4215), so the chart
+  /// options offer its switch. True while the plan is switched off as well,
+  /// when [overlays] no longer carries it, so it can be switched back on.
+  final bool hasPlannedProfile;
 
   /// The active source's computer id. Per-computer data (events, tank
   /// pressures) attributed to this id — or to no computer at all — belongs
@@ -857,6 +881,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.cnsCurve,
     this.otuCurve,
     this.overlays,
+    this.hasPlannedProfile = false,
     this.activeComputerId,
     this.computerNames,
     this.tooltipPresentation = TooltipPresentation.inChart,
@@ -869,6 +894,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 }
 
 class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
+  /// Where this chart last published its legend for the card's info icon.
+  ProfileLegendSnapshot? _legendSnapshot;
+
   /// The diver's metric colours (issue #3012), resolved at the top of
   /// every build so tooltip and gesture code reads the same palette.
   late ProfileMetricPalette _palette;
@@ -1725,6 +1753,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   @override
   void dispose() {
+    _legendSnapshot?.release(this);
     _viewportNotifier.dispose();
     _zoomNotifier.dispose();
     _plotPointerTick.dispose();
@@ -3000,6 +3029,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   @override
   Widget build(BuildContext context) {
     if (widget.profile.isEmpty) {
+      // Drawing no overlays now, so the card's info icon lists none.
+      _legendSnapshot?.release(this);
+      _legendSnapshot = null;
       return _buildEmptyState(context);
     }
 
@@ -3127,6 +3159,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasImportedEvents:
           widget.events?.any((e) => e.source == EventSource.imported) ?? false,
       hasAnnotations: _annotations.isNotEmpty,
+      hasPlannedProfile: widget.hasPlannedProfile,
       hasMaxDepthMarker: widget.showMaxDepthMarker && _hasMaxDepthMarker,
       hasPressureMarkers:
           widget.showPressureThresholdMarkers && _hasPressureMarkers,
@@ -3161,6 +3194,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasCnsData: hasCnsData,
       hasOtuData: hasOtuData,
     );
+
+    // The card header's info icon lists the overlays drawn here.
+    final snapshot = ProfileLegendSnapshotScope.maybeOf(context);
+    if (!identical(snapshot, _legendSnapshot)) _legendSnapshot?.release(this);
+    _legendSnapshot = snapshot?..publish(this, legendConfig);
 
     _scheduleLegendMeasure();
 

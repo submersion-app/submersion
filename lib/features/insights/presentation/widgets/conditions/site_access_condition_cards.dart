@@ -9,6 +9,8 @@ import 'package:submersion/features/insights/domain/conditions/conditions_stats.
 import 'package:submersion/features/insights/presentation/providers/conditions_stats_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/conditions/conditions_category_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The stats to chart, or null while loading or after a failed query.
 ///
@@ -34,6 +36,13 @@ class AltitudeConditionsCard extends ConsumerWidget {
     final l10n = context.l10n;
     return ConditionsCategoryCard<AltitudeGroup>(
       title: l10n.insights_conditions_altitude_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_conditions_altitude_title,
+        summary: context.l10n.info_insights_altitude_summary,
+        terms: const [DiveTerm.altitudeGroup],
+      ),
       subtitle: l10n.insights_conditions_altitude_subtitle,
       stat: stats.altitude,
       totalDives: stats.totalDives,

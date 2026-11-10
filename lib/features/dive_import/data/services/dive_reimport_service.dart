@@ -23,6 +23,9 @@ import 'package:submersion/features/dive_log/domain/entities/computer_tissue_sna
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_import/domain/dive_resync_failure.dart';
 import 'package:submersion/features/dive_log/domain/services/source_ownership.dart';
+import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
+import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 
 /// Outcome of one [DiveReimportService.applyReimport] call.
 class DiveReimportResult {
@@ -199,6 +202,10 @@ class DiveReimportService {
     });
 
     SyncEventBus.notifyLocalChange();
+    // A serial the resync just gave a cylinder gets its Transmitter item, as
+    // an import's does (#3676), and may be one the diver has set up (issue
+    // #4388). Best-effort, after the commit, like the computers.
+    await settleTransmittersForDives([diveId]);
     final computersAdded = await _addMissingComputers(
       diveId: diveId,
       diveData: diveData,
@@ -470,6 +477,13 @@ class DiveReimportService {
       // How long the file says the tank was breathed (issue #1496). A dive
       // imported before v259 has none stored, so this is how it gets one.
       final usageSeconds = (t['usageDuration'] as Duration?)?.inSeconds;
+      // The file's transmitter serial fills a cylinder that has none, so a
+      // dive imported before the parser read serials picks them up (issue
+      // #4388); a serial the cylinder has is never replaced, and a cylinder
+      // paired only by position must agree on its start pressure.
+      final serial = normalizeTransmitterSerial(
+        t['transmitterSerial'] as String?,
+      );
 
       final row = matched[i];
       if (row != null) {
@@ -493,6 +507,14 @@ class DiveReimportService {
             usageDuration: usageSeconds != null
                 ? Value(usageSeconds)
                 : const Value.absent(),
+            transmitterSerial: switch (serialToFill(
+              row,
+              readingSerial: serial,
+              readingStartPressure: startPressure,
+            )) {
+              final fill? => Value(fill),
+              null => const Value.absent(),
+            },
           ),
         );
         await _syncRepository.markRecordPending(
@@ -515,6 +537,7 @@ class DiveReimportService {
                 o2Percent: Value(o2Percent ?? 21.0),
                 hePercent: Value(hePercent ?? 0.0),
                 usageDuration: Value(usageSeconds),
+                transmitterSerial: Value(serial),
               ),
             );
         await _syncRepository.markRecordPending(
@@ -656,16 +679,19 @@ class DiveReimportService {
   ///
   /// `source_id` only, never `computer_id`: that is the identity a fresh
   /// import of the same file writes, and a file source routinely carries a
-  /// physical computer's id (`matchImportedComputer` matches on serial) whose
-  /// own re-parse deletes by `computer_id` alone.
+  /// physical computer's id (`matchImportedComputer` matches on serial), and
+  /// a series stamped with it would sit on that computer's strand.
   ///
-  /// The delete is the file-side twin of the `deleteByComputer(diveId,
-  /// computerId)` a re-parse runs: the null-computer strands, which is what a
-  /// file parse writes, minus the diver's manual edit. `saveEditedProfile`
+  /// The delete is the file-side twin of the strand replace a re-parse runs:
+  /// the null-computer strands, which is what a file parse writes, minus the
+  /// diver's manual edit. `saveEditedProfile`
   /// leaves that edit as the primary null-computer series over the demoted
   /// generation it corrects -- the shape `relinkComputer` already spares --
   /// so where one exists the fresh parse lands demoted beneath it and
-  /// `restoreOriginalProfile` promotes it if the diver drops the edit.
+  /// `restoreOriginalProfile` promotes it if the diver drops the edit. An
+  /// edit stays demoted too, where re-activating the original in the
+  /// revision picker leaves it: its synced `is_edit` mark names it there,
+  /// where the shape no longer can (issue #4386).
   Future<void> _replaceProfile({
     required String diveId,
     required Map<String, dynamic> diveData,
@@ -676,7 +702,12 @@ class DiveReimportService {
     if (profileData == null) return;
 
     final identities = await _profileSeries.getIdentitiesForDive(diveId);
-    final editIds = await _profileSeries.liveEditIds(diveId);
+    final liveEditIds = ProfileSeriesRepository.liveEditIdsOf(identities);
+    final editIds = {
+      ...liveEditIds,
+      for (final s in identities)
+        if (s.isEdit == true) s.id,
+    };
     // No samples to land beneath the edit, so the generation there stays: it
     // is what the edit undoes to, and what tells the next resync it is one.
     if (profileData.isEmpty && editIds.isNotEmpty) return;
@@ -690,7 +721,8 @@ class DiveReimportService {
     await _profileSeries.insertSeries(
       diveId: diveId,
       sourceId: source?.id,
-      isPrimary: editIds.isEmpty,
+      isPrimary: liveEditIds.isEmpty,
+      isEdit: false,
       samples: [
         for (final p in profileData)
           codec.ProfileSample(

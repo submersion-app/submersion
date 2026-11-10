@@ -97,6 +97,16 @@ class DiveComputer extends Equatable {
   /// Short display name for lists
   String get displayName => name.isNotEmpty ? name : fullName;
 
+  /// The model and maker of the computer Apple Health dives are attributed
+  /// to (issue #637).
+  static const appleWatchModel = 'Apple Watch';
+  static const appleWatchManufacturer = 'Apple';
+
+  /// The diver's Apple Watch, whose dives come from Apple Health rather
+  /// than a download.
+  bool get isAppleWatch =>
+      manufacturer == appleWatchManufacturer && model == appleWatchModel;
+
   /// Whether this computer has Bluetooth connectivity
   bool get hasBluetooth =>
       connectionType == 'bluetooth' && bluetoothAddress != null;

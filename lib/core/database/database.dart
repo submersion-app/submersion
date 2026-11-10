@@ -12,6 +12,7 @@ import 'package:submersion/core/database/tables/dive_plan_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
+import 'package:submersion/core/database/tables/dive_health_tables.dart';
 import 'package:submersion/core/database/tables/dive_tables.dart';
 import 'package:submersion/core/database/tables/diver_tables.dart';
 import 'package:submersion/core/database/tables/equipment_condition_tables.dart';
@@ -43,6 +44,7 @@ export 'package:submersion/core/database/tables/app_tables.dart';
 export 'package:submersion/core/database/tables/buddy_tables.dart';
 export 'package:submersion/core/database/tables/certification_currency_tables.dart';
 export 'package:submersion/core/database/tables/cylinder_tables.dart';
+export 'package:submersion/core/database/tables/dive_health_tables.dart';
 export 'package:submersion/core/database/tables/dive_lab_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
@@ -165,6 +167,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     GasSwitches,
     TankPressureSeries,
     TideRecords,
+    // Apple Health readings per dive (v354, issue #637)
+    DiveHealthRecords,
     // Site-species junction
     SiteSpecies,
     SiteFeatures,
@@ -315,7 +319,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 347;
+  static const int currentSchemaVersion = 357;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -469,7 +473,18 @@ class AppDatabase extends _$AppDatabase {
   /// before the update: withCurrentWireKeys points a tripId-shaped row at
   /// its trip's default checklist, and the serializer creates that
   /// checklist when this device does not hold it yet.
-  static const int minimumCompatibleSchemaVersion = 336;
+  ///
+  /// Raised 336 -> 350 by sighting abundance (#4337): v350 adds the synced
+  /// column sightings.abundance, where null means the count is exact and
+  /// `seen` or a REEF group means it is not. A peer below 350 stores a Seen
+  /// or group sighting as its count alone (1). Once that peer upgrades, the
+  /// new column is null there, and its next edit of the sighting publishes
+  /// an explicit null, which the merge applies as a real value (only an
+  /// omitted key is refilled from the local row), turning the sighting into
+  /// an exact 1 on every device. Peers below 350 are held until they
+  /// update. Their own payloads still arrive here and decode cleanly: a
+  /// missing abundance is null, an exact count.
+  static const int minimumCompatibleSchemaVersion = 350;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -1595,6 +1610,43 @@ class AppDatabase extends _$AppDatabase {
     // overlay opacity over it per theme. Additive and defaulted; the floor
     // does not move.
     347,
+    // v348: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, a dive's
+    // underwater time and depth for SAC and RMV, and where surface breathing
+    // stretched them (issue #2930): a device-local cache the sweep refills.
+    // Plus dive_tanks.surface_breathing_duration, a nullable synced column an
+    // older peer omits, with no backfill. The floor does not move.
+    348,
+    // v349: an empty dives.water_temp takes the temperature its source rows
+    // measured, which a download kept on the source row only (issue #4333).
+    // Data only, filling a column every reader already holds, so the floor
+    // does not move. Numbered 349 so open PR #4327, which claimed 347, can
+    // take 348.
+    349,
+    // v350: sightings.abundance, Seen, a REEF group, or (null) an exact
+    // count (issue #4337). Nullable, no backfill; raises the sync floor to
+    // 350. Numbered 350: main holds 349 and open PR #4327 is to take 348.
+    350,
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). A nullable column an older peer
+    // omits, so the floor does not move.
+    351,
+    // v354: dives.is_draft, a dive marked at the site that waits for its
+    // dive computer readings, and dive_health_records, heart rate, recovery
+    // and sleep from Apple Health per dive (issue #637). Additive and
+    // defaulted; the floor does not move. Numbered 354 because main holds
+    // 351 and open work claims 352 and 353.
+    354,
+    // v356: a merge slot on the source rows of a dive with no primary row and
+    // none yet, so a combine the v184 rung could not classify keeps a
+    // re-parse off its rows once it gains a primary (issue #4367). Data
+    // only; the floor does not move. Numbered 356 because main holds 354 and
+    // open work claims 352, 353 and 355.
+    356,
+    // v357: dive_profile_series.is_edit, the synced mark that a series is
+    // the diver's manual edit (issue #4386). A nullable column an older peer
+    // omits, with no backfill, so the floor does not move. Numbered 357
+    // because main holds 356; renumbered from 353, then 355.
+    357,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

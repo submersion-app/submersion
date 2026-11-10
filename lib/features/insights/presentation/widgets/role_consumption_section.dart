@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/domain/role_consumption.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/trend_chart_settings_provider.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/features/insights/presentation/widgets/stat_section_c
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
 
 /// The Gas page's consumption by cylinder role card (issue #771): one line
 /// per role group, each point a dive's rate for that role over the time it
@@ -76,6 +78,11 @@ class RoleConsumptionSection extends ConsumerWidget {
       chartId: TrendChartIds.roleConsumption,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: l10n.insights_gas_roleUse_title,
+      infoSummary: l10n.info_insights_roleUse_summary,
+      infoTerms: [
+        DiveTerm.cylinderRole,
+        ...gasLaneTerms(isRmv: isRmv),
+      ],
       subtitle: l10n.insights_gas_roleUse_subtitle,
       header: header,
       pointsAsync: points,

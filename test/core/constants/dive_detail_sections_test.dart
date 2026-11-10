@@ -17,7 +17,8 @@ void main() {
       // ARB keys, on purpose -- a later l10n pass adds those, per the spec.
       // Lowered for the retired reefHealth section, whose satellite water
       // conditions moved into the Environment card (issue #3282), and raised for the Dive Lab section.
-      expect(DiveDetailSectionId.values.length, 25);
+      // Raised for the Apple Health section (issue #637).
+      expect(DiveDetailSectionId.values.length, 26);
     });
 
     test('values match expected IDs', () {

@@ -80,6 +80,8 @@ void main() {
     'Use for equipment',
   );
 
+  final useForDives = find.widgetWithText(CheckboxListTile, 'Use for dives');
+
   Future<void> openEditor(WidgetTester tester) async {
     await tester.pumpWidget(page());
     await tester.pumpAndSettle();
@@ -105,7 +107,8 @@ void main() {
   /// which asks before unlinking the two items.
   Future<void> narrowToDives(WidgetTester tester) async {
     await openEditor(tester);
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+    await tester.ensureVisible(useForDives);
+    await tester.tap(useForDives);
     await tester.ensureVisible(useForEquipment);
     await tester.tap(useForEquipment);
     await tester.pumpAndSettle();
@@ -189,7 +192,8 @@ void main() {
     await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Rental');
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+    await tester.ensureVisible(useForDives);
+    await tester.tap(useForDives);
     await tester.ensureVisible(useForEquipment);
     await tester.tap(useForEquipment);
     await tester.pumpAndSettle();

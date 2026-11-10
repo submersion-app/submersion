@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import 'buoyancy_outcome_fixture.dart';
@@ -134,5 +135,26 @@ void main() {
   testWidgets('renders nothing when the outcome is null', (tester) async {
     await _pump(tester, null);
     expect(find.byType(Card), findsNothing);
+  });
+
+  testWidgets('header uses an info icon instead of the hover tooltip', (
+    tester,
+  ) async {
+    await _pump(tester, buoyancyOutcome());
+
+    expect(find.byType(InfoButton), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Tooltip &&
+            w.message ==
+                'Modeled net buoyancy through the dive from your profile, gas use, and gear.',
+      ),
+      findsNothing,
+    );
+    await tester.ensureVisible(find.byType(InfoButton));
+    await tester.tap(find.byType(InfoButton));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Peak lift needed'), findsWidgets);
   });
 }

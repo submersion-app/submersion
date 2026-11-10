@@ -18,9 +18,10 @@ import 'package:submersion/core/utils/slippy_tiles.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_chip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/unfilled_dive_chip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_badge.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
+import 'package:submersion/features/dive_log/domain/services/estimated_profile.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
@@ -34,7 +35,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/dive_scrubber_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
-import 'package:submersion/features/weather/presentation/widgets/fetch_all_conditions_flow.dart';
+import 'package:submersion/features/weather/presentation/widgets/fetch_conditions_flow.dart';
 import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
@@ -43,6 +44,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_list_cont
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/estimated_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_summary_widget.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_card_photo_background.dart';
@@ -133,7 +135,7 @@ class _DiveListPageState extends ConsumerState<DiveListPage>
   Future<void> _fetchAllConditions() async {
     final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
     if (!mounted) return;
-    await showFetchAllConditionsFlow(
+    await showFetchConditionsFlow(
       context: context,
       service: ref.read(bulkConditionsServiceProvider),
       diverId: diverId,
@@ -666,6 +668,15 @@ class DiveListTile extends ConsumerWidget {
     );
     if (cached == null) ref.read(diveProfileBatcherProvider).request(diveId);
     final profile = cached ?? const <DiveProfilePoint>[];
+    // A faded outline for a dive known to have no samples (#4112); not while
+    // they load, or a recorded dive would flash an estimate first.
+    final estimate = cached != null && cached.isEmpty
+        ? EstimatedProfile.estimate(
+            maxDepth: summary?.maxDepth,
+            runtime: summary?.runtime,
+            bottomTime: summary?.bottomTime,
+          )
+        : null;
 
     // Check if attribute-colored cards are enabled
     final colorAttribute = ref.watch(cardColorAttributeProvider);
@@ -676,9 +687,20 @@ class DiveListTile extends ConsumerWidget {
       showPhotoBackgroundOnDiveCardsProvider,
     );
 
-    // A dive awaiting its computer data (issue #2002): no number of its own,
-    // so the badge and the screen-reader label leave the number out.
-    final isPlannedDive = isPlanned || summary?.isPlanned == true;
+    // A dive awaiting its computer data, a plan (issue #2002) or a draft
+    // (issue #637): no number of its own, so the badge and the screen-reader
+    // label leave the number out.
+    final unfilledState = unfilledDiveStateOf(
+      isPlanned: isPlanned || summary?.isPlanned == true,
+      isDraft: summary?.isDraft == true,
+      isOpenDraft: summary?.isOpenDraft == true,
+    );
+    // The chip follows the summary alone, as the planned chip did.
+    final chipState = unfilledDiveStateOf(
+      isPlanned: summary?.isPlanned == true,
+      isDraft: summary?.isDraft == true,
+      isOpenDraft: summary?.isOpenDraft == true,
+    );
 
     // The active row carries a fill tint: checked in the bulk selection, or --
     // outside selection mode -- open in the detail pane. Inside selection mode
@@ -818,9 +840,9 @@ class DiveListTile extends ConsumerWidget {
                               // passes its position as a fallback, so the
                               // badge would show a number that belongs to
                               // another dive (issue #2002).
-                              child: isPlannedDive
+                              child: unfilledState != null
                                   ? Icon(
-                                      Icons.event_available_outlined,
+                                      unfilledDiveIcon(unfilledState),
                                       size: 18,
                                       color: colorScheme.onPrimaryContainer,
                                     )
@@ -872,11 +894,11 @@ class DiveListTile extends ConsumerWidget {
                                   strutStyle: titleStyle?.preservingStrut,
                                 ),
                               ),
-                              // Planned dive awaiting its computer data
-                              // (issue #2002).
-                              if (summary?.isPlanned == true) ...[
+                              // A plan or draft awaiting its computer data
+                              // (issues #2002 and #637).
+                              if (chipState != null) ...[
                                 const SizedBox(width: 6),
-                                const PlannedDiveChip(),
+                                UnfilledDiveChip(state: chipState),
                               ],
                               if (isFavorite) ...[
                                 const SizedBox(width: 4),
@@ -971,6 +993,19 @@ class DiveListTile extends ConsumerWidget {
                           height: 50,
                           child: DiveProfileMiniChart(
                             profile: profile,
+                            height: 50,
+                            color: accentColor,
+                          ),
+                        ),
+                      )
+                    else if (estimate != null)
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(start: 8),
+                        child: SizedBox(
+                          width: chartWidth,
+                          height: 50,
+                          child: EstimatedProfileMiniChart(
+                            profile: estimate,
                             height: 50,
                             color: accentColor,
                           ),
@@ -1138,14 +1173,12 @@ class DiveListTile extends ConsumerWidget {
       margin: margin,
       color: cardColor,
       clipBehavior: (shouldShowMap || shouldShowPhoto) ? Clip.antiAlias : null,
-      semanticsLabel: isPlannedDive
-          ? context.l10n.diveLog_listPage_semanticsPlannedDiveAtSite(
-              siteName ?? context.l10n.diveLog_listPage_unknownSite,
-            )
-          : context.l10n.diveLog_listPage_semanticsDiveAtSite(
-              diveNumber,
-              siteName ?? context.l10n.diveLog_listPage_unknownSite,
-            ),
+      semanticsLabel: diveTileSemanticsLabel(
+        context,
+        unfilledState,
+        diveNumber,
+        siteName,
+      ),
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       child: Container(

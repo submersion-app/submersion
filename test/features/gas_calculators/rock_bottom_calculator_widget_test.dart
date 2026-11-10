@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/rock_bottom_calculator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -99,5 +100,13 @@ void main() {
     await tester.pumpAndSettle();
     // Rated capacities from TankPresets, not bare water-volume numbers.
     expect(find.textContaining('77'), findsWidgets);
+  });
+  testWidgets('Rock Bottom explains itself through a header info icon', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_host(settings: _imperial));
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
+    expect(find.text('About Rock Bottom'), findsNothing);
   });
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/gas_calculators/presentation/info/calculator_info.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/core/constants/units.dart';
@@ -11,6 +12,8 @@ import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_calculators_providers.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// Gas Consumption calculator.
 ///
@@ -70,10 +73,18 @@ class GasConsumptionCalculator extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        context.l10n.decoCalculator_diveParameters,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                      InfoTitleRow(
+                        title: Text(
+                          context.l10n.decoCalculator_diveParameters,
+                          style: textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        label: context.l10n.gasCalculators_tab_consumption,
+                        info: (context) => calculatorInfo(
+                          context.l10n,
+                          infoUnits(context),
+                          'consumption',
                         ),
                       ),
                       const SizedBox(height: 16),

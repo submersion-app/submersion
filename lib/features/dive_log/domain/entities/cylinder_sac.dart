@@ -99,6 +99,13 @@ class CylinderSac extends Equatable {
   /// is no [sacRate].
   final double? rateAmbientBar;
 
+  /// Seconds of [usageDuration] the diver entered for breathing this cylinder
+  /// at the surface after the computer stopped logging (issue #2930): counted
+  /// at 0 m when the rate comes from pressures read off the gauge, which
+  /// include that gas; 0 on a cylinder a transmitter logged, whose readings
+  /// end before it (see `DiveTank.hasPressureSeries`).
+  final int surfaceSeconds;
+
   const CylinderSac({
     required this.tankId,
     this.tankName,
@@ -117,6 +124,7 @@ class CylinderSac extends Equatable {
     this.usageWindows = const [],
     this.usageFromRecordedDuration = false,
     this.rateAmbientBar,
+    this.surfaceSeconds = 0,
   });
 
   /// Whether we have enough data to calculate SAC
@@ -156,6 +164,7 @@ class CylinderSac extends Equatable {
     List<TankUsageWindow>? usageWindows,
     bool? usageFromRecordedDuration,
     double? rateAmbientBar,
+    int? surfaceSeconds,
   }) {
     return CylinderSac(
       tankId: tankId ?? this.tankId,
@@ -176,6 +185,7 @@ class CylinderSac extends Equatable {
       usageFromRecordedDuration:
           usageFromRecordedDuration ?? this.usageFromRecordedDuration,
       rateAmbientBar: rateAmbientBar ?? this.rateAmbientBar,
+      surfaceSeconds: surfaceSeconds ?? this.surfaceSeconds,
     );
   }
 
@@ -198,5 +208,6 @@ class CylinderSac extends Equatable {
     usageWindows,
     usageFromRecordedDuration,
     rateAmbientBar,
+    surfaceSeconds,
   ];
 }

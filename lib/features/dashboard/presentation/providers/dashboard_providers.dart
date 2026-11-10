@@ -44,15 +44,18 @@ final recentDivesProvider = FutureProvider<List<Dive>>((ref) async {
   // immediately (the batch cache is shared with the paginated dive list).
   if (recent.isNotEmpty) {
     final cache = ref.read(batchProfileCacheProvider);
+    // A dive cached without samples is asked again, as the dive list does,
+    // in case it has gained a profile since (#4112).
     final uncached = recent
         .map((d) => d.id)
-        .where((id) => !cache.containsKey(id))
+        .where((id) => cache[id]?.isEmpty ?? true)
         .toList();
     if (uncached.isNotEmpty) {
       final profiles = await repository.getBatchProfileSummaries(uncached);
       mergeIntoBatchProfileCache(
         ref.read(batchProfileCacheProvider.notifier),
         profiles,
+        requested: uncached,
       );
     }
   }
@@ -233,12 +236,16 @@ final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
   final diverId = ref.watch(currentDiverIdProvider);
 
   final (topBuddies, countries, speciesCount) = await (
-    _quickStat('top buddy', () => repository.getTopBuddies(diverId: diverId)),
-    // A count, not the top of the ranking: without a limit of -1 (SQLite's
-    // "no upper bound") the ranking's default of 10 capped the count.
+    // Only the first row is shown, so only the first row is read.
+    _quickStat(
+      'top buddy',
+      () => repository.getTopBuddies(diverId: diverId, limit: 1),
+    ),
+    // A count, not the top of the ranking: without a null limit (every row)
+    // the ranking's default of 10 capped the count.
     _quickStat(
       'countries visited',
-      () => repository.getCountriesVisited(diverId: diverId, limit: -1),
+      () => repository.getCountriesVisited(diverId: diverId, limit: null),
     ),
     _quickStat(
       'species discovered',

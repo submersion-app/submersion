@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/providers/provider.dart';
@@ -170,9 +171,11 @@ void main() {
     await pump(tester, inputs: _inputs(), comparison: _comparison());
 
     expect(plannedChip(), findsOneWidget);
+    // Named as its chip is, not after the plan, so the legend reads
+    // "Depth · Planned" beside the dive's own depth (#4215).
     expect(
-      tester.widget<LabChart>(find.byType(LabChart)).planOverlay,
-      isNotNull,
+      tester.widget<LabChart>(find.byType(LabChart)).planOverlay?.name,
+      'Planned',
     );
   });
 
@@ -290,6 +293,13 @@ void main() {
 
     expect(find.byType(CompareTable), findsOneWidget);
     expect(find.text('PLANNED SCHEDULE'), findsOneWidget);
+    expect(
+      tester
+          .widget<DiveProfileChart>(find.byType(DiveProfileChart))
+          .overlays
+          ?.map((o) => o.name),
+      ['Planned'],
+    );
     expect(find.text('Replay'), findsNothing);
     expect(find.text('Add'), findsNothing);
     expect(find.byIcon(Icons.save_outlined), findsNothing);

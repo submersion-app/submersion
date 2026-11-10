@@ -16,6 +16,7 @@ import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_review_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -34,6 +35,16 @@ Widget _buildTestWidget(MockSettingsNotifier notifier) {
 }
 
 void main() {
+  testWidgets('the rules header carries an info icon', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final notifier = MockSettingsNotifier();
+    await tester.pumpWidget(_buildTestWidget(notifier));
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoButton), findsWidgets);
+  });
+
   testWidgets('renders master toggle on and six rule switches', (tester) async {
     await tester.binding.setSurfaceSize(const Size(400, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));

@@ -71,5 +71,65 @@ extension RungsFromV340 on AppDatabase {
     // in beforeOpen.
     if (from < 347) await _assertDiveCardPhotoBackgroundColumn();
     if (from < 347) await reportProgress();
+
+    // v348: dive_derived_metrics.gas_use_s and gas_use_avg_depth_m, the
+    // underwater time and depth whole-dive SAC and RMV divide by, and where
+    // surface breathing stretched them (issue #2930). Nullable columns on a
+    // device-local cache, no backfill: the engine version bump makes the
+    // sweep rebuild every row. Plus dive_tanks.surface_breathing_duration,
+    // minutes the diver enters, synced and nullable. Re-asserted in
+    // beforeOpen.
+    if (from < 348) await _assertDerivedMetricsGasUseColumns();
+    if (from < 348) await _assertTankSurfaceBreathingColumn();
+    if (from < 348) await reportProgress();
+
+    // v349: an empty dives.water_temp takes the temperature the dive's source
+    // rows measured; a download kept it on the source row only (issue #4333).
+    // Data only, so the compatibility floor does not move. It fills empty
+    // columns and rewrites none, so changeLogRewrittenColumns needs no entry.
+    // Numbered 349 so open PR #4327, which claimed 347, can take 348.
+    if (from < 349) await fillDiveWaterTempsFromSources(this);
+    if (from < 349) await reportProgress();
+
+    // v350: sightings.abundance, whether a sighting was only seen, sorted
+    // into a REEF group, or counted exactly (issue #4337). A nullable
+    // column with no backfill: null means the count is exact, so every
+    // existing sighting reads as before. Raises the sync floor (see
+    // minimumCompatibleSchemaVersion). Re-asserted in beforeOpen. Numbered
+    // 350: main holds 349 and open PR #4327 is to take 348.
+    if (from < 350) await _assertSightingAbundanceColumn();
+    if (from < 350) await reportProgress();
+
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). Nullable, no backfill. Re-asserted in
+    // beforeOpen.
+    if (from < 351) await _assertEquipmentCollapsedGroupsColumn();
+    if (from < 351) await reportProgress();
+
+    // v354: dives.is_draft, a dive marked at the site that waits for its
+    // readings (issue #637). Defaulted, no backfill, so the compatibility
+    // floor does not move. Numbered 354: main holds 351 and open work
+    // claims 352 and 353.
+    if (from < 354) await _assertDiveIsDraftColumn();
+    // v354 too: dive_health_records, Apple Health readings per dive.
+    if (from < 354) await _assertDiveHealthRecordsTable();
+    if (from < 354) await reportProgress();
+
+    // v356: a merge slot on every source row of a dive that has no primary
+    // row and no slot yet, one per display strand, so a combine the v184
+    // rung could not classify keeps a re-parse off its rows after a
+    // consolidation gives it a primary row (issue #4367). Data only, so the
+    // compatibility floor does not move. It fills empty slots and rewrites
+    // none, so changeLogRewrittenColumns needs no entry. Numbered 356: main
+    // holds 354 and open work claims 352, 353 and 355.
+    if (from < 356) await stampCombinedDiveSourceSlots(this);
+    if (from < 356) await reportProgress();
+
+    // v357: dive_profile_series.is_edit, the synced mark that a series is
+    // the diver's manual edit (issue #4386). Nullable, no backfill: a series
+    // written before it stays unknown. Re-asserted in beforeOpen. Numbered
+    // 357 because main holds 356; renumbered from 353, then 355.
+    if (from < 357) await _assertProfileSeriesIsEditColumn();
+    if (from < 357) await reportProgress();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 
 /// Marine species entity
 class Species extends Equatable {
@@ -73,6 +74,10 @@ class SiteSpeciesSummary extends Equatable {
   final String speciesName;
   final SpeciesCategory category;
   final int sightingCount; // Total times spotted across all dives at site
+  /// Animals recorded across those dives: an exact count as recorded, a REEF
+  /// group at its lower bound (Single 1, Few 2, Many 11, Abundant 101) and
+  /// Seen as one, so a school logged as Many outweighs one fish.
+  final int animalCount;
   final int diveCount; // Number of dives where spotted
 
   const SiteSpeciesSummary({
@@ -80,6 +85,7 @@ class SiteSpeciesSummary extends Equatable {
     required this.speciesName,
     required this.category,
     required this.sightingCount,
+    required this.animalCount,
     required this.diveCount,
   });
 
@@ -89,6 +95,7 @@ class SiteSpeciesSummary extends Equatable {
     speciesName,
     category,
     sightingCount,
+    animalCount,
     diveCount,
   ];
 }
@@ -132,6 +139,13 @@ class Sighting extends Equatable {
   final String speciesId;
   final String speciesName; // Denormalized for easy display
   final SpeciesCategory? speciesCategory;
+
+  /// How many animals the sighting records: Seen (the default for a new
+  /// sighting), a REEF group, or [SightingAbundance.exact] with the number
+  /// in [count].
+  final SightingAbundance abundance;
+
+  /// The exact number of animals for [SightingAbundance.exact]; 1 otherwise.
   final int count;
   final String notes;
 
@@ -141,9 +155,13 @@ class Sighting extends Equatable {
     required this.speciesId,
     required this.speciesName,
     this.speciesCategory,
+    this.abundance = SightingAbundance.seen,
     this.count = 1,
     this.notes = '',
   });
+
+  /// [abundance] and [count] together.
+  SightingAmount get amount => (abundance: abundance, count: count);
 
   Sighting copyWith({
     String? id,
@@ -151,6 +169,7 @@ class Sighting extends Equatable {
     String? speciesId,
     String? speciesName,
     SpeciesCategory? speciesCategory,
+    SightingAbundance? abundance,
     int? count,
     String? notes,
   }) {
@@ -160,6 +179,7 @@ class Sighting extends Equatable {
       speciesId: speciesId ?? this.speciesId,
       speciesName: speciesName ?? this.speciesName,
       speciesCategory: speciesCategory ?? this.speciesCategory,
+      abundance: abundance ?? this.abundance,
       count: count ?? this.count,
       notes: notes ?? this.notes,
     );
@@ -172,6 +192,7 @@ class Sighting extends Equatable {
     speciesId,
     speciesName,
     speciesCategory,
+    abundance,
     count,
     notes,
   ];

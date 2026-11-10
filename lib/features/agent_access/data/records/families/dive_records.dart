@@ -7,6 +7,8 @@ import 'package:submersion/features/agent_access/data/records/record_entity.dart
 import 'package:submersion/features/agent_access/data/records/record_reader.dart';
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
 import 'package:submersion/features/agent_access/data/records/record_scope.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart'
+    show DiveSurfaceIntervals;
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -143,7 +145,7 @@ List<RecordEntry> diveEntries(RecordRepositories r) => [
     idOf: (s) => s.id,
     byDive: (ids) => r.species.getSightingsForDives(ids),
     document: sightingDocument,
-    summaryKeys: const ['dive_id', 'species_name', 'count'],
+    summaryKeys: const ['dive_id', 'species_name', 'abundance', 'count'],
   ),
   _diveChild<_DiveFieldRow>(
     r,
@@ -257,10 +259,32 @@ Future<Map<String, Dive>> _loadDives(
   List<String> ids,
   RecordLoad load,
 ) async {
-  if (load.include.contains('profile')) {
-    return loadEach(ids, r.dives.getDiveById);
-  }
-  return byId(await r.dives.getDivesByIdsWithoutSamples(ids), (d) => d.id);
+  final dives = load.include.contains('profile')
+      ? await loadEach(ids, r.dives.getDiveById)
+      : byId(await r.dives.getDivesByIdsWithoutSamples(ids), (d) => d.id);
+  return _withSurfaceIntervals(r, dives);
+}
+
+/// A dive with no stored surface interval reads the gap from the previous
+/// dive, as the app shows it (#4333). The column keeps what the computer or
+/// the diver gave, so a write compares with it (`DiveWrites.stored`).
+Future<Map<String, Dive>> _withSurfaceIntervals(
+  RecordRepositories r,
+  Map<String, Dive> dives,
+) async {
+  final missing = [
+    for (final dive in dives.values)
+      if (dive.surfaceInterval == null) dive.id,
+  ];
+  if (missing.isEmpty) return dives;
+  final gaps = await r.dives.getSurfaceIntervalsFor(missing);
+  return {
+    for (final MapEntry(:key, value: dive) in dives.entries)
+      key: switch (gaps[dive.id]) {
+        final gap? => dive.copyWith(surfaceInterval: gap),
+        null => dive,
+      },
+  };
 }
 
 Future<List<Map<String, Object?>>> _diveSummaries(

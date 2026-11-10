@@ -15,6 +15,7 @@ Map<String, Object?> diveSummaryDocument(DiveSummary s) {
     'is_favorite': s.isFavorite,
     'excluded_from_stats': s.excludedFromStats,
     'is_planned': s.isPlanned,
+    'is_draft': s.isDraft,
     'dive_mode': s.diveMode.name,
     'site_name': s.siteName,
     'site_country': s.siteCountry,

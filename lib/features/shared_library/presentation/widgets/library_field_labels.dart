@@ -1,4 +1,5 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/settings/presentation/conflicts/catalogue/conflict_field_catalogue.dart';
 import 'package:submersion/features/settings/presentation/conflicts/conflict_field_format.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -24,7 +25,20 @@ String libraryFieldValue(
 ) {
   if (value is List) {
     return value
-        .map((v) => v is Map ? (v['name'] ?? v['type'] ?? '').toString() : '$v')
+        .map((v) {
+          final text = v is Map
+              ? (v['name'] ?? v['type'] ?? '').toString()
+              : '$v';
+          // A species entry carries the names the author stored, English for a
+          // catalog species; its scientific name confirms which row it is (#4339).
+          return field == 'species' && v is Map
+              ? localizedCatalogSpeciesName(
+                  l10n,
+                  text,
+                  scientificName: v['scientificName'] as String?,
+                )
+              : text;
+        })
         .join(', ');
   }
   return formatConflictValue(

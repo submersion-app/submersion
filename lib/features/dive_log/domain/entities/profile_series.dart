@@ -21,6 +21,7 @@ class ProfileSeries extends Equatable {
     required this.updatedAt,
     this.hlc,
     this.activatedAt,
+    this.isEdit,
   });
 
   final String id;
@@ -38,6 +39,10 @@ class ProfileSeries extends Equatable {
   /// Epoch ms when this series last became the live generation of its
   /// source, or null when it never was (issue #3189).
   final int? activatedAt;
+
+  /// True for the diver's manual edit, false for a series a parse or import
+  /// wrote, null for one written before schema v357 (issue #4386).
+  final bool? isEdit;
 
   /// The samples as the chart and analysis pipeline consume them.
   List<DiveProfilePoint> get points => [
@@ -61,6 +66,8 @@ class ProfileSeries extends Equatable {
     bool clearHlc = false,
     int? activatedAt,
     bool clearActivatedAt = false,
+    bool? isEdit,
+    bool clearIsEdit = false,
   }) {
     return ProfileSeries(
       id: id ?? this.id,
@@ -75,6 +82,7 @@ class ProfileSeries extends Equatable {
       updatedAt: updatedAt ?? this.updatedAt,
       hlc: clearHlc ? null : (hlc ?? this.hlc),
       activatedAt: clearActivatedAt ? null : (activatedAt ?? this.activatedAt),
+      isEdit: clearIsEdit ? null : (isEdit ?? this.isEdit),
     );
   }
 
@@ -92,6 +100,7 @@ class ProfileSeries extends Equatable {
     updatedAt,
     hlc,
     activatedAt,
+    isEdit,
   ];
 }
 

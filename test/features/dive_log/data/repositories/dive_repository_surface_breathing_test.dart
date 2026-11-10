@@ -1,0 +1,277 @@
+import 'dart:typed_data';
+
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, GasSwitchesCompanion, TankPressureSeriesCompanion;
+import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
+import 'package:submersion/features/dive_log/data/services/gas_analysis_service.dart';
+import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart'
+    as domain;
+import 'package:submersion/features/dive_log/domain/services/gas_use_window.dart';
+
+import '../../../../helpers/test_database.dart';
+
+/// Issue #2930: surface time a switch logged on the surface or a pressure
+/// still falling there says a cylinder was breathed in reaches the detail
+/// read, the list read and SAC by cylinder alike.
+void main() {
+  late DiveRepository repository;
+  late AppDatabase db;
+
+  setUp(() async {
+    db = await setUpTestDatabase();
+    repository = DiveRepository();
+  });
+  tearDown(() async => tearDownTestDatabase());
+
+  // Two minutes on the surface, 18 m to 30 minutes, then ten more on the
+  // surface.
+  final profile = [
+    for (var t = 0; t <= 40 * 60; t += 10)
+      domain.DiveProfilePoint(
+        timestamp: t,
+        depth: t < 2 * 60 || t > 30 * 60 ? 0.3 : 18,
+      ),
+  ];
+
+  Future<void> createDive(List<domain.DiveTank> tanks) => repository.createDive(
+    domain.Dive(
+      id: 'd',
+      dateTime: DateTime.utc(2026, 5, 1, 10),
+      runtime: const Duration(minutes: 40),
+      avgDepth: 14,
+      tanks: tanks,
+      profile: profile,
+    ),
+  );
+
+  Future<void> insertSwitch(String tankId, int timestamp) => db
+      .into(db.gasSwitches)
+      .insert(
+        GasSwitchesCompanion(
+          id: Value('sw-$tankId-$timestamp'),
+          diveId: const Value('d'),
+          tankId: Value(tankId),
+          timestamp: Value(timestamp),
+          createdAt: const Value(0),
+        ),
+      );
+
+  Future<void> sweep() => DerivedMetricsRepository(
+    runner: (input) async => computeDerivedMetricsFromBlobs(input),
+  ).ensureCurrent('d');
+
+  test('a switch logged on the surface stretches both reads alike', () async {
+    await createDive(const [
+      domain.DiveTank(
+        id: 'back',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 110,
+        role: TankRole.backGas,
+      ),
+      domain.DiveTank(
+        id: 'o2',
+        volume: 7,
+        startPressure: 200,
+        endPressure: 180,
+        gasMix: domain.GasMix(o2: 100),
+        role: TankRole.deco,
+        order: 1,
+      ),
+    ]);
+    await insertSwitch('back', 0);
+    await insertSwitch('o2', 35 * 60);
+    await sweep();
+
+    final detail = (await repository.getDiveById('d'))!;
+    final listed = (await repository.getAllDives()).single;
+
+    const breathing = SurfaceBreathing(until: 40 * 60);
+    expect(detail.surfaceBreathing, breathing);
+    final stretched = gasUseWindowOf(
+      profile,
+      time: (p) => p.timestamp,
+      depth: (p) => p.depth,
+      surfaceBreathing: breathing,
+    )!;
+    expect(detail.gasUse, stretched.use);
+    expect(listed.surfaceBreathing, breathing);
+    expect(listed.storedGasUse, detail.gasUse);
+    expect(listed.sac, closeTo(detail.sac!, 1e-9));
+  });
+
+  test('a cylinder falling on the surface agrees with its own row', () async {
+    await createDive(const [
+      domain.DiveTank(id: 't', startPressure: 200, endPressure: 100),
+    ]);
+    // Flat before the descent, 90 bar to the end of the ascent, then 10 more
+    // on a five-minute surface swim, then flat.
+    double bar(int t) {
+      if (t <= 2 * 60) return 200;
+      if (t <= 30 * 60) return 200 - (t - 2 * 60) * 90 / (28 * 60);
+      if (t <= 35 * 60) return 110 - (t - 30 * 60) * 10 / (5 * 60);
+      return 100;
+    }
+
+    await TankPressureSeriesRepository().insertSeries(
+      diveId: 'd',
+      tankId: 't',
+      samples: [
+        for (var t = 0; t <= 40 * 60; t += 10)
+          TankPressureSample(timestamp: t, pressure: bar(t)),
+      ],
+    );
+    await sweep();
+
+    final detail = (await repository.getDiveById('d'))!;
+    final row = const GasAnalysisService()
+        .calculateCylinderSac(
+          dive: detail,
+          profile: detail.profile,
+          tankPressures: await TankPressureRepository().getTankPressuresForDive(
+            'd',
+          ),
+        )
+        .single;
+
+    expect(detail.surfaceBreathing?.until, 35 * 60);
+    expect(row.usageDuration?.inSeconds, detail.gasUse!.seconds);
+    expect(row.sacRate, closeTo(detail.sac!, 1e-9));
+    final listed = (await repository.getAllDives()).single;
+    expect(listed.sac, closeTo(detail.sac!, 1e-9));
+  });
+
+  test('both reads mark a cylinder that has a transmitter log', () async {
+    // Entered surface minutes count only on a cylinder without one, so the
+    // detail read and the list read must agree on which those are.
+    await createDive(const [
+      domain.DiveTank(
+        id: 'back',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 110,
+        role: TankRole.backGas,
+      ),
+      domain.DiveTank(
+        id: 'o2',
+        volume: 7,
+        startPressure: 200,
+        endPressure: 150,
+        gasMix: domain.GasMix(o2: 100),
+        role: TankRole.deco,
+        order: 1,
+      ),
+    ]);
+    await TankPressureRepository().insertTankPressures('d', {
+      'back': [
+        for (var t = 0; t <= 40 * 60; t += 60) (timestamp: t, pressure: 200.0),
+      ],
+    });
+    Map<String, bool> marks(domain.Dive dive) => {
+      for (final t in dive.tanks) t.id: t.hasPressureSeries,
+    };
+    expect(marks((await repository.getDiveById('d'))!), {
+      'back': true,
+      'o2': false,
+    });
+    expect(marks((await repository.getAllDives()).single), {
+      'back': true,
+      'o2': false,
+    });
+  });
+
+  test('a series row that cannot be read still marks its cylinder', () async {
+    // The detail read decodes the series and drops one it cannot read, but
+    // the list read and the SQL ask only whether a row exists. The flag must
+    // follow the row, or the two would count the minutes differently.
+    await createDive(const [
+      domain.DiveTank(
+        id: 'back',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 110,
+        role: TankRole.backGas,
+        surfaceBreathingDuration: Duration(minutes: 10),
+      ),
+    ]);
+    await db
+        .into(db.tankPressureSeries)
+        .insert(
+          TankPressureSeriesCompanion.insert(
+            id: 'broken',
+            diveId: 'd',
+            tankId: 'back',
+            sampleCount: 2,
+            startTimestamp: 0,
+            endTimestamp: 2400,
+            codecVersion: 999,
+            samples: Uint8List.fromList([1, 2, 3]),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+    await sweep();
+    final detail = (await repository.getDiveById('d'))!;
+    final listed = (await repository.getAllDives()).single;
+    expect(detail.tanks.single.hasPressureSeries, isTrue);
+    expect(listed.tanks.single.hasPressureSeries, isTrue);
+    expect(detail.sac, closeTo(listed.sac!, 1e-9));
+  });
+
+  test('entered minutes survive a save, an edit and a clear', () async {
+    // The editor writes an existing cylinder in place, so the minutes must
+    // reach that update as well as a new dive's insert.
+    await createDive(const [
+      domain.DiveTank(
+        id: 'back',
+        volume: 12,
+        startPressure: 200,
+        endPressure: 110,
+        role: TankRole.backGas,
+        surfaceBreathingDuration: Duration(minutes: 10),
+      ),
+    ]);
+    Future<Duration?> stored() async => (await repository.getDiveById(
+      'd',
+    ))!.tanks.single.surfaceBreathingDuration;
+    expect(await stored(), const Duration(minutes: 10));
+
+    final dive = (await repository.getDiveById('d'))!;
+    await repository.updateDive(
+      dive.copyWith(
+        tanks: [
+          dive.tanks.single.copyWith(
+            surfaceBreathingDuration: const Duration(minutes: 15),
+          ),
+        ],
+      ),
+    );
+    expect(await stored(), const Duration(minutes: 15));
+    expect(
+      (await repository.getAllDives())
+          .single
+          .tanks
+          .single
+          .surfaceBreathingDuration,
+      const Duration(minutes: 15),
+    );
+
+    final edited = (await repository.getDiveById('d'))!;
+    await repository.updateDive(
+      edited.copyWith(
+        tanks: [
+          edited.tanks.single.copyWith(clearSurfaceBreathingDuration: true),
+        ],
+      ),
+    );
+    expect(await stored(), isNull);
+  });
+}

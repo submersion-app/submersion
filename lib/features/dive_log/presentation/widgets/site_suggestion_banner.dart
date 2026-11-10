@@ -12,6 +12,7 @@ class SiteSuggestionBanner extends StatelessWidget {
   const SiteSuggestionBanner({
     super.key,
     required this.pointSource,
+    this.fromDraft = false,
     required this.coordinates,
     required this.status,
     required this.hasSite,
@@ -26,6 +27,10 @@ class SiteSuggestionBanner extends StatelessWidget {
   });
 
   final PointSource pointSource;
+
+  /// The dive is a draft (issue #637), whose position the phone recorded
+  /// when the diver went in, not a dive computer.
+  final bool fromDraft;
 
   /// Already formatted with the diver's coordinate format preference.
   final String coordinates;
@@ -69,6 +74,8 @@ class SiteSuggestionBanner extends StatelessWidget {
                 child: Text(
                   pointSource == PointSource.photo
                       ? l10n.siteSuggestion_titlePhoto
+                      : fromDraft
+                      ? l10n.siteSuggestion_titleDraft
                       : l10n.siteSuggestion_titleDiveComputer,
                   style: theme.textTheme.titleSmall?.copyWith(
                     color: scheme.primary,

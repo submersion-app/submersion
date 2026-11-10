@@ -84,6 +84,26 @@ class MediaLibraryRepository {
       ? const Constant(true)
       : _db.media.diveId.isNull() | _db.dives.diverId.equals(diverId);
 
+  /// Rows attached to any of [kinds] (issue #4224), by the row's own links in
+  /// [MediaAttachmentKind]'s precedence, the one `groupByDive` and the By
+  /// dive group key use. Reads only media columns, so it adds no join.
+  Expression<bool> _attachedToFacet(Set<MediaAttachmentKind> kinds) {
+    final m = _db.media;
+    final noDive = m.diveId.isNull();
+    final noSite = m.siteId.isNull();
+    return [
+      for (final kind in kinds)
+        switch (kind) {
+          MediaAttachmentKind.dive => m.diveId.isNotNull(),
+          MediaAttachmentKind.site => noDive & m.siteId.isNotNull(),
+          MediaAttachmentKind.equipment =>
+            noDive & noSite & m.equipmentId.isNotNull(),
+          MediaAttachmentKind.unlinked =>
+            noDive & noSite & m.equipmentId.isNull(),
+        },
+    ].reduce((a, b) => a | b);
+  }
+
   /// Any of the selected buddies, or the viewing diver's own Me tags
   /// (issue #1745). EXISTS for the same reason as the tag facet: a photo
   /// with two of them comes back once. Me is one diver even when the
@@ -234,6 +254,19 @@ class MediaLibraryRepository {
     }
     if (filter.hasPeople) {
       where = where & _peopleFacet(diverId, filter);
+    }
+    if (filter.attachedTo.isNotEmpty) {
+      where = where & _attachedToFacet(filter.attachedTo);
+    }
+    // The cleanup facets (issue #4148) negate the tile markers' own SQL, so
+    // a row shows under each exactly when its tile lacks that marker.
+    if (filter.noPeople) {
+      where = where & LibraryTileMarkers.hasPeople.not();
+    }
+    if (filter.notPlacedInDive) {
+      // Only dive rows: a row with no dive cannot be placed in one.
+      where =
+          where & m.diveId.isNotNull() & LibraryTileMarkers.hasTimeInDive.not();
     }
     // taken_at is stored as wall-clock-as-UTC millis, so a bound picked in
     // local time has to be normalised the same way before it can be
@@ -655,7 +688,8 @@ class MediaLibraryRepository {
   /// Emits whenever anything that can move a map point, or change which
   /// points are in scope, changes: the media row itself, a dive's entry fix,
   /// a site's coordinates, or a species, tag or people tag (each filter is
-  /// an EXISTS over its link table). Built and debounced exactly like
+  /// an EXISTS over its link table), or a time in the dive (the "not placed"
+  /// facet's EXISTS over `media_enrichment`). Built and debounced exactly like
   /// [watchMediaChanges]; see its notes on why a `tableUpdates` stream and
   /// not a watched query.
   Stream<void> watchMapChanges() => _db
@@ -667,6 +701,7 @@ class MediaLibraryRepository {
           _db.mediaSpecies,
           _db.mediaTags,
           _db.mediaPeople,
+          _db.mediaEnrichment,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);

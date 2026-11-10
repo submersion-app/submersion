@@ -15,6 +15,7 @@ import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 /// Every MaterialApp here pins `locale: Locale('en')`. flutter_test forwards
 /// the HOST machine's locale list rather than a fixed en_US, and the app ships
@@ -99,6 +100,47 @@ void main() {
         find.textContaining('7'),
         findsWidgets,
       ); // sites (may appear elsewhere)
+    });
+
+    testWidgets('the stat grid info explains Avg Depth', (tester) async {
+      final fixture = DiveStatistics(
+        totalDives: 42,
+        totalTimeSeconds: 108000, // 30h 0m
+        maxDepth: 38.5,
+        avgMaxDepth: 18.2,
+        avgTemperature: 24.0,
+        totalSites: 7,
+        firstDiveDate: DateTime.now().subtract(const Duration(days: 730)),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            diveStatisticsProvider.overrideWith((ref) async => fixture),
+            filteredDiveStatisticsProvider.overrideWith((ref) async => fixture),
+            filteredDiveRecordsProvider.overrideWith(
+              (ref) async => DiveRecords(),
+            ),
+            diveTypeDistributionProvider.overrideWith((ref) async => []),
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => _MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => _MockCurrentDiverIdNotifier(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale('en'),
+            home: InsightsOverviewPage(embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(InfoButton).first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining("each dive's maximum depth"), findsOneWidget);
     });
   });
 

@@ -164,6 +164,40 @@ void main() {
     expect((await h.one('equipment', 'tx'))!['serial_number'], '424242');
   });
 
+  test('the listed tank count previews the setup the write gives every '
+      'key (#4347)', () async {
+    final first = await created({'transmitter_serial': '111'});
+    await created({'transmitter_serial': '222'});
+    for (final (id, serial) in [('past1', '111'), ('past2', '222')]) {
+      await db
+          .into(db.diveTanks)
+          .insert(
+            DiveTanksCompanion.insert(
+              id: id,
+              diveId: 'd1',
+              transmitterSerial: Value(serial),
+              // Named already, so only the new size would change them.
+              tankName: const Value('Named'),
+            ),
+          );
+    }
+
+    final plan = await h.preview([
+      updateOp('transmitters', first, {
+        'volume_l': 11.1,
+        'apply_to_existing_dives': true,
+      }),
+    ]);
+    expect(plan.items.single.alsoChanges['dive_tanks'], 2);
+    await h.apply(plan);
+
+    final volumes = {
+      for (final row in await db.select(db.diveTanks).get())
+        if (row.id.startsWith('past')) row.volume,
+    };
+    expect(volumes, {11.1});
+  });
+
   test('applying to past dives fills their tanks, listed', () async {
     await db
         .into(db.diveTanks)

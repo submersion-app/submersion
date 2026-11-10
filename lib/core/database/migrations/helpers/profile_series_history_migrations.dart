@@ -171,3 +171,15 @@ extension ProfileSeriesActivatedAtMigrations on AppDatabase {
     }
   }
 }
+
+/// `dive_profile_series.is_edit` (v357, issue #4386).
+extension ProfileSeriesIsEditMigrations on AppDatabase {
+  /// Adds `is_edit`, nullable with no backfill: a series written before the
+  /// rung stays unknown, and readers fall back to the shape rule for it.
+  /// Idempotent; called from the v357 rung and the beforeOpen backstop.
+  Future<void> _assertProfileSeriesIsEditColumn() => _addColumnIfMissing(
+    'dive_profile_series',
+    'is_edit',
+    'INTEGER CHECK (is_edit IN (0, 1))',
+  );
+}

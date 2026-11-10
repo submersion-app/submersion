@@ -10,6 +10,8 @@ import 'package:submersion/features/insights/presentation/formatters/focus_facto
 import 'package:submersion/features/insights/presentation/widgets/stat_section_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The page's answer: the strongest standouts as plain sentences.
 class FocusStandoutsCard extends ConsumerWidget {
@@ -83,6 +85,13 @@ class FocusStandoutsCard extends ConsumerWidget {
     }
     return StatSectionCard(
       title: l10n.insights_focus_standouts_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_focus_standouts_title,
+        summary: context.l10n.info_insights_standouts_summary,
+        terms: const [DiveTerm.standout],
+      ),
       child: body,
     );
   }

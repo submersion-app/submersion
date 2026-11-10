@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/planner/presentation/info/plan_results_info.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_kit.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_results_sheet.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_source_dive_compare_strip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 /// The always-visible results column of Mission Control: headline stat tiles
 /// over the full results content.
@@ -60,14 +63,22 @@ class PlanResultsPane extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
-          child: GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 2.2,
-            children: tiles,
+          child: InfoCorner(
+            title: context.l10n.divePlanner_tab_results,
+            info: (context) => planResultsTilesInfo(
+              context.l10n,
+              infoUnits(context),
+              inDeco: inDeco,
+            ),
+            child: GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 2.2,
+              children: tiles,
+            ),
           ),
         ),
         const PlanSourceDiveCompareStrip(),

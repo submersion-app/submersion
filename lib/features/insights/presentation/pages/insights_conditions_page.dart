@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
+import 'package:submersion/features/insights/presentation/info/insights_card_info.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/presentation/providers/site_type_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
@@ -25,6 +28,8 @@ import 'package:submersion/features/insights/presentation/widgets/insights_filte
 import 'package:submersion/features/insights/presentation/widgets/trend_chart_section.dart';
 import 'package:submersion/features/insights/presentation/widgets/water_temp_band_metrics_table.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/info_sheet/dive_terms.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 
 class InsightsConditionsPage extends ConsumerWidget {
   final bool embedded;
@@ -84,6 +89,13 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_conditions_visibility_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_conditions_visibility_title,
+        summary: context.l10n.info_insights_visibility_summary,
+        terms: const [DiveTerm.loggedBeforeMeasurement, DiveTerm.spansBands],
+      ),
       subtitle: context.l10n.insights_conditions_visibility_subtitle,
       child: visibilityAsync.when(
         data: (raw) {
@@ -153,6 +165,13 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_conditions_waterType_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_conditions_waterType_title,
+        summary: context.l10n.info_insights_waterType_summary,
+        terms: const [DiveTerm.salinity],
+      ),
       subtitle: context.l10n.insights_conditions_waterType_subtitle,
       child: waterTypeAsync.when(
         data: (raw) {
@@ -214,6 +233,12 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_conditions_siteType_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_conditions_siteType_title,
+        summary: context.l10n.info_insights_siteType_summary,
+      ),
       subtitle: context.l10n.insights_conditions_siteType_subtitle,
       child: distAsync.when(
         data: (raw) {
@@ -339,6 +364,7 @@ class InsightsConditionsPage extends ConsumerWidget {
       chartId: TrendChartIds.waterTemp,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
       title: context.l10n.insights_conditions_tempTrend_title,
+      infoSummary: context.l10n.info_insights_waterTempTrend_summary,
       subtitle: context.l10n.insights_conditions_tempTrend_subtitle,
       pointsAsync: ref.watch(waterTempTrendProvider),
       errorMessage: context.l10n.insights_conditions_tempTrend_error,
@@ -358,6 +384,12 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: context.l10n.insights_conditions_temperature_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_conditions_temperature_title,
+        summary: context.l10n.info_insights_seasonalTemp_summary,
+      ),
       subtitle: context.l10n.insights_conditions_temperature_subtitle,
       child: temperatureAsync.when(
         data: (data) {
@@ -422,6 +454,15 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return StatSectionCard(
       title: l10n.insights_conditions_waterTempBands_title,
+      info: (context) => termsInfo(
+        context.l10n,
+        infoUnits(context),
+        title: context.l10n.insights_conditions_waterTempBands_title,
+        summary: context.l10n.info_insights_waterTempBands_summary,
+        terms: gasLaneTerms(
+          isRmv: ref.read(insightsGasLaneProvider) == GasConsumptionLane.rmv,
+        ),
+      ),
       subtitle: l10n.insights_conditions_waterTempBands_subtitle,
       child: bandsAsync.when(
         data: (bands) {

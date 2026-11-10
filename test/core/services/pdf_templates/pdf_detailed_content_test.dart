@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/marine_life/domain/entities/sighting_abundance.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
@@ -439,6 +440,7 @@ void main() {
           id: 's1',
           speciesId: 'sp1',
           speciesName: 'Green Sea Turtle',
+          abundance: SightingAbundance.exact,
           count: 2,
           notes: 'Resting under a ledge',
         ),
@@ -446,6 +448,12 @@ void main() {
           id: 's2',
           speciesId: 'sp2',
           speciesName: 'Spotted Eagle Ray',
+        ),
+        MarineSighting(
+          id: 's3',
+          speciesId: 'sp3',
+          speciesName: 'Bigeye Trevally',
+          abundance: SightingAbundance.abundant,
         ),
       ],
     );
@@ -458,15 +466,14 @@ void main() {
       expect(text, contains('Spotted Eagle Ray'));
     });
 
-    test('renders a count only when more than one was seen', () async {
+    test('labels each sighting by how many were recorded', () async {
+      // Issue #4337: an exact count, a REEF group, and Seen with no label.
       final text = pdfVisibleText(await render(spotted));
 
-      expect(text, contains('x2'), reason: 'two turtles');
-      expect(
-        text,
-        isNot(contains('x1')),
-        reason: 'a single animal reads as noise with a count',
-      );
+      expect(text, contains('Green Sea Turtle x2'));
+      expect(text, contains('Bigeye Trevally (Abundant)'));
+      expect(text, isNot(contains('Spotted Eagle Ray x')));
+      expect(text, isNot(contains('Spotted Eagle Ray (')));
     });
 
     test('renders the per-sighting notes', () async {

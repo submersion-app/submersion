@@ -55,7 +55,15 @@ const _plannedMatch = DiveMatchResult(
   diveId: 'p1',
   score: 1,
   timeDifferenceMs: 0,
-  plannedDiveId: 'p1',
+  fillTarget: FillTarget(diveId: 'p1', kind: FillTargetKind.plan),
+);
+
+/// A download that fits two drafts (issue #637): no target is chosen.
+const _ambiguousMatch = DiveMatchResult(
+  diveId: 'd1',
+  score: 1,
+  timeDifferenceMs: 0,
+  fillCandidates: ['d1', 'd2'],
 );
 
 const _fuzzyMatch = DiveMatchResult(
@@ -103,6 +111,35 @@ void main() {
     );
   });
 
+  test('a download that fits two drafts waits for the diver, filling '
+      'neither', () {
+    notifier.setBundle(_bundle({0: _ambiguousMatch}));
+
+    expect(state().pendingFor(ImportEntityType.dives), {0});
+    expect(
+      state().duplicateActions[ImportEntityType.dives]?.containsKey(0) ?? false,
+      isFalse,
+    );
+  });
+
+  test('choosing one of the drafts fills it', () {
+    notifier.setBundle(_bundle({0: _ambiguousMatch}));
+
+    notifier.setFillTarget(
+      0,
+      const FillTarget(diveId: 'd2', kind: FillTargetKind.draft),
+    );
+
+    final match =
+        state().bundle!.groups[ImportEntityType.dives]!.matchResults![0]!;
+    expect(match.fillTarget?.diveId, 'd2');
+    expect(
+      state().duplicateActions[ImportEntityType.dives]![0],
+      DuplicateAction.fillPlanned,
+    );
+    expect(state().pendingFor(ImportEntityType.dives), isEmpty);
+  });
+
   test('applyBulkAction never applies fillPlanned', () {
     notifier.setBundle(_bundle({1: _fuzzyMatch, 2: _fuzzyMatch}));
 
@@ -131,14 +168,17 @@ void main() {
     expect(state().selections[ImportEntityType.dives], contains(0));
   });
 
-  test('setPlannedFillTarget repoints the row and keeps fillPlanned', () {
+  test('setFillTarget repoints the row and keeps fillPlanned', () {
     notifier.setBundle(_bundle({0: _plannedMatch}));
 
-    notifier.setPlannedFillTarget(0, 'p2');
+    notifier.setFillTarget(
+      0,
+      const FillTarget(diveId: 'p2', kind: FillTargetKind.plan),
+    );
 
     final match =
         state().bundle!.groups[ImportEntityType.dives]!.matchResults![0]!;
-    expect(match.plannedDiveId, 'p2');
+    expect(match.fillTarget?.diveId, 'p2');
     expect(match.diveId, 'p2');
     expect(
       state().duplicateActions[ImportEntityType.dives]![0],
@@ -146,10 +186,10 @@ void main() {
     );
   });
 
-  test('setPlannedFillTarget(null) turns the row into a plain new import', () {
+  test('setFillTarget(null) turns the row into a plain new import', () {
     notifier.setBundle(_bundle({0: _plannedMatch}));
 
-    notifier.setPlannedFillTarget(0, null);
+    notifier.setFillTarget(0, null);
 
     // Not a match any more: an empty dive id would read as an in-batch
     // duplicate on the comparison card, so the match is removed outright.
@@ -167,10 +207,10 @@ void main() {
   test('clearing one fill row leaves the others untouched', () {
     notifier.setBundle(_bundle({0: _plannedMatch, 1: _plannedMatch}));
 
-    notifier.setPlannedFillTarget(0, null);
+    notifier.setFillTarget(0, null);
 
     final group = state().bundle!.groups[ImportEntityType.dives]!;
-    expect(group.matchResults![1]!.plannedDiveId, 'p1');
+    expect(group.matchResults![1]!.fillTarget?.diveId, 'p1');
     expect(
       state().duplicateActions[ImportEntityType.dives]![1],
       DuplicateAction.fillPlanned,

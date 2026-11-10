@@ -93,6 +93,18 @@ void main() {
       kind: MediaGroupHeaderKind.day,
       label: _long,
     ),
+    // The By dive section headings (issue #4224): an icon beside the label
+    // takes width from it, and a rule under it adds height.
+    'section': MediaGroupHeaderSpec(
+      kind: MediaGroupHeaderKind.section,
+      label: 'Site pictures',
+      icon: Icons.place_outlined,
+    ),
+    'long section': MediaGroupHeaderSpec(
+      kind: MediaGroupHeaderKind.section,
+      label: _long,
+      icon: Icons.place_outlined,
+    ),
   };
 
   for (final MapEntry(key: name, value: spec) in specs.entries) {
@@ -159,6 +171,22 @@ void main() {
       });
     });
   }
+
+  testWidgets('a section heading shows its icon and is not a button', (
+    tester,
+  ) async {
+    await compare(tester, specs['section']!);
+
+    expect(find.byIcon(Icons.place_outlined), findsOneWidget);
+    expect(find.text('Site pictures'), findsOneWidget);
+    expect(find.byType(InkWell), findsNothing);
+    final handle = tester.ensureSemantics();
+    expect(
+      tester.getSemantics(find.text('Site pictures')),
+      matchesSemantics(label: 'Site pictures', isHeader: true),
+    );
+    handle.dispose();
+  });
 
   testWidgets(
     'a long label really does wrap, and to more lines when narrower',

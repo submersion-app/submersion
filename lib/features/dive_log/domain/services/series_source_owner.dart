@@ -10,6 +10,18 @@ String? seriesSourceOwner({
   required String? sourceId,
   required String? computerId,
   required List<DiveDataSource> sources,
+}) => seriesSourceOwnerAmong(
+  sourceId: sourceId,
+  computerId: computerId,
+  sources: [for (final s in sources) (id: s.id, computerId: s.computerId)],
+);
+
+/// [seriesSourceOwner] over bare source identities, for a caller holding
+/// database rows rather than entities (a re-parse, issue #4367).
+String? seriesSourceOwnerAmong({
+  required String? sourceId,
+  required String? computerId,
+  required Iterable<({String id, String? computerId})> sources,
 }) {
   if (sourceId != null) {
     return sources.any((s) => s.id == sourceId) ? sourceId : null;

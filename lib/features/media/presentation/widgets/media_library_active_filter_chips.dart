@@ -8,6 +8,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/presentation/helpers/media_attachment_labels.dart';
 import 'package:submersion/features/media/presentation/helpers/media_source_labels.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_smart_album_providers.dart';
@@ -78,6 +79,21 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
       );
     }
 
+    // One chip for the whole facet (issue #4224), kinds in sheet order.
+    final attachedTo = filter.attachedTo;
+    if (attachedTo.isNotEmpty) {
+      final kinds = [
+        for (final kind in MediaAttachmentKind.values)
+          if (attachedTo.contains(kind)) mediaAttachmentKindLabel(l10n, kind),
+      ].join(l10n.media_library_filter_listSeparator);
+      chips.add(
+        chip(
+          l10n.media_library_filter_attachedToChip(kinds),
+          () => _update(ref, (f) => f.copyWith(attachedTo: const {})),
+        ),
+      );
+    }
+
     final siteId = filter.siteId;
     if (siteId != null) {
       final name =
@@ -124,6 +140,16 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
             (f) =>
                 f.copyWith(tagIds: f.tagIds.where((id) => id != tagId).toSet()),
           ),
+        ),
+      );
+    }
+
+    // No one tagged (issue #4148), which the sheet keeps apart from people.
+    if (filter.noPeople) {
+      chips.add(
+        chip(
+          l10n.media_library_filter_noPeople,
+          () => _update(ref, (f) => f.copyWith(noPeople: false)),
         ),
       );
     }
@@ -186,6 +212,15 @@ class MediaLibraryActiveFilterChips extends ConsumerWidget {
         chip(
           l10n.media_library_filter_missing,
           () => _update(ref, (f) => f.copyWith(health: null)),
+        ),
+      );
+    }
+
+    if (filter.notPlacedInDive) {
+      chips.add(
+        chip(
+          l10n.media_library_filter_notPlacedInDive,
+          () => _update(ref, (f) => f.copyWith(notPlacedInDive: false)),
         ),
       );
     }

@@ -80,8 +80,10 @@ Future<void> _pumpPage(WidgetTester tester, Widget page) async {
 /// A repository whose retroactive apply fails, as a closed database would.
 class _FailingApplyRepository extends TransmitterRepository {
   @override
-  Future<ApplyToExistingResult> applyToExistingDives(Transmitter entry) =>
-      Future.error(StateError('database closed'));
+  Future<ApplyToExistingResult> applyToExistingDives(
+    Transmitter entry, {
+    Iterable<String> slotTankIds = const [],
+  }) => Future.error(StateError('database closed'));
 }
 
 void main() {

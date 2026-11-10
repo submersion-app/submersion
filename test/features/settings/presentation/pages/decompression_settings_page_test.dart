@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/decompression_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
@@ -26,6 +27,21 @@ Widget _app({VoidCallback? onBack, MockSettingsNotifier? notifier}) =>
     );
 
 void main() {
+  testWidgets(
+    'the gradient factors header explains GF instead of an About card',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_app());
+      await tester.pumpAndSettle();
+      expect(find.text('About Gradient Factors'), findsNothing);
+      await tester.tap(find.byType(InfoButton).first);
+      await tester.pumpAndSettle();
+      expect(find.textContaining('GF (gradient factors)'), findsOneWidget);
+    },
+  );
+
   testWidgets('is its own page with an app bar and the current GF', (
     tester,
   ) async {

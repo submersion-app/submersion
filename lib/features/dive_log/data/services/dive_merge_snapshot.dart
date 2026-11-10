@@ -30,6 +30,7 @@ class DiveMergeSnapshot {
     required this.gasSwitchRows,
     required this.dataSourceRows,
     required this.tideRows,
+    this.healthRows = const [],
     required this.mediaDiveIds,
     this.documentDiveIds = const {},
     this.diverRoleRows = const [],
@@ -60,6 +61,9 @@ class DiveMergeSnapshot {
   final List<GasSwitche> gasSwitchRows;
   final List<DiveDataSourcesData> dataSourceRows;
   final List<TideRecord> tideRows;
+
+  /// The dives' Apple Health readings (issue #637).
+  final List<DiveHealthRecord> healthRows;
 
   /// The role junction rows of the captured dives (issue #1221).
   final List<DiveDiverRole> diverRoleRows;
@@ -123,12 +127,13 @@ class DiveMergeSnapshot {
   /// an undo to point back.
   final List<DiveLinkedRow> linkedRows;
 
-  /// The sync key (entity type, record id) of every data source, tide record
-  /// and gear link, the children an undo restores by a verbatim batch insert
+  /// The sync key (entity type, record id) of every data source, tide record,
+  /// health record and gear link, the children an undo restores by a verbatim batch insert
   /// and then marks pending (#2670).
   List<(String, String)> get batchRestoredChildKeys => [
     for (final r in dataSourceRows) ('diveDataSources', r.id),
     for (final r in tideRows) ('tideRecords', r.id),
+    for (final r in healthRows) ('diveHealthRecords', r.id),
     for (final r in equipmentRows)
       ('diveEquipment', '${r.diveId}|${r.equipmentId}'),
   ];
@@ -191,6 +196,9 @@ class DiveMergeSnapshot {
       )..where((t) => t.diveId.isIn(diveIds))).get(),
       tideRows: await (db.select(
         db.tideRecords,
+      )..where((t) => t.diveId.isIn(diveIds))).get(),
+      healthRows: await (db.select(
+        db.diveHealthRecords,
       )..where((t) => t.diveId.isIn(diveIds))).get(),
       diverRoleRows: await (db.select(
         db.diveDiverRoles,

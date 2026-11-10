@@ -41,6 +41,8 @@ const Set<String> kUnmirroredDiveFields = {
   'tanks',
   'profile',
   'profileSpan',
+  'storedGasUse',
+  'surfaceBreathing',
   'gear',
   'notes',
   'photoIds',
@@ -69,6 +71,8 @@ const Set<String> kUnmirroredDiveFields = {
   'excludedFromStats',
   'excludedFromGasStats',
   'gasSwitchesEdited',
+  // A draft is the diver's own mark at the site; a mirrored dive is a plan.
+  'isDraft',
   'diveMode',
   'setpointLow',
   'setpointHigh',

@@ -16,6 +16,7 @@ import 'package:submersion/features/marine_life/domain/services/species_suggesti
 import 'package:submersion/features/marine_life/presentation/helpers/species_suggestion_launcher.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/widgets/species_sightings_section.dart';
+import 'package:submersion/features/marine_life/presentation/widgets/species_where_seen_section.dart';
 import 'package:submersion/features/media/data/services/species_tagging_service.dart';
 import 'package:submersion/features/media/presentation/pages/species_tag_picker_page.dart';
 import 'package:submersion/features/media/presentation/helpers/species_photo_import_helper.dart';
@@ -128,6 +129,7 @@ class SpeciesDetailPage extends ConsumerWidget {
                         speciesId: speciesId,
                       ),
                 ),
+                SpeciesWhereSeenSection(speciesId: speciesId),
                 SpeciesSightingsSection(speciesId: speciesId),
               ],
             ),
@@ -320,19 +322,11 @@ class SpeciesDetailPage extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 12),
-        // Summary row
+        // Summary row. No "total sightings" card: with one sighting per dive
+        // it always equalled Dives, and a sum of counts stopped meaning
+        // animals once a sighting can be Seen or a REEF group (issue #4337).
         Row(
           children: [
-            Expanded(
-              child: _buildStatCard(
-                context,
-                icon: Icons.visibility,
-                label:
-                    context.l10n.marineLife_speciesDetail_totalSightingsLabel,
-                value: stats.totalSightings.toString(),
-              ),
-            ),
-            const SizedBox(width: 8),
             Expanded(
               child: _buildStatCard(
                 context,
