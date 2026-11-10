@@ -158,5 +158,32 @@ void main() {
         {'a', 'c'},
       );
     });
+
+    test('another computer\'s oxygen beside the primary\'s is a copy', () {
+      expect(
+        _counted([
+          _tank(
+            'a',
+            role: TankRole.oxygenSupply,
+            o2: 100,
+            computerId: 'primary',
+          ),
+          _tank('b', role: TankRole.oxygenSupply, o2: 98, computerId: 'other'),
+        ]),
+        {'a'},
+      );
+    });
+
+    test('with a primary naming no computer, a named computer is another '
+        'recording', () {
+      expect(
+        _counted([
+          _tank('a', sourceId: 'src-primary'),
+          _tank('b', computerId: 'other'),
+          _tank('c', role: TankRole.deco, o2: 50, computerId: 'other'),
+        ], primaryComputerId: null),
+        {'a', 'c'},
+      );
+    });
   });
 }
