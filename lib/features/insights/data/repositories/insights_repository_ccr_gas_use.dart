@@ -58,8 +58,13 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
           final dive = dives[id];
           if (dive == null) continue;
           final row = rowsById[id]!;
-          final primarySourceId = row.read<String?>('primary_source_id');
-          final primaryComputerId = row.read<String?>('primary_computer_id');
+          // A dive consolidated from two computers can keep a copy of a
+          // cylinder from each, and these rates add cylinders up.
+          final counted = countedCylinderIds(
+            dive.tanks,
+            primarySourceId: row.read<String?>('primary_source_id'),
+            primaryComputerId: row.read<String?>('primary_computer_id'),
+          );
           final use = ccrDiveUse(
             tanks: dive.tanks,
             gasSwitches: switches[id],
@@ -69,13 +74,7 @@ extension InsightsRepositoryCcrGasUse on InsightsRepository {
                 dive.profile.lastOrNull?.timestamp ??
                 0,
             gasModel: gasModel,
-            // A dive consolidated from two computers can keep a copy of a
-            // cylinder from each, and these rates add cylinders up.
-            countedInRates: (tank) => tankOwnedByPrimary(
-              tank,
-              primarySourceId: primarySourceId,
-              primaryComputerId: primaryComputerId,
-            ),
+            countedInRates: (tank) => counted.contains(tank.id),
           );
           final date = DateTime.fromMillisecondsSinceEpoch(
             row.read<int>('dive_date_time'),

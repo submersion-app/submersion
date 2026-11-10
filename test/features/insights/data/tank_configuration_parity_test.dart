@@ -122,7 +122,8 @@ void main() {
     await insertTank('deco', 1, 'deco', o2: 50);
 
     // Consolidated: read alone the second recording's cylinders would add
-    // a stage. Only the primary's count.
+    // a stage, but both are copies of the primary's air cylinder (issue
+    // #4420 counts another computer's cylinder only when it is no copy).
     await insertDive('consolidated');
     await insertPrimarySource('consolidated', 'primary');
     await insertTank('consolidated', 0, 'backGas', computerId: 'primary');
