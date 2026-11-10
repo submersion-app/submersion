@@ -1921,6 +1921,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Tauchzeiten an diesem Tag';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Tauchzeiten an diesem Tag. Sonnenaufgang $sunrise, Sonnenuntergang $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Tauchzeiten an diesem Tag. Sonnenaufgang $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Tauchzeiten an diesem Tag. Sonnenuntergang $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Karte von Tag $number';
   }
@@ -16895,6 +16913,44 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Wartungen fällig',
+      one: '$count Wartung fällig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'und $count weitere',
+      one: 'und $count weiterer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected von $total ausgewählt';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Alle aufklappen';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Alle einklappen';
+
+  @override
   String get equipment_location_activeFilter => 'Standort';
 
   @override
@@ -24542,6 +24598,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Ausrüstung nach Ort gruppiert';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Eingeklappte Ausrüstungsgruppen';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>

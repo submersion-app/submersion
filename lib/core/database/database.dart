@@ -1622,6 +1622,10 @@ class AppDatabase extends _$AppDatabase {
     // count (issue #4337). Nullable, no backfill; raises the sync floor to
     // 350. Numbered 350: main holds 349 and open PR #4327 is to take 348.
     350,
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). A nullable column an older peer
+    // omits, so the floor does not move.
+    351,
     // v352: media.observation_id and equipment.cover_media_id, gear photos
     // and an item's cover photo (issue #3355). Nullable columns an older
     // peer omits, with no backfill, so the floor does not move.

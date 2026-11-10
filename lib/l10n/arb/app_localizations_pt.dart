@@ -1923,6 +1923,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'Horários de mergulho deste dia';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Horários de mergulho deste dia. Nascer do sol $sunrise, pôr do sol $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Horários de mergulho deste dia. Nascer do sol $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Horários de mergulho deste dia. Pôr do sol $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Mapa do dia $number';
   }
@@ -16903,6 +16921,44 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count manutenções pendentes',
+      one: '$count manutenção pendente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'e mais $count',
+      one: 'e mais $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected de $total selecionados';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Expandir tudo';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Recolher tudo';
+
+  @override
   String get equipment_location_activeFilter => 'Localização';
 
   @override
@@ -24567,6 +24623,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Equipamentos agrupados por local';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Grupos de equipamentos recolhidos';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>

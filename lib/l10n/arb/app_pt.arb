@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "média {value}",
   "trips_story_history_avgDepth": "prof. média {value}",
   "trips_story_rhythm_semantics": "Horários de mergulho deste dia",
+  "trips_story_rhythm_semanticsSunriseSunset": "Horários de mergulho deste dia. Nascer do sol {sunrise}, pôr do sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Horários de mergulho deste dia. Nascer do sol {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Horários de mergulho deste dia. Pôr do sol {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Mapa do dia {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4978,6 +5005,12 @@
   "equipment_location_deleteMoveConfirm": "Eliminar esta entrada do histórico? A localização do item é recalculada a partir dos movimentos que restam.",
   "equipment_location_bulkAction": "Mover para localização",
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} itens}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} manutenção pendente} other{{count} manutenções pendentes}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, one{e mais {count}} other{e mais {count}}}",
+  "equipment_group_foldedSelected": "{selected} de {total} selecionados",
+  "equipment_list_expandAllGroups": "Expandir tudo",
+  "equipment_list_collapseAllGroups": "Recolher tudo",
   "equipment_location_activeFilter": "Localização",
   "equipment_location_tileSemantics": "Localização: {name}",
   "equipment_filter_section_location": "Localização",
@@ -7302,6 +7335,7 @@
   "settings_conflict_field_certificationListGroupBy": "Certificações: agrupamento",
   "settings_conflict_field_equipmentArrangement": "Organização do equipamento",
   "settings_conflict_field_equipmentGroupByLocation": "Equipamentos agrupados por local",
+  "settings_conflict_field_equipmentCollapsedGroups": "Grupos de equipamentos recolhidos",
   "settings_conflict_field_listArrangementHlc": "Registro de organização das listas",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Velocidade média",

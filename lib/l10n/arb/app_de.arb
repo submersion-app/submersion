@@ -409,6 +409,33 @@
   "trips_story_history_avgTemp": "Ø {value}",
   "trips_story_history_avgDepth": "Ø Tiefe {value}",
   "trips_story_rhythm_semantics": "Tauchzeiten an diesem Tag",
+  "trips_story_rhythm_semanticsSunriseSunset": "Tauchzeiten an diesem Tag. Sonnenaufgang {sunrise}, Sonnenuntergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Tauchzeiten an diesem Tag. Sonnenaufgang {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Tauchzeiten an diesem Tag. Sonnenuntergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Karte von Tag {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -5103,6 +5130,12 @@
   "equipment_location_deleteMoveConfirm": "Diesen Verlaufseintrag löschen? Der Standort des Teils wird aus den übrigen Einträgen neu ermittelt.",
   "equipment_location_bulkAction": "An Standort verschieben",
   "equipment_location_groupCount": "{count, plural, one{{count} Teil} other{{count} Teile}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} Wartung fällig} other{{count} Wartungen fällig}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, one{und {count} weiterer} other{und {count} weitere}}",
+  "equipment_group_foldedSelected": "{selected} von {total} ausgewählt",
+  "equipment_list_expandAllGroups": "Alle aufklappen",
+  "equipment_list_collapseAllGroups": "Alle einklappen",
   "equipment_location_activeFilter": "Standort",
   "equipment_location_tileSemantics": "Standort: {name}",
   "equipment_filter_section_location": "Standort",
@@ -7435,6 +7468,7 @@
   "settings_conflict_field_certificationListGroupBy": "Brevets: Gruppierung",
   "settings_conflict_field_equipmentArrangement": "Ausrüstungsanordnung",
   "settings_conflict_field_equipmentGroupByLocation": "Ausrüstung nach Ort gruppiert",
+  "settings_conflict_field_equipmentCollapsedGroups": "Eingeklappte Ausrüstungsgruppen",
   "settings_conflict_field_listArrangementHlc": "Protokoll der Listenanordnung",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Durchschnittsgeschwindigkeit",

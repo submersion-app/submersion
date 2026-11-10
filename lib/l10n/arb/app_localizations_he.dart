@@ -1900,6 +1900,24 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'זמני הצלילה ביום זה';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise, שקיעה $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'זמני הצלילה ביום זה. זריחה $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'זמני הצלילה ביום זה. שקיעה $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'מפת יום $number';
   }
@@ -16561,6 +16579,44 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count טיפולים נדרשים',
+      one: 'טיפול אחד נדרש',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ועוד $count',
+      one: 'ועוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected מתוך $total נבחרו';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'הרחב הכול';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'כווץ הכול';
+
+  @override
   String get equipment_location_activeFilter => 'מיקום';
 
   @override
@@ -24010,6 +24066,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'ציוד מקובץ לפי מיקום';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'קבוצות ציוד מקופלות';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';

@@ -100,10 +100,16 @@ extension RungsFromV340 on AppDatabase {
     if (from < 350) await _assertSightingAbundanceColumn();
     if (from < 350) await reportProgress();
 
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). Nullable, no backfill. Re-asserted in
+    // beforeOpen.
+    if (from < 351) await _assertEquipmentCollapsedGroupsColumn();
+    if (from < 351) await reportProgress();
+
     // v352: media.observation_id, the check-in a gear photo backs up, and
     // equipment.cover_media_id, the photo that stands for an item (issue
     // #3355). Nullable columns, no backfill. Re-asserted in beforeOpen.
-    // Numbered 352: main holds 350 and an open PR claimed 351.
+    // Numbered 352: main holds 350 and 351.
     if (from < 352) await _assertEquipmentPhotoColumns();
     if (from < 352) await reportProgress();
   }

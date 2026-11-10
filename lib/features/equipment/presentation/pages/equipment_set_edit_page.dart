@@ -18,7 +18,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
-import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/foldable_type_group_rows.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_model_memo.dart';
@@ -46,7 +46,9 @@ class EquipmentSetEditPage extends ConsumerStatefulWidget {
 }
 
 class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
-    with FigureSelection<EquipmentSetEditPage> {
+    with
+        FigureSelection<EquipmentSetEditPage>,
+        FoldableTypeGroupsState<EquipmentSetEditPage> {
   final _formKey = GlobalKey<FormState>();
 
   /// The live figure's model, reused while the ticked items are unchanged.
@@ -396,6 +398,17 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                 // Labelled as one list, so identical items read differently
                 // from each other (#1549).
                 final labels = equipmentRowLabelsOf(context, ref, listed);
+                // Folding (issue #3364): once the set's members are known,
+                // groups holding one start open and the rest closed.
+                final typeGroups = [
+                  for (final group in groups) (group.type, group.items),
+                ];
+                ensureOpenTypeGroups(
+                  typeGroups,
+                  _selectedEquipmentIds,
+                  ready: !widget.isEditing || _isInitialized,
+                );
+
                 // Members the diver can no longer see (a share was removed,
                 // issue #2046) stay selected, so saving keeps them; they are
                 // listed without a checkbox and marked.
@@ -510,33 +523,20 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                           ],
                         ),
                       ),
-                    for (final group in groups)
-                      Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (group.type != null)
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  12,
-                                  16,
-                                  0,
-                                ),
-                                child: EquipmentGroupHeader(type: group.type!),
-                              ),
-                            for (final item in group.items)
-                              _buildEquipmentCheckbox(
-                                context,
-                                item,
-                                labels,
-                                numberById[item.id],
-                                badgeSlot: badgeSlot,
-                              ),
-                          ],
-                        ),
+                    ...foldableTypeGroupRows(
+                      context,
+                      groups: typeGroups,
+                      open: openTypeGroups,
+                      ticked: _selectedEquipmentIds,
+                      onToggle: toggleTypeGroup,
+                      rowBuilder: (item) => _buildEquipmentCheckbox(
+                        context,
+                        item,
+                        labels,
+                        numberById[item.id],
+                        badgeSlot: badgeSlot,
                       ),
+                    ),
                   ],
                 );
               },

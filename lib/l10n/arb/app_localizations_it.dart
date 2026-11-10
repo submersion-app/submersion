@@ -1925,6 +1925,24 @@ class AppLocalizationsIt extends AppLocalizations {
       'Orari delle immersioni del giorno';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'Orari delle immersioni del giorno. Alba $sunrise, tramonto $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'Orari delle immersioni del giorno. Alba $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'Orari delle immersioni del giorno. Tramonto $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return 'Mappa del giorno $number';
   }
@@ -16909,6 +16927,44 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count manutenzioni da fare',
+      one: '$count manutenzione da fare',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'e altri $count',
+      one: 'e $count altro',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected di $total selezionati';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Espandi tutto';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Comprimi tutto';
+
+  @override
   String get equipment_location_activeFilter => 'Posizione';
 
   @override
@@ -24576,6 +24632,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Attrezzatura raggruppata per posizione';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Gruppi di attrezzatura compressi';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>

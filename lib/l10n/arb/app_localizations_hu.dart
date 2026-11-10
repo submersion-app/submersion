@@ -1919,6 +1919,24 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_story_rhythm_semantics => 'A nap merülési idői';
 
   @override
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  ) {
+    return 'A nap merülési idői. Napkelte $sunrise, napnyugta $sunset.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunrise(String sunrise) {
+    return 'A nap merülési idői. Napkelte $sunrise.';
+  }
+
+  @override
+  String trips_story_rhythm_semanticsSunset(String sunset) {
+    return 'A nap merülési idői. Napnyugta $sunset.';
+  }
+
+  @override
   String trips_story_dayMap_semantics(int number) {
     return '$number. nap térképe';
   }
@@ -16855,6 +16873,44 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_group_foldedTypeCount(int count, String type) {
+    return '$type $count';
+  }
+
+  @override
+  String equipment_group_foldedServiceDue(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count szerviz esedékes',
+      one: '$count szerviz esedékes',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedMoreTypes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'és még $count',
+      one: 'és még $count',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_group_foldedSelected(int selected, int total) {
+    return '$selected / $total kiválasztva';
+  }
+
+  @override
+  String get equipment_list_expandAllGroups => 'Összes kibontása';
+
+  @override
+  String get equipment_list_collapseAllGroups => 'Összes összecsukása';
+
+  @override
   String get equipment_location_activeFilter => 'Hely';
 
   @override
@@ -24492,6 +24548,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentGroupByLocation =>
       'Felszerelés hely szerint csoportosítva';
+
+  @override
+  String get settings_conflict_field_equipmentCollapsedGroups =>
+      'Összecsukott felszereléscsoportok';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>

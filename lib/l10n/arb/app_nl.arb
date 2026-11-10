@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "gem. {value}",
   "trips_story_history_avgDepth": "gem. diepte {value}",
   "trips_story_rhythm_semantics": "Duiktijden van deze dag",
+  "trips_story_rhythm_semanticsSunriseSunset": "Duiktijden van deze dag. Zonsopkomst {sunrise}, zonsondergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Duiktijden van deze dag. Zonsopkomst {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Duiktijden van deze dag. Zonsondergang {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Kaart van dag {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4978,6 +5005,12 @@
   "equipment_location_deleteMoveConfirm": "Dit item uit de geschiedenis verwijderen? De locatie van het item wordt opnieuw bepaald uit de resterende verplaatsingen.",
   "equipment_location_bulkAction": "Naar locatie verplaatsen",
   "equipment_location_groupCount": "{count, plural, one{{count} item} other{{count} items}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} onderhoudsbeurt nodig} other{{count} onderhoudsbeurten nodig}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, one{en nog {count}} other{en nog {count}}}",
+  "equipment_group_foldedSelected": "{selected} van {total} geselecteerd",
+  "equipment_list_expandAllGroups": "Alles uitklappen",
+  "equipment_list_collapseAllGroups": "Alles inklappen",
   "equipment_location_activeFilter": "Locatie",
   "equipment_location_tileSemantics": "Locatie: {name}",
   "equipment_filter_section_location": "Locatie",
@@ -7302,6 +7335,7 @@
   "settings_conflict_field_certificationListGroupBy": "Brevetten: groepering",
   "settings_conflict_field_equipmentArrangement": "Ordening van uitrusting",
   "settings_conflict_field_equipmentGroupByLocation": "Uitrusting gegroepeerd op locatie",
+  "settings_conflict_field_equipmentCollapsedGroups": "Ingeklapte uitrustingsgroepen",
   "settings_conflict_field_listArrangementHlc": "Log van lijstordening",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Gemiddelde snelheid",
