@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -35,9 +36,9 @@ final emergencyRegionProvider = FutureProvider<String?>((ref) async {
     diverId: diverId,
   );
   if (summaries.isEmpty) return null;
-  final country = summaries.first.siteCountry;
-  if (country == null || country.isEmpty) return null;
-  return _isoFromCountry(country);
+  // The same recognizer that puts a flag beside the site (issue #4426), so
+  // the card and the flag always agree about the country.
+  return countryCodeFor(summaries.first.siteCountry);
 });
 
 /// The diver's manual region override as an upper-case ISO code, or null
@@ -271,151 +272,3 @@ double _distanceKm(double lat, double lon, double? lat2, double? lon2) {
 }
 
 double _rad(double deg) => deg * math.pi / 180;
-
-/// Site countries are stored as display names ("Australia"), not ISO codes.
-/// Best-effort mapping for the countries the bundled dataset knows about;
-/// unknown names return null (worldwide fallback).
-String? _isoFromCountry(String country) {
-  final normalized = country.trim().toUpperCase();
-  if (normalized.length == 2) return normalized;
-  const names = {
-    'UNITED STATES': 'US',
-    'USA': 'US',
-    'CANADA': 'CA',
-    'MEXICO': 'MX',
-    'AUSTRALIA': 'AU',
-    'NEW ZEALAND': 'NZ',
-    'UNITED KINGDOM': 'GB',
-    'IRELAND': 'IE',
-    'FRANCE': 'FR',
-    'SPAIN': 'ES',
-    'PORTUGAL': 'PT',
-    'ITALY': 'IT',
-    'MALTA': 'MT',
-    'GREECE': 'GR',
-    'CROATIA': 'HR',
-    'GERMANY': 'DE',
-    'AUSTRIA': 'AT',
-    'SWITZERLAND': 'CH',
-    'NETHERLANDS': 'NL',
-    'BELGIUM': 'BE',
-    'NORWAY': 'NO',
-    'SWEDEN': 'SE',
-    'DENMARK': 'DK',
-    'FINLAND': 'FI',
-    'POLAND': 'PL',
-    'CZECHIA': 'CZ',
-    'CZECH REPUBLIC': 'CZ',
-    'HUNGARY': 'HU',
-    'TURKEY': 'TR',
-    'CYPRUS': 'CY',
-    'EGYPT': 'EG',
-    'ISRAEL': 'IL',
-    'SOUTH AFRICA': 'ZA',
-    'MOZAMBIQUE': 'MZ',
-    'TANZANIA': 'TZ',
-    'KENYA': 'KE',
-    'SEYCHELLES': 'SC',
-    'MAURITIUS': 'MU',
-    'JAPAN': 'JP',
-    'SOUTH KOREA': 'KR',
-    'TAIWAN': 'TW',
-    'INDONESIA': 'ID',
-    'MALAYSIA': 'MY',
-    'THAILAND': 'TH',
-    'PHILIPPINES': 'PH',
-    'SINGAPORE': 'SG',
-    'VIETNAM': 'VN',
-    'CAMBODIA': 'KH',
-    'MYANMAR': 'MM',
-    'MALDIVES': 'MV',
-    'SRI LANKA': 'LK',
-    'FIJI': 'FJ',
-    'PAPUA NEW GUINEA': 'PG',
-    'VANUATU': 'VU',
-    'PALAU': 'PW',
-    'MICRONESIA': 'FM',
-    'MARSHALL ISLANDS': 'MH',
-    'BAHAMAS': 'BS',
-    'CAYMAN ISLANDS': 'KY',
-    'TURKS AND CAICOS': 'TC',
-    'BERMUDA': 'BM',
-    'COSTA RICA': 'CR',
-    'PANAMA': 'PA',
-    'BELIZE': 'BZ',
-    'HONDURAS': 'HN',
-    'COLOMBIA': 'CO',
-    'ECUADOR': 'EC',
-    'BRAZIL': 'BR',
-    'ARGENTINA': 'AR',
-    'CHILE': 'CL',
-    'PERU': 'PE',
-    // Localized country names for the supported (Latin-script) locales:
-    // platform geocoding returns `Placemark.country` in the device language,
-    // so an English-only map would fall back to the worldwide hotline for a
-    // German device reporting "Deutschland". Best-effort for the common diving
-    // and home countries; the complete fix is to persist Placemark's ISO code.
-    'DEUTSCHLAND': 'DE',
-    'ALLEMAGNE': 'DE',
-    'ALEMANIA': 'DE',
-    'GERMANIA': 'DE',
-    'DUITSLAND': 'DE',
-    'FRANKREICH': 'FR',
-    'FRANCIA': 'FR',
-    'FRANKRIJK': 'FR',
-    'FRANÇA': 'FR',
-    'ESPAÑA': 'ES',
-    'SPANIEN': 'ES',
-    'ESPAGNE': 'ES',
-    'SPAGNA': 'ES',
-    'SPANJE': 'ES',
-    'ITALIA': 'IT',
-    'ITALIEN': 'IT',
-    'ITALIE': 'IT',
-    'ITALIË': 'IT',
-    'ITÁLIA': 'IT',
-    'NIEDERLANDE': 'NL',
-    'PAÍSES BAJOS': 'NL',
-    'PAYS-BAS': 'NL',
-    'PAESI BASSI': 'NL',
-    'NEDERLAND': 'NL',
-    'GRIECHENLAND': 'GR',
-    'GRECIA': 'GR',
-    'GRÈCE': 'GR',
-    'GRIEKENLAND': 'GR',
-    'KROATIEN': 'HR',
-    'CROACIA': 'HR',
-    'CROATIE': 'HR',
-    'CROAZIA': 'HR',
-    'ÄGYPTEN': 'EG',
-    'EGIPTO': 'EG',
-    'ÉGYPTE': 'EG',
-    'EGITTO': 'EG',
-    'EGITO': 'EG',
-    'MEXIKO': 'MX',
-    'MÉXICO': 'MX',
-    'MEXIQUE': 'MX',
-    'MESSICO': 'MX',
-    'MALEDIVEN': 'MV',
-    'MALDIVAS': 'MV',
-    'MALDIVE': 'MV',
-    'INDONESIEN': 'ID',
-    'INDONÉSIE': 'ID',
-    'INDONÉSIA': 'ID',
-    'INDONESIË': 'ID',
-    'TAILANDIA': 'TH',
-    'THAÏLANDE': 'TH',
-    'THAILANDIA': 'TH',
-    'TAILÂNDIA': 'TH',
-    'FILIPINAS': 'PH',
-    'PHILIPPINEN': 'PH',
-    'FILIPPINE': 'PH',
-    'FILIPIJNEN': 'PH',
-    'TÜRKEI': 'TR',
-    'TURQUÍA': 'TR',
-    'TURQUIE': 'TR',
-    'TURCHIA': 'TR',
-    'TURQUIA': 'TR',
-  };
-  return names[normalized];
-}

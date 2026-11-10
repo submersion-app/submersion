@@ -230,6 +230,27 @@ void main() {
     }
   });
 
+  test('region uses the shared country recognizer (issue #4426)', () async {
+    // The flags and the emergency card agree on a site's country: names the
+    // card's own table missed now resolve, and an unassigned two-letter
+    // string is no longer passed through as if it were a region.
+    for (final entry in <String, String?>{
+      'Mexique': 'MX',
+      'UK': 'GB',
+      'República Dominicana': 'DO',
+      'EU': null,
+      'Gulf of Mexico': null,
+    }.entries) {
+      final container = _container(summaries: [_summary(country: entry.key)]);
+      addTearDown(container.dispose);
+      expect(
+        await container.read(emergencyRegionProvider.future),
+        entry.value,
+        reason: entry.key,
+      );
+    }
+  });
+
   test('no dives resolves to the worldwide hotline and default EMS', () async {
     final container = _container(summaries: const []);
     addTearDown(container.dispose);
