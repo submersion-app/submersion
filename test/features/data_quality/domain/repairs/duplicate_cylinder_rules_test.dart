@@ -202,21 +202,4 @@ void main() {
       expect(survivor, 'a');
     });
   });
-
-  group('mixesDiffer', () {
-    test('mixes differ on O2', () {
-      expect(mixesDiffer([_tank('a', o2: 32), _tank('b', o2: 21)]), isTrue);
-    });
-
-    test('mixes differ on He', () {
-      expect(
-        mixesDiffer([_tank('a', o2: 21, he: 35), _tank('b', o2: 21, he: 0)]),
-        isTrue,
-      );
-    });
-
-    test('equal mixes do not differ', () {
-      expect(mixesDiffer([_tank('a', o2: 32), _tank('b', o2: 32.02)]), isFalse);
-    });
-  });
 }

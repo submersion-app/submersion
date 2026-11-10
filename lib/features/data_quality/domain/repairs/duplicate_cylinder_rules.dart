@@ -112,10 +112,3 @@ String pickSurvivor(
     });
   return ranked.first.id;
 }
-
-/// Whether any two rows of [group] carry a different gas: then the diver,
-/// not the app, says which mix the cylinder held.
-bool mixesDiffer(List<DiveTank> group) {
-  final mixes = [for (final t in group) (o2: t.o2Percent, he: t.hePercent)];
-  return mixes.any((a) => mixes.any((b) => !mixesClose(a, b)));
-}

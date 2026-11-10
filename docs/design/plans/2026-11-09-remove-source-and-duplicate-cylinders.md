@@ -29,7 +29,7 @@
 2. **A removed source's tank is shared** with another computer, through `sharedComputerIds` or another computer's series, events or switches. The tank must stay, with an heir, not be deleted. Owner: Task 3.
 3. **Stale findings in a bulk run.** The twin's tanks were already merged or deleted after the scan. The dive is skipped quietly, not counted as failed. Owner: Task 7.
 4. **Three cylinders on one serial** raise A-B, A-C and B-C findings. A single run merges all three into one survivor and resolves all three findings. Owner: Task 7.
-5. **Serial spelling differences.** Serials that differ only by surrounding whitespace or letter case are one group. Owner: Task 5.
+5. **Serial spelling differences.** Serials that differ only by surrounding whitespace are one group; letter case counts, as the detector compares it (changed in review, so a stale finding cannot widen a merge). Owner: Task 5.
 
 ---
 
@@ -180,7 +180,7 @@ The operation id is captured with `ChangeLogScope.currentOperationId` inside the
 **Interfaces:**
 - Produces pure functions over the Drift `DiveTank` rows:
   - `List<List<String>> serialGroups(List<DiveTank> tanks)`:
-    - groups tanks by `transmitterSerial` trimmed and upper-cased;
+    - groups tanks by `transmitterSerial` through the detector's own `normalizeTransmitterSerial` (trimmed, case kept, all-zero as none);
     - ignores null or empty serials;
     - keeps groups of two or more;
     - sorts ids within a group and groups by their first id.
@@ -195,7 +195,7 @@ The operation id is captured with `ChangeLogScope.currentOperationId` inside the
   - `bool mixesDiffer(List<DiveTank> group)`: true when any two differ in `o2Percent` or `hePercent` by more than 0.05.
 
 - [ ] **Step 1: Write failing tests:**
-  - `serial groups ignore case and whitespace` (Review Focus 5)
+  - `serial groups trim whitespace but keep case, as the detector does` (Review Focus 5)
   - `serial groups skip tanks without a serial`
   - `three tanks on one serial form one group`
   - `curve-only twins form a pair`

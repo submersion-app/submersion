@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/data_quality/data/services/duplicate_cylinder_service.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding_subjects.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
@@ -67,15 +68,14 @@ class _RemoveDuplicateDialogState extends State<_RemoveDuplicateDialog> {
   }.toList();
 
   /// The mix's gas name, with its exact percentages when another option
-  /// rounds to the same name ("Air (21.04% O2)").
+  /// rounds to the same name ("Air (21.04% O2)"). Two decimals, since the
+  /// options can sit closer than the one decimal a gas column shows, in the
+  /// locale's own separator.
   String _label(({double o2, double he}) mix) {
     String name(({double o2, double he}) m) => GasMix(o2: m.o2, he: m.he).name;
     final own = name(mix);
     if (_mixes.where((m) => name(m) == own).length < 2) return own;
-    String pct(double v) => v
-        .toStringAsFixed(2)
-        .replaceFirst(RegExp(r'0+$'), '')
-        .replaceFirst(RegExp(r'\.$'), '');
+    String pct(double v) => formatFixedForDisplay(v, 2);
     final he = mix.he > 0 ? ', ${pct(mix.he)}% He' : '';
     return '$own (${pct(mix.o2)}% O2$he)';
   }

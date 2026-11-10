@@ -66,7 +66,16 @@ with one undo, and can remove any unwanted source from a dive.
 - **What goes:** the source row and everything that belongs to it: its
   profile rows, events, tank pressures, and the tanks it recorded along with
   those tanks' gas switches. This is the same set `DiveSplitService` moves to
-  a new dive, deleted instead of moved.
+  a new dive, deleted instead of moved, with one exception: the diver's live
+  edited profile stays on the dive (Split carries it to the new dive, but a
+  removal has nowhere else to put it, and it is the diver's own work).
+- **Rows that stay but name the source** (a tank or series the computer rule
+  gave to another computer) lose that link under their own clock and pending
+  mark before the source row is deleted, rather than through the foreign
+  key's silent `SET NULL`.
+- **A source sharing its computer with another source of the dive** (a
+  combined split pair, #1045) is refused: their rows cannot be told apart by
+  computer. The menu and the inbox explain this before asking to confirm.
 - **Primary source:** another source is promoted first, and the dive starts
   over on it, as Split does when the primary leaves.
 - **Only source:** the menu item is not offered, and the repair is never

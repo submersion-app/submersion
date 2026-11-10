@@ -42,6 +42,32 @@ void main() {
     },
   );
 
+  CylinderMergePreview pair(
+    ({double o2, double he}) a,
+    ({double o2, double he}) b,
+  ) => CylinderMergePreview(
+    diveId: 'd1',
+    survivorId: 'a',
+    duplicateIds: const ['b'],
+    cylinders: [
+      CylinderSummary(id: 'a', number: 1, name: null, o2: a.o2, he: a.he),
+      CylinderSummary(id: 'b', number: 2, name: null, o2: b.o2, he: b.he),
+    ],
+    findingIds: const ['f1'],
+  );
+
+  test('mixes differ on O2', () {
+    expect(pair((o2: 32, he: 0), (o2: 21, he: 0)).mixesDiffer, isTrue);
+  });
+
+  test('mixes differ on He', () {
+    expect(pair((o2: 21, he: 35), (o2: 21, he: 0)).mixesDiffer, isTrue);
+  });
+
+  test('mixes within the tolerance do not differ', () {
+    expect(pair((o2: 32, he: 0), (o2: 32.02, he: 0)).mixesDiffer, isFalse);
+  });
+
   test('a run that changed nothing has no summary', () {
     expect(duplicateRemovalSummary(l10n, result()), isNull);
   });
@@ -124,6 +150,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(RadioListTile<_Mix>), findsNWidgets(3));
+    // Each tells itself apart by its exact percentage.
+    expect(find.text('Air (21.04% O2)'), findsOneWidget);
+    expect(find.text('Air (21.00% O2)'), findsOneWidget);
+    expect(find.text('Air (21.08% O2)'), findsOneWidget);
   });
 
   testWidgets('matching mixes confirm without asking for a gas', (
