@@ -150,6 +150,46 @@ void main() {
     });
     expect(settings['max_o2_depth_m'], {'value': null, 'source': 'settings'});
     expect(settings['salinity_ppt'], {'value': null, 'source': 'default'});
+    // What turn pressure, minimum gas and the OTU issue are worked from.
+    expect(settings.keys, containsAll(['turn_pressure_rule', 'otu_limit']));
+    expect(settings['sac_stressed_l_min'], {
+      'value': config.sacBottom * config.sacStressedFactor,
+      'source': 'settings',
+    });
+    expect(settings['otu_limit'], {
+      'value': config.otuLimit,
+      'source': 'default',
+    });
+    // Open circuit: no loop settings.
+    expect(settings.containsKey('setpoint_low_bar'), isFalse);
+  });
+
+  test('a loop reports the setpoints it breathes', () {
+    final built = storedSeriesFor(
+      parsePlanRequest({
+        'dives': [
+          {
+            'mode': 'ccr',
+            'tanks': [
+              {'volume_l': 3, 'o2_fraction': 1.0, 'role': 'oxygenSupply'},
+              {'volume_l': 3, 'role': 'diluent'},
+            ],
+            'bottom': {'depth_m': 30, 'time_s': 1200},
+          },
+        ],
+      }, settings: config),
+      follow: null,
+      now: DateTime.utc(2026, 11, 14),
+    );
+    final settings = effectiveSettings(built.stored.dives.single.plan, config);
+    expect(settings['setpoint_low_bar'], {
+      'value': config.ccrSetpointLow,
+      'source': 'settings',
+    });
+    expect(settings['setpoint_high_bar'], {
+      'value': config.ccrSetpointHigh,
+      'source': 'settings',
+    });
   });
 
   test('settings name the salinity, deco layers and air breaks used', () {

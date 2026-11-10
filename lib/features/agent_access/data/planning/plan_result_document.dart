@@ -249,6 +249,23 @@ Map<String, Object?> effectiveSettings(DivePlan plan, PlanEngineConfig config) {
           : {'o2_s': breaks.o2Seconds, 'break_s': breaks.breakSeconds},
     ),
     'o2_narcotic': own(plan.o2Narcotic, config.o2Narcotic),
+    // What tank_usage's turn_pressure_bar and min_gas_bar are worked from.
+    'turn_pressure_rule': fromSettings(config.turnPressureRuleFor(plan)?.name),
+    'turn_pressure_fraction': fromSettings(
+      config.turnPressureFractionFor(plan),
+    ),
+    'sac_stressed_l_min': fromSettings(
+      _round(resolved.sacStressedFor(plan), 2),
+    ),
+    // The OTU otuHigh issues are raised against: no Setting holds it.
+    'otu_limit': {'value': config.otuLimit, 'source': 'default'},
+    // A loop's own: the setpoints it breathes, and a pSCR's bypass ratio.
+    if (plan.mode == PlanMode.ccr) ...{
+      'setpoint_low_bar': fromSettings(resolved.setpointLowFor(plan)),
+      'setpoint_high_bar': fromSettings(resolved.setpointHighFor(plan)),
+    },
+    if (plan.mode == PlanMode.pscr)
+      'pscr_ratio': fromSettings(config.pscrRatio),
     'end_limit_m': fromSettings(config.endLimitMeters),
     'cns_warning_percent': fromSettings(config.cnsWarningThreshold),
     'gas_model': fromSettings(config.gasModel.name),
