@@ -43404,7 +43404,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep permanece e recebe do duplicado os dados que lhe faltam. As trocas de gás e as pressões passam para ele.';
+    return '$keep permanece e recebe do duplicado os dados que lhe faltam. As trocas de gás e os eventos passam para ele.';
   }
 
   @override
@@ -43437,14 +43437,8 @@ class AppLocalizationsPt extends AppLocalizations {
       'Cilindros de um mergulho com o mesmo número de série do transmissor são um único cilindro registrado duas vezes. Fica um em cada mergulho, e Desfazer restaura tudo.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: 'Remover $removeCount, manter $keep',
-      one: 'Remover 1, manter $keep',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Remover $remove, manter $keep';
   }
 
   @override
@@ -60972,6 +60966,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Cilindros duplicados removidos';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Desfazer não conseguiu restaurar tudo. O resto está em Ajustes > Dados > Registro de alterações.';
 
   @override
   String get changeLog_label_gearTransfer => 'Equipamento transferido';

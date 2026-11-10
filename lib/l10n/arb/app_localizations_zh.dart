@@ -40895,7 +40895,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '保留 $keep，并从重复项补全其缺少的信息。换气记录和压力数据将转移到它。';
+    return '保留 $keep，并从重复项补全其缺少的信息。换气记录和事件将转移到它。';
   }
 
   @override
@@ -40927,14 +40927,8 @@ class AppLocalizationsZh extends AppLocalizations {
       '同一次潜水中发射器序列号相同的气瓶，是被记录了两次的同一个气瓶。每次潜水保留一个，撤销可以恢复全部内容。';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: '移除 $removeCount 个，保留 $keep',
-      one: '移除 1 个，保留 $keep',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return '移除 $remove，保留 $keep';
   }
 
   @override
@@ -57251,6 +57245,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
+
+  @override
+  String get changeLog_undoIncomplete => '撤销未能恢复全部内容。其余内容见 设置 > 数据 > 更改日志。';
 
   @override
   String get changeLog_label_gearTransfer => '已转移装备';

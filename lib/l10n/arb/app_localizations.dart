@@ -68138,7 +68138,7 @@ abstract class AppLocalizations {
   /// Body of the dialog confirming removal of duplicate cylinder rows; keep names the cylinder that stays.
   ///
   /// In en, this message translates to:
-  /// **'{keep} stays and takes any details it lacks from the duplicate. Gas switches and pressures move to it.'**
+  /// **'{keep} stays and takes any details it lacks from the duplicate. Gas switches and events move to it.'**
   String dataQuality_removeDuplicate_body(String keep);
 
   /// Title of the dialog asking which gas mix to keep when duplicate cylinder rows disagree.
@@ -68177,11 +68177,11 @@ abstract class AppLocalizations {
   /// **'Cylinders on one dive that share a transmitter serial are one cylinder recorded twice. One stays on each dive, and Undo puts everything back.'**
   String get dataQuality_bulk_sheetBody;
 
-  /// One dive's line in the bulk duplicate cylinder sheet: how many rows go and which cylinder stays.
+  /// One dive's line in the bulk duplicate cylinder sheet: the cylinders that go and the one that stays.
   ///
   /// In en, this message translates to:
-  /// **'{removeCount, plural, =1{Remove 1, keep {keep}} other{Remove {removeCount}, keep {keep}}}'**
-  String dataQuality_bulk_sheetRow(int removeCount, String keep);
+  /// **'Remove {remove}, keep {keep}'**
+  String dataQuality_bulk_sheetRow(String remove, String keep);
 
   /// Snackbar after the bulk duplicate cylinder removal: how many dives changed.
   ///
@@ -95904,6 +95904,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
+
+  /// Snackbar shown when an Undo that reverts a change log operation left some records unrestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo could not put everything back. The rest is in Settings > Data > Change log.'**
+  String get changeLog_undoIncomplete;
 
   /// No description provided for @changeLog_label_gearTransfer.
   ///

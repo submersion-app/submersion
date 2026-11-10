@@ -29,7 +29,7 @@ DiveDataSource _source(String id, {required bool isPrimary}) {
 
 Widget _section(
   List<DiveDataSource> sources, {
-  void Function(String id)? onRemove,
+  void Function(String id, String name)? onRemove,
 }) => testApp(
   child: SingleChildScrollView(
     child: DataSourcesSection(
@@ -49,11 +49,15 @@ void main() {
     tester,
   ) async {
     String? removed;
+    String? removedName;
     await tester.pumpWidget(
-      _section([
-        _source('a', isPrimary: true),
-        _source('b', isPrimary: false),
-      ], onRemove: (id) => removed = id),
+      _section(
+        [_source('a', isPrimary: true), _source('b', isPrimary: false)],
+        onRemove: (id, name) {
+          removed = id;
+          removedName = name;
+        },
+      ),
     );
     await tester.pumpAndSettle();
 
@@ -66,11 +70,12 @@ void main() {
     await tester.tap(find.text('Remove source'));
     await tester.pumpAndSettle();
     expect(removed, 'a');
+    expect(removedName, 'Perdix a');
   });
 
   testWidgets('Remove source is not offered for a lone source', (tester) async {
     await tester.pumpWidget(
-      _section([_source('a', isPrimary: true)], onRemove: (_) {}),
+      _section([_source('a', isPrimary: true)], onRemove: (_, _) {}),
     );
     await tester.pumpAndSettle();
 

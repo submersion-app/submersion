@@ -43443,7 +43443,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep resta e prende dal duplicato i dati che le mancano. Cambi gas e pressioni passano a lei.';
+    return '$keep resta e prende dal duplicato i dati che le mancano. Cambi gas ed eventi passano a lei.';
   }
 
   @override
@@ -43476,14 +43476,8 @@ class AppLocalizationsIt extends AppLocalizations {
       'Le bombole di un\'immersione con lo stesso numero di serie del trasmettitore sono una sola bombola registrata due volte. Ne resta una per immersione, e Annulla ripristina tutto.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: 'Rimuovi $removeCount, tieni $keep',
-      one: 'Rimuovi 1, tieni $keep',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Rimuovi $remove, tieni $keep';
   }
 
   @override
@@ -60996,6 +60990,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Bombole duplicate rimosse';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Annulla non ha potuto ripristinare tutto. Il resto è in Impostazioni > Dati > Registro modifiche.';
 
   @override
   String get changeLog_label_gearTransfer => 'Attrezzatura trasferita';

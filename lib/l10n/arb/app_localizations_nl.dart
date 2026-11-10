@@ -43147,7 +43147,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep blijft en neemt ontbrekende gegevens over van het duplicaat. Gaswissels en drukken gaan naar deze fles.';
+    return '$keep blijft en neemt ontbrekende gegevens over van het duplicaat. Gaswissels en gebeurtenissen gaan naar deze fles.';
   }
 
   @override
@@ -43180,14 +43180,8 @@ class AppLocalizationsNl extends AppLocalizations {
       'Flessen op één duik met hetzelfde serienummer van de zender zijn één fles die twee keer is vastgelegd. Per duik blijft er één, en Ongedaan maken zet alles terug.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: '$removeCount verwijderen, $keep houden',
-      one: '1 verwijderen, $keep houden',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return '$remove verwijderen, $keep houden';
   }
 
   @override
@@ -60612,6 +60606,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Dubbele flessen verwijderd';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Ongedaan maken kon niet alles terugzetten. De rest staat onder Instellingen > Gegevens > Wijzigingslog.';
 
   @override
   String get changeLog_label_gearTransfer => 'Uitrusting overgedragen';

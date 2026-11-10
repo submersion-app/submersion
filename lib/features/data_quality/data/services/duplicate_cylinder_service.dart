@@ -173,7 +173,7 @@ class DuplicateCylinderService {
     }
     return [
       for (final group in byGroup.values)
-        _preview(diveId, tanks, group.ids, group.findings, primary?.id),
+        _preview(diveId, tanks, group.ids, group.findings, primary),
     ];
   }
 
@@ -182,13 +182,17 @@ class DuplicateCylinderService {
     List<DiveTank> tanks,
     List<String> ids,
     List<String> findingIds,
-    String? primarySourceId,
+    DiveDataSourcesData? primary,
   ) {
     final rows = [
       for (final t in tanks)
         if (ids.contains(t.id)) t,
     ];
-    final survivorId = pickSurvivor(rows, primarySourceId: primarySourceId);
+    final survivorId = pickSurvivor(
+      rows,
+      primarySourceId: primary?.id,
+      primaryComputerId: primary?.computerId,
+    );
     return CylinderMergePreview(
       diveId: diveId,
       survivorId: survivorId,
@@ -283,9 +287,7 @@ class DuplicateCylinderService {
 
     if (touched.isNotEmpty) {
       SyncEventBus.notifyLocalChange();
-      for (final id in resolved) {
-        await _findings.setStatus(id, QualityStatus.resolved);
-      }
+      await _findings.resolveAll(resolved);
       final dives = touched.toList();
       scheduleQualityScan(dives);
       scheduleSensorSummaryRefresh(dives, force: true);

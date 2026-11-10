@@ -44018,7 +44018,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return 'تبقى $keep وتأخذ من المكررة أي تفاصيل تنقصها. تنتقل إليها تبديلات الغاز والضغوط.';
+    return 'تبقى $keep وتأخذ من المكررة أي تفاصيل تنقصها. تنتقل إليها تبديلات الغاز والأحداث.';
   }
 
   @override
@@ -44051,14 +44051,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'الأسطوانات في غطسة واحدة التي تشترك في الرقم التسلسلي للمرسل هي أسطوانة واحدة سُجلت مرتين. تبقى واحدة في كل غطسة، والتراجع يعيد كل شيء.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: 'إزالة $removeCount، والإبقاء على $keep',
-      one: 'إزالة 1، والإبقاء على $keep',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'إزالة $remove، والإبقاء على $keep';
   }
 
   @override
@@ -61835,6 +61829,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'إزالة الأسطوانات المكررة';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'تعذّر على التراجع إعادة كل شيء. الباقي في الإعدادات > البيانات > سجل التغييرات.';
 
   @override
   String get changeLog_label_gearTransfer => 'تم نقل المعدات';

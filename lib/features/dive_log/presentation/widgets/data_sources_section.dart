@@ -87,7 +87,8 @@ class DataSourcesSection extends StatefulWidget {
   /// Called with the reading ID when the user chooses "Remove source"
   /// (confirmation happens in the caller). Offered only on a multi-source
   /// dive, like Split (issue #4393).
-  final void Function(String readingId)? onRemove;
+  /// The name is the source's label as its card shows it, for the dialog.
+  final void Function(String readingId, String sourceName)? onRemove;
 
   /// Called when the user chooses "Separate combined dives" (confirmation
   /// happens in the caller). Null hides the action.
@@ -193,7 +194,10 @@ class _DataSourcesSectionState extends State<DataSourcesSection> {
               ? () => widget.onSplit!(source.id)
               : null,
           onRemove: widget.onRemove != null && isMultiSource
-              ? () => widget.onRemove!(source.id)
+              ? () => widget.onRemove!(
+                  source.id,
+                  resolveSourceName(source, _labelsOf(context)),
+                )
               : null,
           onTap: widget.onTapSource != null
               ? () => widget.onTapSource!(source.id)

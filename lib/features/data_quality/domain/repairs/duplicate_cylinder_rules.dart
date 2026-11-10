@@ -66,13 +66,30 @@ int _detail(DiveTank t) => [
   t.regulatorEquipmentId != null,
 ].where((has) => has).length;
 
+/// Whether [t] is the primary source's row: it names that source, or it names
+/// none and has no computer or the primary's computer (an unattributed tank
+/// belongs to the primary, v251).
+bool _isPrimarys(
+  DiveTank t,
+  String? primarySourceId,
+  String? primaryComputerId,
+) {
+  if (primarySourceId == null) return false;
+  if (t.sourceId != null) return t.sourceId == primarySourceId;
+  return t.computerId == null || t.computerId == primaryComputerId;
+}
+
 /// The id of the row in [group] that stays: the primary source's when only
 /// some rows are its, then the most diver-entered detail, then the lowest
 /// id, so the choice is the same every time.
-String pickSurvivor(List<DiveTank> group, {required String? primarySourceId}) {
+String pickSurvivor(
+  List<DiveTank> group, {
+  required String? primarySourceId,
+  String? primaryComputerId,
+}) {
   final primary = [
     for (final t in group)
-      if (primarySourceId != null && t.sourceId == primarySourceId) t,
+      if (_isPrimarys(t, primarySourceId, primaryComputerId)) t,
   ];
   final candidates = primary.isEmpty || primary.length == group.length
       ? group

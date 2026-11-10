@@ -66,9 +66,10 @@ Future<void> runRemoveSource(
             : SnackBarAction(
                 label: l10n.dataQuality_action_undo,
                 onPressed: () => unawaited(() async {
-                  await undoChangeLogOperation(operationId);
+                  final whole = await undoChangeLogOperation(operationId);
                   await findings.setStatus(finding.id, QualityStatus.open);
                   rescanDives([diveId]);
+                  if (!whole) _undoIncomplete(messenger, l10n);
                 }()),
               ),
       ),
@@ -150,12 +151,8 @@ void _showRemovalResult(
   AppLocalizations l10n,
   DuplicateRemovalResult result,
 ) {
-  final text = [
-    l10n.dataQuality_bulk_removeDuplicates_done(result.merged),
-    if (result.skippedMixes > 0)
-      l10n.dataQuality_bulk_skippedMixes(result.skippedMixes),
-    if (result.failed > 0) l10n.dataQuality_bulk_failed(result.failed),
-  ].join('. ');
+  final text =
+      duplicateRemovalSummary(l10n, result) ?? l10n.dataQuality_repair_noChange;
   final operationId = result.operationId;
   messenger.showSnackBar(
     SnackBar(
@@ -167,10 +164,11 @@ void _showRemovalResult(
           : SnackBarAction(
               label: l10n.dataQuality_action_undo,
               onPressed: () => unawaited(() async {
-                await undoChangeLogOperation(operationId);
+                final whole = await undoChangeLogOperation(operationId);
                 // The revert brings the rows back; a rescan reopens what
                 // they still raise.
                 rescanDives(result.diveIds);
+                if (!whole) _undoIncomplete(messenger, l10n);
               }()),
             ),
     ),
@@ -262,5 +260,12 @@ Widget? inboxOverflowMenu(
         ),
       ),
     ],
+  );
+}
+
+/// Tells the diver an Undo left part of the change in place.
+void _undoIncomplete(ScaffoldMessengerState messenger, AppLocalizations l10n) {
+  messenger.showSnackBar(
+    SnackBar(content: Text(l10n.changeLog_undoIncomplete)),
   );
 }

@@ -43460,7 +43460,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep se conserva y toma del duplicado los datos que le falten. Los cambios de gas y las presiones pasan a ella.';
+    return '$keep se conserva y toma del duplicado los datos que le falten. Los cambios de gas y los eventos pasan a ella.';
   }
 
   @override
@@ -43493,14 +43493,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Las botellas de una inmersión que comparten número de serie del transmisor son una sola botella registrada dos veces. Queda una en cada inmersión, y Deshacer lo restaura todo.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: 'Eliminar $removeCount, conservar $keep',
-      one: 'Eliminar 1, conservar $keep',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Eliminar $remove, conservar $keep';
   }
 
   @override
@@ -61031,6 +61025,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Botellas duplicadas eliminadas';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Deshacer no pudo restaurarlo todo. El resto está en Ajustes > Datos > Registro de cambios.';
 
   @override
   String get changeLog_label_gearTransfer => 'Equipo transferido';

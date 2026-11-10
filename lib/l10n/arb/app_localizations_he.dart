@@ -42377,7 +42377,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep נשאר ומקבל מהכפול פרטים שחסרים לו. החלפות הגז והלחצים עוברים אליו.';
+    return '$keep נשאר ומקבל מהכפול פרטים שחסרים לו. החלפות הגז והאירועים עוברים אליו.';
   }
 
   @override
@@ -42409,14 +42409,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'מכלים באותה צלילה עם אותו מספר סידורי של משדר הם מכל אחד שנרשם פעמיים. אחד נשאר בכל צלילה, וביטול מחזיר הכול.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: 'הסרת $removeCount, השארת $keep',
-      one: 'הסרת 1, השארת $keep',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'הסרת $remove, השארת $keep';
   }
 
   @override
@@ -59722,6 +59716,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => 'מכלים כפולים הוסרו';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'הביטול לא הצליח להחזיר הכול. השאר נמצא בהגדרות > נתונים > יומן שינויים.';
 
   @override
   String get changeLog_label_gearTransfer => 'ציוד הועבר';

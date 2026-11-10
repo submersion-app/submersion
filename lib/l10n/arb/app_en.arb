@@ -26678,7 +26678,7 @@
       }
     }
   },
-  "dataQuality_removeDuplicate_body": "{keep} stays and takes any details it lacks from the duplicate. Gas switches and pressures move to it.",
+  "dataQuality_removeDuplicate_body": "{keep} stays and takes any details it lacks from the duplicate. Gas switches and events move to it.",
   "@dataQuality_removeDuplicate_body": {
     "description": "Body of the dialog confirming removal of duplicate cylinder rows; keep names the cylinder that stays.",
     "placeholders": {
@@ -26716,12 +26716,12 @@
   "@dataQuality_bulk_sheetBody": {
     "description": "Explanation at the top of the bulk duplicate cylinder removal sheet."
   },
-  "dataQuality_bulk_sheetRow": "{removeCount, plural, =1{Remove 1, keep {keep}} other{Remove {removeCount}, keep {keep}}}",
+  "dataQuality_bulk_sheetRow": "Remove {remove}, keep {keep}",
   "@dataQuality_bulk_sheetRow": {
-    "description": "One dive's line in the bulk duplicate cylinder sheet: how many rows go and which cylinder stays.",
+    "description": "One dive's line in the bulk duplicate cylinder sheet: the cylinders that go and the one that stays.",
     "placeholders": {
-      "removeCount": {
-        "type": "int"
+      "remove": {
+        "type": "String"
       },
       "keep": {
         "type": "String"
@@ -35877,6 +35877,10 @@
   "changeLog_label_removeDuplicateCylinders": "Removed duplicate cylinders",
   "@changeLog_label_removeDuplicateCylinders": {
     "description": "Change log entry title for merging duplicate cylinders on dives."
+  },
+  "changeLog_undoIncomplete": "Undo could not put everything back. The rest is in Settings > Data > Change log.",
+  "@changeLog_undoIncomplete": {
+    "description": "Snackbar shown when an Undo that reverts a change log operation left some records unrestored."
   },
   "changeLog_label_gearTransfer": "Transferred gear",
   "changeLog_label_mediaRepair": "Repaired media links",

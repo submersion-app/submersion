@@ -272,6 +272,11 @@ class QualityFindingsRepository {
   Future<void> reopenAll(Iterable<String> ids) =>
       _setAll(ids, QualityStatus.open);
 
+  /// Marks [ids] resolved with one notify: the findings a bulk repair
+  /// answered (issue #4393).
+  Future<void> resolveAll(Iterable<String> ids) =>
+      _setAll(ids, QualityStatus.resolved);
+
   Future<void> _setAll(Iterable<String> ids, QualityStatus status) async {
     final idList = ids.toList();
     if (idList.isEmpty) return;

@@ -356,9 +356,15 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
 
   /// Confirms and runs Remove source (issue #4393). The removal is one change
   /// log operation, so the snackbar's Undo reverts it whole.
-  Future<void> _confirmAndRemoveSource(Dive dive, String sourceId) async {
+  Future<void> _confirmAndRemoveSource(
+    Dive dive,
+    String sourceId,
+    String sourceName,
+  ) async {
     final l10n = context.l10n;
-    if (!await confirmRemoveSource(context, source: null) || !mounted) return;
+    if (!await confirmRemoveSource(context, source: sourceName) || !mounted) {
+      return;
+    }
     final container = ProviderScope.containerOf(context, listen: false);
     final messenger = ScaffoldMessenger.of(context);
     void refresh() {
@@ -385,9 +391,15 @@ mixin _DiveDetailPageActions on ConsumerState<DiveDetailPage> {
               ? null
               : SnackBarAction(
                   label: l10n.dataQuality_action_undo,
-                  onPressed: () => unawaited(
-                    undoChangeLogOperation(operationId).then((_) => refresh()),
-                  ),
+                  onPressed: () => unawaited(() async {
+                    final whole = await undoChangeLogOperation(operationId);
+                    refresh();
+                    if (!whole) {
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(l10n.changeLog_undoIncomplete)),
+                      );
+                    }
+                  }()),
                 ),
         ),
       );

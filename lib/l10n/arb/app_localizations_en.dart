@@ -42710,7 +42710,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep stays and takes any details it lacks from the duplicate. Gas switches and pressures move to it.';
+    return '$keep stays and takes any details it lacks from the duplicate. Gas switches and events move to it.';
   }
 
   @override
@@ -42743,14 +42743,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Cylinders on one dive that share a transmitter serial are one cylinder recorded twice. One stays on each dive, and Undo puts everything back.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: 'Remove $removeCount, keep $keep',
-      one: 'Remove 1, keep $keep',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Remove $remove, keep $keep';
   }
 
   @override
@@ -60032,6 +60026,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Removed duplicate cylinders';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Undo could not put everything back. The rest is in Settings > Data > Change log.';
 
   @override
   String get changeLog_label_gearTransfer => 'Transferred gear';

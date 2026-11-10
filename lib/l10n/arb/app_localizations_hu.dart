@@ -43195,7 +43195,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep megmarad, és átveszi az ismétlődő palackból a hiányzó adatokat. A gázváltások és nyomások hozzá kerülnek.';
+    return '$keep megmarad, és átveszi az ismétlődő palackból a hiányzó adatokat. A gázváltások és események hozzá kerülnek.';
   }
 
   @override
@@ -43228,14 +43228,8 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az egy merülésen azonos jeladó-sorozatszámú palackok egyetlen, kétszer rögzített palackot jelentenek. Merülésenként egy marad, a Visszavonás mindent visszaállít.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: '$removeCount eltávolítása, $keep marad',
-      one: '1 eltávolítása, $keep marad',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return '$remove eltávolítása, $keep marad';
   }
 
   @override
@@ -60658,6 +60652,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Ismétlődő palackok eltávolítva';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'A visszavonás nem tudott mindent visszaállítani. A többi a Beállítások > Adatok > Változásnapló alatt található.';
 
   @override
   String get changeLog_label_gearTransfer => 'Felszerelés átadva';

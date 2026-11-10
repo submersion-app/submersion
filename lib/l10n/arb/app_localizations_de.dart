@@ -43348,7 +43348,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep bleibt und übernimmt fehlende Angaben von der doppelten Flasche. Gaswechsel und Drücke gehen auf sie über.';
+    return '$keep bleibt und übernimmt fehlende Angaben von der doppelten Flasche. Gaswechsel und Ereignisse gehen auf sie über.';
   }
 
   @override
@@ -43381,14 +43381,8 @@ class AppLocalizationsDe extends AppLocalizations {
       'Flaschen eines Tauchgangs mit derselben Sender-Seriennummer sind eine doppelt erfasste Flasche. Pro Tauchgang bleibt eine, und Rückgängig stellt alles wieder her.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: '$removeCount entfernen, $keep behalten',
-      one: '1 entfernen, $keep behalten',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return '$remove entfernen, $keep behalten';
   }
 
   @override
@@ -60865,6 +60859,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Doppelte Flaschen entfernt';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Rückgängig konnte nicht alles wiederherstellen. Der Rest steht unter Einstellungen > Daten > Änderungsprotokoll.';
 
   @override
   String get changeLog_label_gearTransfer => 'Ausrüstung übertragen';

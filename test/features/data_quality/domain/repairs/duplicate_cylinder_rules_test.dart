@@ -7,6 +7,7 @@ DiveTank _tank(
   String id, {
   String? serial,
   String? sourceId,
+  String? computerId,
   double o2 = 21,
   double he = 0,
   double? volume,
@@ -22,6 +23,7 @@ DiveTank _tank(
   tankRole: 'backGas',
   transmitterSerial: serial,
   sourceId: sourceId,
+  computerId: computerId,
   volume: volume,
   workingPressure: workingPressure,
   tankName: name,
@@ -116,6 +118,33 @@ void main() {
       ], primarySourceId: 'primary');
       expect(survivor, 'b');
     });
+
+    test('an unattributed tank is the primary source tank', () {
+      final survivor = pickSurvivor(
+        [
+          _tank('a', sourceId: 'secondary', volume: 11.1, name: 'AL80'),
+          _tank('b'),
+        ],
+        primarySourceId: 'primary',
+        primaryComputerId: 'dc-p',
+      );
+      expect(survivor, 'b');
+    });
+
+    test(
+      "a tank on the primary's computer with no source is the primary's",
+      () {
+        final survivor = pickSurvivor(
+          [
+            _tank('a', sourceId: 'secondary', volume: 11.1),
+            _tank('b', computerId: 'dc-p'),
+          ],
+          primarySourceId: 'primary',
+          primaryComputerId: 'dc-p',
+        );
+        expect(survivor, 'b');
+      },
+    );
 
     test('without a primary tank the most detailed tank survives', () {
       final survivor = pickSurvivor([

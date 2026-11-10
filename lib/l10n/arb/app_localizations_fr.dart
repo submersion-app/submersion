@@ -43553,7 +43553,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String dataQuality_removeDuplicate_body(String keep) {
-    return '$keep reste et reprend du doublon les détails qui lui manquent. Les changements de gaz et les pressions lui sont rattachés.';
+    return '$keep reste et reprend du doublon les détails qui lui manquent. Les changements de gaz et les événements lui sont rattachés.';
   }
 
   @override
@@ -43586,14 +43586,8 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les blocs d\'une plongée qui partagent le numéro de série d\'un émetteur sont un seul bloc enregistré deux fois. Un seul reste par plongée, et Annuler remet tout en place.';
 
   @override
-  String dataQuality_bulk_sheetRow(int removeCount, String keep) {
-    String _temp0 = intl.Intl.pluralLogic(
-      removeCount,
-      locale: localeName,
-      other: 'Supprimer $removeCount, garder $keep',
-      one: 'Supprimer 1, garder $keep',
-    );
-    return '$_temp0';
+  String dataQuality_bulk_sheetRow(String remove, String keep) {
+    return 'Supprimer $remove, garder $keep';
   }
 
   @override
@@ -61128,6 +61122,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Blocs en double supprimés';
+
+  @override
+  String get changeLog_undoIncomplete =>
+      'Annuler n\'a pas pu tout rétablir. Le reste se trouve dans Réglages > Données > Journal des modifications.';
 
   @override
   String get changeLog_label_gearTransfer => 'Équipement transféré';
