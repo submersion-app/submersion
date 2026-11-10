@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -57,6 +59,7 @@ Future<void> _pump(
   Locale locale = const Locale('en'),
   TripFilterState filter = const TripFilterState(),
   Set<String> matchingIds = const {},
+  Future<Set<String>> Function(TripFilterState filter)? idsFor,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -66,7 +69,7 @@ Future<void> _pump(
         ),
         tripFilterProvider.overrideWith((ref) => filter),
         queryFilteredTripIdsProvider.overrideWith(
-          (ref, filter) async => matchingIds,
+          (ref, filter) => idsFor?.call(filter) ?? Future.value(matchingIds),
         ),
         settingsProvider.overrideWith(
           (ref) => MockSettingsNotifier(AppSettings(dateFormat: format)),
@@ -353,6 +356,42 @@ void main() {
 
       expect(find.textContaining('Filtered:'), findsNothing);
       expect(find.bySemanticsLabel('Total Trips: 4'), findsOneWidget);
+    });
+
+    // A new filter's trip ids take a query's time and arrive with no
+    // previous value; the overview keeps what it showed until they land,
+    // rather than blanking to a spinner on every filter change.
+    testWidgets('keeps the last overview while a new filter loads', (
+      tester,
+    ) async {
+      final second = Completer<Set<String>>();
+      await _pump(
+        tester,
+        DateFormatPreference.mmmDYYYY,
+        all,
+        filter: byTank,
+        idsFor: (filter) =>
+            filter == byTank ? Future.value(const {'b'}) : second.future,
+      );
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripSummaryWidget)),
+      );
+
+      container.read(tripFilterProvider.notifier).state = const TripFilterState(
+        equipmentId: 'tank-2',
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Belgium'), findsOneWidget);
+      expect(find.text('Filtered: summarizing 1 of 4 trips'), findsOneWidget);
+
+      second.complete(const {'a', 'd'});
+      await tester.pumpAndSettle();
+
+      expect(find.text('Filtered: summarizing 2 of 4 trips'), findsOneWidget);
+      expect(find.text('Sardinia'), findsOneWidget);
+      expect(find.text('Belgium'), findsNothing);
     });
   });
 

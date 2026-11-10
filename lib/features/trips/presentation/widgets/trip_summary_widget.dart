@@ -7,21 +7,42 @@ import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/services/side_trips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_list_count_provider.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/shared/models/list_entry_count.dart';
+import 'package:submersion/shared/widgets/filtered_summary_banner.dart';
 
 /// Summary widget shown when no trip is selected.
 ///
 /// It summarizes the trips the list beside it shows. Under a trip list
 /// filter (an equipment item's Trips row opens one) that is the filtered
 /// trips alone, with a banner saying so, never every trip (issue #4414).
-class TripSummaryWidget extends ConsumerWidget {
+class TripSummaryWidget extends ConsumerStatefulWidget {
   const TripSummaryWidget({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripSummaryWidget> createState() => _TripSummaryWidgetState();
+}
+
+class _TripSummaryWidgetState extends ConsumerState<TripSummaryWidget> {
+  // The last trips and count shown. A filter change reloads the filtered
+  // trips with no previous value (narrowByIds), so these keep the overview
+  // and its banner on screen until the new trips land, as the Dive Log
+  // summary keeps its totals, instead of blanking to a spinner.
+  List<TripWithStats>? _lastTrips;
+  ListEntryCount? _lastCount;
+
+  @override
+  Widget build(BuildContext context) {
     final isFiltered = ref.watch(tripFilterProvider).hasActiveFilters;
     final tripsAsync = ref.watch(filteredTripsProvider);
+    if (tripsAsync.hasValue) _lastTrips = tripsAsync.value;
+    final trips = tripsAsync.isLoading ? _lastTrips : tripsAsync.value;
+    // The list's own entry count, so the banner and the list's "3 of 12
+    // trips" subtitle can never disagree.
+    final count = ref.watch(tripListCountProvider) ?? _lastCount;
+    _lastCount = count;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -32,17 +53,27 @@ class TripSummaryWidget extends ConsumerWidget {
             _buildHeader(context),
             if (isFiltered) ...[
               const SizedBox(height: 16),
-              const _TripSummaryFilterBanner(),
+              FilteredSummaryBanner(
+                message: count == null
+                    ? null
+                    : context.l10n.trips_summary_filteredBanner(
+                        count.shown,
+                        count.total,
+                      ),
+                clearLabel: context.l10n.trips_list_filters_clearAll,
+                onClear: () => ref.read(tripFilterProvider.notifier).state =
+                    const TripFilterState(),
+              ),
             ],
             const SizedBox(height: 24),
-            tripsAsync.when(
-              data: (trips) => _buildOverview(context, ref, trips),
-              loading: () => const Center(child: CircularProgressIndicator()),
+            if (trips != null)
+              _buildOverview(context, ref, trips)
+            else if (tripsAsync.hasError)
               // The repository logs the failure; the diver gets a plain
               // line.
-              error: (_, _) =>
-                  Center(child: Text(context.l10n.trips_list_error_loading)),
-            ),
+              Center(child: Text(context.l10n.trips_list_error_loading))
+            else
+              const Center(child: CircularProgressIndicator()),
             const SizedBox(height: 24),
             _buildQuickActions(context),
             const SizedBox(height: 32),
@@ -83,34 +114,30 @@ class TripSummaryWidget extends ConsumerWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, WidgetRef ref, List trips) {
+  Widget _buildOverview(
+    BuildContext context,
+    WidgetRef ref,
+    List<TripWithStats> trips,
+  ) {
     // Calculate stats
-    num totalDives = 0;
-    num totalDays = 0;
-    int liveaboardCount = 0;
-    double? maxDepth;
+    var totalDives = 0;
+    var totalDays = 0;
+    var liveaboardCount = 0;
 
     // A larger trip's figures already include its side trips' dives, and
     // its dates span theirs, so a side trip adds neither (issue #3658).
-    final tripsById = <String, Trip>{
-      for (final t in trips) (t.trip as Trip).id: t.trip as Trip,
-    };
+    final tripsById = <String, Trip>{for (final t in trips) t.trip.id: t.trip};
     for (final tripWithStats in trips) {
-      final trip = tripWithStats.trip as Trip;
+      final trip = tripWithStats.trip;
       final parentId = effectiveParentId(trip, tripsById);
       if (parentId == null) {
-        totalDives += tripWithStats.diveCount as num;
+        totalDives += tripWithStats.diveCount;
         totalDays += trip.durationDays;
       } else {
         // Only the side trip's days that fall outside its larger trip.
         totalDays += _daysOutside(trip, tripsById[parentId]!);
       }
-      if (tripWithStats.trip.isLiveaboard) liveaboardCount++;
-      if (tripWithStats.maxDepth != null) {
-        if (maxDepth == null || tripWithStats.maxDepth > maxDepth) {
-          maxDepth = tripWithStats.maxDepth;
-        }
-      }
+      if (trip.isLiveaboard) liveaboardCount++;
     }
 
     // Find upcoming trips
@@ -228,10 +255,10 @@ class TripSummaryWidget extends ConsumerWidget {
   Widget _buildTripListPreview(
     BuildContext context,
     WidgetRef ref,
-    List trips,
+    List<TripWithStats> trips,
   ) {
     // Sort by start date descending and take recent 3
-    final sortedTrips = List.from(trips)
+    final sortedTrips = List<TripWithStats>.from(trips)
       ..sort((a, b) => b.trip.startDate.compareTo(a.trip.startDate));
     final previewTrips = sortedTrips.take(3).toList();
     final units = ref.watch(unitFormatterProvider);
@@ -263,7 +290,7 @@ class TripSummaryWidget extends ConsumerWidget {
                 title: Text(trip.name),
                 subtitle: Text(
                   '${units.formatDate(trip.startDate)} • '
-                  '${context.l10n.trips_summary_recentDiveCount(tripWithStats.diveCount as int)}',
+                  '${context.l10n.trips_summary_recentDiveCount(tripWithStats.diveCount)}',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
@@ -379,57 +406,6 @@ class TripSummaryWidget extends ConsumerWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-/// Shown under the Trips overview title while the trip list is filtered, so
-/// the totals below are never read as every trip's: "Filtered: summarizing
-/// 10 of 82 trips", plus the button the list's filter bar offers to clear it.
-/// The trip list counterpart of the Dive Log's DiveSummaryFilterBanner.
-class _TripSummaryFilterBanner extends ConsumerWidget {
-  const _TripSummaryFilterBanner();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final shown = ref.watch(filteredTripsProvider).value?.length;
-    final total = ref.watch(tripListNotifierProvider).value?.length;
-
-    return Container(
-      padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          ExcludeSemantics(
-            child: Icon(
-              Icons.filter_list,
-              size: 20,
-              color: colorScheme.primary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              shown == null || total == null
-                  ? ''
-                  : context.l10n.trips_summary_filteredBanner(shown, total),
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => ref.read(tripFilterProvider.notifier).state =
-                const TripFilterState(),
-            child: Text(context.l10n.trips_list_filters_clearAll),
-          ),
-        ],
-      ),
     );
   }
 }
