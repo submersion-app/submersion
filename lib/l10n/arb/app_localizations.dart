@@ -2947,6 +2947,27 @@ abstract class AppLocalizations {
   /// **'Dive times during this day'**
   String get trips_story_rhythm_semantics;
 
+  /// No description provided for @trips_story_rhythm_semanticsSunriseSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunrise {sunrise}, sunset {sunset}.'**
+  String trips_story_rhythm_semanticsSunriseSunset(
+    String sunrise,
+    String sunset,
+  );
+
+  /// No description provided for @trips_story_rhythm_semanticsSunrise.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunrise {sunrise}.'**
+  String trips_story_rhythm_semanticsSunrise(String sunrise);
+
+  /// No description provided for @trips_story_rhythm_semanticsSunset.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive times during this day. Sunset {sunset}.'**
+  String trips_story_rhythm_semanticsSunset(String sunset);
+
   /// No description provided for @trips_story_dayMap_semantics.
   ///
   /// In en, this message translates to:
@@ -27160,11 +27181,47 @@ abstract class AppLocalizations {
   /// **'Move to location'**
   String get equipment_location_bulkAction;
 
-  /// Item count beside a location heading and on the Locations page
+  /// Item count beside a group heading on gear lists and pickers (a location, a type, or another diver's shared gear) and on the Locations page
   ///
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} item} other{{count} items}}'**
   String equipment_location_groupCount(int count);
+
+  /// One type and its item count in a folded location heading's summary, e.g. BCD 2
+  ///
+  /// In en, this message translates to:
+  /// **'{type} {count}'**
+  String equipment_group_foldedTypeCount(int count, String type);
+
+  /// Second line of a folded type heading on the Equipment list: how many items inside need service
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} service due} other{{count} service due}}'**
+  String equipment_group_foldedServiceDue(int count);
+
+  /// Ends a folded location heading's summary when it lists only the first three types
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{and {count} more} other{and {count} more}}'**
+  String equipment_group_foldedMoreTypes(int count);
+
+  /// Second line of a folded group heading in selection mode: ticked items inside it of all its items
+  ///
+  /// In en, this message translates to:
+  /// **'{selected} of {total} selected'**
+  String equipment_group_foldedSelected(int selected, int total);
+
+  /// Equipment list overflow menu: open every folded group
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all'**
+  String get equipment_list_expandAllGroups;
+
+  /// Equipment list overflow menu: fold every outermost group
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all'**
+  String get equipment_list_collapseAllGroups;
 
   /// Chip in the active filters bar when the list is filtered by location
   ///
@@ -38981,6 +39038,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment grouped by location'**
   String get settings_conflict_field_equipmentGroupByLocation;
+
+  /// Label for the Equipment page's saved folded groups in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment folded groups'**
+  String get settings_conflict_field_equipmentCollapsedGroups;
 
   /// Label for a saved list arrangement in a sync conflict
   ///

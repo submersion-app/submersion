@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "平均 {value}",
   "trips_story_history_avgDepth": "平均深度 {value}",
   "trips_story_rhythm_semantics": "当天的潜水时间",
+  "trips_story_rhythm_semanticsSunriseSunset": "当天的潜水时间。日出 {sunrise}，日落 {sunset}。",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "当天的潜水时间。日出 {sunrise}。",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "当天的潜水时间。日落 {sunset}。",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "第 {number} 天地图",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -5105,6 +5132,12 @@
   "equipment_location_deleteMoveConfirm": "删除这条历史记录？将根据剩余的移动记录重新确定物品位置。",
   "equipment_location_bulkAction": "移至位置",
   "equipment_location_groupCount": "{count, plural, other{{count} 件}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, other{{count} 项保养到期}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, other{另外 {count} 种}}",
+  "equipment_group_foldedSelected": "已选 {selected}/{total}",
+  "equipment_list_expandAllGroups": "全部展开",
+  "equipment_list_collapseAllGroups": "全部折叠",
   "equipment_location_activeFilter": "位置",
   "equipment_location_tileSemantics": "位置：{name}",
   "equipment_filter_section_location": "位置",
@@ -7454,6 +7487,7 @@
   "settings_conflict_field_certificationListGroupBy": "证书：分组",
   "settings_conflict_field_equipmentArrangement": "装备排列",
   "settings_conflict_field_equipmentGroupByLocation": "装备按位置分组",
+  "settings_conflict_field_equipmentCollapsedGroups": "已折叠的装备分组",
   "settings_conflict_field_listArrangementHlc": "列表排列记录",
   "settings_conflict_sortValue": "{field}，{direction}",
   "settings_conflict_field_avgSpeed": "平均速度",

@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "átlag {value}",
   "trips_story_history_avgDepth": "átl. mélység {value}",
   "trips_story_rhythm_semantics": "A nap merülési idői",
+  "trips_story_rhythm_semanticsSunriseSunset": "A nap merülési idői. Napkelte {sunrise}, napnyugta {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "A nap merülési idői. Napkelte {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "A nap merülési idői. Napnyugta {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "{number}. nap térképe",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4877,6 +4904,12 @@
   "equipment_location_deleteMoveConfirm": "Törlöd ezt az előzménybejegyzést? Az elem helyét a megmaradt áthelyezésekből számoljuk újra.",
   "equipment_location_bulkAction": "Áthelyezés helyre",
   "equipment_location_groupCount": "{count, plural, one{{count} elem} other{{count} elem}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} szerviz esedékes} other{{count} szerviz esedékes}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, one{és még {count}} other{és még {count}}}",
+  "equipment_group_foldedSelected": "{selected} / {total} kiválasztva",
+  "equipment_list_expandAllGroups": "Összes kibontása",
+  "equipment_list_collapseAllGroups": "Összes összecsukása",
   "equipment_location_activeFilter": "Hely",
   "equipment_location_tileSemantics": "Hely: {name}",
   "equipment_filter_section_location": "Hely",
@@ -7201,6 +7234,7 @@
   "settings_conflict_field_certificationListGroupBy": "Képesítések: csoportosítás",
   "settings_conflict_field_equipmentArrangement": "Felszerelés elrendezése",
   "settings_conflict_field_equipmentGroupByLocation": "Felszerelés hely szerint csoportosítva",
+  "settings_conflict_field_equipmentCollapsedGroups": "Összecsukott felszereléscsoportok",
   "settings_conflict_field_listArrangementHlc": "Listaelrendezési napló",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Átlagsebesség",

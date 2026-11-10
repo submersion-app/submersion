@@ -1626,11 +1626,15 @@ class AppDatabase extends _$AppDatabase {
     // count (issue #4337). Nullable, no backfill; raises the sync floor to
     // 350. Numbered 350: main holds 349 and open PR #4327 is to take 348.
     350,
+    // v351: diver_settings.equipment_collapsed_groups, the Equipment page's
+    // folded group keys (issue #4184). A nullable column an older peer
+    // omits, so the floor does not move.
+    351,
     // v354: dives.is_draft, a dive marked at the site that waits for its
     // dive computer readings, and dive_health_records, heart rate, recovery
     // and sleep from Apple Health per dive (issue #637). Additive and
     // defaulted; the floor does not move. Numbered 354 because main holds
-    // 350 and open work claims 351 to 353.
+    // 351 and open work claims 352 and 353.
     354,
   ];
 

@@ -19,6 +19,7 @@ import 'package:submersion/shared/widgets/forms/form_overline.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/folded_groups.dart';
 
 /// Issue #2175: the single-dive editor's Add opens the picker in
 /// multi-select mode, and every item ticked there joins the dive's gear in
@@ -116,6 +117,8 @@ void main() {
     await tester.tap(add);
     await tester.pumpAndSettle();
     expect(find.byType(EquipmentPickerSheet), findsOneWidget);
+    // The picker opens with its groups folded (#3364).
+    await openFoldedGroups(tester);
     return l10n;
   }
 

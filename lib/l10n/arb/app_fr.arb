@@ -383,6 +383,33 @@
   "trips_story_history_avgTemp": "moy. {value}",
   "trips_story_history_avgDepth": "prof. moy. {value}",
   "trips_story_rhythm_semantics": "Heures de plongée de cette journée",
+  "trips_story_rhythm_semanticsSunriseSunset": "Heures de plongée de cette journée. Lever du soleil {sunrise}, coucher du soleil {sunset}.",
+  "@trips_story_rhythm_semanticsSunriseSunset": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      },
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunrise": "Heures de plongée de cette journée. Lever du soleil {sunrise}.",
+  "@trips_story_rhythm_semanticsSunrise": {
+    "placeholders": {
+      "sunrise": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_story_rhythm_semanticsSunset": "Heures de plongée de cette journée. Coucher du soleil {sunset}.",
+  "@trips_story_rhythm_semanticsSunset": {
+    "placeholders": {
+      "sunset": {
+        "type": "String"
+      }
+    }
+  },
   "trips_story_dayMap_semantics": "Carte du jour {number}",
   "@trips_story_dayMap_semantics": {
     "placeholders": {
@@ -4877,6 +4904,12 @@
   "equipment_location_deleteMoveConfirm": "Supprimer cette entrée de l'historique ? L'emplacement de l'élément est recalculé à partir des déplacements restants.",
   "equipment_location_bulkAction": "Déplacer vers un emplacement",
   "equipment_location_groupCount": "{count, plural, one{{count} élément} other{{count} éléments}}",
+  "equipment_group_foldedTypeCount": "{type} {count}",
+  "equipment_group_foldedServiceDue": "{count, plural, one{{count} entretien à faire} other{{count} entretiens à faire}}",
+  "equipment_group_foldedMoreTypes": "{count, plural, one{et {count} autre} other{et {count} autres}}",
+  "equipment_group_foldedSelected": "{selected} sur {total} sélectionnés",
+  "equipment_list_expandAllGroups": "Tout déplier",
+  "equipment_list_collapseAllGroups": "Tout replier",
   "equipment_location_activeFilter": "Emplacement",
   "equipment_location_tileSemantics": "Emplacement : {name}",
   "equipment_filter_section_location": "Emplacement",
@@ -7201,6 +7234,7 @@
   "settings_conflict_field_certificationListGroupBy": "Certifications: regroupement",
   "settings_conflict_field_equipmentArrangement": "Organisation de l'équipement",
   "settings_conflict_field_equipmentGroupByLocation": "Équipement regroupé par emplacement",
+  "settings_conflict_field_equipmentCollapsedGroups": "Groupes d'équipement repliés",
   "settings_conflict_field_listArrangementHlc": "Journal de l'organisation des listes",
   "settings_conflict_sortValue": "{field}, {direction}",
   "settings_conflict_field_avgSpeed": "Vitesse moyenne",

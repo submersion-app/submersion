@@ -35,7 +35,7 @@ void main() {
   test('an existing dive upgrades to not a draft', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 350');
+        rawDb.execute('PRAGMA user_version = 351');
         rawDb.execute('''
           CREATE TABLE dives (
             id TEXT NOT NULL PRIMARY KEY,
@@ -62,7 +62,7 @@ void main() {
   test('an upgraded database has the health records table', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 350');
+        rawDb.execute('PRAGMA user_version = 351');
         rawDb.execute('''
           CREATE TABLE dives (
             id TEXT NOT NULL PRIMARY KEY,

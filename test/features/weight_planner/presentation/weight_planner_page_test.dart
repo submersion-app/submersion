@@ -24,6 +24,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 
+import '../../../helpers/folded_groups.dart';
 import '../../../helpers/mock_providers.dart';
 import '../../../helpers/test_app.dart';
 import '../../../helpers/test_database.dart';
@@ -169,6 +170,8 @@ void main() {
 
     await tester.tap(find.text('Add gear'));
     await tester.pumpAndSettle();
+    // The picker opens with its groups folded (#3364).
+    await openFoldedGroups(tester);
     await tester.tap(find.text('5mm Suit').last);
     await tester.pumpAndSettle();
 
