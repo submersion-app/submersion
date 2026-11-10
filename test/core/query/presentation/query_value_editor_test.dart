@@ -182,6 +182,12 @@ void main() {
     await tester.pump();
     expect((out! as NumberValue).value, closeTo(15.24, 0.001));
     expect((out! as NumberValue).typedUnit, isNull);
+    // Typed at the precision the list shows feet, so it compares as shown
+    // (#4398); a finer number compares exactly.
+    expect((out! as NumberValue).grain, closeTo(0.1 / 3.28084, 1e-12));
+    await tester.enterText(find.byType(TextField), '50.25');
+    await tester.pump();
+    expect((out! as NumberValue).grain, isNull);
   });
 
   testWidgets('an enum field offers localized values and stores the name', (

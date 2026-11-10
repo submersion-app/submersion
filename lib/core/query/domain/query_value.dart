@@ -49,16 +49,27 @@ sealed class QueryValue {
 class NumberValue extends QueryValue {
   final double value;
   final QueryUnit? typedUnit;
-  const NumberValue(this.value, this.typedUnit);
+
+  /// The step the app shows this number's field at, in storage units, when
+  /// a diver typed the number at that precision (issue #4398). A comparison
+  /// then reads the column as shown: `depth < 27.1` (feet) leaves out a dive
+  /// stored at 8.26 m, which is listed as 27.1 ft. Null compares exactly:
+  /// a number typed finer than the display, or one built in code.
+  final double? grain;
+
+  const NumberValue(this.value, this.typedUnit, {this.grain});
   @override
   bool operator ==(Object other) =>
       other is NumberValue &&
       other.value == value &&
-      other.typedUnit == typedUnit;
+      other.typedUnit == typedUnit &&
+      other.grain == grain;
   @override
-  int get hashCode => Object.hash(value, typedUnit);
+  int get hashCode => Object.hash(value, typedUnit, grain);
   @override
-  String toString() => 'NumberValue($value, $typedUnit)';
+  String toString() => grain == null
+      ? 'NumberValue($value, $typedUnit)'
+      : 'NumberValue($value, $typedUnit, grain: $grain)';
 }
 
 class StringValue extends QueryValue {

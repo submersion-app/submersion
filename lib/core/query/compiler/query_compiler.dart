@@ -344,8 +344,8 @@ class _Ctx {
         // A reversed pair (from JSON or the builder) still means the range.
         final items = _ascending((value as ListValue).items);
         final exact =
-            '(${_cmp(f, col, '>=', items[0])} '
-            'AND ${_cmp(f, col, '<=', items[1])})';
+            '(${_shownCmp(f, col, '>=', items[0])} '
+            'AND ${_shownCmp(f, col, '<=', items[1])})';
         final range = f.rangeSql;
         if (range == null) return exact;
         return '($exact OR (${col()} IS NULL '
@@ -361,6 +361,17 @@ class _Ctx {
           }
           final ph = List.filled(items.length, 'unicode_lower(?)').join(', ');
           return '(unicode_lower($c) IN ($ph))';
+        }
+        if (items.any(_hasGrain)) {
+          // Each value as shown is a band, so the list is their union. The
+          // column read above is unused: every band reads its own.
+          final each = [
+            for (final v in items)
+              _hasGrain(v)
+                  ? '(${_shownBand(col, v as NumberValue)})'
+                  : '(${_exactEq(f, col, v)})',
+          ];
+          return '(${each.join(' OR ')})';
         }
         for (final v in items) {
           params.add(_bind(f, v));
@@ -384,7 +395,7 @@ class _Ctx {
           QueryOp.gt => '>',
           _ => '>=',
         };
-        final exact = '(${_cmp(f, col, sym, value!)})';
+        final exact = '(${_shownCmp(f, col, sym, value!)})';
         final range = f.rangeSql;
         if (range == null) return exact;
         // The whole range must satisfy the bound: its low end for a lower
@@ -435,11 +446,13 @@ class _Ctx {
           ? '(unicode_lower($c) = unicode_lower(?))'
           : '(unicode_lower($c) != unicode_lower(?))';
     }
-    if (positive) {
-      final c = col();
-      params.add(_bind(f, value));
-      return '($c = ?)';
+    if (value is NumberValue && value.grain != null) {
+      final band = _shownBand(col, value);
+      if (positive) return '($band)';
+      final present = col();
+      return '(($present) IS NOT NULL AND NOT $band)';
     }
+    if (positive) return '(${_exactEq(f, col, value)})';
     // SQL's `col != ?` is already false for NULL; the explicit test keeps
     // the intent readable in the plan and matches the golden.
     final present = col();
@@ -455,6 +468,47 @@ class _Ctx {
       _ => false,
     };
     return reversed ? [pair[1], pair[0]] : pair;
+  }
+
+  String _exactEq(QueryField f, String Function() read, QueryValue v) {
+    final c = read();
+    params.add(_bind(f, v));
+    return '$c = ?';
+  }
+
+  static bool _hasGrain(QueryValue v) => v is NumberValue && v.grain != null;
+
+  /// The stored values the app shows as [v] (issue #4398): half a grain
+  /// either side, half-open like the rounding that produced the display.
+  String _shownBand(String Function() read, NumberValue v) {
+    final half = v.grain! / 2;
+    final lo = read();
+    params.add(v.value - half);
+    final hi = read();
+    params.add(v.value + half);
+    return '($lo >= ? AND $hi < ?)';
+  }
+
+  /// [_cmp] for a number typed at display precision: the bound moves to the
+  /// edge of the band shown as [v], so `< 27.1` stops below everything shown
+  /// as 27.1 and `<= 27.1` takes all of it in (issue #4398).
+  String _shownCmp(
+    QueryField f,
+    String Function() read,
+    String sym,
+    QueryValue v,
+  ) {
+    if (v is! NumberValue || v.grain == null) return _cmp(f, read, sym, v);
+    final half = v.grain! / 2;
+    final (edge, bound) = switch (sym) {
+      '>' => ('>=', v.value + half),
+      '>=' => ('>=', v.value - half),
+      '<' => ('<', v.value - half),
+      _ => ('<', v.value + half),
+    };
+    final c = read();
+    params.add(bound);
+    return '$c $edge ?';
   }
 
   String _cmp(QueryField f, String Function() read, String sym, QueryValue v) {

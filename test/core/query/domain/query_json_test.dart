@@ -51,6 +51,30 @@ void main() {
     expect(back, equals(tree));
   });
 
+  test('keeps a number display grain, and reads its absence as none', () {
+    // Issue #4398: a saved `depth < 27.1` still compares as shown.
+    final grained = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.lt,
+      const NumberValue(8.26, null, grain: 0.03),
+    );
+    final json = queryNodeToJson(grained);
+    final back = queryNodeFromJson(
+      jsonDecode(jsonEncode(json)) as Map<String, Object?>,
+    );
+    expect(back, equals(grained));
+    final plain = ConditionNode(
+      FieldPath(['depth']),
+      QueryOp.lt,
+      const NumberValue(8.26, null),
+    );
+    expect(
+      jsonEncode(queryNodeToJson(plain)),
+      isNot(contains('"g"')),
+      reason: 'an exact number writes what it always did',
+    );
+  });
+
   test('carries the version', () {
     expect(queryNodeToJson(tree)['version'], kQueryJsonVersion);
   });

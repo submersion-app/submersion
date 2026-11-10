@@ -30,9 +30,12 @@ void main() {
     final unit = r.nextInt(3) == 0
         ? (r.nextBool() ? QueryUnit.m : QueryUnit.ft)
         : null;
+    // The grain is the parser's own (#4398): a number on the display grid
+    // carries one, a finer one does not.
     return NumberValue(
       groundToStorage(raw, unit, FieldDimension.depth, prefs),
       unit,
+      grain: displayGrain(raw, unit, FieldDimension.depth, prefs),
     );
   }
 

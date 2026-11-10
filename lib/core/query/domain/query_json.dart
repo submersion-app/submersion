@@ -31,10 +31,11 @@ Map<String, Object?> _node(QueryNode n) => switch (n) {
 };
 
 Map<String, Object?> _value(QueryValue v) => switch (v) {
-  NumberValue(:final value, :final typedUnit) => {
+  NumberValue(:final value, :final typedUnit, :final grain) => {
     'k': 'num',
     'v': value,
     if (typedUnit != null) 'u': typedUnit.name,
+    'g': ?grain,
   },
   StringValue(:final value) => {'k': 'str', 'v': value},
   BoolValue(:final value) => {'k': 'bool', 'v': value},
@@ -118,6 +119,12 @@ QueryValue _readValue(Map<String, Object?> m) {
       final v = m['v'];
       if (v is! num) throw const QueryJsonException('bad number');
       final u = m['u'];
+      // Absent in a query saved before issue #4398: it compares exactly,
+      // as it always did.
+      final g = m['g'];
+      if (g != null && g is! num) {
+        throw const QueryJsonException('bad number grain');
+      }
       return NumberValue(
         v.toDouble(),
         u == null
@@ -126,6 +133,7 @@ QueryValue _readValue(Map<String, Object?> m) {
                 (x) => x.name == u,
                 orElse: () => throw QueryJsonException('unknown unit $u'),
               ),
+        grain: (g as num?)?.toDouble(),
       );
     case 'str':
       return StringValue(_str(m['v']));

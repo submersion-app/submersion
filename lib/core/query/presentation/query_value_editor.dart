@@ -206,6 +206,12 @@ class QueryValueEditor extends StatelessWidget {
           NumberValue(
             groundToStorage(read.value, unit, field.dimension, context.prefs),
             null,
+            grain: displayGrain(
+              read.value,
+              unit,
+              field.dimension,
+              context.prefs,
+            ),
           ),
         );
       },
