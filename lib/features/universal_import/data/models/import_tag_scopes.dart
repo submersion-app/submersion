@@ -16,14 +16,17 @@ const Map<TagScope, String> importTagScopeKeys = {
 /// is offered everywhere (issue #4407). The equipment CSV sets it.
 const importTagNewEverywhereKey = 'newTagEverywhere';
 
+/// Whether the tag map [data] states any scope flag at all.
+bool importTagStatesScopes(Map<String, dynamic> data) =>
+    importTagScopeKeys.values.any((k) => data[k] != null);
+
 /// The scopes a tag created from [data] gets (issue #4407). A map that
 /// states scopes (a Submersion backup) keeps them exactly; one that states
 /// none (another app's file, or a backup that predates scopes), or that
 /// sets [importTagNewEverywhereKey], is offered everywhere, as any new tag
 /// is.
 Set<TagScope> importedNewTagScopes(Map<String, dynamic> data) {
-  final statesScopes = importTagScopeKeys.values.any((k) => data[k] != null);
-  if (!statesScopes || data[importTagNewEverywhereKey] == true) {
+  if (!importTagStatesScopes(data) || data[importTagNewEverywhereKey] == true) {
     return TagScope.everywhere;
   }
   return importedTagScopes(data);

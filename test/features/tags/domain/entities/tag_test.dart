@@ -11,10 +11,15 @@ void main() {
       ? Tag(id: 't', name: 'T', createdAt: now, updatedAt: now)
       : Tag(id: 't', name: 'T', createdAt: now, updatedAt: now, scopes: scopes);
 
-  test('a tag is a dive tag unless told otherwise', () {
-    expect(tag().scopes, {TagScope.dives});
-    expect(tag().appliesTo(TagScope.dives), isTrue);
-    expect(tag().appliesTo(TagScope.sites), isFalse);
+  test('a tag is offered everywhere unless told otherwise (#4407)', () {
+    expect(tag().scopes, TagScope.everywhere);
+    expect(Tag.create(id: 't', name: 'T').scopes, TagScope.everywhere);
+  });
+
+  test('the constant default names every scope', () {
+    // TagScope.everywhere cannot be a default parameter, so the constructor
+    // spells it out; a new scope must be added there too.
+    expect(Tag.everywhereConst, TagScope.everywhere);
   });
 
   test('create offers the tag in exactly its one scope', () {

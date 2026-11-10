@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/log_failure.dart';
@@ -12,7 +11,9 @@ import 'package:submersion/features/tags/presentation/tag_scope_labels.dart';
 import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_create_dialog.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_scope_checklist.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -40,7 +41,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
   bool get _isSelectionMode => _selection.value.isActive;
   Set<String> get _selectedIds => _selection.value.checkedIds;
 
-  static const _uuid = Uuid();
   static final _log = LoggerService.forClass(TagManagePage);
 
   @override
@@ -95,7 +95,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
           floatingActionButton: selection.isActive
               ? null
               : FloatingActionButton.extended(
-                  onPressed: () => _showCreateDialog(),
+                  onPressed: () => showTagCreateDialog(context),
                   tooltip: context.l10n.tags_manage_createTitle,
                   icon: const Icon(Icons.add),
                   label: Text(context.l10n.tags_manage_createTitle),
@@ -248,158 +248,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     );
   }
 
-  /// The diver's tag named [text], matched as the repository matches names:
-  /// trimmed and ignoring case. Null for no match.
-  ///
-  /// The tag list drops its value while it reloads (after any add), so the
-  /// page's own statistics, which keep theirs, stand in meanwhile. Missing a
-  /// match would tick every scope and Save would widen that tag to all.
-  Tag? _tagNamed(String text) {
-    final wanted = text.trim().toLowerCase();
-    if (wanted.isEmpty) return null;
-    final tags =
-        ref.read(tagListNotifierProvider).value ??
-        [
-          for (final stat
-              in ref.read(tagStatisticsProvider).value ??
-                  const <TagStatistic>[])
-            stat.tag,
-        ];
-    for (final tag in tags) {
-      if (tag.name.trim().toLowerCase() == wanted) return tag;
-    }
-    return null;
-  }
-
-  void _showCreateDialog() {
-    final controller = TextEditingController();
-    String selectedColor = TagColors.predefined.first;
-    // Every scope starts ticked, so a new tag can be reused anywhere unless
-    // the user narrows it here (issue #4407).
-    Set<TagScope> scopes = TagScope.everywhere;
-    // Whether the user changed the boxes. Until they do, the boxes follow
-    // the name: a tag that already holds it shows its own scopes, so what
-    // Save adds to it is exactly what is ticked (issue #4407).
-    bool scopesChosen = false;
-    Tag? existing;
-    bool saving = false;
-    bool failed = false;
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => PopScope(
-          // The barrier, Back and Escape all ask before popping. A save in
-          // flight says no, so a failure still has its dialog to report into.
-          canPop: !saving,
-          child: AlertDialog(
-            title: Text(context.l10n.tags_manage_createTitle),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: controller,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      labelText: context.l10n.tags_manage_nameLabel,
-                      border: const OutlineInputBorder(),
-                    ),
-                    onChanged: (text) => setDialogState(() {
-                      existing = _tagNamed(text);
-                      final held = existing?.scopes;
-                      if (!scopesChosen) {
-                        scopes = held ?? TagScope.everywhere;
-                      } else if (held != null) {
-                        // Save only adds to an existing tag, so what it
-                        // already has stays ticked.
-                        scopes = scopes.union(held);
-                      }
-                    }),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(context.l10n.tags_manage_colorLabel),
-                  const SizedBox(height: 8),
-                  TagColorPicker(
-                    selectedColor: selectedColor,
-                    // Each swatch previews this tag by name, so the colour
-                    // being chosen is the colour that will be seen.
-                    nameController: controller,
-                    onColorSelected: (color) =>
-                        setDialogState(() => selectedColor = color),
-                  ),
-                  const SizedBox(height: 8),
-                  ..._scopeEditor(
-                    scopes: scopes,
-                    // Save never narrows an existing tag (Manage Tags' edit
-                    // dialog does), so its own scopes cannot be unticked.
-                    locked: existing?.scopes ?? const {},
-                    // Applied to the dialog's current set, never replaced
-                    // in place, so a Save already under way keeps its own.
-                    onToggle: (scope, on) => setDialogState(() {
-                      scopesChosen = true;
-                      scopes = on
-                          ? scopes.union({scope})
-                          : scopes.difference({scope});
-                    }),
-                  ),
-                  if (existing != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(
-                        context.l10n.tags_manage_existingTagNote,
-                        style: Theme.of(dialogContext).textTheme.bodySmall,
-                      ),
-                    ),
-                  if (failed) _saveErrorLine(),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: saving ? null : () => Navigator.pop(dialogContext),
-                child: Text(context.l10n.common_action_cancel),
-              ),
-              TextButton(
-                onPressed: saving
-                    ? null
-                    : () {
-                        // A second tap in the same frame still reaches this
-                        // callback: the disabled button is only built next frame.
-                        if (saving) return;
-                        final name = controller.text.trim();
-                        if (name.isEmpty || scopes.isEmpty) return;
-                        final newTag = Tag.create(
-                          id: _uuid.v4(),
-                          name: name,
-                          colorHex: selectedColor,
-                          scopes: scopes,
-                        );
-                        // A tag already holding the name is widened to what
-                        // is ticked, which shows its own scopes unless the
-                        // user changed them.
-                        _saveFromDialog(
-                          dialogContext,
-                          setSaving: (v) => setDialogState(() => saving = v),
-                          setFailed: (v) => setDialogState(() => failed = v),
-                          save: () async {
-                            await ref
-                                .read(tagListNotifierProvider.notifier)
-                                .addTag(newTag);
-                            return true;
-                          },
-                        );
-                      },
-                child: Text(context.l10n.common_action_save),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _showEditDialog(TagStatistic stat) {
     final tag = stat.tag;
     final controller = TextEditingController(text: tag.name);
@@ -414,7 +262,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (dialogContext, setDialogState) => PopScope(
-          // See _showCreateDialog: no dismissal while a save is in flight.
+          // No dismissal while a save is in flight, so a failure still has its dialog.
           canPop: !saving,
           child: AlertDialog(
             title: Text(context.l10n.tags_manage_editTitle),
@@ -443,7 +291,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                         setDialogState(() => selectedColor = color),
                   ),
                   const SizedBox(height: 8),
-                  ..._scopeEditor(
+                  TagScopeChecklist(
                     scopes: scopes,
                     // Applied to the dialog's current set, never replaced
                     // in place, so a Save already under way keeps its own.
@@ -453,7 +301,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                           : scopes.difference({scope}),
                     ),
                   ),
-                  if (failed) _saveErrorLine(),
+                  if (failed) const TagSaveErrorLine(),
                 ],
               ),
             ),
@@ -490,7 +338,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                     onPressed: saving
                         ? null
                         : () {
-                            // See _showCreateDialog: guards a same-frame second tap.
+                            // A second tap in the same frame still reaches here.
                             if (saving) return;
                             // Taken now, so the write matches what the narrowing
                             // confirmation described even if the controls change
@@ -583,48 +431,6 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     } finally {
       if (dialogContext.mounted) setSaving(false);
     }
-  }
-
-  /// The failed-save line, shown in the dialog itself: a page SnackBar would
-  /// render under the dialog's barrier, dimmed and out of reach (#1907). A
-  /// live region, so a screen reader announces it.
-  Widget _saveErrorLine() => Padding(
-    padding: const EdgeInsets.only(top: 8),
-    child: Semantics(
-      liveRegion: true,
-      child: Text(
-        context.l10n.common_error_tryAgain,
-        style: TextStyle(color: Theme.of(context).colorScheme.error),
-      ),
-    ),
-  );
-
-  /// One "Use for ..." checkbox per scope in the registry (issues #1765,
-  /// #1942), with an error line while none is ticked. [onToggle] reports one
-  /// scope ticked or unticked; the caller applies it to its current set, so
-  /// two taps before a rebuild each keep their change.
-  List<Widget> _scopeEditor({
-    required Set<TagScope> scopes,
-    required void Function(TagScope scope, bool on) onToggle,
-    Set<TagScope> locked = const {},
-  }) {
-    final l10n = context.l10n;
-    return [
-      for (final scope in TagScope.values)
-        CheckboxListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(tagScopeUseForLabel(l10n, scope)),
-          value: scopes.contains(scope),
-          onChanged: locked.contains(scope)
-              ? null
-              : (v) => onToggle(scope, v ?? false),
-        ),
-      if (scopes.isEmpty)
-        Text(
-          l10n.tags_manage_scopeRequired,
-          style: TextStyle(color: Theme.of(context).colorScheme.error),
-        ),
-    ];
   }
 
   /// Turning off a scope removes the tag from every item of that scope

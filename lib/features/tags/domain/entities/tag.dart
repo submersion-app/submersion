@@ -51,8 +51,19 @@ class Tag extends Equatable {
     this.colorHex,
     required this.createdAt,
     required this.updatedAt,
-    this.scopes = const {TagScope.dives},
+    this.scopes = everywhereConst,
   });
+
+  /// [TagScope.everywhere] as a constant, so a tag built without scopes is
+  /// offered everywhere, as any new tag is (issue #4407). A test keeps the
+  /// two equal.
+  static const everywhereConst = {
+    TagScope.dives,
+    TagScope.sites,
+    TagScope.equipment,
+    TagScope.media,
+    TagScope.documents,
+  };
 
   /// The colour the tag is drawn in. A tag with no usable colour (one an
   /// import created, say) is drawn as the palette Blue (issue #4384).

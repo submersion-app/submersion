@@ -229,6 +229,7 @@ void main() {
                 name: 'Night',
                 createdAt: now,
                 updatedAt: now,
+                scopes: const {TagScope.dives},
               ),
               Tag(
                 id: 'site-tag',

@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 
 /// Equipment tag references across a multi-file import (issue #1942).
@@ -142,5 +144,58 @@ void main() {
     expect(tag['appliesToDives'], isTrue);
     expect(tag['appliesToSites'], isFalse);
     expect(tag['appliesToEquipment'], isTrue);
+  });
+
+  group('the new-tag everywhere mark (#4407)', () {
+    ImportPayload tagOnly(Map<String, dynamic> tag) => ImportPayload(
+      entities: {
+        ImportEntityType.tags: [tag],
+      },
+    );
+    Map<String, dynamic> mergedTag(
+      Map<String, dynamic> a,
+      Map<String, dynamic> b,
+    ) => merger
+        .merge([
+          FilePayload(fileId: 'a', fileName: 'a', payload: tagOnly(a)),
+          FilePayload(fileId: 'b', fileName: 'b', payload: tagOnly(b)),
+        ])
+        .entitiesOf(ImportEntityType.tags)
+        .single;
+
+    const backup = {
+      'uddfId': 'tag_1',
+      'name': 'Rental',
+      'appliesToDives': false,
+      'appliesToSites': false,
+      'appliesToEquipment': false,
+      'appliesToMedia': true,
+      'appliesToDocuments': false,
+    };
+    const csv = {
+      'uddfId': 'tag_1',
+      'name': 'Rental',
+      'appliesToDives': false,
+      'appliesToSites': false,
+      'appliesToEquipment': true,
+      'appliesToMedia': false,
+      'appliesToDocuments': false,
+      importTagNewEverywhereKey: true,
+    };
+    const silent = {'uddfId': 'tag_1', 'name': 'Rental'};
+
+    test('a backup stating exact scopes drops it, in either order', () {
+      for (final tag in [mergedTag(backup, csv), mergedTag(csv, backup)]) {
+        expect(tag[importTagNewEverywhereKey], isFalse);
+        expect(importedNewTagScopes(tag), {TagScope.equipment, TagScope.media});
+      }
+    });
+
+    test('a silent record keeps it, in either order', () {
+      for (final tag in [mergedTag(silent, csv), mergedTag(csv, silent)]) {
+        expect(tag[importTagNewEverywhereKey], isTrue);
+        expect(importedNewTagScopes(tag), TagScope.everywhere);
+      }
+    });
   });
 }

@@ -144,8 +144,15 @@ void main() {
               name: 'Cold water',
               createdAt: _now,
               updatedAt: _now,
+              scopes: const {TagScope.dives},
             ),
-            Tag(id: 'night', name: 'Night', createdAt: _now, updatedAt: _now),
+            Tag(
+              id: 'night',
+              name: 'Night',
+              createdAt: _now,
+              updatedAt: _now,
+              scopes: const {TagScope.dives},
+            ),
           ],
           equipmentTagIdsByItem: const {
             'reg': ['cold'],

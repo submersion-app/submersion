@@ -1511,8 +1511,9 @@ class UddfEntityImporter {
 
       // One that took the name meanwhile is widened only as an existing
       // tag is above.
-      await repository.createTag(tag, widenExistingTo: scopes);
-      if (uddfId != null) idMapping[uddfId] = newId;
+      final created = await repository.createTag(tag, widenExistingTo: scopes);
+      // The incumbent's id when one took the name meanwhile, not [newId].
+      if (uddfId != null) idMapping[uddfId] = created.id;
       count++;
       onProgress?.call(ImportPhase.tags, count, selected.length);
     }
