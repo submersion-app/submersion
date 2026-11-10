@@ -126,8 +126,13 @@ void main() {
     int? trackingIndex,
   }) async {
     final base = await getBaseOverrides(
+      // Card headers are scrolled to the top and tapped, where the pinned
+      // profile strip (#4423) would sit over them.
       settingsNotifier: MockSettingsNotifier(
-        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.sac),
+        const AppSettings(
+          gasConsumptionDisplay: GasConsumptionDisplay.sac,
+          pinProfileOnScroll: false,
+        ),
       ),
     );
     // The narrow test surface overflows this card's row; that is not what

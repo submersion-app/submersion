@@ -41,14 +41,13 @@ List<Override> _diveOverrides(Dive dive) => [
   sourceProfilesProvider(
     dive.id,
   ).overrideWith((ref) async => <String, SourceProfile>{}),
-  gasSwitchesProvider(dive.id).overrideWith((ref) async => <GasSwitchWithTank>[]),
+  gasSwitchesProvider(
+    dive.id,
+  ).overrideWith((ref) async => <GasSwitchWithTank>[]),
   tankPressuresProvider(
     dive.id,
   ).overrideWith((ref) async => <String, List<TankPressurePoint>>{}),
-  sourceProfileAnalysisProvider((
-    diveId: dive.id,
-    sourceId: null,
-  )).overrideWith(
+  sourceProfileAnalysisProvider((diveId: dive.id, sourceId: null)).overrideWith(
     (ref) async => ProfileAnalysisService().analyze(
       diveId: dive.id,
       depths: [for (final p in dive.profile) p.depth],
@@ -81,7 +80,11 @@ void main() {
     final id = diveId ?? ValueNotifier(diveA.id);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [...base, ..._diveOverrides(diveA), ..._diveOverrides(diveB)],
+        overrides: [
+          ...base,
+          ..._diveOverrides(diveA),
+          ..._diveOverrides(diveB),
+        ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -147,7 +150,9 @@ void main() {
       settings: AppSettings(
         diveDetailSections: [
           for (final s in DiveDetailSectionConfig.defaultSections)
-            s.id == DiveDetailSectionId.profile ? s.copyWith(visible: false) : s,
+            s.id == DiveDetailSectionId.profile
+                ? s.copyWith(visible: false)
+                : s,
         ],
       ),
     );
@@ -155,28 +160,30 @@ void main() {
     expect(find.byType(PinnedProfileStrip), findsNothing);
   });
 
-  testWidgets('switching dives in the pane rebuilds the strip for the new dive', (
-    tester,
-  ) async {
-    final id = ValueNotifier(diveA.id);
-    await pumpPage(tester, diveId: id);
-    await scrollPastProfile(tester);
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(DiveDetailPage)),
-    );
-    container.read(profileTrackingIndexProvider(diveA.id).notifier).state = 40;
-    await tester.pump();
+  testWidgets(
+    'switching dives in the pane rebuilds the strip for the new dive',
+    (tester) async {
+      final id = ValueNotifier(diveA.id);
+      await pumpPage(tester, diveId: id);
+      await scrollPastProfile(tester);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      );
+      container.read(profileTrackingIndexProvider(diveA.id).notifier).state =
+          40;
+      await tester.pump();
 
-    id.value = diveB.id;
-    for (var i = 0; i < 4; i++) {
-      await tester.pump(const Duration(milliseconds: 500));
-    }
-    await scrollPastProfile(tester);
+      id.value = diveB.id;
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 500));
+      }
+      await scrollPastProfile(tester);
 
-    final strip = tester.widget<PinnedProfileStrip>(
-      find.byType(PinnedProfileStrip),
-    );
-    expect(strip.dive.id, diveB.id);
-    expect(container.read(profileTrackingIndexProvider(diveB.id)), isNull);
-  });
+      final strip = tester.widget<PinnedProfileStrip>(
+        find.byType(PinnedProfileStrip),
+      );
+      expect(strip.dive.id, diveB.id);
+      expect(container.read(profileTrackingIndexProvider(diveB.id)), isNull);
+    },
+  );
 }
