@@ -357,6 +357,35 @@ void main() {
     expect((await repository.coverFor(reg.id, regPhoto.id))!.id, regPhoto.id);
   });
 
+  test(
+    'setCover takes only one of the item\'s own identification photos',
+    () async {
+      final reg = await createItem('Reg');
+      final suit = await createItem('Suit');
+      final suitPhoto = await addMedia(equipmentId: suit.id);
+      final finding = await addMedia(
+        equipmentId: reg.id,
+        observationId: await checkIn(reg.id, 'obs-cover'),
+      );
+      final own = await addMedia(equipmentId: reg.id);
+
+      for (final bad in [suitPhoto.id, finding.id, 'no-such-photo']) {
+        await expectLater(
+          repository.setCover(reg.id, bad),
+          throwsArgumentError,
+          reason: bad,
+        );
+      }
+      Future<String?> coverOf(String id) async => (await (db.select(
+        db.equipment,
+      )..where((t) => t.id.equals(id))).getSingle()).coverMediaId;
+      expect(await coverOf(reg.id), isNull);
+
+      await repository.setCover(reg.id, own.id);
+      expect(await coverOf(reg.id), own.id);
+    },
+  );
+
   test('a video is never a cover', () async {
     final reg = await createItem('Reg');
     final video = await addMedia(equipmentId: reg.id, type: MediaType.video);
@@ -376,7 +405,7 @@ void main() {
     await db.delete(db.syncRecords).go();
 
     await expectLater(
-      repository.setCover('gone-item', 'any-photo'),
+      repository.setCover('gone-item', null),
       throwsStateError,
     );
     final pending = await db.select(db.syncRecords).get();

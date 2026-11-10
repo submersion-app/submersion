@@ -204,10 +204,16 @@ class GearPhotoRepository {
   /// never a video), or is no longer one of this item's identification
   /// photos. The caller holds the item, so its cover id is
   /// passed in rather than read again.
-  Future<MediaItem?> coverFor(String equipmentId, String coverId) async {
+  Future<MediaItem?> coverFor(String equipmentId, String coverId) =>
+      _coverCandidate(equipmentId, coverId);
+
+  /// [mediaId] when it may stand for [equipmentId]: a photo on this device,
+  /// linked to this item, backing none of its check-ins. The one rule both
+  /// [setCover] and [coverFor] apply, so what is saved is what is shown.
+  Future<MediaItem?> _coverCandidate(String equipmentId, String mediaId) async {
     final row = await (_db.select(
       _db.media,
-    )..where((t) => t.id.equals(coverId))).getSingleOrNull();
+    )..where((t) => t.id.equals(mediaId))).getSingleOrNull();
     if (row == null) return null;
     final media = mediaItemFromRow(row);
     final belongs =
@@ -223,15 +229,17 @@ class GearPhotoRepository {
   /// touches this column. Throws a [StateError] when the item is gone (a
   /// peer's delete arriving mid-tap), so nothing is marked for sync and the
   /// caller can say the cover did not change, and an [ArgumentError] for a
-  /// row that is not a photo: a cover is a still, never a video.
+  /// row that cannot stand for the item: a video, a check-in's photo,
+  /// another item's photo or one not on this device. Readers would ignore
+  /// such a cover anyway; refusing it keeps it from being synced.
   Future<void> setCover(String equipmentId, String? mediaId) async {
-    if (mediaId != null) {
-      final row = await (_db.select(
-        _db.media,
-      )..where((t) => t.id.equals(mediaId))).getSingleOrNull();
-      if (row != null && mediaItemFromRow(row).mediaType != MediaType.photo) {
-        throw ArgumentError.value(mediaId, 'mediaId', 'not a photo');
-      }
+    if (mediaId != null &&
+        await _coverCandidate(equipmentId, mediaId) == null) {
+      throw ArgumentError.value(
+        mediaId,
+        'mediaId',
+        'not an identification photo of $equipmentId',
+      );
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
