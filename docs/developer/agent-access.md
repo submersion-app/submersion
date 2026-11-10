@@ -130,8 +130,14 @@ own code and writes nothing (issue #4203). It never has a planner of its own:
   problem-solving allowance (`problem_solving_minutes` at the deepest point on
   bottom SAC times `sac_factor`), which `litres_used` includes.
 - **Following a logged dive** reads it through the planner's
-  `seriesFollowProvider`, injected as a `SeriesFollowReader`, so the carry-in
-  is the planner's own.
+  `seriesFollowProvider`, injected as a `SeriesFollowReader` and wrapped in
+  `loggedDivesOnly`, so the carry-in is the planner's own and a planned entry
+  is never followed.
+- **What a dive carried in** includes `tissue_loading`: the tissues from
+  `startStateForPlan`, the state the engine starts the dive from, so after
+  the surface interval has off-gassed them. It names the leading compartment
+  by percent of the surface M-value, as the app's tissue card ranks them, the
+  surface gradient factor, and each compartment's N2 and He.
 
 Every answer carries the planner's caveat in the app's language, and the
 description tells the agent to pass on every issue.

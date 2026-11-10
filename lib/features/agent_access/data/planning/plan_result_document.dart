@@ -1,9 +1,13 @@
+import 'package:submersion/core/deco/deco_model.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/agent_access/data/documents/document_dates.dart';
+import 'package:submersion/features/dive_planner/domain/entities/plan_result.dart'
+    show DivePlanState;
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart';
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_series_calculator.dart';
+import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/domain/services/schedule_lines.dart';
 
 /// One dive of a `compute_plan` answer (issue #4203): what the planner
@@ -64,7 +68,7 @@ Map<String, Object?> planResultDocument(
     'cns_end_percent': _round(outcome.cnsEnd, 1),
     'otu_total': _round(outcome.otuTotal, 1),
     'issues': [for (final issue in outcome.issues) _issue(issue, place)],
-    'carried_in': _carriedIn(result),
+    'carried_in': _carriedIn(result, config: config),
     'effective_settings': effectiveSettings(plan, config),
     'resolved_inputs': inputs,
   };
@@ -113,8 +117,12 @@ Map<String, Object?> _issue(PlanIssue issue, Map<String, int> place) => {
 };
 
 /// What a dive started with from the dives before it, or null for a dive
-/// that started fresh.
-Map<String, Object?>? _carriedIn(SeriesDiveResult result) {
+/// that started fresh. [config] is the diver's, for the gradient factors
+/// the engine seeds the dive's tissues with.
+Map<String, Object?>? _carriedIn(
+  SeriesDiveResult result, {
+  required PlanEngineConfig config,
+}) {
   final state = result.state;
   final tissues = state.initialTissueState != null;
   final cns = state.initialCns ?? 0;
@@ -128,8 +136,46 @@ Map<String, Object?>? _carriedIn(SeriesDiveResult result) {
         : wallClock(asWallClockUtc(state.startDateTime!)),
     'surface_interval_s': state.surfaceInterval?.inSeconds,
     'tissues_loaded': tissues,
+    'tissue_loading': tissues ? _tissueLoading(state, config: config) : null,
     'cns_percent': _round(cns, 1),
     'otu': _round(otu, 1),
+  };
+}
+
+/// How loaded the dive's tissues are as it starts: what the dives before
+/// left, off-gassed over the surface interval, the state the engine begins
+/// the dive from. Ranked as the app's tissue card ranks compartments, by
+/// percent of the surface M-value; surface_gf_percent is how near the most
+/// supersaturated compartment is to its M-value at the dive's own surface
+/// pressure (100 = at it, 0 or less = no supersaturation).
+Map<String, Object?>? _tissueLoading(
+  DivePlanState state, {
+  required PlanEngineConfig config,
+}) {
+  final seed = startStateForPlan(state, config: config);
+  if (seed is! BuhlmannState || seed.compartments.isEmpty) return null;
+  final compartments = seed.compartments;
+  final surface = environmentForPlan(state).surfacePressureBar;
+  final leading = compartments.reduce(
+    (a, b) => a.percentLoading >= b.percentLoading ? a : b,
+  );
+  final surfaceGf = compartments
+      .map((c) => c.gradientFactor(surface))
+      .reduce((a, b) => a > b ? a : b);
+  return {
+    'leading_compartment': leading.compartmentNumber,
+    'leading_loading_percent': _round(leading.percentLoading, 1),
+    'surface_gf_percent': _round(surfaceGf * 100, 1),
+    'compartments': [
+      for (final c in compartments)
+        {
+          'compartment': c.compartmentNumber,
+          'half_time_n2_min': c.halfTimeN2,
+          'n2_bar': _round(c.currentPN2, 3),
+          'he_bar': _round(c.currentPHe, 3),
+          'loading_percent': _round(c.percentLoading, 1),
+        },
+    ],
   };
 }
 

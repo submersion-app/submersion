@@ -273,4 +273,52 @@ void main() {
     expect(carried['tissues_loaded'], isTrue);
     expect(carried['start_date_time'], startsWith('2026-11-14T'));
   });
+
+  test('a later dive says how loaded its tissues start', () {
+    Map<String, Object?> loadingAfter(int intervalS) {
+      final docs = compute({
+        'dives': [
+          {
+            'tanks': [ean21, ean50],
+            'bottom': {'depth_m': 40, 'time_s': 1500},
+          },
+          {
+            'surface_interval_s': intervalS,
+            'bottom': {'depth_m': 18, 'time_s': 2400},
+          },
+        ],
+      });
+      return ((docs[1]['carried_in']! as Map)['tissue_loading']! as Map)
+          .cast<String, Object?>();
+    }
+
+    final soon = loadingAfter(1800);
+    final compartments = (soon['compartments']! as List).cast<Map>();
+    expect(compartments, hasLength(16));
+    expect(compartments.first['compartment'], 1);
+    final leading = compartments.firstWhere(
+      (c) => c['compartment'] == soon['leading_compartment'],
+    );
+    expect(leading['loading_percent'], soon['leading_loading_percent']);
+    expect(
+      compartments.map((c) => c['loading_percent'] as double),
+      everyElement(lessThanOrEqualTo(soon['leading_loading_percent']! as num)),
+    );
+
+    // Taken as the dive starts, after the interval off-gasses it: a longer
+    // interval carries in less.
+    final later = loadingAfter(4 * 3600);
+    expect(
+      later['leading_loading_percent']! as double,
+      lessThan(soon['leading_loading_percent']! as double),
+    );
+    expect(
+      later['surface_gf_percent']! as double,
+      lessThan(soon['surface_gf_percent']! as double),
+    );
+  });
+
+  test('a first dive following nothing carries in no loading', () {
+    expect(compute(deco).single['carried_in'], isNull);
+  });
 }
