@@ -404,10 +404,7 @@ void main() {
   test('setCover on an item that is gone throws and marks nothing', () async {
     await db.delete(db.syncRecords).go();
 
-    await expectLater(
-      repository.setCover('gone-item', null),
-      throwsStateError,
-    );
+    await expectLater(repository.setCover('gone-item', null), throwsStateError);
     final pending = await db.select(db.syncRecords).get();
     expect(pending.where((r) => r.recordId == 'gone-item'), isEmpty);
   });
