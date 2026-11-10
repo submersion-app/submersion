@@ -118,7 +118,7 @@ void main() {
       _expectKeyboardClearedOnce(tester);
     });
 
-    testWidgets('so does a page below the demo strip', (tester) async {
+    testWidgets('so does a page in demo mode', (tester) async {
       await _pumpShell(tester, const _Page(), keyboard: _keyboard, demo: true);
 
       _expectKeyboardClearedOnce(tester);
@@ -189,7 +189,7 @@ void main() {
       expect(_pageQuery(tester).padding.bottom, 0);
     });
 
-    testWidgets('below the demo strip the status bar is cleared once (#3708)', (
+    testWidgets('in demo mode the page still clears the status bar (#4428)', (
       tester,
     ) async {
       await _pumpShell(
@@ -199,7 +199,9 @@ void main() {
         demo: true,
       );
 
-      expect(_pageQuery(tester).padding.top, 0);
+      // No strip sits above the page any more, so the page keeps the status
+      // bar inset and pads for it itself.
+      expect(_pageQuery(tester).padding.top, 47);
     });
   });
 }

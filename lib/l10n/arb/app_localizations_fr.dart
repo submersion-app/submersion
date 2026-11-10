@@ -61241,6 +61241,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get demo_strip_exit => 'Quitter la démo';
 
   @override
+  String get demo_ribbon_label => 'DÉMO';
+
+  @override
   String get demo_exit_confirm_title => 'Quitter le mode démo ?';
 
   @override

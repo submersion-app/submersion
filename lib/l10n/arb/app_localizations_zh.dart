@@ -57344,6 +57344,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get demo_strip_exit => '退出演示';
 
   @override
+  String get demo_ribbon_label => '演示';
+
+  @override
   String get demo_exit_confirm_title => '退出演示模式？';
 
   @override

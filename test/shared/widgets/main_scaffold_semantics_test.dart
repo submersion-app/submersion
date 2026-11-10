@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
-import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -58,7 +57,6 @@ Future<void> _pumpShell(WidgetTester tester, {required Size size}) async {
         settingsProvider.overrideWith(
           (ref) => StubSettingsNotifier(const AppSettings()),
         ),
-        demoModeActiveProvider.overrideWithValue(true),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -96,16 +94,6 @@ List<String> _labelsOf(Iterable<SemanticsNode> nodes) => [
 List<String> _labels(WidgetTester tester) =>
     _labelsOf(_descendants(_root(tester)));
 
-/// The labels under the node [label] names, which must be one node.
-List<String> _labelsUnder(WidgetTester tester, String label) {
-  final found = [
-    for (final node in _descendants(_root(tester)))
-      if (node.label == label) node,
-  ];
-  expect(found, hasLength(1), reason: 'one node named "$label"');
-  return _labelsOf(_descendants(found.single));
-}
-
 Matcher _hasLabelStartingWith(String text) =>
     contains(predicate<String>((label) => label.startsWith(text), text));
 
@@ -113,43 +101,28 @@ void main() {
   final l10n = lookupAppLocalizations(const Locale('en'));
 
   group('a screen reader reaches the shell chrome (#4166)', () {
-    testWidgets('the rail destinations and the demo strip on a wide screen', (
-      tester,
-    ) async {
+    testWidgets('the rail destinations on a wide screen', (tester) async {
       final semantics = tester.ensureSemantics();
       await _pumpShell(tester, size: const Size(1400, 900));
 
       final labels = _labels(tester);
       expect(labels, _hasLabelStartingWith(l10n.nav_home));
       expect(labels, _hasLabelStartingWith(l10n.nav_dives));
-      expect(labels, contains(l10n.demo_strip_label));
-      expect(labels, contains(l10n.demo_strip_exit));
       expect(labels, contains('Page body'));
-      // The strip's words name the strip, not the whole shell around it.
-      expect(_labelsUnder(tester, l10n.demo_strip_label), [
-        l10n.demo_strip_exit,
-      ]);
       semantics.dispose();
     });
 
-    testWidgets('the demo strip on a phone', (tester) async {
+    testWidgets('the bottom bar on a phone', (tester) async {
       final semantics = tester.ensureSemantics();
       await _pumpShell(tester, size: const Size(390, 844));
 
       final labels = _labels(tester);
-      expect(labels, contains(l10n.demo_strip_label));
-      expect(labels, contains(l10n.demo_strip_exit));
+      expect(labels, _hasLabelStartingWith(l10n.nav_home));
       expect(labels, contains('Page body'));
-      // The strip's words name the strip, not the whole shell around it.
-      expect(_labelsUnder(tester, l10n.demo_strip_label), [
-        l10n.demo_strip_exit,
-      ]);
       semantics.dispose();
     });
 
-    testWidgets('the demo strip while a page hides the shell chrome', (
-      tester,
-    ) async {
+    testWidgets('the page while it hides the shell chrome', (tester) async {
       final semantics = tester.ensureSemantics();
       await _pumpShell(tester, size: const Size(390, 844));
       ShellChromeScope.maybeOf(
@@ -157,12 +130,7 @@ void main() {
       )!.requestHidden(tester);
       await tester.pumpAndSettle();
 
-      final labels = _labels(tester);
-      expect(labels, contains(l10n.demo_strip_label));
-      expect(labels, contains('Page body'));
-      expect(_labelsUnder(tester, l10n.demo_strip_label), [
-        l10n.demo_strip_exit,
-      ]);
+      expect(_labels(tester), contains('Page body'));
       semantics.dispose();
     });
   });

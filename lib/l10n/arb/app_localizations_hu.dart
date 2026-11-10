@@ -60773,6 +60773,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get demo_strip_exit => 'Kilépés a demóból';
 
   @override
+  String get demo_ribbon_label => 'DEMÓ';
+
+  @override
   String get demo_exit_confirm_title => 'Kilépsz a demó módból?';
 
   @override

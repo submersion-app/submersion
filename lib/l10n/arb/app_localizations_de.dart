@@ -60975,6 +60975,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get demo_strip_exit => 'Demo beenden';
 
   @override
+  String get demo_ribbon_label => 'DEMO';
+
+  @override
   String get demo_exit_confirm_title => 'Demomodus beenden?';
 
   @override

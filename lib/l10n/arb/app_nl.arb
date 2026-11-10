@@ -17929,6 +17929,7 @@
   "demo_settings_exit_subtitle": "Voorbeeldlogboek weggooien en terug naar je eigen logboek",
   "demo_strip_label": "Demomodus: je verkent voorbeeldgegevens",
   "demo_strip_exit": "Demo afsluiten",
+  "demo_ribbon_label": "DEMO",
   "demo_exit_confirm_title": "Demomodus afsluiten?",
   "demo_exit_confirm_body": "Wijzigingen in het voorbeeldlogboek gaan verloren.",
   "demo_exit_confirm_action": "Demo afsluiten",

@@ -17929,6 +17929,7 @@
   "demo_settings_exit_subtitle": "丢弃示例日志并返回你自己的日志",
   "demo_strip_label": "演示模式：你正在浏览示例数据",
   "demo_strip_exit": "退出演示",
+  "demo_ribbon_label": "演示",
   "demo_exit_confirm_title": "退出演示模式？",
   "demo_exit_confirm_body": "你对示例日志所做的更改将被丢弃。",
   "demo_exit_confirm_action": "退出演示",

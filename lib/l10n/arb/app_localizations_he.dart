@@ -59834,6 +59834,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get demo_strip_exit => 'יציאה מההדגמה';
 
   @override
+  String get demo_ribbon_label => 'הדגמה';
+
+  @override
   String get demo_exit_confirm_title => 'לצאת ממצב ההדגמה?';
 
   @override

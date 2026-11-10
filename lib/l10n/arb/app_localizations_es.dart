@@ -61146,6 +61146,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get demo_strip_exit => 'Salir de la demo';
 
   @override
+  String get demo_ribbon_label => 'DEMO';
+
+  @override
   String get demo_exit_confirm_title => '¿Salir del modo demo?';
 
   @override

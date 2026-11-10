@@ -95947,7 +95947,7 @@ abstract class AppLocalizations {
   /// **'Discard the sample logbook and return to your own'**
   String get demo_settings_exit_subtitle;
 
-  /// Demo mode (issue #3708)
+  /// Demo mode (issue #3708); since #4428 the screen reader label of the demo corner ribbon
   ///
   /// In en, this message translates to:
   /// **'Demo mode: you are exploring sample data'**
@@ -95958,6 +95958,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Exit demo'**
   String get demo_strip_exit;
+
+  /// Demo mode corner ribbon text; short, written in capitals where the script has them (issue #4428)
+  ///
+  /// In en, this message translates to:
+  /// **'DEMO'**
+  String get demo_ribbon_label;
 
   /// Demo mode (issue #3708)
   ///

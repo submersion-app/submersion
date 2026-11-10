@@ -17929,6 +17929,7 @@
   "demo_settings_exit_subtitle": "Scarta il logbook di esempio e torna al tuo",
   "demo_strip_label": "Modalità demo: stai esplorando dati di esempio",
   "demo_strip_exit": "Esci dalla demo",
+  "demo_ribbon_label": "DEMO",
   "demo_exit_confirm_title": "Uscire dalla modalità demo?",
   "demo_exit_confirm_body": "Le modifiche apportate al logbook di esempio andranno perse.",
   "demo_exit_confirm_action": "Esci dalla demo",

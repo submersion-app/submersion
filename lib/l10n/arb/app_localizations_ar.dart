@@ -62006,6 +62006,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get demo_strip_exit => 'الخروج من العرض التجريبي';
 
   @override
+  String get demo_ribbon_label => 'تجريبي';
+
+  @override
   String get demo_exit_confirm_title => 'الخروج من الوضع التجريبي؟';
 
   @override

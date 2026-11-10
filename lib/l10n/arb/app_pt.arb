@@ -17929,6 +17929,7 @@
   "demo_settings_exit_subtitle": "Descartar o diário de exemplo e voltar ao seu",
   "demo_strip_label": "Modo de demonstração: está a explorar dados de exemplo",
   "demo_strip_exit": "Sair da demonstração",
+  "demo_ribbon_label": "DEMO",
   "demo_exit_confirm_title": "Sair do modo de demonstração?",
   "demo_exit_confirm_body": "As alterações feitas no diário de exemplo serão descartadas.",
   "demo_exit_confirm_action": "Sair da demonstração",
