@@ -19597,6 +19597,7 @@
   },
   "tags_manage_narrowDialog_title": "Remove tag from existing items?",
   "tags_manage_scopeRequired": "Choose at least one: dives, sites, equipment, media, or documents",
+  "tags_manage_existingTagNote": "This tag already exists. Saving adds the ticked uses to it.",
   "tags_manage_scope_dives": "Dives",
   "tags_manage_scope_equipment": "Equipment",
   "tags_manage_scope_sites": "Sites",

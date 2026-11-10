@@ -32620,6 +32620,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'בחר לפחות אחד: צלילות, אתרים, ציוד, מדיה או מסמכים';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'תגית זו כבר קיימת. השמירה מוסיפה לה את השימושים המסומנים.';
+
+  @override
   String get tags_manage_scope_dives => 'צלילות';
 
   @override

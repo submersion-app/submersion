@@ -141,7 +141,7 @@ void main() {
   test('createTag on a colliding name widens the incumbent too', () async {
     final diveTag = await repository.getOrCreateTag('Night');
     final result = await repository.createTag(
-      Tag.create(id: '', name: 'NIGHT', scope: TagScope.sites),
+      Tag.create(id: '', name: 'NIGHT', scopes: {TagScope.sites}),
     );
     expect(result.id, diveTag.id);
     expect(result.appliesTo(TagScope.sites), isTrue);

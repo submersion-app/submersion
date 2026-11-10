@@ -33475,6 +33475,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Elige al menos uno: inmersiones, puntos, equipo, multimedia o documentos';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'Esta etiqueta ya existe. Al guardar se le añaden los usos marcados.';
+
+  @override
   String get tags_manage_scope_dives => 'Inmersiones';
 
   @override

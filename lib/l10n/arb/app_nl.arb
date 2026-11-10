@@ -9471,6 +9471,7 @@
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Deze tag staat op 1 duikstek. Als je \"Gebruiken voor duikstekken\" uitzet, wordt hij van die duikstek verwijderd.} other{Deze tag staat op {count} duikstekken. Als je \"Gebruiken voor duikstekken\" uitzet, wordt hij van die duikstekken verwijderd.}}",
   "tags_manage_narrowDialog_title": "Tag van bestaande items verwijderen?",
   "tags_manage_scopeRequired": "Kies er minstens één: duiken, duikstekken, uitrusting, media of documenten",
+  "tags_manage_existingTagNote": "Deze tag bestaat al. Opslaan voegt de aangevinkte toepassingen eraan toe.",
   "tags_manage_scope_dives": "Duiken",
   "tags_manage_scope_equipment": "Uitrusting",
   "tags_manage_scope_sites": "Duikstekken",

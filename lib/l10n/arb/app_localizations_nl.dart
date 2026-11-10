@@ -33229,6 +33229,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kies er minstens één: duiken, duikstekken, uitrusting, media of documenten';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'Deze tag bestaat al. Opslaan voegt de aangevinkte toepassingen eraan toe.';
+
+  @override
   String get tags_manage_scope_dives => 'Duiken';
 
   @override

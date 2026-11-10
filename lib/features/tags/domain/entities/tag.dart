@@ -61,17 +61,14 @@ class Tag extends Equatable {
   /// Whether the tag is offered where [scope] is.
   bool appliesTo(TagScope scope) => scopes.contains(scope);
 
-  /// Create a new tag with a default color, offered in [scopes], or in
-  /// [scope] only (dives when neither is given). Pass one or the other.
+  /// Create a new tag with a default color, offered in [scopes].
   factory Tag.create({
     required String id,
     required String name,
     String? diverId,
     String? colorHex,
-    TagScope? scope,
-    Set<TagScope>? scopes,
+    Set<TagScope> scopes = const {TagScope.dives},
   }) {
-    assert(scope == null || scopes == null, 'Pass scope or scopes, not both');
     final now = DateTime.now();
     return Tag(
       id: id,
@@ -80,7 +77,7 @@ class Tag extends Equatable {
       colorHex: colorHex,
       createdAt: now,
       updatedAt: now,
-      scopes: scopes ?? {scope ?? TagScope.dives},
+      scopes: scopes,
     );
   }
 

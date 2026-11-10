@@ -19,7 +19,7 @@ void main() {
 
   test('create offers the tag in exactly its one scope', () {
     for (final scope in TagScope.values) {
-      expect(Tag.create(id: 't', name: 'T', scope: scope).scopes, {scope});
+      expect(Tag.create(id: 't', name: 'T', scopes: {scope}).scopes, {scope});
     }
   });
 

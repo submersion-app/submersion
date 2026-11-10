@@ -53023,6 +53023,12 @@ abstract class AppLocalizations {
   /// **'Choose at least one: dives, sites, equipment, media, or documents'**
   String get tags_manage_scopeRequired;
 
+  /// No description provided for @tags_manage_existingTagNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag already exists. Saving adds the ticked uses to it.'**
+  String get tags_manage_existingTagNote;
+
   /// No description provided for @tags_manage_scope_dives.
   ///
   /// In en, this message translates to:

@@ -9367,6 +9367,7 @@
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Questo tag è su 1 sito. Disattivando \"Usa per i siti\" verrà rimosso da quel sito.} other{Questo tag è su {count} siti. Disattivando \"Usa per i siti\" verrà rimosso da quei siti.}}",
   "tags_manage_narrowDialog_title": "Rimuovere il tag dagli elementi esistenti?",
   "tags_manage_scopeRequired": "Scegli almeno uno: immersioni, siti, attrezzatura, media o documenti",
+  "tags_manage_existingTagNote": "Questo tag esiste già. Salvando gli si aggiungono gli usi selezionati.",
   "tags_manage_scope_dives": "Immersioni",
   "tags_manage_scope_equipment": "Attrezzatura",
   "tags_manage_scope_sites": "Siti",

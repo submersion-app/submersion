@@ -83,7 +83,7 @@ void main() {
     () async {
       final diveTag = await repository.getOrCreateTag('Night');
       final result = await repository.createTag(
-        Tag.create(id: '', name: 'NIGHT', scope: TagScope.equipment),
+        Tag.create(id: '', name: 'NIGHT', scopes: {TagScope.equipment}),
       );
       expect(result.id, diveTag.id);
       expect(result.appliesTo(TagScope.equipment), isTrue);

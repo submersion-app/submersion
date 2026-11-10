@@ -248,15 +248,29 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     );
   }
 
+  /// The diver's tag named [text], matched as the repository matches names:
+  /// trimmed and ignoring case. Null for no match.
+  Tag? _tagNamed(String text) {
+    final wanted = text.trim().toLowerCase();
+    if (wanted.isEmpty) return null;
+    final tags = ref.read(tagListNotifierProvider).value ?? const <Tag>[];
+    for (final tag in tags) {
+      if (tag.name.trim().toLowerCase() == wanted) return tag;
+    }
+    return null;
+  }
+
   void _showCreateDialog() {
     final controller = TextEditingController();
     String selectedColor = TagColors.predefined.first;
     // Every scope starts ticked, so a new tag can be reused anywhere unless
     // the user narrows it here (issue #4407).
     Set<TagScope> scopes = TagScope.everywhere;
-    // Whether the user changed the boxes: only a choice widens a tag that
-    // already holds the name (issue #4407).
+    // Whether the user changed the boxes. Until they do, the boxes follow
+    // the name: a tag that already holds it shows its own scopes, so what
+    // Save adds to it is exactly what is ticked (issue #4407).
     bool scopesChosen = false;
+    Tag? existing;
     bool saving = false;
     bool failed = false;
 
@@ -281,6 +295,12 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                       labelText: context.l10n.tags_manage_nameLabel,
                       border: const OutlineInputBorder(),
                     ),
+                    onChanged: (text) => setDialogState(() {
+                      existing = _tagNamed(text);
+                      if (!scopesChosen) {
+                        scopes = existing?.scopes ?? TagScope.everywhere;
+                      }
+                    }),
                   ),
                   const SizedBox(height: 16),
                   Text(context.l10n.tags_manage_colorLabel),
@@ -305,6 +325,14 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                           : scopes.difference({scope});
                     }),
                   ),
+                  if (existing != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        context.l10n.tags_manage_existingTagNote,
+                        style: Theme.of(dialogContext).textTheme.bodySmall,
+                      ),
+                    ),
                   if (failed) _saveErrorLine(),
                 ],
               ),
@@ -329,12 +357,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                           colorHex: selectedColor,
                           scopes: scopes,
                         );
-                        // Untouched boxes are the default, not a choice, so
-                        // a tag already holding this name is reused as it
-                        // is. A set the user chose widens it.
-                        final widenExistingTo = scopesChosen
-                            ? scopes
-                            : const <TagScope>{};
+                        // A tag already holding the name is widened to what
+                        // is ticked, which shows its own scopes unless the
+                        // user changed them.
                         _saveFromDialog(
                           dialogContext,
                           setSaving: (v) => setDialogState(() => saving = v),
@@ -342,10 +367,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                           save: () async {
                             await ref
                                 .read(tagListNotifierProvider.notifier)
-                                .addTag(
-                                  newTag,
-                                  widenExistingTo: widenExistingTo,
-                                );
+                                .addTag(newTag);
                             return true;
                           },
                         );

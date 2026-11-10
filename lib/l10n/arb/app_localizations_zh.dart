@@ -31493,6 +31493,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_manage_scopeRequired => '请至少选择一项：潜水、潜水点、装备、媒体或文档';
 
   @override
+  String get tags_manage_existingTagNote => '此标签已存在。保存后将为其添加所勾选的用途。';
+
+  @override
   String get tags_manage_scope_dives => '潜水';
 
   @override
