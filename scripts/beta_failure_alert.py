@@ -79,8 +79,10 @@ _RESOLVED_RUN_RE = re.compile(r"<!-- beta-resolved-run: (\d+) -->")
 # Used when the BETA_ALERT_ASSIGNEE Actions variable is unset.
 DEFAULT_ASSIGNEE = "ericgriffin"
 
-# Job conclusions the jobs API uses for a failed job.
+# Job conclusions the jobs API uses for a failed job, and the step conclusion
+# that marks where it failed.
 FAILED_CONCLUSIONS = frozenset({"failure", "startup_failure"})
+FAILED_STEP_CONCLUSIONS = frozenset({"failure"})
 
 # A timeout has been seen only as a `cancelled` job (see TIMEOUT_ANNOTATION),
 # but `timed_out` is a documented conclusion, so a job reported that way is
@@ -89,9 +91,16 @@ TIMED_OUT_CONCLUSION = "timed_out"
 STOPPED_STEP_CONCLUSIONS = frozenset({"cancelled", "timed_out"})
 
 # The check-run annotation GitHub writes on a job that ran out of time, as in
-# "The job has exceeded the maximum execution time of 45m0s". A preempted job
-# says "Canceling since a higher priority waiting request for <group> exists".
+# "The job has exceeded the maximum execution time of 45m0s".
 TIMEOUT_ANNOTATION = "exceeded the maximum execution time"
+
+# Annotations of the cancellations that are not failures: a newer run's
+# concurrency group preempting the job ("Canceling since a higher priority
+# waiting request for beta-build exists") and a run cancelled by hand. A
+# cancelled job matching neither these nor TIMEOUT_ANNOTATION is named in a
+# warning, so a reworded timeout message shows in the log instead of passing
+# as silently as the timeouts this script was changed to catch.
+BENIGN_CANCEL_ANNOTATIONS = ("higher priority waiting request", "was canceled by")
 
 
 def decide(needs):
@@ -112,20 +121,20 @@ def decide(needs):
     return "none", []
 
 
-def failed_steps(jobs, timed_out=frozenset()):
+def failed_steps(jobs, timed_out_ids=frozenset()):
     """Return [(job name, [step names])] for every failed or timed-out job.
 
     A failed job lists its failed steps. A timed-out job, whether its id is in
-    timed_out (a `cancelled` job whose annotation says so) or the API reports
-    it as `timed_out`, lists the step the timeout stopped.
+    timed_out_ids (a `cancelled` job whose annotation says so) or the API
+    reports it as `timed_out`, lists the step the timeout stopped.
     """
     listed = []
     for job in jobs:
         name = job.get("name", "?")
         conclusion = job.get("conclusion")
         if conclusion in FAILED_CONCLUSIONS:
-            wanted = frozenset({"failure"})
-        elif conclusion == TIMED_OUT_CONCLUSION or job.get("id") in timed_out:
+            wanted = FAILED_STEP_CONCLUSIONS
+        elif conclusion == TIMED_OUT_CONCLUSION or job.get("id") in timed_out_ids:
             name, wanted = f"{name} (timed out)", STOPPED_STEP_CONCLUSIONS
         else:
             continue
@@ -138,9 +147,14 @@ def failed_steps(jobs, timed_out=frozenset()):
     return listed
 
 
-def timed_out(annotations):
-    """True when a job's check-run annotations say it ran out of time."""
-    return any(TIMEOUT_ANNOTATION in (a.get("message") or "") for a in annotations)
+def cancel_reason(annotations):
+    """Return "timeout", "benign" or "unknown" for a cancelled job."""
+    messages = [a.get("message") or "" for a in annotations]
+    if any(TIMEOUT_ANNOTATION in m for m in messages):
+        return "timeout"
+    if any(p in m for m in messages for p in BENIGN_CANCEL_ANNOTATIONS):
+        return "benign"
+    return "unknown"
 
 
 def gh_cli(args):
@@ -165,39 +179,57 @@ def _read_jobs(gh, ctx):
     return [job for page in pages for job in page.get("jobs", [])]
 
 
-def _timed_out_ids(gh, ctx, jobs):
-    """Return the ids of the cancelled jobs that ran out of time.
+def _annotations(gh, ctx, job_id):
+    """Return a job's check-run annotations across every page."""
+    path = f"repos/{ctx['repo']}/check-runs/{job_id}/annotations"
+    pages = json.loads(gh(["api", "--paginate", "--slurp", path]))
+    return [a for page in pages for a in page]
 
-    Raises if a cancelled job's annotations cannot be read.
+
+def _run_details(gh, ctx, strict):
+    """Return failed_steps() for this run attempt.
+
+    Reads the jobs, then the annotations of each cancelled job to find the
+    ones that ran out of time. When strict, any read that fails raises. When
+    not, an unreadable job list raises but an unreadable annotation is a
+    warning that skips that one job, so the others are still named.
     """
-    ids = set()
+    jobs = _read_jobs(gh, ctx)
+    timed_out_ids = set()
     for job in jobs:
-        if job.get("conclusion") != "cancelled":
+        job_id = job.get("id")
+        if job.get("conclusion") != "cancelled" or job_id is None:
             continue
-        path = f"repos/{ctx['repo']}/check-runs/{job['id']}/annotations"
-        pages = json.loads(gh(["api", "--paginate", "--slurp", path]))
-        if timed_out([a for page in pages for a in page]):
-            ids.add(job["id"])
-    return frozenset(ids)
+        name = job.get("name", job_id)
+        try:
+            reason = cancel_reason(_annotations(gh, ctx, job_id))
+        except (subprocess.CalledProcessError, ValueError) as exc:
+            if strict:
+                raise
+            _warn(f"could not read the annotations of {name} ({exc}); a timeout there is not named")
+            continue
+        if reason == "timeout":
+            timed_out_ids.add(job_id)
+        elif reason == "unknown":
+            _warn(
+                f"{name} was cancelled for a reason this script does not "
+                "recognise; if it ran out of time, GitHub may have reworded "
+                "its timeout annotation (TIMEOUT_ANNOTATION)"
+            )
+    return failed_steps(jobs, frozenset(timed_out_ids))
 
 
 def _details_best_effort(gh, ctx):
-    """Return failed_steps() for this run, or None if the jobs cannot be read.
+    """Return _run_details() for this run, or None if the jobs cannot be read.
 
     For a run that already failed: the alert goes out either way, so losing
-    the details, or only the timed-out jobs among them, is a warning.
+    the details, or only some timed-out jobs among them, is a warning.
     """
     try:
-        jobs = _read_jobs(gh, ctx)
+        return _run_details(gh, ctx, strict=False)
     except (subprocess.CalledProcessError, ValueError) as exc:
         _warn(f"could not read this run's jobs ({exc}); listing job ids only")
         return None
-    try:
-        timed_out_ids = _timed_out_ids(gh, ctx, jobs)
-    except (subprocess.CalledProcessError, ValueError) as exc:
-        _warn(f"could not read the cancelled jobs' annotations ({exc}); timeouts are not named")
-        timed_out_ids = frozenset()
-    return failed_steps(jobs, timed_out_ids)
 
 
 def _failure_lines(failed_ids, details):
@@ -376,21 +408,21 @@ def resolve_alert(gh, ctx):
 
 
 def _check_cancelled(gh, ctx, cancelled_ids):
-    """Alert on a run whose cancelled jobs include one that timed out.
+    """Alert on a run whose jobs include one that timed out or failed.
 
-    Unlike the failure path, nothing here is best effort: if the jobs or their
-    annotations cannot be read, the error fails this job, since staying quiet
-    is how timed-out betas went unnoticed.
+    A job counts whether the API reports it `timed_out` or `cancelled` with a
+    timeout annotation. Unlike the failure path, nothing here is best effort:
+    if the jobs or their annotations cannot be read, the error fails this job,
+    since staying quiet is how timed-out betas went unnoticed.
     """
-    jobs = _read_jobs(gh, ctx)
-    timed_out_ids = _timed_out_ids(gh, ctx, jobs)
-    if not timed_out_ids:
+    details = _run_details(gh, ctx, strict=True)
+    if not details:
         print(
             "Cancelled by a newer run or by hand, not by a timeout; "
             "nothing to do."
         )
         return
-    raise_alert(gh, ctx, cancelled_ids, failed_steps(jobs, timed_out_ids))
+    raise_alert(gh, ctx, cancelled_ids, details)
 
 
 def run(needs, ctx, gh=gh_cli):

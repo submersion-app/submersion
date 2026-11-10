@@ -314,6 +314,14 @@ jobs:
           path: Submersion-*.dmg
           retention-days: 5
 
+      # The decoded Developer ID p12 holds a private key. The App Store job
+      # cleans up its own signing material the same way.
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/build_certificate.p12"
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" 2>/dev/null || true
+
   # ============================================================================
   # Mac App Store Build (pkg via Fastlane)
   # ============================================================================
@@ -394,8 +402,16 @@ jobs:
           bundler-cache: true
           working-directory: macos
 
+      # Before the split this step reused the DMG step's keychain, so the pkg
+      # was exported and signed with the Developer ID p12's identities present
+      # as well (run 42530214093 lists four, two of them from that p12; an
+      # installer identity would not show under `-p codesigning`). Importing
+      # that p12 first keeps the same set of identities, so the separate job
+      # cannot lose a certificate the export quietly depended on.
       - name: Import App Store certificates
         env:
+          MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
           APPLE_DEVELOPMENT_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64 }}
           APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD }}
           APPLE_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64 }}
@@ -405,6 +421,11 @@ jobs:
           security create-keychain -p "ci-build" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "ci-build" "$KEYCHAIN_PATH"
+          # Import the Developer ID p12 the shared keychain used to carry
+          MACOS_CERT=$RUNNER_TEMP/macos_certificate.p12
+          echo -n "$MACOS_CERTIFICATE_BASE64" | base64 --decode -o "$MACOS_CERT"
+          security import "$MACOS_CERT" -P "$MACOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          rm -f "$MACOS_CERT"
           # Import Apple Development certificate (for archive signing)
           DEV_CERT=$RUNNER_TEMP/apple_development.p12
           echo -n "$APPLE_DEVELOPMENT_CERTIFICATE_BASE64" | base64 --decode -o "$DEV_CERT"

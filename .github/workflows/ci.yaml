@@ -725,6 +725,8 @@ jobs:
           python3 -m coverage run --append --include="$guards" \
             scripts/beta_failure_alert_test.py
           python3 -m coverage run --append --include="$guards" \
+            scripts/beta_failure_alert_timeout_test.py
+          python3 -m coverage run --append --include="$guards" \
             scripts/release/play_beta_cooldown_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/report_inherited_failures_test.py
