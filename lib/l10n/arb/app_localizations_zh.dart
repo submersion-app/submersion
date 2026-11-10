@@ -18657,6 +18657,185 @@ class AppLocalizationsZh extends AppLocalizations {
   String get marineLife_speciesPage_retry => '重试';
 
   @override
+  String get speciesMap_title => '物种地图';
+
+  @override
+  String get speciesMap_openTooltip => '物种地图';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => '选择物种';
+
+  @override
+  String get speciesMap_list_searchHint => '搜索所有物种';
+
+  @override
+  String get speciesMap_list_allSites => '所有潜点';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => '你在哪里记录了什么';
+
+  @override
+  String get speciesMap_list_notSeen => '尚未见过';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings 次目击',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites 个潜点',
+    );
+    return '$_temp0，$_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => '我的目击';
+
+  @override
+  String get speciesMap_legend_expected => '预期，未记录';
+
+  @override
+  String get speciesMap_legend_publicRecords => '公开记录';
+
+  @override
+  String get speciesMap_legend_speciesLogged => '潜点已记录的物种';
+
+  @override
+  String get speciesMap_layers_tooltip => '地图图层';
+
+  @override
+  String get speciesMap_layers_public => '公开记录 (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint => '会将所选物种或所点潜点的位置发送给 GBIF。';
+
+  @override
+  String get speciesMap_layers_expectedHeading => '预期物种来源';
+
+  @override
+  String get speciesMap_layers_scopeMine => '我的潜点';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible => '我能看到的所有潜点';
+
+  @override
+  String get speciesMap_card_loggedHere => '在此记录';
+
+  @override
+  String get speciesMap_card_expectedNotLogged => '预期，尚未记录';
+
+  @override
+  String get speciesMap_card_expectedPin => '此处预期，尚未记录';
+
+  @override
+  String get speciesMap_card_nothingLogged => '此处尚无记录';
+
+  @override
+  String get speciesMap_card_close => '关闭';
+
+  @override
+  String get speciesMap_card_openSite => '打开潜点';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date，第 $number 次潜水，×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次目击所在的潜水没有地图上的潜点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords => '无法显示该物种的公开记录：需要 GBIF 能识别的学名。';
+
+  @override
+  String get speciesMap_publicUnavailable => '无法加载公开记录。';
+
+  @override
+  String get speciesMap_error_loading => '无法加载物种地图。';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      '你尚未在地图上的任何潜点记录过该物种。开启公开记录，查看其他人在哪里见过它。';
+
+  @override
+  String get speciesMap_attribution => '记录：GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个物种',
+    );
+    return '$site，$_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次目击',
+    );
+    return '$site，$_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site，预期';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个潜点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => '目击地点';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => '打开完整地图';
+
+  @override
+  String get speciesMap_whereSeen_empty => '尚未在地图上的潜点记录。';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
+
+  @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
     return '目击 ($count)';
   }

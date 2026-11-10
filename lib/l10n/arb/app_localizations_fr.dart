@@ -19686,6 +19686,199 @@ class AppLocalizationsFr extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'Réessayer';
 
   @override
+  String get speciesMap_title => 'Carte des espèces';
+
+  @override
+  String get speciesMap_openTooltip => 'Carte des espèces';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'Choisir une espèce';
+
+  @override
+  String get speciesMap_list_searchHint => 'Rechercher toutes les espèces';
+
+  @override
+  String get speciesMap_list_allSites => 'Tous les sites';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'Ce que vous avez noté et où';
+
+  @override
+  String get speciesMap_list_notSeen => 'Pas encore vue';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings observations',
+      one: '$sightings observation',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites sites',
+      one: '$sites site',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'Mes observations';
+
+  @override
+  String get speciesMap_legend_expected => 'Attendue, non notée';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'Données publiques';
+
+  @override
+  String get speciesMap_legend_speciesLogged => 'Espèces notées sur un site';
+
+  @override
+  String get speciesMap_layers_tooltip => 'Calques de la carte';
+
+  @override
+  String get speciesMap_layers_public => 'Données publiques (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'Envoie à GBIF l\'espèce choisie, ou la position du site touché.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'Espèces attendues selon';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'Mes sites';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible => 'Tous les sites que je vois';
+
+  @override
+  String get speciesMap_card_loggedHere => 'Notées ici';
+
+  @override
+  String get speciesMap_card_expectedNotLogged =>
+      'Attendues, pas encore notées';
+
+  @override
+  String get speciesMap_card_expectedPin => 'Attendue ici, pas encore notée';
+
+  @override
+  String get speciesMap_card_nothingLogged =>
+      'Rien de noté ici pour l\'instant';
+
+  @override
+  String get speciesMap_card_close => 'Fermer';
+
+  @override
+  String get speciesMap_card_openSite => 'Ouvrir le site';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count espèces',
+      one: '$count espèce',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date, plongée $number, ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observations sont sur des plongées sans site cartographié',
+      one: '$count observation est sur une plongée sans site cartographié',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'Aucune donnée publique ne peut être affichée pour cette espèce : il lui faut un nom scientifique reconnu par GBIF.';
+
+  @override
+  String get speciesMap_publicUnavailable =>
+      'Les données publiques n\'ont pas pu être chargées.';
+
+  @override
+  String get speciesMap_error_loading =>
+      'Impossible de charger la carte des espèces.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'Vous n\'avez pas noté cette espèce sur un site cartographié. Activez les données publiques pour voir où d\'autres l\'ont vue.';
+
+  @override
+  String get speciesMap_attribution => 'Données : GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count espèces',
+      one: '$count espèce',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count observations',
+      one: '$count observation',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site, attendue';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '$count site',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'Où observée';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'Ouvrir la carte complète';
+
+  @override
+  String get speciesMap_whereSeen_empty =>
+      'Pas encore notée sur un site cartographié.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
+
+  @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
     return 'Observations ($count)';
   }

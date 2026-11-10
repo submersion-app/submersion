@@ -19608,6 +19608,202 @@ class AppLocalizationsDe extends AppLocalizations {
   String get marineLife_speciesPage_retry => 'Erneut versuchen';
 
   @override
+  String get speciesMap_title => 'Artenkarte';
+
+  @override
+  String get speciesMap_openTooltip => 'Artenkarte';
+
+  @override
+  String get speciesMap_pickSpeciesTooltip => 'Art auswählen';
+
+  @override
+  String get speciesMap_list_searchHint => 'Alle Arten durchsuchen';
+
+  @override
+  String get speciesMap_list_allSites => 'Alle Tauchplätze';
+
+  @override
+  String get speciesMap_list_allSitesSubtitle => 'Was du wo erfasst hast';
+
+  @override
+  String get speciesMap_list_notSeen => 'Noch nicht gesehen';
+
+  @override
+  String speciesMap_list_counts(int sightings, int sites) {
+    String _temp0 = intl.Intl.pluralLogic(
+      sightings,
+      locale: localeName,
+      other: '$sightings Sichtungen',
+      one: '$sightings Sichtung',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      sites,
+      locale: localeName,
+      other: '$sites Tauchplätze',
+      one: '$sites Tauchplatz',
+    );
+    return '$_temp0, $_temp1';
+  }
+
+  @override
+  String get speciesMap_legend_mySightings => 'Meine Sichtungen';
+
+  @override
+  String get speciesMap_legend_expected => 'Erwartet, nicht erfasst';
+
+  @override
+  String get speciesMap_legend_publicRecords => 'Öffentliche Nachweise';
+
+  @override
+  String get speciesMap_legend_speciesLogged =>
+      'Erfasste Arten an einem Tauchplatz';
+
+  @override
+  String get speciesMap_layers_tooltip => 'Kartenebenen';
+
+  @override
+  String get speciesMap_layers_public => 'Öffentliche Nachweise (GBIF)';
+
+  @override
+  String get speciesMap_layers_publicHint =>
+      'Sendet die gewählte Art oder den Standort des angetippten Tauchplatzes an GBIF.';
+
+  @override
+  String get speciesMap_layers_expectedHeading => 'Erwartete Arten von';
+
+  @override
+  String get speciesMap_layers_scopeMine => 'Meine Tauchplätze';
+
+  @override
+  String get speciesMap_layers_scopeAllVisible =>
+      'Alle Tauchplätze, die ich sehe';
+
+  @override
+  String get speciesMap_card_loggedHere => 'Hier erfasst';
+
+  @override
+  String get speciesMap_card_expectedNotLogged =>
+      'Erwartet, noch nicht erfasst';
+
+  @override
+  String get speciesMap_card_expectedPin => 'Hier erwartet, noch nicht erfasst';
+
+  @override
+  String get speciesMap_card_nothingLogged => 'Hier noch nichts erfasst';
+
+  @override
+  String get speciesMap_card_close => 'Schließen';
+
+  @override
+  String get speciesMap_card_openSite => 'Tauchplatz öffnen';
+
+  @override
+  String speciesMap_card_speciesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Arten',
+      one: '$count Art',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String speciesMap_card_sightingRow(String date, String number, int count) {
+    return '$date, Tauchgang $number, ×$count';
+  }
+
+  @override
+  String speciesMap_card_speciesWithCount(String species, int count) {
+    return '$species ×$count';
+  }
+
+  @override
+  String speciesMap_unplaced(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Sichtungen liegen auf Tauchgängen ohne kartierten Tauchplatz',
+      one:
+          '$count Sichtung liegt auf einem Tauchgang ohne kartierten Tauchplatz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_noPublicRecords =>
+      'Für diese Art können keine öffentlichen Nachweise angezeigt werden: Sie braucht einen wissenschaftlichen Namen, den GBIF kennt.';
+
+  @override
+  String get speciesMap_publicUnavailable =>
+      'Öffentliche Nachweise konnten nicht geladen werden.';
+
+  @override
+  String get speciesMap_error_loading =>
+      'Die Artenkarte konnte nicht geladen werden.';
+
+  @override
+  String get speciesMap_suggestPublic =>
+      'Du hast diese Art an keinem kartierten Tauchplatz erfasst. Schalte öffentliche Nachweise ein, um zu sehen, wo andere sie gesehen haben.';
+
+  @override
+  String get speciesMap_attribution => 'Nachweise: GBIF.org';
+
+  @override
+  String speciesMap_semantics_sitePin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Arten',
+      one: '$count Art',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_loggedPin(String site, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sichtungen',
+      one: '$count Sichtung',
+    );
+    return '$site, $_temp0';
+  }
+
+  @override
+  String speciesMap_semantics_expectedPin(String site) {
+    return '$site, erwartet';
+  }
+
+  @override
+  String speciesMap_semantics_cluster(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze',
+      one: '$count Tauchplatz',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get speciesMap_whereSeen_title => 'Wo gesehen';
+
+  @override
+  String get speciesMap_whereSeen_openFullMap => 'Ganze Karte öffnen';
+
+  @override
+  String get speciesMap_whereSeen_empty =>
+      'Noch an keinem kartierten Tauchplatz erfasst.';
+
+  @override
+  String speciesMap_whereSeen_siteWithCount(String site, int count) {
+    return '$site ($count)';
+  }
+
+  @override
   String marineLife_speciesDetail_sightingsTitle(Object count) {
     return 'Sichtungen ($count)';
   }

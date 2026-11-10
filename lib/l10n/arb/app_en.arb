@@ -11730,6 +11730,139 @@
     }
   },
   "marineLife_speciesPage_retry": "Retry",
+  "speciesMap_title": "Species Map",
+  "speciesMap_openTooltip": "Species map",
+  "speciesMap_pickSpeciesTooltip": "Pick a species",
+  "speciesMap_list_searchHint": "Search all species",
+  "speciesMap_list_allSites": "All sites",
+  "speciesMap_list_allSitesSubtitle": "What you have logged where",
+  "speciesMap_list_notSeen": "Not seen yet",
+  "speciesMap_list_counts": "{sightings, plural, one{{sightings} sighting} other{{sightings} sightings}}, {sites, plural, one{{sites} site} other{{sites} sites}}",
+  "@speciesMap_list_counts": {
+    "placeholders": {
+      "sightings": {
+        "type": "int"
+      },
+      "sites": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_legend_mySightings": "My sightings",
+  "speciesMap_legend_expected": "Expected, not logged",
+  "speciesMap_legend_publicRecords": "Public records",
+  "speciesMap_legend_speciesLogged": "Species logged at a site",
+  "speciesMap_layers_tooltip": "Map layers",
+  "speciesMap_layers_public": "Public records (GBIF)",
+  "speciesMap_layers_publicHint": "Sends the picked species, or the tapped site's location, to GBIF.",
+  "speciesMap_layers_expectedHeading": "Expected species from",
+  "speciesMap_layers_scopeMine": "My sites",
+  "speciesMap_layers_scopeAllVisible": "All sites I can see",
+  "speciesMap_card_loggedHere": "Logged here",
+  "speciesMap_card_expectedNotLogged": "Expected, not logged yet",
+  "speciesMap_card_expectedPin": "Expected here, not logged yet",
+  "speciesMap_card_nothingLogged": "Nothing logged here yet",
+  "speciesMap_card_close": "Close",
+  "speciesMap_card_openSite": "Open site",
+  "speciesMap_card_speciesCount": "{count, plural, one{{count} species} other{{count} species}}",
+  "@speciesMap_card_speciesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_card_sightingRow": "{date}, dive {number}, ×{count}",
+  "@speciesMap_card_sightingRow": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "number": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_card_speciesWithCount": "{species} ×{count}",
+  "@speciesMap_card_speciesWithCount": {
+    "placeholders": {
+      "species": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_unplaced": "{count, plural, one{{count} sighting is on a dive without a mapped site} other{{count} sightings are on dives without a mapped site}}",
+  "@speciesMap_unplaced": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_noPublicRecords": "No public records can be shown for this species: it needs a scientific name GBIF recognises.",
+  "speciesMap_publicUnavailable": "Public records could not be loaded.",
+  "speciesMap_error_loading": "Could not load the species map.",
+  "speciesMap_suggestPublic": "You have not logged this species at a mapped site. Turn on public records to see where others have.",
+  "speciesMap_attribution": "Records: GBIF.org",
+  "speciesMap_semantics_sitePin": "{site}, {count, plural, one{{count} species} other{{count} species}}",
+  "@speciesMap_semantics_sitePin": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_semantics_loggedPin": "{site}, {count, plural, one{{count} sighting} other{{count} sightings}}",
+  "@speciesMap_semantics_loggedPin": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_semantics_expectedPin": "{site}, expected",
+  "@speciesMap_semantics_expectedPin": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      }
+    }
+  },
+  "speciesMap_semantics_cluster": "{count, plural, one{{count} site} other{{count} sites}}",
+  "@speciesMap_semantics_cluster": {
+    "description": "Screen-reader label for a cluster of pins on the species map",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "speciesMap_whereSeen_title": "Where seen",
+  "speciesMap_whereSeen_openFullMap": "Open full map",
+  "speciesMap_whereSeen_empty": "Not logged at a mapped site yet.",
+  "speciesMap_whereSeen_siteWithCount": "{site} ({count})",
+  "@speciesMap_whereSeen_siteWithCount": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "marineLife_speciesDetail_sightingsTitle": "Sightings ({count})",
   "@marineLife_speciesDetail_sightingsTitle": {
     "placeholders": {

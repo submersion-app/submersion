@@ -31328,6 +31328,252 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get marineLife_speciesPage_retry;
 
+  /// No description provided for @speciesMap_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Species Map'**
+  String get speciesMap_title;
+
+  /// No description provided for @speciesMap_openTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Species map'**
+  String get speciesMap_openTooltip;
+
+  /// No description provided for @speciesMap_pickSpeciesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a species'**
+  String get speciesMap_pickSpeciesTooltip;
+
+  /// No description provided for @speciesMap_list_searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search all species'**
+  String get speciesMap_list_searchHint;
+
+  /// No description provided for @speciesMap_list_allSites.
+  ///
+  /// In en, this message translates to:
+  /// **'All sites'**
+  String get speciesMap_list_allSites;
+
+  /// No description provided for @speciesMap_list_allSitesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you have logged where'**
+  String get speciesMap_list_allSitesSubtitle;
+
+  /// No description provided for @speciesMap_list_notSeen.
+  ///
+  /// In en, this message translates to:
+  /// **'Not seen yet'**
+  String get speciesMap_list_notSeen;
+
+  /// No description provided for @speciesMap_list_counts.
+  ///
+  /// In en, this message translates to:
+  /// **'{sightings, plural, one{{sightings} sighting} other{{sightings} sightings}}, {sites, plural, one{{sites} site} other{{sites} sites}}'**
+  String speciesMap_list_counts(int sightings, int sites);
+
+  /// No description provided for @speciesMap_legend_mySightings.
+  ///
+  /// In en, this message translates to:
+  /// **'My sightings'**
+  String get speciesMap_legend_mySightings;
+
+  /// No description provided for @speciesMap_legend_expected.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected, not logged'**
+  String get speciesMap_legend_expected;
+
+  /// No description provided for @speciesMap_legend_publicRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'Public records'**
+  String get speciesMap_legend_publicRecords;
+
+  /// No description provided for @speciesMap_legend_speciesLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Species logged at a site'**
+  String get speciesMap_legend_speciesLogged;
+
+  /// No description provided for @speciesMap_layers_tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Map layers'**
+  String get speciesMap_layers_tooltip;
+
+  /// No description provided for @speciesMap_layers_public.
+  ///
+  /// In en, this message translates to:
+  /// **'Public records (GBIF)'**
+  String get speciesMap_layers_public;
+
+  /// No description provided for @speciesMap_layers_publicHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sends the picked species, or the tapped site\'s location, to GBIF.'**
+  String get speciesMap_layers_publicHint;
+
+  /// No description provided for @speciesMap_layers_expectedHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected species from'**
+  String get speciesMap_layers_expectedHeading;
+
+  /// No description provided for @speciesMap_layers_scopeMine.
+  ///
+  /// In en, this message translates to:
+  /// **'My sites'**
+  String get speciesMap_layers_scopeMine;
+
+  /// No description provided for @speciesMap_layers_scopeAllVisible.
+  ///
+  /// In en, this message translates to:
+  /// **'All sites I can see'**
+  String get speciesMap_layers_scopeAllVisible;
+
+  /// No description provided for @speciesMap_card_loggedHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged here'**
+  String get speciesMap_card_loggedHere;
+
+  /// No description provided for @speciesMap_card_expectedNotLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected, not logged yet'**
+  String get speciesMap_card_expectedNotLogged;
+
+  /// No description provided for @speciesMap_card_expectedPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected here, not logged yet'**
+  String get speciesMap_card_expectedPin;
+
+  /// No description provided for @speciesMap_card_nothingLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing logged here yet'**
+  String get speciesMap_card_nothingLogged;
+
+  /// No description provided for @speciesMap_card_close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get speciesMap_card_close;
+
+  /// No description provided for @speciesMap_card_openSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Open site'**
+  String get speciesMap_card_openSite;
+
+  /// No description provided for @speciesMap_card_speciesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} species} other{{count} species}}'**
+  String speciesMap_card_speciesCount(int count);
+
+  /// No description provided for @speciesMap_card_sightingRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{date}, dive {number}, ×{count}'**
+  String speciesMap_card_sightingRow(String date, String number, int count);
+
+  /// No description provided for @speciesMap_card_speciesWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{species} ×{count}'**
+  String speciesMap_card_speciesWithCount(String species, int count);
+
+  /// No description provided for @speciesMap_unplaced.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} sighting is on a dive without a mapped site} other{{count} sightings are on dives without a mapped site}}'**
+  String speciesMap_unplaced(int count);
+
+  /// No description provided for @speciesMap_noPublicRecords.
+  ///
+  /// In en, this message translates to:
+  /// **'No public records can be shown for this species: it needs a scientific name GBIF recognises.'**
+  String get speciesMap_noPublicRecords;
+
+  /// No description provided for @speciesMap_publicUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Public records could not be loaded.'**
+  String get speciesMap_publicUnavailable;
+
+  /// No description provided for @speciesMap_error_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the species map.'**
+  String get speciesMap_error_loading;
+
+  /// No description provided for @speciesMap_suggestPublic.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not logged this species at a mapped site. Turn on public records to see where others have.'**
+  String get speciesMap_suggestPublic;
+
+  /// No description provided for @speciesMap_attribution.
+  ///
+  /// In en, this message translates to:
+  /// **'Records: GBIF.org'**
+  String get speciesMap_attribution;
+
+  /// No description provided for @speciesMap_semantics_sitePin.
+  ///
+  /// In en, this message translates to:
+  /// **'{site}, {count, plural, one{{count} species} other{{count} species}}'**
+  String speciesMap_semantics_sitePin(String site, int count);
+
+  /// No description provided for @speciesMap_semantics_loggedPin.
+  ///
+  /// In en, this message translates to:
+  /// **'{site}, {count, plural, one{{count} sighting} other{{count} sightings}}'**
+  String speciesMap_semantics_loggedPin(String site, int count);
+
+  /// No description provided for @speciesMap_semantics_expectedPin.
+  ///
+  /// In en, this message translates to:
+  /// **'{site}, expected'**
+  String speciesMap_semantics_expectedPin(String site);
+
+  /// Screen-reader label for a cluster of pins on the species map
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} site} other{{count} sites}}'**
+  String speciesMap_semantics_cluster(int count);
+
+  /// No description provided for @speciesMap_whereSeen_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Where seen'**
+  String get speciesMap_whereSeen_title;
+
+  /// No description provided for @speciesMap_whereSeen_openFullMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full map'**
+  String get speciesMap_whereSeen_openFullMap;
+
+  /// No description provided for @speciesMap_whereSeen_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not logged at a mapped site yet.'**
+  String get speciesMap_whereSeen_empty;
+
+  /// No description provided for @speciesMap_whereSeen_siteWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{site} ({count})'**
+  String speciesMap_whereSeen_siteWithCount(String site, int count);
+
   /// No description provided for @marineLife_speciesDetail_sightingsTitle.
   ///
   /// In en, this message translates to:
