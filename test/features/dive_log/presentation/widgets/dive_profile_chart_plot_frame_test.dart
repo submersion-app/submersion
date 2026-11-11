@@ -160,6 +160,27 @@ void main() {
     });
   });
 
+  // The pinned copy follows the page's scroll; a zoom of its own would last
+  // a frame before the next scroll put the given window back (review).
+  testWidgets('a chart given its window ignores the reader\'s zooming', (
+    tester,
+  ) async {
+    const given = ChartViewport(zoom: 2, offsetX: 0.25);
+    final windows = <ChartViewport>[];
+    final frames = await pump(
+      tester,
+      viewport: ValueNotifier<ChartViewport?>(given),
+      onViewportChanged: windows.add,
+    );
+    final before = frames.last;
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+    await tester.pump();
+    expect(frames.last.viewport.sameWindowAs(given), isTrue);
+    expect(frames.last.minSeconds, before.minSeconds);
+    expect(windows, isEmpty);
+  });
+
   testWidgets('reports its window when the reader zooms', (tester) async {
     final windows = <ChartViewport>[];
     await pump(tester, onViewportChanged: windows.add);

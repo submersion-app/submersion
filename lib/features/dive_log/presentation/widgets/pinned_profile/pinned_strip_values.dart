@@ -1,3 +1,4 @@
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -96,7 +97,7 @@ List<String> formatPinnedStripValues(
 ) {
   final ppO2 = values.ppO2Bar;
   return [
-    _formatRuntime(values.runtimeSeconds),
+    formatMinutesSeconds(values.runtimeSeconds),
     units.formatDepth(values.depthMeters),
     l10n.diveLog_pinnedStrip_ppO2(
       ppO2 == null ? _missing : ppO2.toStringAsFixed(2),
@@ -116,10 +117,4 @@ List<String> formatPinnedStripValues(
       UnknownDecoSlot() => _missing,
     },
   ];
-}
-
-String _formatRuntime(int seconds) {
-  final m = seconds ~/ 60;
-  final s = seconds % 60;
-  return '$m:${s.toString().padLeft(2, '0')}';
 }

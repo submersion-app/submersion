@@ -91,6 +91,11 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   double _squashRange = kSquashRange;
   double _layoutSquash = 0;
 
+  /// The plot's measured height with no squash, or null until measured. Not
+  /// derived from [_squashRange], which is clamped at 0 for a plot shorter
+  /// than [kMinPlotHeight].
+  double? _restPlotHeight;
+
   /// Whether the page, scrolled to [pixels], has the pinned card or strip
   /// over its top: the card's top is above the page's.
   bool coversTopAt(double pixels) {
@@ -162,15 +167,29 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     final plot = measured ?? _copyPlot;
     // The plot takes all of the squash, so its resting height is its height
     // now plus the squash it was laid out with.
-    final range = measured == null
+    final rest = measured == null
+        ? _restPlotHeight
+        : measured.height + _layoutSquash;
+    final range = rest == null
         ? _squashRange
-        : squashRangeFor(restPlotHeight: measured.height + _layoutSquash);
-    if (card != _cardInContent || plot != _copyPlot || range != _squashRange) {
+        : squashRangeFor(restPlotHeight: rest);
+    // Only the plot's place and width are read when building; its height
+    // follows from the squash, so a plot that only got shorter (every frame
+    // of the squash) needs no second build.
+    final plotMoved =
+        plot?.topLeft != _copyPlot?.topLeft || plot?.width != _copyPlot?.width;
+    if (card != _cardInContent ||
+        plotMoved ||
+        range != _squashRange ||
+        rest != _restPlotHeight) {
       setState(() {
         _cardInContent = card;
         _copyPlot = plot;
         _squashRange = range;
+        _restPlotHeight = rest;
       });
+    } else {
+      _copyPlot = plot;
     }
   }
 
@@ -195,7 +214,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     final plot = _copyPlot;
     final frame = _copyFrame?.withViewport(viewport);
     if (plot == null || frame == null) return null;
-    final restHeight = _squashRange + kMinPlotHeight;
+    final restHeight = _restPlotHeight ?? _squashRange + kMinPlotHeight;
     return PlotMapping(
       rect: Rect.fromLTWH(
         plot.left,
@@ -232,10 +251,17 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     final pixels = notification.metrics.pixels;
     if (pixels != _pixels) {
       final wasIdle = !coversTopAt(_pixels);
-      setState(() => _pixels = pixels);
+      final covers = coversTopAt(pixels);
+      // Only a scroll that pins, moves or unpins the card needs a build; one
+      // with nothing drawn either side (or the strip off) just records it.
+      if (wasIdle && !covers) {
+        _pixels = pixels;
+      } else {
+        setState(() => _pixels = pixels);
+      }
       // Re-measured as the squash begins, as a backstop for anything that
       // moved the card unseen while nothing was drawn.
-      if (wasIdle && coversTopAt(_pixels)) _scheduleMeasure();
+      if (wasIdle && covers) _scheduleMeasure();
     }
     // Content above the card can change height (a card loading in), so the
     // recorded position is refreshed once the frame is laid out.
@@ -246,7 +272,10 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   bool _onMetrics(ScrollMetricsNotification notification) {
     if (notification.depth == 0) {
       _notePosition(notification);
-      _pixels = notification.metrics.pixels;
+      final pixels = notification.metrics.pixels;
+      // A content resize can move the offset with the card staying put in
+      // the content, which the measure alone would not rebuild for.
+      if (pixels != _pixels) setState(() => _pixels = pixels);
       _scheduleMeasure();
     }
     return false;

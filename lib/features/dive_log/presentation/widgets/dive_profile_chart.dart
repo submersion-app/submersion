@@ -276,8 +276,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final ValueChanged<ProfilePlotFrame>? onPlotFrame;
 
   /// A zoom window to show, set from outside in place of the reader's own
-  /// zooming: the pinned profile's copy of the card is handed one that eases
-  /// from the full card's window out to the whole dive (issue #4423).
+  /// zooming, which the chart then ignores: the pinned profile's copy of the
+  /// card is handed one that eases from the full card's window out to the
+  /// whole dive (issue #4423).
   final ChartViewport? viewport;
 
   /// The zoom window, reported whenever the reader zooms or pans.
@@ -1269,6 +1270,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // ChartViewport has no ==, and a pan held against the plot's edge clamps
     // to a new instance of the same window.
     if (value.sameWindowAs(_viewport)) return;
+    // A chart handed its window from outside (the pinned copy, which
+    // follows the page's scroll) shows only that window: a zoom or pan of
+    // its own would be put back on the next scroll frame.
+    final given = widget.viewport;
+    if (given != null && !value.sameWindowAs(given)) return;
     _viewportNotifier.value = value;
     _zoomNotifier.value = value.zoom;
     widget.onViewportChanged?.call(value);

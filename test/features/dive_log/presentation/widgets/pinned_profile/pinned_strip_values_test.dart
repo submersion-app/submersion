@@ -179,6 +179,18 @@ void main() {
       ]);
     });
 
+    // A second computer placed on the primary's timeline can start before
+    // it (#4296), so the cursor's time can be negative.
+    test('a time before the dive start keeps its sign', () {
+      const v = PinnedStripValues(
+        runtimeSeconds: -65,
+        depthMeters: 0,
+        ppO2Bar: null,
+        deco: UnknownDecoSlot(),
+      );
+      expect(formatPinnedStripValues(v, metric, l10n).first, '-1:05');
+    });
+
     // At and near the surface the NDL is a 999-minute "unlimited" sentinel,
     // which read as broken spelled out (review M4).
     test('an NDL past 99 minutes reads as more than 99', () {

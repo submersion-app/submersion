@@ -109,6 +109,7 @@ void main() {
     bool reportsPlot = true,
     ValueNotifier<double>? width,
     ValueNotifier<ChartViewport>? chartViewport,
+    double footerHeight = footer,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -157,7 +158,7 @@ void main() {
                           },
                         ),
                       ),
-                      const SizedBox(height: footer),
+                      SizedBox(height: footerHeight),
                     ],
                   ),
                   child: SingleChildScrollView(
@@ -488,6 +489,23 @@ void main() {
       await jump(tester, profileTop + 10);
       expect(copyViewport!.sameWindowAs(ChartViewport.reset), isTrue);
     });
+  });
+
+  // A plot already shorter than kMinPlotHeight has no squash range; its
+  // height was rebuilt from that clamped range as 48 px, so the strip's line
+  // started below the chart's (review).
+  testWidgets('a short plot still starts the strip line on its own', (
+    tester,
+  ) async {
+    // 300 - 40 - 230 = 30 px of plot.
+    await pump(tester, profileKey: GlobalKey(), footerHeight: 230);
+    await jump(tester, profileTop + 20);
+    final s = stripWidget(tester);
+    final onScreen = s.morphFrom!.rect.shift(tester.getTopLeft(strip));
+    final plot = tester.getRect(find.byType(_FakeChart));
+    expect(plot.height, closeTo(30, 0.01));
+    expect(onScreen.top, closeTo(plot.top, 0.01));
+    expect(onScreen.height, closeTo(plot.height, 0.01));
   });
 
   testWidgets('without a plot from the copy, the strip has no start line', (

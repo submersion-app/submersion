@@ -161,6 +161,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   void _noteProfileViewport(ChartViewport viewport) =>
       _profileViewport.value = viewport;
 
+  /// How many points the profile chart draws, watched by count alone so the
+  /// page does not rebuild whenever the active source's profile is replaced.
+  /// The same series as [watchChartProfile].
+  int _chartPointCount(Dive dive) =>
+      ref.watch(
+        activeSourceProfileProvider(dive.id).select((p) => p?.points.length),
+      ) ??
+      dive.profile.length;
+
   @override
   void dispose() {
     _profileViewport.dispose();
@@ -538,7 +547,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final pinProfile =
         ref.watch(pinProfileOnScrollProvider) &&
         layout == DiveDetailLayout.detailed &&
-        watchChartProfile(ref, dive).length >= 2;
+        _chartPointCount(dive) >= 2;
     // Always in the tree, switched by `enabled`, so turning the strip on or
     // off never rebuilds the scroll view under a new parent and resets it.
     final content = PinnedProfileOverlay(
