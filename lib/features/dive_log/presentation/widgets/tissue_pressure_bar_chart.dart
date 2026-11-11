@@ -136,6 +136,7 @@ class _TissuePressureBarChartState extends State<TissuePressureBarChart> {
       fontSize: 11,
       color: colorScheme.onSurfaceVariant,
     );
+    final outlineColor = HighlightOutline.colorOf(colorScheme);
     final markerColor = TissuePressureBarChart.surfaceLevelMarkerColor(
       colorScheme,
     );
@@ -199,7 +200,9 @@ class _TissuePressureBarChartState extends State<TissuePressureBarChart> {
                                           equilibriumN2,
                                         ),
                                     markerColor: markerColor,
-                                    highlighted: entry.key == highlightedIndex,
+                                    outlineColor: entry.key == highlightedIndex
+                                        ? outlineColor
+                                        : null,
                                   ),
                                 ),
                               ),
@@ -267,14 +270,17 @@ class _CompartmentBar extends StatelessWidget {
   final double chartHeight;
   final double equilibriumPercent;
   final Color markerColor;
-  final bool highlighted;
+
+  /// Colour of the highlight outline, or null when this bar is not the
+  /// highlighted one.
+  final Color? outlineColor;
 
   const _CompartmentBar({
     required this.comp,
     required this.chartHeight,
     required this.equilibriumPercent,
     required this.markerColor,
-    required this.highlighted,
+    required this.outlineColor,
   });
 
   @override
@@ -320,11 +326,11 @@ class _CompartmentBar extends StatelessWidget {
     // inset the child and add its width to the box on every side, making the
     // bar taller than its fixed-height slot (overflowing when the bar is
     // already full height) and wider than its unhighlighted neighbours (hover
-    // jitter). The outline is two-toned so it shows on every bar colour in
-    // both themes (issue #4431).
-    final bar = highlighted
+    // jitter).
+    final outline = outlineColor;
+    final bar = outline != null
         ? CustomPaint(
-            foregroundPainter: const HighlightOutlinePainter(),
+            foregroundPainter: HighlightOutlinePainter(color: outline),
             child: barColumn,
           )
         : barColumn;

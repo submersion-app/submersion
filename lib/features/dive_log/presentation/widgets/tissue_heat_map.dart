@@ -265,6 +265,10 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
   Widget build(BuildContext context) {
     if (widget.decoStatuses.isEmpty) return const SizedBox.shrink();
 
+    final highlightColor = HighlightOutline.colorOf(
+      Theme.of(context).colorScheme,
+    );
+
     return CompositedTransformTarget(
       link: _layerLink,
       child: MouseRegion(
@@ -293,6 +297,7 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
                   selectedIndex: widget.selectedIndex,
                   colorFn: widget.colorFn,
                   hoveredCompartmentIndex: widget.hoveredCompartmentIndex,
+                  highlightColor: highlightColor,
                 ),
               ),
             ),
@@ -399,10 +404,14 @@ class _TissueHeatMapPainter extends CustomPainter {
   /// Index of the compartment row to outline (0-based), or null for none.
   final int? hoveredCompartmentIndex;
 
+  /// Colour of the time cursor and the compartment row outline.
+  final Color highlightColor;
+
   _TissueHeatMapPainter({
     required this.decoStatuses,
     required this.selectedIndex,
     required this.colorFn,
+    required this.highlightColor,
     this.hoveredCompartmentIndex,
   });
 
@@ -449,19 +458,20 @@ class _TissueHeatMapPainter extends CustomPainter {
       col += step;
     }
 
-    // The cursor and the row outline are two-toned (a dark core inside a
-    // light halo) because the cells under them can be any colour, from pure
-    // black to white, in either theme (issue #4431).
+    // The cursor and the row outline use the theme's accent colour: the
+    // cells under them run from pure black to white, where the theme's text
+    // colour vanished in one theme or the other (issue #4431).
+    final highlightPaint = HighlightOutline.strokeOf(highlightColor);
 
     // Draw cursor line at selected index
     if (selectedIndex != null &&
         selectedIndex! >= 0 &&
         selectedIndex! < numTimePoints) {
       final cursorX = (selectedIndex! + 0.5) / numTimePoints * size.width;
-      HighlightOutline.paintLine(
-        canvas,
+      canvas.drawLine(
         Offset(cursorX, 0),
         Offset(cursorX, size.height),
+        highlightPaint,
       );
     }
 
@@ -469,25 +479,22 @@ class _TissueHeatMapPainter extends CustomPainter {
     if (hoveredCompartmentIndex != null &&
         hoveredCompartmentIndex! >= 0 &&
         hoveredCompartmentIndex! < numCompartments) {
-      HighlightOutline.paintRRect(
-        canvas,
-        RRect.fromRectAndRadius(
-          _rowOutlineRect(hoveredCompartmentIndex!, cellHeight, size),
-          Radius.zero,
-        ),
+      canvas.drawRect(
+        _rowOutlineRect(hoveredCompartmentIndex!, cellHeight, size),
+        highlightPaint,
       );
     }
   }
 
-  /// Where the row outline's band is centred for compartment [row].
+  /// Where the row outline's line is centred for compartment [row].
   ///
-  /// A row is only a few pixels tall, so the band sits just outside it,
-  /// over the neighbouring rows, and leaves the highlighted row itself in
-  /// full view. Its ends are kept inside the strip, where a band outside the
-  /// row would be clipped away; its top and bottom edges on the first and
-  /// last rows fall on the strip's own edge.
+  /// A row is only a few pixels tall, so the line sits just outside it, over
+  /// the edges of the neighbouring rows, and leaves the highlighted row
+  /// itself in full view. Its ends are kept inside the strip, where a line
+  /// outside the row would be clipped away; its top and bottom edges on the
+  /// first and last rows fall on the strip's own edge.
   static Rect _rowOutlineRect(int row, double cellHeight, Size size) {
-    const half = HighlightOutline.haloWidth / 2;
+    const half = HighlightOutline.width / 2;
     final top = row * cellHeight;
     return Rect.fromLTRB(
       half,
@@ -504,6 +511,7 @@ class _TissueHeatMapPainter extends CustomPainter {
     return oldDelegate.decoStatuses != decoStatuses ||
         oldDelegate.selectedIndex != selectedIndex ||
         oldDelegate.colorFn != colorFn ||
-        oldDelegate.hoveredCompartmentIndex != hoveredCompartmentIndex;
+        oldDelegate.hoveredCompartmentIndex != hoveredCompartmentIndex ||
+        oldDelegate.highlightColor != highlightColor;
   }
 }

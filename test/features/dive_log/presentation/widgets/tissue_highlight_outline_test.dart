@@ -10,8 +10,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressur
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Issue #4431: the highlighted compartment's outline on the tissue charts
-/// was one theme colour, which vanished on the heat map's black and white
-/// cells. It is now a dark core inside a light halo, the same in both themes.
+/// was the theme's text colour, which vanished on the heat map's black and
+/// purple cells in light mode and its white cells in dark mode. It is now a
+/// single line in the theme's accent (primary) colour, drawn so it covers
+/// neither the highlighted row nor anything outside the highlighted bar.
 void main() {
   DecoStatus statusAt30m() {
     final algorithm = BuhlmannAlgorithm();
@@ -23,6 +25,9 @@ void main() {
     );
     return algorithm.getDecoStatus(currentDepth: 30);
   }
+
+  Color primaryOf(Brightness brightness) =>
+      ThemeData(brightness: brightness).colorScheme.primary;
 
   Future<void> pump(
     WidgetTester tester,
@@ -42,106 +47,110 @@ void main() {
     await tester.pump();
   }
 
-  bool isStroke(List<dynamic> arguments, Color color, double width) {
+  bool isOutline(
+    Symbol method,
+    List<dynamic> arguments,
+    Symbol expected,
+    Color color,
+  ) {
+    if (method != expected || arguments.isEmpty) return false;
     final paint = arguments.last;
     return paint is Paint &&
         paint.style == PaintingStyle.stroke &&
         paint.color.toARGB32() == color.toARGB32() &&
-        paint.strokeWidth == width;
+        paint.strokeWidth == HighlightOutline.width;
   }
 
-  bool isHalo(Symbol method, List<dynamic> arguments, Symbol expected) =>
-      method == expected &&
-      isStroke(
-        arguments,
-        HighlightOutline.haloColor,
-        HighlightOutline.haloWidth,
-      );
-
-  bool isCore(Symbol method, List<dynamic> arguments, Symbol expected) =>
-      method == expected &&
-      isStroke(
-        arguments,
-        HighlightOutline.coreColor,
-        HighlightOutline.coreWidth,
-      );
-
   group('HighlightOutline', () {
-    test('pairs a light halo with a dark core, the halo the wider', () {
-      expect(HighlightOutline.haloColor.computeLuminance(), greaterThan(0.9));
-      expect(HighlightOutline.coreColor.computeLuminance(), lessThan(0.05));
-      expect(
-        HighlightOutline.haloWidth,
-        greaterThan(HighlightOutline.coreWidth),
-      );
+    test('takes the theme accent colour', () {
+      for (final brightness in Brightness.values) {
+        final scheme = ThemeData(brightness: brightness).colorScheme;
+        expect(HighlightOutline.colorOf(scheme), scheme.primary);
+      }
     });
 
-    testWidgets('the painter keeps the whole band inside its box', (
+    testWidgets('the painter keeps the whole line inside its box', (
       tester,
     ) async {
       await tester.pumpWidget(
         const Center(
           child: CustomPaint(
             size: Size(20, 40),
-            painter: HighlightOutlinePainter(),
+            painter: HighlightOutlinePainter(color: Colors.teal),
           ),
         ),
       );
 
-      const inset = HighlightOutline.haloWidth / 2;
-      final band = RRect.fromRectAndRadius(
-        const Rect.fromLTRB(inset, inset, 20 - inset, 40 - inset),
-        HighlightOutline.barRadius,
-      );
+      const inset = HighlightOutline.width / 2;
       expect(
         find.byType(CustomPaint),
         paints
+          ..clipRect(rect: const Rect.fromLTWH(0, 0, 20, 40))
           ..rrect(
-            rrect: band,
-            color: HighlightOutline.haloColor,
-            strokeWidth: HighlightOutline.haloWidth,
-            style: PaintingStyle.stroke,
-          )
-          ..rrect(
-            rrect: band,
-            color: HighlightOutline.coreColor,
-            strokeWidth: HighlightOutline.coreWidth,
+            rrect: RRect.fromRectAndRadius(
+              const Rect.fromLTRB(inset, inset, 20 - inset, 40 - inset),
+              HighlightOutline.barRadius,
+            ),
+            color: Colors.teal,
+            strokeWidth: HighlightOutline.width,
             style: PaintingStyle.stroke,
           ),
       );
     });
 
-    testWidgets('the painter does not paint past a box thinner than the band', (
+    testWidgets('the painter does not paint past a box thinner than the line', (
       tester,
     ) async {
       await tester.pumpWidget(
         const Center(
           child: CustomPaint(
-            size: Size(20, 2),
-            painter: HighlightOutlinePainter(),
+            size: Size(20, 1),
+            painter: HighlightOutlinePainter(color: Colors.teal),
           ),
         ),
       );
 
-      // Centring the band on a box thinner than the band still lets half the
+      // Centring the line on a box thinner than the line still lets half the
       // stroke width spill over its top and bottom, into the chart around a
       // nearly empty bar, so the painter clips to its own box first.
       expect(
         find.byType(CustomPaint),
         paints
-          ..clipRect(rect: const Rect.fromLTWH(0, 0, 20, 2))
+          ..clipRect(rect: const Rect.fromLTWH(0, 0, 20, 1))
           ..something((method, arguments) {
             if (method != #drawRRect) return false;
             final rrect = arguments.first as RRect;
-            return rrect.top >= 0 && rrect.bottom <= 2 && rrect.top <= 1;
+            return rrect.top >= 0 && rrect.bottom <= 1;
           }),
+      );
+    });
+
+    test('the painter repaints when its colour changes', () {
+      const painter = HighlightOutlinePainter(color: Colors.teal);
+      expect(
+        painter.shouldRepaint(
+          const HighlightOutlinePainter(color: Colors.teal),
+        ),
+        isFalse,
+      );
+      expect(
+        painter.shouldRepaint(
+          const HighlightOutlinePainter(color: Colors.orange),
+        ),
+        isTrue,
       );
     });
   });
 
   group('TissuePressureBarChart highlight', () {
+    Finder outlinedBars() => find.byWidgetPredicate(
+      (widget) =>
+          widget is CustomPaint &&
+          widget.foregroundPainter is HighlightOutlinePainter,
+    );
+
     for (final brightness in Brightness.values) {
-      testWidgets('outlines only the highlighted bar with the two-tone band '
+      testWidgets('outlines only the highlighted bar in the accent colour '
           'in ${brightness.name} mode', (tester) async {
         await pump(
           tester,
@@ -149,32 +158,18 @@ void main() {
           brightness: brightness,
         );
 
-        final outlined = find.byWidgetPredicate(
-          (widget) =>
-              widget is CustomPaint &&
-              widget.foregroundPainter is HighlightOutlinePainter,
-        );
-        expect(outlined, findsOneWidget);
-        expect(
-          outlined,
-          paints
-            ..something((m, a) => isHalo(m, a, #drawRRect))
-            ..something((m, a) => isCore(m, a, #drawRRect)),
-        );
+        expect(outlinedBars(), findsOneWidget);
+        final painter =
+            tester.widget<CustomPaint>(outlinedBars()).foregroundPainter!
+                as HighlightOutlinePainter;
+        expect(painter.color, primaryOf(brightness));
       });
     }
 
     testWidgets('draws no outline when nothing is highlighted', (tester) async {
       await pump(tester, TissuePressureBarChart(status: statusAt30m()));
 
-      expect(
-        find.byWidgetPredicate(
-          (widget) =>
-              widget is CustomPaint &&
-              widget.foregroundPainter is HighlightOutlinePainter,
-        ),
-        findsNothing,
-      );
+      expect(outlinedBars(), findsNothing);
     });
   });
 
@@ -193,57 +188,74 @@ void main() {
     }
 
     for (final brightness in Brightness.values) {
-      testWidgets('rings the hovered row with the two-tone band in '
+      testWidgets('outlines the hovered row in the accent colour in '
           '${brightness.name} mode', (tester) async {
         await pump(tester, strip(hovered: 3), brightness: brightness);
 
         expect(
           find.byType(TissueHeatMapStrip),
-          paints
-            ..something((m, a) => isHalo(m, a, #drawRRect))
-            ..something((m, a) => isCore(m, a, #drawRRect)),
+          paints..something(
+            (m, a) => isOutline(m, a, #drawRect, primaryOf(brightness)),
+          ),
         );
       });
     }
 
-    testWidgets('puts the band outside the row so the row stays visible, '
+    testWidgets('puts the line outside the row so the row stays visible, '
         'and inside the strip at its ends', (tester) async {
       await pump(tester, strip(hovered: 3));
 
       final width = tester.getSize(find.byType(TissueHeatMapStrip)).width;
       const rowHeight = stripHeight / 16;
-      const half = HighlightOutline.haloWidth / 2;
-      final expected = RRect.fromLTRBR(
+      const half = HighlightOutline.width / 2;
+      final expected = Rect.fromLTRB(
         half,
         3 * rowHeight - half,
         width - half,
         4 * rowHeight + half,
-        Radius.zero,
       );
 
       expect(
         find.byType(TissueHeatMapStrip),
         paints..something((method, arguments) {
-          if (!isHalo(method, arguments, #drawRRect)) return false;
-          final rrect = arguments.first as RRect;
-          return (rrect.left - expected.left).abs() < 0.01 &&
-              (rrect.top - expected.top).abs() < 0.01 &&
-              (rrect.right - expected.right).abs() < 0.01 &&
-              (rrect.bottom - expected.bottom).abs() < 0.01;
+          if (!isOutline(
+            method,
+            arguments,
+            #drawRect,
+            primaryOf(Brightness.light),
+          )) {
+            return false;
+          }
+          final rect = arguments.first as Rect;
+          return (rect.left - expected.left).abs() < 0.01 &&
+              (rect.top - expected.top).abs() < 0.01 &&
+              (rect.right - expected.right).abs() < 0.01 &&
+              (rect.bottom - expected.bottom).abs() < 0.01;
         }),
       );
     });
 
-    testWidgets('draws the time cursor with the two-tone band too', (
-      tester,
-    ) async {
+    testWidgets('draws the time cursor in the accent colour', (tester) async {
       await pump(tester, strip(selected: 5));
 
       expect(
         find.byType(TissueHeatMapStrip),
-        paints
-          ..something((m, a) => isHalo(m, a, #drawLine))
-          ..something((m, a) => isCore(m, a, #drawLine)),
+        paints..something(
+          (m, a) => isOutline(m, a, #drawLine, primaryOf(Brightness.light)),
+        ),
+      );
+    });
+
+    testWidgets('follows a theme change', (tester) async {
+      await pump(tester, strip(hovered: 3));
+      await pump(tester, strip(hovered: 3), brightness: Brightness.dark);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byType(TissueHeatMapStrip),
+        paints..something(
+          (m, a) => isOutline(m, a, #drawRect, primaryOf(Brightness.dark)),
+        ),
       );
     });
   });
