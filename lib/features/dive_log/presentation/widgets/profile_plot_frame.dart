@@ -87,3 +87,27 @@ class ProfilePlotFrame {
     viewport.offsetY,
   );
 }
+
+/// Reports a chart's [ProfilePlotFrame] after the frame it was laid out in,
+/// and only when it changes. [plotKey] marks the box the chart lays over its
+/// plot. Kept out of the chart's own state, which only hands it each frame.
+class ProfilePlotFrameReporter {
+  final GlobalKey plotKey = GlobalKey();
+
+  /// The frame last reported, so an unchanged frame is not sent again.
+  ProfilePlotFrame? _reported;
+
+  /// Sends [frame] to [onPlotFrame] once this frame is done, unless it is
+  /// the frame last sent, nobody listens, or the chart is gone by then.
+  void report(
+    ProfilePlotFrame frame,
+    ValueChanged<ProfilePlotFrame>? onPlotFrame, {
+    required bool Function() mounted,
+  }) {
+    if (onPlotFrame == null || frame == _reported) return;
+    _reported = frame;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted() && _reported == frame) onPlotFrame(frame);
+    });
+  }
+}

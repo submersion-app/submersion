@@ -88,9 +88,10 @@ class PinnedStripPainter extends CustomPainter {
 
   /// The shaded area, as the full chart draws it: between the depth line and
   /// the bottom of the plot (the water below the diver), clear above.
-  Path? fillPathFor(Size size) {
-    if (profile.length < 2) return null;
-    final m = mappingFor(size);
+  Path? fillPathFor(Size size) =>
+      profile.length < 2 ? null : _fillPath(mappingFor(size));
+
+  Path _fillPath(PlotMapping m) {
     final bottomY = m.rect.bottom;
     final first = m.project(profile.first.timestamp, profile.first.depth);
     final path = Path()..moveTo(first.dx, bottomY);
@@ -116,7 +117,7 @@ class PinnedStripPainter extends CustomPainter {
       i == 0 ? line.moveTo(o.dx, o.dy) : line.lineTo(o.dx, o.dy);
     }
     canvas.drawPath(
-      fillPathFor(size)!,
+      _fillPath(m),
       Paint()
         ..shader = LinearGradient(
           begin: Alignment.topCenter,

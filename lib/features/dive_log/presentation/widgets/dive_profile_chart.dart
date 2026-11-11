@@ -914,21 +914,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Where this chart last published its legend for the card's info icon.
   ProfileLegendSnapshot? _legendSnapshot;
 
-  /// Marks a box laid over the plot, for [DiveProfileChart.onPlotFrame].
-  final GlobalKey _plotFrameKey = GlobalKey();
-
-  /// The plot frame last reported, so an unchanged frame is not re-sent.
-  ProfilePlotFrame? _reportedPlotFrame;
-
-  /// Reports [frame] after this frame, once, if it differs from the last.
-  void _publishPlotFrame(ProfilePlotFrame frame) {
-    final onPlotFrame = widget.onPlotFrame;
-    if (onPlotFrame == null || frame == _reportedPlotFrame) return;
-    _reportedPlotFrame = frame;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _reportedPlotFrame == frame) onPlotFrame(frame);
-    });
-  }
+  /// Reports the plot to [DiveProfileChart.onPlotFrame].
+  final ProfilePlotFrameReporter _plotFrames = ProfilePlotFrameReporter();
 
   /// The diver's metric colours (issue #3012), resolved at the top of
   /// every build so tooltip and gesture code reads the same palette.
@@ -3396,13 +3383,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: context.l10n.diveLog_profile_semantics_chart,
           child: RawGestureDetector(
             gestures: {
-              TrackpadZoomGestureRecognizer:
-                  GestureRecognizerFactoryWithHandlers<
-                    TrackpadZoomGestureRecognizer
-                  >(
-                    () => TrackpadZoomGestureRecognizer(debugOwner: this),
-                    (recognizer) => recognizer.onZoom = zoomAt,
-                  ),
+              // Not while the window is set from outside (the pinned copy):
+              // its zoom would be put straight back, and winning the arena
+              // would stop a two-finger scroll over it reaching the page.
+              if (widget.viewport == null)
+                TrackpadZoomGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<
+                      TrackpadZoomGestureRecognizer
+                    >(
+                      () => TrackpadZoomGestureRecognizer(debugOwner: this),
+                      (recognizer) => recognizer.onZoom = zoomAt,
+                    ),
             },
             child: Listener(
               onPointerDown: (event) {
@@ -4037,24 +4028,29 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // all read them from here.
     final plotInsets = _plotInsets(availableWidth, units);
 
-    // The axis is in the diver's depth unit; the frame is in meters.
-    final metersPerDisplayUnit = 1 / units.convertDepth(1.0);
-    _publishPlotFrame(
-      ProfilePlotFrame(
-        plotKey: _plotFrameKey,
-        plotRect: Rect.fromLTRB(
-          plotInsets.left,
-          plotInsets.top,
-          availableWidth - plotInsets.right,
-          availableHeight - plotInsets.bottom,
+    // The axis is in the diver's depth unit; the frame is in meters. Only
+    // built for a chart that reports it (the pinned copy).
+    if (widget.onPlotFrame != null) {
+      final metersPerDisplayUnit = 1 / units.convertDepth(1.0);
+      _plotFrames.report(
+        ProfilePlotFrame(
+          plotKey: _plotFrames.plotKey,
+          plotRect: Rect.fromLTRB(
+            plotInsets.left,
+            plotInsets.top,
+            availableWidth - plotInsets.right,
+            availableHeight - plotInsets.bottom,
+          ),
+          minSeconds: visibleMinX,
+          maxSeconds: visibleMaxX,
+          minDepthMeters: visibleMinDepth * metersPerDisplayUnit,
+          maxDepthMeters: visibleMaxDepth * metersPerDisplayUnit,
+          viewport: _viewport,
         ),
-        minSeconds: visibleMinX,
-        maxSeconds: visibleMaxX,
-        minDepthMeters: visibleMinDepth * metersPerDisplayUnit,
-        maxDepthMeters: visibleMaxDepth * metersPerDisplayUnit,
-        viewport: _viewport,
-      ),
-    );
+        widget.onPlotFrame,
+        mounted: () => mounted,
+      );
+    }
 
     // Highlight band, inflated to a 12 px minimum so short/instant findings
     // stay visible (spec: safety-findings-lane). Computed once and shared by
@@ -4457,7 +4453,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           top: plotInsets.top,
           right: plotInsets.right,
           bottom: plotInsets.bottom,
-          child: IgnorePointer(child: SizedBox.expand(key: _plotFrameKey)),
+          child: IgnorePointer(
+            child: SizedBox.expand(key: _plotFrames.plotKey),
+          ),
         ),
         LineChart(
           LineChartData(

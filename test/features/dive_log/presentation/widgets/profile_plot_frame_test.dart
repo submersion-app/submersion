@@ -56,4 +56,52 @@ void main() {
     expect(other, isNot(frame));
     expect(other.viewport.sameWindowAs(ChartViewport.reset), isTrue);
   });
+
+  // Reports a chart's frame after the frame it was laid out in, and only
+  // when it changes. Called from a build, as the chart calls it.
+  group('ProfilePlotFrameReporter', () {
+    Future<void> buildReporting(WidgetTester tester, void Function() report) =>
+        tester.pumpWidget(
+          Builder(
+            builder: (context) {
+              report();
+              return const SizedBox();
+            },
+          ),
+        );
+
+    testWidgets('reports a new frame once, after its frame', (tester) async {
+      final reporter = ProfilePlotFrameReporter();
+      final sent = <ProfilePlotFrame>[];
+      var sentDuringBuild = -1;
+      await buildReporting(tester, () {
+        reporter.report(frame, sent.add, mounted: () => true);
+        sentDuringBuild = sent.length;
+      });
+      expect(sentDuringBuild, 0);
+      expect(sent, [frame]);
+
+      await buildReporting(
+        tester,
+        () => reporter.report(frame, sent.add, mounted: () => true),
+      );
+      expect(sent, [frame]);
+    });
+
+    testWidgets('reports nothing without a listener or once unmounted', (
+      tester,
+    ) async {
+      final reporter = ProfilePlotFrameReporter();
+      final sent = <ProfilePlotFrame>[];
+      await buildReporting(tester, () {
+        reporter.report(frame, null, mounted: () => true);
+        reporter.report(
+          frame.withViewport(ChartViewport.reset),
+          sent.add,
+          mounted: () => false,
+        );
+      });
+      expect(sent, isEmpty);
+    });
+  });
 }

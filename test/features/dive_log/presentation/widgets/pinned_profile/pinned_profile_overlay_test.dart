@@ -422,6 +422,11 @@ void main() {
     for (var scrolled = start + 1; scrolled < profileHeight; scrolled += 7) {
       await jump(tester, profileTop + scrolled);
       final s = stripWidget(tester);
+      // Settled, the strip draws its own curve and has no line to follow.
+      if (s.morphFrom == null) {
+        expect(s.condense, 1, reason: '$scrolled');
+        continue;
+      }
       final from = s.morphFrom!.rect.shift(tester.getTopLeft(strip));
       expect(
         from.top,
@@ -540,6 +545,20 @@ void main() {
     }
   });
 
+  // Once settled, nothing drawn depends on the scroll, so scrolling on does
+  // not rebuild the strip on every frame (review).
+  testWidgets('a settled strip is not rebuilt as the page scrolls on', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, 800);
+    final settled = stripWidget(tester);
+    expect(settled.condense, 1);
+    expect(settled.morphFrom, isNull);
+    await jump(tester, 900);
+    expect(identical(stripWidget(tester), settled), isTrue);
+  });
+
   testWidgets('the strip carries through to pinned without a swap', (
     tester,
   ) async {
@@ -645,6 +664,26 @@ void main() {
     await tester.dragFrom(tester.getCenter(strip), const Offset(0, -200));
     await tester.pump();
     expect(position(tester).pixels, greaterThan(before + 100));
+  });
+
+  // Dragging the strip back down unpins the card part way through the
+  // gesture; the drag used to be cancelled with its recognizer, so the page
+  // stopped dead at the card's top (review).
+  testWidgets('a drag that unpins the card keeps scrolling the page', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, profileTop + profileHeight - 40);
+    expect(stripWidget(tester).condense, 1);
+    final gesture = await tester.startGesture(tester.getCenter(strip));
+    for (var i = 0; i < 14; i++) {
+      await gesture.moveBy(const Offset(0, 30));
+      await tester.pump();
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(strip, findsNothing);
+    expect(position(tester).pixels, lessThan(profileTop - 40));
   });
 
   testWidgets('a mouse wheel over the pinned strip scrolls the page', (

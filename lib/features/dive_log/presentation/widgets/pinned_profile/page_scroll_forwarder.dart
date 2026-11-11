@@ -24,7 +24,15 @@ class PageScrollForwarder extends StatefulWidget {
 }
 
 class _PageScrollForwarderState extends State<PageScrollForwarder> {
+  /// Held from the touch down, as the page's own scroll view does, so a
+  /// touch stops a fling; the drag takes over from it.
+  ScrollHoldController? _hold;
   Drag? _drag;
+
+  void _releaseHold() {
+    _hold?.cancel();
+    _hold = null;
+  }
 
   void _onWheel(PointerSignalEvent event) {
     final position = widget.position();
@@ -36,6 +44,7 @@ class _PageScrollForwarderState extends State<PageScrollForwarder> {
 
   @override
   void dispose() {
+    _releaseHold();
     _drag?.cancel();
     super.dispose();
   }
@@ -50,12 +59,20 @@ class _PageScrollForwarderState extends State<PageScrollForwarder> {
               GestureRecognizerFactoryWithHandlers<
                 VerticalDragGestureRecognizer
               >(VerticalDragGestureRecognizer.new, (recognizer) {
+                recognizer.onDown = (_) {
+                  _hold = widget.position()?.hold(() => _hold = null);
+                };
                 recognizer.onStart = (d) {
+                  // The drag replaces the hold's activity, which disposes it.
+                  _hold = null;
                   _drag = widget.position()?.drag(d, () => _drag = null);
                 };
                 recognizer.onUpdate = (d) => _drag?.update(d);
                 recognizer.onEnd = (d) => _drag?.end(d);
-                recognizer.onCancel = () => _drag?.cancel();
+                recognizer.onCancel = () {
+                  _releaseHold();
+                  _drag?.cancel();
+                };
               }),
         },
         child: widget.child,

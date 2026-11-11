@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
+import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
@@ -179,6 +180,28 @@ void main() {
     expect(frames.last.viewport.sameWindowAs(given), isTrue);
     expect(frames.last.minSeconds, before.minSeconds);
     expect(windows, isEmpty);
+  });
+
+  // The trackpad recognizer wins the arena eagerly; on a chart whose zoom
+  // is set from outside it zoomed nothing and kept a two-finger scroll from
+  // reaching the page (review).
+  bool hasTrackpadZoom(WidgetTester tester) => tester
+      .widgetList<RawGestureDetector>(find.byType(RawGestureDetector))
+      .any((d) => d.gestures.containsKey(TrackpadZoomGestureRecognizer));
+
+  testWidgets('a chart given its window leaves trackpad scrolls alone', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      viewport: ValueNotifier<ChartViewport?>(ChartViewport.reset),
+    );
+    expect(hasTrackpadZoom(tester), isFalse);
+  });
+
+  testWidgets('a chart of its own zooms on the trackpad', (tester) async {
+    await pump(tester);
+    expect(hasTrackpadZoom(tester), isTrue);
   });
 
   testWidgets('reports its window when the reader zooms', (tester) async {

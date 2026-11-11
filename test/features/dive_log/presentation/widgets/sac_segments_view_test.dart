@@ -6,8 +6,10 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_rate_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_table.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_view.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_time_columns.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'sac_segments_test_harness.dart';
 
@@ -481,5 +483,60 @@ void main() {
       await tester.pump();
       expect(find.textContaining('5-10 min'), findsWidgets);
     });
+
+    // In dive details the reported time comes straight back as the profile
+    // cursor; that echo of the chart's own drag must not unpin the column it
+    // scrubbed to (review).
+    testWidgets('a scrubbed column stays pinned when the cursor echoes back', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const _CursorLoopBack());
+      final drag = await tester.startGesture(sacColumnCenter(tester, 0, 4));
+      await drag.moveTo(sacColumnCenter(tester, 1, 4));
+      await tester.pump();
+      await drag.moveTo(sacColumnCenter(tester, 3, 4));
+      await tester.pump();
+      await drag.up();
+      await tester.pump();
+
+      expect(find.text('15-20 min · 5.0 L/min · 5m'), findsOneWidget);
+    });
   });
+}
+
+/// A [SacSegmentsView] whose reported cursor time is fed back in as its
+/// selected timestamp, as the dive details card does through the shared
+/// profile cursor.
+class _CursorLoopBack extends StatefulWidget {
+  const _CursorLoopBack();
+
+  @override
+  State<_CursorLoopBack> createState() => _CursorLoopBackState();
+}
+
+class _CursorLoopBackState extends State<_CursorLoopBack> {
+  int? _cursor;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: Center(
+          child: SizedBox(
+            width: 342,
+            child: SacSegmentsView(
+              timeSegments: sacTimeSegments,
+              phaseSegments: sacPhaseSegments,
+              gasSegments: sacGasSegments,
+              rates: sacRates(),
+              selectedTimestamp: _cursor,
+              onCursorSeconds: (seconds) => setState(() => _cursor = seconds),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

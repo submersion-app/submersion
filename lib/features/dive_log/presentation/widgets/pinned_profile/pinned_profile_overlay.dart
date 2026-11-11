@@ -253,8 +253,10 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       final wasIdle = !coversTopAt(_pixels);
       final covers = coversTopAt(pixels);
       // Only a scroll that pins, moves or unpins the card needs a build; one
-      // with nothing drawn either side (or the strip off) just records it.
-      if (wasIdle && !covers) {
+      // with nothing drawn either side (or the strip off), or with the strip
+      // settled in place either side, just records it.
+      if ((wasIdle && !covers) ||
+          (_handOverAt(_pixels) >= 1 && _handOverAt(pixels) >= 1)) {
         _pixels = pixels;
       } else {
         setState(() => _pixels = pixels);
@@ -281,6 +283,20 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     return false;
   }
 
+  /// The scroll past the card's top at which the strip starts to fade in
+  /// over the pinned copy.
+  double get _handOverStart =>
+      (_squashRange + (_copyPlot?.top ?? 0)) * kHandOverOverlap;
+
+  /// The hand-over's progress with the page scrolled to [pixels], 0 when
+  /// nothing is pinned. At 1 the strip is settled: what is drawn no longer
+  /// depends on the scroll.
+  double _handOverAt(double pixels) {
+    final card = _cardInContent?.shift(Offset(0, -pixels));
+    if (!widget.enabled || card == null || card.top >= 0) return 0;
+    return condenseProgress(card: card, start: _handOverStart);
+  }
+
   @override
   Widget build(BuildContext context) {
     final card = _card;
@@ -291,6 +307,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
           _lastConstraints = constraints;
           _scheduleMeasure();
         }
+        final drawn = pinned ? _pinned(card, constraints.maxWidth) : null;
         return Stack(
           children: [
             NotificationListener<ScrollMetricsNotification>(
@@ -300,14 +317,28 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                 child: widget.child,
               ),
             ),
-            if (pinned) _pinned(card, constraints.maxWidth),
+            // Always mounted, empty while nothing is pinned: a drag that
+            // unpins the card (dragging the copy back down) keeps scrolling
+            // the page instead of stopping dead as its recognizer goes.
+            Positioned.fromRect(
+              key: const ValueKey('pinnedProfileBox'),
+              rect: drawn?.box ?? Rect.zero,
+              // It lies over the page, not in its scroll view: vertical drags
+              // and wheel scrolls on it go on to the page.
+              child: PageScrollForwarder(
+                position: () => _pagePosition,
+                child: drawn?.child ?? const SizedBox.shrink(),
+              ),
+            ),
           ],
         );
       },
     );
   }
 
-  Widget _pinned(Rect card, double width) {
+  /// What is pinned over the page for [card]: the [box] it all covers, on
+  /// the overlay, and the [child] drawn in it.
+  ({Rect box, Widget child}) _pinned(Rect card, double width) {
     // One motion: the squash and the slide share the scroll, finishing
     // together as the plot reaches the top, and the strip starts to fade in
     // before they do, so no step starts or stops on its own.
@@ -315,7 +346,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     final plotTop = _copyPlot?.top ?? 0;
     final squash = squashDepth(card: card, range: range, plotTop: plotTop);
     _layoutSquash = squash;
-    final start = (range + plotTop) * kHandOverOverlap;
+    final start = _handOverStart;
     final t = condenseProgress(card: card, start: start);
     // The full chart is gone by the time its plot reaches the top, so none of
     // its data is seen leaving the view.
@@ -379,58 +410,57 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     );
     final copyAt = copyOrigin - box.topLeft;
     final stripAt = stripBox.shift(-box.topLeft);
-    return Positioned.fromRect(
-      key: const ValueKey('pinnedProfileBox'),
-      rect: box,
-      // It lies over the page, not in its scroll view: vertical drags and
-      // wheel scrolls on it go on to the page.
-      child: PageScrollForwarder(
-        position: () => _pagePosition,
-        child: Stack(
-          children: [
-            // The live copy: squashed to what is left of the card, then
-            // sliding up at its squashed height, header first, as the card
-            // itself would; it keeps the card's width while the strip takes
-            // over on top of it. It is the card the reader sees, so it is
-            // the one they use: it takes taps and hovers itself.
-            if (t < 1)
-              Positioned(
-                key: const ValueKey('pinnedSquashedCard'),
-                left: copyAt.dx,
-                top: copyAt.dy,
-                width: card.width,
-                height: card.height - squash,
-                child: KeyedSubtree(
-                  key: _copyRootKey,
-                  child: widget.squashedCard(context, _onCopyFrame, viewport),
-                ),
+    return (
+      box: box,
+      child: Stack(
+        children: [
+          // The live copy: squashed to what is left of the card, then
+          // sliding up at its squashed height, header first, as the card
+          // itself would; it keeps the card's width while the strip takes
+          // over on top of it. It is the card the reader sees, so it is
+          // the one they use: it takes taps and hovers itself.
+          if (t < 1)
+            Positioned(
+              key: const ValueKey('pinnedSquashedCard'),
+              left: copyAt.dx,
+              top: copyAt.dy,
+              width: card.width,
+              height: card.height - squash,
+              child: KeyedSubtree(
+                key: _copyRootKey,
+                child: widget.squashedCard(context, _onCopyFrame, viewport),
               ),
-            // Keyed, so it stays the same strip when the copy drops out.
-            if (t > 0)
-              Positioned.fromRect(
-                key: const ValueKey('pinnedStrip'),
-                rect: stripAt,
-                child: IgnorePointer(
-                  ignoring: t < 1,
-                  child: PinnedProfileStrip(
-                    dive: widget.dive,
-                    condense: morph,
-                    backgroundOpacity: condenseBackgroundOpacity(
-                      t,
-                      fadeEnd: fadeEnd,
-                    ),
-                    // The copy's line, in the strip's own coordinates; once
-                    // the copy slides its plot past the top, held at the top
-                    // instead, so the line never leaves the view.
-                    morphFrom: copy
-                        ?.shift(copyOrigin)
-                        .keptInView()
-                        .shift(-box.topLeft - stripAt.topLeft),
+            ),
+          // Keyed, so it stays the same strip when the copy drops out.
+          if (t > 0)
+            Positioned.fromRect(
+              key: const ValueKey('pinnedStrip'),
+              rect: stripAt,
+              child: IgnorePointer(
+                ignoring: t < 1,
+                child: PinnedProfileStrip(
+                  dive: widget.dive,
+                  condense: morph,
+                  backgroundOpacity: condenseBackgroundOpacity(
+                    t,
+                    fadeEnd: fadeEnd,
                   ),
+                  // The copy's line, in the strip's own coordinates; once
+                  // the copy slides its plot past the top, held at the top
+                  // instead, so the line never leaves the view.
+                  // Settled, the strip draws its own curve alone, so it
+                  // does not repaint for a mapping that moves with the
+                  // scroll but is no longer used.
+                  morphFrom: morph >= 1
+                      ? null
+                      : copy
+                            ?.shift(copyOrigin)
+                            .keptInView()
+                            .shift(-box.topLeft - stripAt.topLeft),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }

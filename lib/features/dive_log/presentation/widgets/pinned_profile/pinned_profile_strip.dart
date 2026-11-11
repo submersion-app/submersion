@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
@@ -84,7 +83,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
     final first = profile.first.timestamp;
     final span = profile.last.timestamp - first;
     final seconds = first + (dx / width).clamp(0.0, 1.0) * span;
-    _write(indexForTimestamp(profile, seconds.round()));
+    setProfileCursorSeconds(ref, _diveId, profile, seconds.round());
   }
 
   void _noteKind(PointerDeviceKind kind) {
@@ -155,7 +154,11 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                     behavior: HitTestBehavior.opaque,
                     onTapDown: (d) =>
                         _scrubTo(d.localPosition.dx, width, profile),
-                    onTapUp: (_) => _write(null),
+                    // A mouse still hovers where it clicked, so the cursor
+                    // stays until it moves or leaves; a lifted finger clears.
+                    onTapUp: (d) {
+                      if (d.kind != PointerDeviceKind.mouse) _write(null);
+                    },
                     onTapCancel: () => _write(null),
                     onHorizontalDragStart: (d) =>
                         _scrubTo(d.localPosition.dx, width, profile),

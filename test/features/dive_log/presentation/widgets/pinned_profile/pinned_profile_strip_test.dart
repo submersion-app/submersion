@@ -170,6 +170,24 @@ void main() {
     expect(cursor(c), isNull);
   });
 
+  // The mouse is still over the strip after a click, so clearing the cursor
+  // on the release left the strip blank under it until it moved (review).
+  testWidgets('a mouse click leaves the cursor where it clicked', (
+    tester,
+  ) async {
+    final c = await pump(tester);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    addTearDown(mouse.removePointer);
+    await mouse.addPointer(location: const Offset(1, 500));
+    await mouse.moveTo(at(tester, 0.5));
+    await tester.pump();
+    await mouse.down(at(tester, 0.5));
+    await tester.pump(const Duration(milliseconds: 50));
+    await mouse.up();
+    await tester.pump();
+    expect(cursor(c), closeTo(75, 1));
+  });
+
   testWidgets('a vertical drag scrolls the page and leaves the cursor', (
     tester,
   ) async {

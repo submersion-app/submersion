@@ -8,7 +8,6 @@ import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/info/buoyancy_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
@@ -54,33 +53,36 @@ class BuoyancySection extends ConsumerWidget {
         BuoyancyChart(result: outcome.result, units: units),
       );
     }
-    // The shared cursor indexes the series the profile chart draws (#543),
-    // so it converts to and from seconds against that same series.
-    final profile = watchChartProfile(ref, synced);
-    final cursor = ref.watch(profileTrackingIndexProvider(diveId));
-    final chart = BuoyancyChart(
-      result: outcome.result,
-      units: units,
-      cursorSeconds: cursor != null && cursor >= 0 && cursor < profile.length
-          ? profile[cursor].timestamp
-          : null,
-      onCursorSeconds: (seconds) {
-        final notifier = ref.read(
-          profileTrackingIndexProvider(diveId).notifier,
-        );
-        final index = seconds == null
-            ? null
-            : indexForTimestamp(profile, seconds);
-        if (notifier.state != index) notifier.state = index;
-      },
+    // The cursor is watched by the chart alone, so scrubbing anywhere on the
+    // dive rebuilds the chart rather than the whole card.
+    return _card(
+      context,
+      outcome,
+      Consumer(
+        builder: (context, ref, _) {
+          // The shared cursor indexes the series the profile chart draws
+          // (#543), so it converts to and from seconds against that series.
+          final profile = watchChartProfile(ref, synced);
+          final cursor = ref.watch(profileTrackingIndexProvider(diveId));
+          return BuoyancyChart(
+            result: outcome.result,
+            units: units,
+            cursorSeconds:
+                cursor != null && cursor >= 0 && cursor < profile.length
+                ? profile[cursor].timestamp
+                : null,
+            onCursorSeconds: (seconds) =>
+                setProfileCursorSeconds(ref, diveId, profile, seconds),
+          );
+        },
+      ),
     );
-    return _card(context, outcome, chart);
   }
 
   Widget _card(
     BuildContext context,
     BuoyancyTwinOutcome outcome,
-    BuoyancyChart chart,
+    Widget chart,
   ) {
     final theme = Theme.of(context);
     final o = outcome.outputs;
