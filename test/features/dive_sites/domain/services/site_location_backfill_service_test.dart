@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' show AppDatabase;
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/shared_library/shared_library_models.dart';
@@ -39,9 +40,10 @@ class _MapLocationService implements LocationService {
 
 void main() {
   late SiteRepository sites;
+  late AppDatabase db;
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     sites = SiteRepository();
   });
 
@@ -352,6 +354,10 @@ void main() {
             bodyOfWater: 'Lake Lucerne',
             location: GeoPoint(47.0, 8.4),
           ),
+        );
+        // createSite derives a code from the text; this site predates that.
+        await db.customStatement(
+          "UPDATE dive_sites SET country_code = NULL WHERE id = 'nocode'",
         );
 
         final summary = await service(

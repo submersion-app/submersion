@@ -199,6 +199,15 @@ void main() {
       expect(merged.countryCode, 'KR');
     });
 
+    test('a code is never written beside a blank country', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(region: 'Jeju'),
+        found: const PlaceLookup(countryCode: 'KR'),
+        overwrite: false,
+      );
+      expect(merged, isNull);
+    });
+
     test('a kept country naming another country keeps its own reading', () {
       final merged = mergeLocationDetails(
         current: const SiteLocationDetails(country: 'Japan', region: 'Jeju'),

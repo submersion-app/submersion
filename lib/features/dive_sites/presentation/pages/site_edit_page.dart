@@ -1637,7 +1637,15 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     final candidates = _mergeTextCandidates['country'];
     if (candidates == null || index < 0 || index >= candidates.length) return;
     final known = _mergeCountryCodes[candidates[index].siteId];
-    if (known != null) _knownCountryCode = known;
+    if (known == null) return;
+    // A candidate stands for every merged site with its text, so a code
+    // stored on any of them comes along, not only the first site's.
+    _knownCountryCode = known.code != null
+        ? known
+        : _mergeCountryCodes.values.firstWhere(
+            (other) => other.code != null && other.country == known.country,
+            orElse: () => known,
+          );
   }
 
   void _selectTextFieldCandidate(String key, int index) {

@@ -5,9 +5,11 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
+import 'package:submersion/features/rules/domain/site_rule_field.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/core/text/markdown/notes_markdown.dart';
@@ -51,31 +53,62 @@ class SiteRuleApplier {
   ) async {
     final column = a.field.column;
     final after = {column: storedForm(a.value)};
+    // A country brings its code along (issue #4426), so the flag never stays
+    // on the country the rule replaced. Each change records the code beside
+    // the country, so an undo puts both back.
+    final withCode = a.field == SiteRuleField.country;
     final before = await columnValues(
       _db,
       table: 'dive_sites',
-      columns: [column],
+      columns: [column, if (withCode) _countryCodeColumn],
       ids: ids,
     );
-    final changed = [
+    final written = <String, Map<String, Object?>>{
       for (final id in ids)
-        if (before[id] != null && !sameColumns(before[id]!, after)) id,
-    ];
-    if (changed.isEmpty) return AppliedAction.none;
-    final now = DateTime.now().millisecondsSinceEpoch;
-    for (final chunk in ruleIdChunks(changed)) {
-      // The column name comes from SiteRuleField, never from stored data.
-      await _db.customUpdate(
-        'UPDATE dive_sites SET $column = ?, updated_at = ? '
-        'WHERE id IN (${ruleIdPlaceholders(chunk.length)})',
-        variables: [
-          Variable(after[column]),
-          Variable.withInt(now),
-          for (final id in chunk) Variable.withString(id),
-        ],
-        updates: {_db.diveSites},
-      );
+        if (before[id] case final was?
+            when !sameColumns({column: was[column]}, after))
+          id: {
+            ...after,
+            if (withCode)
+              _countryCodeColumn: countryCodeOnSave(
+                country: after[column] as String?,
+                known: (
+                  country: was[column] as String?,
+                  code: was[_countryCodeColumn] as String?,
+                ),
+              ),
+          },
+    };
+    if (written.isEmpty) return AppliedAction.none;
+    // Sites given the same values share one UPDATE; only a country's code
+    // can differ between them.
+    final groups = <Object?, List<String>>{};
+    for (final entry in written.entries) {
+      groups
+          .putIfAbsent(entry.value[_countryCodeColumn], () => [])
+          .add(entry.key);
     }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final group in groups.values) {
+      final values = written[group.first]!;
+      for (final chunk in ruleIdChunks(group)) {
+        // The column names come from SiteRuleField and this class, never
+        // from stored data.
+        await _db.customUpdate(
+          'UPDATE dive_sites SET '
+          '${[for (final k in values.keys) '$k = ?'].join(', ')}, '
+          'updated_at = ? '
+          'WHERE id IN (${ruleIdPlaceholders(chunk.length)})',
+          variables: [
+            for (final v in values.values) Variable(v),
+            Variable.withInt(now),
+            for (final id in chunk) Variable.withString(id),
+          ],
+          updates: {_db.diveSites},
+        );
+      }
+    }
+    final changed = written.keys.toList();
     await _sync.markRecordsPending(
       entityType: 'diveSites',
       recordIds: changed,
@@ -83,9 +116,12 @@ class SiteRuleApplier {
     );
     return AppliedAction([
       for (final id in changed)
-        ruleChange(rule, id, a.field.name, before[id], after),
+        ruleChange(rule, id, a.field.name, before[id], written[id]),
     ]);
   }
+
+  /// The column a site's ISO country code lives in (issue #4426).
+  static const _countryCodeColumn = 'country_code';
 
   /// The table the ids of [c] name.
   static TableInfo<Table, dynamic> refTable(AppDatabase db, SiteCollection c) =>

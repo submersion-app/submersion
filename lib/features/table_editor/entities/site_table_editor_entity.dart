@@ -3,6 +3,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/table_editor/domain/column_factories.dart';
 import 'package:submersion/features/table_editor/domain/table_draft.dart';
@@ -206,6 +207,15 @@ class SiteTableEditorEntity
     final lon = pick<double?>(SiteField.longitude, s.location?.longitude);
     final waterType = pick<String?>(SiteField.waterType, s.waterType?.name);
     final difficulty = pick<String?>(SiteField.difficulty, s.difficulty?.name);
+    final country = pick<String?>(SiteField.country, s.country);
+    // The stored code (issue #4426) stays with an untouched country, and an
+    // edited one is read afresh, as the site editor does.
+    final countryCode = v.containsKey(SiteField.country)
+        ? countryCodeOnSave(
+            country: country,
+            known: (country: s.country, code: s.countryCode),
+          )
+        : s.countryCode;
     return DiveSite(
       id: s.id,
       diverId: s.diverId,
@@ -220,7 +230,8 @@ class SiteTableEditorEntity
       waterType: waterType == null
           ? null
           : WaterType.values.firstWhere((w) => w.name == waterType),
-      country: pick<String?>(SiteField.country, s.country),
+      country: country,
+      countryCode: countryCode,
       region: pick<String?>(SiteField.region, s.region),
       city: pick<String?>(SiteField.city, s.city),
       island: pick<String?>(SiteField.island, s.island),

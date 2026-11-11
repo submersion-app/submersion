@@ -42,6 +42,9 @@ class SiteDocument {
     'city',
     'island',
     'country',
+    // The country's ISO code (issue #4426). An older build keeps it in
+    // [extra] and writes it back unchanged.
+    'countryCode',
     'region',
     'hazards',
     'accessNotes',

@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/geography/country_code.dart';
 
 /// Site difficulty levels
 enum SiteDifficulty {
@@ -123,11 +122,6 @@ class DiveSite extends Equatable {
     return cityTrimmed.isNotEmpty ? cityTrimmed : (island?.trim() ?? '');
   }
 
-  /// The code a flag is drawn for: the stored [countryCode], else the
-  /// country [country]'s text names, else null (issue #4426).
-  String? get flagCountryCode =>
-      siteFlagCode(country: country, code: countryCode);
-
   /// Compact one-line location formatted as `locality · region, country`.
   /// Locality prefers [city], falling back to [island]. [bodyOfWater] is
   /// intentionally excluded to keep list tiles and map popups tight.
@@ -218,7 +212,10 @@ class DiveSite extends Equatable {
       difficulty: clearDifficulty ? null : difficulty ?? this.difficulty,
       waterType: clearWaterType ? null : waterType ?? this.waterType,
       country: clearCountry ? null : country ?? this.country,
-      countryCode: clearCountryCode ? null : countryCode ?? this.countryCode,
+      // A code names its country: clearing the country clears it too.
+      countryCode: clearCountry || clearCountryCode
+          ? null
+          : countryCode ?? this.countryCode,
       region: clearRegion ? null : region ?? this.region,
       city: clearCity ? null : city ?? this.city,
       island: clearIsland ? null : island ?? this.island,

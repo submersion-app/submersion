@@ -1,8 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/trips/data/repositories/trip_country_queries.dart';
 import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 
+import '../../../../helpers/shared_items_fixture.dart';
 import '../../../../helpers/test_database.dart';
 
 /// A trip's flags (issue #4426) come from the countries of the same dives
@@ -95,6 +98,15 @@ void main() {
     expect(countries.single, const TripCountry(code: 'KR', name: 'Korea'));
   });
 
+  test('a site with only a stored code still counts', () async {
+    await site('nameless', null, code: 'KR');
+    await trip('T');
+    await dive('a', 'T', 'nameless');
+
+    final countries = (await trips.getTripCountries())['T']!;
+    expect(countries.single, const TripCountry(code: 'KR', name: 'KR'));
+  });
+
   test('a country it cannot name adds nothing', () async {
     await trip('T');
     await dive('a', 'T', 'atlantis');
@@ -154,5 +166,18 @@ void main() {
     await db.customStatement('DROP TABLE dive_sites');
 
     await expectLater(trips.getTripCountries(), throwsA(anything));
+  });
+
+  test('a trip hidden from the diver reads nothing for them', () async {
+    await seedDivers(db, ['b', 'c']);
+    await seedTrip(db, 'shared', owner: 'c', shared: true, name: 'Cozumel');
+    await dive('b1', 'shared', 'cozumel', diver: 'b');
+    await dive('c1', 'shared', 'cozumel', diver: 'c');
+    await ProfileHidesRepository().hide(SharedItemKind.trip, 'shared', 'b');
+
+    expect((await trips.getTripCountries(diverId: 'b'))['shared'], isNull);
+    expect(codes((await trips.getTripCountries(diverId: 'c'))['shared']), [
+      'MX',
+    ]);
   });
 }

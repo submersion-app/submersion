@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_classificati
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
@@ -177,7 +178,7 @@ class SiteRepository {
                 difficulty: Value(site.difficulty?.name),
                 waterType: Value(site.waterType?.name),
                 country: Value(site.country),
-                countryCode: Value(site.countryCode),
+                countryCode: Value(reconciledCountryCode(site)),
                 region: Value(site.region),
                 city: Value(site.city),
                 island: Value(site.island),
@@ -300,7 +301,7 @@ class SiteRepository {
         difficulty: Value(site.difficulty?.name),
         waterType: Value(site.waterType?.name),
         country: Value(site.country),
-        countryCode: Value(site.countryCode),
+        countryCode: Value(reconciledCountryCode(site, before: before)),
         region: Value(site.region),
         city: Value(site.city),
         island: Value(site.island),

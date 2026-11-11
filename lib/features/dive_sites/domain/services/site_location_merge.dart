@@ -104,6 +104,9 @@ SiteLocationDetails? mergeLocationDetails({
     }
     return (code: code == current.countryCode ? null : code, clear: false);
   }
+  // A code never stands without a country beside it: the site editor drops
+  // one on save, so writing it here would only leave the two disagreeing.
+  if (_isBlank(current.country)) return (code: null, clear: false);
   final foundCode = found.countryCode ?? countryCodeFor(found.country);
   if (foundCode == null || !_isBlank(current.countryCode)) {
     return (code: null, clear: false);

@@ -1,5 +1,8 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/data/visibility/shared_item_policy.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
+
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -35,6 +38,14 @@ class TripCountryQueries {
         joinKind: 'INNER',
         extraOn: diverId != null ? ' AND d.diver_id = ?$scope' : scope,
       );
+      // Only the trips the diver can see, as the trip list reads them: a
+      // trip hidden from this profile is never drawn, so it is not read.
+      final vis = VisibilityFilter.sqlFragment(
+        tableAlias: 't',
+        diverId: diverId,
+        conjunction: 'AND',
+        kind: SharedItemKind.trip,
+      );
       final rows = await _db
           .customSelect(
             '''
@@ -47,10 +58,15 @@ class TripCountryQueries {
         FROM trips t
         $joinClause
         INNER JOIN dive_sites s ON s.id = d.site_id
-        WHERE s.country IS NOT NULL AND TRIM(s.country) <> ''
+        WHERE ((s.country IS NOT NULL AND TRIM(s.country) <> '')
+          OR s.country_code IS NOT NULL)
+        ${vis.whereClause}
         GROUP BY t.id, s.country, s.country_code
       ''',
-            variables: [if (diverId != null) Variable.withString(diverId)],
+            variables: [
+              if (diverId != null) Variable.withString(diverId),
+              ...vis.variables,
+            ],
           )
           .get();
 
@@ -58,7 +74,10 @@ class TripCountryQueries {
         rows.map(
           (row) => (
             tripId: row.read<String>('trip_id'),
-            name: row.read<String>('country').trim(),
+            // A site with only a code is named by it in the tooltip.
+            name:
+                row.read<String?>('country')?.trim() ??
+                row.read<String>('code'),
             code: row.read<String?>('code'),
             dives: row.read<int>('dive_count'),
             firstDive: row.read<int>('first_dive'),

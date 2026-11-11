@@ -272,4 +272,45 @@ void main() {
     expect(site.notes, 'mine');
     expect(site.rating, 4);
   });
+
+  group('country code (issue #4426)', () {
+    Future<String?> applyAndRead(Map<String, Object?> fields) async {
+      await bridge.apply(
+        SiteDocument(id: 'cc', fields: {'name': 'Reef', ...fields}),
+        libraryId: 'L',
+        vocabularyDiverId: 'd1',
+      );
+      return (await SiteRepository().getSiteById('cc'))!.countryCode;
+    }
+
+    test('documents carry the code beside the country', () {
+      expect(SiteDocument.fieldNames, contains('countryCode'));
+      const site = DiveSite(
+        id: 's',
+        name: 'n',
+        country: 'Korea',
+        countryCode: 'KR',
+      );
+      expect(SiteDocumentBridge.fieldValue(site, 'countryCode'), 'KR');
+    });
+
+    test('a code the text cannot be read as comes along', () async {
+      expect(
+        await applyAndRead({'country': 'Korea', 'countryCode': 'KR'}),
+        'KR',
+      );
+    });
+
+    test('a code naming another country than the text is re-read', () async {
+      // An older build changed the country and passed the old code through.
+      expect(
+        await applyAndRead({'country': 'Spain', 'countryCode': 'FR'}),
+        'ES',
+      );
+    });
+
+    test('a document without a code reads its country text', () async {
+      expect(await applyAndRead({'country': 'Mexico'}), 'MX');
+    });
+  });
 }

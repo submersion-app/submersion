@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -56,6 +57,10 @@ class _QuickSiteFromGpsDialogState
   final _uuid = const Uuid();
   String? _locality;
 
+  /// The geocoder's code for the country it filled in (issue #4426), kept
+  /// while the diver leaves that country as it came.
+  KnownCountryCode _knownCountryCode = (country: null, code: null);
+
   @override
   void initState() {
     super.initState();
@@ -77,6 +82,7 @@ class _QuickSiteFromGpsDialogState
       setState(() {
         if (_countryController.text.isEmpty) {
           _countryController.text = place.country ?? '';
+          _knownCountryCode = (country: place.country, code: place.countryCode);
         }
         if (_regionController.text.isEmpty) {
           _regionController.text = place.region ?? '';
@@ -235,6 +241,10 @@ class _QuickSiteFromGpsDialogState
       name: _nameController.text.trim(),
       location: GeoPoint(widget.latitude, widget.longitude),
       country: orNull(_countryController),
+      countryCode: countryCodeOnSave(
+        country: orNull(_countryController),
+        known: _knownCountryCode,
+      ),
       region: orNull(_regionController),
       city: orNull(_cityController),
     );
