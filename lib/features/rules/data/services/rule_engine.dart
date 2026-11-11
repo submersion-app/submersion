@@ -219,7 +219,11 @@ class RuleEngine {
     // their verdicts alone; any other read (a site rule's dives, a hop to
     // a trip's) needs the whole logbook's.
     final diveTargets = request.targets[RuleSubject.dives];
+    // Only a targeted run that reads deco at all needs the per-rule check,
+    // which compiles each condition again.
     final ownDecoOnly =
+        diveTargets != null &&
+        tables.contains(kDiveDecoStatusTable) &&
         !(rules[RuleSubject.sites] ?? const <Rule>[]).any(
           (r) =>
               r.isRunnable &&

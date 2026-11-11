@@ -55,8 +55,9 @@ final ruleEngineProvider = Provider<RuleEngine>(
     runs: ref.watch(ruleRunRepositoryProvider),
     scope: ref.watch(ruleTargetScopeProvider),
     names: (diverId) => ruleNamesFor(ref, diverId),
-    // A run for another profile (a multi-diver import) has no cached
-    // verdicts to prepare; prepareQueryCachesFor skips it.
+    // A run for another profile (a multi-diver import) has that profile's
+    // deco verdicts judged under its own settings; the service-due cache
+    // holds the active profile's only, so prepareQueryCachesFor skips it.
     prepareCaches: (diverId, tables, diveIds) =>
         prepareQueryCachesFor(ref, diverId, tables, diveIds: diveIds),
   ),

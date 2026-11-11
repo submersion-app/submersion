@@ -67,8 +67,6 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   final startedFrom = ref.read(diveDecoInputWritesProvider);
   final startedAt = DateTime.now().millisecondsSinceEpoch;
 
-  // Every dive the diver logged, not only those statistics count: a dive
-  // excluded from the card's rate is still one a deco search should find.
   final judged = await _judgeDiverDives(ref, diverId);
   // A rebuild replaced this pass part way through: its verdicts are
   // incomplete, and the pass that replaced it writes the whole set.
@@ -138,16 +136,17 @@ final diveDecoInputWritesProvider = StateProvider<int>((ref) => 0);
 /// and for a query on a profile other than the active one (an agent's, a
 /// multi-diver import's rules): that profile's dives are judged in a
 /// throwaway container pinned to its own settings, so its gradient factors,
-/// not the active diver's, decide (#4461). [ref] must outlive the call: a
-/// service provider's.
+/// not the active diver's, decide (#4461). [isActive] says whether
+/// [diverId] is the active profile, as the caller already resolved it. [ref]
+/// must outlive the call: a service provider's.
 Future<void> refreshDiveDecoStatusFor(
   Ref ref,
   String diverId,
-  Set<String>? diveIds,
-) async {
+  Set<String>? diveIds, {
+  required bool isActive,
+}) async {
   if (diveIds != null && diveIds.isEmpty) return;
-  final active = await ref.read(validatedCurrentDiverIdProvider.future);
-  final judged = diverId == active
+  final judged = isActive
       ? await _judgeDiverDives(ref, diverId, onlyDiveIds: diveIds)
       : await runInDiverContainer(
           ref,

@@ -37,25 +37,14 @@ class DiveDecoStatusRepository {
     required Set<String> diveIds,
     required int computedAt,
     int? keepWrittenAfter,
-  }) => _write(
-    {
+  }) async {
+    final named = {
       for (final e in byId.entries)
         if (diveIds.contains(e.key)) e.key: e.value,
-    },
-    computedAt: computedAt,
-    within: diveIds,
-    keepWrittenAfter: keepWrittenAfter,
-  );
-
-  Future<void> _write(
-    Map<String, bool> byId, {
-    required int computedAt,
-    required Set<String> within,
-    int? keepWrittenAfter,
-  }) async {
+    };
     try {
       await _db.transaction(
-        () => _replace(byId, computedAt, within, keepWrittenAfter),
+        () => _replace(named, computedAt, diveIds, keepWrittenAfter),
       );
     } catch (e, st) {
       _log.error(
@@ -73,7 +62,14 @@ class DiveDecoStatusRepository {
     Set<String> within,
     int? keepWrittenAfter,
   ) async {
-    final rows = await _db.select(_db.diveDecoStatus).get();
+    // Only the rows this write may touch: a targeted refresh of an
+    // import's few dives need not read every verdict in the table.
+    final rows = [
+      for (final chunk in _chunks(within.toList(growable: false)))
+        ...await (_db.select(
+          _db.diveDecoStatus,
+        )..where((t) => t.diveId.isIn(chunk))).get(),
+    ];
     final existing = {for (final r in rows) r.diveId: r.hadDeco};
     final kept = {
       if (keepWrittenAfter != null)
@@ -83,7 +79,7 @@ class DiveDecoStatusRepository {
     final live = await _liveDiveIds(byId.keys.toList(growable: false));
     final stale = [
       for (final id in existing.keys)
-        if (within.contains(id) && !live.contains(id) && !kept.contains(id)) id,
+        if (!live.contains(id) && !kept.contains(id)) id,
     ];
     final changed = {
       for (final e in byId.entries)

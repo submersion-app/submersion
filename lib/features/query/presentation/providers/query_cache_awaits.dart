@@ -83,7 +83,9 @@ Future<void> prepareQueryCachesFor(
   final readsDeco = tables.contains(kDiveDecoStatusTable);
   final active = await ref.read(validatedCurrentDiverIdProvider.future);
   if (diverId != active) {
-    if (readsDeco) await refreshDiveDecoStatusFor(ref, diverId, diveIds);
+    if (readsDeco) {
+      await refreshDiveDecoStatusFor(ref, diverId, diveIds, isActive: false);
+    }
     return;
   }
   final targeted = readsDeco && diveIds != null;
@@ -91,7 +93,7 @@ Future<void> prepareQueryCachesFor(
     for (final writer in _writersFor(tables.difference({kDiveDecoStatusTable})))
       ref.container.awaitFuture(writer),
     if (targeted)
-      refreshDiveDecoStatusFor(ref, diverId, diveIds)
+      refreshDiveDecoStatusFor(ref, diverId, diveIds, isActive: true)
     else if (readsDeco)
       _awaitCurrentDecoPass(ref.container),
   ]);
@@ -100,8 +102,11 @@ Future<void> prepareQueryCachesFor(
 /// Waits for a deco writer pass that has seen every write before this call.
 /// The writer re-runs on a debounced tick, so a query just after a write (an
 /// agent's query after its own edit) could otherwise read the pass from
-/// before it. A pass already current is not re-run, so a run of queries
-/// costs one pass, not one each.
+/// before it. A pass already current is not re-run while something else
+/// holds the writer (a live `deco` filter's keeper). With nothing holding
+/// it, the writer is released once this wait ends, so the next query starts
+/// a fresh pass: a scan and a classification cache read, not a second
+/// analysis.
 Future<void> _awaitCurrentDecoPass(ProviderContainer container) async {
   final startedFrom = await container.awaitFuture(
     diveDecoStatusCacheProvider.future,
