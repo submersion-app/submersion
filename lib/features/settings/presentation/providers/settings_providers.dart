@@ -557,6 +557,10 @@ class AppSettings implements UnitFormatterSettings {
   /// Show pressure threshold markers (2/3, 1/2, 1/3) on dive profile chart
   final bool showPressureThresholdMarkers;
 
+  /// Pin a thin, scrubbable profile strip at the top of dive details once
+  /// the profile card scrolls away (issue #4423).
+  final bool pinProfileOnScroll;
+
   // Dive profile chart default visibility settings
   /// Default metric for the right Y-axis on dive profile charts
   final ProfileRightAxisMetric defaultRightAxisMetric;
@@ -888,6 +892,7 @@ class AppSettings implements UnitFormatterSettings {
     // Dive profile marker defaults
     this.showMaxDepthMarker = true,
     this.showPressureThresholdMarkers = false,
+    this.pinProfileOnScroll = true,
     // Dive profile chart defaults
     this.defaultRightAxisMetric = ProfileRightAxisMetric.temperature,
     this.defaultShowTemperature = true,
@@ -1121,6 +1126,7 @@ class AppSettings implements UnitFormatterSettings {
     bool? showMapBackgroundOnSiteCards,
     bool? showMaxDepthMarker,
     bool? showPressureThresholdMarkers,
+    bool? pinProfileOnScroll,
     ProfileRightAxisMetric? defaultRightAxisMetric,
     bool? defaultShowTemperature,
     bool? defaultShowPressure,
@@ -1351,6 +1357,7 @@ class AppSettings implements UnitFormatterSettings {
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureThresholdMarkers:
           showPressureThresholdMarkers ?? this.showPressureThresholdMarkers,
+      pinProfileOnScroll: pinProfileOnScroll ?? this.pinProfileOnScroll,
       defaultRightAxisMetric:
           defaultRightAxisMetric ?? this.defaultRightAxisMetric,
       defaultShowTemperature:
@@ -3044,6 +3051,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setShowMaxDepthMarker(bool value) =>
       _update((s) => s.copyWith(showMaxDepthMarker: value));
 
+  Future<void> setPinProfileOnScroll(bool value) =>
+      _update((s) => s.copyWith(pinProfileOnScroll: value));
+
   Future<void> setShowPressureThresholdMarkers(bool value) =>
       _update((s) => s.copyWith(showPressureThresholdMarkers: value));
 
@@ -3703,6 +3713,10 @@ final showMapBackgroundOnSiteCardsProvider = Provider<bool>((ref) {
 
 final showMaxDepthMarkerProvider = Provider<bool>((ref) {
   return ref.watch(settingsProvider.select((s) => s.showMaxDepthMarker));
+});
+
+final pinProfileOnScrollProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.pinProfileOnScroll));
 });
 
 final showPressureThresholdMarkersProvider = Provider<bool>((ref) {

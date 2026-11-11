@@ -105,6 +105,25 @@ class ChartViewport {
     zoomLimit: zoomLimit,
   )._clamped();
 
+  /// The window [t] of the way from [a] to [b], moving each edge of the
+  /// window steadily, so what the plot shows changes evenly with [t]. Keeps
+  /// [a]'s zoom limit.
+  static ChartViewport lerp(ChartViewport a, ChartViewport b, double t) {
+    // Exactly the ends, not a rounding error away: a window rebuilt from its
+    // edges can come back a hair off its own zoom.
+    if (t <= 0) return a;
+    if (t >= 1) return b.withZoomLimit(a.zoomLimit);
+    double mix(double x, double y) => x + (y - x) * t;
+    final start = mix(a.windowStart, b.windowStart);
+    final end = mix(a.windowEnd, b.windowEnd);
+    return ChartViewport(
+      zoom: 1.0 / (end - start),
+      offsetX: start,
+      offsetY: mix(a.offsetY, b.offsetY),
+      zoomLimit: a.zoomLimit,
+    )._clamped();
+  }
+
   ChartViewport _clamped() {
     final maxOff = 1.0 - 1.0 / zoom;
     return ChartViewport(

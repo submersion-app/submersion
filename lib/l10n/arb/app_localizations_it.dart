@@ -1358,6 +1358,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_components_title => 'Componenti';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Da $count di $total componenti',
+      one: 'Da $count di $total componente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Totale';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Impossibile rimuovere il documento: $error';
   }
@@ -7775,6 +7789,31 @@ class AppLocalizationsIt extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'A $timestamp';
   }
+
+  @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Sosta $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Trascina per scorrere';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Passa sopra per scorrere';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Profilo dell\'immersione, scorri per spostare il cursore';
 
   @override
   String diveLog_detail_customFieldCount(int count) {
@@ -23117,6 +23156,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mostra un marcatore nel punto di profondità massima sui profili immersione';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Fissa il profilo durante lo scorrimento';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Mantieni un profilo sottile e scorrevole in cima ai dettagli dell\'immersione';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
 
   @override
@@ -26642,6 +26689,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Il profilo mostra la profondità massima';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Fissa il profilo durante lo scorrimento';
 
   @override
   String get settings_conflict_field_showNdlOnProfile =>

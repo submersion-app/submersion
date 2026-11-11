@@ -1397,6 +1397,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_components_title => 'المكوّنات';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'من $count من أصل $total مكوّن',
+      many: 'من $count من أصل $total مكوّنًا',
+      few: 'من $count من أصل $total مكوّنات',
+      two: 'من $count من أصل مكوّنين',
+      one: 'من $count من أصل $total مكوّن',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'المجموع';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'تعذرت إزالة المستند: $error';
   }
@@ -7892,6 +7909,30 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'عند $timestamp';
   }
+
+  @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes د';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'توقف $depth · $minutes د';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'اسحب للتنقل';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'مرر المؤشر للتنقل';
+
+  @override
+  String get diveLog_pinnedStrip_semantics => 'مخطط الغطسة، اسحب لتحريك المؤشر';
 
   @override
   String diveLog_detail_customFieldCount(int count) {
@@ -23483,6 +23524,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض علامة عند نقطة أقصى عمق على ملفات الغوص';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'تثبيت المخطط عند التمرير';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'إبقاء مخطط رفيع قابل للتمرير أعلى تفاصيل الغطسة';
+
+  @override
   String get settings_appearance_metric_ceiling => 'السقف';
 
   @override
@@ -26924,6 +26973,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'الملف يعرض أقصى عمق';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'تثبيت المخطط عند التمرير';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'الملف يعرض NDL';

@@ -32,6 +32,10 @@ class SacSegmentsView extends StatefulWidget {
   /// The profile chart cursor, in seconds from dive start.
   final int? selectedTimestamp;
 
+  /// The time under the pointer on the time chart, in seconds, or null when
+  /// it leaves; the host moves the profile cursor there (#4423).
+  final ValueChanged<int?>? onCursorSeconds;
+
   /// Sits on the Time heading's line, so choosing a lane costs no extra row.
   final Widget? laneSelector;
 
@@ -42,6 +46,7 @@ class SacSegmentsView extends StatefulWidget {
     required this.gasSegments,
     required this.rates,
     required this.selectedTimestamp,
+    this.onCursorSeconds,
     this.laneSelector,
   });
 
@@ -53,14 +58,25 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
   int? _pinnedIndex;
   int? _hoveredIndex;
 
+  /// Whether the cursor is this chart's own, reported from a hover or drag
+  /// still on it. Its moves are then this chart's pointer, not something
+  /// pointed at elsewhere, so they leave the pinned column alone.
+  bool _drivingCursor = false;
+
   @override
   void didUpdateWidget(SacSegmentsView oldWidget) {
     super.didUpdateWidget(oldWidget);
     // The newest thing the diver pointed at wins.
-    if (widget.selectedTimestamp != null &&
+    if (!_drivingCursor &&
+        widget.selectedTimestamp != null &&
         widget.selectedTimestamp != oldWidget.selectedTimestamp) {
       _pinnedIndex = null;
     }
+  }
+
+  void _reportCursor(int? seconds) {
+    _drivingCursor = seconds != null;
+    widget.onCursorSeconds?.call(seconds);
   }
 
   void _setHovered(int? index) {
@@ -200,6 +216,9 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
           onTap: (index) => _setPinned(_pinnedIndex == index ? null : index),
           onScrub: _setPinned,
           onHover: _setHovered,
+          onCursorSeconds: widget.onCursorSeconds == null
+              ? null
+              : _reportCursor,
         ),
         const SizedBox(height: 6),
         Text(

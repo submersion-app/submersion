@@ -1350,6 +1350,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_components_title => 'Onderdelen';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Uit $count van $total onderdelen',
+      one: 'Uit $count van $total onderdeel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Totaal';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Kan het document niet verwijderen: $error';
   }
@@ -7727,6 +7741,31 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'Om $timestamp';
   }
+
+  @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Stop $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Sleep om te verschuiven';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Beweeg erover om te verschuiven';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Duikprofiel, verschuif om de cursor te bewegen';
 
   @override
   String diveLog_detail_customFieldCount(int count) {
@@ -22974,6 +23013,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon een markering bij het maximale dieptepunt op duikprofielen';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Profiel vastzetten bij scrollen';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Houd een smal, verschuifbaar profiel bovenaan de duikdetails';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Plafond';
 
   @override
@@ -26460,6 +26507,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profiel toont de maximale diepte';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Profiel vastzetten bij scrollen';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'Profiel toont NDL';

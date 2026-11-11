@@ -721,6 +721,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_showMaxDepthMarker,
     FieldKind.boolean,
   ),
+  'pinProfileOnScroll': ConflictField(
+    (l) => l.settings_conflict_field_pinProfileOnScroll,
+    FieldKind.boolean,
+  ),
   'showNdlOnProfile': ConflictField(
     (l) => l.settings_conflict_field_showNdlOnProfile,
     FieldKind.boolean,

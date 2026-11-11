@@ -97,12 +97,14 @@ Widget buildCard({
   bool scrollable = false,
   ThemeData? theme,
   TextDirection? textDirection,
+  String? subtitle,
 }) {
   final card = CompactTissueLoadingCard(
     status: status,
     decoStatuses: decoStatuses,
     expandVisualization: expandVisualization,
     onOpen3dView: onOpen3dView,
+    subtitle: subtitle,
   );
   final body = scrollable ? SingleChildScrollView(child: card) : card;
   return ProviderScope(
@@ -128,6 +130,31 @@ Widget buildCard({
 }
 
 void main() {
+  // On a phone the card is about 334 px wide inside the page; scrubbing sets
+  // the cursor time, which joins the title in the header (#4423).
+  testWidgets(
+    'the header fits a phone with the cursor time and every control',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(334, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        buildCard(
+          decoStatuses: const [_status, _status],
+          onOpen3dView: () {},
+          subtitle: '23:20',
+          scrollable: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      // The time stays whole; the title gives way first.
+      expect(find.text('@ 23:20'), findsOneWidget);
+      final time = tester.getRect(find.text('@ 23:20'));
+      final controls = tester.getRect(find.byIcon(Icons.grid_on));
+      expect(time.right, lessThanOrEqualTo(controls.left));
+    },
+  );
+
   testWidgets(
     'does not overflow when the highlighted compartment bar is full height',
     (tester) async {

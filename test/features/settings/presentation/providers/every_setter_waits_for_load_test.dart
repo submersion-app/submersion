@@ -206,6 +206,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setCardPhotoOverlayLight(0.2),
     n.setShowMapBackgroundOnSiteCards(!d.showMapBackgroundOnSiteCards),
     n.setShowMaxDepthMarker(!d.showMaxDepthMarker),
+    n.setPinProfileOnScroll(!d.pinProfileOnScroll),
     n.setShowPressureThresholdMarkers(!d.showPressureThresholdMarkers),
     n.setDefaultRightAxisMetric(ProfileRightAxisMetric.values.last),
     n.setDefaultShowTemperature(!d.defaultShowTemperature),

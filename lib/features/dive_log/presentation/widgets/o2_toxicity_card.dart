@@ -5,6 +5,7 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_card_title.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/otu_limit_progress_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -585,28 +586,11 @@ class CompactO2ToxicityPanel extends StatelessWidget {
           child: Icon(Icons.air, size: 16, color: colorScheme.primary),
         ),
         const SizedBox(width: 6),
-        // The title gives way in a narrow column (the desktop side panel),
-        // so the cursor time, badge and info icon always fit.
         Expanded(
-          child: Row(
-            children: [
-              Flexible(
-                child: Text(
-                  context.l10n.diveLog_detail_section_oxygenToxicity,
-                  style: textTheme.titleSmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(width: 6),
-                Text(
-                  '@ $subtitle',
-                  style: textTheme.labelSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+          child: CompactCardTitle(
+            title: context.l10n.diveLog_detail_section_oxygenToxicity,
+            cursorTime: subtitle,
+            trailing: [
               if (isWarning) ...[
                 const SizedBox(width: 6),
                 Semantics(

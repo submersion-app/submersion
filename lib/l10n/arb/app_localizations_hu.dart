@@ -1356,6 +1356,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_components_title => 'Alkatrészek';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count/$total alkatrész alapján',
+      one: '$count/$total alkatrész alapján',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Összesen';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'A dokumentum nem távolítható el: $error';
   }
@@ -7757,6 +7771,31 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return '$timestamp időpontban';
   }
+
+  @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes perc';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Megálló $depth · $minutes perc';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Húzd a végiggörgetéshez';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Vidd fölé a végiggörgetéshez';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Merülési profil, görgesd a kurzor mozgatásához';
 
   @override
   String diveLog_detail_customFieldCount(int count) {
@@ -23044,6 +23083,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Jelölő megjelenítés a maximális mélység pontján a merülési profilokon';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Profil rögzítése görgetéskor';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Keskeny, végiggörgethető profil a merülés részleteinek tetején';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Plafon';
 
   @override
@@ -26512,6 +26559,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'A profil mutatja a legnagyobb mélységet';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Profil rögzítése görgetéskor';
 
   @override
   String get settings_conflict_field_showNdlOnProfile =>

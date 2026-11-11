@@ -343,6 +343,10 @@ class DiverSettings extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get showPressureThresholdMarkers =>
       boolean().withDefault(const Constant(false))();
+  // Dive details pins a thin profile strip once the profile card scrolls
+  // away (v359, issue #4423).
+  BoolColumn get pinProfileOnScroll =>
+      boolean().withDefault(const Constant(true))();
   // Dive list view mode (v51)
   TextColumn get diveListViewMode =>
       text().withDefault(const Constant('detailed'))();

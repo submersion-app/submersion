@@ -1,4 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
@@ -88,6 +89,152 @@ void main() {
     // Axis name labels are present (X = time, Y = net in the weight unit).
     expect(find.text('Time (min)'), findsOneWidget);
     expect(find.textContaining('Net'), findsWidgets);
+  });
+
+  group('profile cursor', () {
+    final result = _result([
+      _s(0, 0, 2),
+      _s(60, 10, 1),
+      _s(120, 12, 0.5),
+      _s(180, 5, 1.5),
+    ]);
+
+    Future<void> pumpChart(
+      WidgetTester tester, {
+      int? cursorSeconds,
+      ValueChanged<int?>? onCursorSeconds,
+    }) => tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SizedBox(
+            width: 400,
+            child: BuoyancyChart(
+              result: result,
+              units: units,
+              cursorSeconds: cursorSeconds,
+              onCursorSeconds: onCursorSeconds,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    List<VerticalLine> verticalLines(WidgetTester tester) => tester
+        .widget<LineChart>(find.byType(LineChart))
+        .data
+        .extraLinesData
+        .verticalLines;
+
+    testWidgets('draws a cursor line at cursorSeconds', (tester) async {
+      await pumpChart(tester, cursorSeconds: 60);
+      expect(verticalLines(tester).single.x, 1.0);
+    });
+
+    // The buoyant line and fill are the primary colour, so a primary cursor
+    // vanished over them (review M5).
+    testWidgets('the cursor line stands apart from the buoyancy line', (
+      tester,
+    ) async {
+      await pumpChart(tester, cursorSeconds: 60);
+      final primary = Theme.of(
+        tester.element(find.byType(LineChart)),
+      ).colorScheme.primary;
+      expect(verticalLines(tester).single.color, isNot(primary));
+    });
+
+    testWidgets('no cursor line when there is no cursor', (tester) async {
+      await pumpChart(tester);
+      expect(verticalLines(tester), isEmpty);
+    });
+
+    // fl_chart resolves no touched spots in a widget test, so these drive the
+    // chart's own callback with the response a real touch would carry.
+    LineTouchResponse touching(LineChartBarData bar, int spotIndex) =>
+        LineTouchResponse(
+          touchLocation: Offset.zero,
+          touchChartCoordinate: Offset.zero,
+          lineBarSpots: [TouchLineBarSpot(bar, 0, bar.spots[spotIndex], 0)],
+        );
+
+    LineTouchData touchData(WidgetTester tester) =>
+        tester.widget<LineChart>(find.byType(LineChart)).data.lineTouchData;
+
+    LineChartBarData barOf(WidgetTester tester) => tester
+        .widget<LineChart>(find.byType(LineChart))
+        .data
+        .lineBarsData
+        .single;
+
+    testWidgets('hovering a spot reports its sample time', (tester) async {
+      final reported = <int?>[];
+      await pumpChart(tester, onCursorSeconds: reported.add);
+      touchData(tester).touchCallback!(
+        const FlPointerHoverEvent(PointerHoverEvent()),
+        touching(barOf(tester), 2),
+      );
+      expect(reported, [120]);
+    });
+
+    testWidgets('leaving the chart reports null', (tester) async {
+      final reported = <int?>[];
+      await pumpChart(tester, onCursorSeconds: reported.add);
+      touchData(tester).touchCallback!(
+        const FlPointerExitEvent(PointerExitEvent()),
+        touching(barOf(tester), 2),
+      );
+      expect(reported, [null]);
+    });
+
+    testWidgets('a touch that hits no spot reports null', (tester) async {
+      final reported = <int?>[];
+      await pumpChart(tester, onCursorSeconds: reported.add);
+      touchData(tester).touchCallback!(
+        const FlPointerHoverEvent(PointerHoverEvent()),
+        null,
+      );
+      expect(reported, [null]);
+    });
+
+    testWidgets('a spot maps to the plotted sample, skipping dropped ones', (
+      tester,
+    ) async {
+      final reported = <int?>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: BuoyancyChart(
+              result: _result([
+                _s(0, 0, 2),
+                _s(60, 10, double.nan),
+                _s(120, 12, 0.5),
+                _s(180, 5, 1.5),
+              ]),
+              units: units,
+              onCursorSeconds: reported.add,
+            ),
+          ),
+        ),
+      );
+      // Spot 1 is the 120 s sample: the NaN at 60 s is not plotted.
+      touchData(tester).touchCallback!(
+        const FlPointerHoverEvent(PointerHoverEvent()),
+        touching(barOf(tester), 1),
+      );
+      expect(reported, [120]);
+    });
+
+    testWidgets('without a callback the chart takes no touch callback', (
+      tester,
+    ) async {
+      await pumpChart(tester);
+      expect(touchData(tester).touchCallback, isNull);
+    });
   });
 
   testWidgets('renders nothing for fewer than two samples', (tester) async {

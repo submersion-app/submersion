@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_table.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_view.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_time_columns.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -126,8 +127,13 @@ void main() {
     int? trackingIndex,
   }) async {
     final base = await getBaseOverrides(
+      // Card headers are scrolled to the top and tapped, where the pinned
+      // profile strip (#4423) would sit over them.
       settingsNotifier: MockSettingsNotifier(
-        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.sac),
+        const AppSettings(
+          gasConsumptionDisplay: GasConsumptionDisplay.sac,
+          pinProfileOnScroll: false,
+        ),
       ),
     );
     // The narrow test surface overflows this card's row; that is not what
@@ -340,5 +346,26 @@ void main() {
         reason: 'the collapsed card still gives the dive average',
       );
     });
+  });
+
+  // Hovering the time chart moves the dive's profile cursor, so the profile
+  // chart and its pinned strip track it (#4423).
+  testWidgets('a time from the chart becomes the profile cursor index', (
+    tester,
+  ) async {
+    final dive = diveWithProfile();
+    await pumpWith(tester, dive: dive);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SacSegmentsView)),
+    );
+    final report = tester
+        .widget<SacSegmentsView>(find.byType(SacSegmentsView))
+        .onCursorSeconds!;
+
+    // 130 s falls in the sample at 120 s, index 2 of the chart profile.
+    report(130);
+    expect(container.read(profileTrackingIndexProvider(dive.id)), 2);
+    report(null);
+    expect(container.read(profileTrackingIndexProvider(dive.id)), isNull);
   });
 }

@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/chart_touch_re
 import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
@@ -269,6 +270,19 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final bool showTemperature;
   final bool showPressure;
   final void Function(int? index)? onPointSelected;
+
+  /// Where the plot sits and what it spans, reported after a frame whenever
+  /// it changes (issue #4423).
+  final ValueChanged<ProfilePlotFrame>? onPlotFrame;
+
+  /// A zoom window to show, set from outside in place of the reader's own
+  /// zooming, which the chart then ignores: the pinned profile's copy of the
+  /// card is handed one that eases from the full card's window out to the
+  /// whole dive (issue #4423).
+  final ChartViewport? viewport;
+
+  /// The zoom window, reported whenever the reader zooms or pans.
+  final ValueChanged<ChartViewport>? onViewportChanged;
 
   /// Dive time in seconds under the cursor, reported with every
   /// [onPointSelected]: the selected sample's timestamp, or 0 on the surface
@@ -815,6 +829,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showTemperature = true,
     this.showPressure = false,
     this.onPointSelected,
+    this.onPlotFrame,
+    this.viewport,
+    this.onViewportChanged,
     this.onTimeSelected,
     this.onTimeChosen,
     this.depthAndPressureOnly = false,
@@ -896,6 +913,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Where this chart last published its legend for the card's info icon.
   ProfileLegendSnapshot? _legendSnapshot;
+
+  /// Reports the plot to [DiveProfileChart.onPlotFrame].
+  final ProfilePlotFrameReporter _plotFrames = ProfilePlotFrameReporter();
 
   /// The diver's metric colours (issue #3012), resolved at the top of
   /// every build so tooltip and gesture code reads the same palette.
@@ -1237,8 +1257,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // ChartViewport has no ==, and a pan held against the plot's edge clamps
     // to a new instance of the same window.
     if (value.sameWindowAs(_viewport)) return;
+    // A chart handed its window from outside (the pinned copy, which
+    // follows the page's scroll) shows only that window: a zoom or pan of
+    // its own would be put back on the next scroll frame.
+    final given = widget.viewport;
+    if (given != null && !value.sameWindowAs(given)) return;
     _viewportNotifier.value = value;
     _zoomNotifier.value = value.zoom;
+    widget.onViewportChanged?.call(value);
   }
 
   // The zoom level alone, for what sits outside the plot (the legend's zoom
@@ -1749,6 +1775,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showEvents = widget.showEvents;
     _scheduleComputedEventsSeed();
     _zoomNotifier.addListener(_scheduleLegendMeasure);
+    final given = widget.viewport;
+    if (given != null) {
+      _viewportNotifier.value = given;
+      _zoomNotifier.value = given.zoom;
+    }
   }
 
   @override
@@ -1772,6 +1803,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (oldWidget.events != widget.events) {
       _scheduleComputedEventsSeed();
     }
+    final given = widget.viewport;
+    if (given != null) _viewport = given;
     // The external cursor reports when it moves, and again when the profile
     // under a stationary cursor is replaced: switching source keeps the
     // timestamp but changes which reading it names, so the card would
@@ -3350,13 +3383,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: context.l10n.diveLog_profile_semantics_chart,
           child: RawGestureDetector(
             gestures: {
-              TrackpadZoomGestureRecognizer:
-                  GestureRecognizerFactoryWithHandlers<
-                    TrackpadZoomGestureRecognizer
-                  >(
-                    () => TrackpadZoomGestureRecognizer(debugOwner: this),
-                    (recognizer) => recognizer.onZoom = zoomAt,
-                  ),
+              // Not while the window is set from outside (the pinned copy):
+              // its zoom would be put straight back, and winning the arena
+              // would stop a two-finger scroll over it reaching the page.
+              if (widget.viewport == null)
+                TrackpadZoomGestureRecognizer:
+                    GestureRecognizerFactoryWithHandlers<
+                      TrackpadZoomGestureRecognizer
+                    >(
+                      () => TrackpadZoomGestureRecognizer(debugOwner: this),
+                      (recognizer) => recognizer.onZoom = zoomAt,
+                    ),
             },
             child: Listener(
               onPointerDown: (event) {
@@ -3991,6 +4028,30 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // all read them from here.
     final plotInsets = _plotInsets(availableWidth, units);
 
+    // The axis is in the diver's depth unit; the frame is in meters. Only
+    // built for a chart that reports it (the pinned copy).
+    if (widget.onPlotFrame != null) {
+      final metersPerDisplayUnit = 1 / units.convertDepth(1.0);
+      _plotFrames.report(
+        ProfilePlotFrame(
+          plotKey: _plotFrames.plotKey,
+          plotRect: Rect.fromLTRB(
+            plotInsets.left,
+            plotInsets.top,
+            availableWidth - plotInsets.right,
+            availableHeight - plotInsets.bottom,
+          ),
+          minSeconds: visibleMinX,
+          maxSeconds: visibleMaxX,
+          minDepthMeters: visibleMinDepth * metersPerDisplayUnit,
+          maxDepthMeters: visibleMaxDepth * metersPerDisplayUnit,
+          viewport: _viewport,
+        ),
+        widget.onPlotFrame,
+        mounted: () => mounted,
+      );
+    }
+
     // Highlight band, inflated to a 12 px minimum so short/instant findings
     // stay visible (spec: safety-findings-lane). Computed once and shared by
     // the band annotation and its edge lines.
@@ -4385,6 +4446,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // cursor (issue #2228 follow-up).
       clipBehavior: Clip.none,
       children: [
+        // An empty box exactly over the plot, so the pinned profile strip
+        // can find where the depth line is drawn (issue #4423).
+        Positioned(
+          left: plotInsets.left,
+          top: plotInsets.top,
+          right: plotInsets.right,
+          bottom: plotInsets.bottom,
+          child: IgnorePointer(
+            child: SizedBox.expand(key: _plotFrames.plotKey),
+          ),
+        ),
         LineChart(
           LineChartData(
             minX: visibleMinX,
@@ -6447,7 +6519,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       preventCurveOverShooting:
           startIndex == 0 && shouldDrawSurfaceLeadIn(widget.profile),
       color: color,
-      barWidth: 1,
+      barWidth: kProfileDepthLineWidth,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
       belowBarData: showFill

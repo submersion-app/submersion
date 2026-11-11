@@ -7,8 +7,11 @@ import 'package:submersion/core/buoyancy/twin_analyzer.dart';
 import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/info/buoyancy_info.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_history_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_what_if_sheet.dart';
@@ -25,17 +28,62 @@ class BuoyancySection extends ConsumerWidget {
   final String diveId;
   final UnitFormatter units;
 
-  const BuoyancySection({super.key, required this.diveId, required this.units});
+  /// The dive whose profile cursor the chart follows, both ways (#4423).
+  /// Without it the chart keeps only its own tooltip.
+  final Dive? dive;
+
+  const BuoyancySection({
+    super.key,
+    required this.diveId,
+    required this.units,
+    this.dive,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // AsyncValue.value keeps the last outcome while the provider reloads, as
     // it does behind every refresh of the dive, so the card stays on screen.
     final outcome = ref.watch(buoyancyTwinProvider(diveId)).value;
-    return outcome == null ? const SizedBox.shrink() : _card(context, outcome);
+    if (outcome == null) return const SizedBox.shrink();
+    final synced = dive;
+    if (synced == null) {
+      return _card(
+        context,
+        outcome,
+        BuoyancyChart(result: outcome.result, units: units),
+      );
+    }
+    // The cursor is watched by the chart alone, so scrubbing anywhere on the
+    // dive rebuilds the chart rather than the whole card.
+    return _card(
+      context,
+      outcome,
+      Consumer(
+        builder: (context, ref, _) {
+          // The shared cursor indexes the series the profile chart draws
+          // (#543), so it converts to and from seconds against that series.
+          final profile = watchChartProfile(ref, synced);
+          final cursor = ref.watch(profileTrackingIndexProvider(diveId));
+          return BuoyancyChart(
+            result: outcome.result,
+            units: units,
+            cursorSeconds:
+                cursor != null && cursor >= 0 && cursor < profile.length
+                ? profile[cursor].timestamp
+                : null,
+            onCursorSeconds: (seconds) =>
+                setProfileCursorSeconds(ref, diveId, profile, seconds),
+          );
+        },
+      ),
+    );
   }
 
-  Widget _card(BuildContext context, BuoyancyTwinOutcome outcome) {
+  Widget _card(
+    BuildContext context,
+    BuoyancyTwinOutcome outcome,
+    Widget chart,
+  ) {
     final theme = Theme.of(context);
     final o = outcome.outputs;
     return Card(
@@ -94,7 +142,7 @@ class BuoyancySection extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: 12),
-            BuoyancyChart(result: outcome.result, units: units),
+            chart,
             const SizedBox(height: 12),
             _breakdown(context, o),
             const SizedBox(height: 12),
