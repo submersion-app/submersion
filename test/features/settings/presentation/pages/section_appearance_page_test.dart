@@ -118,6 +118,27 @@ void main() {
       expect(notifier.state.showDiveFigure, isFalse);
     });
 
+    testWidgets('the pin profile switch is under Dive Profile, on, and saves', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(400, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final notifier = MockSettingsNotifier();
+
+      await tester.pumpWidget(_buildTestWidget('dives', notifier: notifier));
+      await tester.pumpAndSettle();
+
+      final tile = find.widgetWithText(
+        SwitchListTile,
+        'Pin profile when scrolling',
+      );
+      expect(tile, findsOneWidget);
+      expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(notifier.state.pinProfileOnScroll, isFalse);
+    });
+
     testWidgets(
       'the late gas switches switch is under Dive Profile, on, and saves',
       (tester) async {

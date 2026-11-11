@@ -20,6 +20,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
 import '../../../../helpers/mock_providers.dart';
 
 class _RecordingDiveRepository extends Fake implements DiveRepository {
@@ -169,7 +171,13 @@ void main() {
   Finder inSourceBarMenu() => inSourceBar(find.byIcon(Icons.more_vert)).last;
 
   Future<void> pumpPage(WidgetTester tester) async {
-    final base = await getBaseOverrides();
+    // These tests scroll the source bar to the top and tap it; the pinned
+    // profile strip (#4423) would sit over it there.
+    final base = await getBaseOverrides(
+      settingsNotifier: MockSettingsNotifier(
+        const AppSettings(pinProfileOnScroll: false),
+      ),
+    );
     final originalOnError = FlutterError.onError;
     FlutterError.onError = (d) {
       if (d.toString().contains('overflowed')) return;

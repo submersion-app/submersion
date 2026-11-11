@@ -7911,6 +7911,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes د';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'توقف $depth · $minutes د';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'اسحب للتنقل';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'مرر المؤشر للتنقل';
+
+  @override
+  String get diveLog_pinnedStrip_semantics => 'مخطط الغطسة، اسحب لتحريك المؤشر';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23500,6 +23524,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض علامة عند نقطة أقصى عمق على ملفات الغوص';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'تثبيت المخطط عند التمرير';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'إبقاء مخطط رفيع قابل للتمرير أعلى تفاصيل الغطسة';
+
+  @override
   String get settings_appearance_metric_ceiling => 'السقف';
 
   @override
@@ -26941,6 +26973,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'الملف يعرض أقصى عمق';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'تثبيت المخطط عند التمرير';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'الملف يعرض NDL';

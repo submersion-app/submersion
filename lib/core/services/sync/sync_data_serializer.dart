@@ -12199,6 +12199,7 @@ class SyncDataSerializer {
       // Dive profile markers
       'showMaxDepthMarker': true,
       'showPressureThresholdMarkers': false,
+      'pinProfileOnScroll': true,
       // List view modes
       'diveListViewMode': 'detailed',
       'siteListViewMode': 'detailed',

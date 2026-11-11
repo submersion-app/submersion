@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
@@ -29,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/providers/annotation_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
@@ -115,7 +117,21 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.onTooltipData,
     this.onSafetyFindingDetails,
     this.annotationActions,
+    this.onPlotFrame,
+    this.viewport,
+    this.onViewportChanged,
   });
+
+  /// Told where the chart's plot is after each layout that moves it. Only
+  /// the pinned dive details card passes one (#4423), straight to its own
+  /// overlay, so no other chart on this host can affect the strip.
+  final ValueChanged<ProfilePlotFrame>? onPlotFrame;
+
+  /// A zoom window for the chart to show, set from outside; and where to
+  /// report the reader's own zooming. Only the dive details card and its
+  /// pinned copy pass these (#4423).
+  final ChartViewport? viewport;
+  final ValueChanged<ChartViewport>? onViewportChanged;
 
   /// The hydrated dive: tanks and profile samples included. A dive loaded for
   /// a list view carries neither, and would draw an empty chart.
@@ -514,6 +530,9 @@ class DiveProfileChartHost extends ConsumerWidget {
         onPointSelected: (index) {
           ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
         },
+        onPlotFrame: onPlotFrame,
+        viewport: viewport,
+        onViewportChanged: onViewportChanged,
       ),
     );
   }

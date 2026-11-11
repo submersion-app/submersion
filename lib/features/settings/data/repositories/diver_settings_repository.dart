@@ -376,6 +376,7 @@ class DiverSettingsRepository {
                   s.showMapBackgroundOnSiteCards,
                 ),
                 showMaxDepthMarker: Value(s.showMaxDepthMarker),
+                pinProfileOnScroll: Value(s.pinProfileOnScroll),
                 showPressureThresholdMarkers: Value(
                   s.showPressureThresholdMarkers,
                 ),
@@ -772,6 +773,7 @@ class DiverSettingsRepository {
         settings.showMapBackgroundOnSiteCards,
       ),
       showMaxDepthMarker: Value(settings.showMaxDepthMarker),
+      pinProfileOnScroll: Value(settings.pinProfileOnScroll),
       showPressureThresholdMarkers: Value(
         settings.showPressureThresholdMarkers,
       ),
@@ -1052,6 +1054,7 @@ class DiverSettingsRepository {
       cardPhotoOverlayLight: row.cardPhotoOverlayLight,
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
       showMaxDepthMarker: row.showMaxDepthMarker,
+      pinProfileOnScroll: row.pinProfileOnScroll,
       showPressureThresholdMarkers: row.showPressureThresholdMarkers,
       defaultRightAxisMetric: _parseRightAxisMetric(row.defaultRightAxisMetric),
       defaultShowTemperature: row.defaultShowTemperature,

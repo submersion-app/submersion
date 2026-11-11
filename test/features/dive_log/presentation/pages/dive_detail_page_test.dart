@@ -1286,7 +1286,13 @@ void main() {
       tester,
     ) async {
       final dive = diveWithProfile();
-      final base = await getBaseOverrides();
+      // The 3D button is scrolled to the top and tapped, where the pinned
+      // profile strip (#4423) would sit over it.
+      final base = await getBaseOverrides(
+        settingsNotifier: MockSettingsNotifier(
+          const AppSettings(pinProfileOnScroll: false),
+        ),
+      );
       final originalOnError = FlutterError.onError;
       addTearDown(() => FlutterError.onError = originalOnError);
       FlutterError.onError = (d) {
