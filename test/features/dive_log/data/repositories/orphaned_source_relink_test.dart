@@ -218,6 +218,55 @@ void main() {
       expect(await isPending('dives', diveId), isTrue);
     });
 
+    test('gives the source\'s tanks and tank pressure series their computer '
+        'back', () async {
+      // The delete clears both links but leaves each its source_id, which
+      // says exactly whose they were.
+      final oldId = await insertComputer(id: 'old', serialNumber: 'SN-12345');
+      final diveId = await insertDive(computerId: oldId);
+      final sourceId = await insertDownloadedSource(
+        diveId: diveId,
+        computerId: oldId,
+        computerSerial: 'SN-12345',
+      );
+      await db.customStatement(
+        'INSERT INTO dive_tanks (id, dive_id, computer_id, source_id) '
+        "VALUES ('tank-1', ?, ?, ?)",
+        [diveId, oldId, sourceId],
+      );
+      // A hand-added tank on the same dive: no source, so it stays the
+      // primary source's.
+      await db.customStatement(
+        "INSERT INTO dive_tanks (id, dive_id) VALUES ('tank-2', ?)",
+        [diveId],
+      );
+      await db.customStatement(
+        'INSERT INTO tank_pressure_series (id, dive_id, tank_id, source_id, '
+        'computer_id, sample_count, start_timestamp, end_timestamp, '
+        'codec_version, samples, created_at, updated_at) '
+        "VALUES ('tp-1', ?, 'tank-1', ?, ?, 0, 0, 0, 1, x'', 1, 1)",
+        [diveId, sourceId, oldId],
+      );
+      await repository.deleteComputer(oldId);
+      await db.customStatement('DELETE FROM sync_records');
+
+      final created = await repository.createComputer(newComputer());
+
+      Future<String?> computerOf(String table, String id) async =>
+          (await db
+                  .customSelect(
+                    'SELECT computer_id FROM $table WHERE id = ?',
+                    variables: [Variable<String>(id)],
+                  )
+                  .getSingle())
+              .read<String?>('computer_id');
+      expect(await computerOf('dive_tanks', 'tank-1'), created.id);
+      expect(await computerOf('dive_tanks', 'tank-2'), isNull);
+      expect(await computerOf('tank_pressure_series', 'tp-1'), created.id);
+      expect(await isPending('diveTanks', 'tank-1'), isTrue);
+      expect(await isPending('diveTanks', 'tank-2'), isFalse);
+    });
+
     test('does not relink a serial-less source when another computer of its '
         'model exists', () async {
       await insertComputer(id: 'other-teric', serialNumber: 'XYZ999');

@@ -8,6 +8,8 @@ import 'package:submersion/core/database/snapshot_serial_heal.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
+import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 
 /// Gives downloaded `dive_data_sources` rows with no computer link back to
 /// the registered computer they came from: the rows a deleted computer left
@@ -16,19 +18,23 @@ import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.
 ///
 /// For every source it links, the source takes the computer's serial when
 /// its own snapshot is empty, its dive takes the computer when the source is
-/// the dive's primary and no computer claims the dive, and the dive's
-/// profile series take it where the dive has no other computer source. Each
-/// relinked source and dive is restamped and marked pending, so the links
-/// reach the diver's other devices.
+/// the dive's primary and no computer claims the dive, the tanks and tank
+/// pressure series the source recorded take it (both name their source, so
+/// that match is exact), and the dive's profile series take it where the
+/// dive has no other computer source. Each relinked row is restamped and
+/// marked pending, so the links reach the diver's other devices.
 class OrphanedSourceRelinker {
   OrphanedSourceRelinker({
     SyncRepository? syncRepository,
     ProfileSeriesRepository? profileSeries,
+    TankPressureSeriesRepository? tankSeries,
   }) : _syncRepository = syncRepository ?? SyncRepository(),
-       _profileSeries = profileSeries ?? ProfileSeriesRepository();
+       _profileSeries = profileSeries ?? ProfileSeriesRepository(),
+       _tankSeries = tankSeries ?? TankPressureSeriesRepository();
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
+  final TankPressureSeriesRepository _tankSeries;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -135,6 +141,20 @@ class OrphanedSourceRelinker {
           localUpdatedAt: now,
         );
       }
+    }
+
+    // The delete cleared the links of the source's tanks and tank pressure
+    // series too, but left each its source_id, which says exactly whose it
+    // was. A tank with no source (added by hand) stays the primary's.
+    for (final chunk in seriesIdChunks(sourceIds)) {
+      await setTankComputerLinks(
+        _db,
+        _syncRepository,
+        computerId,
+        (t) => t.computerId.isNull() & t.sourceId.isIn(chunk),
+        now: now,
+      );
+      await _tankSeries.relinkSources(computerId, chunk, now: now);
     }
 
     // Profiles carry no serial snapshot of their own, so they follow only

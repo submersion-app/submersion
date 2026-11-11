@@ -94,6 +94,7 @@ class DiveComputerRepository {
   late final OrphanedSourceRelinker _relinker = OrphanedSourceRelinker(
     syncRepository: _syncRepository,
     profileSeries: _profileSeries,
+    tankSeries: _tankSeries,
   );
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveComputerRepository);
