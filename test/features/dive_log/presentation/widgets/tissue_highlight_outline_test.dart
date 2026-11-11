@@ -14,7 +14,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// purple cells in light mode and its white cells in dark mode. It is now a
 /// single line drawn so it covers neither the highlighted row nor anything
 /// outside the highlighted bar: the theme's accent (primary) colour, except
-/// on the heat map in light mode, where it is white.
+/// on the heat map in light mode, where it is black.
 void main() {
   DecoStatus statusAt30m() {
     final algorithm = BuhlmannAlgorithm();
@@ -30,11 +30,10 @@ void main() {
   Color primaryOf(Brightness brightness) =>
       ThemeData(brightness: brightness).colorScheme.primary;
 
-  // The heat map's highlight: white in light mode, where the accent is a
-  // dark blue that vanishes on the scale's black and purple cells; the
-  // accent (a light blue) in dark mode.
+  // The heat map's highlight: black in light mode, the accent (a light blue)
+  // in dark mode.
   Color heatMapHighlightOf(Brightness brightness) =>
-      brightness == Brightness.light ? Colors.white : primaryOf(brightness);
+      brightness == Brightness.light ? Colors.black : primaryOf(brightness);
 
   Future<void> pump(
     WidgetTester tester,
@@ -76,7 +75,7 @@ void main() {
       }
     });
 
-    test('takes white on the heat map in light mode, the accent in dark', () {
+    test('takes black on the heat map in light mode, the accent in dark', () {
       for (final brightness in Brightness.values) {
         final scheme = ThemeData(brightness: brightness).colorScheme;
         expect(

@@ -6,11 +6,12 @@ import 'package:flutter/material.dart';
 /// (the bar chart's bar and the heat map's row), also used for the heat
 /// map's time cursor (issue #4431).
 ///
-/// It is a single line in the theme's accent colour, except on the heat map
-/// in light mode, where it is white. The theme's text colour it replaced
-/// vanished on the heat map's Default scale, which runs through pure black
-/// and dark purple near the inspired gas pressure and white past the
-/// M-value: near black in light mode, near white in dark mode.
+/// It is a single 2 px line in the theme's accent colour, except on the heat
+/// map in light mode, where it is black. The outline it replaced was a
+/// thinner, translucent theme text colour drawn across the row's own edge,
+/// which vanished on the heat map's Default scale: that scale runs through
+/// pure black and dark purple near the inspired gas pressure and white past
+/// the M-value.
 abstract final class HighlightOutline {
   static const double width = 2.0;
 
@@ -22,12 +23,11 @@ abstract final class HighlightOutline {
 
   /// The heat map's outline and time cursor colour under [scheme].
   ///
-  /// The light theme's accent is a dark blue, which vanishes on the scale's
-  /// black and purple cells as the text colour did, so the heat map draws
-  /// white there. The dark theme's accent is a light blue that stands out
-  /// on those cells.
+  /// Black in the light theme, where the accent is a dark blue that is hard
+  /// to see on the scale's cells. The dark theme's accent is a light blue
+  /// that stands out on them.
   static Color heatMapColorOf(ColorScheme scheme) =>
-      scheme.brightness == Brightness.light ? Colors.white : scheme.primary;
+      scheme.brightness == Brightness.light ? Colors.black : scheme.primary;
 
   /// A stroke paint for the outline in [color].
   static Paint strokeOf(Color color) => Paint()
