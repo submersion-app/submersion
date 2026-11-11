@@ -179,6 +179,28 @@ void main() {
       ]);
     });
 
+    // At and near the surface the NDL is a 999-minute "unlimited" sentinel,
+    // which read as broken spelled out (review M4).
+    test('an NDL past 99 minutes reads as more than 99', () {
+      const v = PinnedStripValues(
+        runtimeSeconds: 30,
+        depthMeters: 2,
+        ppO2Bar: 0.25,
+        deco: NdlSlot(999 * 60),
+      );
+      expect(formatPinnedStripValues(v, metric, l10n).last, 'NDL >99 min');
+    });
+
+    test('an NDL of exactly 99 minutes is shown as it is', () {
+      const v = PinnedStripValues(
+        runtimeSeconds: 30,
+        depthMeters: 2,
+        ppO2Bar: 0.25,
+        deco: NdlSlot(99 * 60),
+      );
+      expect(formatPinnedStripValues(v, metric, l10n).last, 'NDL 99 min');
+    });
+
     test('a stop shows its depth and rounded-up minutes', () {
       const v = PinnedStripValues(
         runtimeSeconds: 61,

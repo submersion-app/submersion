@@ -133,6 +133,18 @@ void main() {
       expect(verticalLines(tester).single.x, 1.0);
     });
 
+    // The buoyant line and fill are the primary colour, so a primary cursor
+    // vanished over them (review M5).
+    testWidgets('the cursor line stands apart from the buoyancy line', (
+      tester,
+    ) async {
+      await pumpChart(tester, cursorSeconds: 60);
+      final primary = Theme.of(
+        tester.element(find.byType(LineChart)),
+      ).colorScheme.primary;
+      expect(verticalLines(tester).single.color, isNot(primary));
+    });
+
     testWidgets('no cursor line when there is no cursor', (tester) async {
       await pumpChart(tester);
       expect(verticalLines(tester), isEmpty);

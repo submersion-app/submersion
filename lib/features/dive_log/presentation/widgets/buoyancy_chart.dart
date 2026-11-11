@@ -158,12 +158,13 @@ class BuoyancyChart extends StatelessWidget {
             ),
           ),
           extraLinesData: ExtraLinesData(
-            // The dive profile's cursor, in the profile chart's cursor colour.
+            // The dive profile's cursor, in a neutral colour: the buoyant line
+            // and fill are the primary colour, which would hide it.
             verticalLines: [
               if (cursorSeconds != null)
                 VerticalLine(
                   x: cursorSeconds! / 60.0,
-                  color: theme.colorScheme.primary,
+                  color: theme.colorScheme.onSurfaceVariant,
                   strokeWidth: 1.5,
                 ),
             ],

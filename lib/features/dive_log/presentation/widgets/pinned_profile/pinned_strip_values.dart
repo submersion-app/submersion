@@ -102,8 +102,10 @@ List<String> formatPinnedStripValues(
       ppO2 == null ? _missing : ppO2.toStringAsFixed(2),
     ),
     switch (values.deco) {
+      // Past 99 minutes is the analysis's "no limit" range (999 at the
+      // surface), so it reads as more than 99 rather than a literal figure.
       NdlSlot(:final ndlSeconds) => l10n.diveLog_pinnedStrip_ndl(
-        '${ndlSeconds ~/ 60}',
+        ndlSeconds > 99 * 60 ? '>99' : '${ndlSeconds ~/ 60}',
       ),
       // Rounded up, as the deco status card's stop chips are.
       StopSlot(:final depthMeters, :final durationSeconds) =>
