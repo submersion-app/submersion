@@ -32,6 +32,9 @@ import 'global_state_scanner.dart';
 /// * A mock on the path provider or share channel: call
 ///   `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`
 ///   in `tearDownAll`.
+/// * `tester.view.physicalSize` or `tester.view.devicePixelRatio`: call
+///   `addTearDown(tester.view.reset)`, which puts back both. This rule is
+///   file-wide, since a pump helper usually registers the reset for the test.
 void main() {
   /// Written by `scripts/bundle_tests.py` and never checked in.
   bool isGenerated(String path) => path.startsWith('test/.bundles/');

@@ -17,10 +17,11 @@ class DemoModeRibbon extends ConsumerWidget {
 
   final Widget child;
 
-  /// The square the ribbon is drawn in. [Banner]'s band crosses each edge
-  /// from about 56.6 to 68.6 px out of the corner, and its ends overhang the
-  /// edges by about 6 px; the clip trims that overhang the way a window edge
-  /// does.
+  /// The square the ribbon is drawn in. [Banner] draws a 12 px band whose
+  /// edges sit 28 and 40 px from the corner along the diagonal, so it crosses
+  /// each window edge from about 39.6 to 56.6 px out of the corner, and its
+  /// ends overhang the edges by about 8.5 px; the clip trims that overhang
+  /// the way a window edge does.
   static const double _extent = 72;
 
   @override
@@ -42,7 +43,7 @@ class DemoModeRibbon extends ConsumerWidget {
             end: 0,
             child: Semantics(
               container: true,
-              label: l10n.demo_ribbon_semanticsLabel,
+              label: l10n.demo_active_label,
               child: IgnorePointer(
                 child: ClipRect(
                   child: Banner(

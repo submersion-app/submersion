@@ -61116,14 +61116,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Descartar o diário de exemplo e voltar ao seu';
 
   @override
-  String get demo_ribbon_semanticsLabel =>
+  String get demo_active_label =>
       'Modo de demonstração: está a explorar dados de exemplo';
 
   @override
-  String get demo_unavailable_exit => 'Sair da demonstração';
+  String get demo_exit_button => 'Sair da demonstração';
 
   @override
   String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body => 'O seu diário fica de lado, intacto, até sair';
 
   @override
   String get demo_exit_confirm_title => 'Sair do modo de demonstração?';

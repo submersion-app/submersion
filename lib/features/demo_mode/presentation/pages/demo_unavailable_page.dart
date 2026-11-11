@@ -51,7 +51,7 @@ class DemoUnavailablePage extends ConsumerWidget {
                   const SizedBox(height: 24),
                   FilledButton.icon(
                     icon: const Icon(Icons.logout),
-                    label: Text(l10n.demo_unavailable_exit),
+                    label: Text(l10n.demo_exit_button),
                     onPressed: () => confirmAndExitDemo(context, ref),
                   ),
                 ],

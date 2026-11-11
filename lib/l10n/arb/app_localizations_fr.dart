@@ -61269,14 +61269,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Abandonner le carnet d\'exemple et revenir au vôtre';
 
   @override
-  String get demo_ribbon_semanticsLabel =>
+  String get demo_active_label =>
       'Mode démo : vous explorez des données d\'exemple';
 
   @override
-  String get demo_unavailable_exit => 'Quitter la démo';
+  String get demo_exit_button => 'Quitter la démo';
 
   @override
   String get demo_ribbon_label => 'DÉMO';
+
+  @override
+  String get demo_card_body =>
+      'Votre carnet est mis de côté, intact, jusqu\'à votre sortie';
 
   @override
   String get demo_exit_confirm_title => 'Quitter le mode démo ?';

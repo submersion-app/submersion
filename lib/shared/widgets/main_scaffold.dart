@@ -20,6 +20,8 @@ import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/nav/nav_selection.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_confirm.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -214,6 +216,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               child: ListView(
                 shrinkWrap: true,
                 children: [
+                  // The sheet closes first; the question is asked from the
+                  // shell, which outlives it (issue #4436).
+                  DemoExitSheetTile(
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      confirmAndExitDemo(context, ref);
+                    },
+                  ),
                   for (final destination in overflow)
                     ListTile(
                       leading: Icon(
@@ -341,6 +351,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                           child: NavigationRail(
                             extended: showExtended,
                             minExtendedWidth: 190,
+                            trailing: const DemoExitRailButton(),
+                            trailingAtBottom: true,
                             leading: isDesktopExtended
                                 ? IconButton(
                                     icon: Icon(

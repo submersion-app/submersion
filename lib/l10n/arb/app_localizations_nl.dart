@@ -60756,14 +60756,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voorbeeldlogboek weggooien en terug naar je eigen logboek';
 
   @override
-  String get demo_ribbon_semanticsLabel =>
-      'Demomodus: je verkent voorbeeldgegevens';
+  String get demo_active_label => 'Demomodus: je verkent voorbeeldgegevens';
 
   @override
-  String get demo_unavailable_exit => 'Demo afsluiten';
+  String get demo_exit_button => 'Demo afsluiten';
 
   @override
   String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body =>
+      'Je logboek wordt onaangeroerd apart gezet tot je afsluit';
 
   @override
   String get demo_exit_confirm_title => 'Demomodus afsluiten?';
