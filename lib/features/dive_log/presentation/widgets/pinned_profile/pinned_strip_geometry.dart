@@ -54,6 +54,15 @@ double slideDepth({
 /// early start gives it a long stretch of scroll to spread over.
 const double kHandOverOverlap = 0.2;
 
+/// How far the pinned copy has zoomed out from the full card's zoom window
+/// to the whole dive, from 0 to 1: in step with the squash and slide, so it
+/// is all the way out as the plot reaches the top, [plotAtTop] px past the
+/// card's top, where the strip has taken over.
+double zoomOutProgress({required Rect card, required double plotAtTop}) {
+  if (plotAtTop <= 0) return 1;
+  return (-card.top / plotAtTop).clamp(0.0, 1.0);
+}
+
 /// How far the card has handed over to the strip, from 0 to 1.
 ///
 /// [card] is the card's rect relative to the top of the scroll viewport. The

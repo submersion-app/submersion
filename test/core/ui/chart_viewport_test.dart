@@ -310,4 +310,38 @@ void main() {
       expect(vp.zoomLimit, 10);
     });
   });
+
+  // The pinned profile zooms its copy of the chart out as the page scrolls,
+  // from the full card's window to the whole dive (#4423).
+  group('lerp', () {
+    const zoomed = ChartViewport(zoom: 5, offsetX: 0.4, offsetY: 0.3);
+
+    test('runs from one window to the other', () {
+      expect(
+        ChartViewport.lerp(zoomed, ChartViewport.reset, 0).sameWindowAs(zoomed),
+        isTrue,
+      );
+      expect(
+        ChartViewport.lerp(
+          zoomed,
+          ChartViewport.reset,
+          1,
+        ).sameWindowAs(ChartViewport.reset),
+        isTrue,
+      );
+    });
+
+    test('moves both window edges steadily', () {
+      final half = ChartViewport.lerp(zoomed, ChartViewport.reset, 0.5);
+      // 0.4..0.6 widening to 0..1: halfway is 0.2..0.8.
+      expect(half.windowStart, closeTo(0.2, 1e-9));
+      expect(half.windowEnd, closeTo(0.8, 1e-9));
+      expect(half.offsetY, closeTo(0.15, 1e-9));
+    });
+
+    test('keeps the first window\'s zoom limit', () {
+      const deep = ChartViewport(zoom: 20, offsetX: 0.5, zoomLimit: 40);
+      expect(ChartViewport.lerp(deep, ChartViewport.reset, 0.5).zoomLimit, 40);
+    });
+  });
 }

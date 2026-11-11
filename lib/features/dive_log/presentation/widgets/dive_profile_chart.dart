@@ -275,6 +275,14 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// it changes (issue #4423).
   final ValueChanged<ProfilePlotFrame>? onPlotFrame;
 
+  /// A zoom window to show, set from outside in place of the reader's own
+  /// zooming: the pinned profile's copy of the card is handed one that eases
+  /// from the full card's window out to the whole dive (issue #4423).
+  final ChartViewport? viewport;
+
+  /// The zoom window, reported whenever the reader zooms or pans.
+  final ValueChanged<ChartViewport>? onViewportChanged;
+
   /// Dive time in seconds under the cursor, reported with every
   /// [onPointSelected]: the selected sample's timestamp, or 0 on the surface
   /// lead-in vertex before the first sample (which has no profile index).
@@ -821,6 +829,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showPressure = false,
     this.onPointSelected,
     this.onPlotFrame,
+    this.viewport,
+    this.onViewportChanged,
     this.onTimeSelected,
     this.onTimeChosen,
     this.depthAndPressureOnly = false,
@@ -1261,6 +1271,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (value.sameWindowAs(_viewport)) return;
     _viewportNotifier.value = value;
     _zoomNotifier.value = value.zoom;
+    widget.onViewportChanged?.call(value);
   }
 
   // The zoom level alone, for what sits outside the plot (the legend's zoom
@@ -1771,6 +1782,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showEvents = widget.showEvents;
     _scheduleComputedEventsSeed();
     _zoomNotifier.addListener(_scheduleLegendMeasure);
+    final given = widget.viewport;
+    if (given != null) {
+      _viewportNotifier.value = given;
+      _zoomNotifier.value = given.zoom;
+    }
   }
 
   @override
@@ -1794,6 +1810,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (oldWidget.events != widget.events) {
       _scheduleComputedEventsSeed();
     }
+    final given = widget.viewport;
+    if (given != null) _viewport = given;
     // The external cursor reports when it moves, and again when the profile
     // under a stationary cursor is replaced: switching source keeps the
     // timestamp but changes which reading it names, so the card would
@@ -4028,6 +4046,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         maxSeconds: visibleMaxX,
         minDepthMeters: visibleMinDepth * metersPerDisplayUnit,
         maxDepthMeters: visibleMaxDepth * metersPerDisplayUnit,
+        viewport: _viewport,
       ),
     );
 

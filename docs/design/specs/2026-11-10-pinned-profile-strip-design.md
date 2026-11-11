@@ -140,7 +140,12 @@ directions. A setting turns the strip off.
   fifth of the way into it and ends exactly as the copy's plot reaches the
   top, because past that point the copy slides its plot out of view: no
   data on the chart is ever seen leaving the view. From there the strip's
-  line is held at the top while it condenses.
+  line is held at the top while it condenses, shrinking steadily toward the
+  strip's 40 px curve area.
+- If the reader has zoomed the card's chart, the copy starts at that same
+  zoom window and zooms out steadily with the scroll, reaching the whole dive
+  as its plot reaches the top. Scrolling back reverses it, ending on the
+  card's own zoom, which the card keeps throughout.
 - Whatever is drawn always covers all of the card still on screen, so the
   real card never shows around it. It is an overlay on the scroll view and
   takes no space in the scroll content, so the content never jumps.

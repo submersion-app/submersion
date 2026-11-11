@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
@@ -25,6 +26,8 @@ void main() {
     WidgetTester tester, {
     AppSettings settings = const AppSettings(),
     ValueNotifier<double>? width,
+    ValueNotifier<ChartViewport?>? viewport,
+    ValueChanged<ChartViewport>? onViewportChanged,
   }) async {
     final frames = <ProfilePlotFrame>[];
     final w = width ?? ValueNotifier(400.0);
@@ -43,14 +46,20 @@ void main() {
               alignment: Alignment.topLeft,
               child: ValueListenableBuilder<double>(
                 valueListenable: w,
-                builder: (context, value, _) => SizedBox(
-                  width: value,
-                  height: 300,
-                  child: DiveProfileChart(
-                    profile: profile,
-                    onPlotFrame: frames.add,
-                  ),
-                ),
+                builder: (context, value, _) =>
+                    ValueListenableBuilder<ChartViewport?>(
+                      valueListenable: viewport ?? ValueNotifier(null),
+                      builder: (context, window, _) => SizedBox(
+                        width: value,
+                        height: 300,
+                        child: DiveProfileChart(
+                          profile: profile,
+                          onPlotFrame: frames.add,
+                          viewport: window,
+                          onViewportChanged: onViewportChanged,
+                        ),
+                      ),
+                    ),
               ),
             ),
           ),
@@ -119,5 +128,45 @@ void main() {
     final count = frames.length;
     await tester.pump(const Duration(milliseconds: 300));
     expect(frames.length, count);
+  });
+
+  testWidgets('the frame says which window the plot was drawn with', (
+    tester,
+  ) async {
+    final frame = (await pump(tester)).last;
+    expect(frame.viewport.sameWindowAs(ChartViewport.reset), isTrue);
+  });
+
+  // The pinned copy of the card is given its window from outside, so it
+  // can zoom out from the full card's as the page scrolls (#4423).
+  group('a window given from outside', () {
+    testWidgets('is the one the plot shows', (tester) async {
+      final full = (await pump(tester)).last;
+      final window = ValueNotifier<ChartViewport?>(
+        const ChartViewport(zoom: 2, offsetX: 0.25),
+      );
+      final frames = await pump(tester, viewport: window);
+      final zoomed = frames.last;
+      final span = full.maxSeconds - full.minSeconds;
+      expect(zoomed.minSeconds, closeTo(full.minSeconds + span / 4, 1e-6));
+      expect(zoomed.maxSeconds, closeTo(full.minSeconds + span * 3 / 4, 1e-6));
+      expect(zoomed.viewport.zoom, 2);
+
+      window.value = ChartViewport.reset;
+      await tester.pump();
+      await tester.pump();
+      expect(frames.last.minSeconds, full.minSeconds);
+      expect(frames.last.maxSeconds, full.maxSeconds);
+    });
+  });
+
+  testWidgets('reports its window when the reader zooms', (tester) async {
+    final windows = <ChartViewport>[];
+    await pump(tester, onViewportChanged: windows.add);
+    expect(windows, isEmpty);
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump();
+    expect(windows, isNotEmpty);
+    expect(windows.last.zoom, greaterThan(1));
   });
 }

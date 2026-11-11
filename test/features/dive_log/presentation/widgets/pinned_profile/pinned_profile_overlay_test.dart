@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -14,12 +15,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 
-/// Stands in for the profile card's chart: fills its box and, like the real
-/// chart, reports where its plot is after each layout.
+/// Stands in for the profile card's chart: fills its box, shows a 600 s,
+/// 18 m dive through the window it is given and, like the real chart,
+/// reports where its plot is after each layout.
 class _FakeChart extends StatefulWidget {
-  const _FakeChart({required this.onPlotFrame});
+  const _FakeChart({required this.onPlotFrame, required this.viewport});
 
   final ValueChanged<ProfilePlotFrame>? onPlotFrame;
+  final ChartViewport viewport;
 
   @override
   State<_FakeChart> createState() => _FakeChartState();
@@ -32,13 +35,10 @@ class _FakeChartState extends State<_FakeChart> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final frame = ProfilePlotFrame(
-          plotKey: plotKey,
-          plotRect: Offset.zero & constraints.biggest,
-          minSeconds: 0,
-          maxSeconds: 600,
-          minDepthMeters: 0,
-          maxDepthMeters: 18,
+        final frame = _fakeFrame(
+          plotKey,
+          Offset.zero & constraints.biggest,
+          widget.viewport,
         );
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) widget.onPlotFrame?.call(frame);
@@ -47,6 +47,25 @@ class _FakeChartState extends State<_FakeChart> {
       },
     );
   }
+}
+
+/// What the fake chart shows of its 600 s, 18 m dive through [viewport].
+ProfilePlotFrame _fakeFrame(
+  GlobalKey plotKey,
+  Rect plotRect,
+  ChartViewport viewport,
+) {
+  final minSeconds = 600 * viewport.offsetX;
+  final minDepth = 18 * viewport.offsetY;
+  return ProfilePlotFrame(
+    plotKey: plotKey,
+    plotRect: plotRect,
+    minSeconds: minSeconds,
+    maxSeconds: minSeconds + 600 / viewport.zoom,
+    minDepthMeters: minDepth,
+    maxDepthMeters: minDepth + 18 / viewport.zoom,
+    viewport: viewport,
+  );
 }
 
 /// A synthetic page: a 100 px header, a 300 px "profile card", then a long
@@ -78,6 +97,10 @@ void main() {
   final headerTaps = ValueNotifier(0);
   setUp(() => headerTaps.value = 0);
 
+  /// The window the copy's chart was last handed.
+  ChartViewport? copyViewport;
+  setUp(() => copyViewport = null);
+
   Future<void> pump(
     WidgetTester tester, {
     required GlobalKey profileKey,
@@ -85,6 +108,7 @@ void main() {
     bool showProfile = true,
     bool reportsPlot = true,
     ValueNotifier<double>? width,
+    ValueNotifier<ChartViewport>? chartViewport,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -110,7 +134,8 @@ void main() {
                 child: PinnedProfileOverlay(
                   dive: dive,
                   profileKey: profileKey,
-                  squashedCard: (context, onPlotFrame) => Column(
+                  chartViewport: chartViewport,
+                  squashedCard: (context, onPlotFrame, viewport) => Column(
                     children: [
                       SizedBox(
                         height: 40,
@@ -122,8 +147,14 @@ void main() {
                         ),
                       ),
                       Expanded(
-                        child: _FakeChart(
-                          onPlotFrame: reportsPlot ? onPlotFrame : null,
+                        child: Builder(
+                          builder: (context) {
+                            copyViewport = viewport;
+                            return _FakeChart(
+                              onPlotFrame: reportsPlot ? onPlotFrame : null,
+                              viewport: viewport,
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(height: footer),
@@ -397,6 +428,66 @@ void main() {
         reason: '$scrolled',
       );
     }
+  });
+
+  // Zoomed in on the full card, the copy took over at the whole dive in one
+  // frame. It starts at the card's own window and zooms out as the page
+  // scrolls, reaching the whole dive as its plot reaches the top, where the
+  // strip has taken over.
+  group('zoomed in on the card', () {
+    const zoomed = ChartViewport(zoom: 3, offsetX: 0.3, offsetY: 0.2);
+
+    testWidgets('the copy zooms out from the card\'s window as it pins', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        profileKey: GlobalKey(),
+        chartViewport: ValueNotifier(zoomed),
+      );
+      await jump(tester, profileTop + 1);
+      expect(copyViewport!.zoom, greaterThan(2.9));
+      expect(copyViewport!.windowStart, closeTo(0.3, 0.01));
+
+      await jump(tester, profileTop + together / 2);
+      final half = ChartViewport.lerp(zoomed, ChartViewport.reset, 0.5);
+      expect(copyViewport!.windowStart, closeTo(half.windowStart, 1e-6));
+      expect(copyViewport!.windowEnd, closeTo(half.windowEnd, 1e-6));
+      expect(copyViewport!.offsetY, closeTo(half.offsetY, 1e-6));
+
+      await jump(tester, profileTop + together);
+      expect(copyViewport!.sameWindowAs(ChartViewport.reset), isTrue);
+    });
+
+    // On the frame the copy is handed a new window, the strip's line has to
+    // be on what the copy now shows, not what it showed a frame ago.
+    testWidgets(
+      'the strip line keeps to the copy\'s window on the same frame',
+      (tester) async {
+        await pump(
+          tester,
+          profileKey: GlobalKey(),
+          chartViewport: ValueNotifier(zoomed),
+        );
+        await jump(tester, profileTop + together * 0.5);
+        position(tester).jumpTo(profileTop + together * 0.7);
+        await tester.pump();
+        final shown = _fakeFrame(GlobalKey(), Rect.zero, copyViewport!);
+        final from = stripWidget(tester).morphFrom!;
+        expect(from.minSeconds, closeTo(shown.minSeconds, 1e-6));
+        expect(from.maxSeconds, closeTo(shown.maxSeconds, 1e-6));
+        expect(from.minDepthMeters, closeTo(shown.minDepthMeters, 1e-6));
+        expect(from.maxDepthMeters, closeTo(shown.maxDepthMeters, 1e-6));
+      },
+    );
+
+    testWidgets('without a window from the card, the copy shows it all', (
+      tester,
+    ) async {
+      await pump(tester, profileKey: GlobalKey());
+      await jump(tester, profileTop + 10);
+      expect(copyViewport!.sameWindowAs(ChartViewport.reset), isTrue);
+    });
   });
 
   testWidgets('without a plot from the copy, the strip has no start line', (

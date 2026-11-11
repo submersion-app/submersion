@@ -100,6 +100,22 @@ void main() {
     });
   });
 
+  group('zoomOutProgress', () {
+    test(
+      'runs with the squash and slide, done as the plot reaches the top',
+      () {
+        expect(zoomOutProgress(card: cardAt(10), plotAtTop: 150), 0);
+        expect(zoomOutProgress(card: cardAt(-75), plotAtTop: 150), 0.5);
+        expect(zoomOutProgress(card: cardAt(-150), plotAtTop: 150), 1);
+        expect(zoomOutProgress(card: cardAt(-400), plotAtTop: 150), 1);
+      },
+    );
+
+    test('is done at once when the plot starts at the top', () {
+      expect(zoomOutProgress(card: cardAt(-1), plotAtTop: 0), 1);
+    });
+  });
+
   group('condenseFadeEnd', () {
     // Past the moment the plot reaches the top, the card slides its plot out
     // of view; the full chart must be gone by then, so no data leaves the

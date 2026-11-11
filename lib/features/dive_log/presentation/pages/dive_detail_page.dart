@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
@@ -148,6 +149,22 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// The pinned copy's own export key: a GlobalKey cannot be shared with the
   /// card in the page, and "export profile" reads the page's, not this one.
   final GlobalKey _pinnedProfileExportKey = GlobalKey();
+
+  /// The card chart's zoom window, so the pinned copy starts where the
+  /// reader left it rather than jumping out to the whole dive (#4423). Only
+  /// read as the copy is built, so updating it rebuilds nothing.
+  final ValueNotifier<ChartViewport> _profileViewport = ValueNotifier(
+    ChartViewport.reset,
+  );
+
+  void _noteProfileViewport(ChartViewport viewport) =>
+      _profileViewport.value = viewport;
+
+  @override
+  void dispose() {
+    _profileViewport.dispose();
+    super.dispose();
+  }
 
   /// "Open in Notes" on an annotation's popup (#4109): unfolds the Notes
   /// card when the list layout folds it, scrolls there and highlights the
@@ -308,6 +325,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   Widget _profileSectionFor(String id) {
     final section = _profileSection;
     if (section != null && section.diveId == id) return section;
+    // A new dive's chart starts unzoomed.
+    _profileViewport.value = ChartViewport.reset;
     return _profileSection = DiveDetailProfileSection(
       key: _profileSectionKey,
       diveId: id,
@@ -315,6 +334,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       onSafetyFindingDetails: _scrollToSafetySection,
       onSetPrimarySource: _setPrimarySource,
       onOpenInNotes: _scrollToNotes,
+      onViewportChanged: _noteProfileViewport,
     );
   }
 
@@ -525,17 +545,21 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       dive: dive,
       profileKey: _profileSectionKey,
       enabled: pinProfile,
+      chartViewport: _profileViewport,
       // A live copy of the card, squashed as it pins: the same section, its
-      // chart filling whatever height is left.
-      squashedCard: (context, onPlotFrame) => DiveDetailProfileSection(
-        diveId: dive.id,
-        exportKey: _pinnedProfileExportKey,
-        onSafetyFindingDetails: _scrollToSafetySection,
-        onSetPrimarySource: _setPrimarySource,
-        onOpenInNotes: _scrollToNotes,
-        fillHeight: true,
-        onPlotFrame: onPlotFrame,
-      ),
+      // chart filling whatever height is left and showing the zoom window
+      // the overlay hands it.
+      squashedCard: (context, onPlotFrame, viewport) =>
+          DiveDetailProfileSection(
+            diveId: dive.id,
+            exportKey: _pinnedProfileExportKey,
+            onSafetyFindingDetails: _scrollToSafetySection,
+            onSetPrimarySource: _setPrimarySource,
+            onOpenInNotes: _scrollToNotes,
+            fillHeight: true,
+            onPlotFrame: onPlotFrame,
+            viewport: viewport,
+          ),
       child: body,
     );
 

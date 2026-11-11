@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/page_scroll_forwarder.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
@@ -11,11 +13,12 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_f
 
 /// Builds a live copy of the profile card that fills the height it is given,
 /// its chart taking up the slack. [onPlotFrame] is handed to that chart so it
-/// reports where its plot is.
+/// reports where its plot is, and [viewport] is the zoom window it shows.
 typedef SquashedCardBuilder =
     Widget Function(
       BuildContext context,
       ValueChanged<ProfilePlotFrame> onPlotFrame,
+      ChartViewport viewport,
     );
 
 /// Pins the profile card to the top of [child], the dive details scroll view,
@@ -44,6 +47,7 @@ class PinnedProfileOverlay extends StatefulWidget {
     required this.squashedCard,
     required this.child,
     this.enabled = true,
+    this.chartViewport,
   });
 
   final Dive dive;
@@ -55,6 +59,13 @@ class PinnedProfileOverlay extends StatefulWidget {
   /// is not, so turning the strip on or off never moves [child], the page's
   /// scroll view, to a new parent, which would reset its position.
   final bool enabled;
+
+  /// The zoom window of the full card's chart, if the reader has zoomed it.
+  /// The copy starts there, so pinning never jumps the zoom, and zooms out
+  /// to the whole dive as the page scrolls ([zoomOutProgress]). Read when
+  /// the copy is built, not listened to: the full card is under the copy
+  /// then and cannot be zoomed.
+  final ValueListenable<ChartViewport>? chartViewport;
 
   @override
   State<PinnedProfileOverlay> createState() => _PinnedProfileOverlayState();
@@ -178,10 +189,11 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   /// Worked out for this frame's [squash] rather than read from the last
   /// measurement: the plot keeps its place and width and is shorter by the
   /// squash, so the strip's line stays on the chart's while both move,
-  /// instead of trailing it by a frame.
-  PlotMapping? _copyMappingAt(double squash) {
+  /// instead of trailing it by a frame. Its ranges are those of the zoom
+  /// window [viewport] the copy is handed this frame, for the same reason.
+  PlotMapping? _copyMappingAt(double squash, ChartViewport viewport) {
     final plot = _copyPlot;
-    final frame = _copyFrame;
+    final frame = _copyFrame?.withViewport(viewport);
     if (plot == null || frame == null) return null;
     final restHeight = _squashRange + kMinPlotHeight;
     return PlotMapping(
@@ -290,7 +302,14 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       card.left,
       -slideDepth(card: card, range: range, plotTop: plotTop),
     );
-    final copy = _copyMappingAt(squash);
+    // Zoomed in on the full card, the copy starts at its window and zooms
+    // out to the whole dive by the time its plot reaches the top.
+    final viewport = ChartViewport.lerp(
+      widget.chartViewport?.value ?? ChartViewport.reset,
+      ChartViewport.reset,
+      zoomOutProgress(card: card, plotAtTop: range + plotTop),
+    );
+    final copy = _copyMappingAt(squash, viewport);
 
     // The strip grows out of the plot alone, inside the card's margin: only
     // the part that becomes the strip fades, while the header and legend
@@ -354,7 +373,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                 height: card.height - squash,
                 child: KeyedSubtree(
                   key: _copyRootKey,
-                  child: widget.squashedCard(context, _onCopyFrame),
+                  child: widget.squashedCard(context, _onCopyFrame, viewport),
                 ),
               ),
             // Keyed, so it stays the same strip when the copy drops out.

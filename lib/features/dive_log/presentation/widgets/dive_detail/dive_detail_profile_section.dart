@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
@@ -74,6 +75,8 @@ class DiveDetailProfileSection extends ConsumerWidget {
     this.onOpenInNotes,
     this.fillHeight = false,
     this.onPlotFrame,
+    this.viewport,
+    this.onViewportChanged,
   });
 
   final String diveId;
@@ -86,6 +89,14 @@ class DiveDetailProfileSection extends ConsumerWidget {
   /// Told where the chart's plot is, for the pinned copy's hand-over to the
   /// strip.
   final ValueChanged<ProfilePlotFrame>? onPlotFrame;
+
+  /// The zoom window the chart shows, set from outside: the pinned copy's,
+  /// easing out from the full card's (#4423).
+  final ChartViewport? viewport;
+
+  /// Told the chart's zoom window whenever the reader zooms or pans it, so
+  /// the pinned copy can start from it.
+  final ValueChanged<ChartViewport>? onViewportChanged;
 
   /// "Open in Notes" on an annotation's popup (#4109): scrolls to the Notes
   /// card and highlights the passage.
@@ -197,6 +208,8 @@ class DiveDetailProfileSection extends ConsumerWidget {
                   dive: dive,
                   exportKey: exportKey,
                   onPlotFrame: onPlotFrame,
+                  viewport: viewport,
+                  onViewportChanged: onViewportChanged,
                   annotationActions: annotationActions,
                   onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
                   // fl_chart's own tooltip bubble (issue #2228 follow-up): this

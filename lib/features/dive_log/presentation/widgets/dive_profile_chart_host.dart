@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
@@ -117,12 +118,20 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.onSafetyFindingDetails,
     this.annotationActions,
     this.onPlotFrame,
+    this.viewport,
+    this.onViewportChanged,
   });
 
   /// Told where the chart's plot is after each layout that moves it. Only
   /// the pinned dive details card passes one (#4423), straight to its own
   /// overlay, so no other chart on this host can affect the strip.
   final ValueChanged<ProfilePlotFrame>? onPlotFrame;
+
+  /// A zoom window for the chart to show, set from outside; and where to
+  /// report the reader's own zooming. Only the dive details card and its
+  /// pinned copy pass these (#4423).
+  final ChartViewport? viewport;
+  final ValueChanged<ChartViewport>? onViewportChanged;
 
   /// The hydrated dive: tanks and profile samples included. A dive loaded for
   /// a list view carries neither, and would draw an empty chart.
@@ -522,6 +531,8 @@ class DiveProfileChartHost extends ConsumerWidget {
           ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
         },
         onPlotFrame: onPlotFrame,
+        viewport: viewport,
+        onViewportChanged: onViewportChanged,
       ),
     );
   }
