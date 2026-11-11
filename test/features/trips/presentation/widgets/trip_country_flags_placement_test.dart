@@ -96,4 +96,20 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(CountryFlag), findsNWidgets(3));
   });
+
+  testWidgets('a wrapped name keeps its flags beside its last word', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const name = 'Kingston and the Thousand Islands with a very long name 2026';
+    final longTrip = TripWithStats(trip: trip.trip.copyWith(name: name));
+    await pumpTile(tester, TripListTile(tripWithStats: longTrip, onTap: () {}));
+
+    final title = tester.getRect(find.textContaining('Kingston').first);
+    final flags = tester.getRect(find.byType(TripCountryFlags));
+    expect(title.height, greaterThan(30)); // the name wraps
+    // On the last line, after the text, not centred beside the whole block.
+    expect(flags.center.dy, greaterThan(title.center.dy + 4));
+  });
 }
