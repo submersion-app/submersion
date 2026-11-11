@@ -150,9 +150,15 @@ Future<void> _keepAliveWithExpiry(Ref ref, {bool filtered = true}) async {
   final timer = Timer(const Duration(minutes: 5), link.close);
   ref.onDispose(timer.cancel);
   if (filter != null) {
-    await awaitQueryCachesIfRead(ref, diveFilterTablesTouched(filter));
+    await awaitQueryCachesIfRead(ref, ref.watch(_insightsFilterTablesProvider));
   }
 }
+
+/// The tables the Insights filter reads, compiled once per filter rather
+/// than once by every card that waits on them.
+final _insightsFilterTablesProvider = Provider<Set<String>>(
+  (ref) => diveFilterTablesTouched(ref.watch(insightsFilterProvider)),
+);
 
 // ============================================================================
 // Gas Statistics Providers

@@ -23,15 +23,12 @@ final connectionsRepositoryProvider = Provider<ConnectionsRepository>(
 /// verdicts (#2365, #4461). Waits for those caches before the query, and
 /// re-runs it when they are written, which the connections tick does not
 /// follow.
-Future<void> _awaitFilterCaches(Ref ref, DiveFilterState filter) async {
-  final touched = diveFilterTablesTouched(filter);
-  await awaitQueryCachesIfRead(ref, touched);
-  final caches = touched.intersection(queryCacheTables);
-  if (caches.isEmpty) return;
-  ref.invalidateSelfWhen(
-    ref.read(queryIdSetRunnerProvider).watchTables(caches),
-  );
-}
+Future<void> _awaitFilterCaches(Ref ref, DiveFilterState filter) =>
+    awaitAndFollowQueryCaches(
+      ref,
+      diveFilterTablesTouched(filter),
+      ref.read(queryIdSetRunnerProvider).watchTables,
+    );
 
 /// The graph for the current view and filter, trimmed to the node budget
 /// given as the family key (the page picks 80 or 160 by width).

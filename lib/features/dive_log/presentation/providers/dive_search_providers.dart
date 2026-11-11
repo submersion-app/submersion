@@ -54,14 +54,6 @@ final diveJumpResultsProvider = FutureProvider.autoDispose
       final repository = ref.watch(diveRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchDivesChanges());
       final disabledRules = ref.watch(safetyReviewDisabledRulesProvider);
-      // A query naming `deco` or `gear.serviceDue` reads a cache of engine
-      // verdicts (#2365, #4461): wait for it, and re-run when it is written.
-      final touched = diveFilterTablesTouched(DiveFilterState(query: query));
-      await awaitQueryCachesIfRead(ref, touched);
-      final caches = touched.intersection(queryCacheTables);
-      if (caches.isNotEmpty) {
-        ref.invalidateSelfWhen(repository.watchTables(caches));
-      }
       Future<List<DiveSummary>> fetch(QueryNode node) =>
           repository.getDiveSummaries(
             diverId: diverId,
@@ -70,6 +62,15 @@ final diveJumpResultsProvider = FutureProvider.autoDispose
             disabledSafetyRules: disabledRules,
           );
       try {
+        // A query naming `deco` or `gear.serviceDue` reads a cache of engine
+        // verdicts (#2365, #4461): wait for it, and re-run when it is
+        // written. Inside the try, so a failed cache write hides the rows
+        // like any other failure.
+        await awaitAndFollowQueryCaches(
+          ref,
+          diveFilterTablesTouched(DiveFilterState(query: query)),
+          repository.watchTables,
+        );
         final number = bareDiveNumber(query);
         if (number == null) return await fetch(query);
         final (numbered, text) = await (

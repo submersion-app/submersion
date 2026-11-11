@@ -10,19 +10,19 @@ import 'package:submersion/features/insights/presentation/providers/dive_deco_st
 /// Each local cache of engine verdicts a query can read, by its table, with
 /// the writer that mirrors it: the service-due verdicts `serviceDue` reads
 /// (#2365) and the computed deco verdicts `deco` reads (#4461).
-final Map<String, ProviderListenable<Future<void>>> _cacheWriters = {
+final Map<String, ProviderListenable<Future<void>>> queryCacheWriters = {
   serviceStatusTable: equipmentServiceStatusCacheProvider.future,
   kDiveDecoStatusTable: diveDecoStatusCacheProvider.future,
 };
 
 /// The tables of the caches [awaitQueryCachesIfRead] waits for, for a
 /// reader whose own change tick does not follow them.
-Set<String> get queryCacheTables => _cacheWriters.keys.toSet();
+Set<String> get queryCacheTables => queryCacheWriters.keys.toSet();
 
 Iterable<ProviderListenable<Future<void>>> _writersFor(
   Set<String> tablesTouched,
 ) => [
-  for (final MapEntry(key: table, value: writer) in _cacheWriters.entries)
+  for (final MapEntry(key: table, value: writer) in queryCacheWriters.entries)
     if (tablesTouched.contains(table)) writer,
 ];
 
@@ -55,6 +55,19 @@ Future<void> awaitQueryCachesIfRead(
       }
     }
   }
+}
+
+/// [awaitQueryCachesIfRead] for a provider whose own change tick does not
+/// follow the cache tables: it also re-runs when [watchTables] reports a
+/// write to a cache the query reads.
+Future<void> awaitAndFollowQueryCaches(
+  Ref ref,
+  Set<String> tablesTouched,
+  Stream<void> Function(Set<String> tables) watchTables,
+) async {
+  await awaitQueryCachesIfRead(ref, tablesTouched);
+  final caches = tablesTouched.intersection(queryCacheTables);
+  if (caches.isNotEmpty) ref.invalidateSelfWhen(watchTables(caches));
 }
 
 /// [awaitQueryCachesIfRead] for a query run outside a provider's build on

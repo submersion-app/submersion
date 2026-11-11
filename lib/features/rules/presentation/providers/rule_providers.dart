@@ -10,6 +10,7 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
@@ -148,10 +149,12 @@ final ruleMatchCountProvider = FutureProvider.autoDispose
       try {
         final scope = ref.read(ruleTargetScopeProvider);
         // A condition reading a cache of engine verdicts (deco, #4461)
-        // counts only once the cache mirrors the engine.
-        await awaitQueryCachesIfRead(
+        // counts only once the cache mirrors the engine, and counts again
+        // when the engine's verdicts change while the editor is open.
+        await awaitAndFollowQueryCaches(
           ref,
           scope.tablesTouched(condition, key.subject, diverId),
+          (tables) => ref.read(queryIdSetRunnerProvider).watchTables(tables),
         );
         return await scope.countMatches(condition, key.subject, diverId);
       } on Object {

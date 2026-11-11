@@ -6,10 +6,11 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/core/query/units/unit_prefs.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
-import 'package:submersion/features/query/presentation/providers/dive_deco_status_keeper.dart';
+import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// The computed deco cache follows the analysis only while a live filter
@@ -45,13 +46,16 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
-    container.listen(diveDecoStatusKeeperProvider, (_, _) {});
+    container.listen(queryCachesKeeperProvider, (_, _) {});
     await container.pump();
   });
 
   test('no filter reads the cache, so the writer never runs', () async {
-    await container.read(diveDecoStatusKeeperProvider.future);
-    expect(container.read(diveDecoStatusDemandProvider), isFalse);
+    await container.read(queryCachesKeeperProvider.future);
+    expect(
+      container.read(queryCacheDemandProvider(kDiveDecoStatusTable)),
+      isFalse,
+    );
     expect(writerBuilds, 0);
   });
 
@@ -59,8 +63,11 @@ void main() {
     container.read(diveFilterProvider.notifier).state = const DiveFilterState(
       decoOnly: true,
     );
-    await container.read(diveDecoStatusKeeperProvider.future);
-    expect(container.read(diveDecoStatusDemandProvider), isTrue);
+    await container.read(queryCachesKeeperProvider.future);
+    expect(
+      container.read(queryCacheDemandProvider(kDiveDecoStatusTable)),
+      isTrue,
+    );
     expect(writerBuilds, 1);
   });
 
@@ -68,8 +75,11 @@ void main() {
     container.read(insightsFilterProvider.notifier).state = DiveFilterState(
       query: parse('deco = true'),
     );
-    await container.read(diveDecoStatusKeeperProvider.future);
-    expect(container.read(diveDecoStatusDemandProvider), isTrue);
+    await container.read(queryCachesKeeperProvider.future);
+    expect(
+      container.read(queryCacheDemandProvider(kDiveDecoStatusTable)),
+      isTrue,
+    );
     expect(writerBuilds, 1);
   });
 
@@ -77,11 +87,11 @@ void main() {
     container.read(diveFilterProvider.notifier).state = const DiveFilterState(
       decoOnly: false,
     );
-    await container.read(diveDecoStatusKeeperProvider.future);
+    await container.read(queryCachesKeeperProvider.future);
     expect(container.exists(diveDecoStatusCacheProvider), isTrue);
 
     container.read(diveFilterProvider.notifier).state = const DiveFilterState();
-    await container.read(diveDecoStatusKeeperProvider.future);
+    await container.read(queryCachesKeeperProvider.future);
     await container.pump();
     // Disposed, not merely idle: it no longer follows dive writes.
     expect(container.exists(diveDecoStatusCacheProvider), isFalse);

@@ -5,9 +5,12 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/dive_deco_status_repository.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
 import 'package:submersion/features/settings/presentation/providers/diver_pinned_container.dart';
@@ -28,7 +31,7 @@ final diveDecoStatusRepositoryProvider = Provider<DiveDecoStatusRepository>(
 /// can move a dive's verdict or its revision (the tables of
 /// [diveSourceStampSql], plus the stop events the recorded signal reads). It
 /// runs only on demand: every provider whose query reads the cache awaits it
-/// through `awaitQueryCachesIfRead`, and `diveDecoStatusKeeperProvider`
+/// through `awaitQueryCachesIfRead`, and `queryCachesKeeperProvider`
 /// keeps it alive while a live filter names `deco`, so a diver who never
 /// filters on deco pays for no analysis.
 // no-tick: a WRITE of derived data, not a cached query. It follows the
@@ -43,7 +46,11 @@ final diveDecoStatusRepositoryProvider = Provider<DiveDecoStatusRepository>(
 final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   ref,
 ) async {
-  final diverId = ref.watch(currentDiverIdProvider);
+  // The id every reader scopes its query by, and that
+  // `prepareQueryCachesFor` compares against: the raw id can be null or a
+  // removed diver's, which would judge every profile's dives (or none of the
+  // list's) under the active settings.
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   // Any analysis setting can move a verdict; the classification keys its
   // cache by this same fingerprint.
   ref.watch(diverAnalysisSettingsProvider.select((s) => s.fingerprint));
@@ -67,7 +74,37 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   final startedFrom = ref.read(diveDecoInputWritesProvider);
   final startedAt = DateTime.now().millisecondsSinceEpoch;
 
-  final judged = await _judgeDiverDives(ref, diverId);
+  // An Insights filter naming deco makes every card wait for this pass
+  // (#4461), and a cold library's first pass runs for minutes on a phone
+  // (#3807): the deco card shows how far it has got, as it does for its own
+  // pass. Counts are left at zero, since this pass judges every dive the
+  // diver logged rather than the ones the card counts.
+  final insightsWaits = diveFilterTablesTouched(
+    ref.read(insightsFilterProvider),
+  ).contains(kDiveDecoStatusTable);
+  var published = false;
+  void publish(DecoClassificationProgress? progress) {
+    if (!ref.mounted) return;
+    ref.read(decoClassificationProgressProvider.notifier).state = progress;
+    published = progress != null;
+  }
+
+  final ({Map<String, bool> verdicts, Set<String> scanned})? judged;
+  try {
+    judged = await _judgeDiverDives(
+      ref,
+      diverId,
+      onProgress: insightsWaits
+          ? (analyzed, total) => publish((
+              stats: (decoCount: 0, noDecoCount: 0, unknownCount: 0),
+              analyzed: analyzed,
+              total: total,
+            ))
+          : null,
+    );
+  } finally {
+    if (published) publish(null);
+  }
   // A rebuild replaced this pass part way through: its verdicts are
   // incomplete, and the pass that replaced it writes the whole set.
   if (judged == null) return startedFrom;
@@ -93,6 +130,7 @@ Future<({Map<String, bool> verdicts, Set<String> scanned})?> _judgeDiverDives(
   Ref ref,
   String? diverId, {
   Set<String>? onlyDiveIds,
+  void Function(int analyzed, int total)? onProgress,
 }) async {
   // Every dive the diver logged, not only those statistics count: a dive
   // excluded from the card's rate is still one a deco search should find.
@@ -103,9 +141,15 @@ Future<({Map<String, bool> verdicts, Set<String> scanned})?> _judgeDiverDives(
         statsScoped: false,
         onlyDiveIds: onlyDiveIds,
       );
+  final total = scan.needsCompute.length;
   final verdicts = await const DecoClassificationService().classify(
     ref,
     scan.needsCompute,
+    onProgress: onProgress == null
+        ? null
+        : (_, pending) {
+            if (pending > 0) onProgress(total - pending, total);
+          },
   );
   if (!ref.mounted) return null;
   return (
@@ -165,7 +209,9 @@ Future<void> refreshDiveDecoStatusFor(
       .read(diveDecoStatusRepositoryProvider)
       .replaceFor(
         judged.verdicts,
-        diveIds: diveIds ?? judged.scanned,
+        // The scan already kept to [diveIds] and to [diverId]'s dives, so a
+        // named dive of another profile keeps its own verdict.
+        diveIds: judged.scanned,
         computedAt: DateTime.now().millisecondsSinceEpoch,
       );
 }

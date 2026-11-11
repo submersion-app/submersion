@@ -1,14 +1,17 @@
 import 'package:fake_async/fake_async.dart';
+import 'package:drift/drift.dart' show TableUpdate;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/services/rule_target_scope.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 
+import '../../../helpers/test_database.dart';
 import '../rules_fixture.dart';
 
 /// Notes each count it is asked for.
@@ -60,9 +63,12 @@ void main() {
     });
   });
 
-  test('the live count waits for the deco verdicts it reads (#4461)', () async {
+  test('the live count waits for the deco verdicts it reads, and counts '
+      'again when they change (#4461)', () async {
     // A dive with no recorded deco data is judged by the analysis, mirrored
     // into a cache: a count taken before that write would undercount.
+    final db = await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
     var writerRuns = 0;
     final calls = <String>[];
     final container = ProviderContainer(
@@ -87,6 +93,12 @@ void main() {
     await container.read(ruleMatchCountProvider(key).future);
     expect(writerRuns, 1);
     expect(calls, ['condition']);
+
+    // The writer re-ran on a dive edit and a verdict changed.
+    db.notifyUpdates({const TableUpdate(kDiveDecoStatusTable)});
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    await container.read(ruleMatchCountProvider(key).future);
+    expect(calls, ['condition', 'condition']);
   });
 
   test('a count that reads no cache runs no analysis', () async {

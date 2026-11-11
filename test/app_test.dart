@@ -33,8 +33,7 @@ import 'package:submersion/features/cylinder_passports/presentation/services/pas
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
-import 'package:submersion/features/query/presentation/providers/dive_deco_status_keeper.dart';
-import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
+import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -349,7 +348,7 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(SubmersionApp)),
     );
-    expect(container.exists(serviceStatusKeeperProvider), isTrue);
+    expect(container.exists(queryCachesKeeperProvider), isTrue);
   });
 
   testWidgets('runs the deco cache writer only on demand (#4461)', (
@@ -363,7 +362,7 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(SubmersionApp)),
     );
-    expect(container.exists(diveDecoStatusKeeperProvider), isTrue);
+    expect(container.exists(queryCachesKeeperProvider), isTrue);
   });
 
   testWidgets('shows the post-restore syncing notice when sync begins', (

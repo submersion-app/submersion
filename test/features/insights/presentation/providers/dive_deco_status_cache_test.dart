@@ -210,6 +210,33 @@ void main() {
     },
   );
 
+  test('while an Insights Deco filter waits on the first analysis, the deco '
+      'card shows its progress', () async {
+    await insertDive('deep');
+    await insertProfile('deep', _square(40, 25));
+    await insertDive('shallow', dayOffset: 1);
+    await insertProfile('shallow', _square(18, 30));
+
+    final container = await makeContainer();
+    container.read(insightsFilterProvider.notifier).state =
+        const DiveFilterState(decoOnly: true);
+    final seen = <({int analyzed, int total})?>[];
+    final progress = container.listen(
+      decoClassificationProgressProvider,
+      (_, next) => seen.add(
+        next == null ? null : (analyzed: next.analyzed, total: next.total),
+      ),
+    );
+    addTearDown(progress.close);
+    final sub = container.listen(decoObligationStatsProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(decoObligationStatsProvider.future);
+
+    // Both bare dives needed the analysis; the bar was cleared after.
+    expect(seen, contains((analyzed: 1, total: 2)));
+    expect(container.read(decoClassificationProgressProvider), isNull);
+  });
+
   test(
     'a dive excluded from statistics is still classified for a search',
     () async {

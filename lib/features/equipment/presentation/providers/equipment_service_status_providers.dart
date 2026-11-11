@@ -14,7 +14,7 @@ final equipmentServiceStatusRepositoryProvider =
 /// [equipmentWorstClockProvider] and the row badges show. Re-runs whenever
 /// the clocks do (a ledger write, a share, a diver switch). It runs only on
 /// demand: every provider whose query reads the cache awaits it through
-/// `awaitQueryCachesIfRead`, and `serviceStatusKeeperProvider` keeps it
+/// `awaitQueryCachesIfRead`, and `queryCachesKeeperProvider` keeps it
 /// alive while any live filter names `serviceDue`, so a diver who never
 /// filters on service pays for no evaluation.
 // no-tick: a WRITE of derived data, not a cached query. It re-runs whenever
