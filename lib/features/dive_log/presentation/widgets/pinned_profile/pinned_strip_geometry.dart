@@ -72,10 +72,12 @@ double condenseProgress({required Rect card, double start = kSquashRange}) {
 /// The share of the condense spent fading the strip's background in over the
 /// card while its depth line still sits exactly on the chart's, before the
 /// shape moves at all. The chart's own line is hidden before the two could
-/// part, so only one depth line is ever seen. Half the hand-over: the
-/// chart's axes, grid and other lines fade out gradually under it rather
-/// than vanishing and leaving a large blank strip.
-const double kCondenseFadePortion = 0.5;
+/// part, so only one depth line is ever seen. Two thirds of the hand-over:
+/// the chart's axes, grid and other lines fade out gradually under it rather
+/// than vanishing and leaving a large blank strip. The fade follows the
+/// scroll position, so this one point is where the chart is gone scrolling
+/// down and where it starts coming back scrolling up.
+const double kCondenseFadePortion = 0.65;
 
 /// The strip background's opacity at condense progress [t].
 double condenseBackgroundOpacity(double t) =>

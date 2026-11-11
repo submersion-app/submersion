@@ -108,6 +108,13 @@ void main() {
     expect(condenseMorphProgress(0.3), 0);
   });
 
+  // The fade follows the scroll position, so one point is both where it
+  // ends scrolling down and where it starts scrolling back up.
+  test('the chart is still fading out past halfway through the hand-over', () {
+    expect(condenseBackgroundOpacity(0.6), lessThan(1));
+    expect(condenseMorphProgress(0.6), 0);
+  });
+
   test('the hand-over starts before the card has finished moving', () {
     expect(kHandOverOverlap, lessThanOrEqualTo(0.45));
   });

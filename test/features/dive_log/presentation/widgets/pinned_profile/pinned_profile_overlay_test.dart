@@ -346,10 +346,12 @@ void main() {
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
-    await condenseTo(tester, 0.6);
+    // Halfway through the morph, after the fade.
+    const t = (1 + kCondenseFadePortion) / 2;
+    await condenseTo(tester, t);
     final s = stripWidget(tester);
     expect(s.backgroundOpacity, 1);
-    expect(s.condense, closeTo(condenseMorphProgress(0.6), 1e-6));
+    expect(s.condense, closeTo(condenseMorphProgress(t), 1e-6));
     expect(s.condense, inExclusiveRange(0, 1));
     expect(tester.getSize(strip).height, greaterThan(kPinnedStripHeight));
     expect(stripIgnoresPointer(tester), isTrue);
