@@ -2603,8 +2603,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   );
 
   /// Persist the home card display order (HomeCardType.name values).
-  Future<void> setHomeCardOrder(List<String> order) =>
-      _update((s) => s.copyWith(homeCardOrder: List.unmodifiable(order)));
+  Future<void> setHomeCardOrder(List<String> order) {
+    // Copied now: the change may wait for the load, and the caller's list
+    // may change by then.
+    final copy = List<String>.unmodifiable(order);
+    return _update((s) => s.copyWith(homeCardOrder: copy));
+  }
 
   /// Restore the default home card order and visibility.
   Future<void> resetHomeCards() => _update(
@@ -2830,9 +2834,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// the default view always shows something.
   Future<void> setEquipmentDefaultStatuses(Set<EquipmentStatus> value) async {
     if (value.isEmpty) return;
-    await _update(
-      (s) => s.copyWith(equipmentDefaultStatuses: Set.unmodifiable(value)),
-    );
+    final copy = Set<EquipmentStatus>.unmodifiable(value);
+    await _update((s) => s.copyWith(equipmentDefaultStatuses: copy));
   }
 
   /// Adds [status] to, or removes it from, the default equipment view
@@ -3123,9 +3126,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setNotificationsEnabled(bool value) =>
       _update((s) => s.copyWith(notificationsEnabled: value));
 
-  Future<void> setServiceReminderDays(List<int> days) => _update(
-    (s) => s.copyWith(serviceReminderDays: _sortedReminderDays(days)),
-  );
+  Future<void> setServiceReminderDays(List<int> days) {
+    final sorted = _sortedReminderDays(days);
+    return _update((s) => s.copyWith(serviceReminderDays: sorted));
+  }
 
   /// [days] deduplicated, latest first.
   static List<int> _sortedReminderDays(Iterable<int> days) =>
@@ -3154,8 +3158,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setShowProfilePanelInTableView(bool value) =>
       _update((s) => s.copyWith(showProfilePanelInTableView: value));
 
-  Future<void> setDiveDetailSections(List<DiveDetailSectionConfig> sections) =>
-      _update((s) => s.copyWith(diveDetailSections: sections));
+  Future<void> setDiveDetailSections(List<DiveDetailSectionConfig> sections) {
+    final copy = List<DiveDetailSectionConfig>.unmodifiable(sections);
+    return _update((s) => s.copyWith(diveDetailSections: copy));
+  }
 
   Future<void> resetDiveDetailSections() =>
       _update((s) => s.copyWith(clearDiveDetailSections: true));
@@ -3181,8 +3187,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     );
   });
 
-  Future<void> setSiteDetailSections(List<SiteDetailSectionConfig> sections) =>
-      _update((s) => s.copyWith(siteDetailSections: sections));
+  Future<void> setSiteDetailSections(List<SiteDetailSectionConfig> sections) {
+    final copy = List<SiteDetailSectionConfig>.unmodifiable(sections);
+    return _update((s) => s.copyWith(siteDetailSections: copy));
+  }
 
   Future<void> resetSiteDetailSections() =>
       _update((s) => s.copyWith(clearSiteDetailSections: true));

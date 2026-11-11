@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -101,6 +102,43 @@ void main() {
     expect(stored.hiddenTankPresetIds, {'hp100', 'hp80'});
     expect(stored.serviceReminderDays, [30, 7]);
     expect(stored.coldWaterThresholdC, 15);
+  });
+
+  test('a collection passed before the load is copied when the setter is '
+      'called', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    final order = ['stats', 'recent'];
+    final statuses = {EquipmentStatus.active};
+    final days = [14, 3];
+    final diveSections = const AppSettings().diveDetailSections.reversed
+        .toList();
+    final siteSections = const AppSettings().siteDetailSections.reversed
+        .toList();
+    final expectedDive = List.of(diveSections);
+    final expectedSite = List.of(siteSections);
+
+    final pending = Future.wait([
+      notifier.setHomeCardOrder(order),
+      notifier.setEquipmentDefaultStatuses(statuses),
+      notifier.setServiceReminderDays(days),
+      notifier.setDiveDetailSections(diveSections),
+      notifier.setSiteDetailSections(siteSections),
+    ]);
+    // The caller reuses its collections while the load is still out.
+    order.add('map');
+    statuses.add(EquipmentStatus.values.last);
+    days.add(90);
+    diveSections.removeLast();
+    siteSections.removeLast();
+    gate.complete();
+    await pending;
+
+    final settings = container.read(settingsProvider);
+    expect(settings.homeCardOrder, ['stats', 'recent']);
+    expect(settings.equipmentDefaultStatuses, {EquipmentStatus.active});
+    expect(settings.serviceReminderDays, [14, 3]);
+    expect(settings.diveDetailSections, expectedDive);
+    expect(settings.siteDetailSections, expectedSite);
   });
 
   test('a change made just after the load lands is not undone by one queued '
