@@ -39,7 +39,9 @@ class TripCountryFlags extends ConsumerWidget {
         ? countries
         : countries.take(maxFlags!).toList();
     final hidden = countries.length - shown.length;
-    final names = countries.map((c) => c.name).join(', ');
+    final names = countries
+        .map((c) => c.name)
+        .join(context.l10n.trips_countryFlags_separator);
 
     return Tooltip(
       message: names,

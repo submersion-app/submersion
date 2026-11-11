@@ -1775,14 +1775,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_today => 'Vandaag';
 
   @override
-  String trips_countryFlags_more(Object count) {
+  String trips_countryFlags_more(int count) {
     return '+$count';
   }
 
   @override
-  String trips_countryFlags_semantics(Object names) {
+  String trips_countryFlags_semantics(String names) {
     return 'Landen: $names';
   }
+
+  @override
+  String get trips_countryFlags_separator => ', ';
 
   @override
   String trips_story_dayOfTrip(int current, int total) {

@@ -22,6 +22,7 @@ Future<void> _pump(
   Widget child, {
   Map<String, List<TripCountry>> countries = const {'t1': _five},
   bool flags = true,
+  Locale locale = const Locale('en'),
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -30,7 +31,7 @@ Future<void> _pump(
         showCountryFlagsProvider.overrideWithValue(flags),
       ],
       child: localizedMaterialApp(
-        locale: const Locale('en'),
+        locale: locale,
         home: Scaffold(body: Center(child: child)),
       ),
     ),
@@ -98,5 +99,19 @@ void main() {
     final tooltip = tester.widget<Tooltip>(find.byType(Tooltip));
     expect(tooltip.message, 'Mexico, Belize, Honduras, Guatemala, Costa Rica');
     handle.dispose();
+  });
+
+  testWidgets('names are listed with the language own separator', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      const TripCountryFlags(tripId: 't1'),
+      countries: {'t1': _five.take(2).toList()},
+      locale: const Locale('zh'),
+    );
+
+    final tooltip = tester.widget<Tooltip>(find.byType(Tooltip));
+    expect(tooltip.message, 'Mexico、Belize');
   });
 }

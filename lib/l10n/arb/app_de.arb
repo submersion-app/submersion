@@ -389,6 +389,7 @@
   "trips_story_today": "Heute",
   "trips_countryFlags_more": "+{count}",
   "trips_countryFlags_semantics": "Länder: {names}",
+  "trips_countryFlags_separator": ", ",
   "trips_story_dayOfTrip": "Tag {current} von {total}",
   "trips_story_daysUntil": "{days, plural, =1{Noch 1 Tag bis zur Abreise} other{Noch {days} Tage bis zur Abreise}}",
   "trips_story_checklistProgress": "{done} von {total} erledigt",

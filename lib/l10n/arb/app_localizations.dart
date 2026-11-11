@@ -2785,17 +2785,23 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get trips_story_today;
 
-  /// No description provided for @trips_countryFlags_more.
+  /// After a trip's flags: how many more countries it has than are drawn.
   ///
   /// In en, this message translates to:
   /// **'+{count}'**
-  String trips_countryFlags_more(Object count);
+  String trips_countryFlags_more(int count);
 
-  /// No description provided for @trips_countryFlags_semantics.
+  /// Screen reader label for a trip's flags; names is the list of countries.
   ///
   /// In en, this message translates to:
   /// **'Countries: {names}'**
-  String trips_countryFlags_semantics(Object names);
+  String trips_countryFlags_semantics(String names);
+
+  /// Joins country names in a trip's flag tooltip and label.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get trips_countryFlags_separator;
 
   /// No description provided for @trips_story_dayOfTrip.
   ///

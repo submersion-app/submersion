@@ -363,6 +363,7 @@
   "trips_story_today": "Ma",
   "trips_countryFlags_more": "+{count}",
   "trips_countryFlags_semantics": "Országok: {names}",
+  "trips_countryFlags_separator": ", ",
   "trips_story_dayOfTrip": "{current}. nap a(z) {total} napból",
   "trips_story_daysUntil": "{days, plural, =1{1 nap az indulásig} other{{days} nap az indulásig}}",
   "trips_story_checklistProgress": "{done}/{total} kész",

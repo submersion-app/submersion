@@ -363,6 +363,7 @@
   "trips_story_today": "היום",
   "trips_countryFlags_more": "+{count}",
   "trips_countryFlags_semantics": "מדינות: {names}",
+  "trips_countryFlags_separator": ", ",
   "trips_story_dayOfTrip": "יום {current} מתוך {total}",
   "trips_story_daysUntil": "{days, plural, =1{יום אחד עד היציאה} other{{days} ימים עד היציאה}}",
   "trips_story_checklistProgress": "{done} מתוך {total} הושלמו",
