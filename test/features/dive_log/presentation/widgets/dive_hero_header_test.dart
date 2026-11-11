@@ -47,6 +47,23 @@ void main() {
   }
 
   group('country flag (issue #4426)', () {
+    testWidgets('a stored code shows its flag for unread text', (tester) async {
+      final korea = Dive(
+        id: 'd3',
+        diveNumber: 9,
+        dateTime: DateTime.utc(2026, 5, 3, 9),
+        site: const DiveSite(
+          id: 's2',
+          name: 'Munseom',
+          country: 'Korea',
+          countryCode: 'KR',
+        ),
+      );
+      await pump(tester, DiveHeroHeader(dive: korea, units: units));
+
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'KR');
+    });
+
     final atSite = Dive(
       id: 'd2',
       diveNumber: 8,

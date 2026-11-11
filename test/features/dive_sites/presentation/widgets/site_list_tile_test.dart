@@ -521,6 +521,23 @@ void main() {
   });
 
   group('country flag (issue #4426)', () {
+    testWidgets('a stored code shows its flag for unread text', (tester) async {
+      final korea = SiteWithDiveCount(
+        site: _richEntry.site.copyWith(country: 'Korea', countryCode: 'KR'),
+        diveCount: 1,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          locale: const Locale('en'),
+          child: SiteListTile(entry: korea, onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'KR');
+    });
+
     Future<void> pumpTile(
       WidgetTester tester, {
       EntityCardViewConfig<SiteField> config = _defaultConfig,

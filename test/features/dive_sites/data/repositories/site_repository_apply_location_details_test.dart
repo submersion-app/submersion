@@ -74,6 +74,7 @@ void main() {
         id: 's3',
         name: 'n',
         country: 'a',
+        countryCode: 'CH',
         region: 'b',
         city: 'c',
         bodyOfWater: 'd',
@@ -138,6 +139,7 @@ void main() {
           id: 'o2',
           name: 'n',
           country: 'Switzerland',
+          countryCode: 'CH',
           region: 'Lucerne',
           city: 'Weggis',
           bodyOfWater: 'Lake Lucerne',
@@ -173,5 +175,26 @@ void main() {
       expect(stored.region, 'Luzern', reason: 'not found, so not cleared');
       expect(stored.city, 'Weggis');
     });
+  });
+
+  test('stores the geocoder country code (issue #4426)', () async {
+    await sites.createSite(
+      const DiveSite(
+        id: 's2',
+        name: 'Munseom',
+        location: GeoPoint(33.22, 126.56),
+      ),
+    );
+
+    final changed = await sites.applyLocationDetails(
+      's2',
+      const PlaceLookup(country: 'South Korea', countryCode: 'KR'),
+      overwrite: false,
+    );
+
+    expect(changed, isTrue);
+    final site = (await sites.getSiteById('s2'))!;
+    expect(site.country, 'South Korea');
+    expect(site.countryCode, 'KR');
   });
 }

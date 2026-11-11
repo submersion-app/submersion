@@ -93,6 +93,7 @@ class LocationWithFlag extends ConsumerWidget {
   const LocationWithFlag({
     super.key,
     required this.country,
+    this.countryCode,
     required this.text,
     this.fallbackLeading,
     this.flagHeight = 11,
@@ -101,6 +102,10 @@ class LocationWithFlag extends ConsumerWidget {
 
   /// The site's stored country, free text.
   final String? country;
+
+  /// The site's stored ISO code (issue #4426). When set it decides the flag
+  /// and [country] is not read.
+  final String? countryCode;
 
   final Widget text;
 
@@ -115,7 +120,7 @@ class LocationWithFlag extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final code = ref.watch(showCountryFlagsProvider)
-        ? countryCodeFor(country)
+        ? countryCode ?? countryCodeFor(country)
         : null;
     final leading = code != null
         ? CountryFlag(code: code, height: flagHeight)

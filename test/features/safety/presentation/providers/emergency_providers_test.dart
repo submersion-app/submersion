@@ -57,12 +57,18 @@ class _FakeChamberRepo extends Fake implements EmergencyChamberRepository {
       chambers;
 }
 
-DiveSummary _summary({String? country, double? lat, double? lon}) {
+DiveSummary _summary({
+  String? country,
+  String? countryCode,
+  double? lat,
+  double? lon,
+}) {
   return DiveSummary(
     id: 'd1',
     dateTime: DateTime.utc(2026, 7, 1),
     sortTimestamp: 0,
     siteCountry: country,
+    siteCountryCode: countryCode,
     siteLatitude: lat,
     siteLongitude: lon,
   );
@@ -249,6 +255,15 @@ void main() {
         reason: entry.key,
       );
     }
+  });
+
+  test('a stored site code wins over the country text (issue #4426)', () async {
+    final container = _container(
+      summaries: [_summary(country: 'Korea', countryCode: 'KR')],
+    );
+    addTearDown(container.dispose);
+
+    expect(await container.read(emergencyRegionProvider.future), 'KR');
   });
 
   test('no dives resolves to the worldwide hotline and default EMS', () async {

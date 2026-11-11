@@ -109,6 +109,22 @@ void main() {
       expect(find.byKey(const ValueKey('pin')), findsNothing);
     });
 
+    testWidgets('a stored code wins over the text (issue #4426)', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        const LocationWithFlag(
+          country: 'Korea',
+          countryCode: 'KR',
+          fallbackLeading: _pin,
+          text: Text('Jeju, Korea'),
+        ),
+      );
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'KR');
+      expect(find.byKey(const ValueKey('pin')), findsNothing);
+    });
+
     testWidgets('flags off shows the fallback and no flag', (tester) async {
       await _pump(
         tester,

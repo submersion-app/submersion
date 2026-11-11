@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -158,6 +159,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _countryController = TextEditingController();
+
+  /// The country code known for a country text: the stored one on load, the
+  /// geocoder's after a lookup fills the country (issue #4426). Save keeps
+  /// it while the country text is unchanged, and re-reads an edited text.
+  KnownCountryCode _knownCountryCode = (country: null, code: null);
   final _regionController = TextEditingController();
   final _cityController = TextEditingController();
   final _islandController = TextEditingController();
@@ -364,6 +370,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     final merged = mergeLocationDetails(
       current: SiteLocationDetails(
         country: _countryController.text,
+        countryCode:
+            _knownCountryCode.country?.trim() == _countryController.text.trim()
+            ? _knownCountryCode.code
+            : null,
         region: _regionController.text,
         city: _cityController.text,
         bodyOfWater: _bodyOfWaterController.text,
@@ -381,6 +391,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     }
 
     set(_countryController, merged.country);
+    if (merged.countryCode != null) {
+      _knownCountryCode = (
+        country: _countryController.text,
+        code: merged.countryCode,
+      );
+    }
     set(_regionController, merged.region);
     set(_cityController, merged.city);
     set(_bodyOfWaterController, merged.bodyOfWater);
@@ -493,6 +509,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     _nameController.text = site.name;
     _descriptionController.text = site.description;
     _countryController.text = site.country ?? '';
+    _knownCountryCode = (country: site.country, code: site.countryCode);
     _regionController.text = site.region ?? '';
     _cityController.text = site.city ?? '';
     _islandController.text = site.island ?? '';
@@ -2242,6 +2259,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         country: country,
+        countryCode: countryCodeOnSave(
+          country: country,
+          known: _knownCountryCode,
+        ),
         region: region,
         city: city,
         island: island,

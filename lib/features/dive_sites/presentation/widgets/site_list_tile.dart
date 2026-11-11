@@ -260,6 +260,9 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                           country: showsPlace(subtitleField)
                               ? widget.entry.site.country
                               : null,
+                          countryCode: showsPlace(subtitleField)
+                              ? widget.entry.site.countryCode
+                              : null,
                           text: Text(
                             subtitle,
                             style: Theme.of(context).textTheme.bodyMedium

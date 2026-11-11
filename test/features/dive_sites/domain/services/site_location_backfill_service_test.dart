@@ -322,6 +322,7 @@ void main() {
           id: 'en',
           name: 'Hertenstein',
           country: 'Switzerland',
+          countryCode: 'CH',
           region: 'Lucerne',
           city: 'Weggis',
           bodyOfWater: 'Lake Lucerne',
@@ -337,5 +338,30 @@ void main() {
       expect(summary.updated, 0);
       expect(summary.unchanged, 1);
     });
+
+    test(
+      'a site missing only its country code gains it (issue #4426)',
+      () async {
+        await sites.createSite(
+          const DiveSite(
+            id: 'nocode',
+            name: 'Hertenstein',
+            country: 'Switzerland',
+            region: 'Lucerne',
+            city: 'Weggis',
+            bodyOfWater: 'Lake Lucerne',
+            location: GeoPoint(47.0, 8.4),
+          ),
+        );
+
+        final summary = await service(
+          _MapLocationService({'47.0,8.4': weggis}),
+          mode: SiteLocationLookupMode.refreshAll,
+        ).run(onProgress: (_, _) {}, isCancelled: () => false);
+
+        expect(summary.updated, 1);
+        expect((await sites.getSiteById('nocode'))!.countryCode, 'CH');
+      },
+    );
   });
 }

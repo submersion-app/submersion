@@ -293,6 +293,50 @@ void main() {
     expect(saved.country, 'Switzerland');
   });
 
+  group('country code (issue #4426)', () {
+    const jeju = PlaceLookup(
+      country: 'Korea',
+      countryCode: 'KR',
+      region: 'Jeju',
+    );
+
+    Future<DiveSite> lookUpAndSave(WidgetTester tester) async {
+      final seeded = await seedSite();
+      await pumpEditor(tester, seeded: seeded, place: jeju);
+      await tester.tap(find.text(_lookupButton));
+      await tester.pumpAndSettle();
+      return seeded;
+    }
+
+    testWidgets('a geocoded country saves the geocoder code', (tester) async {
+      final seeded = await lookUpAndSave(tester);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = (await repo.getSiteById(seeded.id))!;
+      expect(saved.country, 'Korea');
+      expect(saved.countryCode, 'KR', reason: 'the table cannot read Korea');
+    });
+
+    testWidgets('a hand edit after the lookup re-reads the text', (
+      tester,
+    ) async {
+      final seeded = await lookUpAndSave(tester);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Korea'),
+        'Japan',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final saved = (await repo.getSiteById(seeded.id))!;
+      expect(saved.country, 'Japan');
+      expect(saved.countryCode, 'JP');
+    });
+  });
+
   testWidgets('offers to replace when nothing was empty and values differ', (
     tester,
   ) async {

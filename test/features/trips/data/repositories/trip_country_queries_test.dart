@@ -20,11 +20,13 @@ void main() {
         [id, owner, id, parent],
       );
 
-  Future<void> site(String id, String? country) => db.customStatement(
-    'INSERT INTO dive_sites (id, name, country, created_at, updated_at) '
-    'VALUES (?, ?, ?, 0, 0)',
-    [id, id, country],
-  );
+  Future<void> site(String id, String? country, {String? code}) =>
+      db.customStatement(
+        'INSERT INTO dive_sites '
+        '(id, name, country, country_code, created_at, updated_at) '
+        'VALUES (?, ?, ?, ?, 0, 0)',
+        [id, id, country, code],
+      );
 
   Future<void> dive(
     String id,
@@ -84,6 +86,15 @@ void main() {
     expect(countries.single.name, 'México');
   });
 
+  test('a stored code counts for text the table cannot read', () async {
+    await site('munseom', 'Korea', code: 'KR');
+    await trip('T');
+    await dive('a', 'T', 'munseom');
+
+    final countries = (await trips.getTripCountries())['T']!;
+    expect(countries.single, const TripCountry(code: 'KR', name: 'Korea'));
+  });
+
   test('a country it cannot name adds nothing', () async {
     await trip('T');
     await dive('a', 'T', 'atlantis');
@@ -137,5 +148,11 @@ void main() {
   test('a trip with no dives has no entry', () async {
     await trip('T');
     expect((await trips.getTripCountries())['T'], isNull);
+  });
+
+  test('a failing read is reported to the caller, not swallowed', () async {
+    await db.customStatement('DROP TABLE dive_sites');
+
+    await expectLater(trips.getTripCountries(), throwsA(anything));
   });
 }

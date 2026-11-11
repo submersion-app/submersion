@@ -177,6 +177,11 @@ class CompactSiteListTile extends ConsumerWidget {
                                           showsPlace(subtitleField)
                                       ? site.country
                                       : null,
+                                  countryCode:
+                                      subtitle != null &&
+                                          showsPlace(subtitleField)
+                                      ? site.countryCode
+                                      : null,
                                   text: Text(
                                     subtitle ?? '',
                                     style: Theme.of(context).textTheme.bodySmall

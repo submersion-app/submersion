@@ -7,6 +7,7 @@
 class PlaceLookup {
   const PlaceLookup({
     this.country,
+    this.countryCode,
     this.region,
     this.locality,
     this.bodyOfWater,
@@ -18,6 +19,10 @@ class PlaceLookup {
   const PlaceLookup.unavailable() : this(networkFailed: true);
 
   final String? country;
+
+  /// The geocoder's ISO 3166-1 alpha-2 code for [country], upper-cased,
+  /// when it gave one (issue #4426).
+  final String? countryCode;
   final String? region;
   final String? locality;
   final String? bodyOfWater;
@@ -31,6 +36,7 @@ class PlaceLookup {
 
   PlaceLookup copyWith({String? bodyOfWater}) => PlaceLookup(
     country: country,
+    countryCode: countryCode,
     region: region,
     locality: locality,
     bodyOfWater: bodyOfWater ?? this.bodyOfWater,
@@ -39,6 +45,6 @@ class PlaceLookup {
 
   @override
   String toString() =>
-      'PlaceLookup(country: $country, region: $region, locality: $locality, '
+      'PlaceLookup(country: $country, countryCode: $countryCode, region: $region, locality: $locality, '
       'bodyOfWater: $bodyOfWater, networkFailed: $networkFailed)';
 }

@@ -177,6 +177,7 @@ class SiteRepository {
                 difficulty: Value(site.difficulty?.name),
                 waterType: Value(site.waterType?.name),
                 country: Value(site.country),
+                countryCode: Value(site.countryCode),
                 region: Value(site.region),
                 city: Value(site.city),
                 island: Value(site.island),
@@ -299,6 +300,7 @@ class SiteRepository {
         difficulty: Value(site.difficulty?.name),
         waterType: Value(site.waterType?.name),
         country: Value(site.country),
+        countryCode: Value(site.countryCode),
         region: Value(site.region),
         city: Value(site.city),
         island: Value(site.island),
@@ -435,7 +437,8 @@ class SiteRepository {
     ),
   );
 
-  /// Writes country, region, city and body of water on [siteId] from
+  /// Writes country (with its ISO code), region, city and body of water on
+  /// [siteId] from
   /// [found], leaving every other column untouched (issue #1187). With
   /// [overwrite] false only columns that are still empty are written; with
   /// it true a differing stored value is replaced too, which is how sites
@@ -476,6 +479,7 @@ class SiteRepository {
         )..where((t) => t.id.equals(siteId))).write(
           DiveSitesCompanion(
             country: column(merged.country),
+            countryCode: column(merged.countryCode),
             region: column(merged.region),
             city: column(merged.city),
             bodyOfWater: column(merged.bodyOfWater),
@@ -1215,6 +1219,7 @@ class SiteRepository {
                   difficulty: Value(site.difficulty?.name),
                   waterType: Value(site.waterType?.name),
                   country: Value(site.country),
+                  countryCode: Value(site.countryCode),
                   region: Value(site.region),
                   city: Value(site.city),
                   island: Value(site.island),
@@ -1619,6 +1624,7 @@ class SiteRepository {
         difficulty: Value(site.difficulty?.name),
         waterType: Value(site.waterType?.name),
         country: Value(site.country),
+        countryCode: Value(site.countryCode),
         region: Value(site.region),
         city: Value(site.city),
         island: Value(site.island),

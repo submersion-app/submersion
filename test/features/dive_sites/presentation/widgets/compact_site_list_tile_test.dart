@@ -106,6 +106,24 @@ void main() {
   });
 
   group('country flag (issue #4426)', () {
+    testWidgets('a stored code shows its flag for unread text', (tester) async {
+      final korea = SiteWithDiveCount(
+        site: _entry.site.copyWith(country: 'Korea', countryCode: 'KR'),
+        diveCount: 1,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...await _overrides(),
+            showCountryFlagsProvider.overrideWithValue(true),
+          ],
+          child: CompactSiteListTile(entry: korea, onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'KR');
+    });
+
     Future<void> pumpTile(WidgetTester tester, {bool flags = true}) async {
       await tester.pumpWidget(
         testApp(

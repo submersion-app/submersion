@@ -89,6 +89,7 @@ class SiteDetailHeader extends ConsumerWidget {
             // no flag (issue #4426).
             LocationWithFlag(
               country: site.country,
+              countryCode: site.countryCode,
               flagHeight: 14,
               gap: 8,
               fallbackLeading: Icon(

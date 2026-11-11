@@ -103,6 +103,7 @@ class DenseSiteListTile extends StatelessWidget {
                       alignment: AlignmentDirectional.centerEnd,
                       child: LocationWithFlag(
                         country: site?.country,
+                        countryCode: site?.countryCode,
                         text: Text(
                           location!,
                           style: Theme.of(context).textTheme.bodySmall

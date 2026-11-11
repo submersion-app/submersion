@@ -41,13 +41,14 @@ class TripCountryQueries {
         SELECT
           t.id AS trip_id,
           s.country AS country,
+          s.country_code AS code,
           COUNT(DISTINCT d.id) AS dive_count,
           MIN(d.dive_date_time) AS first_dive
         FROM trips t
         $joinClause
         INNER JOIN dive_sites s ON s.id = d.site_id
         WHERE s.country IS NOT NULL AND TRIM(s.country) <> ''
-        GROUP BY t.id, s.country
+        GROUP BY t.id, s.country, s.country_code
       ''',
             variables: [if (diverId != null) Variable.withString(diverId)],
           )
@@ -58,6 +59,7 @@ class TripCountryQueries {
           (row) => (
             tripId: row.read<String>('trip_id'),
             name: row.read<String>('country').trim(),
+            code: row.read<String?>('code'),
             dives: row.read<int>('dive_count'),
             firstDive: row.read<int>('first_dive'),
           ),

@@ -121,6 +121,15 @@ void main() {
   });
 
   group('country flag (issue #4426)', () {
+    testWidgets('a stored code shows its flag for unread text', (tester) async {
+      await pumpHeader(
+        tester,
+        bare.copyWith(region: 'Jeju', country: 'Korea', countryCode: 'KR'),
+      );
+
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'KR');
+    });
+
     final egypt = bare.copyWith(
       city: 'Dahab',
       region: 'South Sinai',

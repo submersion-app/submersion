@@ -173,6 +173,7 @@ class DiveHeroHeader extends ConsumerWidget {
                         if (dive.site?.locationString.isNotEmpty == true)
                           LocationWithFlag(
                             country: dive.site!.country,
+                            countryCode: dive.site!.countryCode,
                             text: Text(
                               dive.site!.locationString,
                               style: Theme.of(context).textTheme.bodyMedium

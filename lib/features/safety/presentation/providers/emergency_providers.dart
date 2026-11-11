@@ -38,7 +38,8 @@ final emergencyRegionProvider = FutureProvider<String?>((ref) async {
   if (summaries.isEmpty) return null;
   // The same recognizer that puts a flag beside the site (issue #4426), so
   // the card and the flag always agree about the country.
-  return countryCodeFor(summaries.first.siteCountry);
+  final last = summaries.first;
+  return last.siteCountryCode ?? countryCodeFor(last.siteCountry);
 });
 
 /// The diver's manual region override as an upper-case ISO code, or null

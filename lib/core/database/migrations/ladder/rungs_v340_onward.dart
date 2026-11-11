@@ -152,5 +152,14 @@ extension RungsFromV340 on AppDatabase {
     // beforeOpen.
     if (from < 359) await _assertShowCountryFlagsColumn();
     if (from < 359) await reportProgress();
+
+    // v360: dive_sites.country_code, the site's ISO country code (issue
+    // #4426), backfilled from the country text each site already holds where
+    // that text names one country. Nullable and offline, so the floor does
+    // not move. The column is re-asserted in beforeOpen; the backfill runs
+    // here only.
+    if (from < 360) await _assertSiteCountryCodeColumn();
+    if (from < 360) await _backfillSiteCountryCodes();
+    if (from < 360) await reportProgress();
   }
 }

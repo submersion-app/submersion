@@ -28,6 +28,7 @@ domain.DiveSite mapDiveSiteRow(DiveSite row) {
         ? null
         : WaterType.values.asNameMap()[row.waterType],
     country: row.country,
+    countryCode: row.countryCode,
     region: row.region,
     city: row.city,
     island: row.island,
