@@ -182,6 +182,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
               DiveProfileChartHost(
                 dive: dive,
                 exportKey: exportKey,
+                publishPlotFrame: true,
                 annotationActions: annotationActions,
                 onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
                 // fl_chart's own tooltip bubble (issue #2228 follow-up): this

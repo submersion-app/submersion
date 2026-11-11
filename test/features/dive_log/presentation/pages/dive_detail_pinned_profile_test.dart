@@ -13,7 +13,9 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -111,6 +113,22 @@ void main() {
     await tester.pump();
     await tester.pump();
   }
+
+  // Only the dive details chart says where its plot is: the dashboard preview
+  // and the planner chart share the host but never the strip (review M1).
+  testWidgets('the dive details chart publishes its plot frame', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    final host = tester.widget<DiveProfileChartHost>(
+      find.byType(DiveProfileChartHost),
+    );
+    expect(host.publishPlotFrame, isTrue);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveDetailPage)),
+    );
+    expect(container.read(profilePlotFrameProvider(diveA.id)), isNotNull);
+  });
 
   testWidgets('no strip while the profile card is on screen', (tester) async {
     await pumpPage(tester);
