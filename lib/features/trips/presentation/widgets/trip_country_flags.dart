@@ -6,6 +6,13 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
 
+/// Whether [TripCountryFlags] would draw anything for [tripId]: flags are on
+/// and the trip has a recognised country. Lets a title fall back to plain
+/// text when there is nothing to show beside it.
+bool tripHasFlags(WidgetRef ref, String tripId) =>
+    ref.watch(showCountryFlagsProvider) &&
+    (ref.watch(tripCountriesProvider).value?[tripId]?.isNotEmpty ?? false);
+
 /// The flags of the countries a trip's dives were in (issue #4426), most
 /// dived first.
 ///

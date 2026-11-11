@@ -1168,21 +1168,26 @@ class TripListTile extends ConsumerWidget {
           title: Row(
             children: [
               Expanded(
-                // The flags sit right after the name (issue #4426). A name
-                // that wraps shrinks to its longest line, so they stay beside
-                // the text instead of floating at the far edge, and they
-                // never take a line of their own.
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        trip.name,
-                        textWidthBasis: TextWidthBasis.longestLine,
-                      ),
-                    ),
-                    TripCountryFlags(tripId: trip.id, maxFlags: 3, gap: 6),
-                  ],
-                ),
+                // The flags ride inline after the name's last word, so a name
+                // that wraps keeps them on its last line (issue #4426). With
+                // no flags to show the title stays plain text.
+                child: tripHasFlags(ref, trip.id)
+                    ? Text.rich(
+                        TextSpan(
+                          text: trip.name,
+                          children: [
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: TripCountryFlags(
+                                tripId: trip.id,
+                                maxFlags: 3,
+                                gap: 6,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Text(trip.name),
               ),
               if (showSharedBadge) ...[
                 const SizedBox(width: 6),

@@ -81,6 +81,16 @@ void main() {
     expectThreeFlagsAndMore(tester);
   });
 
+  testWidgets('a trip without flags keeps a plain title', (tester) async {
+    final bare = TripWithStats(
+      trip: trip.trip.copyWith(id: 'no-countries', name: 'Home reef'),
+    );
+    await pumpTile(tester, TripListTile(tripWithStats: bare, onTap: () {}));
+
+    expect(find.text('Home reef'), findsOneWidget);
+    expect(find.byType(TripCountryFlags), findsNothing);
+  });
+
   testWidgets('a long trip name still fits beside the flags', (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -102,24 +112,18 @@ void main() {
   ) async {
     await tester.binding.setSurfaceSize(const Size(360, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
-    const name = 'Kingston and the Thousand Islands with a very long name 2026';
+    const name = 'Kingston and the Thousand Islands 2023';
     final longTrip = TripWithStats(trip: trip.trip.copyWith(name: name));
     await pumpTile(tester, TripListTile(tripWithStats: longTrip, onTap: () {}));
 
-    final titleFinder = find.text(name);
-    final title = tester.getRect(titleFinder);
+    final title = tester.getRect(find.textContaining('Kingston'));
     final flags = tester.getRect(find.byType(TripCountryFlags));
     expect(title.height, greaterThan(30)); // the name wraps
-    // Beside the text, not on a line of its own below it...
-    expect(flags.center.dy, lessThan(title.bottom));
-    expect(flags.center.dy, greaterThan(title.top));
-    // ...and right after its longest line, not out at the row's far edge:
-    // the name's box shrinks to that line.
-    expect(
-      tester.widget<Text>(titleFinder).textWidthBasis,
-      TextWidthBasis.longestLine,
-    );
-    expect(flags.left - title.right, lessThan(10));
+    // On the last line, not centred between the two lines...
+    expect(flags.center.dy, greaterThan(title.center.dy + 4));
+    // ...and right after its last word ("2023"), not at the far end of the
+    // first line.
+    expect(flags.left - title.left, lessThan(title.width / 2));
   });
 
   testWidgets('a name that fits keeps its flag on the same line', (
@@ -131,7 +135,7 @@ void main() {
     final fitting = TripWithStats(trip: trip.trip.copyWith(name: name));
     await pumpTile(tester, TripListTile(tripWithStats: fitting, onTap: () {}));
 
-    final title = tester.getRect(find.text(name));
+    final title = tester.getRect(find.textContaining(name));
     final flags = tester.getRect(find.byType(TripCountryFlags));
     expect(flags.center.dy, lessThan(title.bottom));
   });
