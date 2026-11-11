@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Signature for a function that maps a tissue loading percentage to a color.
 typedef TissueColorFn = Color Function(double percentage);
@@ -11,12 +12,8 @@ typedef TissueColorFn = Color Function(double percentage);
 /// Each scheme maps a 0-120+ percentage (from [subsurfacePercentage]) to a
 /// color gradient optimized for different use cases.
 enum TissueColorScheme {
-  classic('Default'),
-  thermal('Thermal');
-
-  final String displayName;
-
-  const TissueColorScheme(this.displayName);
+  classic,
+  thermal;
 
   /// Parse a [TissueColorScheme] from its [name] string.
   ///
@@ -31,12 +28,8 @@ enum TissueColorScheme {
 
 /// Available visualization modes for tissue loading displays.
 enum TissueVizMode {
-  heatMap('Heat Map'),
-  stackedArea('Stacked Area');
-
-  final String displayName;
-
-  const TissueVizMode(this.displayName);
+  heatMap,
+  stackedArea;
 
   /// Parse a [TissueVizMode] from its [name] string.
   ///
@@ -48,6 +41,24 @@ enum TissueVizMode {
     return TissueVizMode.heatMap;
   }
 }
+
+/// The localized name of [scheme], shared by the Settings tile and the sync
+/// conflict labels.
+String tissueColorSchemeLabel(
+  AppLocalizations l10n,
+  TissueColorScheme scheme,
+) => switch (scheme) {
+  TissueColorScheme.classic => l10n.enum_tissueColorScheme_classic,
+  TissueColorScheme.thermal => l10n.enum_tissueColorScheme_thermal,
+};
+
+/// The localized name of [mode], shared by the tissue card's view menu and
+/// the sync conflict labels.
+String tissueVizModeLabel(AppLocalizations l10n, TissueVizMode mode) =>
+    switch (mode) {
+      TissueVizMode.heatMap => l10n.enum_tissueVizMode_heatMap,
+      TissueVizMode.stackedArea => l10n.enum_tissueVizMode_stackedArea,
+    };
 
 /// Returns the [TissueColorFn] for the given [scheme].
 TissueColorFn colorFnForScheme(TissueColorScheme scheme) {

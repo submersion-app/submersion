@@ -339,7 +339,7 @@ class _CompactTissueLoadingCardState
               children: [
                 Icon(_viewIcon(mode), size: 18),
                 const SizedBox(width: 12),
-                Text(_viewLabel(mode)),
+                Text(tissueVizModeLabel(l10n, mode)),
               ],
             ),
           ),
@@ -352,11 +352,6 @@ class _CompactTissueLoadingCardState
   static IconData _viewIcon(TissueVizMode mode) => switch (mode) {
     TissueVizMode.heatMap => Icons.grid_on,
     TissueVizMode.stackedArea => Icons.area_chart,
-  };
-
-  String _viewLabel(TissueVizMode mode) => switch (mode) {
-    TissueVizMode.heatMap => context.l10n.enum_tissueVizMode_heatMap,
-    TissueVizMode.stackedArea => context.l10n.enum_tissueVizMode_stackedArea,
   };
 
   Widget _build3dViewButton(ColorScheme colorScheme) {

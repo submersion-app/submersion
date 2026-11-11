@@ -77,12 +77,7 @@ class DiveDetailsAppearanceTiles extends ConsumerWidget {
                 for (final scheme in TissueColorScheme.values)
                   DropdownMenuItem(
                     value: scheme,
-                    child: Text(switch (scheme) {
-                      TissueColorScheme.classic =>
-                        l10n.enum_tissueColorScheme_classic,
-                      TissueColorScheme.thermal =>
-                        l10n.enum_tissueColorScheme_thermal,
-                    }),
+                    child: Text(tissueColorSchemeLabel(l10n, scheme)),
                   ),
               ],
             ),
