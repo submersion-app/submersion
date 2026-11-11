@@ -81,7 +81,7 @@ class _TotalRow extends StatelessWidget {
     // total and the figures it sums agree to the digit.
     final value =
         '${formatAttributeNumberForEditing(AttributeDimension.massKg, units, sum.kg)} '
-        '${units.weightSymbol}';
+        '${attributeUnitSymbol(AttributeDimension.massKg, units)}';
     final partial = sum.parts < partCount;
     return DetailRow(
       label: label,
