@@ -22,6 +22,15 @@ class _UndeletableStore extends DemoStateStore {
       throw const FileSystemException('directory in use');
 }
 
+/// A store whose state file cannot be written.
+class _UnwritableStore extends DemoStateStore {
+  const _UnwritableStore(super.paths);
+
+  @override
+  Future<void> write(DemoState state) async =>
+      throw const FileSystemException('disk full');
+}
+
 /// A store whose preference snapshot cannot be applied.
 class _UnrestorableStore extends DemoStateStore {
   const _UnrestorableStore(super.paths);
@@ -188,6 +197,20 @@ void main() {
     expect((await store.read())?.phase, DemoPhase.exiting);
   });
 
+  test('abandon still leaves once the preferences are back, even when the '
+      'state cannot be marked exiting', () async {
+    await PrefsSnapshot.capture(prefs, File(paths.prefsSnapshotFile));
+    await prefs.setString('current_diver_id', 'demo-diver');
+    await writeState(DemoPhase.active);
+    DemoModeGate.instance.markActive(true);
+
+    await DemoStartup.abandon(store: _UnwritableStore(paths), prefs: prefs);
+
+    expect(prefs.getString('current_diver_id'), 'real');
+    expect(DemoModeGate.instance.isActive, isFalse);
+    expect(Directory(paths.root).existsSync(), isFalse);
+  });
+
   test('abandon fails and keeps demo mode on when the preferences cannot be '
       'restored', () async {
     await writeState(DemoPhase.active);
@@ -200,6 +223,10 @@ void main() {
 
     expect(DemoModeGate.instance.isActive, isTrue);
     expect(Directory(paths.root).existsSync(), isTrue);
+    // Still active, not exiting: the next launch goes back to the sample and
+    // stays in demo mode, rather than finishing an exit that cannot restore
+    // the preferences and falling back to the user's logbook under them.
+    expect((await store.read())?.phase, DemoPhase.active);
   });
 
   test('the demo directory sits under the support directory', () {

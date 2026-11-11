@@ -55,25 +55,32 @@ class DemoStartup {
   /// downgrade. The sample is discarded on exit anyway, so nothing is lost,
   /// and the user's own logbook opens in its place.
   ///
-  /// The state is marked exiting first, so a launch killed part way through
-  /// finishes the exit through [resolve] instead of reopening the sample.
+  /// The user's preferences go back FIRST, and only then is the state marked
+  /// exiting. When they cannot be put back this throws with demo mode on and
+  /// the state still active, so the next launch returns to the sample rather
+  /// than finishing an exit that would open the user's logbook under the
+  /// sample's preferences. A snapshot that cannot be read is the exception,
+  /// kept as [resolve] treats it (the preferences stay as they are).
   ///
-  /// Throws, leaving demo mode on, when the state or the user's preferences
-  /// cannot be put back: opening the user's logbook under the sample's
-  /// preferences would be worse than staying put. A snapshot that cannot be
-  /// read is the exception, kept as [resolve] treats it (the preferences stay
-  /// as they are). A demo directory that cannot be removed does not stop the
-  /// exit; the state already says exiting, so the next launch removes it.
+  /// Past that point nothing stops the exit. A state that cannot be marked or
+  /// a directory that cannot be removed is left for the next launch: exiting
+  /// finishes there through [resolve], and an active state reopens the
+  /// sample, fails the same way and comes back here, where restoring from
+  /// the snapshot again changes nothing.
   static Future<void> abandon({
     required DemoStateStore store,
     required SharedPreferences prefs,
   }) async {
     final state = await store.read();
-    if (state != null) {
-      await store.write(state.copyWith(phase: DemoPhase.exiting));
-    }
     await _restorePrefs(store, prefs);
     DemoModeGate.instance.markActive(false);
+    try {
+      if (state != null) {
+        await store.write(state.copyWith(phase: DemoPhase.exiting));
+      }
+    } catch (e) {
+      _log.warning('Demo mode state could not be marked exiting: $e');
+    }
     try {
       await store.deleteAll();
     } catch (e) {
