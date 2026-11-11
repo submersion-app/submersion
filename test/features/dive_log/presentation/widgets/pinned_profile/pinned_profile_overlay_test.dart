@@ -172,29 +172,39 @@ void main() {
   double overlayTop(WidgetTester tester) =>
       tester.getTopLeft(find.byType(PinnedProfileOverlay)).dy;
 
-  /// The copy's plot sits under its 40 px header: after the squash the card
-  /// slides up 40 px to bring the plot to the top, then hands over.
-  const start = range + 40;
+  /// The copy's plot sits under its 40 px header. Squash and slide share the
+  /// scroll, finishing together 112 + 40 = 152 px in; the strip starts to
+  /// fade in kHandOverOverlap of the way through.
+  const together = range + 40;
+  const start = together * kHandOverOverlap;
   const handOver = profileHeight - start - kPinnedStripHeight;
+
+  /// The squash and slide [scrolled] px past the card's top.
+  double squashAt(double scrolled) =>
+      range * (scrolled / together).clamp(0.0, 1.0);
 
   /// Scrolls so the hand-over to the strip is at progress [t].
   Future<void> condenseTo(WidgetTester tester, double t) =>
       jump(tester, profileTop + start + t * handOver);
 
   testWidgets(
-    'after the squash the copy slides up, header first, with no strip yet',
+    'the card squashes and slides up in one motion, with no strip at first',
     (tester) async {
       await pump(tester, profileKey: GlobalKey());
-      await jump(tester, profileTop + range + 20);
-      expect(
-        tester.getTopLeft(copyKey).dy,
-        closeTo(overlayTop(tester) - 20, 0.01),
-      );
-      // The chart stays at its squashed height while it slides.
+      const scrolled = 60.0;
+      await jump(tester, profileTop + scrolled);
+      final squash = squashAt(scrolled);
+      // Both are under way at once: the chart is shorter and the card has
+      // moved up by the rest of the scroll.
       expect(
         tester.getSize(find.byType(_FakeChart)).height,
-        closeTo(kMinPlotHeight, 0.01),
+        closeTo(160 - squash, 0.01),
       );
+      expect(
+        tester.getTopLeft(copyKey).dy,
+        closeTo(overlayTop(tester) - (scrolled - squash), 0.01),
+      );
+      expect(squash, inExclusiveRange(0, scrolled));
       expect(strip, findsNothing);
     },
   );
@@ -235,14 +245,13 @@ void main() {
       await jump(tester, profileTop + 60);
       final copy = tester.getRect(copyKey);
       final card = tester.getRect(find.byKey(profileKey));
-      expect(copy.top, closeTo(overlayTop(tester), 0.01));
       expect(copy.bottom, closeTo(card.bottom, 0.01));
       expect(copy.left, closeTo(card.left, 0.01));
       expect(copy.right, closeTo(card.right, 0.01));
-      // 300 - 40 - 100 = 160 at rest; 60 px squashed out of the chart.
+      // 300 - 40 - 100 = 160 at rest, less its share of the 60 px scrolled.
       expect(
         tester.getSize(find.byType(_FakeChart)).height,
-        closeTo(100, 0.01),
+        closeTo(160 - squashAt(60), 0.01),
       );
       expect(strip, findsNothing);
     },
@@ -267,6 +276,30 @@ void main() {
       expect(s.morphFrom!.maxDepthMeters, 18);
     },
   );
+
+  // A see-through surface over the whole card washed everything grey; the
+  // fade is confined to the plot, the part that becomes the strip, and the
+  // header and legend stay clear above it.
+  testWidgets('the fade covers only the plot and below, not the header', (
+    tester,
+  ) async {
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey);
+    await condenseTo(tester, kCondenseFadePortion / 2);
+    final stripBox = tester.getRect(strip);
+    final plot = tester.getRect(find.byType(_FakeChart));
+    final card = tester.getRect(find.byKey(profileKey));
+    expect(stripBox.top, closeTo(plot.top, 0.01));
+    // Inside the card's 4 px margin, so its edges sit on the card's surface
+    // rather than drawing a second outline around it.
+    expect(stripBox.left, closeTo(card.left + 4, 0.01));
+    expect(stripBox.right, closeTo(card.right - 4, 0.01));
+    // The header button above the plot is not under the strip.
+    final header = tester.getRect(
+      find.descendant(of: copyKey, matching: find.text('Header action')),
+    );
+    expect(header.bottom, lessThanOrEqualTo(stripBox.top + 0.01));
+  });
 
   testWidgets('then, opaque, the strip morphs, not yet scrubbable', (
     tester,
@@ -297,7 +330,7 @@ void main() {
     for (final pixels in [
       profileTop + 30,
       profileTop + range - 10,
-      profileTop + range + 20,
+      profileTop + together - 20,
       profileTop + start + handOver * 0.4,
       profileTop + start + handOver * 0.8,
     ]) {
@@ -374,7 +407,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
-    await jump(tester, profileTop + 60);
+    await jump(tester, profileTop + 20);
     await tester.tap(
       find.descendant(of: copyKey, matching: find.text('Header action')),
     );

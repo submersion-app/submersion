@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
@@ -167,12 +169,23 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   }
 
   /// Where the pinned copy draws its depth line, relative to the copy.
-  PlotMapping? get _copyMapping {
+  ///
+  /// Worked out for this frame's [squash] rather than read from the last
+  /// measurement: the plot keeps its place and width and is shorter by the
+  /// squash, so the strip's line stays on the chart's while both move,
+  /// instead of trailing it by a frame.
+  PlotMapping? _copyMappingAt(double squash) {
     final plot = _copyPlot;
     final frame = _copyFrame;
     if (plot == null || frame == null) return null;
+    final restHeight = _squashRange + kMinPlotHeight;
     return PlotMapping(
-      rect: plot,
+      rect: Rect.fromLTWH(
+        plot.left,
+        plot.top,
+        plot.width,
+        (restHeight - squash).clamp(1.0, double.infinity),
+      ),
       minSeconds: frame.minSeconds,
       maxSeconds: frame.maxSeconds,
       minDepthMeters: frame.minDepthMeters,
@@ -249,22 +262,54 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   }
 
   Widget _pinned(Rect card, double width) {
-    // The hand-over starts once the slide has brought the copy's plot to the
-    // top; until its plot is known, straight after the squash.
+    // One motion: the squash and the slide share the scroll, finishing
+    // together as the plot reaches the top, and the strip starts to fade in
+    // before they do, so no step starts or stops on its own.
     final range = _squashRange;
-    final squash = squashDepth(card: card, range: range);
+    final plotTop = _copyPlot?.top ?? 0;
+    final squash = squashDepth(card: card, range: range, plotTop: plotTop);
     _layoutSquash = squash;
-    final start = range + (_copyPlot?.top ?? 0);
+    final start = (range + plotTop) * kHandOverOverlap;
     final t = condenseProgress(card: card, start: start);
     final morph = condenseMorphProgress(t);
-    final box = condenseRect(card: card, width: width, t: morph);
-    // Where the copy sits in the box: at the card's margins, slid up by
-    // however far the card has scrolled since the squash finished.
-    final copyAt = Offset(
-      card.left - box.left,
-      -slideDepth(card: card, range: range),
+    // The copy, on the page: at the card's place, slid up by its share of
+    // the scroll.
+    final copyOrigin = Offset(
+      card.left,
+      -slideDepth(card: card, range: range, plotTop: plotTop),
     );
-    final copy = _copyMapping;
+    final copy = _copyMappingAt(squash);
+
+    // The strip grows out of the plot alone, inside the card's margin: only
+    // the part that becomes the strip fades, while the header and legend
+    // above stay clear and slide off as they are. A see-through surface over
+    // the whole card washed it all grey.
+    final margin =
+        (Theme.of(context).cardTheme.margin ?? const EdgeInsets.all(4)).resolve(
+          Directionality.of(context),
+        );
+    final plotOnPage = copy?.rect.shift(copyOrigin);
+    final from = Rect.fromLTRB(
+      card.left + margin.left,
+      math.max(0, plotOnPage?.top ?? 0),
+      card.right - margin.right,
+      math.max(card.bottom - margin.bottom, 0),
+    );
+    final stripBox = Rect.lerp(
+      from,
+      Rect.fromLTWH(0, 0, width, kPinnedStripHeight),
+      morph,
+    )!;
+
+    // Everything drawn, which always covers all of the card still on screen.
+    final box = Rect.fromLTRB(
+      math.min(card.left, stripBox.left),
+      0,
+      math.max(card.right, stripBox.right),
+      math.max(card.bottom, stripBox.bottom),
+    );
+    final copyAt = copyOrigin - box.topLeft;
+    final stripAt = stripBox.shift(-box.topLeft);
     return Positioned.fromRect(
       key: const ValueKey('pinnedProfileBox'),
       rect: box,
@@ -293,8 +338,9 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
               ),
             // Keyed, so it stays the same strip when the copy drops out.
             if (t > 0)
-              Positioned.fill(
+              Positioned.fromRect(
                 key: const ValueKey('pinnedStrip'),
+                rect: stripAt,
                 child: IgnorePointer(
                   ignoring: t < 1,
                   child: PinnedProfileStrip(
@@ -302,7 +348,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                     condense: morph,
                     backgroundOpacity: condenseBackgroundOpacity(t),
                     // The copy's line, in the strip's own coordinates.
-                    morphFrom: copy?.shift(copyAt),
+                    morphFrom: copy?.shift(copyAt - stripAt.topLeft),
                   ),
                 ),
               ),

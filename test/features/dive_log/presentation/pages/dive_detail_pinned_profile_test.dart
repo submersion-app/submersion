@@ -146,7 +146,9 @@ void main() {
     final squashed = tester.getSize(
       find.descendant(of: copy, matching: find.byType(DiveProfileChart)),
     );
-    expect(squashed.height, closeTo(restHeight - 80, 1));
+    // The chart takes its share of the 80 px, the slide the rest.
+    expect(squashed.height, lessThan(restHeight - 1));
+    expect(squashed.height, greaterThan(restHeight - 80));
     expect(
       tester
           .widget<DiveProfileChartHost>(

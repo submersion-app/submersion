@@ -26,6 +26,30 @@ void main() {
       expect(slideDepth(card: cardAt(-120), range: 90), 30);
     });
 
+    // One motion, not two: the squash and the slide share the scroll in a
+    // fixed ratio, finishing together as the plot reaches the top.
+    test('with the plot below the top, squash and slide run together', () {
+      // range 90, plot 60 px down: both finish 150 px in.
+      const range = 90.0, plotTop = 60.0;
+      final third = cardAt(-50);
+      expect(
+        squashDepth(card: third, range: range, plotTop: plotTop),
+        closeTo(30, 1e-9),
+      );
+      expect(
+        slideDepth(card: third, range: range, plotTop: plotTop),
+        closeTo(20, 1e-9),
+      );
+      final done = cardAt(-150);
+      expect(squashDepth(card: done, range: range, plotTop: plotTop), 90);
+      expect(slideDepth(card: done, range: range, plotTop: plotTop), 60);
+      // Past that, the card simply keeps leaving.
+      expect(
+        slideDepth(card: cardAt(-200), range: range, plotTop: plotTop),
+        110,
+      );
+    });
+
     test('squashRangeFor leaves the plot at its minimum height', () {
       expect(squashRangeFor(restPlotHeight: 150), 150 - kMinPlotHeight);
       expect(squashRangeFor(restPlotHeight: 30), 0);
@@ -73,40 +97,6 @@ void main() {
     test('is 0 while the card squashes, then follows the scroll', () {
       expect(slideDepth(card: cardAt(-100)), 0);
       expect(slideDepth(card: cardAt(-(kSquashRange + 30))), 30);
-    });
-  });
-
-  group('condenseRect', () {
-    test('at the start is exactly the card', () {
-      expect(condenseRect(card: cardAt(0), width: 400, t: 0), cardAt(0));
-    });
-
-    test('always covers all of the card still on screen', () {
-      for (final top in [-50.0, -200.0, -350.0]) {
-        final card = cardAt(top);
-        final t = condenseProgress(card: card);
-        final box = condenseRect(card: card, width: 400, t: t);
-        final visible = Rect.fromLTRB(card.left, 0, card.right, card.bottom);
-        expect(box.top, 0);
-        expect(box.bottom, greaterThanOrEqualTo(visible.bottom));
-        expect(box.left, lessThanOrEqualTo(visible.left));
-        expect(box.right, greaterThanOrEqualTo(visible.right));
-      }
-    });
-
-    test('widens to the full width as it condenses', () {
-      final card = cardAt(-200);
-      final box = condenseRect(card: card, width: 400, t: 0.5);
-      expect(box.left, 8);
-      expect(box.right, 392);
-      expect(box.bottom, card.bottom);
-    });
-
-    test('at the end is the full-width strip', () {
-      expect(
-        condenseRect(card: cardAt(-400), width: 400, t: 1),
-        const Rect.fromLTWH(0, 0, 400, kPinnedStripHeight),
-      );
     });
   });
 

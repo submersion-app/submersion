@@ -16,18 +16,42 @@ const double kSquashRange = 100;
 double squashRangeFor({required double restPlotHeight}) =>
     (restPlotHeight - kMinPlotHeight).clamp(0.0, double.infinity);
 
-/// How far the pinned card has squashed, from 0 to [range]: the distance
-/// [card] (relative to the viewport's top) has scrolled past the top. The
-/// squash starts the moment the card's top passes the viewport's; the
-/// chart's plot takes all of it, its axes, grid and lines intact.
-double squashDepth({required Rect card, double range = kSquashRange}) =>
-    (-card.top).clamp(0.0, range);
+/// How far the pinned card has squashed, from 0 to [range]. The squash
+/// starts the moment [card]'s top (relative to the viewport's) passes the
+/// viewport's, and the chart's plot takes all of it, its axes, grid and
+/// lines intact.
+///
+/// It is one motion with the slide ([slideDepth]): the scroll is shared
+/// between them in a fixed ratio, so the plot shortens while the card moves
+/// up, both finishing as the plot, [plotTop] below the card's top, reaches
+/// the top of the page. Neither starts or stops on its own.
+double squashDepth({
+  required Rect card,
+  double range = kSquashRange,
+  double plotTop = 0,
+}) {
+  final scrolled = -card.top;
+  if (scrolled <= 0) return 0;
+  final together = range + plotTop;
+  if (together <= 0) return 0;
+  return range * (scrolled / together).clamp(0.0, 1.0);
+}
 
-/// How far the squashed card has slid up since the squash finished: after
-/// it, the card leaves the top as it naturally would, header first, until
-/// its chart's plot reaches the top.
-double slideDepth({required Rect card, double range = kSquashRange}) =>
-    (-card.top - range).clamp(0.0, double.infinity);
+/// How far the pinned card has slid up: whatever of the scroll the squash
+/// ([squashDepth]) has not taken. The card leaves the top as it naturally
+/// would, header first.
+double slideDepth({
+  required Rect card,
+  double range = kSquashRange,
+  double plotTop = 0,
+}) {
+  final scrolled = (-card.top).clamp(0.0, double.infinity);
+  return scrolled - squashDepth(card: card, range: range, plotTop: plotTop);
+}
+
+/// The share of the squash-and-slide after which the strip starts to fade
+/// in, so the hand-over overlaps the card's motion instead of following it.
+const double kHandOverOverlap = 0.6;
 
 /// How far the card has handed over to the strip, from 0 to 1.
 ///
@@ -42,24 +66,6 @@ double condenseProgress({required Rect card, double start = kSquashRange}) {
   final travel = card.height - start - kPinnedStripHeight;
   if (travel <= 0) return 1;
   return (past / travel).clamp(0.0, 1.0);
-}
-
-/// Where the condensing strip is drawn at progress [t]: always all of [card]
-/// still on screen (top to its bottom edge), so the real card never shows
-/// around it, widening from the card's margins to the full [width]. As the
-/// card scrolls up the box shrinks with it, down to the strip.
-Rect condenseRect({
-  required Rect card,
-  required double width,
-  required double t,
-}) {
-  double mix(double a, double b) => a + (b - a) * t;
-  return Rect.fromLTRB(
-    mix(card.left, 0),
-    card.top > 0 ? card.top : 0,
-    mix(card.right, width),
-    card.bottom > kPinnedStripHeight ? card.bottom : kPinnedStripHeight,
-  );
 }
 
 /// The share of the condense spent fading the strip's background in over the

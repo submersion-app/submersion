@@ -131,7 +131,11 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         // and grey the card), then one that grows with the condense, so it
         // never switches on or off in a single frame either way.
         elevation: background >= 1 ? 2 * condense : 0,
-        borderRadius: BorderRadius.circular(_cardRadius * (1 - condense)),
+        // It starts across the card at the plot's top, so only its bottom
+        // corners round, like the card's own.
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(_cardRadius * (1 - condense)),
+        ),
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
           height: condense >= 1 ? kPinnedStripHeight : null,
