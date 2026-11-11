@@ -111,23 +111,37 @@ directions. A setting turns the strip off.
   `AppSettings` field, `SettingsNotifier` setter, repository read/write, sync
   serializer, conflict catalogue entry and l10n key, and a `SwitchListTile` in
   `section_appearance_page.dart` `_buildDiveProfileSettings`). Schema version
-  is 357, so the new column needs migration 358.
+  is 357, so the new column needs a migration (359: open PR #4417 holds 358).
 
 ## The design
 
 ### When the strip shows
 
-- Shown when all of these hold: the setting is on; the profile section is
-  rendered in the detailed layout (not hidden, not folded in list layout); the
-  dive has a chart profile of at least two points; and the profile card's
-  bottom edge has scrolled above the top of the scroll viewport.
-- The condense animation is driven by scroll position, not by a timer: as the
-  card's last stretch leaves the viewport, progress runs 0 to 1, so scrolling
-  slowly plays it slowly and scrolling back reverses it. Builder's call on the
-  exact progress window, as long as there is no reflow of the page content and
-  the end state is the strip.
-- The strip is an overlay on top of the scroll view's top edge. It does not
-  take space in the scroll content, so the content never jumps.
+- Active when all of these hold: the setting is on; the profile section is
+  rendered in the detailed layout (not hidden, not folded in list layout); and
+  the dive has a chart profile of at least two points.
+- The transition is driven by scroll position, not by a timer, so scrolling
+  slowly plays it slowly and scrolling back reverses it. It starts the moment
+  the card's top passes the top of the page and runs in three steps. This
+  replaces the condense-only design after review in the running app (the
+  user chose "squash the real chart"):
+  1. **Squash.** A live copy of the whole card pins to the top, laid out to
+     exactly the height of the card still on screen. Header and footer keep
+     their size; the chart takes the shrink, with its axes, grid and every
+     line intact, until its plot is 48 px. The range is measured from the
+     copy's plot, since the axes and legend around it vary.
+  2. **Slide.** The squashed card then scrolls up as the card itself would,
+     header first, until its plot reaches the top.
+  3. **Hand-over.** The strip fades in over the copy with its depth line
+     exactly on the copy's (the copy's chart reports its plot rect and
+     visible ranges), its line and shading cross-fading with its surface so
+     shading never doubles; then it condenses into the 56 px strip.
+- Whatever is drawn always covers all of the card still on screen, so the
+  real card never shows around it. It is an overlay on the scroll view and
+  takes no space in the scroll content, so the content never jumps.
+- The strip's shading sits below the depth line in the full chart's depth
+  gradient, on the card's colour; it casts no shadow while see-through and a
+  shadow that grows with the condense after, so nothing flashes grey.
 
 ### Strip contents
 
@@ -168,18 +182,27 @@ directions. A setting turns the strip off.
 ### Buoyancy two-way sync
 
 - Reading: the buoyancy chart draws a vertical marker at the cursor's
-  timestamp (index resolved against the chart profile), in the same cursor
-  colour as the profile. With no cursor, no marker.
+  timestamp (index resolved against the chart profile), in a neutral colour
+  (the buoyant line itself is the primary colour). With no cursor, no marker.
 - Writing: hovering or touching the buoyancy chart maps the touched sample's
   timestamp to the nearest chart-profile index and writes the shared cursor;
   exit and touch end clear it, matching the profile chart.
 - Its existing tooltip keeps working.
 
+### Every hoverable card moves the cursor
+
+Added at the user's request during the build: any card with a dive-time
+chart writes the shared cursor too, so the profile and the strip follow it.
+The tissue heat map and area chart already did; buoyancy does (above); the
+SAC segments time chart now reports the time under the pointer on hover and
+drag, clearing it on exit or lift. The tide graph (tide cycle, not dive time)
+and the health card (no chart) are out of scope.
+
 ### Setting
 
 - New boolean `pinProfileOnScroll`, default true, following the
   `showMaxDepthMarker` precedent end to end, including sync and the conflict
-  catalogue, with migration 358.
+  catalogue, with migration 359.
 - `SwitchListTile` titled "Pin profile when scrolling" with a one-line
   subtitle, in `_buildDiveProfileSettings`.
 - New strings go in `app_en.arb`; other locales follow the project's usual
@@ -187,10 +210,10 @@ directions. A setting turns the strip off.
 
 ## Calls made by the designer (not discussed with the user)
 
-- **Animation source:** the condense morphs a lightweight proxy (the strip's
-  own curve painter) growing out of the profile card's on-screen footprint.
-  The live fl_chart chart is never transformed. This is what the brainstorming
-  mockup showed: a shaded depth curve whose box widens, squashes and rises.
+- **Animation source:** superseded. The first build morphed a lightweight
+  copy of the depth curve over the card; in the running app it hid the
+  chart's axes and lines too early and left a mostly empty box, so the user
+  chose to squash the live card instead (see "When the strip shows").
 - **Dive list profile panel:** on desktop it already shares
   `profileTrackingIndexProvider(diveId)` with the detail chart, so it will
   follow strip and buoyancy scrubbing too. No separate cursor key.
