@@ -57,22 +57,31 @@ class DemoStartup {
   ///
   /// The state is marked exiting first, so a launch killed part way through
   /// finishes the exit through [resolve] instead of reopening the sample.
+  ///
+  /// Throws, leaving demo mode on, when the state or the user's preferences
+  /// cannot be put back: opening the user's logbook under the sample's
+  /// preferences would be worse than staying put. A snapshot that cannot be
+  /// read is the exception, kept as [resolve] treats it (the preferences stay
+  /// as they are). A demo directory that cannot be removed does not stop the
+  /// exit; the state already says exiting, so the next launch removes it.
   static Future<void> abandon({
     required DemoStateStore store,
     required SharedPreferences prefs,
   }) async {
+    final state = await store.read();
+    if (state != null) {
+      await store.write(state.copyWith(phase: DemoPhase.exiting));
+    }
+    await _restorePrefs(store, prefs);
+    DemoModeGate.instance.markActive(false);
     try {
-      final state = await store.read();
-      if (state != null) {
-        await store.write(state.copyWith(phase: DemoPhase.exiting));
-      }
-      await _finishExit(store, prefs);
-    } finally {
-      DemoModeGate.instance.markActive(false);
+      await store.deleteAll();
+    } catch (e) {
+      _log.warning('Demo mode files are left for the next launch: $e');
     }
   }
 
-  static Future<void> _finishExit(
+  static Future<void> _restorePrefs(
     DemoStateStore store,
     SharedPreferences prefs,
   ) async {
@@ -81,6 +90,13 @@ class DemoStartup {
     } on StateError catch (e) {
       _log.warning('Demo mode preferences could not be restored: $e');
     }
+  }
+
+  static Future<void> _finishExit(
+    DemoStateStore store,
+    SharedPreferences prefs,
+  ) async {
+    await _restorePrefs(store, prefs);
     await store.deleteAll();
   }
 }

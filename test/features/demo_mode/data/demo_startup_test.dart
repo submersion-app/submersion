@@ -12,6 +12,25 @@ import 'package:submersion/features/demo_mode/domain/demo_state.dart';
 
 import '../../../helpers/global_test_defaults.dart';
 
+/// A store whose demo directory cannot be removed, as when another process
+/// still holds the sample logbook open.
+class _UndeletableStore extends DemoStateStore {
+  const _UndeletableStore(super.paths);
+
+  @override
+  Future<void> deleteAll() async =>
+      throw const FileSystemException('directory in use');
+}
+
+/// A store whose preference snapshot cannot be applied.
+class _UnrestorableStore extends DemoStateStore {
+  const _UnrestorableStore(super.paths);
+
+  @override
+  Future<bool> restorePrefs(SharedPreferences prefs) async =>
+      throw const FileSystemException('snapshot unreadable');
+}
+
 void main() {
   late Directory root;
   late DemoPaths paths;
@@ -153,6 +172,34 @@ void main() {
     expect(DemoModeGate.instance.isActive, isFalse);
     // The next launch opens the user's own logbook.
     expect((await resolve()).demoDatabasePath, isNull);
+  });
+
+  test('abandon still leaves when the demo directory cannot be removed, and '
+      'the next launch finishes the exit', () async {
+    await PrefsSnapshot.capture(prefs, File(paths.prefsSnapshotFile));
+    await prefs.setString('current_diver_id', 'demo-diver');
+    await writeState(DemoPhase.active);
+    DemoModeGate.instance.markActive(true);
+
+    await DemoStartup.abandon(store: _UndeletableStore(paths), prefs: prefs);
+
+    expect(prefs.getString('current_diver_id'), 'real');
+    expect(DemoModeGate.instance.isActive, isFalse);
+    expect((await store.read())?.phase, DemoPhase.exiting);
+  });
+
+  test('abandon fails and keeps demo mode on when the preferences cannot be '
+      'restored', () async {
+    await writeState(DemoPhase.active);
+    DemoModeGate.instance.markActive(true);
+
+    await expectLater(
+      DemoStartup.abandon(store: _UnrestorableStore(paths), prefs: prefs),
+      throwsA(isA<FileSystemException>()),
+    );
+
+    expect(DemoModeGate.instance.isActive, isTrue);
+    expect(Directory(paths.root).existsSync(), isTrue);
   });
 
   test('the demo directory sits under the support directory', () {

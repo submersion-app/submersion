@@ -632,17 +632,26 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// case is a downgrade: a newer build upgraded the sample, and this one
   /// cannot read it. If the user's own logbook cannot open either, the rerun
   /// shows its screens, outside demo mode, where their restores work.
+  ///
+  /// Two failures keep demo mode on and the sample's own screen instead,
+  /// because rerunning would be worse: a connection that will not close
+  /// (initialize() would return early with the sample still open), and an
+  /// exit that could not put the user's preferences back.
   Future<bool> _leaveUnopenableSampleLogbook(Object error) async {
     if (!_openingSampleLogbook) return false;
     _openingSampleLogbook = false;
-    _sampleLogbookAbandoned = true;
     debugPrint(
       '[startup] the demo sample logbook could not be opened, leaving demo '
       'mode: $error',
     );
     // Closed before the demo files go: an open connection holds the file.
-    await _releaseDatabase();
-    await _abandonDemoMode();
+    final closeError = await _releaseDatabase();
+    if (closeError != null) {
+      debugPrint('[startup] the sample logbook is still open; staying in demo');
+      return false;
+    }
+    if (!await _abandonDemoMode()) return false;
+    _sampleLogbookAbandoned = true;
     if (!mounted) return true;
     setState(() {
       _state = _StartupState.initializing;
@@ -653,10 +662,11 @@ class _StartupWrapperState extends State<StartupWrapper>
     return true;
   }
 
-  /// Never throws: a demo directory that cannot be cleared must not stop the
-  /// user's logbook from opening. [_sampleLogbookAbandoned] keeps this launch
-  /// out of demo mode, and the next launch finishes the exit.
-  Future<void> _abandonDemoMode() async {
+  /// Whether demo mode was left. Never throws. A demo directory that cannot
+  /// be removed still counts as left ([DemoStartup.abandon] leaves it for the
+  /// next launch); state or preferences that cannot be put back do not, and
+  /// demo mode stays on.
+  Future<bool> _abandonDemoMode() async {
     try {
       final override = widget.demoAbandonOverride;
       final paths = widget.demoPaths;
@@ -667,11 +677,13 @@ class _StartupWrapperState extends State<StartupWrapper>
           store: DemoStateStore(paths),
           prefs: widget.prefs,
         );
+      } else {
+        DemoModeGate.instance.markActive(false);
       }
+      return true;
     } catch (e) {
-      debugPrint('[startup] demo mode could not be left cleanly: $e');
-    } finally {
-      DemoModeGate.instance.markActive(false);
+      debugPrint('[startup] demo mode could not be left: $e');
+      return false;
     }
   }
 
@@ -1140,6 +1152,10 @@ class _StartupWrapperState extends State<StartupWrapper>
     // Backstop for the same rule the final progress report already applies:
     // whatever the ladder reported, it is finished once initialize() returns.
     _markUpgradeFinished();
+
+    // The sample logbook is open now, so a later step that fails is a startup
+    // failure of its own and must not discard a sample that works.
+    _openingSampleLogbook = false;
 
     await timeStartupStep(
       'localCache',

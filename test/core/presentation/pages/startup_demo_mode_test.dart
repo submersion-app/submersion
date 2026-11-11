@@ -200,6 +200,7 @@ void main() {
       required List<int> abandoned,
       required Future<void> Function(int attempt) open,
       Object? abandonError,
+      Object? closeError,
       bool realDemoPaths = false,
     }) {
       var attempt = 0;
@@ -219,6 +220,9 @@ void main() {
                 if (abandonError != null) throw abandonError;
                 DemoModeGate.instance.markActive(false);
               },
+        closeDatabaseOverride: closeError == null
+            ? null
+            : () async => throw closeError,
         initializerOverride: (_) => open(++attempt),
         schemaVersionProbeOverride: (path) {
           probed.add(path);
@@ -351,8 +355,9 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
     });
 
-    testWidgets('a demo directory that cannot be cleared still opens the '
-        'user\'s logbook, outside demo mode', (tester) async {
+    testWidgets('when demo mode cannot be left, startup keeps the sample\'s '
+        'own screen rather than opening the user\'s logbook with demo '
+        'preferences', (tester) async {
       final probed = <String>[];
       final abandoned = <int>[];
 
@@ -360,17 +365,40 @@ void main() {
         failingWrapper(
           probed: probed,
           abandoned: abandoned,
-          abandonError: const FileSystemException('directory in use'),
+          abandonError: const FileSystemException('snapshot unreadable'),
           open: (attempt) =>
               attempt == 1 ? Future.error(tooNew) : Completer<void>().future,
         ),
       );
       await settleThroughSplash(tester);
 
-      expect(probed, [demoPath, realPath]);
+      expect(probed, [demoPath]);
       expect(abandoned, [1]);
-      expect(DemoModeGate.instance.isActive, isFalse);
-      expect(find.byType(VersionMismatchView), findsNothing);
+      expect(find.byType(VersionMismatchView), findsOneWidget);
+      expect(DemoModeGate.instance.isActive, isTrue);
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('a sample connection that will not close is not swapped for '
+        'the user\'s logbook', (tester) async {
+      final probed = <String>[];
+      final abandoned = <int>[];
+
+      await tester.pumpWidget(
+        failingWrapper(
+          probed: probed,
+          abandoned: abandoned,
+          closeError: TimeoutException('close never acknowledged'),
+          open: (attempt) =>
+              attempt == 1 ? Future.error(tooNew) : Completer<void>().future,
+        ),
+      );
+      await settleThroughSplash(tester);
+
+      expect(probed, [demoPath]);
+      expect(abandoned, isEmpty);
+      expect(find.byType(VersionMismatchView), findsOneWidget);
+      expect(DemoModeGate.instance.isActive, isTrue);
       await tester.pump(const Duration(seconds: 2));
     });
   });
