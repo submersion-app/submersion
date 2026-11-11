@@ -276,6 +276,15 @@ class AgentAccessController {
     final records = RecordRepositories(activeDiverId: activeDiverId);
     // The app's language as it is when a tool runs, for every tool's text.
     AppLocalizations strings() => l10nForLocaleTag(_ref.read(localeProvider));
+    // Read as the planner reads it, so a plan an agent computes or saves
+    // after a logged dive carries in exactly what the planner's would. An
+    // agent names the dive by id, so a planned entry is refused as no
+    // logged dive rather than followed as if it had been dived.
+    final followOf = loggedDivesOnly(
+      (diveId) =>
+          _ref.container.awaitFuture(seriesFollowProvider(diveId).future),
+      _ref.read(diveRepositoryProvider),
+    );
     return AgentServerSpec(
       registry: AgentToolRegistry.standard(
         loader: loader,
@@ -283,15 +292,7 @@ class AgentAccessController {
         settings: settings,
         records: records,
         sql: _sqlRunner,
-        // Read as the planner reads it, so a plan an agent computes after a
-        // logged dive carries in exactly what the planner's would. An agent
-        // names the dive by id, so a planned entry is refused as no logged
-        // dive rather than followed as if it had been dived.
-        followOf: loggedDivesOnly(
-          (diveId) =>
-              _ref.container.awaitFuture(seriesFollowProvider(diveId).future),
-          _ref.read(diveRepositoryProvider),
-        ),
+        followOf: followOf,
         planCaveat: () => strings().planning_disclaimer_dialog_body,
         writes: AgentWriteServices(
           records: records,
@@ -302,6 +303,7 @@ class AgentAccessController {
           rearmDocuments: _ref.read(documentMutationsProvider).rearmReminders,
           refreshGearReminders: _refreshGearReminders,
           strings: strings,
+          followOf: followOf,
         ),
       ),
       gate: AgentToolGate(isLocked: () => _ref.read(appLockNotifierProvider)),
