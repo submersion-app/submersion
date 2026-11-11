@@ -106,10 +106,33 @@ void main() {
     final longTrip = TripWithStats(trip: trip.trip.copyWith(name: name));
     await pumpTile(tester, TripListTile(tripWithStats: longTrip, onTap: () {}));
 
-    final title = tester.getRect(find.textContaining('Kingston').first);
+    final titleFinder = find.text(name);
+    final title = tester.getRect(titleFinder);
     final flags = tester.getRect(find.byType(TripCountryFlags));
     expect(title.height, greaterThan(30)); // the name wraps
-    // On the last line, after the text, not centred beside the whole block.
-    expect(flags.center.dy, greaterThan(title.center.dy + 4));
+    // Beside the text, not on a line of its own below it...
+    expect(flags.center.dy, lessThan(title.bottom));
+    expect(flags.center.dy, greaterThan(title.top));
+    // ...and right after its longest line, not out at the row's far edge:
+    // the name's box shrinks to that line.
+    expect(
+      tester.widget<Text>(titleFinder).textWidthBasis,
+      TextWidthBasis.longestLine,
+    );
+    expect(flags.left - title.right, lessThan(10));
+  });
+
+  testWidgets('a name that fits keeps its flag on the same line', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    const name = 'Santa Marta and Taganga 2026';
+    final fitting = TripWithStats(trip: trip.trip.copyWith(name: name));
+    await pumpTile(tester, TripListTile(tripWithStats: fitting, onTap: () {}));
+
+    final title = tester.getRect(find.text(name));
+    final flags = tester.getRect(find.byType(TripCountryFlags));
+    expect(flags.center.dy, lessThan(title.bottom));
   });
 }

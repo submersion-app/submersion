@@ -1168,13 +1168,18 @@ class TripListTile extends ConsumerWidget {
           title: Row(
             children: [
               Expanded(
-                // The flags follow the name, or start the next line when a
-                // long name fills its own, rather than floating at the far
-                // edge beside a wrapped name (issue #4426).
-                child: Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
+                // The flags sit right after the name (issue #4426). A name
+                // that wraps shrinks to its longest line, so they stay beside
+                // the text instead of floating at the far edge, and they
+                // never take a line of their own.
+                child: Row(
                   children: [
-                    Text(trip.name),
+                    Flexible(
+                      child: Text(
+                        trip.name,
+                        textWidthBasis: TextWidthBasis.longestLine,
+                      ),
+                    ),
                     TripCountryFlags(tripId: trip.id, maxFlags: 3, gap: 6),
                   ],
                 ),
