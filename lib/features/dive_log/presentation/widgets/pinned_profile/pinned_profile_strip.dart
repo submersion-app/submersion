@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_trac
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_values.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -147,8 +148,13 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
       container: true,
       label: context.l10n.diveLog_pinnedStrip_semantics,
       child: Material(
-        color: colors.surface.withValues(alpha: colors.surface.a * background),
-        elevation: 2 * background,
+        // The card's own colour, so the strip reads as the card condensing.
+        color: colors.surfaceContainerLow.withValues(
+          alpha: colors.surfaceContainerLow.a * background,
+        ),
+        // No shadow until the surface is opaque: a shadow beneath a
+        // see-through surface shows through it and greys the whole card.
+        elevation: background >= 1 ? 2 : 0,
         borderRadius: BorderRadius.circular(_cardRadius * (1 - condense)),
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
@@ -205,8 +211,9 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                                 profile: profile,
                                 selectedSeconds: selectedSeconds,
                                 curveColor: ProfileMetricColors.depth,
-                                fillColor: ProfileMetricColors.depth.withValues(
-                                  alpha: 0.18,
+                                // The full chart's depth shading.
+                                fillColors: GasColors.gradientColors(
+                                  ProfileMetricColors.depth,
                                 ),
                                 markerColor: colors.primary,
                                 from: widget.morphFrom,

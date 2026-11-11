@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -24,7 +25,7 @@ class PinnedStripPainter extends CustomPainter {
     required this.profile,
     required this.selectedSeconds,
     required this.curveColor,
-    required this.fillColor,
+    required this.fillColors,
     required this.markerColor,
     this.from,
     this.morph = 1,
@@ -33,7 +34,10 @@ class PinnedStripPainter extends CustomPainter {
   final List<DiveProfilePoint> profile;
   final int? selectedSeconds;
   final Color curveColor;
-  final Color fillColor;
+
+  /// Top and bottom of the shading under the line, as the full chart's depth
+  /// gradient.
+  final List<Color> fillColors;
   final Color markerColor;
   final PlotMapping? from;
   final double morph;
@@ -82,27 +86,44 @@ class PinnedStripPainter extends CustomPainter {
     return Rect.lerp(start.rect, curveArea, morph);
   }
 
+  /// The shaded area, as the full chart draws it: between the depth line and
+  /// the bottom of the plot (the water below the diver), clear above.
+  Path? fillPathFor(Size size) {
+    if (profile.length < 2) return null;
+    final m = mappingFor(size);
+    final bottomY = m.rect.bottom;
+    final first = m.project(profile.first.timestamp, profile.first.depth);
+    final path = Path()..moveTo(first.dx, bottomY);
+    for (final p in profile) {
+      final o = m.project(p.timestamp, p.depth);
+      path.lineTo(o.dx, o.dy);
+    }
+    final last = m.project(profile.last.timestamp, profile.last.depth);
+    return path
+      ..lineTo(last.dx, bottomY)
+      ..close();
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     if (profile.length < 2) return;
     final m = mappingFor(size);
     final clip = clipFor(size);
     if (clip != null) canvas.clipRect(clip);
-    final surfaceY = m.project(0, 0).dy;
-
     final line = Path();
     for (var i = 0; i < profile.length; i++) {
       final o = m.project(profile[i].timestamp, profile[i].depth);
       i == 0 ? line.moveTo(o.dx, o.dy) : line.lineTo(o.dx, o.dy);
     }
-    final first = m.project(profile.first.timestamp, 0);
-    final last = m.project(profile.last.timestamp, 0);
-    final fill = Path()
-      ..moveTo(first.dx, surfaceY)
-      ..addPath(line, Offset.zero)
-      ..lineTo(last.dx, surfaceY)
-      ..close();
-    canvas.drawPath(fill, Paint()..color = fillColor);
+    canvas.drawPath(
+      fillPathFor(size)!,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: fillColors,
+        ).createShader(m.rect),
+    );
     canvas.drawPath(
       line,
       Paint()
@@ -137,7 +158,7 @@ class PinnedStripPainter extends CustomPainter {
       old.profile != profile ||
       old.selectedSeconds != selectedSeconds ||
       old.curveColor != curveColor ||
-      old.fillColor != fillColor ||
+      !listEquals(old.fillColors, fillColors) ||
       old.markerColor != markerColor ||
       old.morph != morph ||
       old.from != from;

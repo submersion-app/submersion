@@ -23,7 +23,7 @@ void main() {
         profile: profile,
         selectedSeconds: null,
         curveColor: Colors.blue,
-        fillColor: Colors.blue,
+        fillColors: const [Colors.blue, Colors.blue],
         markerColor: Colors.red,
         from: from,
         morph: morph,
@@ -99,5 +99,23 @@ void main() {
     );
     expect(painter(from: moved).shouldRepaint(painter(from: chart)), isTrue);
     expect(painter(from: chart).shouldRepaint(painter(from: chart)), isFalse);
+  });
+
+  // Like the full chart: the water below the depth line is shaded, the space
+  // above it is clear.
+  group('fill', () {
+    const size = Size(400, kPinnedStripHeight);
+
+    test('covers the area below the depth line', () {
+      final p = painter(morph: 1);
+      final m = p.mappingFor(size);
+      final fill = p.fillPathFor(size)!;
+      // At 11 min the line is near 22 m: 2 m is above it, in clear water.
+      final aboveLine = m.project(660, 2);
+      expect(fill.contains(aboveLine), isFalse);
+      // At 2 min the line is near 3 m: 20 m is below it, shaded.
+      final belowShallowPart = m.project(120, 20);
+      expect(fill.contains(belowShallowPart), isTrue);
+    });
   });
 }

@@ -222,6 +222,61 @@ void main() {
     expect(row.opacity, closeTo(0.5, 1e-6));
   });
 
+  // A shadow under a see-through surface greyed the whole card; the strip
+  // takes the card's own colour and casts no shadow until it is opaque.
+  testWidgets('a see-through strip casts no shadow and is card-coloured', (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          activeSourceProfileProvider(dive.id).overrideWith((ref) => null),
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: null,
+          )).overrideWith((ref) async => analysis),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: stripWidth,
+                height: 200,
+                child: PinnedProfileStrip(
+                  dive: dive,
+                  condense: 0,
+                  backgroundOpacity: 0.5,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final material = tester.widget<Material>(
+      find
+          .descendant(
+            of: find.byType(PinnedProfileStrip),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    final card = Theme.of(
+      tester.element(find.byType(PinnedProfileStrip)),
+    ).colorScheme.surfaceContainerLow;
+    expect(material.elevation, 0);
+    expect(material.color!.r, closeTo(card.r, 1e-6));
+    expect(material.color!.g, closeTo(card.g, 1e-6));
+    expect(material.color!.b, closeTo(card.b, 1e-6));
+    expect(material.color!.a, closeTo(card.a * 0.5, 1e-6));
+  });
+
   testWidgets('the strip has a semantics label', (tester) async {
     final handle = tester.ensureSemantics();
     await pump(tester);
