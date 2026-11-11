@@ -45,6 +45,16 @@ class FoldTest(unittest.TestCase):
     def test_drops_periods(self):
         self.assertEqual(gen.fold("U.S.A."), "usa")
 
+    def test_reads_ampersand_as_and(self):
+        self.assertEqual(gen.fold("Trinidad & Tobago"), "trinidad and tobago")
+
+    def test_drops_a_leading_the(self):
+        self.assertEqual(gen.fold("The Bahamas"), "bahamas")
+        self.assertEqual(gen.fold("Theodore"), "theodore")
+
+    def test_collapses_inner_whitespace(self):
+        self.assertEqual(gen.fold("Costa   Rica"), "costa rica")
+
     def test_keeps_non_latin_scripts(self):
         self.assertEqual(gen.fold(" مصر "), "مصر")
 
@@ -102,6 +112,12 @@ class BuildTableTest(unittest.TestCase):
 
     def test_same_name_same_code_twice_is_kept(self):
         table = gen.build_table([("Mexico", "MX"), ("MEXICO", "MX")])
+        self.assertEqual(table, {"mexico": "MX"})
+
+    def test_drops_denied_names(self):
+        table = gen.build_table(
+            [("Congo", "CG"), ("Mexico", "MX")], denied={"congo"}
+        )
         self.assertEqual(table, {"mexico": "MX"})
 
     def test_ignores_blank_names(self):

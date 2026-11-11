@@ -45,6 +45,29 @@ void main() {
       expectCode('Turks and Caicos', 'TC');
     });
 
+    test('reads "and" for "&", drops a leading "The", collapses spaces', () {
+      // Geocoders and divers write these forms; English CLDR writes "&".
+      expectCode('Trinidad and Tobago', 'TT');
+      expectCode('Turks and Caicos Islands', 'TC');
+      expectCode('Bosnia & Herzegovina', 'BA');
+      expectCode('Antigua and Barbuda', 'AG');
+      expectCode('Sao Tome and Principe', 'ST');
+      expectCode('The Bahamas', 'BS');
+      expectCode('the Netherlands', 'NL');
+      expectCode('The Philippines', 'PH');
+      expectCode('Costa  Rica', 'CR');
+      expectCode('United States of America', 'US');
+      expectCode('UAE', 'AE');
+    });
+
+    test('a name more than one country goes by gives no code', () {
+      // "Congo" is as often the Democratic Republic as the Republic: no
+      // flag beats the wrong one.
+      expectCode('Congo', null);
+      expectCode('DR Congo', 'CD');
+      expectCode('Congo - Brazzaville', 'CG');
+    });
+
     test('ignores accents either way', () {
       expectCode('Curacao', 'CW');
       expectCode('Curaçao', 'CW');

@@ -43,6 +43,10 @@ PLACE_NAME_LANGUAGES = (
     "en", "es", "fr", "de", "it", "nl", "pt", "hu", "ar", "he", "zh",
 )
 _OFFICIAL_STATUSES = {"official", "de_facto_official", "official_regional"}
+# Folded names CLDR maps to one country that people commonly use for
+# another: plain "Congo" is as often the Democratic Republic (CD) as the
+# Republic (CG), which CLDR gives it to. No flag beats a wrong one.
+DENIED_NAMES = frozenset({"congo"})
 _ALT_SUFFIXES = ("-alt-short", "-alt-variant")
 
 _REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -65,9 +69,17 @@ _DIACRITICS = {
 
 
 def fold(text: str) -> str:
-    """The lookup key for [text]: the Dart fold, then periods removed."""
+    """The lookup key for [text], as countryLookupKey in Dart builds it.
+
+    The Dart text fold (trim, lowercase, common diacritics), then periods
+    removed, "&" read as "and", runs of whitespace collapsed to one space,
+    and a leading "the " dropped: "The Bahamas", "Trinidad & Tobago" and
+    "Trinidad and Tobago" all find their country.
+    """
     folded = "".join(_DIACRITICS.get(ord(ch), ch) for ch in text.strip().lower())
-    return folded.replace(".", "")
+    folded = folded.replace(".", "").replace("&", " and ")
+    folded = " ".join(folded.split())
+    return folded[4:] if folded.startswith("the ") else folded
 
 
 def _is_assigned(entry: dict) -> bool:
@@ -127,10 +139,14 @@ def official_languages(territory_info: dict) -> dict[str, set[str]]:
     return result
 
 
-def build_table(pairs) -> dict[str, str]:
-    """Folded name to code, dropping blank names and any name two codes share."""
+def build_table(pairs, denied=frozenset()) -> dict[str, str]:
+    """Folded name to code, dropping blank names and any name two codes share.
+
+    [denied] holds folded names CLDR gives one country but people use for
+    more than one (DENIED_NAMES), which are dropped too.
+    """
     table: dict[str, str] = {}
-    ambiguous: set[str] = set()
+    ambiguous: set[str] = set(denied)
     for name, code in pairs:
         key = fold(name)
         if not key or key in ambiguous:
@@ -214,7 +230,7 @@ def main() -> None:
         if language in PLACE_NAME_LANGUAGES or language not in available:
             continue
         pairs += names_from_locale(_territories(language), assigned, only=codes)
-    table = build_table(pairs)
+    table = build_table(pairs, denied=DENIED_NAMES)
     source = render_dart(
         table, alpha3_map(code_mappings, deprecated), assigned, CLDR_VERSION
     )

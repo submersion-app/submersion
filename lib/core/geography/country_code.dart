@@ -7,6 +7,10 @@ import 'package:submersion/core/text/text_sort.dart';
 /// the generated table.
 const Map<String, String> _aliases = {
   'usa': 'US',
+  'united states of america': 'US',
+  'uae': 'AE',
+  'dr congo': 'CD',
+  'drc': 'CD',
   'england': 'GB',
   'scotland': 'GB',
   'wales': 'GB',
@@ -23,11 +27,21 @@ const Map<String, String> _aliases = {
 };
 
 /// The key a country name is looked up by: [textSortKey]'s case and accent
-/// fold, with periods removed so "U.S.A." reads as "USA".
+/// fold, with periods removed ("U.S.A." reads as "USA"), "&" read as "and"
+/// ("Trinidad & Tobago"), runs of whitespace collapsed, and a leading
+/// "the " dropped ("The Bahamas").
 ///
 /// scripts/geography/generate_country_names.py folds the generated table's
 /// names the same way.
-String countryLookupKey(String text) => textSortKey(text).replaceAll('.', '');
+String countryLookupKey(String text) {
+  final key = textSortKey(text)
+      .replaceAll('.', '')
+      .replaceAll('&', ' and ')
+      .split(RegExp(r'\s+'))
+      .where((word) => word.isNotEmpty)
+      .join(' ');
+  return key.startsWith('the ') ? key.substring(4) : key;
+}
 
 /// The ISO 3166-1 alpha-2 code a site's free-text [text] names, or null.
 ///
