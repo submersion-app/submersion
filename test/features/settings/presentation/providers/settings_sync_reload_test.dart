@@ -230,7 +230,7 @@ void main() {
   });
 
   test(
-    "a change made mid-switch never lands in the next diver's row",
+    "a change made mid-switch lands on the next diver's settings, not A's",
     () async {
       await applyPeerRow(diverB, (row) => row.copyWith(gfHigh: 70));
       final readB = settingsRepository.readGates[diverB] = Completer<void>();
@@ -241,16 +241,20 @@ void main() {
       // B's row is being read; [state] still holds A's settings.
       expect(container.read(settingsProvider).gfHigh, 85);
 
-      await container
+      // The setter waits for B's load (issue #4449), then applies the
+      // change to B's settings.
+      final saving = container
           .read(settingsProvider.notifier)
           .setDepthUnit(DepthUnit.feet);
       readB.complete();
-      await container.read(settingsProvider.notifier).settingsLoaded;
+      await saving;
       await pumpEventQueue();
 
       final stored = await storedSettings(diverB);
       expect(stored!.gfHigh, 70, reason: "A's settings overwrote B's row");
+      expect(stored.depthUnit, DepthUnit.feet);
       expect(container.read(settingsProvider).gfHigh, 70);
+      expect(container.read(settingsProvider).depthUnit, DepthUnit.feet);
     },
   );
 
