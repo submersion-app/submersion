@@ -26919,6 +26919,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'خريطة خلف بطاقات المواقع';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'أعلام الدول';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'الملف يعرض أقصى عمق';
 
@@ -39278,6 +39281,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'عرض فترات الانقطاع الطويلة عن الغوص كشريط مخطط ضيق';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'أعلام الدول';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'عرض علم صغير بجانب مواقع الغوص والرحلات';
 
   @override
   String get settings_appearance_mapStyle => 'نمط الخريطة';

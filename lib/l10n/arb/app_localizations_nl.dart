@@ -26455,6 +26455,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kaart achter stekkaarten';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Landvlaggen';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profiel toont de maximale diepte';
 
@@ -38508,6 +38511,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Lange duikpauzes tonen als een smalle gearceerde band';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Landvlaggen';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Toon een kleine vlag naast de locatie van duikstekken en reizen';
 
   @override
   String get settings_appearance_mapStyle => 'Kaartstijl';

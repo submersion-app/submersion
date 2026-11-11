@@ -26574,6 +26574,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Karte hinter Tauchplatzkarten';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Länderflaggen';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profil zeigt maximale Tiefe';
 
@@ -38691,6 +38694,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Lange Tauchpausen als schmales schraffiertes Band anzeigen';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Länderflaggen';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Zeigt eine kleine Flagge neben dem Ort von Tauchplätzen und Reisen';
 
   @override
   String get settings_appearance_mapStyle => 'Kartenstil';

@@ -66,6 +66,26 @@ void main() {
   });
 
   group('AppearanceGeneralTiles', () {
+    testWidgets('the country flags switch is on by default and saves off', (
+      tester,
+    ) async {
+      final notifier = await _pumpGeneralTiles(tester);
+      final tile = find.widgetWithText(SwitchListTile, 'Country flags');
+
+      expect(tile, findsOneWidget);
+      expect(
+        find.text('Show a small flag beside site locations and trips'),
+        findsOneWidget,
+      );
+      expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+
+      expect(notifier.state.showCountryFlags, isFalse);
+      expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+    });
+
     testWidgets('the trend gaps tile shows the threshold and saves a pick', (
       tester,
     ) async {

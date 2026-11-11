@@ -640,6 +640,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setShowMapBackgroundOnSiteCards(bool value) async =>
       state = state.copyWith(showMapBackgroundOnSiteCards: value);
   @override
+  Future<void> setShowCountryFlags(bool value) async =>
+      state = state.copyWith(showCountryFlags: value);
+  @override
   Future<void> setTissueColorScheme(TissueColorScheme scheme) async =>
       state = state.copyWith(tissueColorScheme: scheme);
   @override

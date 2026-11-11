@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/pages/appearance_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Mock SettingsNotifier that doesn't access the database
@@ -250,8 +251,15 @@ void main() {
       expect(find.text('Colored section headers'), findsOneWidget);
       expect(find.text('Colored list icons'), findsOneWidget);
 
+      // Only the accent group's switches: General also holds the country
+      // flags switch (issue #4426).
       final switches = tester
-          .widgetList<SwitchListTile>(find.byType(SwitchListTile))
+          .widgetList<SwitchListTile>(
+            find.descendant(
+              of: find.byType(AppearanceAccentTiles),
+              matching: find.byType(SwitchListTile),
+            ),
+          )
           .toList();
       expect(switches, hasLength(3));
       expect(switches.every((s) => s.value == false), isTrue);

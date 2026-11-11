@@ -338,6 +338,10 @@ class DiverSettings extends Table {
       real().withDefault(const Constant(0.6))();
   BoolColumn get showMapBackgroundOnSiteCards =>
       boolean().withDefault(const Constant(false))();
+
+  /// A small flag beside site locations and trips (v359, issue #4426).
+  BoolColumn get showCountryFlags =>
+      boolean().withDefault(const Constant(true))();
   // Dive profile markers
   BoolColumn get showMaxDepthMarker =>
       boolean().withDefault(const Constant(true))();

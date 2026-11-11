@@ -25118,6 +25118,9 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水点卡片背景地图';
 
   @override
+  String get settings_conflict_field_showCountryFlags => '国家/地区旗帜';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker => '剖面显示最大深度';
 
   @override
@@ -36467,6 +36470,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_trendGaps_subtitle => '将长时间未潜水的时段显示为窄的斜线带';
+
+  @override
+  String get settings_appearance_countryFlags_title => '国家/地区旗帜';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle => '在潜点位置和旅行旁显示小旗帜';
 
   @override
   String get settings_appearance_mapStyle => '地图样式';

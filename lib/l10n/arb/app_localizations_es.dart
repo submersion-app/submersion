@@ -26633,6 +26633,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mapa detrás de las tarjetas de puntos de buceo';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Banderas de países';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'El perfil muestra la profundidad máxima';
 
@@ -38795,6 +38798,13 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Mostrar las pausas largas sin bucear como una banda rayada estrecha';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Banderas de países';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Muestra una pequeña bandera junto a la ubicación de los sitios y los viajes';
 
   @override
   String get settings_appearance_mapStyle => 'Estilo del Mapa';

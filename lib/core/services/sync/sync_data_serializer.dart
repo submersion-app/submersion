@@ -12189,6 +12189,7 @@ class SyncDataSerializer {
       'downloadsFollowComputerOwner': true,
       'omitUnusedOcGases': false,
       'showMapBackgroundOnSiteCards': false,
+      'showCountryFlags': true,
       // Dive profile markers
       'showMaxDepthMarker': true,
       'showPressureThresholdMarkers': false,

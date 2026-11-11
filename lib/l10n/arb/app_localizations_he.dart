@@ -25960,6 +25960,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'מפה מאחורי כרטיסי האתרים';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'דגלי מדינות';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'הפרופיל מציג עומק מרבי';
 
@@ -37826,6 +37829,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'הצגת הפסקות ארוכות בצלילה כרצועה מקווקוות צרה';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'דגלי מדינות';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'הצגת דגל קטן ליד מיקום האתרים והטיולים';
 
   @override
   String get settings_appearance_mapStyle => 'סגנון מפה';

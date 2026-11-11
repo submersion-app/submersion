@@ -42285,6 +42285,12 @@ abstract class AppLocalizations {
   /// **'Map behind site cards'**
   String get settings_conflict_field_showMapBackgroundOnSiteCards;
 
+  /// No description provided for @settings_conflict_field_showCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags'**
+  String get settings_conflict_field_showCountryFlags;
+
   /// No description provided for @settings_conflict_field_showMaxDepthMarker.
   ///
   /// In en, this message translates to:
@@ -60950,6 +60956,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show long breaks in diving as a narrow hatched band'**
   String get settings_appearance_trendGaps_subtitle;
+
+  /// No description provided for @settings_appearance_countryFlags_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags'**
+  String get settings_appearance_countryFlags_title;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a small flag beside site locations and trips'**
+  String get settings_appearance_countryFlags_subtitle;
 
   /// No description provided for @settings_appearance_mapStyle.
   ///

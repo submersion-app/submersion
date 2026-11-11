@@ -131,5 +131,12 @@ extension RungsFromV340 on AppDatabase {
     // 357 because main holds 356; renumbered from 353, then 355.
     if (from < 357) await _assertProfileSeriesIsEditColumn();
     if (from < 357) await reportProgress();
+
+    // v359: diver_settings.show_country_flags, the switch for the flags
+    // beside site locations and trips (issue #4426). Defaulted on, no
+    // backfill, so the compatibility floor does not move. Re-asserted in
+    // beforeOpen. Numbered 359: main holds 357 and open PR #4417 claims 358.
+    if (from < 359) await _assertShowCountryFlagsColumn();
+    if (from < 359) await reportProgress();
   }
 }

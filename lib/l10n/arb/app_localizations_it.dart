@@ -26637,6 +26637,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Mappa dietro le schede sito';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Bandiere dei paesi';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Il profilo mostra la profondità massima';
 
@@ -38780,6 +38783,13 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Mostra le lunghe pause senza immersioni come una banda tratteggiata stretta';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Bandiere dei paesi';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Mostra una piccola bandiera accanto alla posizione dei siti e ai viaggi';
 
   @override
   String get settings_appearance_mapStyle => 'Stile della mappa';
