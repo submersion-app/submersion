@@ -12,6 +12,7 @@ import 'package:submersion/core/providers/provider.dart';
 class ProfilePlotFrame {
   const ProfilePlotFrame({
     required this.plotKey,
+    required this.plotRect,
     required this.minSeconds,
     required this.maxSeconds,
     required this.minDepthMeters,
@@ -19,6 +20,11 @@ class ProfilePlotFrame {
   });
 
   final GlobalKey plotKey;
+
+  /// The plot's rect within the chart. Part of the frame so a plot that
+  /// moves without its ranges changing (an axis shown or hidden, a resize)
+  /// is still reported again.
+  final Rect plotRect;
   final double minSeconds;
   final double maxSeconds;
   final double minDepthMeters;
@@ -28,6 +34,7 @@ class ProfilePlotFrame {
   bool operator ==(Object other) =>
       other is ProfilePlotFrame &&
       other.plotKey == plotKey &&
+      other.plotRect == plotRect &&
       other.minSeconds == minSeconds &&
       other.maxSeconds == maxSeconds &&
       other.minDepthMeters == minDepthMeters &&
@@ -36,6 +43,7 @@ class ProfilePlotFrame {
   @override
   int get hashCode => Object.hash(
     plotKey,
+    plotRect,
     minSeconds,
     maxSeconds,
     minDepthMeters,

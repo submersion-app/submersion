@@ -77,7 +77,15 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _measure();
     });
+    // A post-frame callback waits for a frame; make sure one comes, or a
+    // change reported between frames goes unmeasured until something else
+    // repaints.
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
+
+  /// The overlay's last constraints: a resize moves the card and the chart's
+  /// plot without any scrolling, so it is re-measured.
+  BoxConstraints? _lastConstraints;
 
   /// Records where the card sits in the scroll content. Runs after layout,
   /// when positions are current; scrolling in between needs no layout,
@@ -144,7 +152,13 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
     if (notification.depth != 0) return false;
     _notePosition(notification);
     final pixels = notification.metrics.pixels;
-    if (pixels != _pixels) setState(() => _pixels = pixels);
+    if (pixels != _pixels) {
+      final wasIdle = _progress == 0;
+      setState(() => _pixels = pixels);
+      // Re-measured as the condense begins, as a backstop for anything that
+      // moved the card or plot unseen while the strip was not drawn.
+      if (wasIdle && _progress > 0) _scheduleMeasure();
+    }
     // Content above the card can change height (a card loading in), so the
     // recorded position is refreshed once the frame is laid out.
     if (notification is ScrollEndNotification) _scheduleMeasure();
@@ -173,6 +187,10 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
     final chart = _chartMapping;
     return LayoutBuilder(
       builder: (context, constraints) {
+        if (constraints != _lastConstraints) {
+          _lastConstraints = constraints;
+          _scheduleMeasure();
+        }
         return Stack(
           children: [
             NotificationListener<ScrollMetricsNotification>(

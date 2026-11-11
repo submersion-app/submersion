@@ -34,6 +34,7 @@ void main() {
   final plotKey = GlobalKey();
   final plotFrame = ProfilePlotFrame(
     plotKey: plotKey,
+    plotRect: plotInCard,
     minSeconds: 0,
     maxSeconds: 600,
     minDepthMeters: 0,
@@ -46,6 +47,7 @@ void main() {
     GlobalKey? targetKey,
     bool showProfile = true,
     bool withPlotFrame = true,
+    ValueNotifier<double>? width,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -64,35 +66,44 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: SizedBox(
-              width: 400,
-              height: 600,
-              child: PinnedProfileOverlay(
-                dive: dive,
-                profileKey: profileKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: profileTop),
-                      if (showProfile)
-                        SizedBox(
-                          key: profileKey,
-                          height: profileHeight,
-                          child: Stack(
-                            children: [
-                              Positioned.fromRect(
-                                rect: plotInCard,
-                                child: SizedBox.expand(key: plotKey),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        const SizedBox(height: profileHeight),
-                      const SizedBox(height: 1100),
-                      SizedBox(key: targetKey, height: 100),
-                      const SizedBox(height: 2000),
-                    ],
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: ValueListenableBuilder<double>(
+                valueListenable: width ?? ValueNotifier(400),
+                builder: (context, w, child) =>
+                    SizedBox(width: w, height: 600, child: child),
+                child: PinnedProfileOverlay(
+                  dive: dive,
+                  profileKey: profileKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: profileTop),
+                        if (showProfile)
+                          SizedBox(
+                            key: profileKey,
+                            height: profileHeight,
+                            child: Stack(
+                              children: [
+                                // Stretches with the page, as the chart's
+                                // plot does.
+                                Positioned(
+                                  left: plotInCard.left,
+                                  top: plotInCard.top,
+                                  right: 400 - plotInCard.right,
+                                  height: plotInCard.height,
+                                  child: SizedBox.expand(key: plotKey),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          const SizedBox(height: profileHeight),
+                        const SizedBox(height: 1100),
+                        SizedBox(key: targetKey, height: 100),
+                        const SizedBox(height: 2000),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -212,6 +223,25 @@ void main() {
     expect(s.condense, inExclusiveRange(0, 1));
     expect(tester.getSize(strip).height, greaterThan(kPinnedStripHeight));
     expect(ignoresPointer(tester), isTrue);
+  });
+
+  // A resize moves the chart plot without any scrolling; the strip's line
+  // must still start on it, or two lines show (review I2).
+  testWidgets('after a resize its line still starts on the chart plot', (
+    tester,
+  ) async {
+    final width = ValueNotifier(400.0);
+    await pump(tester, profileKey: GlobalKey(), width: width);
+    await condenseTo(tester, kCondenseFadePortion / 2);
+    width.value = 520;
+    await tester.pump();
+    await tester.pump();
+
+    final s = stripWidget(tester);
+    final onScreen = s.morphFrom!.rect.shift(tester.getTopLeft(strip));
+    final plot = tester.getRect(find.byKey(plotKey));
+    expect(onScreen.width, closeTo(plot.width, 0.01));
+    expect(onScreen.left, closeTo(plot.left, 0.01));
   });
 
   testWidgets('without the chart plot, it has no starting mapping', (

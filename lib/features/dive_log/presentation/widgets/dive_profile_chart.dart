@@ -4018,6 +4018,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _publishPlotFrame(
       ProfilePlotFrame(
         plotKey: _plotFrameKey,
+        plotRect: Rect.fromLTRB(
+          plotInsets.left,
+          plotInsets.top,
+          availableWidth - plotInsets.right,
+          availableHeight - plotInsets.bottom,
+        ),
         minSeconds: visibleMinX,
         maxSeconds: visibleMaxX,
         minDepthMeters: visibleMinDepth * metersPerDisplayUnit,

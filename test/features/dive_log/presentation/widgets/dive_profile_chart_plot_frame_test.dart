@@ -24,8 +24,10 @@ void main() {
   Future<List<ProfilePlotFrame>> pump(
     WidgetTester tester, {
     AppSettings settings = const AppSettings(),
+    ValueNotifier<double>? width,
   }) async {
     final frames = <ProfilePlotFrame>[];
+    final w = width ?? ValueNotifier(400.0);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -37,12 +39,18 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: SizedBox(
-              width: 400,
-              height: 300,
-              child: DiveProfileChart(
-                profile: profile,
-                onPlotFrame: frames.add,
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: ValueListenableBuilder<double>(
+                valueListenable: w,
+                builder: (context, value, _) => SizedBox(
+                  width: value,
+                  height: 300,
+                  child: DiveProfileChart(
+                    profile: profile,
+                    onPlotFrame: frames.add,
+                  ),
+                ),
               ),
             ),
           ),
@@ -88,6 +96,22 @@ void main() {
       settings: const AppSettings(depthUnit: DepthUnit.feet),
     )).last;
     expect(frame.maxDepthMeters, inInclusiveRange(30, 40));
+  });
+
+  // A wider chart moves and stretches the plot without changing the ranges;
+  // the strip must learn the new plot rect (review I2).
+  testWidgets('reports again when the plot moves but its ranges do not', (
+    tester,
+  ) async {
+    final width = ValueNotifier(400.0);
+    final frames = await pump(tester, width: width);
+    final first = frames.last;
+    width.value = 700;
+    await tester.pump();
+    await tester.pump();
+    expect(frames.last, isNot(first));
+    expect(frames.last.plotRect.width, greaterThan(first.plotRect.width));
+    expect(frames.last.maxSeconds, first.maxSeconds);
   });
 
   testWidgets('does not report again while nothing changes', (tester) async {
