@@ -284,6 +284,21 @@ final currentDiverProvider = FutureProvider<Diver?>((ref) async {
   return repository.getDefaultDiver();
 });
 
+/// The diver a dive belongs to, given the dive's `diverId`.
+///
+/// A dive from another profile (a sibling logged with this one, #2002) opens
+/// on the same screens, so "me" on a dive is its owner, not the active diver.
+/// A null id (a new dive, or one never assigned an owner) resolves to the
+/// active diver.
+final diveOwnerProvider = FutureProvider.family<Diver?, String?>((
+  ref,
+  diverId,
+) {
+  return diverId == null
+      ? ref.watch(currentDiverProvider.future)
+      : ref.watch(diverByIdProvider(diverId).future);
+});
+
 /// Validated current diver ID provider
 /// Returns the current diver ID only if it exists in the database,
 /// otherwise returns the default diver ID

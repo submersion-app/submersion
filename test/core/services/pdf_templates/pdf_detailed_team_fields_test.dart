@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../helpers/pdf_text.dart';
@@ -141,6 +142,60 @@ void main() {
         diveRolesById: {for (final id in DiveRole.builtInIds) id: builtIn(id)},
       );
       expect(pdfVisibleText(bytes), contains('Dive Guide, Divemaster'));
+    });
+
+    Future<String> renderOwnRoles({String? diveOwnerId, Diver? diver}) async {
+      final dive = teamDive().copyWith(
+        diverId: diveOwnerId,
+        diverRoleIds: const [DiveRole.rearGuardId],
+      );
+      final bytes = await PdfTemplateDetailed().buildPdf(
+        dives: [dive],
+        pageSize: PdfPageSize.a4,
+        dates: PdfDateFormatter(
+          dateFormat: DateFormatPreference.ddmmyyyy,
+          timeFormat: TimeFormat.twentyFourHour,
+        ),
+        units: const UnitFormatter(AppSettings()),
+        diveRolesById: {for (final id in DiveRole.builtInIds) id: builtIn(id)},
+        diver: diver,
+      );
+      return pdfVisibleText(bytes);
+    }
+
+    Diver logbookDiver(String name) =>
+        Diver(id: 'owner', name: name, createdAt: epoch, updatedAt: epoch);
+
+    // The cover and diver pages print the name too, so the check is on the
+    // Team row itself: its roles followed by its label.
+    test("labels the diver's own roles with their name (#4458)", () async {
+      final text = await renderOwnRoles(
+        diveOwnerId: 'owner',
+        diver: logbookDiver('Zed Quill'),
+      );
+      expect(text, contains('Rear Guard Zed Quill'));
+      expect(text, isNot(contains('Rear Guard Me')));
+    });
+
+    test('a dive with no owner uses the logbook diver', () async {
+      final text = await renderOwnRoles(diver: logbookDiver('Zed Quill'));
+      expect(text, contains('Rear Guard Zed Quill'));
+    });
+
+    test('keeps Me for another profile\'s dive', () async {
+      final text = await renderOwnRoles(
+        diveOwnerId: 'someone-else',
+        diver: logbookDiver('Zed Quill'),
+      );
+      expect(text, contains('Rear Guard Me'));
+    });
+
+    test('keeps Me without a logbook diver or with a blank name', () async {
+      expect(await renderOwnRoles(), contains('Rear Guard Me'));
+      expect(
+        await renderOwnRoles(diveOwnerId: 'owner', diver: logbookDiver(' ')),
+        contains('Rear Guard Me'),
+      );
     });
   });
 }

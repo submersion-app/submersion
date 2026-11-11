@@ -9,7 +9,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/logged_with_ti
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/widgets/dive_owner_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
@@ -22,6 +24,15 @@ class DiveBuddiesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final buddiesAsync = ref.watch(buddiesForDiveProvider(dive.id));
+    // The own-role row needs the dive's owner too. Waiting for it keeps the
+    // row from reading "Me" for a frame before switching to their name and
+    // photo.
+    final ownerAsync = dive.diverRoleIds.isEmpty
+        ? null
+        : ref.watch(diveOwnerProvider(dive.diverId));
+    if (ownerAsync != null && ownerAsync.isLoading && !ownerAsync.hasValue) {
+      return _loadingCard;
+    }
 
     return buddiesAsync.when(
       data: (buddies) {
@@ -56,8 +67,8 @@ class DiveBuddiesSection extends ConsumerWidget {
                   ],
                 ),
                 const Divider(),
-                if (dive.diverRoleIds.isNotEmpty)
-                  _buildMyRoleTile(context, ref),
+                if (ownerAsync != null)
+                  _buildMyRoleTile(context, ref, ownerAsync.value),
                 if (showLegacyText)
                   LegacyBuddyTextSection(dive: dive)
                 else if (buddies.isEmpty && dive.diverRoleIds.isEmpty)
@@ -80,15 +91,17 @@ class DiveBuddiesSection extends ConsumerWidget {
           ),
         );
       },
-      loading: () => const Card(
-        child: Padding(
-          padding: EdgeInsets.all(32),
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ),
+      loading: () => _loadingCard,
       error: (_, _) => const SizedBox.shrink(),
     );
   }
+
+  static const _loadingCard = Card(
+    child: Padding(
+      padding: EdgeInsets.all(32),
+      child: Center(child: CircularProgressIndicator()),
+    ),
+  );
 
   Widget _buildBuddyTile(BuildContext context, BuddyWithRole bwr) {
     return ListTile(
@@ -105,40 +118,20 @@ class DiveBuddiesSection extends ConsumerWidget {
     );
   }
 
-  /// The diver's own roles on this dive (#547, #1221), shown above buddies.
-  ///
-  /// The diver is the dive's owner, not the active profile, since a sibling
-  /// dive from another profile opens here too (#2002). A dive with no owner
-  /// falls back to the active diver. Like the edit view's Me chip, it shows
-  /// the diver's photo and name, keeping the person icon and "Me" only when
-  /// there is no photo or no diver (#4458).
-  Widget _buildMyRoleTile(BuildContext context, WidgetRef ref) {
-    final ownerId = dive.diverId;
-    final diver = ownerId == null
-        ? ref.watch(currentDiverProvider).value
-        : ref.watch(diverByIdProvider(ownerId)).value;
+  /// The diver's own roles on this dive (#547, #1221), shown above buddies,
+  /// with the dive owner's photo and name like the edit view's Me chip
+  /// (#4458).
+  Widget _buildMyRoleTile(BuildContext context, WidgetRef ref, Diver? owner) {
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     final label = rolesForIds(
       dive.diverRoleIds,
       rolesById,
     ).joinedLocalizedNames(context.l10n);
-    final colorScheme = Theme.of(context).colorScheme;
-    // A diver saved without a name would otherwise leave the row untitled.
-    final name = diver?.name.trim() ?? '';
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: diver?.photo != null
-          ? ProfileAvatar(
-              photo: diver!.photo,
-              initials: diver.initials,
-              backgroundColor: colorScheme.primaryContainer,
-            )
-          : CircleAvatar(
-              backgroundColor: colorScheme.primaryContainer,
-              child: Icon(Icons.person, color: colorScheme.onPrimaryContainer),
-            ),
-      title: Text(name.isEmpty ? context.l10n.buddies_picker_me : name),
+      leading: DiveOwnerAvatar(diver: owner),
+      title: Text(diveOwnerLabel(owner, context.l10n)),
       subtitle: Text(label),
     );
   }

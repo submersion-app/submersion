@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -50,6 +51,7 @@ Widget _buildSection({
   required Dive dive,
   Map<String, Diver> diversById = const {},
   Diver? currentDiver,
+  bool ownerNeverLoads = false,
 }) {
   return ProviderScope(
     overrides: [
@@ -58,7 +60,11 @@ Widget _buildSection({
       ).overrideWith((ref) async => const <BuddyWithRole>[]),
       allDiveRolesProvider.overrideWith((ref) async => _testRoles),
       siblingDivesProvider(dive.id).overrideWith((ref) async => const []),
-      diverByIdProvider.overrideWith((ref, id) async => diversById[id]),
+      diverByIdProvider.overrideWith(
+        (ref, id) => ownerNeverLoads
+            ? Completer<Diver?>().future
+            : Future.value(diversById[id]),
+      ),
       currentDiverProvider.overrideWith((ref) async => currentDiver),
     ],
     child: MaterialApp(
@@ -161,6 +167,19 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Me'), findsOneWidget);
+    });
+
+    testWidgets('waits for the owner instead of flashing Me', (tester) async {
+      await tester.pumpWidget(
+        _buildSection(dive: _dive(diverId: 'diver-1'), ownerNeverLoads: true),
+      );
+      // The spinner animates forever, so pump frames rather than settle.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Me'), findsNothing);
+      expect(find.byIcon(Icons.person), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
   });
 }
