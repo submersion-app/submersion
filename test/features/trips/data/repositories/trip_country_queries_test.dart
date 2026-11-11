@@ -107,6 +107,15 @@ void main() {
     expect(countries.single, const TripCountry(code: 'KR', name: 'KR'));
   });
 
+  test('blank country text with a stored code is named by the code', () async {
+    await site('blank', '   ', code: 'KR');
+    await trip('T');
+    await dive('a', 'T', 'blank');
+
+    final countries = (await trips.getTripCountries())['T']!;
+    expect(countries.single, const TripCountry(code: 'KR', name: 'KR'));
+  });
+
   test('a country it cannot name adds nothing', () async {
     await trip('T');
     await dive('a', 'T', 'atlantis');

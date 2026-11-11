@@ -74,10 +74,7 @@ class TripCountryQueries {
         rows.map(
           (row) => (
             tripId: row.read<String>('trip_id'),
-            // A site with only a code is named by it in the tooltip.
-            name:
-                row.read<String?>('country')?.trim() ??
-                row.read<String>('code'),
+            name: _nameOf(row),
             code: row.read<String?>('code'),
             dives: row.read<int>('dive_count'),
             firstDive: row.read<int>('first_dive'),
@@ -93,4 +90,11 @@ class TripCountryQueries {
       rethrow;
     }
   }
+}
+
+/// The tooltip name for a row: its country text, or its stored code when the
+/// text is missing or blank (a site with only a code).
+String _nameOf(QueryRow row) {
+  final text = row.read<String?>('country')?.trim() ?? '';
+  return text.isNotEmpty ? text : row.read<String>('code');
 }
