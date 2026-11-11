@@ -12,8 +12,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// Issue #4431: the highlighted compartment's outline on the tissue charts
 /// was the theme's text colour, which vanished on the heat map's black and
 /// purple cells in light mode and its white cells in dark mode. It is now a
-/// single line in the theme's accent (primary) colour, drawn so it covers
-/// neither the highlighted row nor anything outside the highlighted bar.
+/// single line drawn so it covers neither the highlighted row nor anything
+/// outside the highlighted bar: the theme's accent (primary) colour, except
+/// on the heat map in light mode, where it is white.
 void main() {
   DecoStatus statusAt30m() {
     final algorithm = BuhlmannAlgorithm();
@@ -28,6 +29,12 @@ void main() {
 
   Color primaryOf(Brightness brightness) =>
       ThemeData(brightness: brightness).colorScheme.primary;
+
+  // The heat map's highlight: white in light mode, where the accent is a
+  // dark blue that vanishes on the scale's black and purple cells; the
+  // accent (a light blue) in dark mode.
+  Color heatMapHighlightOf(Brightness brightness) =>
+      brightness == Brightness.light ? Colors.white : primaryOf(brightness);
 
   Future<void> pump(
     WidgetTester tester,
@@ -66,6 +73,16 @@ void main() {
       for (final brightness in Brightness.values) {
         final scheme = ThemeData(brightness: brightness).colorScheme;
         expect(HighlightOutline.colorOf(scheme), scheme.primary);
+      }
+    });
+
+    test('takes white on the heat map in light mode, the accent in dark', () {
+      for (final brightness in Brightness.values) {
+        final scheme = ThemeData(brightness: brightness).colorScheme;
+        expect(
+          HighlightOutline.heatMapColorOf(scheme),
+          heatMapHighlightOf(brightness),
+        );
       }
     });
 
@@ -188,14 +205,15 @@ void main() {
     }
 
     for (final brightness in Brightness.values) {
-      testWidgets('outlines the hovered row in the accent colour in '
+      testWidgets('outlines the hovered row in its highlight colour in '
           '${brightness.name} mode', (tester) async {
         await pump(tester, strip(hovered: 3), brightness: brightness);
 
         expect(
           find.byType(TissueHeatMapStrip),
           paints..something(
-            (m, a) => isOutline(m, a, #drawRect, primaryOf(brightness)),
+            (m, a) =>
+                isOutline(m, a, #drawRect, heatMapHighlightOf(brightness)),
           ),
         );
       });
@@ -222,7 +240,7 @@ void main() {
             method,
             arguments,
             #drawRect,
-            primaryOf(Brightness.light),
+            heatMapHighlightOf(Brightness.light),
           )) {
             return false;
           }
@@ -235,13 +253,16 @@ void main() {
       );
     });
 
-    testWidgets('draws the time cursor in the accent colour', (tester) async {
+    testWidgets('draws the time cursor in the highlight colour', (
+      tester,
+    ) async {
       await pump(tester, strip(selected: 5));
 
       expect(
         find.byType(TissueHeatMapStrip),
         paints..something(
-          (m, a) => isOutline(m, a, #drawLine, primaryOf(Brightness.light)),
+          (m, a) =>
+              isOutline(m, a, #drawLine, heatMapHighlightOf(Brightness.light)),
         ),
       );
     });
@@ -254,7 +275,8 @@ void main() {
       expect(
         find.byType(TissueHeatMapStrip),
         paints..something(
-          (m, a) => isOutline(m, a, #drawRect, primaryOf(Brightness.dark)),
+          (m, a) =>
+              isOutline(m, a, #drawRect, heatMapHighlightOf(Brightness.dark)),
         ),
       );
     });

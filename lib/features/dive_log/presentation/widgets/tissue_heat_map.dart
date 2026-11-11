@@ -265,7 +265,7 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
   Widget build(BuildContext context) {
     if (widget.decoStatuses.isEmpty) return const SizedBox.shrink();
 
-    final highlightColor = HighlightOutline.colorOf(
+    final highlightColor = HighlightOutline.heatMapColorOf(
       Theme.of(context).colorScheme,
     );
 
@@ -458,9 +458,9 @@ class _TissueHeatMapPainter extends CustomPainter {
       col += step;
     }
 
-    // The cursor and the row outline use the theme's accent colour: the
-    // cells under them run from pure black to white, where the theme's text
-    // colour vanished in one theme or the other (issue #4431).
+    // The cursor and the row outline use HighlightOutline.heatMapColorOf:
+    // the cells under them run from pure black to white, where the theme's
+    // text colour vanished in one theme or the other (issue #4431).
     final highlightPaint = HighlightOutline.strokeOf(highlightColor);
 
     // Draw cursor line at selected index
