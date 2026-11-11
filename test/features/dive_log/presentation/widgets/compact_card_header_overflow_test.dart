@@ -81,6 +81,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('@ 31:00'), findsOneWidget);
+      expect(find.text('Deco Status'), findsOneWidget);
       expect(find.byTooltip('About Deco Status'), findsOneWidget);
     });
   }
@@ -97,6 +98,7 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('@ 31:00'), findsOneWidget);
+    expect(find.text('Oxygen Toxicity'), findsOneWidget);
     expect(find.byTooltip('About Oxygen Toxicity'), findsOneWidget);
   });
 
@@ -115,6 +117,7 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('@ 31:00'), findsOneWidget);
+    expect(find.text('Tissue Loading'), findsOneWidget);
     expect(find.byTooltip('About Tissue Loading'), findsOneWidget);
   });
 }

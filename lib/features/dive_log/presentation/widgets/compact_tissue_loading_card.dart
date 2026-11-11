@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_log/presentation/info/tissue_loading_info.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_card_title.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_compartment_detail.dart';
@@ -135,29 +136,10 @@ class _CompactTissueLoadingCardState
           children: [
             Row(
               children: [
-                // The title gives way in a narrow column (the desktop side
-                // panel), so the cursor time and the controls always fit.
                 Expanded(
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          context.l10n.diveLog_deco_sectionTissueLoading,
-                          style: textTheme.titleSmall,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (widget.subtitle != null) ...[
-                        const SizedBox(width: 6),
-                        Text(
-                          '@ ${widget.subtitle!}',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ],
+                  child: CompactCardTitle(
+                    title: context.l10n.diveLog_deco_sectionTissueLoading,
+                    cursorTime: widget.subtitle,
                   ),
                 ),
                 // Keeps the cursor time off the first control once the
