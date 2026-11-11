@@ -39211,7 +39211,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other:
           '$count fontes de dados vinculadas aos seus computadores de mergulho',
-      one: '1 fonte de dados vinculada ao seu computador de mergulho',
+      one: '$count fonte de dados vinculada ao seu computador de mergulho',
       zero:
           'Nenhuma fonte de dados sem vínculo correspondeu a um computador de mergulho',
     );

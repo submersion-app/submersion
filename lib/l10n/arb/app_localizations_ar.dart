@@ -39759,7 +39759,10 @@ class AppLocalizationsAr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'تم ربط $count من مصادر البيانات بأجهزة كمبيوتر الغوص الخاصة بها',
+      other: 'تم ربط $count مصدر بيانات بأجهزة كمبيوتر الغوص',
+      many: 'تم ربط $count مصدر بيانات بأجهزة كمبيوتر الغوص',
+      few: 'تم ربط $count مصادر بيانات بأجهزة كمبيوتر الغوص',
+      two: 'تم ربط مصدري بيانات بأجهزة كمبيوتر الغوص',
       one: 'تم ربط مصدر بيانات واحد بكمبيوتر الغوص الخاص به',
       zero: 'لم يطابق أي مصدر بيانات غير مرتبط كمبيوتر غوص',
     );

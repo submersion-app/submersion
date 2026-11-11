@@ -39345,7 +39345,7 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count sources de données reliées à leurs ordinateurs de plongée',
-      one: '1 source de données reliée à son ordinateur de plongée',
+      one: '$count source de données reliée à son ordinateur de plongée',
       zero:
           'Aucune source de données non liée ne correspond à un ordinateur de plongée',
     );
