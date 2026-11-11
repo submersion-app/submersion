@@ -32,6 +32,10 @@ class SacSegmentsView extends StatefulWidget {
   /// The profile chart cursor, in seconds from dive start.
   final int? selectedTimestamp;
 
+  /// The time under the pointer on the time chart, in seconds, or null when
+  /// it leaves; the host moves the profile cursor there (#4423).
+  final ValueChanged<int?>? onCursorSeconds;
+
   /// Sits on the Time heading's line, so choosing a lane costs no extra row.
   final Widget? laneSelector;
 
@@ -42,6 +46,7 @@ class SacSegmentsView extends StatefulWidget {
     required this.gasSegments,
     required this.rates,
     required this.selectedTimestamp,
+    this.onCursorSeconds,
     this.laneSelector,
   });
 
@@ -200,6 +205,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
           onTap: (index) => _setPinned(_pinnedIndex == index ? null : index),
           onScrub: _setPinned,
           onHover: _setHovered,
+          onCursorSeconds: widget.onCursorSeconds,
         ),
         const SizedBox(height: 6),
         Text(

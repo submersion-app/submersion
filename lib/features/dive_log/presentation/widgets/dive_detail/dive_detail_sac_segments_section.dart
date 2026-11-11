@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/info/sac_segments_info.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
@@ -194,6 +195,17 @@ class DiveSacSegmentsSection extends ConsumerWidget {
               gasSegments: gasSegments,
               rates: rates,
               selectedTimestamp: selectedTimestamp,
+              // The chart's time becomes the shared cursor, an index into the
+              // same series the profile draws, so the profile follows.
+              onCursorSeconds: (seconds) {
+                final notifier = ref.read(
+                  profileTrackingIndexProvider(dive.id).notifier,
+                );
+                final index = seconds == null
+                    ? null
+                    : indexForTimestamp(chartProfile, seconds);
+                if (notifier.state != index) notifier.state = index;
+              },
               laneSelector: display == GasConsumptionDisplay.both
                   ? _buildLaneSelector(context, ref, lane)
                   : null,

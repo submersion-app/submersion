@@ -129,6 +129,10 @@ class SacTimeColumns extends StatelessWidget {
   final ValueChanged<int> onScrub;
   final ValueChanged<int?> onHover;
 
+  /// The dive time under a hovering or dragging pointer, in seconds, then
+  /// null when it leaves or lifts. Drives the profile cursor (#4423).
+  final ValueChanged<int?>? onCursorSeconds;
+
   const SacTimeColumns({
     super.key,
     required this.columns,
@@ -139,6 +143,7 @@ class SacTimeColumns extends StatelessWidget {
     required this.onTap,
     required this.onScrub,
     required this.onHover,
+    this.onCursorSeconds,
   });
 
   /// The empty time ahead of the column at [index].
@@ -146,12 +151,26 @@ class SacTimeColumns extends StatelessWidget {
       columns[index].startSeconds -
       (index == 0 ? 0 : columns[index - 1].endSeconds);
 
+  /// The dive time at [dx]: the plot runs linearly from 0 to the last
+  /// column's end.
+  double _secondsAt(double plotWidth, double dx) =>
+      (dx / plotWidth).clamp(0.0, 1.0) * columns.last.endSeconds;
+
   /// The column at [dx], or the next one when [dx] falls in a gap.
   int _indexAt(double plotWidth, double dx) {
-    final fraction = (dx / plotWidth).clamp(0.0, 1.0);
-    final seconds = fraction * columns.last.endSeconds;
+    final seconds = _secondsAt(plotWidth, dx);
     final index = columns.indexWhere((c) => seconds <= c.endSeconds);
     return index < 0 ? columns.length - 1 : index;
+  }
+
+  void _hoverAt(double plotWidth, double dx) {
+    onHover(_indexAt(plotWidth, dx));
+    onCursorSeconds?.call(_secondsAt(plotWidth, dx).round());
+  }
+
+  void _scrubAt(double plotWidth, double dx) {
+    onScrub(_indexAt(plotWidth, dx));
+    onCursorSeconds?.call(_secondsAt(plotWidth, dx).round());
   }
 
   @override
@@ -209,16 +228,23 @@ class SacTimeColumns extends StatelessWidget {
   Widget _plot(ThemeData theme, double width) {
     final colorScheme = theme.colorScheme;
     return MouseRegion(
-      onHover: (event) => onHover(_indexAt(width, event.localPosition.dx)),
-      onExit: (_) => onHover(null),
+      onHover: (event) => _hoverAt(width, event.localPosition.dx),
+      onExit: (_) {
+        onHover(null);
+        onCursorSeconds?.call(null);
+      },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         excludeFromSemantics: true,
         onTapUp: (details) => onTap(_indexAt(width, details.localPosition.dx)),
         onHorizontalDragStart: (details) =>
-            onScrub(_indexAt(width, details.localPosition.dx)),
+            _scrubAt(width, details.localPosition.dx),
         onHorizontalDragUpdate: (details) =>
-            onScrub(_indexAt(width, details.localPosition.dx)),
+            _scrubAt(width, details.localPosition.dx),
+        // Lifting clears the profile cursor, as it does on the profile chart;
+        // the scrubbed column stays pinned in the card.
+        onHorizontalDragEnd: (_) => onCursorSeconds?.call(null),
+        onHorizontalDragCancel: () => onCursorSeconds?.call(null),
         child: Stack(
           fit: StackFit.expand,
           children: [

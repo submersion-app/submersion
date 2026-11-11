@@ -416,4 +416,70 @@ void main() {
       handle.dispose();
     });
   });
+
+  // Hovering the time chart moves the dive's profile cursor to the moment
+  // under the pointer, so the profile and its pinned strip follow (#4423).
+  group('profile cursor from the time chart', () {
+    // The 20-minute fixture: column 1 (5-10 min) is centered at 37.5% of the
+    // plot, 450 s into the dive.
+    const columnOneSeconds = 450;
+
+    testWidgets('hovering reports the time under the pointer', (tester) async {
+      final reported = <int?>[];
+      await pumpSacSegmentsView(tester, onCursorSeconds: reported.add);
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(sacColumnCenter(tester, 1, 4));
+      await tester.pump();
+      expect(reported.last, closeTo(columnOneSeconds, 2));
+    });
+
+    testWidgets('leaving the chart reports null', (tester) async {
+      final reported = <int?>[];
+      await pumpSacSegmentsView(tester, onCursorSeconds: reported.add);
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(sacColumnCenter(tester, 1, 4));
+      await tester.pump();
+      await mouse.moveTo(Offset.zero);
+      await tester.pump();
+      expect(reported.last, isNull);
+    });
+
+    testWidgets('dragging reports times and lifting reports null', (
+      tester,
+    ) async {
+      final reported = <int?>[];
+      await pumpSacSegmentsView(tester, onCursorSeconds: reported.add);
+      final drag = await tester.startGesture(sacColumnCenter(tester, 0, 4));
+      for (var i = 1; i <= 4; i++) {
+        await drag.moveTo(
+          Offset.lerp(
+            sacColumnCenter(tester, 0, 4),
+            sacColumnCenter(tester, 1, 4),
+            i / 4,
+          )!,
+        );
+        await tester.pump();
+      }
+      expect(reported.last, closeTo(columnOneSeconds, 2));
+      await drag.up();
+      await tester.pump();
+      expect(reported.last, isNull);
+    });
+
+    testWidgets('hovering still highlights the column under the pointer', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester, onCursorSeconds: (_) {});
+      final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      addTearDown(mouse.removePointer);
+      await mouse.addPointer(location: Offset.zero);
+      await mouse.moveTo(sacColumnCenter(tester, 1, 4));
+      await tester.pump();
+      expect(find.textContaining('5-10 min'), findsWidgets);
+    });
+  });
 }
