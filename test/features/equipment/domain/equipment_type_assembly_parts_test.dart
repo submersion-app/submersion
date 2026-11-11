@@ -208,4 +208,16 @@ void main() {
     final hose = EquipmentAttributeCatalog.defFor('hose_length_m')!;
     expect(hose.dimension, AttributeDimension.shortLengthM);
   });
+
+  // Titanium plates were missing (issue #4464). The picker renders
+  // choiceKeys in this order: the metals together, the composite last.
+  test('a backplate can be steel, aluminum, titanium or carbon fiber', () {
+    final def = EquipmentAttributeCatalog.defFor('plate_material')!;
+    expect(def.kind, AttributeKind.choice);
+    expect(def.choiceKeys, ['steel', 'aluminum', 'titanium', 'carbon_fiber']);
+    expect(
+      attributeChoiceLabel(l10n, 'plate_material', 'titanium'),
+      'Titanium',
+    );
+  });
 }

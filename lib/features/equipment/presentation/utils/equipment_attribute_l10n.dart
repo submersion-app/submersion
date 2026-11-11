@@ -153,6 +153,7 @@ String attributeChoiceLabel(
   'connection_yoke' => l10n.attrChoice_connection_yoke,
   'plate_material_steel' => l10n.attrChoice_plate_material_steel,
   'plate_material_aluminum' => l10n.attrChoice_plate_material_aluminum,
+  'plate_material_titanium' => l10n.attrChoice_plate_material_titanium,
   'plate_material_carbon_fiber' => l10n.attrChoice_plate_material_carbon_fiber,
   'bcd_style_jacket' => l10n.attrChoice_bcd_style_jacket,
   'bcd_style_back_inflate' => l10n.attrChoice_bcd_style_back_inflate,

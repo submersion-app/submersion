@@ -11901,6 +11901,7 @@
   "attrChoice_plate_material_aluminum": "ألومنيوم",
   "attrChoice_plate_material_carbon_fiber": "ألياف الكربون",
   "attrChoice_plate_material_steel": "فولاذ",
+  "attrChoice_plate_material_titanium": "تيتانيوم",
   "attrChoice_unit_type_eccr": "CCR إلكتروني (eCCR)",
   "attrChoice_unit_type_mccr": "CCR يدوي (mCCR)",
   "attrChoice_unit_type_hccr": "CCR هجين (hCCR)",

@@ -11901,6 +11901,7 @@
   "attrChoice_plate_material_aluminum": "Aluminium",
   "attrChoice_plate_material_carbon_fiber": "Koolstofvezel",
   "attrChoice_plate_material_steel": "Staal",
+  "attrChoice_plate_material_titanium": "Titanium",
   "attrChoice_unit_type_eccr": "Elektronische CCR (eCCR)",
   "attrChoice_unit_type_mccr": "Handmatige CCR (mCCR)",
   "attrChoice_unit_type_hccr": "Hybride CCR (hCCR)",

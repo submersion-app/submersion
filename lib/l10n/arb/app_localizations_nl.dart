@@ -41020,6 +41020,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrChoice_plate_material_steel => 'Staal';
 
   @override
+  String get attrChoice_plate_material_titanium => 'Titanium';
+
+  @override
   String get attrChoice_unit_type_eccr => 'Elektronische CCR (eCCR)';
 
   @override

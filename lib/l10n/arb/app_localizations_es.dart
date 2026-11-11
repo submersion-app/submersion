@@ -41317,6 +41317,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrChoice_plate_material_steel => 'Acero';
 
   @override
+  String get attrChoice_plate_material_titanium => 'Titanio';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR electrónico (eCCR)';
 
   @override

@@ -40276,6 +40276,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrChoice_plate_material_steel => 'פלדה';
 
   @override
+  String get attrChoice_plate_material_titanium => 'טיטניום';
+
+  @override
   String get attrChoice_unit_type_eccr => 'CCR אלקטרוני (eCCR)';
 
   @override
