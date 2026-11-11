@@ -17,9 +17,10 @@ class TripCountryQueries {
   /// Each trip's countries, for the flags beside it (issue #4426), keyed by
   /// trip id. A trip with no recognisable country has no entry.
   ///
-  /// Reads the dives `TripRepository.getAllTripsWithStats` counts: [diverId]'s own, in the
-  /// statistics scope, with a larger trip counting its side trips' dives,
-  /// so a trip's flags and its dive count always agree. One query for every
+  /// Reads the dives `TripRepository.getAllTripsWithStats` counts:
+  /// [diverId]'s own, in the statistics scope, with a larger trip counting
+  /// its side trips' dives, so a trip's flags and its dive count always
+  /// agree. One query for every
   /// trip, so a list of trips costs one read. Countries come most dived
   /// first, a tie going to the one dived earlier; site names that mean one
   /// country ("Mexico", "México") count as one.

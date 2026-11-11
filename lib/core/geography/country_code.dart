@@ -12,6 +12,14 @@ const Map<String, String> _aliases = {
   'uae': 'AE',
   'dr congo': 'CD',
   'drc': 'CD',
+  // The formal English names: CLDR writes "Congo - Kinshasa", "St. Kitts &
+  // Nevis" and "St. Vincent & Grenadines", and the site country field
+  // suggests these (isoCountryNames).
+  'democratic republic of the congo': 'CD',
+  'republic of the congo': 'CG',
+  'saint kitts and nevis': 'KN',
+  'saint vincent and the grenadines': 'VC',
+  'burma': 'MM',
   'england': 'GB',
   'scotland': 'GB',
   'wales': 'GB',
@@ -83,6 +91,19 @@ String countryLookupKey(String text) {
 /// than a wrong one.
 String? countryCodeFor(String? text) {
   if (text == null) return null;
+  // A list resolves the same few stored countries in every row it builds,
+  // so each distinct text is folded once.
+  if (_resolved.containsKey(text)) return _resolved[text];
+  if (_resolved.length >= _maxResolved) _resolved.clear();
+  return _resolved[text] = _resolve(text);
+}
+
+/// Stored country texts already resolved, bounded so a stream of distinct
+/// texts (an import) cannot grow it without end.
+final Map<String, String?> _resolved = {};
+const int _maxResolved = 512;
+
+String? _resolve(String text) {
   final key = countryLookupKey(text);
   if (key.isEmpty) return null;
   final upper = key.toUpperCase();

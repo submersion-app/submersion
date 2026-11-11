@@ -47,6 +47,16 @@ void main() {
     expect(await storedValue(db), 1);
   });
 
+  test('the upgraded column is a boolean, as on a fresh install', () async {
+    final db = AppDatabase(dbAt(358));
+    addTearDown(db.close);
+    await storedValue(db);
+    await expectLater(
+      db.customStatement('UPDATE diver_settings SET show_country_flags = 2'),
+      throwsA(anything),
+    );
+  });
+
   test('a database already carrying the column keeps its value', () async {
     final db = AppDatabase(dbAt(358, stored: false));
     addTearDown(db.close);

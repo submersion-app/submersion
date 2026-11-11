@@ -130,6 +130,15 @@ class BuildTableTest(unittest.TestCase):
         table = gen.build_table([("Mexico", "MX"), ("MEXICO", "MX")])
         self.assertEqual(table, {"mexico": "MX"})
 
+    def test_drops_names_that_read_as_a_code(self):
+        # Spanish CLDR shortens the UK to "RU", which the app reads as the
+        # code for Russia before it ever looks at names.
+        table = gen.build_table(
+            [("RU", "GB"), ("Reino Unido", "GB")],
+            codes={"ru", "gb", "rus"},
+        )
+        self.assertEqual(table, {"reino unido": "GB"})
+
     def test_drops_denied_names(self):
         table = gen.build_table(
             [("Congo", "CG"), ("Mexico", "MX")], denied={"congo"}
@@ -183,7 +192,7 @@ class RenderDartTest(unittest.TestCase):
         self.assertIn("const Map<String, String> cldrCountryNameCodes", source)
         self.assertIn("const Map<String, String> alpha3ToAlpha2", source)
         self.assertIn("const Set<String> assignedAlpha2Codes", source)
-        self.assertNotIn("—", source)
+        self.assertNotIn("\u2014", source)
 
     def test_escapes_quotes_and_backslashes(self):
         source = gen.render_dart({"cote d'ivoire": "CI"}, {}, {"CI"}, "1")

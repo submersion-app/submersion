@@ -9,6 +9,8 @@ extension CountryFlagsMigrations on AppDatabase {
   Future<void> _assertShowCountryFlagsColumn() => _addColumnIfMissing(
     'diver_settings',
     'show_country_flags',
-    'INTEGER NOT NULL DEFAULT 1',
+    // The CHECK matches the constraint Drift gives a fresh install's
+    // boolean column, so an upgraded database has the same schema.
+    'INTEGER NOT NULL DEFAULT 1 CHECK (show_country_flags IN (0, 1))',
   );
 }

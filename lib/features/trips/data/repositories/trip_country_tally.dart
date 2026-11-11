@@ -6,7 +6,7 @@ import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 
 /// One stored country name's dives on one trip, as
-/// `TripRepository.getTripCountries` reads them (issue #4426).
+/// `TripCountryQueries.getTripCountries` reads them (issue #4426).
 typedef TripCountryRow = ({
   String tripId,
   String name,

@@ -134,12 +134,11 @@ final tripCountriesProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
+      // Covers trips and every dives write (a dive moved to another site
+      // included).
       invalidateOnTripListChanges(ref);
-      // A dive moved to another site, or a site's country edited, changes the
-      // flags without touching the trips table.
-      ref.invalidateSelfWhen(
-        ref.read(diveRepositoryProvider).watchDivesChanges(),
-      );
+      // A site's country edited changes the flags without touching the trips
+      // or dives tables.
       ref.invalidateSelfWhen(
         ref.read(siteRepositoryProvider).watchSitesChanges(),
       );

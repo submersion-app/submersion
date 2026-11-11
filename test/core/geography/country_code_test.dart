@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/geography/country_names.generated.dart';
 import 'package:submersion/core/text/text_sort.dart';
+import 'package:submersion/features/dive_sites/domain/constants/iso_countries.dart';
 
 void main() {
   group('countryCodeFor', () {
@@ -58,6 +59,21 @@ void main() {
       expectCode('Costa  Rica', 'CR');
       expectCode('United States of America', 'US');
       expectCode('UAE', 'AE');
+    });
+
+    test('every name the site country field suggests resolves', () {
+      // A diver who picks a suggestion should get its flag. "Congo" alone is
+      // deliberately ambiguous (see below).
+      final unresolved = [
+        for (final name in isoCountryNames)
+          if (name != 'Congo' && countryCodeFor(name) == null) name,
+      ];
+      expect(unresolved, isEmpty);
+      expectCode('Democratic Republic of the Congo', 'CD');
+      expectCode('Republic of the Congo', 'CG');
+      expectCode('Saint Kitts and Nevis', 'KN');
+      expectCode('Saint Vincent and the Grenadines', 'VC');
+      expectCode('Burma', 'MM');
     });
 
     test('a name more than one country goes by gives no code', () {

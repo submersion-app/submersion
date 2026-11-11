@@ -173,14 +173,17 @@ def official_languages(territory_info: dict) -> dict[str, set[str]]:
     return result
 
 
-def build_table(pairs, denied=frozenset()) -> dict[str, str]:
+def build_table(pairs, denied=frozenset(), codes=frozenset()) -> dict[str, str]:
     """Folded name to code, dropping blank names and any name two codes share.
 
     [denied] holds folded names CLDR gives one country but people use for
-    more than one (DENIED_NAMES), which are dropped too.
+    more than one (DENIED_NAMES), which are dropped too. [codes] holds every
+    assigned alpha-2 and alpha-3 code, folded: the app reads such text as a
+    code before it looks at names, so a name that folds to one (Spanish
+    CLDR's "RU" for the UK) could never match and is dropped.
     """
     table: dict[str, str] = {}
-    ambiguous: set[str] = set(denied)
+    ambiguous: set[str] = set(denied) | set(codes)
     for name, code in pairs:
         key = fold(name)
         if not key or key in ambiguous:
@@ -264,9 +267,14 @@ def main() -> None:
         if language in PLACE_NAME_LANGUAGES or language not in available:
             continue
         pairs += names_from_locale(_territories(language), assigned, only=codes)
-    table = build_table(pairs, denied=DENIED_NAMES)
+    alpha3 = alpha3_map(code_mappings, deprecated)
+    table = build_table(
+        pairs,
+        denied=DENIED_NAMES,
+        codes={fold(code) for code in [*assigned, *alpha3]},
+    )
     source = render_dart(
-        table, alpha3_map(code_mappings, deprecated), assigned, CLDR_VERSION
+        table, alpha3, assigned, CLDR_VERSION
     )
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as out:
