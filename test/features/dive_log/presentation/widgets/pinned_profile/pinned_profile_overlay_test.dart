@@ -294,16 +294,41 @@ void main() {
     );
   });
 
-  testWidgets('without the strip, scrolling to a section is unchanged', (
+  // The callers ("Open in notes", "Safety finding details") sit on the
+  // profile card, where the strip is not yet showing; it pins on the way to
+  // the section, so the room is decided by where the page ends up (review I1).
+  testWidgets(
+    'jumping from the top leaves the section clear of the strip it pins',
+    (tester) async {
+      final target = GlobalKey();
+      await pump(tester, profileKey: GlobalKey(), targetKey: target);
+      expect(find.byType(PinnedProfileStrip), findsNothing);
+
+      await ensureVisibleBelowPinnedStrip(target.currentContext!);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PinnedProfileStrip), findsOneWidget);
+      final overlayTop = tester
+          .getTopLeft(find.byType(PinnedProfileOverlay))
+          .dy;
+      expect(
+        tester.getTopLeft(find.byKey(target)).dy - overlayTop,
+        greaterThanOrEqualTo(kPinnedStripHeight - 0.5),
+      );
+    },
+  );
+
+  testWidgets('jumping to the profile card itself is not offset', (
     tester,
   ) async {
-    final target = GlobalKey();
-    await pump(tester, profileKey: GlobalKey(), targetKey: target);
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey);
+    await jump(tester, 50);
 
-    await ensureVisibleBelowPinnedStrip(target.currentContext!);
+    await ensureVisibleBelowPinnedStrip(profileKey.currentContext!);
     await tester.pumpAndSettle();
 
     final overlayTop = tester.getTopLeft(find.byType(PinnedProfileOverlay)).dy;
-    expect(tester.getTopLeft(find.byKey(target)).dy - overlayTop, 0);
+    expect(tester.getTopLeft(find.byKey(profileKey)).dy - overlayTop, 0);
   });
 }

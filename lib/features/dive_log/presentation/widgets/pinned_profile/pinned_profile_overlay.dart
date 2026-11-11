@@ -47,8 +47,12 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
   ProfilePlotFrame? _measuredFrame;
   double _pixels = 0;
 
-  /// Whether the strip is fully pinned, rather than still condensing.
-  bool get showingStrip => _progress >= 1;
+  /// Whether the page, scrolled to [pixels], has the strip (pinned or still
+  /// condensing) over its top: the card's top is above the viewport's.
+  bool coversTopAt(double pixels) {
+    final card = _cardInContent;
+    return card != null && card.top - pixels < 0;
+  }
 
   Rect? get _card => _cardInContent?.shift(Offset(0, -_pixels));
 
@@ -223,7 +227,7 @@ Future<void> ensureVisibleBelowPinnedStrip(
 }) {
   final overlay = target.findAncestorStateOfType<_PinnedProfileOverlayState>();
   final object = target.findRenderObject();
-  if (overlay == null || !overlay.showingStrip || object == null) {
+  if (overlay == null || object == null) {
     return Scrollable.ensureVisible(
       target,
       duration: duration,
@@ -235,7 +239,10 @@ Future<void> ensureVisibleBelowPinnedStrip(
   final reveal = RenderAbstractViewport.of(
     object,
   ).getOffsetToReveal(object, alignment);
-  final offset = (reveal.offset - kPinnedStripHeight).clamp(
+  // Decided by where the page ends up, not where it is: the jump usually
+  // starts from the profile card itself, and the strip pins on the way.
+  final room = overlay.coversTopAt(reveal.offset) ? kPinnedStripHeight : 0.0;
+  final offset = (reveal.offset - room).clamp(
     position.minScrollExtent,
     position.maxScrollExtent,
   );
