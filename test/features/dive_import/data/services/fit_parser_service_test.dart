@@ -299,12 +299,15 @@ DataMessage _genericTank(int globalId, Map<int, int> values) {
   return m;
 }
 
-/// A dive FIT file with air-integration: a tank_summary (323) and a tank_update
-/// (319) per record, all on one transmitter, plus one gas mix.
-Uint8List buildAiDiveFitFile() {
+/// A dive FIT file with air-integration: a tank_summary (323) per transmitter
+/// in [sensors] and a tank_update (319) per record and transmitter, plus a gas
+/// mix per entry in [o2Percents]. The default is one transmitter on EAN28.
+Uint8List buildAiDiveFitFile({
+  List<int> sensors = const [2772884913],
+  List<int> o2Percents = const [28],
+}) {
   final builder = FitFileBuilder(autoDefine: true, minStringSize: 50);
   final start = DateTime.utc(2025, 9, 8, 9, 19, 49);
-  const sensor = 2772884913;
 
   builder.add(
     FileIdMessage()
@@ -316,7 +319,9 @@ Uint8List buildAiDiveFitFile() {
   );
 
   // tank_summary: start 22125 -> 221.25 bar, end 8811 -> 88.11 bar, vol 199350.
-  builder.add(_genericTank(323, {0: sensor, 1: 22125, 2: 8811, 3: 199350}));
+  for (final sensor in sensors) {
+    builder.add(_genericTank(323, {0: sensor, 1: 22125, 2: 8811, 3: 199350}));
+  }
 
   const depths = [2.0, 20.0, 5.0];
   const pressuresRaw = [22000, 15000, 9000];
@@ -330,18 +335,22 @@ Uint8List buildAiDiveFitFile() {
     );
     // tank_update at the same instant; field 253 is raw FIT-epoch seconds.
     final fitSec = t.millisecondsSinceEpoch ~/ 1000 - 631065600;
-    builder.add(
-      _genericTank(319, {253: fitSec, 0: sensor, 1: pressuresRaw[i]}),
-    );
+    for (final sensor in sensors) {
+      builder.add(
+        _genericTank(319, {253: fitSec, 0: sensor, 1: pressuresRaw[i]}),
+      );
+    }
   }
 
-  builder.add(
-    DiveGasMessage()
-      ..messageIndex = 0
-      ..oxygenContent = 28
-      ..heliumContent = 0
-      ..status = DiveGasStatus.enabled,
-  );
+  for (var g = 0; g < o2Percents.length; g++) {
+    builder.add(
+      DiveGasMessage()
+        ..messageIndex = g
+        ..oxygenContent = o2Percents[g]
+        ..heliumContent = 0
+        ..status = DiveGasStatus.enabled,
+    );
+  }
   builder.add(
     SessionMessage()
       ..sport = Sport.diving
@@ -870,6 +879,7 @@ void main() {
         expect(dive.tanks, hasLength(1));
         expect(dive.tanks.single.o2Percent, 28);
         expect(dive.tanks.single.startPressureBar, isNull);
+        expect(dive.tanks.single.transmitterSerial, isNull);
         // Recorded deco values present on the deep sample.
         expect(dive.profile.any((s) => s.ceiling == 6.0), isTrue);
         expect(dive.profile.any((s) => s.ttsSeconds == 480), isTrue);
@@ -891,6 +901,8 @@ void main() {
         // Cylinder volume derived from volume_used / pressure_drop:
         // 1993.5 / (221.25 - 88.11) = 14.97 -> rounded to 15.0 L.
         expect(tank.volumeLiters, closeTo(15.0, 1e-9));
+        // The transmitter's ANT channel id, as the file records it (#4419).
+        expect(tank.transmitterSerial, '2772884913');
 
         // The pressure series is merged onto the contemporaneous depth samples.
         final withPressure = dive.profile
@@ -902,6 +914,33 @@ void main() {
         expect(firstReading.pressureBar, closeTo(220.0, 1e-6));
       },
     );
+  });
+
+  group('transmitter serials (#4419)', () {
+    test('each sidemount transmitter keeps its own serial', () async {
+      final dive = await service.parseFitFile(
+        buildAiDiveFitFile(sensors: const [2772884913, 2504425580]),
+      );
+
+      expect(dive, isNotNull);
+      expect(dive!.tanks.map((t) => t.transmitterSerial), [
+        '2772884913',
+        '2504425580',
+      ]);
+    });
+
+    test('a gas with no transmitter of its own has no serial', () async {
+      // One transmitter, two gases: the second tank comes from the gas list
+      // alone, so it must not borrow the first tank's transmitter.
+      final dive = await service.parseFitFile(
+        buildAiDiveFitFile(o2Percents: const [28, 50]),
+      );
+
+      expect(dive!.tanks, hasLength(2));
+      expect(dive.tanks[0].transmitterSerial, '2772884913');
+      expect(dive.tanks[1].o2Percent, 50);
+      expect(dive.tanks[1].transmitterSerial, isNull);
+    });
   });
 
   group('parseFitFiles', () {

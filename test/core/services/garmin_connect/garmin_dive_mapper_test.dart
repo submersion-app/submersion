@@ -384,6 +384,21 @@ void main() {
       expect(result.dive.tanks[1].hePercent, 0.0);
     });
 
+    test('carries each tank\'s transmitter serial (#4419)', () {
+      final result = GarminDiveMapper.map(
+        _dive(
+          tanks: const [
+            ImportedTank(order: 0, transmitterSerial: '2772884913'),
+            ImportedTank(order: 1),
+          ],
+        ),
+        activityId: 1,
+      );
+
+      expect(result.dive.tanks[0].transmitterSerial, '2772884913');
+      expect(result.dive.tanks[1].transmitterSerial, isNull);
+    });
+
     test('maps gas switches, defaulting a missing depth to zero', () {
       final result = GarminDiveMapper.map(
         _dive(

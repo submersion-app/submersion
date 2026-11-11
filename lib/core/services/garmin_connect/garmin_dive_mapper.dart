@@ -199,6 +199,7 @@ class GarminDiveMapper {
           startPressure: tank.startPressureBar,
           endPressure: tank.endPressureBar,
           volumeLiters: tank.volumeLiters,
+          transmitterSerial: tank.transmitterSerial,
         ),
     ];
   }
