@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 /// Reads a diver's portrait for the PDF front matter.
 typedef DiverPhotoLoader = Future<Uint8List?> Function(String? photoPath);
@@ -21,6 +22,18 @@ Future<Uint8List?> loadDiverPhotoFromDisk(String? photoPath) async {
     return null;
   }
 }
+
+/// The portrait of [diver] for the PDF front matter: their profile photo
+/// bytes ([Diver.photo], what the app's avatars show), or else the file at
+/// their legacy [Diver.photoPath] read through [loadFromPath].
+///
+/// The bytes supersede the path, and a diver given a photo in the app may
+/// have no path at all, so reading only the path printed the placeholder
+/// frame for them (#4458).
+Future<Uint8List?> diverPortrait(
+  Diver? diver,
+  DiverPhotoLoader loadFromPath,
+) async => diver?.photo ?? await loadFromPath(diver?.photoPath);
 
 /// The loader every PDF export entry point reads the portrait through.
 ///

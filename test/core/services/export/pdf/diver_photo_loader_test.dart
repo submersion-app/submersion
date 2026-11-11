@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 /// The portrait is decorative: a logbook export must still produce a PDF when
 /// the file behind `Diver.photoPath` has moved, so every failure resolves to
@@ -38,4 +39,47 @@ void main() {
       expect(await loadDiverPhotoFromDisk(tempDir.path), isNull);
     },
   );
+
+  group('diverPortrait (#4458)', () {
+    final now = DateTime(2026, 1, 1);
+    final paths = <String?>[];
+    Future<Uint8List?> fromPath(String? path) async {
+      paths.add(path);
+      return path == null ? null : Uint8List.fromList([9]);
+    }
+
+    setUp(paths.clear);
+
+    test('prefers the profile photo bytes over the legacy path', () async {
+      final bytes = Uint8List.fromList([1, 2]);
+      final diver = Diver(
+        id: 'd',
+        name: 'D',
+        photo: bytes,
+        photoPath: '/legacy.jpg',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      expect(await diverPortrait(diver, fromPath), same(bytes));
+      expect(paths, isEmpty, reason: 'the file is not read at all');
+    });
+
+    test('falls back to the legacy path without bytes', () async {
+      final diver = Diver(
+        id: 'd',
+        name: 'D',
+        photoPath: '/legacy.jpg',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      expect(await diverPortrait(diver, fromPath), [9]);
+      expect(paths, ['/legacy.jpg']);
+    });
+
+    test('is null with no diver', () async {
+      expect(await diverPortrait(null, fromPath), isNull);
+    });
+  });
 }

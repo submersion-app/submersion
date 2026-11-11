@@ -430,7 +430,7 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
       // leaves the Detailed front matter on its placeholder frame. An
       // unreadable portrait still keeps the diver.
       diverPhoto = await _valueOrNull<Uint8List?>(
-        ref.read(diverPhotoLoaderProvider)(owner?.photoPath),
+        diverPortrait(owner, ref.read(diverPhotoLoaderProvider)),
       );
       diver = owner;
       // Awaited, not read from the page's snapshot: an export started while

@@ -418,6 +418,29 @@ void main() {
       expect(exportService.pdfDiver?.id, 'owner');
     });
 
+    testWidgets("the owner's profile photo bytes are the portrait, with no "
+        'legacy path (#4458)', (tester) async {
+      final bytes = Uint8List.fromList([7, 7, 7]);
+      dive = dive.copyWith(diverId: 'owner');
+      await pumpAndOpenExportSheet(
+        tester,
+        diver: diver,
+        diversById: {
+          'owner': Diver(
+            id: 'owner',
+            name: 'Bo',
+            photo: bytes,
+            createdAt: DateTime(2026, 1, 1),
+            updatedAt: DateTime(2026, 1, 1),
+          ),
+        },
+        photoLoader: (path) async => null,
+      );
+      await choosePdfAndDestination(tester, 'Save to Files');
+
+      expect(exportService.pdfDiverPhoto, same(bytes));
+    });
+
     testWidgets("a sibling dive's PDF carries its owner's certification "
         'cards (#4458)', (tester) async {
       dive = dive.copyWith(diverId: 'owner');
