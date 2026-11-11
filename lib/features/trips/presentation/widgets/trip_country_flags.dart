@@ -19,6 +19,7 @@ class TripCountryFlags extends ConsumerWidget {
     required this.tripId,
     this.maxFlags,
     this.flagHeight = 11,
+    this.gap = 0,
   });
 
   final String tripId;
@@ -27,6 +28,10 @@ class TripCountryFlags extends ConsumerWidget {
   final int? maxFlags;
 
   final double flagHeight;
+
+  /// Space before the flags, drawn only when there are flags, so a trip
+  /// with none leaves no stray gap after its name.
+  final double gap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -43,32 +48,35 @@ class TripCountryFlags extends ConsumerWidget {
         .map((c) => c.name)
         .join(context.l10n.trips_countryFlags_separator);
 
-    return Tooltip(
-      message: names,
-      excludeFromSemantics: true,
-      child: Semantics(
-        label: context.l10n.trips_countryFlags_semantics(names),
-        excludeSemantics: true,
-        // A Wrap, so a trip with more flags than fit on the line (all of
-        // them, on trip details) runs onto another line instead of
-        // overflowing.
-        child: Wrap(
-          spacing: 2,
-          runSpacing: 2,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            for (final country in shown)
-              CountryFlag(code: country.code, height: flagHeight),
-            if (hidden > 0) ...[
-              const SizedBox(width: 1),
-              Text(
-                context.l10n.trips_countryFlags_more(hidden),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+    return Padding(
+      padding: EdgeInsetsDirectional.only(start: gap),
+      child: Tooltip(
+        message: names,
+        excludeFromSemantics: true,
+        child: Semantics(
+          label: context.l10n.trips_countryFlags_semantics(names),
+          excludeSemantics: true,
+          // A Wrap, so a trip with more flags than fit on the line (all of
+          // them, on trip details) runs onto another line instead of
+          // overflowing.
+          child: Wrap(
+            spacing: 2,
+            runSpacing: 2,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final country in shown)
+                CountryFlag(code: country.code, height: flagHeight),
+              if (hidden > 0) ...[
+                const SizedBox(width: 1),
+                Text(
+                  context.l10n.trips_countryFlags_more(hidden),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

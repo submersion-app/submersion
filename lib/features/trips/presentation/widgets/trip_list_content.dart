@@ -1171,8 +1171,7 @@ class TripListTile extends ConsumerWidget {
                 child: Row(
                   children: [
                     Flexible(child: Text(trip.name)),
-                    const SizedBox(width: 6),
-                    TripCountryFlags(tripId: trip.id, maxFlags: 3),
+                    TripCountryFlags(tripId: trip.id, maxFlags: 3, gap: 6),
                   ],
                 ),
               ),

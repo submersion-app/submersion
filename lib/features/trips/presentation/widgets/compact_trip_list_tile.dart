@@ -89,8 +89,11 @@ class CompactTripListTile extends ConsumerWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
-                                TripCountryFlags(tripId: trip.id, maxFlags: 3),
+                                TripCountryFlags(
+                                  tripId: trip.id,
+                                  maxFlags: 3,
+                                  gap: 6,
+                                ),
                               ],
                             ),
                           ),

@@ -88,8 +88,7 @@ class DenseTripListTile extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      TripCountryFlags(tripId: trip.id, maxFlags: 3),
+                      TripCountryFlags(tripId: trip.id, maxFlags: 3, gap: 6),
                       if (nestingNote != null) ...[
                         const SizedBox(width: 8),
                         Flexible(

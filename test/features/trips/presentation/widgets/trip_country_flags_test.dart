@@ -114,4 +114,14 @@ void main() {
     final tooltip = tester.widget<Tooltip>(find.byType(Tooltip));
     expect(tooltip.message, 'Mexico、Belize');
   });
+
+  testWidgets('the gap before the flags goes with them', (tester) async {
+    await _pump(tester, const TripCountryFlags(tripId: 'other', gap: 6));
+    expect(tester.getSize(find.byType(TripCountryFlags)), Size.zero);
+
+    await _pump(tester, const TripCountryFlags(tripId: 't1', gap: 6));
+    final group = tester.getTopLeft(find.byType(TripCountryFlags));
+    final first = tester.getTopLeft(find.byType(CountryFlag).first);
+    expect(first.dx - group.dx, 6);
+  });
 }
