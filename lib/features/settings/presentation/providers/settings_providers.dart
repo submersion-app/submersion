@@ -2097,69 +2097,117 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await prefs.setString(cachedThemePresetKey, state.themePresetId);
   }
 
-  Future<void> setDepthUnit(DepthUnit unit) async {
-    state = state.copyWith(depthUnit: unit);
-    await _saveSettings();
+  /// The last change still waiting in [_update] to apply, or null when none
+  /// is. Each waiting change applies after the one before it, and a change
+  /// made while any waits joins the queue rather than applying at once, so
+  /// changes apply in the order they were made.
+  Future<void>? _queuedChange;
+
+  /// Applies [change] to the settings and saves the result. Every setter
+  /// changes the settings through this.
+  ///
+  /// Until the current diver's settings have loaded, [state] holds the
+  /// defaults (or, after a diver switch, the previous diver's settings), and
+  /// the load replaces it whole when it lands. A change applied before then
+  /// would be saved to no row and then overwritten, losing the diver's
+  /// choice (issue #4449). So until the load lands this waits for
+  /// [settingsLoaded] and applies [change] to the settings it left, which
+  /// also lets a change worked out from the current settings (a set gaining
+  /// an entry) build on the diver's rather than on the defaults. A failed
+  /// load is already logged where it started and leaves the defaults, so the
+  /// change applies on top of them. Once the load has landed, and no earlier
+  /// change is still waiting, the change applies at once, before this
+  /// returns.
+  ///
+  /// [change] returning its argument itself means there is nothing to
+  /// change, and nothing is saved. [devicePrefs] is passed to
+  /// [_saveSettings].
+  Future<void> _update(
+    AppSettings Function(AppSettings current) change, {
+    bool devicePrefs = true,
+  }) async {
+    // Runs synchronously up to the save's first await, so [state] holds the
+    // change, and the save has taken its turn, by the time it returns.
+    Future<void> apply() async {
+      // Disposed (a soft restart tears the scope down): nothing to change.
+      if (!mounted) return;
+      final current = state;
+      final next = change(current);
+      if (identical(next, current)) return;
+      state = next;
+      await _saveSettings(devicePrefs: devicePrefs);
+    }
+
+    final before = _queuedChange;
+    if (before == null && _landedGeneration == _loadGeneration) {
+      return apply();
+    }
+    final applied = Completer<void>();
+    final ticket = applied.future;
+    _queuedChange = ticket;
+    Future<void> saving;
+    try {
+      if (before != null) await before;
+      try {
+        await settingsLoaded;
+      } catch (_) {
+        // Already logged by the load; the defaults are the fallback.
+      }
+      saving = apply();
+    } finally {
+      if (identical(_queuedChange, ticket)) _queuedChange = null;
+      applied.complete();
+    }
+    await saving;
   }
 
-  Future<void> setTemperatureUnit(TemperatureUnit unit) async {
-    state = state.copyWith(temperatureUnit: unit);
-    await _saveSettings();
-  }
+  Future<void> setDepthUnit(DepthUnit unit) =>
+      _update((s) => s.copyWith(depthUnit: unit));
 
-  Future<void> setPressureUnit(PressureUnit unit) async {
-    state = state.copyWith(
+  Future<void> setTemperatureUnit(TemperatureUnit unit) =>
+      _update((s) => s.copyWith(temperatureUnit: unit));
+
+  Future<void> setPressureUnit(PressureUnit unit) => _update(
+    (s) => s.copyWith(
       pressureUnit: unit,
-      plannerReservePressure: _plannerReserveFor(unit),
-    );
-    await _saveSettings();
-  }
+      plannerReservePressure: _plannerReserveFor(s, unit),
+    ),
+  );
 
-  /// The planner reserve-pressure default after a switch to [unit] (issue
-  /// #3552): a reserve still on a unit's convention (50 bar, or 500 psi)
+  /// The planner reserve-pressure default when [settings] switch to [unit]
+  /// (issue #3552): a reserve still on a unit's convention (50 bar, or 500 psi)
   /// moves to [unit]'s convention, as every new plan's reserve did before
   /// it became a Setting, so a diver who picks psi after the row was
   /// created gets 500 psi rather than 725. A reserve the diver set to any
   /// other value is kept.
-  double _plannerReserveFor(PressureUnit unit) {
+  static double _plannerReserveFor(AppSettings settings, PressureUnit unit) {
     const metric = 50.0;
     final imperial = PressureUnit.psi.convert(500, PressureUnit.bar);
-    final current = state.plannerReservePressure;
+    final current = settings.plannerReservePressure;
     final onConvention =
         (current - metric).abs() < 0.01 || (current - imperial).abs() < 0.01;
     if (!onConvention) return current;
     return unit == PressureUnit.psi ? imperial : metric;
   }
 
-  Future<void> setVolumeUnit(VolumeUnit unit) async {
-    state = state.copyWith(volumeUnit: unit);
-    await _saveSettings();
-  }
+  Future<void> setVolumeUnit(VolumeUnit unit) =>
+      _update((s) => s.copyWith(volumeUnit: unit));
 
-  Future<void> setWeightUnit(WeightUnit unit) async {
-    state = state.copyWith(weightUnit: unit);
-    await _saveSettings();
-  }
+  Future<void> setWeightUnit(WeightUnit unit) =>
+      _update((s) => s.copyWith(weightUnit: unit));
 
-  Future<void> setGasConsumptionDisplay(GasConsumptionDisplay display) async {
-    state = state.copyWith(gasConsumptionDisplay: display);
-    await _saveSettings();
-  }
+  Future<void> setGasConsumptionDisplay(GasConsumptionDisplay display) =>
+      _update((s) => s.copyWith(gasConsumptionDisplay: display));
 
-  Future<void> setGasModel(GasModel model) async {
-    state = state.copyWith(gasModel: model);
-    await _saveSettings();
-  }
+  Future<void> setGasModel(GasModel model) =>
+      _update((s) => s.copyWith(gasModel: model));
 
-  Future<void> setDefaultPlannerWaterType(PlannerWaterType type) async {
-    state = state.copyWith(defaultPlannerWaterType: type);
-    await _saveSettings();
-  }
+  Future<void> setDefaultPlannerWaterType(PlannerWaterType type) =>
+      _update((s) => s.copyWith(defaultPlannerWaterType: type));
 
-  Future<void> setDefaultCurrency(String currencyCode) async {
-    state = state.copyWith(defaultCurrency: currencyCode.trim().toUpperCase());
-    await _saveSettings();
-  }
+  Future<void> setDefaultCurrency(String currencyCode) => _update(
+    (s) => s.copyWith(defaultCurrency: currencyCode.trim().toUpperCase()),
+  );
 
   /// Sets the visibility calibration.
   ///
@@ -2171,92 +2219,60 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     double? excellentM,
     double? goodM,
     double? moderateM,
-  }) async {
-    state = state.copyWith(
+  }) => _update(
+    (s) => s.copyWith(
       visibilityScalePreset: preset,
       visibilityScaleExcellentM: excellentM,
       visibilityScaleGoodM: goodM,
       visibilityScaleModerateM: moderateM,
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
-  Future<void> setCoordinateFormat(CoordinateFormat format) async {
-    state = state.copyWith(coordinateFormat: format);
-    await _saveSettings();
-  }
+  Future<void> setCoordinateFormat(CoordinateFormat format) =>
+      _update((s) => s.copyWith(coordinateFormat: format));
 
-  Future<void> setAltitudeUnit(AltitudeUnit unit) async {
-    state = state.copyWith(altitudeUnit: unit);
-    await _saveSettings();
-  }
+  Future<void> setAltitudeUnit(AltitudeUnit unit) =>
+      _update((s) => s.copyWith(altitudeUnit: unit));
 
-  Future<void> setDistanceUnit(DistanceUnit unit) async {
-    state = state.copyWith(distanceUnit: unit);
-    await _saveSettings();
-  }
+  Future<void> setDistanceUnit(DistanceUnit unit) =>
+      _update((s) => s.copyWith(distanceUnit: unit));
 
-  Future<void> setTimeFormat(TimeFormat format) async {
-    state = state.copyWith(timeFormat: format);
-    await _saveSettings();
-  }
+  Future<void> setTimeFormat(TimeFormat format) =>
+      _update((s) => s.copyWith(timeFormat: format));
 
-  Future<void> setDateFormat(DateFormatPreference format) async {
-    state = state.copyWith(dateFormat: format);
-    await _saveSettings();
-  }
+  Future<void> setDateFormat(DateFormatPreference format) =>
+      _update((s) => s.copyWith(dateFormat: format));
 
-  Future<void> setFirstDayOfWeek(FirstDayOfWeek day) async {
-    state = state.copyWith(firstDayOfWeek: day);
-    await _saveSettings();
-  }
+  Future<void> setFirstDayOfWeek(FirstDayOfWeek day) =>
+      _update((s) => s.copyWith(firstDayOfWeek: day));
 
-  Future<void> setThemeMode(ThemeMode mode) async {
-    state = state.copyWith(themeMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setThemeMode(ThemeMode mode) =>
+      _update((s) => s.copyWith(themeMode: mode));
 
-  Future<void> setThemePresetId(String presetId) async {
-    state = state.copyWith(themePresetId: presetId);
-    await _saveSettings();
-  }
+  Future<void> setThemePresetId(String presetId) =>
+      _update((s) => s.copyWith(themePresetId: presetId));
 
-  Future<void> setAccentNavIcons(bool value) async {
-    state = state.copyWith(accentNavIcons: value);
-    await _saveSettings();
-  }
+  Future<void> setAccentNavIcons(bool value) =>
+      _update((s) => s.copyWith(accentNavIcons: value));
 
-  Future<void> setAccentSectionHeaders(bool value) async {
-    state = state.copyWith(accentSectionHeaders: value);
-    await _saveSettings();
-  }
+  Future<void> setAccentSectionHeaders(bool value) =>
+      _update((s) => s.copyWith(accentSectionHeaders: value));
 
-  Future<void> setAccentListIcons(bool value) async {
-    state = state.copyWith(accentListIcons: value);
-    await _saveSettings();
-  }
+  Future<void> setAccentListIcons(bool value) =>
+      _update((s) => s.copyWith(accentListIcons: value));
 
-  Future<void> setLocale(String locale) async {
-    state = state.copyWith(locale: locale);
-    await _saveSettings();
-  }
+  Future<void> setLocale(String locale) =>
+      _update((s) => s.copyWith(locale: locale));
 
-  Future<void> setPlaceNameLanguage(String code) async {
-    state = state.copyWith(
-      placeNameLanguage: PlaceNameLanguage.normalize(code),
-    );
-    await _saveSettings();
-  }
+  Future<void> setPlaceNameLanguage(String code) => _update(
+    (s) => s.copyWith(placeNameLanguage: PlaceNameLanguage.normalize(code)),
+  );
 
-  Future<void> setDefaultDiveType(String diveType) async {
-    state = state.copyWith(defaultDiveType: diveType);
-    await _saveSettings();
-  }
+  Future<void> setDefaultDiveType(String diveType) =>
+      _update((s) => s.copyWith(defaultDiveType: diveType));
 
-  Future<void> setDefaultTankVolume(double volume) async {
-    state = state.copyWith(defaultTankVolume: volume);
-    await _saveSettings();
-  }
+  Future<void> setDefaultTankVolume(double volume) =>
+      _update((s) => s.copyWith(defaultTankVolume: volume));
 
   /// Lowest and highest default start pressure, in bar.
   static const double defaultStartPressureMin = 1;
@@ -2266,13 +2282,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// a non-finite value is ignored.
   Future<void> setDefaultStartPressure(double pressure) async {
     if (!pressure.isFinite) return;
-    state = state.copyWith(
-      defaultStartPressure: pressure.clamp(
-        defaultStartPressureMin,
-        defaultStartPressureMax,
+    await _update(
+      (s) => s.copyWith(
+        defaultStartPressure: pressure.clamp(
+          defaultStartPressureMin,
+          defaultStartPressureMax,
+        ),
       ),
     );
-    await _saveSettings();
   }
 
   /// Also shows [presetName] again if it was hidden: the default preset is
@@ -2280,12 +2297,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// dropped from the hidden set too, since a stale entry for it (a synced
   /// row can carry one) would otherwise hide it the moment it stops being
   /// the default, without the diver ever having switched it off.
-  Future<void> setDefaultTankPreset(String? presetName) async {
-    final hidden = state.hiddenTankPresetIds;
-    final previous = state.defaultTankPreset;
+  Future<void> setDefaultTankPreset(String? presetName) => _update((s) {
+    final hidden = s.hiddenTankPresetIds;
+    final previous = s.defaultTankPreset;
     final touchesHidden =
         hidden.contains(presetName) || hidden.contains(previous);
-    state = state.copyWith(
+    return s.copyWith(
       defaultTankPreset: presetName,
       clearDefaultTankPreset: presetName == null,
       hiddenTankPresetIds: touchesHidden
@@ -2295,22 +2312,21 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
             }
           : null,
     );
-    await _saveSettings();
-  }
+  });
 
   /// Hides or shows a built-in tank preset in the pickers (issue #2305).
   /// The current default preset cannot be hidden, so hiding it is a no-op.
-  Future<void> setTankPresetHidden(String presetName, bool hidden) async {
-    if (hidden && presetName == state.defaultTankPreset) return;
-    final ids = {...state.hiddenTankPresetIds};
-    if (hidden) {
-      ids.add(presetName);
-    } else {
-      ids.remove(presetName);
-    }
-    state = state.copyWith(hiddenTankPresetIds: ids);
-    await _saveSettings();
-  }
+  Future<void> setTankPresetHidden(String presetName, bool hidden) =>
+      _update((s) {
+        if (hidden && presetName == s.defaultTankPreset) return s;
+        final ids = {...s.hiddenTankPresetIds};
+        if (hidden) {
+          ids.add(presetName);
+        } else {
+          ids.remove(presetName);
+        }
+        return s.copyWith(hiddenTankPresetIds: ids);
+      });
 
   /// Hides or shows a built-in entry of [catalog] in the pickers (issue
   /// #401). The Manage pages still list it, and records that use it keep it.
@@ -2318,38 +2334,32 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     BuiltInCatalog catalog,
     String id,
     bool hidden,
-  ) async {
-    final next = withBuiltInHidden(state.hiddenBuiltInIds, catalog, id, hidden);
-    if (identical(next, state.hiddenBuiltInIds)) return;
-    state = state.copyWith(hiddenBuiltInIds: next);
-    await _saveSettings();
-  }
+  ) => _update((s) {
+    final next = withBuiltInHidden(s.hiddenBuiltInIds, catalog, id, hidden);
+    if (identical(next, s.hiddenBuiltInIds)) return s;
+    return s.copyWith(hiddenBuiltInIds: next);
+  });
 
-  Future<void> setApplyDefaultTankToImports(bool value) async {
-    state = state.copyWith(applyDefaultTankToImports: value);
-    await _saveSettings();
-  }
+  Future<void> setApplyDefaultTankToImports(bool value) =>
+      _update((s) => s.copyWith(applyDefaultTankToImports: value));
 
   // Decompression & Safety setters
 
   Future<void> setGfLow(int value) async {
     final clamped = value.clamp(0, 100);
-    state = state.copyWith(gfLow: clamped);
-    await _saveSettings();
+    await _update((s) => s.copyWith(gfLow: clamped));
   }
 
   Future<void> setGfHigh(int value) async {
     final clamped = value.clamp(0, 100);
-    state = state.copyWith(gfHigh: clamped);
-    await _saveSettings();
+    await _update((s) => s.copyWith(gfHigh: clamped));
   }
 
   /// Set both gradient factors at once
   Future<void> setGradientFactors(int low, int high) async {
     final clampedLow = low.clamp(0, 100);
     final clampedHigh = high.clamp(clampedLow, 100);
-    state = state.copyWith(gfLow: clampedLow, gfHigh: clampedHigh);
-    await _saveSettings();
+    await _update((s) => s.copyWith(gfLow: clampedLow, gfHigh: clampedHigh));
   }
 
   /// Selectable range for the working ppO2, matching the settings picker.
@@ -2365,14 +2375,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // Hold deco >= working, the same invariant [setPpO2Limits] keeps: a
     // working ceiling raised past the current deco ceiling carries deco up
     // with it, so the pair can never express "critical below warning".
-    final clampedDeco = state.ppO2MaxDeco < clampedWorking
-        ? clampedWorking
-        : state.ppO2MaxDeco;
-    state = state.copyWith(
-      ppO2MaxWorking: clampedWorking,
-      ppO2MaxDeco: clampedDeco,
+    await _update(
+      (s) => s.copyWith(
+        ppO2MaxWorking: clampedWorking,
+        ppO2MaxDeco: s.ppO2MaxDeco < clampedWorking
+            ? clampedWorking
+            : s.ppO2MaxDeco,
+      ),
     );
-    await _saveSettings();
   }
 
   Future<void> setPpO2MaxDeco(double value) async {
@@ -2380,14 +2390,14 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // Hold working <= deco: a deco ceiling lowered below the current working
     // ceiling pulls working down with it. clampedDeco is >= ppO2MaxMin (1.4),
     // itself above ppO2WorkingMin (1.2), so working stays on the grid.
-    final clampedWorking = state.ppO2MaxWorking > clampedDeco
-        ? clampedDeco
-        : state.ppO2MaxWorking;
-    state = state.copyWith(
-      ppO2MaxWorking: clampedWorking,
-      ppO2MaxDeco: clampedDeco,
+    await _update(
+      (s) => s.copyWith(
+        ppO2MaxWorking: s.ppO2MaxWorking > clampedDeco
+            ? clampedDeco
+            : s.ppO2MaxWorking,
+        ppO2MaxDeco: clampedDeco,
+      ),
     );
-    await _saveSettings();
   }
 
   /// Set both ppO2 ceilings at once, holding deco >= working, in a single
@@ -2397,11 +2407,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     final clampedMax = max
         .clamp(ppO2MaxMin, ppO2Ceiling)
         .clamp(clampedWorking, ppO2Ceiling);
-    state = state.copyWith(
-      ppO2MaxWorking: clampedWorking,
-      ppO2MaxDeco: clampedMax,
+    await _update(
+      (s) =>
+          s.copyWith(ppO2MaxWorking: clampedWorking, ppO2MaxDeco: clampedMax),
     );
-    await _saveSettings();
   }
 
   /// Per-O2-band deco ppO2 limits (issue #3580): a wider range than the
@@ -2460,17 +2469,16 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     required double band3,
     required bool maxO2DepthEnabled,
     required double maxO2DepthMeters,
-  }) async {
-    state = state.copyWith(
+  }) => _update(
+    (s) => s.copyWith(
       ppO2DecoBandsEnabled: bandsEnabled,
       ppO2DecoBand1: ppO2DecoBandOnGrid(band1),
       ppO2DecoBand2: ppO2DecoBandOnGrid(band2),
       ppO2DecoBand3: ppO2DecoBandOnGrid(band3),
       maxO2DepthEnabled: maxO2DepthEnabled,
       maxO2DepthMeters: maxO2DepthOnGrid(maxO2DepthMeters),
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
   /// Selectable range of the CCR ppO2 limits (issue #2342), on a 0.1 bar
   /// grid like the OC limits.
@@ -2492,18 +2500,18 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }) async {
     final low = ccrPpO2OnGrid(setpointLow);
     final high = ccrPpO2OnGrid(setpointHigh);
-    state = state.copyWith(
-      ccrSetpointLow: low,
-      ccrSetpointHigh: high < low ? low : high,
-      ccrDiluentModPpO2: ccrPpO2OnGrid(diluentModPpO2),
+    await _update(
+      (s) => s.copyWith(
+        ccrSetpointLow: low,
+        ccrSetpointHigh: high < low ? low : high,
+        ccrDiluentModPpO2: ccrPpO2OnGrid(diluentModPpO2),
+      ),
     );
-    await _saveSettings();
   }
 
   Future<void> setCnsWarningThreshold(int value) async {
     final clamped = value.clamp(50, 100);
-    state = state.copyWith(cnsWarningThreshold: clamped);
-    await _saveSettings();
+    await _update((s) => s.copyWith(cnsWarningThreshold: clamped));
   }
 
   /// Lowest and highest warning ascent rate, in m/min.
@@ -2525,177 +2533,159 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }) async {
     final w = warning.clamp(ascentRateWarningMin, ascentRateWarningMax);
     final c = critical.clamp(ascentRateCriticalMin, ascentRateCriticalMax);
-    state = state.copyWith(
-      ascentRateWarning: w,
-      ascentRateCritical: c < w ? w : c,
+    await _update(
+      (s) =>
+          s.copyWith(ascentRateWarning: w, ascentRateCritical: c < w ? w : c),
     );
-    await _saveSettings();
   }
 
-  Future<void> setShowCeilingOnProfile(bool value) async {
-    state = state.copyWith(showCeilingOnProfile: value);
-    await _saveSettings();
-  }
+  Future<void> setShowCeilingOnProfile(bool value) =>
+      _update((s) => s.copyWith(showCeilingOnProfile: value));
 
-  Future<void> setShowDecoStopsOnProfile(bool value) async {
-    state = state.copyWith(showDecoStopsOnProfile: value);
-    await _saveSettings();
-  }
+  Future<void> setShowDecoStopsOnProfile(bool value) =>
+      _update((s) => s.copyWith(showDecoStopsOnProfile: value));
 
-  Future<void> setSafetyReviewEnabled(bool value) async {
-    state = state.copyWith(safetyReviewEnabled: value);
-    await _saveSettings();
-  }
+  Future<void> setSafetyReviewEnabled(bool value) =>
+      _update((s) => s.copyWith(safetyReviewEnabled: value));
 
   Future<void> setColdWaterThresholdC(double value) =>
-      _commitThreshold(state.copyWith(coldWaterThresholdC: value));
+      _commitThreshold((s) => s.copyWith(coldWaterThresholdC: value));
 
   /// A negative depth line would count every dive with a depth as deep.
   Future<void> setDeepDiveThresholdM(double value) => _commitThreshold(
-    state.copyWith(deepDiveThresholdM: value < 0 ? 0.0 : value),
+    (s) => s.copyWith(deepDiveThresholdM: value < 0 ? 0.0 : value),
   );
 
   /// An O2 fraction outside 0 to 100 percent is not a mix that exists.
   Future<void> setHighO2ThresholdPercent(double value) => _commitThreshold(
-    state.copyWith(highO2ThresholdPercent: value.clamp(0.0, 100.0).toDouble()),
+    (s) =>
+        s.copyWith(highO2ThresholdPercent: value.clamp(0.0, 100.0).toDouble()),
   );
 
   /// Applies a threshold change and persists it, restoring the previous
   /// state when the write fails so the editing page's error and retry match
   /// what storage actually holds.
-  Future<void> _commitThreshold(AppSettings next) async {
-    final previous = state;
-    state = next;
+  ///
+  /// Only while [state] is still the change that failed: a change made
+  /// while the write was out was built on it, and its own save retries the
+  /// failed column, so restoring then would drop that later change.
+  Future<void> _commitThreshold(
+    AppSettings Function(AppSettings current) change,
+  ) async {
+    AppSettings? previous;
+    AppSettings? attempted;
     try {
-      await _saveSettings();
+      await _update((s) {
+        previous = s;
+        return attempted = change(s);
+      });
     } catch (_) {
-      state = previous;
+      final restore = previous;
+      if (restore != null && mounted && identical(state, attempted)) {
+        state = restore;
+      }
       rethrow;
     }
   }
 
+  /// [values] with [value] in it when [present], and without it otherwise.
+  static Set<String> _withMember(
+    Set<String> values,
+    String value,
+    bool present,
+  ) => present ? {...values, value} : values.difference({value});
+
   /// Show or hide one home gauge-strip chip type (id = HomeChipType.name).
-  Future<void> setHomeChipEnabled(String chipId, bool enabled) async {
-    final hidden = {...state.hiddenHomeChips};
-    if (enabled) {
-      hidden.remove(chipId);
-    } else {
-      hidden.add(chipId);
-    }
-    state = state.copyWith(hiddenHomeChips: hidden);
-    await _saveSettings();
-  }
+  Future<void> setHomeChipEnabled(String chipId, bool enabled) => _update(
+    (s) => s.copyWith(
+      hiddenHomeChips: _withMember(s.hiddenHomeChips, chipId, !enabled),
+    ),
+  );
 
   /// Show or hide one home card (id = HomeCardType.name).
-  Future<void> setHomeCardEnabled(String cardId, bool enabled) async {
-    final hidden = {...state.hiddenHomeCards};
-    if (enabled) {
-      hidden.remove(cardId);
-    } else {
-      hidden.add(cardId);
-    }
-    state = state.copyWith(hiddenHomeCards: hidden);
-    await _saveSettings();
-  }
+  Future<void> setHomeCardEnabled(String cardId, bool enabled) => _update(
+    (s) => s.copyWith(
+      hiddenHomeCards: _withMember(s.hiddenHomeCards, cardId, !enabled),
+    ),
+  );
 
   /// Persist the home card display order (HomeCardType.name values).
-  Future<void> setHomeCardOrder(List<String> order) async {
-    state = state.copyWith(homeCardOrder: List.unmodifiable(order));
-    await _saveSettings();
+  Future<void> setHomeCardOrder(List<String> order) {
+    // Copied now: the change may wait for the load, and the caller's list
+    // may change by then.
+    final copy = List<String>.unmodifiable(order);
+    return _update((s) => s.copyWith(homeCardOrder: copy));
   }
 
   /// Restore the default home card order and visibility.
-  Future<void> resetHomeCards() async {
-    state = state.copyWith(
+  Future<void> resetHomeCards() => _update(
+    (s) => s.copyWith(
       homeCardOrder: const <String>[],
       hiddenHomeCards: const <String>{},
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
-  Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) async {
-    final rules = {...state.safetyReviewDisabledRules};
-    if (enabled) {
-      rules.remove(rule.dbValue);
-    } else {
-      rules.add(rule.dbValue);
-    }
-    state = state.copyWith(safetyReviewDisabledRules: rules);
-    await _saveSettings();
-  }
+  Future<void> setSafetyRuleEnabled(SafetyRuleId rule, bool enabled) => _update(
+    (s) => s.copyWith(
+      safetyReviewDisabledRules: _withMember(
+        s.safetyReviewDisabledRules,
+        rule.dbValue,
+        !enabled,
+      ),
+    ),
+  );
 
-  Future<void> setConditionEngineEnabled(bool value) async {
-    state = state.copyWith(conditionEngineEnabled: value);
-    await _saveSettings();
-  }
+  Future<void> setConditionEngineEnabled(bool value) =>
+      _update((s) => s.copyWith(conditionEngineEnabled: value));
 
-  Future<void> setConditionRuleEnabled(
-    ConditionRuleId rule,
-    bool enabled,
-  ) async {
-    final rules = {...state.conditionDisabledRules};
-    if (enabled) {
-      rules.remove(rule.dbValue);
-    } else {
-      rules.add(rule.dbValue);
-    }
-    state = state.copyWith(conditionDisabledRules: rules);
-    await _saveSettings();
-  }
+  Future<void> setConditionRuleEnabled(ConditionRuleId rule, bool enabled) =>
+      _update(
+        (s) => s.copyWith(
+          conditionDisabledRules: _withMember(
+            s.conditionDisabledRules,
+            rule.dbValue,
+            !enabled,
+          ),
+        ),
+      );
 
   /// Mutes or unmutes one Insights observation rule (#2381), keeping any
   /// rule ids this build does not know.
-  Future<void> setObservationRuleMuted(
-    ObservationRuleId rule,
-    bool muted,
-  ) async {
-    final rules = {...state.insightsMutedObservationRules};
-    if (muted) {
-      rules.add(rule.dbValue);
-    } else {
-      rules.remove(rule.dbValue);
-    }
-    state = state.copyWith(insightsMutedObservationRules: rules);
-    await _saveSettings();
-  }
+  Future<void> setObservationRuleMuted(ObservationRuleId rule, bool muted) =>
+      _update(
+        (s) => s.copyWith(
+          insightsMutedObservationRules: _withMember(
+            s.insightsMutedObservationRules,
+            rule.dbValue,
+            muted,
+          ),
+        ),
+      );
 
-  Future<void> setNoFlyPreset(NoFlyPreset preset) async {
-    state = state.copyWith(noFlyPreset: preset);
-    await _saveSettings();
-  }
+  Future<void> setNoFlyPreset(NoFlyPreset preset) =>
+      _update((s) => s.copyWith(noFlyPreset: preset));
 
-  Future<void> setChamberHidden(String chamberId, bool hidden) async {
-    final ids = {...state.hiddenChamberIds};
-    if (hidden) {
-      ids.add(chamberId);
-    } else {
-      ids.remove(chamberId);
-    }
-    state = state.copyWith(hiddenChamberIds: ids);
-    await _saveSettings();
-  }
+  Future<void> setChamberHidden(String chamberId, bool hidden) => _update(
+    (s) => s.copyWith(
+      hiddenChamberIds: _withMember(s.hiddenChamberIds, chamberId, hidden),
+    ),
+  );
 
-  Future<void> setEmergencyRegion(String? countryCode) async {
-    state = countryCode == null
-        ? state.copyWith(clearEmergencyRegion: true)
-        : state.copyWith(emergencyRegion: countryCode);
-    await _saveSettings();
-  }
+  Future<void> setEmergencyRegion(String? countryCode) => _update(
+    (s) => countryCode == null
+        ? s.copyWith(clearEmergencyRegion: true)
+        : s.copyWith(emergencyRegion: countryCode),
+  );
 
-  Future<void> setShowAscentRateColors(bool value) async {
-    state = state.copyWith(showAscentRateColors: value);
-    await _saveSettings();
-  }
+  Future<void> setShowAscentRateColors(bool value) =>
+      _update((s) => s.copyWith(showAscentRateColors: value));
 
-  Future<void> setShowNdlOnProfile(bool value) async {
-    state = state.copyWith(showNdlOnProfile: value);
-    await _saveSettings();
-  }
+  Future<void> setShowNdlOnProfile(bool value) =>
+      _update((s) => s.copyWith(showNdlOnProfile: value));
 
   Future<void> setLastStopDepth(double value) async {
     final clamped = value.clamp(3.0, 6.0);
-    state = state.copyWith(lastStopDepth: clamped);
-    await _saveSettings();
+    await _update((s) => s.copyWith(lastStopDepth: clamped));
   }
 
   // Planner Setup-accordion global defaults (issue #3552). The rates clamp
@@ -2708,55 +2698,36 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     kPlannerRateMaxMetersPerMinute,
   );
 
-  Future<void> setPlannerDescentRate(double value) async {
-    state = state.copyWith(plannerDescentRate: _clampRate(value));
-    await _saveSettings();
-  }
+  Future<void> setPlannerDescentRate(double value) =>
+      _update((s) => s.copyWith(plannerDescentRate: _clampRate(value)));
 
-  Future<void> setPlannerAscentRate(double value) async {
-    state = state.copyWith(plannerAscentRate: _clampRate(value));
-    await _saveSettings();
-  }
+  Future<void> setPlannerAscentRate(double value) =>
+      _update((s) => s.copyWith(plannerAscentRate: _clampRate(value)));
 
-  Future<void> setPlannerIntermediateAscentRate(double value) async {
-    state = state.copyWith(plannerIntermediateAscentRate: _clampRate(value));
-    await _saveSettings();
-  }
+  Future<void> setPlannerIntermediateAscentRate(double value) => _update(
+    (s) => s.copyWith(plannerIntermediateAscentRate: _clampRate(value)),
+  );
 
-  Future<void> setPlannerShallowAscentRate(double value) async {
-    state = state.copyWith(plannerShallowAscentRate: _clampRate(value));
-    await _saveSettings();
-  }
+  Future<void> setPlannerShallowAscentRate(double value) =>
+      _update((s) => s.copyWith(plannerShallowAscentRate: _clampRate(value)));
 
-  Future<void> setPlannerFinalAscentRate(double value) async {
-    state = state.copyWith(plannerFinalAscentRate: _clampRate(value));
-    await _saveSettings();
-  }
+  Future<void> setPlannerFinalAscentRate(double value) =>
+      _update((s) => s.copyWith(plannerFinalAscentRate: _clampRate(value)));
 
-  Future<void> setPlannerGasSwitchStopSeconds(int value) async {
-    state = state.copyWith(plannerGasSwitchStopSeconds: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerGasSwitchStopSeconds(int value) =>
+      _update((s) => s.copyWith(plannerGasSwitchStopSeconds: value));
 
-  Future<void> setPlannerSacBottom(double value) async {
-    state = state.copyWith(plannerSacBottom: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerSacBottom(double value) =>
+      _update((s) => s.copyWith(plannerSacBottom: value));
 
-  Future<void> setPlannerSacDeco(double value) async {
-    state = state.copyWith(plannerSacDeco: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerSacDeco(double value) =>
+      _update((s) => s.copyWith(plannerSacDeco: value));
 
-  Future<void> setPlannerSacStressedFactor(double value) async {
-    state = state.copyWith(plannerSacStressedFactor: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerSacStressedFactor(double value) =>
+      _update((s) => s.copyWith(plannerSacStressedFactor: value));
 
-  Future<void> setPlannerBuddyFactor(double value) async {
-    state = state.copyWith(plannerBuddyFactor: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerBuddyFactor(double value) =>
+      _update((s) => s.copyWith(plannerBuddyFactor: value));
 
   /// Hypercapnia-bailout phase (issue #3743): an RMV factor of 1-10x bottom
   /// RMV in 0.5 steps, held for 1-15 minutes.
@@ -2773,8 +2744,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     required bool enabled,
     required double factor,
     required int minutes,
-  }) async {
-    state = state.copyWith(
+  }) => _update(
+    (s) => s.copyWith(
       plannerHypercapniaEnabled: enabled,
       plannerHypercapniaFactor: onStepGrid(
         factor.clamp(plannerHypercapniaFactorMin, plannerHypercapniaFactorMax),
@@ -2784,139 +2755,94 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         plannerHypercapniaMinutesMin,
         plannerHypercapniaMinutesMax,
       ),
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
-  Future<void> setPlannerProblemSolvingMinutes(int value) async {
-    state = state.copyWith(plannerProblemSolvingMinutes: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerProblemSolvingMinutes(int value) =>
+      _update((s) => s.copyWith(plannerProblemSolvingMinutes: value));
 
-  Future<void> setPlannerBestMixEndMeters(double value) async {
-    state = state.copyWith(plannerBestMixEndMeters: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerBestMixEndMeters(double value) =>
+      _update((s) => s.copyWith(plannerBestMixEndMeters: value));
 
-  Future<void> setPlannerDeviationDepthDelta(double value) async {
-    state = state.copyWith(plannerDeviationDepthDelta: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerDeviationDepthDelta(double value) =>
+      _update((s) => s.copyWith(plannerDeviationDepthDelta: value));
 
-  Future<void> setPlannerDeviationTimeMinutes(int value) async {
-    state = state.copyWith(plannerDeviationTimeMinutes: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerDeviationTimeMinutes(int value) =>
+      _update((s) => s.copyWith(plannerDeviationTimeMinutes: value));
 
-  Future<void> setPlannerBatteryReserveFraction(double value) async {
-    state = state.copyWith(plannerBatteryReserveFraction: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerBatteryReserveFraction(double value) =>
+      _update((s) => s.copyWith(plannerBatteryReserveFraction: value));
 
-  Future<void> setPlannerWalkSpeedMps(double value) async {
-    state = state.copyWith(plannerWalkSpeedMps: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerWalkSpeedMps(double value) =>
+      _update((s) => s.copyWith(plannerWalkSpeedMps: value));
 
-  Future<void> setPlannerTurnPressureRule(
-    domain.TurnPressureRule? value,
-  ) async {
-    state = state.copyWith(
-      plannerTurnPressureRule: value,
-      clearPlannerTurnPressureRule: value == null,
-    );
-    await _saveSettings();
-  }
+  Future<void> setPlannerTurnPressureRule(domain.TurnPressureRule? value) =>
+      _update(
+        (s) => s.copyWith(
+          plannerTurnPressureRule: value,
+          clearPlannerTurnPressureRule: value == null,
+        ),
+      );
 
-  Future<void> setPlannerTurnPressureFraction(double? value) async {
-    state = state.copyWith(
+  Future<void> setPlannerTurnPressureFraction(double? value) => _update(
+    (s) => s.copyWith(
       plannerTurnPressureFraction: value,
       clearPlannerTurnPressureFraction: value == null,
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
-  Future<void> setPlannerAirBreakO2Seconds(int? value) async {
-    state = state.copyWith(
+  Future<void> setPlannerAirBreakO2Seconds(int? value) => _update(
+    (s) => s.copyWith(
       plannerAirBreakO2Seconds: value,
       clearPlannerAirBreakO2Seconds: value == null,
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
-  Future<void> setPlannerAirBreakBreakSeconds(int? value) async {
-    state = state.copyWith(
+  Future<void> setPlannerAirBreakBreakSeconds(int? value) => _update(
+    (s) => s.copyWith(
       plannerAirBreakBreakSeconds: value,
       clearPlannerAirBreakBreakSeconds: value == null,
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
   /// Sets or clears both air-break seconds fields together in one save, so
   /// toggling the Settings default on/off can never persist one half of
   /// the pair without the other (issue #3552).
-  Future<void> setPlannerAirBreakPolicy({
-    int? o2Seconds,
-    int? breakSeconds,
-  }) async {
-    state = state.copyWith(
-      plannerAirBreakO2Seconds: o2Seconds,
-      clearPlannerAirBreakO2Seconds: o2Seconds == null,
-      plannerAirBreakBreakSeconds: breakSeconds,
-      clearPlannerAirBreakBreakSeconds: breakSeconds == null,
-    );
-    await _saveSettings();
-  }
+  Future<void> setPlannerAirBreakPolicy({int? o2Seconds, int? breakSeconds}) =>
+      _update(
+        (s) => s.copyWith(
+          plannerAirBreakO2Seconds: o2Seconds,
+          clearPlannerAirBreakO2Seconds: o2Seconds == null,
+          plannerAirBreakBreakSeconds: breakSeconds,
+          clearPlannerAirBreakBreakSeconds: breakSeconds == null,
+        ),
+      );
 
-  Future<void> setPlannerReservePressure(double value) async {
-    state = state.copyWith(plannerReservePressure: value);
-    await _saveSettings();
-  }
+  Future<void> setPlannerReservePressure(double value) =>
+      _update((s) => s.copyWith(plannerReservePressure: value));
 
   Future<void> setDecoStopIncrement(double value) async {
     final clamped = value.clamp(1.0, 3.0);
-    state = state.copyWith(decoStopIncrement: clamped);
-    await _saveSettings();
+    await _update((s) => s.copyWith(decoStopIncrement: clamped));
   }
 
   Future<void> setPscrRatio(double value) async {
     final clamped = value.clamp(1.0, 1000.0);
-    state = state.copyWith(pscrRatio: clamped);
-    await _saveSettings();
+    await _update((s) => s.copyWith(pscrRatio: clamped));
   }
 
-  Future<void> setO2Narcotic(bool value) async {
-    state = state.copyWith(o2Narcotic: value);
-    await _saveSettings();
-  }
+  Future<void> setO2Narcotic(bool value) =>
+      _update((s) => s.copyWith(o2Narcotic: value));
 
-  /// Waits for the diver's settings to load first, as [setAutoTagImports]
-  /// does (#998): a pick from a chart's Range menu while the app is still
-  /// loading would otherwise be overwritten by the load.
-  Future<void> setTrendGapThreshold(TrendGapThreshold value) async {
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // Already logged by the load; defaults are the fallback.
-    }
-    if (!mounted) return;
-    state = state.copyWith(trendGapThreshold: value);
-    await _saveSettings();
-  }
+  Future<void> setTrendGapThreshold(TrendGapThreshold value) =>
+      _update((s) => s.copyWith(trendGapThreshold: value));
 
-  /// The default equipment view (issue #2628). Waits for the load like
-  /// [setTrendGapThreshold], so a pick made first is not overwritten. An
-  /// empty set is ignored: the default view always shows something.
+  /// The default equipment view (issue #2628). An empty set is ignored:
+  /// the default view always shows something.
   Future<void> setEquipmentDefaultStatuses(Set<EquipmentStatus> value) async {
     if (value.isEmpty) return;
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // Already logged by the load; defaults are the fallback.
-    }
-    if (!mounted) return;
-    state = state.copyWith(equipmentDefaultStatuses: Set.unmodifiable(value));
-    await _saveSettings();
+    final copy = Set<EquipmentStatus>.unmodifiable(value);
+    await _update((s) => s.copyWith(equipmentDefaultStatuses: copy));
   }
 
   /// Adds [status] to, or removes it from, the default equipment view
@@ -2926,107 +2852,66 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setEquipmentDefaultStatusIncluded(
     EquipmentStatus status,
     bool included,
-  ) async {
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // Already logged by the load; defaults are the fallback.
-    }
-    if (!mounted) return;
-    final current = state.equipmentDefaultStatuses;
+  ) => _update((s) {
+    final current = s.equipmentDefaultStatuses;
     final next = included ? {...current, status} : current.difference({status});
-    if (next.isEmpty) return;
-    state = state.copyWith(equipmentDefaultStatuses: Set.unmodifiable(next));
-    await _saveSettings();
-  }
+    if (next.isEmpty) return s;
+    return s.copyWith(equipmentDefaultStatuses: Set.unmodifiable(next));
+  });
 
   /// [metric] takes [color] (null: its default, or Auto), swapping with any
-  /// metric already showing it (issue #3012). Waits for the load first, as
-  /// [setTrendGapThreshold] does, so an early pick is not overwritten.
+  /// metric already showing it (issue #3012).
   Future<void> setProfileMetricColor(ProfileMetric metric, Color? color) async {
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // Already logged by the load; defaults are the fallback.
-    }
-    if (!mounted) return;
-    state = state.copyWith(
-      profileMetricColors: state.profileMetricColors.withColor(metric, color),
+    await _update(
+      (s) => s.copyWith(
+        profileMetricColors: s.profileMetricColors.withColor(metric, color),
+      ),
     );
-    await _saveSettings();
   }
 
   /// Every profile metric back to its default colour.
   Future<void> resetProfileMetricColors() async {
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // Already logged by the load; defaults are the fallback.
-    }
-    if (!mounted) return;
-    state = state.copyWith(
-      profileMetricColors: ProfileMetricColorOverrides.none,
+    await _update(
+      (s) => s.copyWith(profileMetricColors: ProfileMetricColorOverrides.none),
     );
-    await _saveSettings();
   }
 
-  Future<void> setIcdWarningsEnabled(bool value) async {
-    state = state.copyWith(icdWarningsEnabled: value);
-    await _saveSettings();
-  }
+  Future<void> setIcdWarningsEnabled(bool value) =>
+      _update((s) => s.copyWith(icdWarningsEnabled: value));
 
-  Future<void> setAscentGasSet(AscentGasSet value) async {
-    state = state.copyWith(ascentGasSet: value);
-    await _saveSettings();
-  }
+  Future<void> setAscentGasSet(AscentGasSet value) =>
+      _update((s) => s.copyWith(ascentGasSet: value));
 
   Future<void> setEndLimit(double value) async {
     final clamped = value.clamp(20.0, 50.0);
-    state = state.copyWith(endLimit: clamped);
-    await _saveSettings();
+    await _update((s) => s.copyWith(endLimit: clamped));
   }
 
-  Future<void> setDefaultNdlSource(MetricDataSource value) async {
-    state = state.copyWith(defaultNdlSource: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultNdlSource(MetricDataSource value) =>
+      _update((s) => s.copyWith(defaultNdlSource: value));
 
-  Future<void> setDefaultDecoStopSource(MetricDataSource value) async {
-    state = state.copyWith(defaultDecoStopSource: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultDecoStopSource(MetricDataSource value) =>
+      _update((s) => s.copyWith(defaultDecoStopSource: value));
 
-  Future<void> setDefaultTtsSource(MetricDataSource value) async {
-    state = state.copyWith(defaultTtsSource: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultTtsSource(MetricDataSource value) =>
+      _update((s) => s.copyWith(defaultTtsSource: value));
 
-  Future<void> setDefaultCnsSource(MetricDataSource value) async {
-    state = state.copyWith(defaultCnsSource: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultCnsSource(MetricDataSource value) =>
+      _update((s) => s.copyWith(defaultCnsSource: value));
 
-  Future<void> setDefaultGtrSource(MetricDataSource value) async {
-    state = state.copyWith(defaultGtrSource: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultGtrSource(MetricDataSource value) =>
+      _update((s) => s.copyWith(defaultGtrSource: value));
 
-  Future<void> setGtrReservePressure(double value) async {
-    state = state.copyWith(gtrReservePressure: value);
-    await _saveSettings();
-  }
+  Future<void> setGtrReservePressure(double value) =>
+      _update((s) => s.copyWith(gtrReservePressure: value));
 
-  Future<void> setCnsCalculationMethod(CnsCalculationMethod value) async {
-    state = state.copyWith(cnsCalculationMethod: value);
-    await _saveSettings();
-  }
+  Future<void> setCnsCalculationMethod(CnsCalculationMethod value) =>
+      _update((s) => s.copyWith(cnsCalculationMethod: value));
 
   // Appearance setters
 
-  Future<void> setCardColorAttribute(CardColorAttribute attribute) async {
-    state = state.copyWith(cardColorAttribute: attribute);
-    await _saveSettings();
-  }
+  Future<void> setCardColorAttribute(CardColorAttribute attribute) =>
+      _update((s) => s.copyWith(cardColorAttribute: attribute));
 
   Future<void> setDiveListViewMode(ListViewMode mode) =>
       _saveListArrangement((s) => s.copyWith(diveListViewMode: mode));
@@ -3034,29 +2919,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setGroupTripsInDiveList(bool value) =>
       _saveListArrangement((s) => s.copyWith(groupTripsInDiveList: value));
 
-  /// Waits for [settingsLoaded] first: until the diver's row lands, [state]
-  /// holds the defaults (or, after a diver switch, the previous diver's
-  /// settings), and a switch flipped in Settings > Data > Import in that
-  /// window would be overwritten when the load replaces [state], silently
-  /// undoing the diver's choice (issues #998, #2564). A failed load is
-  /// already logged by the constructor and leaves the defaults in place,
-  /// so the change still applies on top of them.
-  Future<void> setAutoTagImports(bool value) async {
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // See the doc comment: already logged, defaults are the fallback.
-    }
-    if (!mounted) return;
-    state = state.copyWith(autoTagImports: value);
-    await _saveSettings();
-  }
+  Future<void> setAutoTagImports(bool value) =>
+      _update((s) => s.copyWith(autoTagImports: value));
 
   /// Applies [change] to how the diver left their lists (issue #3748) and
-  /// saves it. Waits for the load like [setAutoTagImports]: a sort tapped
-  /// before the diver's row lands would otherwise be overwritten by it.
-  /// [change] runs against the state after that wait, so successive changes
-  /// build on each other. Typed setters live in `list_arrangement_writes`.
+  /// saves it. [change] runs against the state after the load, as every
+  /// setter's does (see [_update]), so successive changes build on each
+  /// other. Typed setters live in `list_arrangement_writes`.
   Future<void> updateListArrangements(
     ListArrangements Function(ListArrangements current) change,
   ) => _saveListArrangement(
@@ -3070,26 +2939,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   );
 
   /// Saves a change to how the diver left a list (issue #3748): its sort,
-  /// grouping or view mode. Waits for the diver's settings to load, or a
-  /// change made at launch would be overwritten when the load lands, then
-  /// applies [change] to the state as it is then. The lists start these
-  /// without awaiting them, so a failed save is logged here rather than
-  /// left to the zone; a caller that awaits still sees it.
+  /// grouping or view mode, applied through [_update]. The lists start
+  /// these without awaiting them, so a failed save is logged here rather
+  /// than left to the zone; a caller that awaits still sees it.
   Future<void> _saveListArrangement(
     AppSettings Function(AppSettings current) change,
   ) {
-    Future<void> work() async {
-      try {
-        await settingsLoaded;
-      } catch (_) {
-        // Already logged by the load; defaults are the fallback.
-      }
-      if (!mounted) return;
-      state = change(state);
-      await _saveSettings(devicePrefs: false);
-    }
-
-    final saving = work();
+    final saving = _update(change, devicePrefs: false);
     logFailure(saving, SettingsNotifier, 'save how a list was left');
     return saving;
   }
@@ -3115,76 +2971,42 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setCourseListViewMode(ListViewMode mode) =>
       _saveListArrangement((s) => s.copyWith(courseListViewMode: mode));
 
-  Future<void> setMapStyle(MapStyle style) async {
-    state = state.copyWith(mapStyle: style);
-    await _saveSettings();
-  }
+  Future<void> setMapStyle(MapStyle style) =>
+      _update((s) => s.copyWith(mapStyle: style));
 
-  Future<void> setSiteMatchSensitivity(SiteMatchSensitivity value) async {
-    state = state.copyWith(siteMatchSensitivity: value);
-    await _saveSettings();
-  }
+  Future<void> setSiteMatchSensitivity(SiteMatchSensitivity value) =>
+      _update((s) => s.copyWith(siteMatchSensitivity: value));
 
-  /// Waits for [settingsLoaded] first, as [setAutoTagImports] does: a switch
-  /// flipped before the diver's row lands would otherwise be overwritten by
-  /// that load (issue #2050).
-  Future<void> setDownloadsFollowComputerOwner(bool value) async {
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // Already logged by the constructor; the defaults are the fallback.
-    }
-    if (!mounted) return;
-    state = state.copyWith(downloadsFollowComputerOwner: value);
-    await _saveSettings();
-  }
+  Future<void> setDownloadsFollowComputerOwner(bool value) =>
+      _update((s) => s.copyWith(downloadsFollowComputerOwner: value));
 
-  /// Waits for [settingsLoaded] first, as [setDownloadsFollowComputerOwner]
-  /// does, so a switch flipped before the diver's row lands is not
-  /// overwritten by that load (issue #3668).
-  Future<void> setOmitUnusedOcGases(bool value) async {
-    try {
-      await settingsLoaded;
-    } catch (_) {
-      // Already logged by the constructor; the defaults are the fallback.
-    }
-    if (!mounted) return;
-    state = state.copyWith(omitUnusedOcGases: value);
-    await _saveSettings();
-  }
+  Future<void> setOmitUnusedOcGases(bool value) =>
+      _update((s) => s.copyWith(omitUnusedOcGases: value));
 
-  Future<void> setTrimTankPressureAtSurfacing(bool value) async {
-    state = state.copyWith(trimTankPressureAtSurfacing: value);
-    await _saveSettings();
-  }
+  Future<void> setTrimTankPressureAtSurfacing(bool value) =>
+      _update((s) => s.copyWith(trimTankPressureAtSurfacing: value));
 
-  Future<void> setCardColorGradientPreset(String preset) async {
-    state = state.copyWith(
+  Future<void> setCardColorGradientPreset(String preset) => _update(
+    (s) => s.copyWith(
       cardColorGradientPreset: preset,
       clearCardColorGradientStart: true,
       clearCardColorGradientEnd: true,
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
-  Future<void> setCardColorGradientCustom(int start, int end) async {
-    state = state.copyWith(
+  Future<void> setCardColorGradientCustom(int start, int end) => _update(
+    (s) => s.copyWith(
       cardColorGradientPreset: 'custom',
       cardColorGradientStart: start,
       cardColorGradientEnd: end,
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
-  Future<void> setTissueColorScheme(TissueColorScheme scheme) async {
-    state = state.copyWith(tissueColorScheme: scheme);
-    await _saveSettings();
-  }
+  Future<void> setTissueColorScheme(TissueColorScheme scheme) =>
+      _update((s) => s.copyWith(tissueColorScheme: scheme));
 
-  Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async {
-    state = state.copyWith(seascapeAppearance: appearance);
-    await _saveSettings();
-  }
+  Future<void> setSeascapeAppearance(SeascapeAppearance appearance) =>
+      _update((s) => s.copyWith(seascapeAppearance: appearance));
 
   /// Sets or clears this site's manual vertical-exaggeration override
   /// (issue #2141 follow-up). [factor] null removes the entry, reverting
@@ -3192,41 +3014,30 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setSeascapeVerticalExaggerationOverride(
     String siteId,
     double? factor,
-  ) async {
-    final overrides = {...state.seascapeVerticalExaggerationOverrides};
+  ) => _update((s) {
+    final overrides = {...s.seascapeVerticalExaggerationOverrides};
     if (factor == null) {
       overrides.remove(siteId);
     } else {
       overrides[siteId] = factor;
     }
-    state = state.copyWith(seascapeVerticalExaggerationOverrides: overrides);
-    await _saveSettings();
-  }
+    return s.copyWith(seascapeVerticalExaggerationOverrides: overrides);
+  });
 
-  Future<void> setTissueVizMode(TissueVizMode mode) async {
-    state = state.copyWith(tissueVizMode: mode);
-    await _saveSettings();
-  }
+  Future<void> setTissueVizMode(TissueVizMode mode) =>
+      _update((s) => s.copyWith(tissueVizMode: mode));
 
-  Future<void> setShowMapBackgroundOnDiveCards(bool value) async {
-    state = state.copyWith(showMapBackgroundOnDiveCards: value);
-    await _saveSettings();
-  }
+  Future<void> setShowMapBackgroundOnDiveCards(bool value) =>
+      _update((s) => s.copyWith(showMapBackgroundOnDiveCards: value));
 
-  Future<void> setShowPhotoBackgroundOnDiveCards(bool value) async {
-    state = state.copyWith(showPhotoBackgroundOnDiveCards: value);
-    await _saveSettings();
-  }
+  Future<void> setShowPhotoBackgroundOnDiveCards(bool value) =>
+      _update((s) => s.copyWith(showPhotoBackgroundOnDiveCards: value));
 
-  Future<void> setCardPhotoOverlayDark(double value) async {
-    state = state.copyWith(cardPhotoOverlayDark: _overlayOpacity(value));
-    await _saveSettings();
-  }
+  Future<void> setCardPhotoOverlayDark(double value) =>
+      _update((s) => s.copyWith(cardPhotoOverlayDark: _overlayOpacity(value)));
 
-  Future<void> setCardPhotoOverlayLight(double value) async {
-    state = state.copyWith(cardPhotoOverlayLight: _overlayOpacity(value));
-    await _saveSettings();
-  }
+  Future<void> setCardPhotoOverlayLight(double value) =>
+      _update((s) => s.copyWith(cardPhotoOverlayLight: _overlayOpacity(value)));
 
   /// [value] clamped to 0..1 and rounded to a whole percent. A slider's
   /// steps carry float noise (65% arrives as 0.6499999999999999), which
@@ -3234,215 +3045,139 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   static double _overlayOpacity(double value) =>
       (value.clamp(0.0, 1.0) * 100).round() / 100;
 
-  Future<void> setShowMapBackgroundOnSiteCards(bool value) async {
-    state = state.copyWith(showMapBackgroundOnSiteCards: value);
-    await _saveSettings();
-  }
+  Future<void> setShowMapBackgroundOnSiteCards(bool value) =>
+      _update((s) => s.copyWith(showMapBackgroundOnSiteCards: value));
 
-  Future<void> setShowMaxDepthMarker(bool value) async {
-    state = state.copyWith(showMaxDepthMarker: value);
-    await _saveSettings();
-  }
+  Future<void> setShowMaxDepthMarker(bool value) =>
+      _update((s) => s.copyWith(showMaxDepthMarker: value));
 
-  Future<void> setPinProfileOnScroll(bool value) async {
-    state = state.copyWith(pinProfileOnScroll: value);
-    await _saveSettings();
-  }
+  Future<void> setPinProfileOnScroll(bool value) =>
+      _update((s) => s.copyWith(pinProfileOnScroll: value));
 
-  Future<void> setShowPressureThresholdMarkers(bool value) async {
-    state = state.copyWith(showPressureThresholdMarkers: value);
-    await _saveSettings();
-  }
+  Future<void> setShowPressureThresholdMarkers(bool value) =>
+      _update((s) => s.copyWith(showPressureThresholdMarkers: value));
 
   // Dive profile chart defaults setters
 
-  Future<void> setDefaultRightAxisMetric(ProfileRightAxisMetric metric) async {
-    state = state.copyWith(defaultRightAxisMetric: metric);
-    await _saveSettings();
-  }
+  Future<void> setDefaultRightAxisMetric(ProfileRightAxisMetric metric) =>
+      _update((s) => s.copyWith(defaultRightAxisMetric: metric));
 
-  Future<void> setDefaultShowTemperature(bool value) async {
-    state = state.copyWith(defaultShowTemperature: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowTemperature(bool value) =>
+      _update((s) => s.copyWith(defaultShowTemperature: value));
 
-  Future<void> setDefaultShowPressure(bool value) async {
-    state = state.copyWith(defaultShowPressure: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowPressure(bool value) =>
+      _update((s) => s.copyWith(defaultShowPressure: value));
 
-  Future<void> setDefaultShowHeartRate(bool value) async {
-    state = state.copyWith(defaultShowHeartRate: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowHeartRate(bool value) =>
+      _update((s) => s.copyWith(defaultShowHeartRate: value));
 
-  Future<void> setDefaultShowSac(bool value) async {
-    state = state.copyWith(defaultShowSac: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowSac(bool value) =>
+      _update((s) => s.copyWith(defaultShowSac: value));
 
-  Future<void> setDefaultShowEvents(bool value) async {
-    state = state.copyWith(defaultShowEvents: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowEvents(bool value) =>
+      _update((s) => s.copyWith(defaultShowEvents: value));
 
-  Future<void> setDefaultShowPpO2(bool value) async {
-    state = state.copyWith(defaultShowPpO2: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowPpO2(bool value) =>
+      _update((s) => s.copyWith(defaultShowPpO2: value));
 
-  Future<void> setDefaultShowPpN2(bool value) async {
-    state = state.copyWith(defaultShowPpN2: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowPpN2(bool value) =>
+      _update((s) => s.copyWith(defaultShowPpN2: value));
 
-  Future<void> setDefaultShowPpHe(bool value) async {
-    state = state.copyWith(defaultShowPpHe: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowPpHe(bool value) =>
+      _update((s) => s.copyWith(defaultShowPpHe: value));
 
-  Future<void> setDefaultShowGasDensity(bool value) async {
-    state = state.copyWith(defaultShowGasDensity: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowGasDensity(bool value) =>
+      _update((s) => s.copyWith(defaultShowGasDensity: value));
 
-  Future<void> setDefaultShowGf(bool value) async {
-    state = state.copyWith(defaultShowGf: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowGf(bool value) =>
+      _update((s) => s.copyWith(defaultShowGf: value));
 
-  Future<void> setDefaultShowSurfaceGf(bool value) async {
-    state = state.copyWith(defaultShowSurfaceGf: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowSurfaceGf(bool value) =>
+      _update((s) => s.copyWith(defaultShowSurfaceGf: value));
 
-  Future<void> setDefaultShowMeanDepth(bool value) async {
-    state = state.copyWith(defaultShowMeanDepth: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowMeanDepth(bool value) =>
+      _update((s) => s.copyWith(defaultShowMeanDepth: value));
 
-  Future<void> setDefaultShowTts(bool value) async {
-    state = state.copyWith(defaultShowTts: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowTts(bool value) =>
+      _update((s) => s.copyWith(defaultShowTts: value));
 
-  Future<void> setDefaultShowGtr(bool value) async {
-    state = state.copyWith(defaultShowGtr: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowGtr(bool value) =>
+      _update((s) => s.copyWith(defaultShowGtr: value));
 
-  Future<void> setDefaultShowCns(bool value) async {
-    state = state.copyWith(defaultShowCns: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowCns(bool value) =>
+      _update((s) => s.copyWith(defaultShowCns: value));
 
-  Future<void> setDefaultShowOtu(bool value) async {
-    state = state.copyWith(defaultShowOtu: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowOtu(bool value) =>
+      _update((s) => s.copyWith(defaultShowOtu: value));
 
-  Future<void> setDefaultShowGasSwitchMarkers(bool value) async {
-    state = state.copyWith(defaultShowGasSwitchMarkers: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowGasSwitchMarkers(bool value) =>
+      _update((s) => s.copyWith(defaultShowGasSwitchMarkers: value));
 
-  Future<void> setDefaultShowLateGasSwitches(bool value) async {
-    state = state.copyWith(defaultShowLateGasSwitches: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowLateGasSwitches(bool value) =>
+      _update((s) => s.copyWith(defaultShowLateGasSwitches: value));
 
-  Future<void> setDefaultShowPhotoMarkers(bool value) async {
-    state = state.copyWith(defaultShowPhotoMarkers: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowPhotoMarkers(bool value) =>
+      _update((s) => s.copyWith(defaultShowPhotoMarkers: value));
 
-  Future<void> setDefaultShowGasTimeline(bool value) async {
-    state = state.copyWith(defaultShowGasTimeline: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowGasTimeline(bool value) =>
+      _update((s) => s.copyWith(defaultShowGasTimeline: value));
 
-  Future<void> setDefaultShowO2CellMv(bool value) async {
-    state = state.copyWith(defaultShowO2CellMv: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowO2CellMv(bool value) =>
+      _update((s) => s.copyWith(defaultShowO2CellMv: value));
 
-  Future<void> setDefaultShowEstimatedTankPressure(bool value) async {
-    state = state.copyWith(defaultShowEstimatedTankPressure: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowEstimatedTankPressure(bool value) =>
+      _update((s) => s.copyWith(defaultShowEstimatedTankPressure: value));
 
-  Future<void> setDefaultShowAscentRateLine(bool value) async {
-    state = state.copyWith(defaultShowAscentRateLine: value);
-    await _saveSettings();
-  }
+  Future<void> setDefaultShowAscentRateLine(bool value) =>
+      _update((s) => s.copyWith(defaultShowAscentRateLine: value));
 
   // Notification settings setters
 
-  Future<void> setNotificationsEnabled(bool value) async {
-    state = state.copyWith(notificationsEnabled: value);
-    await _saveSettings();
+  Future<void> setNotificationsEnabled(bool value) =>
+      _update((s) => s.copyWith(notificationsEnabled: value));
+
+  Future<void> setServiceReminderDays(List<int> days) {
+    final sorted = _sortedReminderDays(days);
+    return _update((s) => s.copyWith(serviceReminderDays: sorted));
   }
 
-  Future<void> setServiceReminderDays(List<int> days) async {
-    // Sort and deduplicate
-    final sortedDays = days.toSet().toList()..sort((a, b) => b.compareTo(a));
-    state = state.copyWith(serviceReminderDays: sortedDays);
-    await _saveSettings();
-  }
+  /// [days] deduplicated, latest first.
+  static List<int> _sortedReminderDays(Iterable<int> days) =>
+      days.toSet().toList()..sort((a, b) => b.compareTo(a));
 
-  Future<void> setReminderTime(TimeOfDay time) async {
-    state = state.copyWith(reminderTime: time);
-    await _saveSettings();
-  }
+  Future<void> setReminderTime(TimeOfDay time) =>
+      _update((s) => s.copyWith(reminderTime: time));
 
-  Future<void> setTripServiceLeadDays(int days) async {
-    state = state.copyWith(tripServiceLeadDays: days);
-    await _saveSettings();
-  }
+  Future<void> setTripServiceLeadDays(int days) =>
+      _update((s) => s.copyWith(tripServiceLeadDays: days));
 
-  Future<void> setShowDataSourceBadges(bool value) async {
-    state = state.copyWith(showDataSourceBadges: value);
-    await _saveSettings();
-  }
+  Future<void> setShowDataSourceBadges(bool value) =>
+      _update((s) => s.copyWith(showDataSourceBadges: value));
 
-  Future<void> setShowDiveFigure(bool value) async {
-    state = state.copyWith(showDiveFigure: value);
-    await _saveSettings();
-  }
+  Future<void> setShowDiveFigure(bool value) =>
+      _update((s) => s.copyWith(showDiveFigure: value));
 
-  Future<void> setAutoColorCorrection(bool value) async {
-    state = state.copyWith(autoColorCorrection: value);
-    await _saveSettings();
-  }
+  Future<void> setAutoColorCorrection(bool value) =>
+      _update((s) => s.copyWith(autoColorCorrection: value));
 
   /// Records that this diver has confirmed the planning safety disclaimer
   /// (issue #3120). Never set back to false from the app.
-  Future<void> acceptPlanningDisclaimer() async {
-    state = state.copyWith(hasAcceptedPlanningDisclaimer: true);
-    await _saveSettings();
+  Future<void> acceptPlanningDisclaimer() =>
+      _update((s) => s.copyWith(hasAcceptedPlanningDisclaimer: true));
+
+  Future<void> setShowProfilePanelInTableView(bool value) =>
+      _update((s) => s.copyWith(showProfilePanelInTableView: value));
+
+  Future<void> setDiveDetailSections(List<DiveDetailSectionConfig> sections) {
+    final copy = List<DiveDetailSectionConfig>.unmodifiable(sections);
+    return _update((s) => s.copyWith(diveDetailSections: copy));
   }
 
-  Future<void> setShowProfilePanelInTableView(bool value) async {
-    state = state.copyWith(showProfilePanelInTableView: value);
-    await _saveSettings();
-  }
+  Future<void> resetDiveDetailSections() =>
+      _update((s) => s.copyWith(clearDiveDetailSections: true));
 
-  Future<void> setDiveDetailSections(
-    List<DiveDetailSectionConfig> sections,
-  ) async {
-    state = state.copyWith(diveDetailSections: sections);
-    await _saveSettings();
-  }
-
-  Future<void> resetDiveDetailSections() async {
-    state = state.copyWith(clearDiveDetailSections: true);
-    await _saveSettings();
-  }
-
-  Future<void> setDiveDetailLayout(DiveDetailLayout layout) async {
-    state = state.copyWith(diveDetailLayout: layout);
-    await _saveSettings();
-  }
+  Future<void> setDiveDetailLayout(DiveDetailLayout layout) =>
+      _update((s) => s.copyWith(diveDetailLayout: layout));
 
   /// Record whether [id] shows unfolded in the list layout.
   ///
@@ -3451,34 +3186,27 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setDiveDetailSectionExpanded(
     DiveDetailSectionId id,
     bool expanded,
-  ) async {
-    final sections = state.diveDetailSections;
-    if (!sections.any((s) => s.id == id && s.expanded != expanded)) return;
-    state = state.copyWith(
+  ) => _update((s) {
+    final sections = s.diveDetailSections;
+    if (!sections.any((c) => c.id == id && c.expanded != expanded)) return s;
+    return s.copyWith(
       diveDetailSections: [
         for (final section in sections)
           section.id == id ? section.copyWith(expanded: expanded) : section,
       ],
     );
-    await _saveSettings();
+  });
+
+  Future<void> setSiteDetailSections(List<SiteDetailSectionConfig> sections) {
+    final copy = List<SiteDetailSectionConfig>.unmodifiable(sections);
+    return _update((s) => s.copyWith(siteDetailSections: copy));
   }
 
-  Future<void> setSiteDetailSections(
-    List<SiteDetailSectionConfig> sections,
-  ) async {
-    state = state.copyWith(siteDetailSections: sections);
-    await _saveSettings();
-  }
+  Future<void> resetSiteDetailSections() =>
+      _update((s) => s.copyWith(clearSiteDetailSections: true));
 
-  Future<void> resetSiteDetailSections() async {
-    state = state.copyWith(clearSiteDetailSections: true);
-    await _saveSettings();
-  }
-
-  Future<void> setSiteDetailLayout(DiveDetailLayout layout) async {
-    state = state.copyWith(siteDetailLayout: layout);
-    await _saveSettings();
-  }
+  Future<void> setSiteDetailLayout(DiveDetailLayout layout) =>
+      _update((s) => s.copyWith(siteDetailLayout: layout));
 
   /// Record whether Site Details card [id] shows unfolded in the list
   /// layout. Fold state rides in the card list, so this rewrites that list
@@ -3486,32 +3214,25 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setSiteDetailSectionExpanded(
     SiteDetailSectionId id,
     bool expanded,
-  ) async {
-    final sections = state.siteDetailSections;
-    if (!sections.any((s) => s.id == id && s.expanded != expanded)) return;
-    state = state.copyWith(
+  ) => _update((s) {
+    final sections = s.siteDetailSections;
+    if (!sections.any((c) => c.id == id && c.expanded != expanded)) return s;
+    return s.copyWith(
       siteDetailSections: [
         for (final section in sections)
           section.id == id ? section.copyWith(expanded: expanded) : section,
       ],
     );
-    await _saveSettings();
-  }
+  });
 
-  Future<void> setProfileMetricsFollowViewport(bool value) async {
-    state = state.copyWith(profileMetricsFollowViewport: value);
-    await _saveSettings();
-  }
+  Future<void> setProfileMetricsFollowViewport(bool value) =>
+      _update((s) => s.copyWith(profileMetricsFollowViewport: value));
 
-  Future<void> setO2CellUnit(O2CellUnit value) async {
-    state = state.copyWith(o2CellUnit: value);
-    await _saveSettings();
-  }
+  Future<void> setO2CellUnit(O2CellUnit value) =>
+      _update((s) => s.copyWith(o2CellUnit: value));
 
-  Future<void> setPerdixOverlayEnabled(bool value) async {
-    state = state.copyWith(perdixOverlayEnabled: value);
-    await _saveSettings();
-  }
+  Future<void> setPerdixOverlayEnabled(bool value) =>
+      _update((s) => s.copyWith(perdixOverlayEnabled: value));
 
   Future<void> setPerdixOverlayPosition(double x, double y) async {
     // Positions are fractions of the overlay's movable range; clamp so
@@ -3521,73 +3242,71 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     // all values, so NaN.clamp(0, 1) is 1.0), but canonicalize them to the
     // default top-right corner (1, 0) explicitly rather than rely on that
     // ordering accident.
-    state = state.copyWith(
-      perdixOverlayX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
-      perdixOverlayY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,
+    await _update(
+      (s) => s.copyWith(
+        perdixOverlayX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
+        perdixOverlayY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,
+      ),
     );
-    await _saveSettings();
   }
 
-  Future<void> toggleReminderDay(int days) async {
-    final current = List<int>.from(state.serviceReminderDays);
-    if (current.contains(days)) {
-      // Don't allow removing the last day
-      if (current.length > 1) {
-        current.remove(days);
-      }
-    } else {
-      current.add(days);
+  /// Adds or removes [days] from the service reminders. The last one left
+  /// is kept: there is always at least one reminder.
+  Future<void> toggleReminderDay(int days) => _update((s) {
+    final current = s.serviceReminderDays;
+    if (!current.contains(days)) {
+      return s.copyWith(
+        serviceReminderDays: _sortedReminderDays([...current, days]),
+      );
     }
-    await setServiceReminderDays(current);
-  }
+    if (current.length <= 1) return s;
+    return s.copyWith(
+      serviceReminderDays: _sortedReminderDays(current.where((d) => d != days)),
+    );
+  });
 
   /// Set all units to metric
-  Future<void> setMetric() async {
-    state = state.copyWith(
+  Future<void> setMetric() => _update(
+    (s) => s.copyWith(
       depthUnit: DepthUnit.meters,
       temperatureUnit: TemperatureUnit.celsius,
       pressureUnit: PressureUnit.bar,
-      plannerReservePressure: _plannerReserveFor(PressureUnit.bar),
+      plannerReservePressure: _plannerReserveFor(s, PressureUnit.bar),
       volumeUnit: VolumeUnit.liters,
       weightUnit: WeightUnit.kilograms,
       altitudeUnit: AltitudeUnit.meters,
       distanceUnit: DistanceUnit.kilometers,
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
   /// Set all units to imperial
-  Future<void> setImperial() async {
-    state = state.copyWith(
+  Future<void> setImperial() => _update(
+    (s) => s.copyWith(
       depthUnit: DepthUnit.feet,
       temperatureUnit: TemperatureUnit.fahrenheit,
       pressureUnit: PressureUnit.psi,
-      plannerReservePressure: _plannerReserveFor(PressureUnit.psi),
+      plannerReservePressure: _plannerReserveFor(s, PressureUnit.psi),
       volumeUnit: VolumeUnit.cubicFeet,
       weightUnit: WeightUnit.pounds,
       altitudeUnit: AltitudeUnit.feet,
       distanceUnit: DistanceUnit.miles,
-    );
-    await _saveSettings();
-  }
+    ),
+  );
 
-  Future<void> setShowDetailsPaneForSection(
-    String sectionKey,
-    bool value,
-  ) async {
-    state = switch (sectionKey) {
-      'dives' => state.copyWith(showDetailsPaneDives: value),
-      'sites' => state.copyWith(showDetailsPaneSites: value),
-      'buddies' => state.copyWith(showDetailsPaneBuddies: value),
-      'trips' => state.copyWith(showDetailsPaneTrips: value),
-      'equipment' => state.copyWith(showDetailsPaneEquipment: value),
-      'diveCenters' => state.copyWith(showDetailsPaneDiveCenters: value),
-      'certifications' => state.copyWith(showDetailsPaneCertifications: value),
-      'courses' => state.copyWith(showDetailsPaneCourses: value),
-      _ => state,
-    };
-    await _saveSettings();
-  }
+  Future<void> setShowDetailsPaneForSection(String sectionKey, bool value) =>
+      _update(
+        (s) => switch (sectionKey) {
+          'dives' => s.copyWith(showDetailsPaneDives: value),
+          'sites' => s.copyWith(showDetailsPaneSites: value),
+          'buddies' => s.copyWith(showDetailsPaneBuddies: value),
+          'trips' => s.copyWith(showDetailsPaneTrips: value),
+          'equipment' => s.copyWith(showDetailsPaneEquipment: value),
+          'diveCenters' => s.copyWith(showDetailsPaneDiveCenters: value),
+          'certifications' => s.copyWith(showDetailsPaneCertifications: value),
+          'courses' => s.copyWith(showDetailsPaneCourses: value),
+          _ => s,
+        },
+      );
 }
 
 /// Settings provider

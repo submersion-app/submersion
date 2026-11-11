@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -67,6 +68,36 @@ void main() {
     );
     await expectLater(notifier.setDeepDiveThresholdM(40), throwsA(anything));
     expect(container.read(settingsProvider).deepDiveThresholdM, 25.0);
+  });
+
+  test('a failed write leaves a later change made while it was out', () async {
+    container.dispose();
+    final now = DateTime.now();
+    final diver = await DiverRepository().createDiver(
+      Diver(id: '', name: 'A', createdAt: now, updatedAt: now),
+    );
+    SharedPreferences.setMockInitialValues({currentDiverIdKey: diver.id});
+    final prefs = await SharedPreferences.getInstance();
+    container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+    final notifier = container.read(settingsProvider.notifier);
+    await notifier.initialLoad;
+
+    await DatabaseService.instance.database.customStatement(
+      'DROP TABLE diver_settings',
+    );
+    final failing = expectLater(
+      notifier.setDeepDiveThresholdM(40),
+      throwsA(anything),
+    );
+    // Applied while the threshold write is still out. Rolling the whole
+    // state back to before the threshold would drop it.
+    final later = notifier.setDepthUnit(DepthUnit.feet);
+    await failing;
+    await later.catchError((Object _) {});
+
+    expect(container.read(settingsProvider).depthUnit, DepthUnit.feet);
   });
 
   test('the cold line accepts sub-zero water', () async {
