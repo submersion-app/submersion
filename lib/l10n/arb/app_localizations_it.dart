@@ -33466,6 +33466,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scegli almeno uno: immersioni, siti, attrezzatura, media o documenti';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'Questo tag esiste già. Salvando gli si aggiungono gli usi selezionati.';
+
+  @override
   String get tags_manage_scope_dives => 'Immersioni';
 
   @override

@@ -9605,6 +9605,7 @@
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Dieser Tag ist an 1 Tauchplatz. Wenn „Für Tauchplätze verwenden“ ausgeschaltet wird, wird er von diesem Tauchplatz entfernt.} other{Dieser Tag ist an {count} Tauchplätzen. Wenn „Für Tauchplätze verwenden“ ausgeschaltet wird, wird er von diesen Tauchplätzen entfernt.}}",
   "tags_manage_narrowDialog_title": "Tag von vorhandenen Einträgen entfernen?",
   "tags_manage_scopeRequired": "Mindestens eines wählen: Tauchgänge, Tauchplätze, Ausrüstung, Medien oder Dokumente",
+  "tags_manage_existingTagNote": "Dieses Tag gibt es schon. Beim Speichern kommen die angehakten Verwendungen dazu.",
   "tags_manage_scope_dives": "Tauchgänge",
   "tags_manage_scope_equipment": "Ausrüstung",
   "tags_manage_scope_sites": "Tauchplätze",

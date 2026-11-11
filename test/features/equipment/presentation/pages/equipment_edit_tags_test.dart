@@ -202,7 +202,7 @@ void main() {
     expect(find.text('Night'), findsNothing);
   });
 
-  testWidgets('a tag typed on a new item applies to equipment and is saved '
+  testWidgets('a tag typed on a new item applies everywhere and is saved '
       'with it', (tester) async {
     await pumpEditor(tester, null);
     await tester.enterText(find.byType(TextFormField).first, 'Wing');
@@ -217,7 +217,7 @@ void main() {
     final saved = (await repository.getAllEquipment()).single;
     final tags = await tagRepository.getTagsForEquipment(saved.id);
     expect(tags.single.name, 'Rental');
-    expect(tags.single.appliesTo(TagScope.equipment), isTrue);
-    expect(tags.single.appliesTo(TagScope.dives), isFalse);
+    // A new tag is offered for every scope, equipment included (#4407).
+    expect(tags.single.scopes, TagScope.everywhere);
   });
 }

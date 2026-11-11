@@ -9371,6 +9371,7 @@
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Cette étiquette est sur {count} site. Désactiver « Utiliser pour les sites » la retire de ce site.} other{Cette étiquette est sur {count} sites. Désactiver « Utiliser pour les sites » la retire de ces sites.}}",
   "tags_manage_narrowDialog_title": "Retirer l'étiquette des éléments existants ?",
   "tags_manage_scopeRequired": "Choisissez au moins une option : plongées, sites, équipement, médias ou documents",
+  "tags_manage_existingTagNote": "Cette étiquette existe déjà. L'enregistrement lui ajoute les usages cochés.",
   "tags_manage_scope_dives": "Plongées",
   "tags_manage_scope_equipment": "Équipement",
   "tags_manage_scope_sites": "Sites",

@@ -9471,6 +9471,7 @@
   "tags_manage_narrowDialog_sites": "{count, plural, =1{Esta etiqueta está em {count} ponto. Desativar \"Usar em pontos\" remove-a desse ponto.} other{Esta etiqueta está em {count} pontos. Desativar \"Usar em pontos\" remove-a desses pontos.}}",
   "tags_manage_narrowDialog_title": "Remover a etiqueta dos itens existentes?",
   "tags_manage_scopeRequired": "Escolha pelo menos um: mergulhos, pontos, equipamentos, mídia ou documentos",
+  "tags_manage_existingTagNote": "Esta tag já existe. Ao salvar, os usos marcados são adicionados a ela.",
   "tags_manage_scope_dives": "Mergulhos",
   "tags_manage_scope_equipment": "Equipamentos",
   "tags_manage_scope_sites": "Pontos",

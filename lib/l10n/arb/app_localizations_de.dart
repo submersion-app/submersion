@@ -33380,6 +33380,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Mindestens eines wählen: Tauchgänge, Tauchplätze, Ausrüstung, Medien oder Dokumente';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'Dieses Tag gibt es schon. Beim Speichern kommen die angehakten Verwendungen dazu.';
+
+  @override
   String get tags_manage_scope_dives => 'Tauchgänge';
 
   @override

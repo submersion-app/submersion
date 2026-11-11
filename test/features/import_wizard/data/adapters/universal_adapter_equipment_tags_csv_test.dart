@@ -89,9 +89,13 @@ void main() {
           await tearDownTestDatabase();
           await setUpTestDatabase();
           await DiverRepository().createDiver(_diver());
-          return (await TagRepository().getOrCreateTag(
-            'Travel',
-            diverId: _diverId,
+          return (await TagRepository().createTag(
+            Tag.create(
+              id: '',
+              name: 'Travel',
+              diverId: _diverId,
+              scopes: const {TagScope.dives},
+            ),
           )).id;
         }))!;
 
@@ -128,7 +132,9 @@ void main() {
         ], reason: 'the dive tag is widened, not duplicated');
         expect(travel.single.scopes, {TagScope.dives, TagScope.equipment});
         final salt = tags.singleWhere((t) => t.name == 'Salt; fresh');
-        expect(salt.scopes, {TagScope.equipment});
+        // New here, and a CSV names tags without scopes, so it is offered
+        // everywhere, as any new tag is (#4407).
+        expect(salt.scopes, TagScope.everywhere);
 
         final reg = items.singleWhere((e) => e.name == 'Travel reg');
         final fins = items.singleWhere((e) => e.name == 'Fins');

@@ -32887,6 +32887,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose at least one: dives, sites, equipment, media, or documents';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'This tag already exists. Saving adds the ticked uses to it.';
+
+  @override
   String get tags_manage_scope_dives => 'Dives';
 
   @override

@@ -9471,6 +9471,7 @@
   "tags_manage_narrowDialog_sites": "{count, plural, =1{התגית הזו מופיעה באתר אחד. כיבוי \"שימוש לאתרים\" יסיר אותה מאתר זה.} other{התגית הזו מופיעה ב-{count} אתרים. כיבוי \"שימוש לאתרים\" יסיר אותה מאתרים אלה.}}",
   "tags_manage_narrowDialog_title": "להסיר את התגית מפריטים קיימים?",
   "tags_manage_scopeRequired": "בחר לפחות אחד: צלילות, אתרים, ציוד, מדיה או מסמכים",
+  "tags_manage_existingTagNote": "תגית זו כבר קיימת. השמירה מוסיפה לה את השימושים המסומנים.",
   "tags_manage_scope_dives": "צלילות",
   "tags_manage_scope_equipment": "ציוד",
   "tags_manage_scope_sites": "אתרים",

@@ -79,7 +79,7 @@ void main() {
     expect(find.text('To try'), findsNothing);
   });
 
-  testWidgets('a tag created from the site scope applies to sites', (
+  testWidgets('a tag created from the site scope applies everywhere (#4407)', (
     tester,
   ) async {
     var picked = <Tag>[];
@@ -102,7 +102,33 @@ void main() {
     await tester.pump(const Duration(milliseconds: 250));
 
     expect(picked.single.name, 'Avoid');
-    expect(picked.single.appliesTo(TagScope.sites), isTrue);
-    expect(picked.single.appliesTo(TagScope.dives), isFalse);
+    // A new tag is offered for dives, sites, media and the rest, so it can
+    // be reused anywhere without first being found in Manage Tags.
+    expect(picked.single.scopes, TagScope.values.toSet());
   });
+
+  testWidgets(
+    'typing an existing dive tag from sites widens it to sites only',
+    (tester) async {
+      var picked = <Tag>[];
+      await tester.pumpWidget(
+        harness(
+          TagInputWidget(
+            selectedTags: const [],
+            onTagsChanged: (tags) => picked = tags,
+            scope: TagScope.sites,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'Night');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 250));
+
+      expect(picked.single.id, 'd');
+      expect(picked.single.scopes, {TagScope.dives, TagScope.sites});
+    },
+  );
 }

@@ -33558,6 +33558,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Choisissez au moins une option : plongées, sites, équipement, médias ou documents';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'Cette étiquette existe déjà. L\'enregistrement lui ajoute les usages cochés.';
+
+  @override
   String get tags_manage_scope_dives => 'Plongées';
 
   @override

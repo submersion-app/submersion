@@ -74,14 +74,26 @@ void main() {
   });
   tearDown(() => tearDownTestDatabase());
 
-  test('a new tag applies to dives unless told', () async {
+  test('a new tag applies everywhere unless told (#4407)', () async {
     final result = await h.run([
       createOp('tags', {'name': 'Night'}),
+      createOp('tags', {
+        'name': 'Wreck',
+        'scopes': ['media'],
+      }),
     ]);
 
-    final doc = (await h.one('tags', result.created.single.id))!;
-    expect(doc['name'], 'Night');
-    expect(doc['scopes'], ['dives']);
+    final night = (await h.one('tags', result.created.first.id))!;
+    expect(night['name'], 'Night');
+    expect(night['scopes'], [
+      'dives',
+      'sites',
+      'equipment',
+      'media',
+      'documents',
+    ]);
+    final wreck = (await h.one('tags', result.created.last.id))!;
+    expect(wreck['scopes'], ['media']);
   });
 
   test('a name another tag of the diver holds is a duplicate', () async {

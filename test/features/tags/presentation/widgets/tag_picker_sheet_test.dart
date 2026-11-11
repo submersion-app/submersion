@@ -18,6 +18,7 @@ TagStatistic _stat(String id, String name, int diveCount) => TagStatistic(
     colorHex: '#3B82F6',
     createdAt: DateTime(2024),
     updatedAt: DateTime(2024),
+    scopes: const {TagScope.dives},
   ),
   counts: {TagScope.dives: diveCount},
 );

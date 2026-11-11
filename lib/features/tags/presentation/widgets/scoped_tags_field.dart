@@ -7,8 +7,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A Tags field for an edit form (issues #1942, #1970): the tag input plus a
 /// Browse button, both limited to [scope]'s tags. A tag created here applies
-/// to [scope]; a name another scope already uses widens that tag instead of
-/// creating a second one.
+/// to every scope (issue #4407); a name another scope already uses widens
+/// that tag to [scope] instead of creating a second one.
 class ScopedTagsField extends StatelessWidget {
   const ScopedTagsField({
     super.key,

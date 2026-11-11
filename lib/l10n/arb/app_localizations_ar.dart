@@ -33809,6 +33809,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'اختر واحدًا على الأقل: الغوصات أو المواقع أو المعدات أو الوسائط أو المستندات';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'هذا الوسم موجود بالفعل. يضيف الحفظ الاستخدامات المحددة إليه.';
+
+  @override
   String get tags_manage_scope_dives => 'الغوصات';
 
   @override

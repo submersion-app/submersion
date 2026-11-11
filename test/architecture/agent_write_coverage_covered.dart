@@ -40,6 +40,10 @@ final reachedThrough = <String, String>{
       'deleteSiteType',
   'lib/features/dive_sites/data/repositories/site_classification_repository.dart:addTagsToSites':
       'replaceTags',
+  // A colour-only write (#4407); the tags writer edits colour_hex through
+  // its own updateTag.
+  'lib/features/tags/data/repositories/tag_repository.dart:setTagColor':
+      'updateTag',
   'lib/features/buddies/data/repositories/buddy_repository.dart:setFavorite':
       'updateFields',
   'lib/features/buddies/data/repositories/buddy_repository.dart:toggleFavorite':
@@ -258,6 +262,7 @@ final covered = <String, String>{
   'lib/features/tags/data/repositories/tag_repository.dart:updateTag': 'tags',
   'lib/features/tags/data/repositories/tag_repository.dart:deleteTag': 'tags',
   'lib/features/tags/data/repositories/tag_repository.dart:mergeTags': 'tags',
+  'lib/features/tags/data/repositories/tag_repository.dart:setTagColor': 'tags',
   'lib/features/dive_types/data/repositories/dive_type_repository.dart:createDiveType':
       'dive_types',
   'lib/features/dive_types/data/repositories/dive_type_repository.dart:updateDiveType':

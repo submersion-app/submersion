@@ -156,17 +156,23 @@ class TagRepository {
   /// name now exists and here it is") while never creating the duplicate that
   /// made a dive show one tag twice (#1032).
   ///
-  /// When the incumbent lacks a scope the new tag asks for (a site tag named
-  /// like an existing dive tag), the incumbent is widened rather than a second
-  /// tag minted: the name index allows only one, and the diver meant the same
-  /// tag in both places (issue #1765).
-  Future<domain.Tag> createTag(domain.Tag tag) async {
+  /// The incumbent is widened to [widenExistingTo] (issue #1765): the name
+  /// index allows only one tag, and the diver meant the same tag in both
+  /// places. It widens nothing by default, since a new tag's scopes default
+  /// to every scope and a tag narrowed on purpose must not be widened to all
+  /// of them by accident (issue #4407); a caller asks for what it needs,
+  /// such as the scope it is about to link the tag in.
+  Future<domain.Tag> createTag(
+    domain.Tag tag, {
+    Set<domain.TagScope> widenExistingTo = const {},
+  }) async {
+    final incumbentScopes = widenExistingTo;
     try {
       _requireScope(tag);
       final incumbent = await _tagOccupying(tag.name, tag.diverId);
       if (incumbent != null) {
         _log.info('Tag "${tag.name}" already exists as ${incumbent.id}');
-        return await _widenTo(incumbent, tag);
+        return await _widenTo(incumbent, incumbentScopes);
       }
 
       // Store the SAME normalization the index and every lookup key on.
@@ -202,7 +208,7 @@ class TagRepository {
       if (created == null) {
         final winner = await _tagOccupying(name, tag.diverId);
         _log.info('Tag "$name" was created concurrently as ${winner?.id}');
-        if (winner != null) return await _widenTo(winner, tag);
+        if (winner != null) return await _widenTo(winner, incumbentScopes);
         // Vanishingly unlikely: the conflicting row was deleted between the
         // insert and this read. Surfacing it beats returning a tag id that
         // does not exist.
@@ -225,7 +231,10 @@ class TagRepository {
   }
 
   /// Create a tag or get existing if name already exists. The tag comes back
-  /// offered in [scope]: an existing tag lacking it is widened (issue #1765).
+  /// offered in [scope]: an existing tag lacking it is widened to [scope]
+  /// alone (issue #1765), so a tag narrowed on purpose stays narrow. A new
+  /// tag is offered everywhere, so it can be reused on any kind of item
+  /// (issue #4407); a caller wanting it narrower uses [createTag].
   Future<domain.Tag> getOrCreateTag(
     String name, {
     String? colorHex,
@@ -239,15 +248,17 @@ class TagRepository {
         return await _widen(existing, scope);
       }
 
-      // Create new tag
+      // Create new tag. A tag created concurrently under the same name is
+      // an existing tag too, so it is widened to [scope] alone.
       return await createTag(
         domain.Tag.create(
           id: _uuid.v4(),
           diverId: diverId,
           name: name.trim(),
           colorHex: colorHex,
-          scope: scope,
+          scopes: domain.TagScope.everywhere,
         ),
+        widenExistingTo: {scope},
       );
     } catch (e, stackTrace) {
       _log.error(
@@ -342,13 +353,61 @@ class TagRepository {
     }
   }
 
-  /// [tag] widened to also cover every scope [wanted] has.
-  Future<domain.Tag> _widenTo(domain.Tag tag, domain.Tag wanted) async {
-    var result = tag;
-    for (final scope in domain.TagScope.values) {
-      if (wanted.appliesTo(scope)) result = await _widen(result, scope);
-    }
-    return result;
+  /// Sets the colour of the tag [id] alone, leaving its name and every
+  /// scope flag as stored: unlike [updateTag], it cannot narrow a tag or
+  /// undo a widening that landed after the caller read it (issue #4407).
+  Future<void> setTagColor(String id, String? colorHex) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.tags)..where((t) => t.id.equals(id))).write(
+      TagsCompanion(color: Value(colorHex), updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'tags',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// [tag] widened to also cover every scope in [scopes], in one write and
+  /// one sync mark; returns [tag] with those scopes added. Never narrows it,
+  /// and never clears a flag another widening set meanwhile.
+  Future<domain.Tag> widenTag(domain.Tag tag, Set<domain.TagScope> scopes) =>
+      _widenTo(tag, scopes);
+
+  /// [tag] widened to also cover every scope in [wanted], in one write.
+  /// [notify] false for a caller that notifies once itself.
+  Future<domain.Tag> _widenTo(
+    domain.Tag tag,
+    Set<domain.TagScope> wanted, {
+    bool notify = true,
+  }) async {
+    final missing = wanted.difference(tag.scopes);
+    if (missing.isEmpty) return tag;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    // Only the flags being added, each set true: widening never clears one,
+    // so a widening from a stale snapshot cannot undo another that landed
+    // since it was read.
+    await (_db.update(_db.tags)..where((t) => t.id.equals(tag.id))).write(
+      RawValuesInsertable<Tag>({
+        for (final scope in missing)
+          scope.table.scopeColumn: const Variable<bool>(true),
+        ...TagsCompanion(updatedAt: Value(now)).toColumns(false),
+      }),
+    );
+    // Not re-read: the stored flags are right whatever else landed, and a
+    // logbook rule widening many tags keeps to one read each (#3513).
+    final widened = tag.copyWith(scopes: {...tag.scopes, ...missing});
+    await _syncRepository.markRecordPending(
+      entityType: 'tags',
+      recordId: tag.id,
+      localUpdatedAt: now,
+    );
+    if (notify) SyncEventBus.notifyLocalChange();
+    _log.info(
+      'Widened tag ${tag.id} to ${missing.map((s) => s.name).join(', ')}',
+    );
+    return widened;
   }
 
   /// Adds [scope] to [tag] if it lacks it, returning the stored result.
@@ -357,25 +416,7 @@ class TagRepository {
     domain.Tag tag,
     domain.TagScope scope, {
     bool notify = true,
-  }) async {
-    if (tag.appliesTo(scope)) return tag;
-    final widened = tag.copyWith(scopes: {...tag.scopes, scope});
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.tags)..where((t) => t.id.equals(tag.id))).write(
-      RawValuesInsertable<Tag>({
-        ...tagScopeColumns(widened.scopes),
-        ...TagsCompanion(updatedAt: Value(now)).toColumns(false),
-      }),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'tags',
-      recordId: tag.id,
-      localUpdatedAt: now,
-    );
-    if (notify) SyncEventBus.notifyLocalChange();
-    _log.info('Widened tag ${tag.id} to ${scope.name}');
-    return widened;
-  }
+  }) => _widenTo(tag, {scope}, notify: notify);
 
   /// Adds [scope] to each of [tagIds] that lacks it, before they are linked
   /// there, so a link keeps implying its scope (#1765). A logbook rule

@@ -26,7 +26,13 @@ void main() {
     updatedAt: now,
     scopes: const {TagScope.equipment},
   );
-  final night = Tag(id: 't2', name: 'Night', createdAt: now, updatedAt: now);
+  final night = Tag(
+    id: 't2',
+    name: 'Night',
+    createdAt: now,
+    updatedAt: now,
+    scopes: const {TagScope.dives},
+  );
   final checkIn = EquipmentObservation(
     id: 'o1',
     equipmentId: 'reg',

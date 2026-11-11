@@ -70,17 +70,30 @@ void main() {
     final xml = (await tester.runAsync(() async {
       await DiverRepository().createDiver(_diver());
       final tags = TagRepository();
-      final rental = await tags.getOrCreateTag(
-        'Rental',
-        diverId: _diverId,
-        scope: TagScope.equipment,
+      final rental = await tags.createTag(
+        Tag.create(
+          id: '',
+          name: 'Rental',
+          diverId: _diverId,
+          scopes: const {TagScope.equipment},
+        ),
       );
       // A dive tag the diver also uses on gear.
-      await tags.getOrCreateTag('Cold water', diverId: _diverId);
-      final cold = await tags.getOrCreateTag(
-        'Cold water',
-        diverId: _diverId,
-        scope: TagScope.equipment,
+      await tags.createTag(
+        Tag.create(
+          id: '',
+          name: 'Cold water',
+          diverId: _diverId,
+          scopes: const {TagScope.dives},
+        ),
+      );
+      final cold = await tags.createTag(
+        Tag.create(
+          id: '',
+          name: 'Cold water',
+          diverId: _diverId,
+          scopes: const {TagScope.equipment},
+        ),
       );
       final reg = await EquipmentRepository().createEquipment(_travelReg);
       await EquipmentTagRepository().replaceTags(reg.id, [rental.id, cold.id]);
@@ -131,8 +144,15 @@ void main() {
               name: 'Cold water',
               createdAt: _now,
               updatedAt: _now,
+              scopes: const {TagScope.dives},
             ),
-            Tag(id: 'night', name: 'Night', createdAt: _now, updatedAt: _now),
+            Tag(
+              id: 'night',
+              name: 'Night',
+              createdAt: _now,
+              updatedAt: _now,
+              scopes: const {TagScope.dives},
+            ),
           ],
           equipmentTagIdsByItem: const {
             'reg': ['cold'],
@@ -177,15 +197,21 @@ void main() {
       final xml = (await tester.runAsync(() async {
         await DiverRepository().createDiver(_diver());
         final tags = TagRepository();
-        final rental = await tags.getOrCreateTag(
-          'Rental',
-          diverId: _diverId,
-          scope: TagScope.equipment,
+        final rental = await tags.createTag(
+          Tag.create(
+            id: '',
+            name: 'Rental',
+            diverId: _diverId,
+            scopes: const {TagScope.equipment},
+          ),
         );
-        final cold = await tags.getOrCreateTag(
-          'Cold water',
-          diverId: _diverId,
-          scope: TagScope.equipment,
+        final cold = await tags.createTag(
+          Tag.create(
+            id: '',
+            name: 'Cold water',
+            diverId: _diverId,
+            scopes: const {TagScope.equipment},
+          ),
         );
         final reg = await EquipmentRepository().createEquipment(_travelReg);
         await EquipmentTagRepository().replaceTags(reg.id, [
@@ -200,15 +226,21 @@ void main() {
       await freshDatabase(tester);
       final localId = (await tester.runAsync(() async {
         final tags = TagRepository();
-        final repair = await tags.getOrCreateTag(
-          'Needs repair',
-          diverId: _diverId,
-          scope: TagScope.equipment,
+        final repair = await tags.createTag(
+          Tag.create(
+            id: '',
+            name: 'Needs repair',
+            diverId: _diverId,
+            scopes: const {TagScope.equipment},
+          ),
         );
-        final rental = await tags.getOrCreateTag(
-          'Rental',
-          diverId: _diverId,
-          scope: TagScope.equipment,
+        final rental = await tags.createTag(
+          Tag.create(
+            id: '',
+            name: 'Rental',
+            diverId: _diverId,
+            scopes: const {TagScope.equipment},
+          ),
         );
         final reg = await EquipmentRepository().createEquipment(_travelReg);
         await EquipmentTagRepository().replaceTags(reg.id, [

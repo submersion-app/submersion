@@ -33287,6 +33287,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Válasszon legalább egyet: merülések, merülőhelyek, felszerelés, média vagy dokumentumok';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'Ez a címke már létezik. Mentéskor a bejelölt felhasználások hozzáadódnak.';
+
+  @override
   String get tags_manage_scope_dives => 'Merülések';
 
   @override

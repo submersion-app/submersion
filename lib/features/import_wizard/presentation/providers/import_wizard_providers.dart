@@ -1361,6 +1361,7 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
         if (!tagSelection.isNew && diverId == _diverId) {
           tagIds.add(tagSelection.existingTagId!);
         } else {
+          // A new one is offered everywhere, as any new tag is (#4407).
           final tag = await _tagRepository!.getOrCreateTag(
             tagSelection.name,
             diverId: diverId,

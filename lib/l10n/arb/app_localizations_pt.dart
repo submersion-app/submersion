@@ -33437,6 +33437,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Escolha pelo menos um: mergulhos, pontos, equipamentos, mídia ou documentos';
 
   @override
+  String get tags_manage_existingTagNote =>
+      'Esta tag já existe. Ao salvar, os usos marcados são adicionados a ela.';
+
+  @override
   String get tags_manage_scope_dives => 'Mergulhos';
 
   @override

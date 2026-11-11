@@ -24,7 +24,7 @@ class TagFormBlock extends StatelessWidget {
   /// Called for both typed tags and tags picked in the Browse sheet.
   final ValueChanged<List<Tag>> onTagsChanged;
 
-  /// Which tags are suggested and browsed, and what a new tag applies to.
+  /// Which tags are suggested and browsed. A new tag applies everywhere.
   final TagScope scope;
 
   @override
