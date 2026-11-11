@@ -141,14 +141,19 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     )?.shift(Offset(0, _pixels));
     final plotBox = boxOf(_copyFrame?.plotKey.currentContext);
     final copyBox = boxOf(_copyRootKey.currentContext);
-    final plot = plotBox == null || copyBox == null
+    final measured = plotBox == null || copyBox == null
         ? null
         : plotBox.localToGlobal(Offset.zero, ancestor: copyBox) & plotBox.size;
+    // While the copy is not built (pinned, or not yet pinned) its plot keeps
+    // the place it last had: it is the card's layout, which does not move
+    // while hidden. Forgetting it made the first frame of a fast scroll back
+    // squash wrongly and flash the half-faded strip.
+    final plot = measured ?? _copyPlot;
     // The plot takes all of the squash, so its resting height is its height
     // now plus the squash it was laid out with.
-    final range = plot == null
+    final range = measured == null
         ? _squashRange
-        : squashRangeFor(restPlotHeight: plot.height + _layoutSquash);
+        : squashRangeFor(restPlotHeight: measured.height + _layoutSquash);
     if (card != _cardInContent || plot != _copyPlot || range != _squashRange) {
       setState(() {
         _cardInContent = card;
@@ -295,11 +300,20 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       card.right - margin.right,
       math.max(card.bottom - margin.bottom, 0),
     );
-    final stripBox = Rect.lerp(
+    final toward = Rect.lerp(
       from,
       Rect.fromLTWH(0, 0, width, kPinnedStripHeight),
       morph,
     )!;
+    // Its bottom never rises above the card's own while any card is left,
+    // or the bottom of the card would show beneath it; the card leaves at
+    // the strip's height, where the two meet.
+    final stripBox = Rect.fromLTRB(
+      toward.left,
+      toward.top,
+      toward.right,
+      math.max(toward.bottom, card.bottom - margin.bottom),
+    );
 
     // Everything drawn, which always covers all of the card still on screen.
     final box = Rect.fromLTRB(

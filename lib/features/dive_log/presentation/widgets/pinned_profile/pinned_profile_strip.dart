@@ -131,6 +131,9 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         // and grey the card), then one that grows with the condense, so it
         // never switches on or off in a single frame either way.
         elevation: background >= 1 ? 2 * condense : 0,
+        // Colour and shadow follow the scroll frame by frame already; the
+        // surface's own ease would lag a fast scroll and flash.
+        animationDuration: Duration.zero,
         // It starts across the card at the plot's top, so only its bottom
         // corners round, like the card's own.
         borderRadius: BorderRadius.vertical(

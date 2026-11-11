@@ -277,6 +277,47 @@ void main() {
     },
   );
 
+  // A fast scroll back up skips frames: from pinned, where the copy is not
+  // built, it lands in one frame where the copy shows. That first frame must
+  // already be right, or a half-faded strip and a wrongly squashed chart
+  // flash for a frame.
+  testWidgets('a fast scroll back up is right on its first frame', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    // Down through the squash, as a reader does, to pinned.
+    await jump(tester, profileTop + 60);
+    await jump(tester, profileTop + profileHeight + 40);
+    expect(copyKey, findsNothing);
+
+    position(tester).jumpTo(profileTop + 40);
+    await tester.pump();
+
+    expect(strip, findsNothing);
+    expect(
+      tester.getSize(find.byType(_FakeChart)).height,
+      closeTo(160 - squashAt(40), 0.01),
+    );
+  });
+
+  // The strip rose towards its final height faster than the card scrolled
+  // away, uncovering the bottom of the card below it.
+  testWidgets('while it condenses, the strip covers the card to its bottom', (
+    tester,
+  ) async {
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey);
+    for (final t in [0.3, 0.5, 0.7, 0.9]) {
+      await condenseTo(tester, t);
+      final card = tester.getRect(find.byKey(profileKey));
+      expect(
+        tester.getRect(strip).bottom,
+        greaterThanOrEqualTo(card.bottom - 4 - 0.01),
+        reason: 't=$t',
+      );
+    }
+  });
+
   // A see-through surface over the whole card washed everything grey; the
   // fade is confined to the plot, the part that becomes the strip, and the
   // header and legend stay clear above it.

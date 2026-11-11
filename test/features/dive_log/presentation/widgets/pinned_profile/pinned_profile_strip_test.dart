@@ -344,6 +344,21 @@ void main() {
     expect(curveLayer.opacity, closeTo(0.4, 1e-6));
   });
 
+  // Its colour and shadow already follow the scroll frame by frame; the
+  // surface's own 200 ms ease would lag a fast scroll and flash.
+  testWidgets('its surface does not animate on its own', (tester) async {
+    await pumpMorphing(tester, condense: 0.5, background: 1);
+    final surface = tester.widget<Material>(
+      find
+          .descendant(
+            of: find.byType(PinnedProfileStrip),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    expect(surface.animationDuration, Duration.zero);
+  });
+
   // A shadow switching on the moment the surface turned opaque flashed grey
   // in both directions; it grows with the condense instead.
   testWidgets('its shadow grows with the condense', (tester) async {
