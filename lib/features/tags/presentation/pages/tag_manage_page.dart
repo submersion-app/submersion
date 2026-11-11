@@ -211,10 +211,7 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
         children: [
           Text(
             context.l10n.tags_manage_rowScopes(
-              [
-                for (final scope in TagScope.values)
-                  if (tag.appliesTo(scope)) tagScopeName(context.l10n, scope),
-              ].join(' · '),
+              tagScopeNames(context.l10n, tag),
             ),
           ),
           Text(

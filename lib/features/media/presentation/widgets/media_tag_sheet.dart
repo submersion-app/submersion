@@ -15,13 +15,20 @@ Future<void> showMediaTagSheet(BuildContext context, MediaItem item) =>
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.5,
-        minChildSize: 0.3,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (_, controller) =>
-            MediaTagSheet(item: item, scrollController: controller),
+      // A modal sheet does not make room for the keyboard by itself; without
+      // this the tag field and its Create suggestion sit under it (#4406).
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.5,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (_, controller) =>
+              MediaTagSheet(item: item, scrollController: controller),
+        ),
       ),
     );
 

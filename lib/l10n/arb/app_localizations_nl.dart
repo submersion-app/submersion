@@ -32963,6 +32963,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen tags komen overeen met je zoekopdracht.';
 
   @override
+  String get tags_picker_otherTags => 'Andere tags';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

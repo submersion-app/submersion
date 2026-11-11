@@ -32623,6 +32623,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_picker_noMatches => 'No tags match your search.';
 
   @override
+  String get tags_picker_otherTags => 'Other tags';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -31246,6 +31246,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_picker_noMatches => '没有标签与您的搜索匹配。';
 
   @override
+  String get tags_picker_otherTags => '其他标签';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

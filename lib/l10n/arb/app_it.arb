@@ -9320,6 +9320,7 @@
   "tags_picker_errorLoading": "Errore durante il caricamento dei tag: {error}",
   "tags_picker_allAdded": "Tutti i tag sono già stati aggiunti.",
   "tags_picker_noMatches": "Nessun tag corrisponde alla ricerca.",
+  "tags_picker_otherTags": "Altri tag",
   "tags_picker_addCount": "{count, plural, =0{Aggiungi tag} =1{Aggiungi 1 tag} other{Aggiungi {count} tag}}",
   "tags_action_showDives": "Mostra immersioni con tag \"{tagName}\"",
   "tags_hint_addMoreTags": "Aggiungi altri tag...",

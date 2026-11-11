@@ -9558,6 +9558,7 @@
   "tags_picker_errorLoading": "Fehler beim Laden der Tags: {error}",
   "tags_picker_allAdded": "Alle Tags sind bereits hinzugefügt.",
   "tags_picker_noMatches": "Keine Tags entsprechen deiner Suche.",
+  "tags_picker_otherTags": "Andere Tags",
   "tags_picker_addCount": "{count, plural, =0{Tags hinzufügen} =1{1 Tag hinzufügen} other{{count} Tags hinzufügen}}",
   "tags_action_showDives": "Tauchgänge mit Tag \"{tagName}\" anzeigen",
   "tags_hint_addMoreTags": "Weitere Tags hinzufügen...",

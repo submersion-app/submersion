@@ -19372,6 +19372,10 @@
   },
   "tags_picker_allAdded": "All tags are already added.",
   "tags_picker_noMatches": "No tags match your search.",
+  "tags_picker_otherTags": "Other tags",
+  "@tags_picker_otherTags": {
+    "description": "Tag picker section heading over the diver's tags that are not yet offered for what is being tagged; picking one also offers it there"
+  },
   "tags_picker_addCount": "{count, plural, =0{Add tags} =1{Add 1 tag} other{Add {count} tags}}",
   "@tags_picker_addCount": {
     "description": "Confirm button on the tag picker sheet; count is how many tags are ticked",

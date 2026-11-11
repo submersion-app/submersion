@@ -33507,6 +33507,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_picker_noMatches => 'لا توجد وسوم تطابق بحثك.';
 
   @override
+  String get tags_picker_otherTags => 'وسوم أخرى';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
