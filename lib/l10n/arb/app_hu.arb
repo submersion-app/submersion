@@ -259,6 +259,8 @@
   "equipment_components_roleHint": "pl. Fő második fokozat",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "Alkatrészek",
+  "equipment_components_totalFromParts": "{total, plural, one{{count}/{total} alkatrész alapján} other{{count}/{total} alkatrész alapján}}",
+  "equipment_components_totalsSection": "Összesen",
   "equipment_setEdit_defaultSwitch_title": "Alapértelmezett készlet",
   "equipment_setEdit_defaultSwitch_subtitle": "Automatikusan alkalmazza az új, még felszerelés nélküli merülésekre",
   "equipment_setDetail_showFigure": "Búvárfigura megjelenítése",

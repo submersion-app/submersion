@@ -2096,6 +2096,18 @@ abstract class AppLocalizations {
   /// **'Components'**
   String get equipment_components_title;
 
+  /// No description provided for @equipment_components_totalFromParts.
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, one{From {count} of {total} component} other{From {count} of {total} components}}'**
+  String equipment_components_totalFromParts(int count, int total);
+
+  /// No description provided for @equipment_components_totalsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get equipment_components_totalsSection;
+
   /// No description provided for @equipment_documents_removeError.
   ///
   /// In en, this message translates to:

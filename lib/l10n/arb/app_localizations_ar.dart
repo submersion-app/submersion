@@ -1397,6 +1397,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_components_title => 'المكوّنات';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'من $count من أصل $total مكوّن',
+      many: 'من $count من أصل $total مكوّنًا',
+      few: 'من $count من أصل $total مكوّنات',
+      two: 'من $count من أصل مكوّنين',
+      one: 'من $count من أصل $total مكوّن',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'المجموع';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'تعذرت إزالة المستند: $error';
   }

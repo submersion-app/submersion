@@ -259,6 +259,8 @@
   "equipment_components_roleHint": "ex.: Segundo estágio principal",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "Componentes",
+  "equipment_components_totalFromParts": "{total, plural, one{De {count} de {total} componente} other{De {count} de {total} componentes}}",
+  "equipment_components_totalsSection": "Total",
   "equipment_setEdit_defaultSwitch_title": "Conjunto padrão",
   "equipment_setEdit_defaultSwitch_subtitle": "Aplicado automaticamente a novos mergulhos que ainda não têm equipamento",
   "equipment_setDetail_showFigure": "Mostrar figura do mergulhador",

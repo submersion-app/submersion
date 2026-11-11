@@ -738,6 +738,14 @@
   "equipment_components_roleHint": "e.g. Primary second stage",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "Components",
+  "equipment_components_totalFromParts": "{total, plural, one{From {count} of {total} component} other{From {count} of {total} components}}",
+  "@equipment_components_totalFromParts": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "equipment_components_totalsSection": "Total",
   "equipment_documents_removeError": "Could not remove the document: {error}",
   "@diveLog_o2tox_label_timeAboveLimit": {
     "placeholders": {

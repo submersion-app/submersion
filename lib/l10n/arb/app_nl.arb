@@ -259,6 +259,8 @@
   "equipment_components_roleHint": "bijv. Primaire tweede trap",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "Onderdelen",
+  "equipment_components_totalFromParts": "{total, plural, one{Uit {count} van {total} onderdeel} other{Uit {count} van {total} onderdelen}}",
+  "equipment_components_totalsSection": "Totaal",
   "equipment_setEdit_defaultSwitch_title": "Standaardset",
   "equipment_setEdit_defaultSwitch_subtitle": "Automatisch toegepast op nieuwe duiken zonder uitrusting",
   "equipment_setDetail_showFigure": "Duikerfiguur tonen",

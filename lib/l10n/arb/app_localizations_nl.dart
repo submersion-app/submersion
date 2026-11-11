@@ -1350,6 +1350,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_components_title => 'Onderdelen';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Uit $count van $total onderdelen',
+      one: 'Uit $count van $total onderdeel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Totaal';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Kan het document niet verwijderen: $error';
   }

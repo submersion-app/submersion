@@ -259,6 +259,8 @@
   "equipment_components_roleHint": "例如：主二级头",
   "equipment_components_rollupClock": "{component}：{kind}",
   "equipment_components_title": "组件",
+  "equipment_components_totalFromParts": "{total, plural, other{基于 {total} 个组件中的 {count} 个}}",
+  "equipment_components_totalsSection": "合计",
   "equipment_setEdit_defaultSwitch_title": "默认套装",
   "equipment_setEdit_defaultSwitch_subtitle": "自动应用于尚无装备的新潜水",
   "equipment_setDetail_showFigure": "显示潜水员图示",
