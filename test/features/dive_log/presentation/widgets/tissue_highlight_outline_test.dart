@@ -253,6 +253,42 @@ void main() {
       );
     });
 
+    // The strip's ClipRRect would clip away a line centred outside the strip,
+    // so the first row's top edge and the last row's bottom edge are pulled
+    // in by half the line instead. The 2 px line still leaves most of a
+    // 4.5 px row in view.
+    for (final (row, label) in [(0, 'first'), (15, 'last')]) {
+      testWidgets('keeps the $label row\'s outer edge inside the strip', (
+        tester,
+      ) async {
+        await pump(tester, strip(hovered: row));
+
+        const rowHeight = stripHeight / 16;
+        const half = HighlightOutline.width / 2;
+        final expectedTop = row == 0 ? half : row * rowHeight - half;
+        final expectedBottom = row == 15
+            ? stripHeight - half
+            : (row + 1) * rowHeight + half;
+
+        expect(
+          find.byType(TissueHeatMapStrip),
+          paints..something((method, arguments) {
+            if (!isOutline(
+              method,
+              arguments,
+              #drawRect,
+              heatMapHighlightOf(Brightness.light),
+            )) {
+              return false;
+            }
+            final rect = arguments.first as Rect;
+            return (rect.top - expectedTop).abs() < 0.01 &&
+                (rect.bottom - expectedBottom).abs() < 0.01;
+          }),
+        );
+      });
+    }
+
     testWidgets('draws the time cursor in the highlight colour', (
       tester,
     ) async {

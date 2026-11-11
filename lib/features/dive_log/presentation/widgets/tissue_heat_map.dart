@@ -490,17 +490,19 @@ class _TissueHeatMapPainter extends CustomPainter {
   ///
   /// A row is only a few pixels tall, so the line sits just outside it, over
   /// the edges of the neighbouring rows, and leaves the highlighted row
-  /// itself in full view. Its ends are kept inside the strip, where a line
-  /// outside the row would be clipped away; its top and bottom edges on the
-  /// first and last rows fall on the strip's own edge.
+  /// itself in full view. Every edge is kept inside the strip, where a line
+  /// outside it would be clipped away: the two ends, the first row's top and
+  /// the last row's bottom sit just inside the strip's edge instead, which
+  /// leaves most of a row in view because the line is narrow.
   static Rect _rowOutlineRect(int row, double cellHeight, Size size) {
     const half = HighlightOutline.width / 2;
     final top = row * cellHeight;
+    final maxY = math.max(half, size.height - half);
     return Rect.fromLTRB(
       half,
-      top - half,
+      (top - half).clamp(half, maxY),
       math.max(half, size.width - half),
-      top + cellHeight + half,
+      (top + cellHeight + half).clamp(half, maxY),
     );
   }
 
