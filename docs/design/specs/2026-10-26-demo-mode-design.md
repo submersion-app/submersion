@@ -137,6 +137,11 @@ the clean-up, the next launch finishes it before opening the user's logbook.
 - If the app is killed during demo mode, it relaunches into demo mode with the
   strip showing. The user leaves through "Exit demo" as usual. (Builder's call:
   resuming is the least surprising behaviour and never risks the real data.)
+- If that relaunch cannot open the demo database (most often after a
+  downgrade, when a newer build already upgraded it past what this build
+  reads), startup leaves demo mode and opens the user's logbook instead. The
+  version-mismatch and failure screens, and their restore offers, are about
+  the user's own database and stay out of demo mode, which seals restore.
 - The demo database is never encrypted, and entering or leaving demo mode never
   reads, applies or changes the user's database encryption key.
 

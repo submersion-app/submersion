@@ -61,6 +61,7 @@ import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_schema_probe.dart';
+import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_startup.dart';
 import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
@@ -240,6 +241,11 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final Future<DemoStartupDecision> Function()? demoStartupOverride;
 
+  /// Optional override for leaving demo mode when this build cannot open the
+  /// sample logbook. See [DemoStartup.abandon].
+  @visibleForTesting
+  final Future<void> Function()? demoAbandonOverride;
+
   /// Optional override for the platform question, so tests can run the
   /// browser branches on the VM.
   @visibleForTesting
@@ -266,6 +272,7 @@ class StartupWrapper extends StatefulWidget {
     this.availabilityServiceOverride,
     this.demoPaths,
     this.demoStartupOverride,
+    this.demoAbandonOverride,
     this.isWebOverride,
   });
 
@@ -304,6 +311,15 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// The sample logbook this launch opens instead of the user's database,
   /// when demo mode is on (issue #3708). Null opens the user's database.
   String? _demoDatabasePath;
+
+  /// Whether this run of [_runInitialization] is opening the sample logbook,
+  /// so a failure belongs to that disposable file and not the user's own.
+  bool _openingSampleLogbook = false;
+
+  /// Set once the sample logbook failed to open and demo mode was left. Later
+  /// runs open the user's logbook even if the demo state could not be
+  /// cleared, so a failing sample can never loop.
+  bool _sampleLogbookAbandoned = false;
 
   /// The diver's custom folder, when the failure screen found it unreachable
   /// (#2178). Null at the default location and whenever the folder is fine.
@@ -393,6 +409,7 @@ class _StartupWrapperState extends State<StartupWrapper>
 
   Future<void> _runInitialization() async {
     _schemaProbeReachedFile = false;
+    _openingSampleLogbook = false;
     try {
       _phase = StartupPhase.preflight;
 
@@ -405,7 +422,9 @@ class _StartupWrapperState extends State<StartupWrapper>
 
       // Demo mode first (issue #3708): finishing an exit a killed app left
       // half done restores the preferences everything below reads.
-      _demoDatabasePath = (await _resolveDemoStartup()).demoDatabasePath;
+      _demoDatabasePath = _sampleLogbookAbandoned
+          ? null
+          : (await _resolveDemoStartup()).demoDatabasePath;
 
       // Determine if migration is needed before opening the database
       final dbPath = await widget.locationService.getDatabasePath();
@@ -462,6 +481,7 @@ class _StartupWrapperState extends State<StartupWrapper>
       final demoPath = _demoDatabasePath;
       final openPath = demoPath ?? dbPath;
       if (demoPath != null) DatabaseService.instance.databaseKeyHex = null;
+      _openingSampleLogbook = demoPath != null;
 
       final int? storedVersion;
       final bool needsMigration;
@@ -557,6 +577,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         _splashFadeController.forward();
       }
     } on DatabaseVersionMismatchException catch (e) {
+      if (await _leaveUnopenableSampleLogbook(e)) return;
       if (mounted) {
         setState(() {
           _state = _StartupState.error;
@@ -579,6 +600,7 @@ class _StartupWrapperState extends State<StartupWrapper>
         await _runInitialization();
       }
     } on sqlite3.SqliteException catch (e) {
+      if (await _leaveUnopenableSampleLogbook(e)) return;
       if (DatabaseService.isRecoverableReadonlyError(e)) {
         debugPrint(
           'Startup hit SQLITE_READONLY (code ${e.extendedResultCode}); '
@@ -594,7 +616,74 @@ class _StartupWrapperState extends State<StartupWrapper>
         await _enterFailureState(e);
       }
     } catch (e) {
+      if (await _leaveUnopenableSampleLogbook(e)) return;
       await _enterFailureState(e);
+    }
+  }
+
+  /// Leaves demo mode and opens the user's own logbook when the sample
+  /// logbook is what failed to open. Returns whether it did.
+  ///
+  /// Every screen past a failed open (the version mismatch, the failure
+  /// screen, hot-journal recovery) is about the user's database: its restore
+  /// offers come from their backup registry and act on their file, and demo
+  /// mode seals all of them, so pressing one only showed the seal's error.
+  /// The sample is disposable, so the honest answer is to leave it. The usual
+  /// case is a downgrade: a newer build upgraded the sample, and this one
+  /// cannot read it. If the user's own logbook cannot open either, the rerun
+  /// shows its screens, outside demo mode, where their restores work.
+  ///
+  /// Two failures keep demo mode on and the sample's own screen instead,
+  /// because rerunning would be worse: a connection that will not close
+  /// (initialize() would return early with the sample still open), and an
+  /// exit that could not put the user's preferences back.
+  Future<bool> _leaveUnopenableSampleLogbook(Object error) async {
+    if (!_openingSampleLogbook) return false;
+    _openingSampleLogbook = false;
+    debugPrint(
+      '[startup] the demo sample logbook could not be opened, leaving demo '
+      'mode: $error',
+    );
+    // Closed before the demo files go: an open connection holds the file.
+    final closeError = await _releaseDatabase();
+    if (closeError != null) {
+      debugPrint('[startup] the sample logbook is still open; staying in demo');
+      return false;
+    }
+    if (!await _abandonDemoMode()) return false;
+    _sampleLogbookAbandoned = true;
+    if (!mounted) return true;
+    setState(() {
+      _state = _StartupState.initializing;
+      _isVersionMismatch = false;
+      _errorMessage = '';
+    });
+    await _runInitialization();
+    return true;
+  }
+
+  /// Whether demo mode was left. Never throws. A demo directory that cannot
+  /// be removed still counts as left ([DemoStartup.abandon] leaves it for the
+  /// next launch); state or preferences that cannot be put back do not, and
+  /// demo mode stays on.
+  Future<bool> _abandonDemoMode() async {
+    try {
+      final override = widget.demoAbandonOverride;
+      final paths = widget.demoPaths;
+      if (override != null) {
+        await override();
+      } else if (paths != null) {
+        await DemoStartup.abandon(
+          store: DemoStateStore(paths),
+          prefs: widget.prefs,
+        );
+      } else {
+        DemoModeGate.instance.markActive(false);
+      }
+      return true;
+    } catch (e) {
+      debugPrint('[startup] demo mode could not be left: $e');
+      return false;
     }
   }
 
@@ -1063,6 +1152,10 @@ class _StartupWrapperState extends State<StartupWrapper>
     // Backstop for the same rule the final progress report already applies:
     // whatever the ladder reported, it is finished once initialize() returns.
     _markUpgradeFinished();
+
+    // The sample logbook is open now, so a later step that fails is a startup
+    // failure of its own and must not discard a sample that works.
+    _openingSampleLogbook = false;
 
     await timeStartupStep(
       'localCache',

@@ -135,9 +135,8 @@ class _CompactTissueLoadingCardState
           children: [
             Row(
               children: [
-                // The title gives way, with an ellipsis, before the cursor
-                // time or the controls: on a phone the full header is wider
-                // than the card once the time joins it (#4423).
+                // The title gives way in a narrow column (the desktop side
+                // panel), so the cursor time and the controls always fit.
                 Expanded(
                   child: Row(
                     children: [
@@ -153,7 +152,6 @@ class _CompactTissueLoadingCardState
                         const SizedBox(width: 6),
                         Text(
                           '@ ${widget.subtitle!}',
-                          maxLines: 1,
                           style: textTheme.labelSmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -162,6 +160,9 @@ class _CompactTissueLoadingCardState
                     ],
                   ),
                 ),
+                // Keeps the cursor time off the first control once the
+                // title has shrunk to make room.
+                const SizedBox(width: 8),
                 // Every control below shares _headerButtonStyle, so each one
                 // lays out to the same box and the gaps stay even. Do not add
                 // manual spacers between them: the icons are built from

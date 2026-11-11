@@ -57,6 +57,7 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_hero_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_overflow_menu.dart';
@@ -590,7 +591,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         : context.l10n.diveLog_detail_tooltip_addToFavorites;
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.diveLog_detail_appBar),
+        // Titled like the desktop pane's header, not "Dive Details" (#4445).
+        title: Text(
+          diveTitle(context, dive),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
           if (!compactActions)

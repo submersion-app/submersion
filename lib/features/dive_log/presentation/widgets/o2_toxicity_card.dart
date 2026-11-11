@@ -585,45 +585,59 @@ class CompactO2ToxicityPanel extends StatelessWidget {
           child: Icon(Icons.air, size: 16, color: colorScheme.primary),
         ),
         const SizedBox(width: 6),
-        Text(
-          context.l10n.diveLog_detail_section_oxygenToxicity,
-          style: textTheme.titleSmall,
-        ),
-        if (subtitle != null) ...[
-          const SizedBox(width: 6),
-          Text(
-            '@ $subtitle',
-            style: textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-        if (isWarning) ...[
-          const SizedBox(width: 6),
-          Semantics(
-            label: isCritical
-                ? context.l10n.diveLog_o2tox_semantics_criticalWarning
-                : context.l10n.diveLog_o2tox_semantics_warning,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(
-                color: badge.fill,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                isCritical
-                    ? context.l10n.diveLog_detail_badge_critical
-                    : context.l10n.diveLog_detail_badge_warning,
-                style: textTheme.labelSmall?.copyWith(
-                  color: badge.label,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
+        // The title gives way in a narrow column (the desktop side panel),
+        // so the cursor time, badge and info icon always fit.
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  context.l10n.diveLog_detail_section_oxygenToxicity,
+                  style: textTheme.titleSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
+              if (subtitle != null) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '@ $subtitle',
+                  style: textTheme.labelSmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+              if (isWarning) ...[
+                const SizedBox(width: 6),
+                Semantics(
+                  label: isCritical
+                      ? context.l10n.diveLog_o2tox_semantics_criticalWarning
+                      : context.l10n.diveLog_o2tox_semantics_warning,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badge.fill,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      isCritical
+                          ? context.l10n.diveLog_detail_badge_critical
+                          : context.l10n.diveLog_detail_badge_warning,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: badge.label,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
-        ],
-        const Spacer(),
+        ),
         HeaderInfoButton(
           title: context.l10n.diveLog_detail_section_oxygenToxicity,
           height: 20,
