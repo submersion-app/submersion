@@ -69,8 +69,12 @@ Set<String> countedCylinderIds(
   return tanks
       .where((t) => recordings[t.id] != primary)
       .fold<List<DiveTank>>(fromPrimary, (counted, tank) {
+        // A suit inflation bottle is not breathing gas (issue #4243): its
+        // mix makes it a copy of another bottle only, never of a cylinder.
         final others = counted.where(
-          (c) => recordings[c.id] != recordings[tank.id],
+          (c) =>
+              recordings[c.id] != recordings[tank.id] &&
+              c.role.isBreathingGas == tank.role.isBreathingGas,
         );
         final slot = _slotOf(tank, rebreather: rebreather);
         final copy = others.any(

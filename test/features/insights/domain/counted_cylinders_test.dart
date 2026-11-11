@@ -188,6 +188,18 @@ void main() {
       );
     });
 
+    test('a suit inflation bottle is no copy of a breathing cylinder', () {
+      expect(
+        _counted([
+          _tank('a', o2: 32, computerId: 'primary'),
+          _tank('suit', role: TankRole.suitInflation, computerId: 'primary'),
+          _tank('stage', role: TankRole.stage, computerId: 'other'),
+          _tank('suit-2', role: TankRole.suitInflation, computerId: 'other'),
+        ]),
+        {'a', 'suit', 'stage'},
+      );
+    });
+
     group('on a rebreather dive, rows take the CCR reading of their role', () {
       final diluent = _tank(
         'dil',
