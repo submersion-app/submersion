@@ -35,15 +35,25 @@ Finder _drawnFlag() => find.descendant(
   matching: find.byType(DecoratedBox),
 );
 
+/// Lets the flag's vector asset load (real async work, outside fake time).
+Future<void> _letFlagLoad(WidgetTester tester) async {
+  await tester.runAsync(
+    () => Future<void>.delayed(const Duration(milliseconds: 300)),
+  );
+  await tester.pump();
+}
+
 void main() {
   group('CountryFlag', () {
     testWidgets('draws 16 by 11 at the default height', (tester) async {
       await _pump(tester, const CountryFlag(code: 'MX'));
+      await _letFlagLoad(tester);
       expect(tester.getSize(_drawnFlag()), const Size(16, 11));
     });
 
     testWidgets('keeps the 16:11 ratio at another height', (tester) async {
       await _pump(tester, const CountryFlag(code: 'MX', height: 22));
+      await _letFlagLoad(tester);
       expect(tester.getSize(_drawnFlag()), const Size(32, 22));
     });
 
@@ -58,6 +68,21 @@ void main() {
         findsOneWidget,
       );
       handle.dispose();
+    });
+
+    testWidgets('draws no outline before the flag image has loaded', (
+      tester,
+    ) async {
+      // The first frame, before the vector asset arrives: an outline alone
+      // would read as an empty placeholder box.
+      await _pump(tester, const CountryFlag(code: 'NO'));
+      expect(_drawnFlag(), findsNothing);
+
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pump();
+      expect(_drawnFlag(), findsOneWidget);
     });
 
     test('every assigned country code has a flag to draw', () {

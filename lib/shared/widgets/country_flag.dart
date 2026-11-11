@@ -1,5 +1,7 @@
 import 'package:country_flags/country_flags.dart' as flags;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:jovial_svg/jovial_svg.dart';
 
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -11,6 +13,12 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// beside it, or labelled by the group that holds it, so it is hidden from
 /// screen readers. A hairline outline keeps white-edged flags (Japan,
 /// Indonesia) visible on a light surface and dark ones on a dark surface.
+///
+/// Draws the country_flags package's vector assets through jovial_svg
+/// directly rather than through the package's widget, for two things that
+/// widget does not offer: the outline appears only once the flag has
+/// loaded, so a list never flashes empty boxes, and loaded flags are kept
+/// in a shared cache, so a flag scrolling back into view draws at once.
 class CountryFlag extends StatelessWidget {
   const CountryFlag({super.key, required this.code, this.height = 11});
 
@@ -21,11 +29,17 @@ class CountryFlag extends StatelessWidget {
 
   static const double _radius = 2;
 
+  /// Every flag a logbook is likely to show at once, and then some.
+  static final ScalableImageCache _cache = ScalableImageCache(size: 64);
+
   @override
   Widget build(BuildContext context) {
     final width = height * 16 / 11;
+    final flagCode = flags.FlagCode.fromCountryCode(code);
+    final outline = Theme.of(context).colorScheme.outlineVariant;
     // Its own size whatever the parent's constraints: a stretched or tight
-    // slot must not turn the flag into a banner.
+    // slot must not turn the flag into a banner. The slot is kept while the
+    // flag loads, so the text beside it does not shift.
     return ExcludeSemantics(
       child: Align(
         widthFactor: 1,
@@ -33,24 +47,28 @@ class CountryFlag extends StatelessWidget {
         child: SizedBox(
           width: width,
           height: height,
-          child: DecoratedBox(
-            position: DecorationPosition.foreground,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(_radius),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant,
-                width: 0.5,
-              ),
-            ),
-            child: flags.CountryFlag.fromCountryCode(
-              code,
-              theme: flags.ImageTheme(
-                width: width,
-                height: height,
-                shape: const flags.RoundedRectangle(_radius),
-              ),
-            ),
-          ),
+          child: flagCode == null
+              ? null
+              : ScalableImageWidget.fromSISource(
+                  si: ScalableImageSource.fromSI(
+                    rootBundle,
+                    'packages/country_flags/res/si/$flagCode.si',
+                  ),
+                  cache: _cache,
+                  fit: BoxFit.cover,
+                  onLoading: (_) => const SizedBox.shrink(),
+                  onLoaded: (_, image) => DecoratedBox(
+                    position: DecorationPosition.foreground,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(_radius),
+                      border: Border.all(color: outline, width: 0.5),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(_radius),
+                      child: ScalableImageWidget(si: image, fit: BoxFit.cover),
+                    ),
+                  ),
+                ),
         ),
       ),
     );
