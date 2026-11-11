@@ -338,26 +338,19 @@ class ChangesetWriter {
       // must not disturb twin detection.
       if (ownManifest != null &&
           (now - ownManifest.updatedAt > heartbeatMaxAgeMillis ||
-              _describesAnotherBuild(ownManifest, deviceName))) {
-        final beat = SyncManifest(
-          deviceId: ownManifest.deviceId,
+              _publishedSelfDescriptionIsStale(ownManifest, deviceName))) {
+        // The log is unchanged, so its compatibility floor is too: the floor
+        // names the oldest schema that can apply these payloads, and every
+        // one of them was written under the floor already published. Raising
+        // it here would hold older peers off a log they can still read; the
+        // next real publish raises it along with data this build wrote.
+        final beat = ownManifest.copyWith(
           // A heartbeat is also the cheapest way a renamed device republishes
-          // its name; keep the previously published one when this build
-          // cannot resolve a usable name at all.
-          deviceName: deviceName ?? ownManifest.deviceName,
-          provider: ownManifest.provider,
-          baseSeq: ownManifest.baseSeq,
-          basePartCount: ownManifest.basePartCount,
-          baseBytes: ownManifest.baseBytes,
-          baseChecksum: ownManifest.baseChecksum,
-          basePartChecksums: ownManifest.basePartChecksums,
-          headSeq: ownManifest.headSeq,
-          publishedHlcHigh: ownManifest.publishedHlcHigh,
-          epochId: ownManifest.epochId,
-          uploadNonce: ownManifest.uploadNonce,
+          // its name; a null keeps the previously published one when this
+          // build cannot resolve a usable name at all.
+          deviceName: deviceName,
           appliedPeerHlc: appliedPeerHlc,
           updatedAt: now,
-          schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
           writerSchemaVersion: AppDatabase.currentSchemaVersion,
         );
         await _writeManifest(provider, folderId, deviceId, beat, null);
@@ -501,16 +494,21 @@ class ChangesetWriter {
 
   int _max(int a, int b) => a > b ? a : b;
 
-  /// True when [published] was stamped by a different build, or under a name
-  /// this device has since dropped. Peers read the stamps on the manifest,
-  /// not the build that runs here: an updated device with nothing new to say
-  /// would otherwise keep its old writer schema for up to a heartbeat
-  /// interval, and every peer would warn that it runs an older version
-  /// (issue #4462). A null [deviceName] corrects nothing, because the
+  /// True when [published] names a different writer schema than this build's,
+  /// or a name this device has since dropped. Peers read the stamps on the
+  /// manifest, not the build that runs here: an updated device with nothing
+  /// new to say would otherwise keep its old writer schema for up to a
+  /// heartbeat interval, and every peer would warn that it runs an older
+  /// version (issue #4462). A null [deviceName] corrects nothing, because the
   /// heartbeat keeps the published name in that case.
-  bool _describesAnotherBuild(SyncManifest published, String? deviceName) =>
+  ///
+  /// The compatibility floor is not compared: it describes the log, which a
+  /// heartbeat does not change, so a heartbeat could not correct it anyway.
+  bool _publishedSelfDescriptionIsStale(
+    SyncManifest published,
+    String? deviceName,
+  ) =>
       published.writerSchemaVersion != AppDatabase.currentSchemaVersion ||
-      published.schemaVersion != AppDatabase.minimumCompatibleSchemaVersion ||
       (deviceName != null && deviceName != published.deviceName);
 
   /// Clears the relay floor this publish read, and only that one: a floor a

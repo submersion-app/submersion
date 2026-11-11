@@ -92,6 +92,39 @@ void main() {
     expect(back.deviceName, isNull);
   });
 
+  group('copyWith', () {
+    // Compared as whole JSON maps, so a field added to SyncManifest later
+    // but missed in copyWith fails here rather than being silently dropped
+    // by every heartbeat.
+    final published = SyncManifest.fromJson({
+      ...sample().toJson(),
+      'schemaVersion': 340,
+      'writerSchemaVersion': 345,
+      'deviceName': 'Old iPad',
+      'appliedPeerHlc': {'peer-a': '000000000000050:000000:peer-a'},
+    });
+
+    test('replaces only the fields it is given', () {
+      final beat = published.copyWith(
+        updatedAt: 2000,
+        appliedPeerHlc: const {'peer-b': '000000000000060:000000:peer-b'},
+        writerSchemaVersion: 359,
+        deviceName: 'Dive iPad',
+      );
+      expect(beat.toJson(), {
+        ...published.toJson(),
+        'updatedAt': 2000,
+        'appliedPeerHlc': {'peer-b': '000000000000060:000000:peer-b'},
+        'writerSchemaVersion': 359,
+        'deviceName': 'Dive iPad',
+      });
+    });
+
+    test('keeps every field, the name included, when given nulls', () {
+      expect(published.copyWith().toJson(), published.toJson());
+    });
+  });
+
   test('toBytes -> fromBytes round-trips every field', () {
     final m = sample();
     final back = SyncManifest.fromBytes(m.toBytes());
