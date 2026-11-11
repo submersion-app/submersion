@@ -17,45 +17,50 @@ class DemoModeRibbon extends ConsumerWidget {
 
   final Widget child;
 
-  /// The square the ribbon is drawn in. [Banner] paints its band from about
-  /// 62.6 to 68.6 px along each edge out of the corner, overhanging the
-  /// corner by 6 px; the clip trims that overhang the way a window edge does.
+  /// The square the ribbon is drawn in. [Banner]'s band crosses each edge
+  /// from about 56.6 to 68.6 px out of the corner, and its ends overhang the
+  /// edges by about 6 px; the clip trims that overhang the way a window edge
+  /// does.
   static const double _extent = 72;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(demoModeActiveProvider)) return child;
+    final active = ref.watch(demoModeActiveProvider);
     final l10n = context.l10n;
+    // The Stack is there whether or not the ribbon is, so turning demo mode
+    // on or off keeps [child] where it is in the tree instead of remounting
+    // the whole app under a new parent.
     return Stack(
       // The app below gets the very constraints it would without the ribbon.
       fit: StackFit.passthrough,
       children: [
         child,
-        PositionedDirectional(
-          // Below the phone status bar rather than over its icons.
-          top: MediaQuery.paddingOf(context).top,
-          end: 0,
-          child: Semantics(
-            container: true,
-            label: l10n.demo_strip_label,
-            child: IgnorePointer(
-              child: ClipRect(
-                child: Banner(
-                  message: l10n.demo_ribbon_label,
-                  location: BannerLocation.topEnd,
-                  color: AppColors.warning,
-                  textStyle: const TextStyle(
-                    color: Colors.black87,
-                    fontSize: 10.2,
-                    fontWeight: FontWeight.w900,
-                    height: 1,
+        if (active)
+          PositionedDirectional(
+            // Below the phone status bar rather than over its icons.
+            top: MediaQuery.paddingOf(context).top,
+            end: 0,
+            child: Semantics(
+              container: true,
+              label: l10n.demo_ribbon_semanticsLabel,
+              child: IgnorePointer(
+                child: ClipRect(
+                  child: Banner(
+                    message: l10n.demo_ribbon_label,
+                    location: BannerLocation.topEnd,
+                    color: AppColors.warning,
+                    textStyle: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 10.2,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                    ),
+                    child: const SizedBox.square(dimension: _extent),
                   ),
-                  child: const SizedBox.square(dimension: _extent),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

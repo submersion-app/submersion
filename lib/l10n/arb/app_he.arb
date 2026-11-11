@@ -17927,7 +17927,7 @@
   "demo_settings_enter_subtitle": "היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו",
   "demo_settings_exit_title": "יציאה מההדגמה",
   "demo_settings_exit_subtitle": "השלכת יומן הדוגמה וחזרה ליומן שלכם",
-  "demo_strip_label": "מצב הדגמה: אתם מעיינים בנתוני דוגמה",
+  "demo_ribbon_semanticsLabel": "מצב הדגמה: אתם מעיינים בנתוני דוגמה",
   "demo_strip_exit": "יציאה מההדגמה",
   "demo_ribbon_label": "הדגמה",
   "demo_exit_confirm_title": "לצאת ממצב ההדגמה?",

@@ -17927,7 +17927,7 @@
   "demo_settings_enter_subtitle": "A naplód érintetlenül félre van téve, amíg ki nem lépsz",
   "demo_settings_exit_title": "Kilépés a demóból",
   "demo_settings_exit_subtitle": "A mintanapló elvetése és visszatérés a sajátodhoz",
-  "demo_strip_label": "Demó mód: mintaadatokat böngészel",
+  "demo_ribbon_semanticsLabel": "Demó mód: mintaadatokat böngészel",
   "demo_strip_exit": "Kilépés a demóból",
   "demo_ribbon_label": "DEMÓ",
   "demo_exit_confirm_title": "Kilépsz a demó módból?",

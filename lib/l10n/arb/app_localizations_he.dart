@@ -59828,7 +59828,8 @@ class AppLocalizationsHe extends AppLocalizations {
       'השלכת יומן הדוגמה וחזרה ליומן שלכם';
 
   @override
-  String get demo_strip_label => 'מצב הדגמה: אתם מעיינים בנתוני דוגמה';
+  String get demo_ribbon_semanticsLabel =>
+      'מצב הדגמה: אתם מעיינים בנתוני דוגמה';
 
   @override
   String get demo_strip_exit => 'יציאה מההדגמה';

@@ -17927,7 +17927,7 @@
   "demo_settings_enter_subtitle": "Tu diario se guarda aparte, intacto, hasta que salgas",
   "demo_settings_exit_title": "Salir de la demo",
   "demo_settings_exit_subtitle": "Descartar el diario de ejemplo y volver al tuyo",
-  "demo_strip_label": "Modo demo: estás explorando datos de ejemplo",
+  "demo_ribbon_semanticsLabel": "Modo demo: estás explorando datos de ejemplo",
   "demo_strip_exit": "Salir de la demo",
   "demo_ribbon_label": "DEMO",
   "demo_exit_confirm_title": "¿Salir del modo demo?",

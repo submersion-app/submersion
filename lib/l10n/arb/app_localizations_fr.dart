@@ -61234,7 +61234,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Abandonner le carnet d\'exemple et revenir au vôtre';
 
   @override
-  String get demo_strip_label =>
+  String get demo_ribbon_semanticsLabel =>
       'Mode démo : vous explorez des données d\'exemple';
 
   @override

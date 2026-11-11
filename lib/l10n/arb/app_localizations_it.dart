@@ -61099,7 +61099,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scarta il logbook di esempio e torna al tuo';
 
   @override
-  String get demo_strip_label =>
+  String get demo_ribbon_semanticsLabel =>
       'Modalità demo: stai esplorando dati di esempio';
 
   @override

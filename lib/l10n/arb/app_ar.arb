@@ -17927,7 +17927,7 @@
   "demo_settings_enter_subtitle": "يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج",
   "demo_settings_exit_title": "الخروج من العرض التجريبي",
   "demo_settings_exit_subtitle": "تجاهل السجل التجريبي والعودة إلى سجلك",
-  "demo_strip_label": "الوضع التجريبي: أنت تستكشف بيانات تجريبية",
+  "demo_ribbon_semanticsLabel": "الوضع التجريبي: أنت تستكشف بيانات تجريبية",
   "demo_strip_exit": "الخروج من العرض التجريبي",
   "demo_ribbon_label": "تجريبي",
   "demo_exit_confirm_title": "الخروج من الوضع التجريبي؟",

@@ -61140,7 +61140,8 @@ class AppLocalizationsEs extends AppLocalizations {
       'Descartar el diario de ejemplo y volver al tuyo';
 
   @override
-  String get demo_strip_label => 'Modo demo: estás explorando datos de ejemplo';
+  String get demo_ribbon_semanticsLabel =>
+      'Modo demo: estás explorando datos de ejemplo';
 
   @override
   String get demo_strip_exit => 'Salir de la demo';

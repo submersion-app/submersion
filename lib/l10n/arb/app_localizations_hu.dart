@@ -60767,7 +60767,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'A mintanapló elvetése és visszatérés a sajátodhoz';
 
   @override
-  String get demo_strip_label => 'Demó mód: mintaadatokat böngészel';
+  String get demo_ribbon_semanticsLabel => 'Demó mód: mintaadatokat böngészel';
 
   @override
   String get demo_strip_exit => 'Kilépés a demóból';

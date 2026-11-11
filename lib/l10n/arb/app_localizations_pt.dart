@@ -61081,7 +61081,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Descartar o diário de exemplo e voltar ao seu';
 
   @override
-  String get demo_strip_label =>
+  String get demo_ribbon_semanticsLabel =>
       'Modo de demonstração: está a explorar dados de exemplo';
 
   @override

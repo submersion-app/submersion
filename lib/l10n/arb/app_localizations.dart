@@ -95947,11 +95947,11 @@ abstract class AppLocalizations {
   /// **'Discard the sample logbook and return to your own'**
   String get demo_settings_exit_subtitle;
 
-  /// Demo mode (issue #3708); since #4428 the screen reader label of the demo corner ribbon
+  /// Screen reader label of the demo mode corner ribbon (issues #3708, #4428)
   ///
   /// In en, this message translates to:
   /// **'Demo mode: you are exploring sample data'**
-  String get demo_strip_label;
+  String get demo_ribbon_semanticsLabel;
 
   /// Demo mode (issue #3708)
   ///

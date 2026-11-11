@@ -114,16 +114,39 @@ void main() {
     var taps = 0;
     await pumpRibbon(tester, active: true, onCornerTap: () => taps++);
 
-    // The middle of the ribbon, 40 px in from the corner along the diagonal.
+    // On the band: about 42 px along the diagonal from the corner, between
+    // its 40 and 48.5 px edges.
     await tester.tapAt(const Offset(390 - 30, 30));
     expect(taps, 1);
+  });
+
+  testWidgets('turning demo mode on keeps the app below mounted', (
+    tester,
+  ) async {
+    Widget app({required bool active}) => ProviderScope(
+      overrides: [demoModeActiveProvider.overrideWithValue(active)],
+      child: const Directionality(
+        textDirection: TextDirection.ltr,
+        child: _RibbonHarness(child: _Probe()),
+      ),
+    );
+    await tester.pumpWidget(app(active: false));
+    final before = tester.state(find.byType(_Probe));
+
+    await tester.pumpWidget(app(active: true));
+
+    expect(find.byType(Banner), findsOneWidget);
+    expect(tester.state(find.byType(_Probe)), same(before));
   });
 
   testWidgets('a screen reader hears that demo mode is on', (tester) async {
     final semantics = tester.ensureSemantics();
     await pumpRibbon(tester, active: true);
 
-    expect(find.bySemanticsLabel(l10n.demo_strip_label), findsOneWidget);
+    expect(
+      find.bySemanticsLabel(l10n.demo_ribbon_semanticsLabel),
+      findsOneWidget,
+    );
     semantics.dispose();
   });
 
@@ -134,6 +157,38 @@ void main() {
     ).readAsStringSync();
 
     expect('DemoModeRibbon('.allMatches(app).length, 1);
-    expect(shell, isNot(contains('DemoMode')));
+    expect(shell, isNot(contains('DemoModeStrip')));
+    expect(shell, isNot(contains('DemoModeRibbon')));
   });
+}
+
+/// Localizations for a [DemoModeRibbon] pumped without a MaterialApp, so the
+/// app's own DEBUG banner and router stay out of the tree.
+class _RibbonHarness extends StatelessWidget {
+  const _RibbonHarness({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Localizations(
+    locale: const Locale('en'),
+    delegates: AppLocalizations.localizationsDelegates,
+    child: MediaQuery(
+      data: const MediaQueryData(size: _screen),
+      child: DemoModeRibbon(child: child),
+    ),
+  );
+}
+
+/// A child whose State object shows whether it was remounted.
+class _Probe extends StatefulWidget {
+  const _Probe();
+
+  @override
+  State<_Probe> createState() => _ProbeState();
+}
+
+class _ProbeState extends State<_Probe> {
+  @override
+  Widget build(BuildContext context) => const SizedBox.expand();
 }
