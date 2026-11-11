@@ -5,7 +5,10 @@ import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/services/breathing_gas_switches.dart';
+import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_role.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+
+export 'package:submersion/features/dive_log/domain/services/ccr_cylinder_role.dart';
 
 /// What a recorded gas switch means on a closed-circuit dive (issue #577).
 enum CcrGasChangeKind {
@@ -94,16 +97,6 @@ List<CcrGasChange> classifyCcrGasChanges(
     );
   }
   return changes;
-}
-
-/// The role a CCR dive's cylinder plays in [classifyCcrGasChanges] and in
-/// its bailout ascent gases: an untagged (back gas) cylinder is loop gas, the
-/// O2 supply when it holds pure O2 and otherwise a diluent (see
-/// [classifyCcrGasChanges]). A Twin Set is a role the diver chose, so it is
-/// open-circuit gas on a CCR dive (issue #3374).
-TankRole ccrCylinderRole(DiveTank tank) {
-  if (tank.role != TankRole.backGas) return tank.role;
-  return tank.gasMix.o2 >= 99.0 ? TankRole.oxygenSupply : TankRole.diluent;
 }
 
 /// Builds the CCR gas schedule for decompression analysis: the loop ppO2 as

@@ -50,6 +50,7 @@ import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/domain/role_consumption.dart';
 import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
 import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
+import 'package:submersion/features/insights/domain/counted_cylinders.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/time_of_day_bucket.dart';
 import 'package:submersion/features/insights/domain/trend_aggregation.dart';

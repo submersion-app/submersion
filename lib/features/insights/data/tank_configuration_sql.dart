@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/tank_shared_computers.dart';
+import 'package:submersion/features/insights/domain/counted_cylinders.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration_classifier.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/twin_set_candidates.dart';
@@ -120,25 +121,21 @@ TankConfigurationResult decodeTankConfigSummary(String value) {
 }
 
 TankConfigurationResult _classify(SqliteArguments arguments) {
-  final primarySourceId = arguments[2] as String?;
-  final primaryComputerId = arguments[3] as String?;
+  final diveMode = _diveModesByName[arguments[0]] ?? DiveMode.oc;
   final all = _decodeTanks(arguments[4] as String);
-  final owned = [
-    for (final t in all)
-      if (tankOwnedByPrimary(
-        t,
-        primarySourceId: primarySourceId,
-        primaryComputerId: primaryComputerId,
-      ))
-        t,
-  ];
+  final counted = countedCylinderIds(
+    all,
+    primarySourceId: arguments[2] as String?,
+    primaryComputerId: arguments[3] as String?,
+    rebreather: diveMode == DiveMode.ccr || diveMode == DiveMode.scr,
+  );
   return classifyTankConfiguration(
     TankConfigurationDive(
-      diveMode: _diveModesByName[arguments[0]] ?? DiveMode.oc,
-      // A primary that owns none (a bottom timer that logs no cylinders) has
-      // no copies to double count, so the dive keeps every cylinder rather
-      // than reading as no tanks.
-      tanks: owned.isEmpty ? all : owned,
+      diveMode: diveMode,
+      tanks: [
+        for (final t in all)
+          if (counted.contains(t.id)) t,
+      ],
       gasSwitches: _decodeSwitches(arguments[5] as String),
       hasProfile: arguments[1] == 1,
     ),
@@ -180,27 +177,6 @@ List<({String tankId, int timestamp})> _decodeSwitches(String json) => [
 double? _double(Object? value) => value is num ? value.toDouble() : null;
 
 int _int(Object? value) => value is num ? value.toInt() : 0;
-
-/// Whether [tank] belongs to the dive's primary recording, the rule
-/// `tripCylinderIdsTakenFor` uses to tell one recording's cylinders from
-/// another's copies. A tank that names a computer belongs when that is the
-/// primary computer or consolidation shared it with the primary. A tank
-/// that names no computer is its source's (#2716: a consolidated source
-/// that names no computer), so it belongs when it has no source or the
-/// primary source's; otherwise it is another recording's copy, whatever
-/// the primary is. With no primary source every tank counts.
-bool tankOwnedByPrimary(
-  domain.DiveTank tank, {
-  required String? primarySourceId,
-  required String? primaryComputerId,
-}) {
-  if (primarySourceId == null) return true;
-  if (tank.computerId == null) {
-    final sourceId = tank.sourceId;
-    return sourceId == null || sourceId == primarySourceId;
-  }
-  return primaryComputerId != null && tank.isUsedBy(primaryComputerId);
-}
 
 /// Stored roles by name, built once. A name this build does not know (a
 /// newer peer's role) reads as back gas, the column's default.
