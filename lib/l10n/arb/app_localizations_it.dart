@@ -11268,6 +11268,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tissue_title => 'Carico tissutale';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Vista del grafico';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(media, calcolato)';
 
   @override
@@ -51775,6 +51778,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'Mostra l’attrezzatura di ogni immersione su un subacqueo nella scheda Attrezzatura';
+
+  @override
+  String get settings_appearance_tissueColorScheme =>
+      'Colori del carico tissutale';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Scala di colori delle mappe di calore dei tessuti e della vista 3D';
 
   @override
   String get diveLog_detail_gearFigureName =>

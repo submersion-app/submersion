@@ -11090,6 +11090,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tissue_title => 'Tissue Loading';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Chart view';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(avg, calculated)';
 
   @override
@@ -50992,6 +50995,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'Draw each dive\'s gear on a diver in its equipment card';
+
+  @override
+  String get settings_appearance_tissueColorScheme => 'Tissue loading colors';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Color scale for tissue heat maps and the 3D view';
 
   @override
   String get diveLog_detail_gearFigureName => 'Gear on this dive';
