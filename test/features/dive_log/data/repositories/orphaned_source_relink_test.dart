@@ -317,6 +317,41 @@ void main() {
       expect((await diveRow(ambiguousDive)).computerId, isNull);
     });
 
+    test('leaves the profile of a dive read by two computers unattributed, '
+        'whichever is linked first', () async {
+      // Profiles carry no serial of their own, so with two computer sources
+      // on the dive neither may claim them, however the run is ordered.
+      await insertComputer(id: 'a-perdix', serialNumber: 'SN-12345');
+      await insertComputer(id: 'b-teric', model: 'Teric', serialNumber: 'T1');
+      final diveId = await insertDive();
+      final secondary = await insertDownloadedSource(
+        diveId: diveId,
+        isPrimary: false,
+        computerSerial: 'SN-12345',
+      );
+      final primary = await insertDownloadedSource(
+        diveId: diveId,
+        computerModel: 'Shearwater Teric',
+        computerSerial: 'T1',
+        product: 'Teric',
+      );
+      final seriesId = await profileSeries.insertSeries(
+        diveId: diveId,
+        samples: const [ProfileSample(timestamp: 0, depth: 10.0)],
+        now: 1000,
+      );
+
+      expect(await repository.relinkOrphanedSources(), 2);
+
+      expect((await sourceRow(secondary)).computerId, 'a-perdix');
+      expect((await sourceRow(primary)).computerId, 'b-teric');
+      expect((await diveRow(diveId)).computerId, 'b-teric');
+      final series = (await profileSeries.getRowsForDives([
+        diveId,
+      ])).firstWhere((r) => r.id == seriesId);
+      expect(series.computerId, isNull);
+    });
+
     test('a second run links nothing', () async {
       await insertComputer(id: 'perdix', serialNumber: 'SN-12345');
       await insertDownloadedSource(diveId: await insertDive());

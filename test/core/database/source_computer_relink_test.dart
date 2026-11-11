@@ -63,6 +63,7 @@ void main() {
     String? model = 'Shearwater Teric',
     String? serial,
     String sourceFormat = 'dive_computer',
+    String? descriptorVendor,
     String? descriptorProduct,
   }) async {
     await db
@@ -75,6 +76,7 @@ void main() {
             computerModel: Value(model),
             computerSerial: Value(serial),
             sourceFormat: Value(sourceFormat),
+            descriptorVendor: Value(descriptorVendor),
             descriptorProduct: Value(descriptorProduct),
             hlc: const Value('source-hlc'),
             importedAt: now,
@@ -169,6 +171,24 @@ void main() {
     expect((await source('s1')).computerId, 'sw');
     expect((await source('s2')).computerId, isNull);
   });
+
+  test(
+    'a product another vendor reported does not name the computer',
+    () async {
+      await insertComputer('sw', model: 'Perdix');
+      await insertDive('d1', computerId: 'sw');
+      await insertSource(
+        's1',
+        diveId: 'd1',
+        model: 'Mares Something',
+        descriptorVendor: 'Mares',
+        descriptorProduct: 'Perdix',
+      );
+
+      expect(await relinkDiveAttributedSources(db), 0);
+      expect((await source('s1')).computerId, isNull);
+    },
+  );
 
   test('a dive with no computer of its own is never guessed at', () async {
     await insertComputer('sw');

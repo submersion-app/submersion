@@ -49,9 +49,12 @@ Future<int> relinkDiveAttributedSources(DatabaseConnectionUser db) async {
   final product = sourceCols.contains('descriptor_product')
       ? 's.descriptor_product'
       : 'NULL';
+  final vendor = sourceCols.contains('descriptor_vendor')
+      ? 's.descriptor_vendor'
+      : 'NULL';
   final rows = await db.customSelect('''
     SELECT s.id, s.dive_id, s.computer_model, s.computer_serial,
-      $product AS descriptor_product,
+      $product AS descriptor_product, $vendor AS descriptor_vendor,
       c.id AS computer_id, c.manufacturer, c.model, c.serial_number
     FROM dive_data_sources s
     JOIN dives d ON d.id = s.dive_id
@@ -118,6 +121,7 @@ bool _fits(QueryRow row) {
   final model = row.readNullable<String>('model');
   final namesModel = sourceNamesComputerModel(
     computerModel: row.readNullable<String>('computer_model'),
+    descriptorVendor: row.readNullable<String>('descriptor_vendor'),
     descriptorProduct: row.readNullable<String>('descriptor_product'),
     manufacturer: manufacturer,
     model: model,
