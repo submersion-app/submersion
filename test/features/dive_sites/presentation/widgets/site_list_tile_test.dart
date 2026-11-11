@@ -18,6 +18,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 import 'package:submersion/shared/widgets/country_flag.dart';
+import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -601,6 +602,139 @@ void main() {
         ),
       );
       expect(find.byType(CountryFlag), findsOneWidget);
+    });
+  });
+
+  group('water type sits on the stat line (issue #4469)', () {
+    const salt = SiteWithDiveCount(
+      site: DiveSite(
+        id: 'site-5',
+        name: 'Salt reef',
+        minDepth: 5,
+        maxDepth: 50,
+        waterType: WaterType.salt,
+      ),
+      diveCount: 14,
+    );
+
+    Future<void> pumpEntries(
+      WidgetTester tester,
+      List<SiteWithDiveCount> entries,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          locale: const Locale('en'),
+          child: Column(
+            children: [
+              for (final entry in entries)
+                SiteListTile(key: ValueKey(entry.site.id), entry: entry),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('the water type follows the dive count on its line', (
+      tester,
+    ) async {
+      await pumpEntries(tester, [salt]);
+
+      final count = tester.getRect(find.text('14 dives'));
+      final water = tester.getRect(find.text('Salt Water'));
+      expect(
+        water.center.dy,
+        moreOrLessEquals(count.center.dy, epsilon: 1),
+        reason: 'the water type shares the dive count line',
+      );
+      expect(
+        water.left,
+        greaterThan(count.right),
+        reason: 'the water type sits to the right of the dive count',
+      );
+    });
+
+    testWidgets('a water type alone adds no line to the card', (tester) async {
+      final noWater = SiteWithDiveCount(
+        site: salt.site.copyWith(id: 'site-6', clearWaterType: true),
+        diveCount: 14,
+      );
+      await pumpEntries(tester, [salt, noWater]);
+
+      // The chip is a little taller than the stat text, so the stat line may
+      // grow by a few pixels; it must not grow by a whole chip line.
+      final chip = tester.getSize(
+        find
+            .ancestor(of: find.text('Salt Water'), matching: find.byType(Row))
+            .first,
+      );
+      final withWater = tester.getSize(find.byKey(const ValueKey('site-5')));
+      final without = tester.getSize(find.byKey(const ValueKey('site-6')));
+      expect(
+        withWater.height - without.height,
+        lessThan(chip.height),
+        reason: 'the water type no longer takes a line of its own',
+      );
+    });
+
+    testWidgets('a hidden zero dive count leaves no double gap', (
+      tester,
+    ) async {
+      const unvisited = SiteWithDiveCount(
+        site: DiveSite(
+          id: 'site-7',
+          name: 'Unvisited',
+          minDepth: 5,
+          maxDepth: 50,
+          waterType: WaterType.fresh,
+        ),
+        diveCount: 0,
+      );
+      const visited = SiteWithDiveCount(
+        site: DiveSite(
+          id: 'site-8',
+          name: 'Visited',
+          minDepth: 5,
+          maxDepth: 50,
+        ),
+        diveCount: 2,
+      );
+      await pumpEntries(tester, [unvisited, visited]);
+
+      // Each stat is an icon and text, and the chip pads its label, so
+      // measure the widgets themselves: the gap after the depth stat must be
+      // the single stat gap the visited card shows before its dive count.
+      Rect statRect(Finder text) => tester.getRect(
+        find
+            .ancestor(
+              of: text,
+              matching: find.byWidgetPredicate((w) => w is EntityCardStat),
+            )
+            .first,
+      );
+      final depths = find.text('5-50m');
+      final chip = tester.getRect(
+        find
+            .ancestor(
+              of: find.text('Fresh Water'),
+              matching: find.byWidgetPredicate(
+                (w) =>
+                    w is Container &&
+                    w.decoration is BoxDecoration &&
+                    (w.decoration! as BoxDecoration).border != null,
+              ),
+            )
+            .first,
+      );
+      expect(
+        chip.left - statRect(depths.at(0)).right,
+        moreOrLessEquals(
+          statRect(find.text('2 dives')).left - statRect(depths.at(1)).right,
+          epsilon: 0.5,
+        ),
+        reason: 'the missing count does not leave two stat gaps',
+      );
     });
   });
 }

@@ -175,6 +175,30 @@ void main() {
 
       expect(find.text('deep'), findsOneWidget);
     });
+
+    test('displayText is null exactly when the stat would render nothing', () {
+      String? text(_Entity entity, _Field field, {bool override = false}) =>
+          EntityCardStat.displayText(
+            adapter: adapter,
+            entity: entity,
+            field: field,
+            units: units,
+            formatter: override ? (field, value) => 'deep' : null,
+          );
+
+      expect(text((name: 'Reef', depth: 18.0, notes: ''), _Field.depth), '18m');
+      expect(text((name: 'Reef', depth: null, notes: ''), _Field.depth), null);
+      expect(text((name: 'Reef', depth: 1.0, notes: ''), _Field.notes), null);
+      expect(text((name: '', depth: 1.0, notes: ''), _Field.title), null);
+      expect(
+        text(
+          (name: 'Reef', depth: 18.0, notes: ''),
+          _Field.depth,
+          override: true,
+        ),
+        'deep',
+      );
+    });
   });
 
   group('EntityCardExtraFields', () {
