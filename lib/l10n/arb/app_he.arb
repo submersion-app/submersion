@@ -7875,6 +7875,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "שכבה מעל תמונת כרטיס הצלילה (בהירה)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "מפה מאחורי כרטיסי האתרים",
   "settings_conflict_field_showCountryFlags": "דגלי מדינות",
+  "settings_conflict_field_countryCode": "קוד מדינה",
   "settings_conflict_field_showMaxDepthMarker": "הפרופיל מציג עומק מרבי",
   "settings_conflict_field_showNdlOnProfile": "הפרופיל מציג NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "הפרופיל מציג ספי לחץ",

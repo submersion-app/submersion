@@ -42309,6 +42309,12 @@ abstract class AppLocalizations {
   /// **'Country flags'**
   String get settings_conflict_field_showCountryFlags;
 
+  /// No description provided for @settings_conflict_field_countryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code'**
+  String get settings_conflict_field_countryCode;
+
   /// No description provided for @settings_conflict_field_showMaxDepthMarker.
   ///
   /// In en, this message translates to:

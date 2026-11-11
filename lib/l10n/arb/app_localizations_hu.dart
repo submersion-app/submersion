@@ -26523,6 +26523,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_field_showCountryFlags => 'Országzászlók';
 
   @override
+  String get settings_conflict_field_countryCode => 'Országkód';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'A profil mutatja a legnagyobb mélységet';
 

@@ -7871,6 +7871,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "طبقة فوق صورة بطاقة الغوص (فاتحة)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "خريطة خلف بطاقات المواقع",
   "settings_conflict_field_showCountryFlags": "أعلام الدول",
+  "settings_conflict_field_countryCode": "رمز الدولة",
   "settings_conflict_field_showMaxDepthMarker": "الملف يعرض أقصى عمق",
   "settings_conflict_field_showNdlOnProfile": "الملف يعرض NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "الملف يعرض حدود الضغط",

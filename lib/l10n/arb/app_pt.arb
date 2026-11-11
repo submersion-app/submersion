@@ -7871,6 +7871,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "Camada sobre a foto dos cartões (tema claro)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Mapa atrás dos cartões de ponto de mergulho",
   "settings_conflict_field_showCountryFlags": "Bandeiras dos países",
+  "settings_conflict_field_countryCode": "Código do país",
   "settings_conflict_field_showMaxDepthMarker": "Perfil mostra a profundidade máxima",
   "settings_conflict_field_showNdlOnProfile": "Perfil mostra o NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "Perfil mostra os limites de pressão",

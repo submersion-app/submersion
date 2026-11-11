@@ -26195,6 +26195,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_field_showCountryFlags => 'Country flags';
 
   @override
+  String get settings_conflict_field_countryCode => 'Country code';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profile shows maximum depth';
 

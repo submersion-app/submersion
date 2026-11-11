@@ -8023,6 +8023,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "潜水卡片照片遮罩（浅色主题）",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "潜水点卡片背景地图",
   "settings_conflict_field_showCountryFlags": "国家/地区旗帜",
+  "settings_conflict_field_countryCode": "国家/地区代码",
   "settings_conflict_field_showMaxDepthMarker": "剖面显示最大深度",
   "settings_conflict_field_showNdlOnProfile": "剖面显示 NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "剖面显示压力阈值",

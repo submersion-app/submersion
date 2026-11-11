@@ -26716,6 +26716,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_field_showCountryFlags => 'Drapeaux des pays';
 
   @override
+  String get settings_conflict_field_countryCode => 'Code pays';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Le profil affiche la profondeur maximale';
 

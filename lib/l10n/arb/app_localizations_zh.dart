@@ -25134,6 +25134,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_showCountryFlags => '国家/地区旗帜';
 
   @override
+  String get settings_conflict_field_countryCode => '国家/地区代码';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker => '剖面显示最大深度';
 
   @override

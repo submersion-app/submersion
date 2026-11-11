@@ -25976,6 +25976,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_conflict_field_showCountryFlags => 'דגלי מדינות';
 
   @override
+  String get settings_conflict_field_countryCode => 'קוד מדינה';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'הפרופיל מציג עומק מרבי';
 

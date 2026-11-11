@@ -7771,6 +7771,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "Voile sur la photo des cartes (thème clair)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Carte derrière les cartes de site",
   "settings_conflict_field_showCountryFlags": "Drapeaux des pays",
+  "settings_conflict_field_countryCode": "Code pays",
   "settings_conflict_field_showMaxDepthMarker": "Le profil affiche la profondeur maximale",
   "settings_conflict_field_showNdlOnProfile": "Le profil affiche la NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "Le profil affiche les seuils de pression",

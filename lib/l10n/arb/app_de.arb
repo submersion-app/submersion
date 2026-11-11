@@ -8004,6 +8004,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "Fotoüberlagerung auf Tauchgangskarten (helles Design)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Karte hinter Tauchplatzkarten",
   "settings_conflict_field_showCountryFlags": "Länderflaggen",
+  "settings_conflict_field_countryCode": "Ländercode",
   "settings_conflict_field_showMaxDepthMarker": "Profil zeigt maximale Tiefe",
   "settings_conflict_field_showNdlOnProfile": "Profil zeigt NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "Profil zeigt Druckschwellen",

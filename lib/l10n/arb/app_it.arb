@@ -7771,6 +7771,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "Velo sulla foto delle schede (tema chiaro)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Mappa dietro le schede sito",
   "settings_conflict_field_showCountryFlags": "Bandiere dei paesi",
+  "settings_conflict_field_countryCode": "Codice paese",
   "settings_conflict_field_showMaxDepthMarker": "Il profilo mostra la profondità massima",
   "settings_conflict_field_showNdlOnProfile": "Il profilo mostra l'NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "Il profilo mostra le soglie di pressione",

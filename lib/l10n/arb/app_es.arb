@@ -7871,6 +7871,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "Capa sobre la foto de las tarjetas (tema claro)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Mapa detrás de las tarjetas de puntos de buceo",
   "settings_conflict_field_showCountryFlags": "Banderas de países",
+  "settings_conflict_field_countryCode": "Código de país",
   "settings_conflict_field_showMaxDepthMarker": "El perfil muestra la profundidad máxima",
   "settings_conflict_field_showNdlOnProfile": "El perfil muestra el NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "El perfil muestra los umbrales de presión",

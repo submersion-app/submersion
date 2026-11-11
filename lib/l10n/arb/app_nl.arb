@@ -7871,6 +7871,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "Fotolaag op duikkaarten (licht thema)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Kaart achter stekkaarten",
   "settings_conflict_field_showCountryFlags": "Landvlaggen",
+  "settings_conflict_field_countryCode": "Landcode",
   "settings_conflict_field_showMaxDepthMarker": "Profiel toont de maximale diepte",
   "settings_conflict_field_showNdlOnProfile": "Profiel toont NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "Profiel toont drukdrempels",

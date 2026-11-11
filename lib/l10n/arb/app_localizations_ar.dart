@@ -26935,6 +26935,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_field_showCountryFlags => 'أعلام الدول';
 
   @override
+  String get settings_conflict_field_countryCode => 'رمز الدولة';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'الملف يعرض أقصى عمق';
 

@@ -26653,6 +26653,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_field_showCountryFlags => 'Bandiere dei paesi';
 
   @override
+  String get settings_conflict_field_countryCode => 'Codice paese';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Il profilo mostra la profondità massima';
 

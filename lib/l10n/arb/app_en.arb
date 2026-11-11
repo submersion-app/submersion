@@ -15882,6 +15882,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "Dive card photo overlay (light theme)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Map behind site cards",
   "settings_conflict_field_showCountryFlags": "Country flags",
+  "settings_conflict_field_countryCode": "Country code",
   "settings_conflict_field_showMaxDepthMarker": "Profile shows maximum depth",
   "settings_conflict_field_showNdlOnProfile": "Profile shows NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "Profile shows pressure thresholds",

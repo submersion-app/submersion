@@ -26471,6 +26471,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get settings_conflict_field_showCountryFlags => 'Landvlaggen';
 
   @override
+  String get settings_conflict_field_countryCode => 'Landcode';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profiel toont de maximale diepte';
 

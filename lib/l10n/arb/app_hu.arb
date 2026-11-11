@@ -7771,6 +7771,7 @@
   "settings_conflict_field_cardPhotoOverlayLight": "Merüléskártya fotó fedőréteg (világos téma)",
   "settings_conflict_field_showMapBackgroundOnSiteCards": "Térkép a merülőhely-kártyák mögött",
   "settings_conflict_field_showCountryFlags": "Országzászlók",
+  "settings_conflict_field_countryCode": "Országkód",
   "settings_conflict_field_showMaxDepthMarker": "A profil mutatja a legnagyobb mélységet",
   "settings_conflict_field_showNdlOnProfile": "A profil mutatja az NDL-t",
   "settings_conflict_field_showPressureThresholdMarkers": "A profil mutatja a nyomásküszöböket",
