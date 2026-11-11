@@ -50,8 +50,9 @@ double slideDepth({
 }
 
 /// The share of the squash-and-slide after which the strip starts to fade
-/// in, so the hand-over overlaps the card's motion instead of following it.
-const double kHandOverOverlap = 0.6;
+/// in, so the hand-over overlaps the card's motion instead of following it,
+/// and its fade has a long stretch of scroll to spread over.
+const double kHandOverOverlap = 0.4;
 
 /// How far the card has handed over to the strip, from 0 to 1.
 ///
@@ -71,8 +72,10 @@ double condenseProgress({required Rect card, double start = kSquashRange}) {
 /// The share of the condense spent fading the strip's background in over the
 /// card while its depth line still sits exactly on the chart's, before the
 /// shape moves at all. The chart's own line is hidden before the two could
-/// part, so only one depth line is ever seen.
-const double kCondenseFadePortion = 0.2;
+/// part, so only one depth line is ever seen. Half the hand-over: the
+/// chart's axes, grid and other lines fade out gradually under it rather
+/// than vanishing and leaving a large blank strip.
+const double kCondenseFadePortion = 0.5;
 
 /// The strip background's opacity at condense progress [t].
 double condenseBackgroundOpacity(double t) =>

@@ -100,6 +100,18 @@ void main() {
     });
   });
 
+  // The chart's axes, grid and other lines under the strip fade out as the
+  // strip fades in; done too quickly, they vanish and leave a large blank
+  // strip while its box is still big.
+  test('the full chart still shows through well into the hand-over', () {
+    expect(condenseBackgroundOpacity(0.3), lessThan(0.75));
+    expect(condenseMorphProgress(0.3), 0);
+  });
+
+  test('the hand-over starts before the card has finished moving', () {
+    expect(kHandOverOverlap, lessThanOrEqualTo(0.45));
+  });
+
   group('two-phase condense', () {
     test('the background fades in first, while the shape holds still', () {
       expect(condenseBackgroundOpacity(0), 0);
