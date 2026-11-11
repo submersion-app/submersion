@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show TableUpdate, UpdateKind;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // Only AppDatabase: the generated Drift classes collide with the domain
@@ -19,6 +20,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
@@ -937,6 +939,57 @@ void main() {
 
       final stats = await container.read(allTripsWithStatsProvider.future);
       expect(stats.length, equals(2));
+    });
+  });
+
+  group('tripCountriesProvider (issue #4426)', () {
+    Future<String> tripWithDiveIn(String country) async {
+      final t = await tripRepo.createTrip(_makeTrip(name: 'Flags'));
+      await db.customStatement(
+        'INSERT INTO dive_sites (id, name, country, created_at, updated_at) '
+        "VALUES ('s1', 's1', ?, 0, 0)",
+        [country],
+      );
+      await db.customStatement(
+        'INSERT INTO dives (id, dive_date_time, trip_id, site_id, '
+        "created_at, updated_at) VALUES ('d1', 0, ?, 's1', 0, 0)",
+        [t.id],
+      );
+      return t.id;
+    }
+
+    test('maps each trip to its countries', () async {
+      final tripId = await tripWithDiveIn('Mexico');
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final countries = await container.read(tripCountriesProvider.future);
+      expect(countries[tripId], [
+        const TripCountry(code: 'MX', name: 'Mexico'),
+      ]);
+    });
+
+    test('a site country edit refreshes the flags', () async {
+      final tripId = await tripWithDiveIn('Mexico');
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(tripCountriesProvider, (_, _) {});
+      addTearDown(sub.close);
+      await container.read(tripCountriesProvider.future);
+
+      await db.customStatement(
+        "UPDATE dive_sites SET country = 'Belize' WHERE id = 's1'",
+      );
+      // A raw statement tells no stream; announce it as the site editor's
+      // UPDATE would. (An unspecified kind would also reach `dives` through
+      // the foreign key's rules and hide a missing site watcher.)
+      db.notifyUpdates({
+        TableUpdate.onTable(db.diveSites, kind: UpdateKind.update),
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      final countries = await container.read(tripCountriesProvider.future);
+      expect(countries[tripId]!.single.code, 'BZ');
     });
   });
 

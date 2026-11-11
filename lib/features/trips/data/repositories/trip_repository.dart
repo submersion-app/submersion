@@ -6,6 +6,7 @@ import 'package:submersion/core/data/visibility/shared_item_policy.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/features/trips/data/repositories/trip_row_mapper.dart
 import 'package:submersion/features/trips/data/side_trip_sql.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
+import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/documents/data/repositories/document_repository.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
@@ -774,6 +776,76 @@ class TripRepository {
     return tripFromData(result.data);
   }
 
+  /// Each trip's countries, for the flags beside it (issue #4426), keyed by
+  /// trip id. A trip with no recognisable country has no entry.
+  ///
+  /// Reads the dives [getAllTripsWithStats] counts: [diverId]'s own, in the
+  /// statistics scope, with a larger trip counting its side trips' dives,
+  /// so a trip's flags and its dive count always agree. One query for every
+  /// trip, so a list of trips costs one read. Countries come most dived
+  /// first, a tie going to the one dived earlier; site names that mean one
+  /// country ("Mexico", "México") count as one.
+  Future<Map<String, List<TripCountry>>> getTripCountries({
+    String? diverId,
+  }) async {
+    try {
+      final scope = DiveStatsScope.and(alias: 'd');
+      final joinClause = tripDivesJoinSql(
+        tripAlias: 't',
+        diveAlias: 'd',
+        joinKind: 'INNER',
+        extraOn: diverId != null ? ' AND d.diver_id = ?$scope' : scope,
+      );
+      final rows = await _db
+          .customSelect(
+            '''
+        SELECT
+          t.id AS trip_id,
+          s.country AS country,
+          COUNT(DISTINCT d.id) AS dive_count,
+          MIN(d.dive_date_time) AS first_dive
+        FROM trips t
+        $joinClause
+        INNER JOIN dive_sites s ON s.id = d.site_id
+        WHERE s.country IS NOT NULL AND TRIM(s.country) <> ''
+        GROUP BY t.id, s.country
+      ''',
+            variables: [if (diverId != null) Variable.withString(diverId)],
+          )
+          .get();
+
+      final byTrip = <String, Map<String, _CountryTally>>{};
+      for (final row in rows) {
+        final name = row.read<String>('country').trim();
+        final code = countryCodeFor(name);
+        if (code == null) continue;
+        byTrip
+            .putIfAbsent(row.read<String>('trip_id'), () => {})
+            .putIfAbsent(code, () => _CountryTally(code))
+            .add(
+              name,
+              row.read<int>('dive_count'),
+              row.read<int>('first_dive'),
+            );
+      }
+      return {
+        for (final entry in byTrip.entries)
+          entry.key: [
+            for (final tally
+                in entry.value.values.toList()..sort(_CountryTally.compare))
+              TripCountry(code: tally.code, name: tally.name),
+          ],
+      };
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get trip countries',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Get all trips with their statistics.
   ///
   /// When [diverId] is non-null:
@@ -857,5 +929,37 @@ class TripRepository {
       );
       rethrow;
     }
+  }
+}
+
+/// One country's dives on a trip, summed across the site names that mean it.
+class _CountryTally {
+  _CountryTally(this.code);
+
+  final String code;
+  var name = '';
+  var _nameDives = 0;
+  var dives = 0;
+  int? firstDive;
+
+  /// Adds one stored country name's dives; the name with the most dives is
+  /// the one the tooltip shows.
+  void add(String storedName, int count, int first) {
+    dives += count;
+    if (count > _nameDives) {
+      name = storedName;
+      _nameDives = count;
+    }
+    if (firstDive == null || first < firstDive!) firstDive = first;
+  }
+
+  /// Most dives first, then the country dived earlier, then by code so the
+  /// order never wobbles.
+  static int compare(_CountryTally a, _CountryTally b) {
+    final byDives = b.dives.compareTo(a.dives);
+    if (byDives != 0) return byDives;
+    final byFirst = a.firstDive!.compareTo(b.firstDive!);
+    if (byFirst != 0) return byFirst;
+    return a.code.compareTo(b.code);
   }
 }

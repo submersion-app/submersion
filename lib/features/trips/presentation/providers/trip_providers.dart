@@ -19,7 +19,9 @@ import 'package:submersion/features/query/presentation/providers/narrow_by_ids.d
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/query/trip_filter_query.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -110,6 +112,23 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
   );
   invalidateOnTripListChanges(ref);
   return repository.getAllTripsWithStats(diverId: validatedDiverId);
+});
+
+/// Every trip's countries, for the flags beside trips (issue #4426): one
+/// read for the whole list, scoped like the trips' dive counts.
+final tripCountriesProvider = FutureProvider<Map<String, List<TripCountry>>>((
+  ref,
+) async {
+  final repository = ref.watch(tripRepositoryProvider);
+  final validatedDiverId = await ref.watch(
+    validatedCurrentDiverIdProvider.future,
+  );
+  invalidateOnTripListChanges(ref);
+  // A dive moved to another site, or a site's country edited, changes the
+  // flags without touching the trips table.
+  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  ref.invalidateSelfWhen(ref.read(siteRepositoryProvider).watchSitesChanges());
+  return repository.getTripCountries(diverId: validatedDiverId);
 });
 
 /// Rebuilds [ref]'s provider whenever [allTripsWithStatsProvider] would
