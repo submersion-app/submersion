@@ -393,28 +393,40 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
       List<Certification>? certifications;
       Diver? diver;
       Uint8List? diverPhoto;
-      try {
-        // The dive's owner, as this page's Buddies card shows: a sibling dive
-        // from another profile is theirs, not the active diver's (#4458).
-        // Independent reads, so they run together.
-        final (buddies, owner) = await (
-          ref.read(buddiesForDiveProvider(dive.id).future),
-          ref.read(diveOwnerProvider(dive.diverId).future),
-        ).wait;
-        if (buddies.isNotEmpty) exportDive = dive.copyWith(buddies: buddies);
-        if (pdfOptions.includeCertificationCards) {
-          certifications = owner == null
-              ? await ref.read(allCertificationsProvider.future)
-              : await ref.read(diverCertificationsLoaderProvider)(owner.id);
-        }
-        // The diver is set only with their portrait: a failed read above
-        // must not leave the diver without it, which puts the Detailed front
-        // matter on its placeholder frame.
-        diverPhoto = await ref.read(diverPhotoLoaderProvider)(owner?.photoPath);
-        diver = owner;
-      } catch (_) {
-        // Export the dive as loaded.
+      // The dive's owner, as this page's Buddies card shows: a sibling dive
+      // from another profile is theirs, not the active diver's (#4458).
+      // Independent reads, so they run together, and each fails on its own:
+      // a failed owner lookup must not drop the buddies, nor the reverse.
+      final (buddies, owner) = await (
+        _valueOrNull(ref.read(buddiesForDiveProvider(dive.id).future)),
+        _valueOrNull(ref.read(diveOwnerProvider(dive.diverId).future)),
+      ).wait;
+      if (buddies != null && buddies.isNotEmpty) {
+        exportDive = dive.copyWith(buddies: buddies);
       }
+      if (pdfOptions.includeCertificationCards) {
+        // The cards of the dive's owner by id, even when that diver did not
+        // resolve: falling back to the active diver's cards would print them
+        // on another profile's dive. Only a dive with no owner is the active
+        // diver's. The active diver's own cards come from the cached
+        // provider the app already keeps, rather than a fresh read.
+        final ownerId = owner?.id ?? dive.diverId;
+        final activeId = await _valueOrNull(
+          ref.read(validatedCurrentDiverIdProvider.future),
+        );
+        certifications = await _valueOrNull(
+          ownerId == null || ownerId == activeId
+              ? ref.read(allCertificationsProvider.future)
+              : ref.read(diverCertificationsLoaderProvider)(ownerId),
+        );
+      }
+      // The portrait travels with the diver: passing one without the other
+      // leaves the Detailed front matter on its placeholder frame. An
+      // unreadable portrait still keeps the diver.
+      diverPhoto = await _valueOrNull<Uint8List?>(
+        ref.read(diverPhotoLoaderProvider)(owner?.photoPath),
+      );
+      diver = owner;
       // Awaited, not read from the page's snapshot: an export started while
       // the types load would otherwise print every name rebuilt from its id.
       final diveTypesById = await diveTypesByIdOrEmpty(
@@ -760,3 +772,13 @@ enum _ProfileExportAction { saveToPhotos, saveToFile, share }
 
 /// Actions available for PDF export
 enum _PdfExportAction { saveToFile, share }
+
+/// [future]'s value, or null when it fails: for the lookups that enrich an
+/// export rather than define it, so each one degrades on its own.
+Future<T?> _valueOrNull<T>(Future<T> future) async {
+  try {
+    return await future;
+  } catch (_) {
+    return null;
+  }
+}

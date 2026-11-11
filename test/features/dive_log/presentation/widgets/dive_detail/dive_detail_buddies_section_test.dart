@@ -190,5 +190,51 @@ void main() {
       expect(find.bySemanticsLabel(RegExp(r'\bMe\b')), findsOneWidget);
       semantics.dispose();
     });
+
+    testWidgets('stays a placeholder while a failed lookup retries', (
+      tester,
+    ) async {
+      final dive = _dive(diverId: 'diver-1');
+      var attempts = 0;
+      await tester.pumpWidget(
+        ProviderScope(
+          // One retry, after 200 ms.
+          retry: (count, _) =>
+              count < 1 ? const Duration(milliseconds: 200) : null,
+          overrides: [
+            buddiesForDiveProvider(
+              dive.id,
+            ).overrideWith((ref) async => const <BuddyWithRole>[]),
+            allDiveRolesProvider.overrideWith((ref) async => _testRoles),
+            siblingDivesProvider(dive.id).overrideWith((ref) async => const []),
+            diveOwnerProvider.overrideWith((ref, id) async {
+              attempts++;
+              if (attempts == 1) throw StateError('transient');
+              return _diver('diver-1', 'Eric G');
+            }),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: DiveBuddiesSection(dive: dive),
+              ),
+            ),
+          ),
+        ),
+      );
+      // The first attempt has failed and the retry is scheduled.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(attempts, 1);
+      expect(find.text('Me'), findsNothing);
+      expect(find.byIcon(Icons.person), findsNothing);
+
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pumpAndSettle();
+      expect(attempts, 2);
+      expect(find.text('Eric G'), findsOneWidget);
+    });
   });
 }

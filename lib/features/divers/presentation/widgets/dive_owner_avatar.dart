@@ -11,11 +11,13 @@ import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 ///
 /// Screens draw a neutral placeholder for the owner meanwhile, rather than
 /// "Me" and the person icon they would swap out a moment later, and without
-/// holding back anything else on screen: a lookup that keeps failing can sit
-/// in loading through Riverpod's retries. A refresh keeps the last value, so
+/// holding back anything else on screen. That includes Riverpod's automatic
+/// retries after a failed attempt (loading, carrying the error): a retry that
+/// succeeds would otherwise swap "Me" for the name. Only once the retries
+/// give up does the row settle on "Me". A refresh keeps the last value, so
 /// this is only ever the first load.
 bool isDiveOwnerPending(AsyncValue<Diver?> owner) =>
-    owner.isLoading && !owner.hasValue && !owner.hasError;
+    owner.isLoading && !owner.hasValue;
 
 /// The name of a dive's own diver beside their roles: see [diveOwnerLabel].
 ///
