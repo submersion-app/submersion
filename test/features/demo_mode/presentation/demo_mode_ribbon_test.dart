@@ -114,9 +114,9 @@ void main() {
     var taps = 0;
     await pumpRibbon(tester, active: true, onCornerTap: () => taps++);
 
-    // On the band: about 42 px along the diagonal from the corner, between
-    // its 40 and 48.5 px edges.
-    await tester.tapAt(const Offset(390 - 30, 30));
+    // On the band: 24 px in from each edge is about 34 px along the diagonal
+    // from the corner, between the band's 28 and 40 px edges.
+    await tester.tapAt(const Offset(390 - 24, 24));
     expect(taps, 1);
   });
 
@@ -143,10 +143,7 @@ void main() {
     final semantics = tester.ensureSemantics();
     await pumpRibbon(tester, active: true);
 
-    expect(
-      find.bySemanticsLabel(l10n.demo_ribbon_semanticsLabel),
-      findsOneWidget,
-    );
+    expect(find.bySemanticsLabel(l10n.demo_active_label), findsOneWidget);
     semantics.dispose();
   });
 

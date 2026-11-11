@@ -61127,14 +61127,18 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scarta il logbook di esempio e torna al tuo';
 
   @override
-  String get demo_ribbon_semanticsLabel =>
+  String get demo_active_label =>
       'Modalità demo: stai esplorando dati di esempio';
 
   @override
-  String get demo_unavailable_exit => 'Esci dalla demo';
+  String get demo_exit_button => 'Esci dalla demo';
 
   @override
   String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body =>
+      'Il tuo logbook resta da parte, intatto, finché non esci';
 
   @override
   String get demo_exit_confirm_title => 'Uscire dalla modalità demo?';

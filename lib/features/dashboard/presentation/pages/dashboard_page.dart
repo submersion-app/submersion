@@ -16,6 +16,7 @@ import 'package:submersion/features/dashboard/presentation/providers/media_ribbo
 import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -158,6 +159,8 @@ class DashboardPage extends ConsumerWidget {
           },
           child: CustomScrollView(
             slivers: [
+              // Demo mode's way out heads the page (issue #4428).
+              const SliverToBoxAdapter(child: DemoModeDashboardCard()),
               SliverPadding(
                 padding: const EdgeInsets.all(16),
                 // Keyed off chosenCards, not visibleCards: a strip forced back

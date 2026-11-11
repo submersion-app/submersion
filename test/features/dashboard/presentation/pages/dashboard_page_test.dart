@@ -30,6 +30,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dashboard/presentation/home_cards.dart';
+import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -105,6 +107,7 @@ Future<void> pumpDashboard(
   List<RecentSitePin> sites = const [],
   MockSettingsNotifier? settingsNotifier,
   DashboardGauges? gauges,
+  bool demo = false,
 }) async {
   refreshBuilds = 0;
   cardProviderBuilds.clear();
@@ -129,6 +132,7 @@ Future<void> pumpDashboard(
       overrides: [
         ...overrides,
         currentDiverProvider.overrideWith((ref) async => null),
+        demoModeActiveProvider.overrideWithValue(demo),
         recentDivesProvider.overrideWith((ref) async {
           refreshBuilds++;
           return <Dive>[];
@@ -311,6 +315,26 @@ void main() {
     expect(find.byType(MediaRibbonCard), findsOneWidget);
     expect(find.byType(OnThisDayCard), findsOneWidget);
     expect(find.byType(YearInReviewCard), findsOneWidget);
+  });
+
+  testWidgets('demo mode puts its card first, with the way out (#4428)', (
+    tester,
+  ) async {
+    await pumpDashboard(tester, demo: true);
+
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    expect(find.text(l10n.demo_active_label), findsOneWidget);
+    expect(find.text(l10n.demo_exit_button), findsOneWidget);
+    final card = tester.getRect(find.byType(DemoModeDashboardCard));
+    // The hero heads the cards; the demo card comes before it.
+    final hero = tester.getRect(find.byType(HeroHeader));
+    expect(card.bottom, lessThanOrEqualTo(hero.top));
+  });
+
+  testWidgets('no demo card outside demo mode', (tester) async {
+    await pumpDashboard(tester);
+
+    expect(find.byType(DemoModeDashboardCard), findsNothing);
   });
 
   testWidgets('hidden card is absent', (tester) async {

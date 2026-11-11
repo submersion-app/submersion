@@ -60167,14 +60167,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Discard the sample logbook and return to your own';
 
   @override
-  String get demo_ribbon_semanticsLabel =>
-      'Demo mode: you are exploring sample data';
+  String get demo_active_label => 'Demo mode: you are exploring sample data';
 
   @override
-  String get demo_unavailable_exit => 'Exit demo';
+  String get demo_exit_button => 'Exit demo';
 
   @override
   String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body =>
+      'Your logbook is set aside, untouched, until you exit';
 
   @override
   String get demo_exit_confirm_title => 'Exit demo mode?';
