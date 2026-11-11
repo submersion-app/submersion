@@ -42,10 +42,13 @@ import 'package:submersion/core/database/table_columns.dart';
 /// inbound sync apply for rows a peer below this version sends.
 /// [computerId] limits it to the copies linked to one computer, as saving
 /// that computer does; the conversion by characters then waits for the next
-/// whole-library run.
+/// whole-library run. [includeDives] false leaves the dives' copies as they
+/// are, for a caller that stages the sources it heals but not their dives
+/// (deleting a computer, issue #4465).
 Future<int> healDownloadedSnapshotSerials(
   DatabaseConnectionUser db, {
   String? computerId,
+  bool includeDives = true,
 }) async {
   final computerCols = await tableColumnNames(db, 'dive_computers');
   final sourceCols = await tableColumnNames(db, 'dive_data_sources');
@@ -65,11 +68,9 @@ Future<int> healDownloadedSnapshotSerials(
     return 0;
   }
   final diveCols = await tableColumnNames(db, 'dives');
-  final hasDiveCopies = diveCols.containsAll(const {
-    'id',
-    'computer_id',
-    'dive_computer_serial',
-  });
+  final hasDiveCopies =
+      includeDives &&
+      diveCols.containsAll(const {'id', 'computer_id', 'dive_computer_serial'});
 
   var changed = await _healLinked(db, _sourceCopies, computerId);
   if (hasDiveCopies) {

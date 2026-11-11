@@ -8,38 +8,53 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Settings > Data tools > Relink data sources (issue #4465): links the
 /// downloaded data sources that lost their dive computer, when its entry was
 /// deleted, back to the computer they came from. A one-tap repair after a
-/// confirmation, so it runs in place rather than on a page of its own.
-class RelinkDataSourcesTile extends ConsumerWidget {
+/// confirmation, so it runs in place rather than on a page of its own. A tap
+/// while it runs is ignored.
+class RelinkDataSourcesTile extends ConsumerStatefulWidget {
   const RelinkDataSourcesTile({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RelinkDataSourcesTile> createState() =>
+      _RelinkDataSourcesTileState();
+}
+
+class _RelinkDataSourcesTileState extends ConsumerState<RelinkDataSourcesTile> {
+  bool _running = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     return DataRowTile(
       icon: Icons.link,
       title: l10n.settings_relinkSources_title,
       subtitle: l10n.settings_relinkSources_subtitle,
-      onTap: () => _relink(context, ref),
+      onTap: _relink,
     );
   }
 
-  Future<void> _relink(BuildContext context, WidgetRef ref) async {
-    if (!await _confirm(context) || !context.mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-    String message;
+  Future<void> _relink() async {
+    if (_running) return;
+    _running = true;
     try {
-      final linked = await ref
-          .read(diveComputerRepositoryProvider)
-          .relinkOrphanedSources();
-      message = l10n.settings_relinkSources_result(linked);
-    } catch (e) {
-      message = l10n.settings_relinkSources_failed('$e');
+      if (!await _confirm() || !mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final l10n = context.l10n;
+      String message;
+      try {
+        final linked = await ref
+            .read(diveComputerRepositoryProvider)
+            .relinkOrphanedSources();
+        message = l10n.settings_relinkSources_result(linked);
+      } catch (e) {
+        message = l10n.settings_relinkSources_failed('$e');
+      }
+      messenger.showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      _running = false;
     }
-    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<bool> _confirm(BuildContext context) async {
+  Future<bool> _confirm() async {
     final l10n = context.l10n;
     final result = await showDialog<bool>(
       context: context,

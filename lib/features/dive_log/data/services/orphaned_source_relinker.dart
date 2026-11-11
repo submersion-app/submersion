@@ -39,9 +39,19 @@ class OrphanedSourceRelinker {
   Future<int> relink({String? computerId}) async {
     final orphans = await _orphans();
     if (orphans.isEmpty) return 0;
+    final computers = await _computers();
+    if (computerId != null) {
+      // Saving one computer: nothing to do unless an orphan names it, which
+      // spares the linked-sources read and the match on most saves.
+      final target = computers.where((c) => c.id == computerId).firstOrNull;
+      if (target == null ||
+          !orphans.any((o) => orphanMayBelongTo(o.source, target))) {
+        return 0;
+      }
+    }
     final matches = matchOrphanedSources(
       sources: orphans.map((o) => o.source).toList(),
-      computers: await _computers(),
+      computers: computers,
       linkedSources: await _linkedSourcesOnOrphanDives(),
     );
 

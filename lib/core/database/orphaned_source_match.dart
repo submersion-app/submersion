@@ -38,8 +38,8 @@ typedef LinkedSource = ({String diveId, String computerId});
 /// [manufacturer] / [model]. The model snapshot names the computer as it was
 /// labeled at the download, by its model or its full name; the descriptor
 /// names what the device reported, so its product must be the model and its
-/// vendor, when both sides have one, the manufacturer. A computer without a
-/// model matches nothing.
+/// vendor, when both sides have one, the manufacturer (compared by letters
+/// and digits). A computer without a model matches nothing.
 bool sourceNamesComputerModel({
   String? computerModel,
   String? descriptorVendor,
@@ -59,18 +59,52 @@ bool sourceNamesComputerModel({
   if (normalizeComputerIdentityPart(descriptorProduct) != modelKey) {
     return false;
   }
-  final vendor = normalizeComputerIdentityPart(descriptorVendor);
-  return vendor.isEmpty || brand.isEmpty || vendor == brand;
+  // By letters and digits only, so a brand typed with a hyphen or a dot
+  // ("Heinrichs-Weikamp") is still the vendor libdivecomputer names.
+  final vendor = _brandKey(descriptorVendor);
+  final maker = _brandKey(manufacturer);
+  return vendor.isEmpty || maker.isEmpty || vendor == maker;
 }
+
+final RegExp _notLetterOrDigit = RegExp(r'[^\p{L}\p{N}]', unicode: true);
+
+String _brandKey(String? brand) =>
+    normalizeComputerIdentityPart(brand).replaceAll(_notLetterOrDigit, '');
+
+/// Whether [source]'s snapshots name [computer] at all, by its model or, for
+/// a computer saved with no model, by the manufacturer its full name fell
+/// back to (`DiveComputer.fullName`), which only a serial can then confirm.
+/// The precondition for any match, and a cheap test that a relink for one
+/// computer has anything to look at.
+bool orphanMayBelongTo(
+  OrphanedSource source,
+  ImportedComputerCandidate computer,
+) {
+  if (_namesModel(source, computer)) return true;
+  final maker = normalizeComputerIdentityPart(computer.manufacturer);
+  return normalizeComputerIdentityPart(computer.model).isEmpty &&
+      maker.isNotEmpty &&
+      normalizeComputerIdentityPart(source.computerModel) == maker;
+}
+
+bool _namesModel(OrphanedSource s, ImportedComputerCandidate c) =>
+    sourceNamesComputerModel(
+      computerModel: s.computerModel,
+      descriptorVendor: s.descriptorVendor,
+      descriptorProduct: s.descriptorProduct,
+      manufacturer: c.manufacturer,
+      model: c.model,
+    );
 
 /// The computer each of [sources] belongs to, as source id to computer id.
 /// A source left out keeps no link.
 ///
 /// A source with a serial snapshot goes to the one computer whose model it
 /// names and whose serial is the same serial (Shearwater hex and decimal
-/// included, #3106). Either way a source never goes to a computer of a
-/// diver other than its dive's: a unit that changed hands leaves its old
-/// dives with their diver.
+/// included, #3106); a computer with no model is named by its manufacturer,
+/// the snapshot it was saved under. Either way a source never goes to a
+/// computer of a diver other than its dive's: a unit that changed hands
+/// leaves its old dives with their diver.
 ///
 /// A source without one can only say which model it came from, so it is
 /// given a computer only when nothing suggests another unit could be its:
@@ -90,14 +124,6 @@ Map<String, String> matchOrphanedSources({
   required List<ImportedComputerCandidate> computers,
   Set<LinkedSource> linkedSources = const {},
 }) {
-  bool names(OrphanedSource s, ImportedComputerCandidate c) =>
-      sourceNamesComputerModel(
-        computerModel: s.computerModel,
-        descriptorVendor: s.descriptorVendor,
-        descriptorProduct: s.descriptorProduct,
-        manufacturer: c.manufacturer,
-        model: c.model,
-      );
   bool serialsMatch(String? serial, ImportedComputerCandidate c) =>
       computerSerialsMatch(
         serial,
@@ -117,13 +143,16 @@ Map<String, String> matchOrphanedSources({
   final guesses = <OrphanedSource, String>{};
   // Per computer: whether an orphan of its model names another serial.
   final otherUnitSeen = <String, bool>{};
+
   for (final source in sources) {
-    final fitting = computers.where((c) => names(source, c)).toList();
+    final fitting = computers.where((c) => _namesModel(source, c)).toList();
     if (!blank(source.computerSerial)) {
-      final same = fitting
+      final same = computers
           .where(
             (c) =>
-                serialsMatch(source.computerSerial, c) && sameDiver(source, c),
+                orphanMayBelongTo(source, c) &&
+                serialsMatch(source.computerSerial, c) &&
+                sameDiver(source, c),
           )
           .toList();
       if (same.length == 1) matches[source.id] = same.single.id;
@@ -138,7 +167,7 @@ Map<String, String> matchOrphanedSources({
       () => sources.any(
         (s) =>
             !blank(s.computerSerial) &&
-            names(s, target) &&
+            _namesModel(s, target) &&
             !serialsMatch(s.computerSerial, target),
       ),
     );
@@ -146,10 +175,12 @@ Map<String, String> matchOrphanedSources({
     guesses[source] = target.id;
   }
 
-  // A dive holds at most one source of a computer, so a guess is dropped
-  // when its dive already has a source of that computer, or gains another
-  // in this match from a serial or from a second guess (a diver carrying
-  // two units of the model).
+  // A guess cannot tell a second unit of the model from this one, so it is
+  // dropped when its dive already has a source of that computer, or gains
+  // another in this match from a serial or from a second guess (a diver
+  // carrying two units of the model). Serial matches are not held to this:
+  // a dive merged from two dives of one computer rightly has two of its
+  // sources, and each serial says whose it is.
   final claims = <LinkedSource, int>{};
   for (final source in sources) {
     final target = matches[source.id] ?? guesses[source];

@@ -533,9 +533,16 @@ class DiveComputerRepository {
   /// download saved its copies empty. Local-only, like the every-open heal
   /// that does the same for the whole library. Best-effort: the computer is
   /// already saved, and the next open repeats it.
-  Future<void> _healSnapshotSerials(String computerId) async {
+  Future<void> _healSnapshotSerials(
+    String computerId, {
+    bool includeDives = true,
+  }) async {
     try {
-      if (await healDownloadedSnapshotSerials(_db, computerId: computerId) >
+      if (await healDownloadedSnapshotSerials(
+            _db,
+            computerId: computerId,
+            includeDives: includeDives,
+          ) >
           0) {
         _db.notifyUpdates({
           TableUpdate.onTable(_db.diveDataSources),
@@ -574,10 +581,12 @@ class DiveComputerRepository {
         // empty serial copy unless a heal has run since. Fill it while the
         // link still says which computer it is, or nothing would identify
         // the unit once the link is gone (issue #4465). The detach below
-        // restamps and stages these rows, so the serial syncs with it.
+        // restamps and stages these rows, so the serial syncs with it. The
+        // dives' copies are left as they are: the detach does not stage the
+        // dives, so a serial filled there would stay on this device.
         // Best-effort like every other serial heal: it must not block the
         // delete.
-        await _healSnapshotSerials(id);
+        await _healSnapshotSerials(id, includeDives: false);
       }
 
       // Clear the series first: their FK is ON DELETE SET NULL, so the

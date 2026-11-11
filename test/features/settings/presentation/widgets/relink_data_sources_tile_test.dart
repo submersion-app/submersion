@@ -1,6 +1,8 @@
 // Issue #4465: Settings > Data tools offers the relink of downloaded data
 // sources that lost their dive computer, as a one-tap repair.
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,15 +12,19 @@ import 'package:submersion/features/settings/presentation/widgets/relink_data_so
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _FakeRepository extends DiveComputerRepository {
-  _FakeRepository({this.linked = 0, this.error});
+  _FakeRepository({this.linked = 0, this.error, this.gate});
 
   final int linked;
   final Object? error;
+
+  /// When set, the relink waits for it, so a test can act while it runs.
+  final Completer<void>? gate;
   int calls = 0;
 
   @override
   Future<int> relinkOrphanedSources() async {
     calls++;
+    await gate?.future;
     final failure = error;
     if (failure != null) throw failure;
     return linked;
@@ -87,6 +93,22 @@ void main() {
 
     expect(repo.calls, 0);
     expect(find.byType(SnackBar), findsNothing);
+  });
+
+  testWidgets('ignores a tap while a relink is running', (tester) async {
+    final gate = Completer<void>();
+    final repo = _FakeRepository(linked: 1, gate: gate);
+    await pumpTile(tester, repo);
+    await confirm(tester);
+
+    await tester.tap(find.text('Relink data sources'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+    expect(repo.calls, 1);
+    expect(find.text('Linked 1 data source to its dive computer'), findsOne);
   });
 
   testWidgets('reports a failure', (tester) async {

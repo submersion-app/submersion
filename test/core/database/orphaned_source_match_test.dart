@@ -75,6 +75,18 @@ void main() {
       );
     });
 
+    test('compares the vendor by its letters and digits', () {
+      expect(
+        sourceNamesComputerModel(
+          descriptorVendor: 'Heinrichs Weikamp',
+          descriptorProduct: 'OSTC 4',
+          manufacturer: 'Heinrichs-Weikamp',
+          model: 'OSTC 4',
+        ),
+        isTrue,
+      );
+    });
+
     test('rejects a descriptor product from another vendor', () {
       expect(
         sourceNamesComputerModel(
@@ -153,6 +165,23 @@ void main() {
         computers: [computer('c1', serial: 'ABC123')],
       );
       expect(result, {'s1': 'c1'});
+    });
+
+    test('links a computer with no model on its manufacturer and serial', () {
+      // Saved without a model, the computer's snapshot was its manufacturer.
+      final result = matchOrphanedSources(
+        sources: [source('s1', computerModel: 'Shearwater', serial: 'ABC123')],
+        computers: [computer('c1', model: null, serial: 'ABC123')],
+      );
+      expect(result, {'s1': 'c1'});
+    });
+
+    test('does not guess a computer with no model without a serial', () {
+      final result = matchOrphanedSources(
+        sources: [source('s1', computerModel: 'Shearwater')],
+        computers: [computer('c1', model: null, serial: 'ABC123')],
+      );
+      expect(result, isEmpty);
     });
 
     test('does not choose between two entries with the same serial', () {

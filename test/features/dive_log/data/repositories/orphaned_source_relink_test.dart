@@ -151,6 +151,10 @@ void main() {
       final source = await sourceRow(sourceId);
       expect(source.computerId, isNull);
       expect(source.computerSerial, 'SN-12345');
+      // The dive's own copy is left alone: the delete does not stage the
+      // dive, so filling it here would never reach the diver's other
+      // devices.
+      expect((await diveRow(diveId)).diveComputerSerial, isNull);
     });
   });
 
