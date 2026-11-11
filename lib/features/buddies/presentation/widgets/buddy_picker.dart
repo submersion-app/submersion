@@ -25,7 +25,6 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/divers/presentation/dive_owner_display.dart';
 import 'package:submersion/features/divers/presentation/widgets/dive_owner_avatar.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
@@ -337,9 +336,7 @@ class _MeChip extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Empty while pending: it still takes a line, so the chip keeps its
-          // size when the name arrives.
-          Text(pending ? '' : diveOwnerLabel(diver, context.l10n)),
+          DiveOwnerName(diver: diver, pending: pending),
           _RoleLine(roleLabel),
         ],
       ),

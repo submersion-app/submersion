@@ -79,6 +79,7 @@ class _RecordingExportService implements ExportService {
   /// The personalization the single-dive PDF route passed through.
   Diver? pdfDiver;
   Uint8List? pdfDiverPhoto;
+  List<Certification>? pdfCertifications;
 
   /// The dive types the last CSV or PDF export was handed (#1834).
   Map<String, DiveTypeEntity>? diveTypesById;
@@ -102,6 +103,7 @@ class _RecordingExportService implements ExportService {
     calls.add('generate:pdf');
     pdfDiver = diver;
     pdfDiverPhoto = diverPhoto;
+    pdfCertifications = certifications;
     this.diveTypesById = diveTypesById;
     if (failure != null) throw failure!;
     return (bytes: const <int>[1], fileName: 'dive.pdf');
@@ -215,6 +217,7 @@ void main() {
     Object? buddiesFailure,
     Future<List<DiveTypeEntity>>? diveTypes,
     Map<String, Diver> diversById = const {},
+    Map<String, List<Certification>> certificationsByDiver = const {},
   }) async {
     final base = await getBaseOverrides();
 
@@ -265,6 +268,9 @@ void main() {
             return linkedBuddies;
           }),
           allCertificationsProvider.overrideWith((ref) async => const []),
+          diverCertificationsLoaderProvider.overrideWithValue(
+            (id) async => certificationsByDiver[id] ?? const [],
+          ),
           currentDiverProvider.overrideWith((ref) async => diver),
           diverByIdProvider.overrideWith((ref, id) async => diversById[id]),
           // The real loader reads the file system, and a dart:io await never
@@ -391,6 +397,46 @@ void main() {
       );
       await choosePdfAndDestination(tester, 'Save to Files');
 
+      expect(exportService.pdfDiver?.id, 'owner');
+    });
+
+    testWidgets("a sibling dive's PDF carries its owner's certification "
+        'cards (#4458)', (tester) async {
+      dive = dive.copyWith(diverId: 'owner');
+      final ownerCard = Certification(
+        id: 'owner-card',
+        diverId: 'owner',
+        name: 'Open Water',
+        agency: 'padi',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+      await pumpAndOpenExportSheet(
+        tester,
+        diver: diver,
+        diversById: {
+          'owner': Diver(
+            id: 'owner',
+            name: 'Bo',
+            createdAt: DateTime(2026, 1, 1),
+            updatedAt: DateTime(2026, 1, 1),
+          ),
+        },
+        certificationsByDiver: {
+          'owner': [ownerCard],
+        },
+        photoLoader: (path) async => null,
+      );
+      await tester.tap(find.text('PDF Logbook Entry'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save to Files'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Include Certification Cards'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Export PDF'));
+      await tester.pumpAndSettle();
+
+      expect(exportService.pdfCertifications, [ownerCard]);
       expect(exportService.pdfDiver?.id, 'owner');
     });
   });

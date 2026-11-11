@@ -171,6 +171,7 @@ void main() {
 
     testWidgets('draws a placeholder while the owner loads, without holding '
         'back the card', (tester) async {
+      final semantics = tester.ensureSemantics();
       await tester.pumpWidget(
         _buildSection(dive: _dive(diverId: 'diver-1'), ownerNeverLoads: true),
       );
@@ -185,6 +186,9 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(find.text('Buddies'), findsOneWidget);
       expect(find.text('Rear Guard'), findsOneWidget);
+      // A screen reader still hears whose roles these are.
+      expect(find.bySemanticsLabel(RegExp(r'\bMe\b')), findsOneWidget);
+      semantics.dispose();
     });
   });
 }

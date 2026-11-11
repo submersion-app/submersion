@@ -11,7 +11,6 @@ import 'package:submersion/features/dive_roles/presentation/dive_role_list_displ
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/divers/presentation/dive_owner_display.dart';
 import 'package:submersion/features/divers/presentation/widgets/dive_owner_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
@@ -132,7 +131,7 @@ class DiveBuddiesSection extends ConsumerWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: DiveOwnerAvatar(diver: owner, pending: pending),
-      title: Text(pending ? '' : diveOwnerLabel(owner, context.l10n)),
+      title: DiveOwnerName(diver: owner, pending: pending),
       subtitle: Text(label),
     );
   }

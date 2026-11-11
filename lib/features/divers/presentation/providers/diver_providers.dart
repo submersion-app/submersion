@@ -290,13 +290,26 @@ final currentDiverProvider = FutureProvider<Diver?>((ref) async {
 /// on the same screens, so "me" on a dive is its owner, not the active diver.
 /// A null id (a new dive, or one never assigned an owner) resolves to the
 /// active diver.
+///
+/// A dive of the active diver, the usual case, reuses [currentDiverProvider]
+/// rather than loading them again: a second copy would carry its own photo
+/// bytes, which the avatar image cache keys by identity and would decode
+/// twice.
 final diveOwnerProvider = FutureProvider.family<Diver?, String?>((
   ref,
   diverId,
-) {
-  return diverId == null
-      ? ref.watch(currentDiverProvider.future)
-      : ref.watch(diverByIdProvider(diverId).future);
+) async {
+  if (diverId == null) return ref.watch(currentDiverProvider.future);
+  Diver? current;
+  try {
+    current = await ref.watch(currentDiverProvider.future);
+  } catch (_) {
+    // Only the reuse is lost: another profile's dive still resolves its
+    // owner below, and the active diver's own failure surfaces wherever that
+    // diver is shown.
+  }
+  if (diverId == current?.id) return current;
+  return ref.watch(diverByIdProvider(diverId).future);
 });
 
 /// Validated current diver ID provider

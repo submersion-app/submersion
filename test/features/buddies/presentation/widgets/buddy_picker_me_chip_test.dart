@@ -281,11 +281,13 @@ void main() {
   testWidgets('Me chip draws a placeholder while the owner loads', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           allDiveRolesProvider.overrideWith((ref) async => _testRoles),
           allBuddiesProvider.overrideWith((ref) async => const <Buddy>[]),
+          currentDiverProvider.overrideWith((ref) async => null),
           diverByIdProvider.overrideWith(
             (ref, id) => Completer<Diver?>().future,
           ),
@@ -310,6 +312,10 @@ void main() {
     expect(find.text('Me'), findsNothing);
     expect(find.byIcon(Icons.person), findsNothing);
     expect(find.text('Rear Guard'), findsOneWidget);
+    // A screen reader still hears whose roles these are. The chip merges its
+    // label lines into one node, so match the word.
+    expect(find.bySemanticsLabel(RegExp(r'\bMe\b')), findsOneWidget);
+    semantics.dispose();
   });
 
   testWidgets('Me chip says Me when the diver has a blank name', (

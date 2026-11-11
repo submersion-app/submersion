@@ -394,21 +394,24 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
       Diver? diver;
       Uint8List? diverPhoto;
       try {
-        final buddies = await ref.read(buddiesForDiveProvider(dive.id).future);
-        if (buddies.isNotEmpty) exportDive = dive.copyWith(buddies: buddies);
         // The dive's owner, as this page's Buddies card shows: a sibling dive
         // from another profile is theirs, not the active diver's (#4458).
-        final ownerId = dive.diverId;
-        diver = await ref.read(diveOwnerProvider(ownerId).future);
+        // Independent reads, so they run together.
+        final (buddies, owner) = await (
+          ref.read(buddiesForDiveProvider(dive.id).future),
+          ref.read(diveOwnerProvider(dive.diverId).future),
+        ).wait;
+        if (buddies.isNotEmpty) exportDive = dive.copyWith(buddies: buddies);
         if (pdfOptions.includeCertificationCards) {
-          certifications =
-              ownerId == null || ownerId == ref.read(currentDiverIdProvider)
+          certifications = owner == null
               ? await ref.read(allCertificationsProvider.future)
-              : await ref.read(certificationsForDiverProvider(ownerId).future);
+              : await ref.read(diverCertificationsLoaderProvider)(owner.id);
         }
-        // The portrait travels with the diver: passing one without the other
-        // leaves the Detailed front matter on its placeholder frame.
-        diverPhoto = await ref.read(diverPhotoLoaderProvider)(diver?.photoPath);
+        // The diver is set only with their portrait: a failed read above
+        // must not leave the diver without it, which puts the Detailed front
+        // matter on its placeholder frame.
+        diverPhoto = await ref.read(diverPhotoLoaderProvider)(owner?.photoPath);
+        diver = owner;
       } catch (_) {
         // Export the dive as loaded.
       }
