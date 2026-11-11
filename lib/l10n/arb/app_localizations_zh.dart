@@ -57366,10 +57366,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get demo_settings_exit_subtitle => '丢弃示例日志并返回你自己的日志';
 
   @override
-  String get demo_strip_label => '演示模式：你正在浏览示例数据';
+  String get demo_ribbon_semanticsLabel => '演示模式：你正在浏览示例数据';
 
   @override
-  String get demo_strip_exit => '退出演示';
+  String get demo_unavailable_exit => '退出演示';
+
+  @override
+  String get demo_ribbon_label => '演示';
 
   @override
   String get demo_exit_confirm_title => '退出演示模式？';

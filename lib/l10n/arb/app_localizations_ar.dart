@@ -62034,10 +62034,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تجاهل السجل التجريبي والعودة إلى سجلك';
 
   @override
-  String get demo_strip_label => 'الوضع التجريبي: أنت تستكشف بيانات تجريبية';
+  String get demo_ribbon_semanticsLabel =>
+      'الوضع التجريبي: أنت تستكشف بيانات تجريبية';
 
   @override
-  String get demo_strip_exit => 'الخروج من العرض التجريبي';
+  String get demo_unavailable_exit => 'الخروج من العرض التجريبي';
+
+  @override
+  String get demo_ribbon_label => 'تجريبي';
 
   @override
   String get demo_exit_confirm_title => 'الخروج من الوضع التجريبي؟';

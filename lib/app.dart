@@ -72,6 +72,7 @@ import 'package:submersion/features/import_wizard/presentation/widgets/backgroun
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
 import 'package:submersion/features/demo_mode/domain/demo_sealed_feature.dart';
 import 'package:submersion/features/demo_mode/presentation/demo_seal_guard.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_mode_ribbon.dart';
 
 const Locale _defaultFallbackLocale = Locale('en');
 const Set<String> _invalidSystemLocaleLanguageCodes = {'c', 'posix'};
@@ -796,35 +797,42 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         // outside the zoom scope so the barrier stays a full-screen, unscaled
         // overlay. LockBarrier sits OUTSIDE RestoreBarrier so the App Lock
         // re-lock overlay covers restore UI too.
+        // The demo ribbon goes over every screen, dialogs included, and
+        // outside the zoom scope so it keeps its size in the corner. The lock
+        // overlay still covers it.
         final app = LockBarrier(
-          child: RestoreBarrier(
-            child: Consumer(
-              builder: (context, ref, _) {
-                // Watched here rather than in build() so dragging the zoom
-                // slider rebuilds only this subtree, not all of MaterialApp.
-                final zoom = ref.watch(displayZoomNotifierProvider);
-                final notifier = ref.read(displayZoomNotifierProvider.notifier);
-                final useMeta =
-                    defaultTargetPlatform == TargetPlatform.macOS ||
-                    defaultTargetPlatform == TargetPlatform.iOS;
+          child: DemoModeRibbon(
+            child: RestoreBarrier(
+              child: Consumer(
+                builder: (context, ref, _) {
+                  // Watched here rather than in build() so dragging the zoom
+                  // slider rebuilds only this subtree, not all of MaterialApp.
+                  final zoom = ref.watch(displayZoomNotifierProvider);
+                  final notifier = ref.read(
+                    displayZoomNotifierProvider.notifier,
+                  );
+                  final useMeta =
+                      defaultTargetPlatform == TargetPlatform.macOS ||
+                      defaultTargetPlatform == TargetPlatform.iOS;
 
-                return CallbackShortcuts(
-                  bindings: displayZoomShortcuts(
-                    onZoomIn: () => notifier.stepBy(1),
-                    onZoomOut: () => notifier.stepBy(-1),
-                    onReset: notifier.reset,
-                    useMetaModifier: useMeta,
-                  ),
-                  // CallbackShortcuts only fires for keystrokes inside its
-                  // focused subtree, and nothing has focus on desktop
-                  // cold-start, so the shortcuts would otherwise be dead until
-                  // the user clicks something.
-                  child: Focus(
-                    autofocus: true,
-                    child: DisplayZoomScope(zoom: zoom, child: child!),
-                  ),
-                );
-              },
+                  return CallbackShortcuts(
+                    bindings: displayZoomShortcuts(
+                      onZoomIn: () => notifier.stepBy(1),
+                      onZoomOut: () => notifier.stepBy(-1),
+                      onReset: notifier.reset,
+                      useMetaModifier: useMeta,
+                    ),
+                    // CallbackShortcuts only fires for keystrokes inside its
+                    // focused subtree, and nothing has focus on desktop
+                    // cold-start, so the shortcuts would otherwise be dead until
+                    // the user clicks something.
+                    child: Focus(
+                      autofocus: true,
+                      child: DisplayZoomScope(zoom: zoom, child: child!),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );
