@@ -74,6 +74,10 @@ void main() {
   const range = profileHeight - 40 - footer - kMinPlotHeight;
   final copyKey = find.byKey(const ValueKey('pinnedSquashedCard'));
 
+  /// Taps on the copy header's button.
+  final headerTaps = ValueNotifier(0);
+  setUp(() => headerTaps.value = 0);
+
   Future<void> pump(
     WidgetTester tester, {
     required GlobalKey profileKey,
@@ -108,7 +112,15 @@ void main() {
                   profileKey: profileKey,
                   squashedCard: (context, onPlotFrame) => Column(
                     children: [
-                      const SizedBox(height: 40),
+                      SizedBox(
+                        height: 40,
+                        child: Center(
+                          child: TextButton(
+                            onPressed: () => headerTaps.value++,
+                            child: const Text('Header action'),
+                          ),
+                        ),
+                      ),
                       Expanded(
                         child: _FakeChart(
                           onPlotFrame: reportsPlot ? onPlotFrame : null,
@@ -122,7 +134,11 @@ void main() {
                       children: [
                         const SizedBox(height: profileTop),
                         if (showProfile)
-                          SizedBox(key: profileKey, height: profileHeight)
+                          SizedBox(
+                            key: profileKey,
+                            width: double.infinity,
+                            height: profileHeight,
+                          )
                         else
                           const SizedBox(height: profileHeight),
                         const SizedBox(height: 1100),
@@ -351,6 +367,48 @@ void main() {
 
   // The strip lies over the page, not inside its scroll view, so it hands
   // vertical scrolling on to the page itself (review C1).
+  // The pinned copy is the card the reader sees, so it is the card they use:
+  // its controls work, and taps never fall through to whatever part of the
+  // real card happens to lie beneath.
+  testWidgets('a tap on the squashed card reaches its own control', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, profileTop + 60);
+    await tester.tap(
+      find.descendant(of: copyKey, matching: find.text('Header action')),
+    );
+    await tester.pump();
+    expect(headerTaps.value, 1);
+  });
+
+  testWidgets('a vertical drag on the squashed card scrolls the page', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, profileTop + 60);
+    final before = position(tester).pixels;
+    await tester.dragFrom(tester.getCenter(copyKey), const Offset(0, -150));
+    await tester.pump();
+    expect(position(tester).pixels, greaterThan(before + 80));
+  });
+
+  testWidgets('a mouse wheel over the squashed card scrolls the page', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, profileTop + 60);
+    final before = position(tester).pixels;
+    tester.binding.handlePointerEvent(
+      PointerScrollEvent(
+        position: tester.getCenter(copyKey),
+        scrollDelta: const Offset(0, 120),
+      ),
+    );
+    await tester.pump();
+    expect(position(tester).pixels, greaterThan(before + 60));
+  });
+
   testWidgets('a vertical drag on the pinned strip scrolls the page', (
     tester,
   ) async {

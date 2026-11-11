@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/page_scroll_forwarder.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
@@ -267,43 +268,46 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     return Positioned.fromRect(
       key: const ValueKey('pinnedProfileBox'),
       rect: box,
-      child: Stack(
-        children: [
-          // The live copy: squashed to what is left of the card, then
-          // sliding up at its squashed height, header first, as the card
-          // itself would; it keeps the card's width while the strip takes
-          // over on top of it.
-          if (t < 1)
-            Positioned(
-              key: const ValueKey('pinnedSquashedCard'),
-              left: copyAt.dx,
-              top: copyAt.dy,
-              width: card.width,
-              height: card.height - squash,
-              child: IgnorePointer(
+      // It lies over the page, not in its scroll view: vertical drags and
+      // wheel scrolls on it go on to the page.
+      child: PageScrollForwarder(
+        position: () => _pagePosition,
+        child: Stack(
+          children: [
+            // The live copy: squashed to what is left of the card, then
+            // sliding up at its squashed height, header first, as the card
+            // itself would; it keeps the card's width while the strip takes
+            // over on top of it. It is the card the reader sees, so it is
+            // the one they use: it takes taps and hovers itself.
+            if (t < 1)
+              Positioned(
+                key: const ValueKey('pinnedSquashedCard'),
+                left: copyAt.dx,
+                top: copyAt.dy,
+                width: card.width,
+                height: card.height - squash,
                 child: KeyedSubtree(
                   key: _copyRootKey,
                   child: widget.squashedCard(context, _onCopyFrame),
                 ),
               ),
-            ),
-          // Keyed, so it stays the same strip when the copy drops out.
-          if (t > 0)
-            Positioned.fill(
-              key: const ValueKey('pinnedStrip'),
-              child: IgnorePointer(
-                ignoring: t < 1,
-                child: PinnedProfileStrip(
-                  dive: widget.dive,
-                  condense: morph,
-                  backgroundOpacity: condenseBackgroundOpacity(t),
-                  // The copy's line, in the strip's own coordinates.
-                  morphFrom: copy?.shift(copyAt),
-                  pageScroll: () => _pagePosition,
+            // Keyed, so it stays the same strip when the copy drops out.
+            if (t > 0)
+              Positioned.fill(
+                key: const ValueKey('pinnedStrip'),
+                child: IgnorePointer(
+                  ignoring: t < 1,
+                  child: PinnedProfileStrip(
+                    dive: widget.dive,
+                    condense: morph,
+                    backgroundOpacity: condenseBackgroundOpacity(t),
+                    // The copy's line, in the strip's own coordinates.
+                    morphFrom: copy?.shift(copyAt),
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

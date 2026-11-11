@@ -397,9 +397,11 @@ void main() {
     await tapLink();
     expect(find.text('Remove'), findsNothing);
 
-    await tester.ensureVisible(find.text('Cancel'));
+    await tester.ensureVisible(find.text('Cancel').first);
     await settle(tester, frames: 4);
-    await tester.tap(find.text('Cancel'));
+    // With the card partly scrolled away, its banner shows on the pinned,
+    // squashed copy too (#4423): the reader taps the one they can see.
+    await tester.tap(find.text('Cancel').hitTestable());
     await settle(tester, frames: 4);
     await tapLink();
     expect(find.text('Remove'), findsOneWidget);

@@ -40,7 +40,6 @@ class PinnedProfileStrip extends ConsumerStatefulWidget {
     this.condense = 1,
     this.backgroundOpacity = 1,
     this.morphFrom,
-    this.pageScroll,
   });
 
   final Dive dive;
@@ -58,11 +57,6 @@ class PinnedProfileStrip extends ConsumerStatefulWidget {
   /// coordinates: the line's mapping at [condense] 0. Null when the chart
   /// has not reported its plot.
   final PlotMapping? morphFrom;
-
-  /// The page's scroll position. The strip lies over the page rather than
-  /// inside its scroll view, so vertical drags and wheel scrolls that start
-  /// on it are handed on to the page, which scrolls as if they started on it.
-  final ScrollPosition? Function()? pageScroll;
 
   @override
   ConsumerState<PinnedProfileStrip> createState() => _PinnedProfileStripState();
@@ -91,25 +85,6 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
     final span = profile.last.timestamp - first;
     final seconds = first + (dx / width).clamp(0.0, 1.0) * span;
     _write(indexForTimestamp(profile, seconds.round()));
-  }
-
-  /// The page drag a vertical gesture on the strip is driving.
-  Drag? _pageDrag;
-
-  /// Hands a mouse wheel or trackpad scroll over the strip to the page.
-  void _forwardWheel(PointerSignalEvent event) {
-    final position = widget.pageScroll?.call();
-    if (event is! PointerScrollEvent || position == null) return;
-    GestureBinding.instance.pointerSignalResolver.register(event, (e) {
-      final scroll = e as PointerScrollEvent;
-      position.pointerScroll(scroll.scrollDelta.dy);
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageDrag?.cancel();
-    super.dispose();
   }
 
   void _noteKind(PointerDeviceKind kind) {
@@ -166,7 +141,6 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
               return Listener(
                 onPointerDown: (e) => _noteKind(e.kind),
                 onPointerHover: (e) => _noteKind(e.kind),
-                onPointerSignal: _forwardWheel,
                 child: MouseRegion(
                   onHover: (e) => _scrubTo(e.localPosition.dx, width, profile),
                   onExit: (_) => _write(null),
@@ -182,23 +156,6 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                         _scrubTo(d.localPosition.dx, width, profile),
                     onHorizontalDragEnd: (_) => _write(null),
                     onHorizontalDragCancel: () => _write(null),
-                    // Vertical drags scroll the page, with its own physics
-                    // (fling included), as if they had started on it.
-                    onVerticalDragStart: widget.pageScroll == null
-                        ? null
-                        : (d) => _pageDrag = widget.pageScroll!()?.drag(
-                            d,
-                            () => _pageDrag = null,
-                          ),
-                    onVerticalDragUpdate: widget.pageScroll == null
-                        ? null
-                        : (d) => _pageDrag?.update(d),
-                    onVerticalDragEnd: widget.pageScroll == null
-                        ? null
-                        : (d) => _pageDrag?.end(d),
-                    onVerticalDragCancel: widget.pageScroll == null
-                        ? null
-                        : () => _pageDrag?.cancel(),
                     child: Stack(
                       children: [
                         Positioned.fill(
