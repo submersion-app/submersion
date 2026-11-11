@@ -68,6 +68,14 @@ void main() {
       expectCode('Congo - Brazzaville', 'CG');
     });
 
+    test('folds decomposed accents and wider Latin letters', () {
+      // "México" typed as "e" plus a combining acute (U+0301).
+      expectCode('México', 'MX');
+      // Czech's own name for Czechia, typed with or without its háček.
+      expectCode('Česko', 'CZ');
+      expectCode('Cesko', 'CZ');
+    });
+
     test('ignores accents either way', () {
       expectCode('Curacao', 'CW');
       expectCode('Curaçao', 'CW');

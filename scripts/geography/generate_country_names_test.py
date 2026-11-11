@@ -55,6 +55,14 @@ class FoldTest(unittest.TestCase):
     def test_collapses_inner_whitespace(self):
         self.assertEqual(gen.fold("Costa   Rica"), "costa rica")
 
+    def test_strips_combining_marks(self):
+        self.assertEqual(gen.fold("México"), "mexico")
+
+    def test_folds_wider_latin_letters(self):
+        self.assertEqual(gen.fold("Česko"), "cesko")
+        self.assertEqual(gen.fold("Türkiye"), "turkiye")
+        self.assertEqual(gen.fold("Łódź"), "lodz")
+
     def test_keeps_non_latin_scripts(self):
         self.assertEqual(gen.fold(" مصر "), "مصر")
 

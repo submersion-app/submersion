@@ -68,6 +68,22 @@ _DIACRITICS = {
 }
 
 
+# Latin letters past the shared table, mirrored by _widerLatin in
+# lib/core/geography/country_code.dart: names in Central European and
+# Turkish spellings ("Česko", "Łódź") fold like their plain forms.
+_WIDER_LATIN = {
+    "ă": "a", "ą": "a", "ā": "a", "ć": "c", "č": "c", "ď": "d", "đ": "d",
+    "ę": "e", "ě": "e", "ē": "e", "ğ": "g", "ı": "i", "ī": "i", "ł": "l",
+    "ń": "n", "ň": "n", "ō": "o", "ř": "r", "ś": "s", "š": "s", "ş": "s",
+    "ș": "s", "ť": "t", "ţ": "t", "ț": "t", "ū": "u", "ů": "u", "ź": "z",
+    "ż": "z", "ž": "z",
+}
+
+
+def _is_combining_mark(ch: str) -> bool:
+    return 0x300 <= ord(ch) <= 0x36F
+
+
 def fold(text: str) -> str:
     """The lookup key for [text], as countryLookupKey in Dart builds it.
 
@@ -77,6 +93,11 @@ def fold(text: str) -> str:
     "Trinidad and Tobago" all find their country.
     """
     folded = "".join(_DIACRITICS.get(ord(ch), ch) for ch in text.strip().lower())
+    # Decomposed accents ("e" + U+0301) drop their mark; wider Latin letters
+    # fold to plain ones.
+    folded = "".join(
+        _WIDER_LATIN.get(ch, ch) for ch in folded if not _is_combining_mark(ch)
+    )
     folded = folded.replace(".", "").replace("&", " and ")
     folded = " ".join(folded.split())
     return folded[4:] if folded.startswith("the ") else folded

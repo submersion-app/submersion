@@ -26,6 +26,17 @@ const Map<String, String> _aliases = {
   'ދިވެހިރާއްޖެ': 'MV',
 };
 
+/// Latin letters past [textSortKey]'s table, mirrored by _WIDER_LATIN in
+/// scripts/geography/generate_country_names.py: names in Central European
+/// and Turkish spellings ("Česko", "Łódź") fold like their plain forms.
+const Map<String, String> _widerLatin = {
+  'ă': 'a', 'ą': 'a', 'ā': 'a', 'ć': 'c', 'č': 'c', 'ď': 'd', 'đ': 'd', //
+  'ę': 'e', 'ě': 'e', 'ē': 'e', 'ğ': 'g', 'ı': 'i', 'ī': 'i', 'ł': 'l', //
+  'ń': 'n', 'ň': 'n', 'ō': 'o', 'ř': 'r', 'ś': 's', 'š': 's', 'ş': 's', //
+  'ș': 's', 'ť': 't', 'ţ': 't', 'ț': 't', 'ū': 'u', 'ů': 'u', 'ź': 'z', //
+  'ż': 'z', 'ž': 'z',
+};
+
 /// The key a country name is looked up by: [textSortKey]'s case and accent
 /// fold, with periods removed ("U.S.A." reads as "USA"), "&" read as "and"
 /// ("Trinidad & Tobago"), runs of whitespace collapsed, and a leading
@@ -34,7 +45,15 @@ const Map<String, String> _aliases = {
 /// scripts/geography/generate_country_names.py folds the generated table's
 /// names the same way.
 String countryLookupKey(String text) {
-  final key = textSortKey(text)
+  final folded = StringBuffer();
+  for (final rune in textSortKey(text).runes) {
+    // Decomposed accents ("e" + U+0301) drop their mark.
+    if (rune >= 0x300 && rune <= 0x36F) continue;
+    final char = String.fromCharCode(rune);
+    folded.write(_widerLatin[char] ?? char);
+  }
+  final key = folded
+      .toString()
       .replaceAll('.', '')
       .replaceAll('&', ' and ')
       .split(RegExp(r'\s+'))
