@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/logged_with_ti
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
@@ -104,25 +105,38 @@ class DiveBuddiesSection extends ConsumerWidget {
     );
   }
 
-  /// The active diver's own roles on this dive (#547, #1221), shown above
-  /// buddies.
+  /// The diver's own roles on this dive (#547, #1221), shown above buddies.
+  ///
+  /// The diver is the dive's owner, not the active profile, since a sibling
+  /// dive from another profile opens here too (#2002). A dive with no owner
+  /// falls back to the active diver. Like the edit view's Me chip, it shows
+  /// the diver's photo and name, keeping the person icon and "Me" only when
+  /// there is no photo or no diver (#4458).
   Widget _buildMyRoleTile(BuildContext context, WidgetRef ref) {
+    final ownerId = dive.diverId;
+    final diver = ownerId == null
+        ? ref.watch(currentDiverProvider).value
+        : ref.watch(diverByIdProvider(ownerId)).value;
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     final label = rolesForIds(
       dive.diverRoleIds,
       rolesById,
     ).joinedLocalizedNames(context.l10n);
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: Icon(
-          Icons.person,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-        ),
-      ),
-      title: Text(context.l10n.buddies_picker_me),
+      leading: diver?.photo != null
+          ? ProfileAvatar(
+              photo: diver!.photo,
+              initials: diver.initials,
+              backgroundColor: colorScheme.primaryContainer,
+            )
+          : CircleAvatar(
+              backgroundColor: colorScheme.primaryContainer,
+              child: Icon(Icons.person, color: colorScheme.onPrimaryContainer),
+            ),
+      title: Text(diver?.name ?? context.l10n.buddies_picker_me),
       subtitle: Text(label),
     );
   }
