@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
@@ -141,9 +142,7 @@ class DiveHeroHeader extends ConsumerWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                dive.effectiveName ??
-                                    dive.site?.name ??
-                                    context.l10n.diveLog_listPage_unknownSite,
+                                diveTitle(context, dive),
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                             ),
