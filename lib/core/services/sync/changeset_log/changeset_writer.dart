@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:drift/drift.dart' show Value;
 
@@ -66,6 +67,11 @@ class ChangesetWriter {
   /// library size.
   final int maxChangesetSeriesBlobBytes;
   final int heartbeatMaxAgeMillis;
+
+  /// `provider/deviceId` keys whose manifest this writer has already
+  /// heartbeated, which ends its staleness corrections for them; see the
+  /// heartbeat in [publish].
+  final Set<String> _selfDescriptionRepublished = {};
 
   Future<ChangesetWriteResult> publish({
     required CloudStorageProvider provider,
@@ -333,32 +339,44 @@ class ChangesetWriter {
       // Nothing to publish -- but a manifest that goes stale reads as a dead
       // device to peers (retirement) and its acks stop advancing tombstone
       // GC. Rewrite it (contents unchanged, fresh updatedAt + acks) once it
-      // ages past the threshold. The nonce is preserved: a heartbeat is not
-      // an upload event and must not disturb twin detection.
+      // ages past the threshold, or as soon as it no longer describes this
+      // build. The nonce is preserved: a heartbeat is not an upload event and
+      // must not disturb twin detection.
+      //
+      // That same nonce means twins (two installs on one device id) cannot
+      // tell each other's heartbeats from their own, so a correction runs
+      // once per writer: twins on different builds or names would otherwise
+      // overwrite each other's stamps on every sync. A writer lives as long
+      // as its SyncService, so this is at least once per launch (more when
+      // the service is rebuilt), which is what an update needs: the new
+      // build starts a new writer.
+      final selfKey = '$providerId/$deviceId';
       if (ownManifest != null &&
-          now - ownManifest.updatedAt > heartbeatMaxAgeMillis) {
-        final beat = SyncManifest(
-          deviceId: ownManifest.deviceId,
+          (now - ownManifest.updatedAt > heartbeatMaxAgeMillis ||
+              (!_selfDescriptionRepublished.contains(selfKey) &&
+                  _publishedSelfDescriptionIsStale(ownManifest, deviceName)))) {
+        // The log is unchanged, so its compatibility floor is too: the floor
+        // names the oldest schema that can apply these payloads, and every
+        // one of them was written under the floor already published. Raising
+        // it here would hold older peers off a log they can still read; the
+        // next real publish raises it along with data this build wrote.
+        // The exception is a manifest from before writerSchemaVersion, whose
+        // schemaVersion is the old writer's actual schema rather than a
+        // floor: stamping a writer version beside it would make readers
+        // take that schema as the floor, so it is lowered to a real one.
+        final beat = ownManifest.copyWith(
+          schemaVersion: _legacyFloorCorrection(ownManifest),
           // A heartbeat is also the cheapest way a renamed device republishes
-          // its name; keep the previously published one when this build
-          // cannot resolve a usable name at all.
-          deviceName: deviceName ?? ownManifest.deviceName,
-          provider: ownManifest.provider,
-          baseSeq: ownManifest.baseSeq,
-          basePartCount: ownManifest.basePartCount,
-          baseBytes: ownManifest.baseBytes,
-          baseChecksum: ownManifest.baseChecksum,
-          basePartChecksums: ownManifest.basePartChecksums,
-          headSeq: ownManifest.headSeq,
-          publishedHlcHigh: ownManifest.publishedHlcHigh,
-          epochId: ownManifest.epochId,
-          uploadNonce: ownManifest.uploadNonce,
+          // its name; a null keeps the previously published one when this
+          // build cannot resolve a usable name at all.
+          deviceName: deviceName,
           appliedPeerHlc: appliedPeerHlc,
           updatedAt: now,
-          schemaVersion: AppDatabase.minimumCompatibleSchemaVersion,
           writerSchemaVersion: AppDatabase.currentSchemaVersion,
         );
         await _writeManifest(provider, folderId, deviceId, beat, null);
+        // Only once the write landed: a failed one retries next sync.
+        _selfDescriptionRepublished.add(selfKey);
         return ChangesetWriteResult(
           ChangesetWriteKind.heartbeat,
           ownManifest.headSeq,
@@ -498,6 +516,34 @@ class ChangesetWriter {
   }
 
   int _max(int a, int b) => a > b ? a : b;
+
+  /// True when [published] names a different writer schema than this build's,
+  /// or a name this device has since dropped. Peers read the stamps on the
+  /// manifest, not the build that runs here: an updated device with nothing
+  /// new to say would otherwise keep its old writer schema for up to a
+  /// heartbeat interval, and every peer would warn that it runs an older
+  /// version (issue #4462). A null [deviceName] corrects nothing, because the
+  /// heartbeat keeps the published name in that case.
+  ///
+  /// The compatibility floor is not compared: it describes the log, which a
+  /// heartbeat does not change, so a heartbeat could not correct it anyway.
+  bool _publishedSelfDescriptionIsStale(
+    SyncManifest published,
+    String? deviceName,
+  ) =>
+      published.writerSchemaVersion != AppDatabase.currentSchemaVersion ||
+      (deviceName != null && deviceName != published.deviceName);
+
+  /// The floor a heartbeat stamps over a manifest written before
+  /// writerSchemaVersion existed, or null to keep the published one. Such a
+  /// manifest carries its writer's actual schema in schemaVersion, which is
+  /// never below the floor its payloads need, so this build's floor (or that
+  /// schema, if lower) holds no peer that can read the log.
+  int? _legacyFloorCorrection(SyncManifest published) {
+    final legacy = published.schemaVersion;
+    if (published.writerSchemaVersion != null || legacy == null) return null;
+    return math.min(legacy, AppDatabase.minimumCompatibleSchemaVersion);
+  }
 
   /// Clears the relay floor this publish read, and only that one: a floor a
   /// nearby apply lowered while the publish ran covers rows the publish did
