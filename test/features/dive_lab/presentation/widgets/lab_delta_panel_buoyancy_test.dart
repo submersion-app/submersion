@@ -41,7 +41,7 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     final d = squareDive();
     final inputs = LabRequestInputs(
       dive: Dive(id: 'd', diveNumber: 1, dateTime: DateTime(2026)),

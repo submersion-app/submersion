@@ -275,6 +275,108 @@ setUpAll(() {
     });
   });
 
+  group('test view (#4436)', () {
+    test('a pixel ratio only the size reset covers is an offence', () {
+      final offences = scan('''
+void main() {
+  testWidgets('x', (tester) async {
+    tester.view.physicalSize = const Size(800, 600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+  });
+}
+''');
+
+      expect(offences, hasLength(1));
+      expect(offences.single.rule, viewRule);
+      expect(offences.single.line, 4);
+    });
+
+    test('a size nothing resets is an offence', () {
+      final offences = scan('''
+void main() {
+  testWidgets('x', (tester) async {
+    tester.view.physicalSize = const Size(800, 600);
+  });
+}
+''');
+
+      expect(offences.map((o) => o.rule), [viewRule]);
+    });
+
+    test('view.reset in a teardown covers both', () {
+      final offences = scan('''
+void main() {
+  testWidgets('x', (tester) async {
+    tester.view.physicalSize = const Size(800, 600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('the per-property resets are accepted', () {
+      final offences = scan('''
+void main() {
+  testWidgets('x', (tester) async {
+    tester.view.physicalSize = const Size(800, 600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('a reset a pump helper registers covers a later resize', () {
+      final offences = scan('''
+Future<void> pump(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(400, 800);
+  addTearDown(tester.view.reset);
+}
+
+void main() {
+  testWidgets('x', (tester) async {
+    await pump(tester);
+    tester.view.physicalSize = const Size(1200, 800);
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+
+    test('a reset outside any teardown does not count', () {
+      final offences = scan('''
+void main() {
+  testWidgets('x', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.reset();
+  });
+}
+''');
+
+      expect(offences.map((o) => o.rule), [viewRule]);
+    });
+
+    test('reading a property is not an offence', () {
+      final offences = scan('''
+void main() {
+  testWidgets('x', (tester) async {
+    expect(tester.view.devicePixelRatio == 1.0, isFalse);
+  });
+}
+''');
+
+      expect(offences, isEmpty);
+    });
+  });
+
   group('scope', () {
     test('restoring one replacement does not excuse one in another group', () {
       final offences = scan('''

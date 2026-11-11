@@ -65,7 +65,7 @@ void main() {
     (tester) async {
       tester.view.physicalSize = const Size(420, 900);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
       await tester.pumpWidget(_page());
       await _settle(tester);
 
@@ -97,7 +97,7 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(420, 900);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(_page());
     await _settle(tester);
     expect(tester.widget<LabChart>(find.byType(LabChart)).outcome, isNotNull);
@@ -117,7 +117,7 @@ void main() {
   testWidgets('wide layout places the panel beside the chart', (tester) async {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(_page());
     await _settle(tester);
     expect(find.byType(DiveProfileChart), findsOneWidget);

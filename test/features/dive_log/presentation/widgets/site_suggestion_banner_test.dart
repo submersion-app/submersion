@@ -155,7 +155,7 @@ void main() {
   testWidgets('German at 360 dp does not overflow', (tester) async {
     tester.view.physicalSize = const Size(360, 800);
     tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     await tester.pumpWidget(
       banner(
         status: ProposalStatus.review,
