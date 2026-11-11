@@ -22,16 +22,18 @@ void main() {
   late ChangesetWriter writer;
   late String folder;
 
+  /// A writer as SyncService builds one per launch.
+  ChangesetWriter newWriter() => ChangesetWriter(
+    SyncDataSerializer(),
+    const ChangesetCodec(),
+    PublishStateStore(DatabaseService.instance.database),
+    compactionByteRatio: 1000.0,
+    compactionMaxChangesets: 1 << 30,
+  );
+
   setUp(() async {
     await setUpTestDatabase();
-    final db = DatabaseService.instance.database;
-    writer = ChangesetWriter(
-      SyncDataSerializer(),
-      const ChangesetCodec(),
-      PublishStateStore(db),
-      compactionByteRatio: 1000.0,
-      compactionMaxChangesets: 1 << 30,
-    );
+    writer = newWriter();
     provider = FakeCloudStorageProvider();
     folder = await provider.getOrCreateSyncFolder();
   });
@@ -205,14 +207,38 @@ void main() {
 
     test('a manifest from before writerSchemaVersion existed is '
         'republished', () async {
+      // Before the field existed, schemaVersion carried the writer's actual
+      // schema, not a floor. Left beside a fresh writer stamp it would read
+      // as a floor and hold peers that can apply this log.
       final setup = await publishOneDive('stamp-d2');
-      await restamp(setup.fresh, {'writerSchemaVersion': null});
+      await restamp(setup.fresh, {
+        'writerSchemaVersion': null,
+        'schemaVersion': AppDatabase.currentSchemaVersion,
+      });
 
       final result = await emptyPublish(setup.deviceId);
 
       expect(result.kind, ChangesetWriteKind.heartbeat);
       final after = await downloadManifest(setup.deviceId);
       expect(after.writerSchemaVersion, AppDatabase.currentSchemaVersion);
+      expect(after.schemaVersion, AppDatabase.minimumCompatibleSchemaVersion);
+      expectSameLog(after, setup.fresh);
+    });
+
+    test('a legacy writer schema below this build\'s floor is kept as the '
+        'floor', () async {
+      final setup = await publishOneDive('stamp-d4');
+      const legacy = AppDatabase.minimumCompatibleSchemaVersion - 1;
+      await restamp(setup.fresh, {
+        'writerSchemaVersion': null,
+        'schemaVersion': legacy,
+      });
+
+      expect(
+        (await emptyPublish(setup.deviceId)).kind,
+        ChangesetWriteKind.heartbeat,
+      );
+      expect((await downloadManifest(setup.deviceId)).schemaVersion, legacy);
     });
 
     test('an old floor alone, under this build\'s writer stamp, stays a '
@@ -228,6 +254,39 @@ void main() {
         (await emptyPublish(setup.deviceId)).kind,
         ChangesetWriteKind.noop,
       );
+    });
+
+    test('corrects once per launch, so twins on different builds do not '
+        'overwrite each other on every sync', () async {
+      final setup = await publishOneDive('twin-d1', deviceName: 'Mac');
+      final twinStamp = {
+        'writerSchemaVersion': AppDatabase.currentSchemaVersion - 1,
+        'deviceName': 'Old Mac',
+      };
+      await restamp(setup.fresh, twinStamp);
+      expect(
+        (await emptyPublish(setup.deviceId, deviceName: 'Mac')).kind,
+        ChangesetWriteKind.heartbeat,
+      );
+
+      // A twin on the older build stamps its own build and name back. It
+      // shares the nonce, so nothing flags it as a twin; this writer leaves
+      // its stamps rather than fighting over them each sync.
+      await restamp(await downloadManifest(setup.deviceId), twinStamp);
+      expect(
+        (await emptyPublish(setup.deviceId, deviceName: 'Mac')).kind,
+        ChangesetWriteKind.noop,
+      );
+
+      // The next launch starts a new writer, which corrects once more.
+      writer = newWriter();
+      expect(
+        (await emptyPublish(setup.deviceId, deviceName: 'Mac')).kind,
+        ChangesetWriteKind.heartbeat,
+      );
+      final after = await downloadManifest(setup.deviceId);
+      expect(after.writerSchemaVersion, AppDatabase.currentSchemaVersion);
+      expect(after.deviceName, 'Mac');
     });
 
     test('a renamed device republishes its new name', () async {

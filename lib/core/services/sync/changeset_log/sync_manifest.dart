@@ -71,10 +71,13 @@ class SyncManifest {
 
   /// This manifest republished over the same log: only the fields a
   /// heartbeat may change are offered, so the base, head, published clock,
-  /// nonce and compatibility floor always carry over. A null argument keeps
-  /// the current value, which is how a heartbeat keeps the published name
-  /// when this build resolves none.
+  /// nonce always carry over. A null argument keeps the current value, which
+  /// is how a heartbeat keeps the published name when this build resolves
+  /// none. [schemaVersion] exists only to correct a pre-writerSchemaVersion
+  /// manifest, whose schemaVersion is not yet a floor; a heartbeat otherwise
+  /// keeps the published floor.
   SyncManifest copyWith({
+    int? schemaVersion,
     int? updatedAt,
     Map<String, String>? appliedPeerHlc,
     int? writerSchemaVersion,
@@ -94,7 +97,7 @@ class SyncManifest {
     uploadNonce: uploadNonce,
     appliedPeerHlc: appliedPeerHlc ?? this.appliedPeerHlc,
     formatVersion: formatVersion,
-    schemaVersion: schemaVersion,
+    schemaVersion: schemaVersion ?? this.schemaVersion,
     writerSchemaVersion: writerSchemaVersion ?? this.writerSchemaVersion,
     deviceName: deviceName ?? this.deviceName,
   );

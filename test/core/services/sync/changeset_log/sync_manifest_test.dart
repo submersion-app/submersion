@@ -106,6 +106,7 @@ void main() {
 
     test('replaces only the fields it is given', () {
       final beat = published.copyWith(
+        schemaVersion: 330,
         updatedAt: 2000,
         appliedPeerHlc: const {'peer-b': '000000000000060:000000:peer-b'},
         writerSchemaVersion: 359,
@@ -113,6 +114,7 @@ void main() {
       );
       expect(beat.toJson(), {
         ...published.toJson(),
+        'schemaVersion': 330,
         'updatedAt': 2000,
         'appliedPeerHlc': {'peer-b': '000000000000060:000000:peer-b'},
         'writerSchemaVersion': 359,

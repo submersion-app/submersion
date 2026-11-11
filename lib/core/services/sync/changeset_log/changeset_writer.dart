@@ -67,6 +67,11 @@ class ChangesetWriter {
   final int maxChangesetSeriesBlobBytes;
   final int heartbeatMaxAgeMillis;
 
+  /// `provider/deviceId` keys whose manifest this writer has already
+  /// heartbeated, which ends its staleness corrections for them; see the
+  /// heartbeat in [publish].
+  final Set<String> _selfDescriptionRepublished = {};
+
   Future<ChangesetWriteResult> publish({
     required CloudStorageProvider provider,
     required String deviceId,
@@ -336,15 +341,28 @@ class ChangesetWriter {
       // ages past the threshold, or as soon as it no longer describes this
       // build. The nonce is preserved: a heartbeat is not an upload event and
       // must not disturb twin detection.
+      //
+      // That same nonce means twins (two installs on one device id) cannot
+      // tell each other's heartbeats from their own, so a correction runs
+      // once per writer: twins on different builds or names would otherwise
+      // overwrite each other's stamps on every sync. Once per launch is what
+      // an update needs, since the new build starts a new writer.
+      final selfKey = '$providerId/$deviceId';
       if (ownManifest != null &&
           (now - ownManifest.updatedAt > heartbeatMaxAgeMillis ||
-              _publishedSelfDescriptionIsStale(ownManifest, deviceName))) {
+              (!_selfDescriptionRepublished.contains(selfKey) &&
+                  _publishedSelfDescriptionIsStale(ownManifest, deviceName)))) {
         // The log is unchanged, so its compatibility floor is too: the floor
         // names the oldest schema that can apply these payloads, and every
         // one of them was written under the floor already published. Raising
         // it here would hold older peers off a log they can still read; the
         // next real publish raises it along with data this build wrote.
+        // The exception is a manifest from before writerSchemaVersion, whose
+        // schemaVersion is the old writer's actual schema rather than a
+        // floor: stamping a writer version beside it would make readers
+        // take that schema as the floor, so it is lowered to a real one.
         final beat = ownManifest.copyWith(
+          schemaVersion: _legacyFloorCorrection(ownManifest),
           // A heartbeat is also the cheapest way a renamed device republishes
           // its name; a null keeps the previously published one when this
           // build cannot resolve a usable name at all.
@@ -354,6 +372,8 @@ class ChangesetWriter {
           writerSchemaVersion: AppDatabase.currentSchemaVersion,
         );
         await _writeManifest(provider, folderId, deviceId, beat, null);
+        // Only once the write landed: a failed one retries next sync.
+        _selfDescriptionRepublished.add(selfKey);
         return ChangesetWriteResult(
           ChangesetWriteKind.heartbeat,
           ownManifest.headSeq,
@@ -510,6 +530,19 @@ class ChangesetWriter {
   ) =>
       published.writerSchemaVersion != AppDatabase.currentSchemaVersion ||
       (deviceName != null && deviceName != published.deviceName);
+
+  /// The floor a heartbeat stamps over a manifest written before
+  /// writerSchemaVersion existed, or null to keep the published one. Such a
+  /// manifest carries its writer's actual schema in schemaVersion, which is
+  /// never below the floor its payloads need, so this build's floor (or that
+  /// schema, if lower) holds no peer that can read the log.
+  int? _legacyFloorCorrection(SyncManifest published) {
+    final legacy = published.schemaVersion;
+    if (published.writerSchemaVersion != null || legacy == null) return null;
+    return legacy < AppDatabase.minimumCompatibleSchemaVersion
+        ? legacy
+        : AppDatabase.minimumCompatibleSchemaVersion;
+  }
 
   /// Clears the relay floor this publish read, and only that one: a floor a
   /// nearby apply lowered while the publish ran covers rows the publish did
