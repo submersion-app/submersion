@@ -1725,6 +1725,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_today => '今天';
 
   @override
+  String trips_countryFlags_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(String names) {
+    return '国家/地区：$names';
+  }
+
+  @override
+  String get trips_countryFlags_separator => '、';
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return '第 $current 天，共 $total 天';
   }
@@ -25165,6 +25178,12 @@ class AppLocalizationsZh extends AppLocalizations {
       '潜水点卡片背景地图';
 
   @override
+  String get settings_conflict_field_showCountryFlags => '国家/地区旗帜';
+
+  @override
+  String get settings_conflict_field_countryCode => '国家/地区代码';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker => '剖面显示最大深度';
 
   @override
@@ -36551,6 +36570,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_trendGaps_subtitle => '将长时间未潜水的时段显示为窄的斜线带';
+
+  @override
+  String get settings_appearance_countryFlags_title => '国家/地区旗帜';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle => '在潜点位置和旅行旁显示小旗帜';
 
   @override
   String get settings_appearance_mapStyle => '地图样式';

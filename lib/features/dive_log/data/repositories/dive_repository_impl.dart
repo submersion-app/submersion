@@ -3457,7 +3457,7 @@ class DiveRepository {
             '(d.is_draft = 1 AND d.exit_time IS NULL) AS is_open_draft, '
             'd.dive_type, d.dive_mode, '
             'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
-            's.name AS site_name, s.country AS site_country, '
+            's.name AS site_name, s.country AS site_country, s.country_code AS site_country_code, '
             's.region AS site_region, s.latitude AS site_latitude, '
             's.longitude AS site_longitude, '
             // Trip identity for the list's group headers (#1193). Four
@@ -4374,7 +4374,7 @@ class DiveRepository {
           '(d.is_draft = 1 AND d.exit_time IS NULL) AS is_open_draft, '
           'd.dive_type, d.dive_mode, '
           'COALESCE(d.entry_time, d.dive_date_time) AS sort_timestamp, '
-          's.name AS site_name, s.country AS site_country, '
+          's.name AS site_name, s.country AS site_country, s.country_code AS site_country_code, '
           's.region AS site_region, s.latitude AS site_latitude, '
           's.longitude AS site_longitude, '
           // Trip identity for the list's group headers (#1193).
@@ -4495,6 +4495,7 @@ class DiveRepository {
         tags: tagsByDive[id] ?? [],
         siteName: row.readNullable<String>('site_name'),
         siteCountry: row.readNullable<String>('site_country'),
+        siteCountryCode: row.readNullable<String>('site_country_code'),
         siteRegion: row.readNullable<String>('site_region'),
         siteLatitude: row.readNullable<double>('site_latitude'),
         siteLongitude: row.readNullable<double>('site_longitude'),

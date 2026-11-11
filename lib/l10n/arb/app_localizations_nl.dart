@@ -1789,6 +1789,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_today => 'Vandaag';
 
   @override
+  String trips_countryFlags_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(String names) {
+    return 'Landen: $names';
+  }
+
+  @override
+  String get trips_countryFlags_separator => ', ';
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return 'Dag $current van $total';
   }
@@ -26505,6 +26518,12 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kaart achter stekkaarten';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Landvlaggen';
+
+  @override
+  String get settings_conflict_field_countryCode => 'Landcode';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profiel toont de maximale diepte';
 
@@ -38597,6 +38616,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Lange duikpauzes tonen als een smalle gearceerde band';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Landvlaggen';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Toon een kleine vlag naast de locatie van duikstekken en reizen';
 
   @override
   String get settings_appearance_mapStyle => 'Kaartstijl';

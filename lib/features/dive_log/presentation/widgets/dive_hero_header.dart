@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/ink_centered_text_style.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
 
 /// A dive's hero header: map backdrop, number badge, name and site, entry and
@@ -169,10 +170,16 @@ class DiveHeroHeader extends ConsumerWidget {
                             ],
                           ),
                         if (dive.site?.locationString.isNotEmpty == true)
-                          Text(
-                            dive.site!.locationString,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: colorScheme.onSurfaceVariant),
+                          LocationWithFlag(
+                            country: dive.site!.country,
+                            countryCode: dive.site!.countryCode,
+                            text: Text(
+                              dive.site!.locationString,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
                           ),
                         Text(
                           '${context.l10n.diveLog_detail_label_entry} ${units.formatDateTimeBullet(dive.effectiveEntryTime)}',

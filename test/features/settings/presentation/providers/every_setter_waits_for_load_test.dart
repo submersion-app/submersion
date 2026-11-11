@@ -212,6 +212,7 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setCardPhotoOverlayDark(0.3),
     n.setCardPhotoOverlayLight(0.2),
     n.setShowMapBackgroundOnSiteCards(!d.showMapBackgroundOnSiteCards),
+    n.setShowCountryFlags(!d.showCountryFlags),
     n.setShowMaxDepthMarker(!d.showMaxDepthMarker),
     n.setPinProfileOnScroll(!d.pinProfileOnScroll),
     n.setShowPressureThresholdMarkers(!d.showPressureThresholdMarkers),

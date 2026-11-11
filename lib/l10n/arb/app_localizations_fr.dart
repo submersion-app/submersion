@@ -1802,6 +1802,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get trips_story_today => 'Aujourd\'hui';
 
   @override
+  String trips_countryFlags_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(String names) {
+    return 'Pays : $names';
+  }
+
+  @override
+  String get trips_countryFlags_separator => ', ';
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return 'Jour $current sur $total';
   }
@@ -26750,6 +26763,12 @@ class AppLocalizationsFr extends AppLocalizations {
       'Carte derrière les cartes de site';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Drapeaux des pays';
+
+  @override
+  String get settings_conflict_field_countryCode => 'Code pays';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Le profil affiche la profondeur maximale';
 
@@ -38971,6 +38990,13 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Afficher les longues pauses sans plongée comme une bande hachurée étroite';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Drapeaux des pays';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Affiche un petit drapeau à côté de l\'emplacement des sites et des voyages';
 
   @override
   String get settings_appearance_mapStyle => 'Style de carte';

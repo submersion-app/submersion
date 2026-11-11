@@ -50,5 +50,8 @@ extension BeforeOpenSettingsColumns on AppDatabase {
 
     // v359 backstop: diver_settings.pin_profile_on_scroll (issue #4423).
     await _assertPinProfileOnScrollColumn();
+
+    // v360 backstop: diver_settings.show_country_flags (issue #4426).
+    await _assertShowCountryFlagsColumn();
   }
 }

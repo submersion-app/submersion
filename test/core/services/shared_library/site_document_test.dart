@@ -62,8 +62,9 @@ void main() {
   });
 
   test('fieldNames covers every site column the spec lists', () {
-    // 26 site columns less notes and rating, which stay private.
-    expect(SiteDocument.fieldNames, hasLength(24));
+    // 27 site columns (with countryCode, issue #4426) less notes and
+    // rating, which stay private.
+    expect(SiteDocument.fieldNames, hasLength(25));
     expect(SiteDocument.fieldNames.last, 'features');
   });
 

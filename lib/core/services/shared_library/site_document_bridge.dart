@@ -16,6 +16,8 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
+import 'package:submersion/core/geography/country_code.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 
 /// Turns a local library site into its document and a document back into
 /// the row and children (issue #2567).
@@ -111,6 +113,7 @@ class SiteDocumentBridge {
         'city' => site.city,
         'island' => site.island,
         'country' => site.country,
+        'countryCode' => site.countryCode,
         'region' => site.region,
         'rating' => site.rating,
         'notes' => site.notes,
@@ -175,6 +178,22 @@ class SiteDocumentBridge {
         city: pick('city', strOrNull),
         island: pick('island', strOrNull),
         country: pick('country', strOrNull),
+        // The document's code comes along unless its country text reads as
+        // another country: an older build that changed the country passes
+        // the old code through untouched (issue #4426). Without a code the
+        // text is read, keeping this device's code while it is unchanged.
+        countryCode:
+            scalars.contains('country') || scalars.contains('countryCode')
+            ? Value(
+                _documentCountryCode(
+                  country: scalars.contains('country')
+                      ? strOrNull(f['country'])
+                      : exists?.country,
+                  documentCode: strOrNull(f['countryCode']),
+                  known: (country: exists?.country, code: exists?.countryCode),
+                ),
+              )
+            : const Value.absent(),
         region: pick('region', strOrNull),
         rating: pick('rating', dbl),
         notes: pick('notes', str),
@@ -379,4 +398,25 @@ class SiteDocumentBridge {
     if (keep.isNotEmpty) delete.where((t) => t.id.isNotIn(keep.toList()));
     await delete.go();
   }
+}
+
+/// The code a library site stores from a document (issue #4426): the
+/// document's own code when its [country] text does not read as a different
+/// country, else what [countryCodeOnSave] gives for the text.
+///
+/// A document with a code but no country text stores no code, on purpose.
+/// No writer in the app keeps a code without its country (clearing the
+/// country clears the code), while an older build that clears the country
+/// passes the old code through untouched; keeping it would draw a flag
+/// beside a site with no country.
+String? _documentCountryCode({
+  required String? country,
+  required String? documentCode,
+  required KnownCountryCode known,
+}) {
+  if (documentCode != null && country != null && country.trim().isNotEmpty) {
+    final readAs = countryCodeFor(country);
+    if (readAs == null || readAs == documentCode) return documentCode;
+  }
+  return countryCodeOnSave(country: country, known: known);
 }

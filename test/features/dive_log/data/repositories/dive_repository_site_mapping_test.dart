@@ -34,6 +34,7 @@ void main() {
     difficulty: SiteDifficulty.advanced,
     waterType: WaterType.fresh,
     country: 'Switzerland',
+    countryCode: 'CH',
     region: 'Lucerne',
     city: 'Weggis',
     island: 'None',

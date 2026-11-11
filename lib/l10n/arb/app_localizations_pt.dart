@@ -1798,6 +1798,19 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_story_today => 'Hoje';
 
   @override
+  String trips_countryFlags_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(String names) {
+    return 'Países: $names';
+  }
+
+  @override
+  String get trips_countryFlags_separator => ', ';
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return 'Dia $current de $total';
   }
@@ -26660,6 +26673,12 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mapa atrás dos cartões de ponto de mergulho';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Bandeiras dos países';
+
+  @override
+  String get settings_conflict_field_countryCode => 'Código do país';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Perfil mostra a profundidade máxima';
 
@@ -38838,6 +38857,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Mostrar longas pausas sem mergulho como uma faixa tracejada estreita';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Bandeiras dos países';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Mostra uma pequena bandeira ao lado da localização dos locais e das viagens';
 
   @override
   String get settings_appearance_mapStyle => 'Estilo do Mapa';

@@ -18,6 +18,7 @@ import 'package:submersion/core/database/change_log/change_log_trigger_sql.dart'
 import 'package:submersion/core/database/combine_source_slot_stamp.dart';
 import 'package:submersion/core/database/combined_dive_summary_repair.dart';
 import 'package:submersion/core/database/dive_rating_repair.dart';
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/database/dive_water_temp_fill.dart';
 import 'package:submersion/core/database/computer_tissue_scalar_move.dart';
 import 'package:submersion/core/database/weather_fetched_at_repair.dart';
@@ -86,6 +87,8 @@ part 'helpers/diver_migrations.dart';
 part 'helpers/document_migrations.dart';
 part 'helpers/equipment_migrations.dart';
 part 'helpers/equipment_collapsed_groups_migrations.dart';
+part 'helpers/country_flags_migrations.dart';
+part 'helpers/site_country_code_migrations.dart';
 part 'helpers/equipment_condition_migrations.dart';
 part 'helpers/equipment_location_migrations.dart';
 part 'helpers/equipment_photo_migrations.dart';

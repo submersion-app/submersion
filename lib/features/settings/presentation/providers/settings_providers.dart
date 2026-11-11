@@ -550,6 +550,9 @@ class AppSettings implements UnitFormatterSettings {
   /// Show dive site map as background on site cards in the site list
   final bool showMapBackgroundOnSiteCards;
 
+  /// A small flag beside site locations and trips (issue #4426).
+  final bool showCountryFlags;
+
   // Dive profile marker settings
   /// Show max depth marker on dive profile chart
   final bool showMaxDepthMarker;
@@ -889,6 +892,7 @@ class AppSettings implements UnitFormatterSettings {
     this.cardPhotoOverlayDark = 0.6,
     this.cardPhotoOverlayLight = 0.6,
     this.showMapBackgroundOnSiteCards = false,
+    this.showCountryFlags = true,
     // Dive profile marker defaults
     this.showMaxDepthMarker = true,
     this.showPressureThresholdMarkers = false,
@@ -1124,6 +1128,7 @@ class AppSettings implements UnitFormatterSettings {
     double? cardPhotoOverlayDark,
     double? cardPhotoOverlayLight,
     bool? showMapBackgroundOnSiteCards,
+    bool? showCountryFlags,
     bool? showMaxDepthMarker,
     bool? showPressureThresholdMarkers,
     bool? pinProfileOnScroll,
@@ -1354,6 +1359,7 @@ class AppSettings implements UnitFormatterSettings {
           cardPhotoOverlayLight ?? this.cardPhotoOverlayLight,
       showMapBackgroundOnSiteCards:
           showMapBackgroundOnSiteCards ?? this.showMapBackgroundOnSiteCards,
+      showCountryFlags: showCountryFlags ?? this.showCountryFlags,
       showMaxDepthMarker: showMaxDepthMarker ?? this.showMaxDepthMarker,
       showPressureThresholdMarkers:
           showPressureThresholdMarkers ?? this.showPressureThresholdMarkers,
@@ -3048,6 +3054,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setShowMapBackgroundOnSiteCards(bool value) =>
       _update((s) => s.copyWith(showMapBackgroundOnSiteCards: value));
 
+  /// Applies once the diver's settings have loaded, like every setter
+  /// through [_update], so a switch flipped during startup is kept.
+  Future<void> setShowCountryFlags(bool value) =>
+      _update((s) => s.copyWith(showCountryFlags: value));
+
   Future<void> setShowMaxDepthMarker(bool value) =>
       _update((s) => s.copyWith(showMaxDepthMarker: value));
 
@@ -3709,6 +3720,11 @@ final showMapBackgroundOnSiteCardsProvider = Provider<bool>((ref) {
   return ref.watch(
     settingsProvider.select((s) => s.showMapBackgroundOnSiteCards),
   );
+});
+
+/// Whether flags show beside site locations and trips (issue #4426).
+final showCountryFlagsProvider = Provider<bool>((ref) {
+  return ref.watch(settingsProvider.select((s) => s.showCountryFlags));
 });
 
 final showMaxDepthMarkerProvider = Provider<bool>((ref) {

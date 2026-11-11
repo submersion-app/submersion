@@ -1,3 +1,4 @@
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/services/sync/legacy_wire_keys.dart';
 
 /// The id the merge keys a record by: `id` for most entities, the natural
@@ -56,6 +57,12 @@ String? _compositeId(Object? left, Object? right) {
 /// moves the baseline lands with none; one that leaves the baseline alone
 /// keeps ours.
 ///
+/// Likewise a site's `countryCode` (v360) names the country its `country`
+/// text does. A pre-v360 peer that CHANGES the country sends no code, and
+/// keeping ours would put the old country's flag beside the new name, so
+/// the code is read afresh from the peer's text; one that leaves the
+/// country alone keeps ours.
+///
 /// The import applies a further rule after this overlay: for the few
 /// columns where null means "never held a value" (the diver's pSCR ratio and
 /// viewport choice, v262), an explicit null is dropped as if omitted, so a
@@ -81,6 +88,12 @@ Map<String, dynamic> overlayOntoLocal(
       remote.containsKey('anchorDate') &&
       remote['anchorDate'] != local['anchorDate']) {
     merged['anchorSetAt'] = null;
+  }
+  if (entityType == 'diveSites' &&
+      !remote.containsKey('countryCode') &&
+      remote.containsKey('country') &&
+      remote['country'] != local['country']) {
+    merged['countryCode'] = countryCodeFor(remote['country'] as String?);
   }
   return merged;
 }

@@ -171,6 +171,41 @@ void main() {
     expect(e.numberOf(r), isNull);
   });
 
+  group('country code (issue #4426)', () {
+    Future<void> seedKorea() => repo.createSite(
+      const DiveSite(
+        id: 's1',
+        name: 'Site s1',
+        country: 'Korea',
+        countryCode: 'KR',
+      ),
+    );
+
+    test('an edit elsewhere keeps the stored code', () async {
+      await seedKorea();
+      await entity().save(
+        {
+          's1': [draft('s1', SiteField.siteName, 'Site s1', 'Jeju Wall')],
+        },
+        {'s1': await row('s1')},
+      );
+
+      expect((await repo.getSiteById('s1'))!.countryCode, 'KR');
+    });
+
+    test('an edited country is read afresh', () async {
+      await seedKorea();
+      await entity().save(
+        {
+          's1': [draft('s1', SiteField.country, 'Korea', 'Spain')],
+        },
+        {'s1': await row('s1')},
+      );
+
+      expect((await repo.getSiteById('s1'))!.countryCode, 'ES');
+    });
+  });
+
   test('reload returns fresh rows by id', () async {
     await seed('s1');
     await seed('s2');

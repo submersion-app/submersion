@@ -17,6 +17,7 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -516,6 +517,90 @@ void main() {
           reason: '$label chip outline is muted',
         );
       }
+    });
+  });
+
+  group('country flag (issue #4426)', () {
+    testWidgets('a stored code shows its flag for unread text', (tester) async {
+      final korea = SiteWithDiveCount(
+        site: _richEntry.site.copyWith(country: 'Korea', countryCode: 'KR'),
+        diveCount: 1,
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          locale: const Locale('en'),
+          child: SiteListTile(entry: korea, onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'KR');
+    });
+
+    Future<void> pumpTile(
+      WidgetTester tester, {
+      EntityCardViewConfig<SiteField> config = _defaultConfig,
+      bool flags = true,
+    }) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...await _overrides(config: config),
+            showCountryFlagsProvider.overrideWithValue(flags),
+          ],
+          locale: const Locale('en'),
+          child: SiteListTile(entry: _richEntry, onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the location line carries the country flag', (tester) async {
+      await pumpTile(tester);
+      final flag = tester.widget<CountryFlag>(find.byType(CountryFlag));
+      expect(flag.code, 'EG');
+    });
+
+    testWidgets('no flag when flags are off', (tester) async {
+      await pumpTile(tester, flags: false);
+      expect(find.byType(CountryFlag), findsNothing);
+      expect(find.textContaining('Egypt'), findsOneWidget);
+    });
+
+    testWidgets('no flag when the subtitle shows something else', (
+      tester,
+    ) async {
+      await pumpTile(
+        tester,
+        config: const EntityCardViewConfig<SiteField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
+            EntityCardSlotConfig(
+              slotId: 'subtitle',
+              field: SiteField.depthRange,
+            ),
+            EntityCardSlotConfig(slotId: 'stat1', field: SiteField.diveCount),
+            EntityCardSlotConfig(slotId: 'stat2', field: SiteField.rating),
+          ],
+        ),
+      );
+      expect(find.byType(CountryFlag), findsNothing);
+    });
+
+    testWidgets('a country-only subtitle carries the flag too', (tester) async {
+      await pumpTile(
+        tester,
+        config: const EntityCardViewConfig<SiteField>(
+          slots: [
+            EntityCardSlotConfig(slotId: 'title', field: SiteField.siteName),
+            EntityCardSlotConfig(slotId: 'subtitle', field: SiteField.country),
+            EntityCardSlotConfig(slotId: 'stat1', field: SiteField.diveCount),
+            EntityCardSlotConfig(slotId: 'stat2', field: SiteField.rating),
+          ],
+        ),
+      );
+      expect(find.byType(CountryFlag), findsOneWidget);
     });
   });
 }

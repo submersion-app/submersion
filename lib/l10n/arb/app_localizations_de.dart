@@ -1796,6 +1796,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_story_today => 'Heute';
 
   @override
+  String trips_countryFlags_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(String names) {
+    return 'Länder: $names';
+  }
+
+  @override
+  String get trips_countryFlags_separator => ', ';
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return 'Tag $current von $total';
   }
@@ -26624,6 +26637,12 @@ class AppLocalizationsDe extends AppLocalizations {
       'Karte hinter Tauchplatzkarten';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Länderflaggen';
+
+  @override
+  String get settings_conflict_field_countryCode => 'Ländercode';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profil zeigt maximale Tiefe';
 
@@ -38780,6 +38799,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'Lange Tauchpausen als schmales schraffiertes Band anzeigen';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Länderflaggen';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Zeigt eine kleine Flagge neben dem Ort von Tauchplätzen und Reisen';
 
   @override
   String get settings_appearance_mapStyle => 'Kartenstil';

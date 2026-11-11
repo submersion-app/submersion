@@ -2797,6 +2797,24 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get trips_story_today;
 
+  /// After a trip's flags: how many more countries it has than are drawn.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String trips_countryFlags_more(int count);
+
+  /// Screen reader label for a trip's flags; names is the list of countries.
+  ///
+  /// In en, this message translates to:
+  /// **'Countries: {names}'**
+  String trips_countryFlags_semantics(String names);
+
+  /// Joins country names in a trip's flag tooltip and label.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get trips_countryFlags_separator;
+
   /// No description provided for @trips_story_dayOfTrip.
   ///
   /// In en, this message translates to:
@@ -42351,6 +42369,18 @@ abstract class AppLocalizations {
   /// **'Map behind site cards'**
   String get settings_conflict_field_showMapBackgroundOnSiteCards;
 
+  /// No description provided for @settings_conflict_field_showCountryFlags.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags'**
+  String get settings_conflict_field_showCountryFlags;
+
+  /// No description provided for @settings_conflict_field_countryCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Country code'**
+  String get settings_conflict_field_countryCode;
+
   /// No description provided for @settings_conflict_field_showMaxDepthMarker.
   ///
   /// In en, this message translates to:
@@ -61058,6 +61088,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show long breaks in diving as a narrow hatched band'**
   String get settings_appearance_trendGaps_subtitle;
+
+  /// No description provided for @settings_appearance_countryFlags_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Country flags'**
+  String get settings_appearance_countryFlags_title;
+
+  /// No description provided for @settings_appearance_countryFlags_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show a small flag beside site locations and trips'**
+  String get settings_appearance_countryFlags_subtitle;
 
   /// No description provided for @settings_appearance_mapStyle.
   ///

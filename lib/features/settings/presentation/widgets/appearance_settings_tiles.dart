@@ -95,6 +95,7 @@ class AppearanceGeneralTiles extends ConsumerWidget {
           locale: s.locale,
           mapStyle: s.mapStyle,
           trendGapThreshold: s.trendGapThreshold,
+          showCountryFlags: s.showCountryFlags,
         ),
       ),
     );
@@ -187,6 +188,20 @@ class AppearanceGeneralTiles extends ConsumerWidget {
             ),
           ),
           subtitle: Text(l10n.settings_appearance_trendGaps_subtitle),
+        ),
+        // Covers sites, dives and trips at once (issue #4426), so it lives
+        // here rather than on one feature's appearance page.
+        SwitchListTile(
+          secondary: const FeatureAccentIcon(
+            Icons.flag_outlined,
+            featureId: 'settings-appearance',
+            surface: AccentSurface.list,
+          ),
+          title: Text(l10n.settings_appearance_countryFlags_title),
+          subtitle: Text(l10n.settings_appearance_countryFlags_subtitle),
+          value: settings.showCountryFlags,
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).setShowCountryFlags(value),
         ),
         const NavCustomizationTile(),
       ], separator),

@@ -38,12 +38,42 @@ void main() {
     expect(r.changes.single.targetId, 'b');
     expect(r.changes.single.subject, RuleSubject.sites);
     expect(r.changes.single.field, 'country');
-    expect(r.changes.single.before, {'country': null});
-    expect(r.changes.single.after, {'country': 'Egypt'});
+    // The country's code (issue #4426) is written and recorded with it, so
+    // the flag follows the new country and an undo restores both.
+    expect(r.changes.single.before, {'country': null, 'country_code': null});
+    expect(r.changes.single.after, {'country': 'Egypt', 'country_code': 'EG'});
     final row = await db
-        .customSelect("SELECT country FROM dive_sites WHERE id = 'b'")
+        .customSelect(
+          "SELECT country, country_code FROM dive_sites WHERE id = 'b'",
+        )
         .getSingle();
     expect(row.read<String>('country'), 'Egypt');
+    expect(row.read<String>('country_code'), 'EG');
+  });
+
+  test('set country replaces a stale code (issue #4426)', () async {
+    await db.customStatement(
+      "UPDATE dive_sites SET country = 'France', country_code = 'FR' "
+      "WHERE id = 'b'",
+    );
+    const a = SetSiteFieldAction(SiteRuleField.country, 'Atlantis');
+    final r = await applier.apply(
+      ruleOf(RuleSubject.sites, a, name: 'Lost'),
+      a,
+      ['b'],
+    );
+    expect(r.changes.single.before, {
+      'country': 'France',
+      'country_code': 'FR',
+    });
+    expect(r.changes.single.after, {
+      'country': 'Atlantis',
+      'country_code': null,
+    });
+    final row = await db
+        .customSelect("SELECT country_code FROM dive_sites WHERE id = 'b'")
+        .getSingle();
+    expect(row.read<String?>('country_code'), isNull);
   });
 
   test('add a site tag', () async {

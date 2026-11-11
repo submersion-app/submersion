@@ -1775,6 +1775,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_story_today => 'היום';
 
   @override
+  String trips_countryFlags_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(String names) {
+    return 'מדינות: $names';
+  }
+
+  @override
+  String get trips_countryFlags_separator => ', ';
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return 'יום $current מתוך $total';
   }
@@ -26010,6 +26023,12 @@ class AppLocalizationsHe extends AppLocalizations {
       'מפה מאחורי כרטיסי האתרים';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'דגלי מדינות';
+
+  @override
+  String get settings_conflict_field_countryCode => 'קוד מדינה';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'הפרופיל מציג עומק מרבי';
 
@@ -37915,6 +37934,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'הצגת הפסקות ארוכות בצלילה כרצועה מקווקוות צרה';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'דגלי מדינות';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'הצגת דגל קטן ליד מיקום האתרים והטיולים';
 
   @override
   String get settings_appearance_mapStyle => 'סגנון מפה';

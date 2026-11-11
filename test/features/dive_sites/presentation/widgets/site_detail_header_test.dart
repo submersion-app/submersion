@@ -6,7 +6,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
@@ -23,11 +25,13 @@ void main() {
     DiveSite site, {
     List<SiteTypeEntity> types = const [],
     double? width,
+    bool flags = true,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           siteTypesForSiteProvider(site.id).overrideWith((_) async => types),
+          showCountryFlagsProvider.overrideWithValue(flags),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -114,6 +118,45 @@ void main() {
     await pumpHeader(tester, bare);
 
     expect(find.byIcon(Icons.location_on_outlined), findsNothing);
+  });
+
+  group('country flag (issue #4426)', () {
+    testWidgets('a stored code shows its flag for unread text', (tester) async {
+      await pumpHeader(
+        tester,
+        bare.copyWith(region: 'Jeju', country: 'Korea', countryCode: 'KR'),
+      );
+
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'KR');
+    });
+
+    final egypt = bare.copyWith(
+      city: 'Dahab',
+      region: 'South Sinai',
+      country: 'Egypt',
+    );
+
+    testWidgets('the flag takes the place of the pin', (tester) async {
+      await pumpHeader(tester, egypt);
+
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'EG');
+      expect(find.byIcon(Icons.location_on_outlined), findsNothing);
+      expect(find.text('Dahab · South Sinai, Egypt'), findsOneWidget);
+    });
+
+    testWidgets('the pin comes back when flags are off', (tester) async {
+      await pumpHeader(tester, egypt, flags: false);
+
+      expect(find.byType(CountryFlag), findsNothing);
+      expect(find.byIcon(Icons.location_on_outlined), findsOneWidget);
+    });
+
+    testWidgets('the pin stays for a country it cannot name', (tester) async {
+      await pumpHeader(tester, egypt.copyWith(country: 'Atlantis'));
+
+      expect(find.byType(CountryFlag), findsNothing);
+      expect(find.byIcon(Icons.location_on_outlined), findsOneWidget);
+    });
   });
 
   testWidgets('chips name the site types, difficulty and water type', (

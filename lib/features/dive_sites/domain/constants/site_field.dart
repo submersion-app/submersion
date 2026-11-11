@@ -29,6 +29,11 @@ String _formatDurationSeconds(num seconds) {
   return '${minutes}min';
 }
 
+/// Whether a card slot showing [field] names the site's place, so a country
+/// flag belongs beside it (issue #4426).
+bool showsPlace(SiteField field) =>
+    field == SiteField.location || field == SiteField.country;
+
 /// Categories grouping related site fields together.
 enum SiteFieldCategory {
   core,

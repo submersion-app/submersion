@@ -717,6 +717,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_showMapBackgroundOnSiteCards,
     FieldKind.boolean,
   ),
+  'showCountryFlags': ConflictField(
+    (l) => l.settings_conflict_field_showCountryFlags,
+    FieldKind.boolean,
+  ),
   'showMaxDepthMarker': ConflictField(
     (l) => l.settings_conflict_field_showMaxDepthMarker,
     FieldKind.boolean,

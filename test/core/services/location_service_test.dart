@@ -118,6 +118,21 @@ void main() {
   });
 
   group('reverseGeocode web fallback', () {
+    test('carries the country code, upper-cased (issue #4426)', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(<String, dynamic>{
+          'address': <String, dynamic>{'country': '대한민국', 'country_code': 'kr'},
+        }),
+      );
+
+      final result = await server.run(
+        () => service.reverseGeocode(33.22, 126.56, languageCode: 'ko'),
+      );
+
+      expect(result.country, '대한민국');
+      expect(result.countryCode, 'KR');
+    });
+
     test(
       'parses country, region and locality from a Nominatim response',
       () async {
@@ -379,6 +394,26 @@ void main() {
   });
 
   group('forwardGeocode', () {
+    test('carries the country code (issue #4426)', () async {
+      final server = FakeNominatim(
+        body: jsonEncode(<dynamic>[
+          <String, dynamic>{
+            'lat': '33.22',
+            'lon': '126.56',
+            'address': <String, dynamic>{
+              'country': 'South Korea',
+              'country_code': 'kr',
+            },
+          },
+        ]),
+      );
+
+      final result = await server.run(() => service.forwardGeocode('Jeju'));
+
+      expect(result!.countryCode, 'KR');
+      expect(result.place.countryCode, 'KR');
+    });
+
     test('returns the parsed coordinates and address details', () async {
       final server = FakeNominatim(
         body: jsonEncode(<dynamic>[
@@ -553,6 +588,23 @@ void main() {
 
     tearDown(() {
       debugDefaultTargetPlatformOverride = null;
+    });
+
+    test('carries the placemark country code (issue #4426)', () async {
+      final geocoding = _FakeGeocoding(
+        placemarks: const [
+          Placemark(country: 'South Korea', isoCountryCode: 'kr'),
+        ],
+      );
+      GeocodingPlatformFactory.instance = _FakeGeocodingFactory(geocoding);
+
+      final result = await service.reverseGeocode(
+        33.22,
+        126.56,
+        languageCode: 'en',
+      );
+
+      expect(result.countryCode, 'KR');
     });
 
     test('asks the geocoder for the requested language', () async {

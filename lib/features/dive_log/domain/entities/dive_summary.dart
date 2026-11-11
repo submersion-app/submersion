@@ -50,6 +50,9 @@ class DiveSummary extends Equatable {
   // Site fields (from LEFT JOIN, avoids loading full DiveSite object)
   final String? siteName;
   final String? siteCountry;
+
+  /// The site's stored ISO country code (issue #4426).
+  final String? siteCountryCode;
   final String? siteRegion;
   final double? siteLatitude;
   final double? siteLongitude;
@@ -90,6 +93,7 @@ class DiveSummary extends Equatable {
     this.tags = const [],
     this.siteName,
     this.siteCountry,
+    this.siteCountryCode,
     this.siteRegion,
     this.siteLatitude,
     this.siteLongitude,
@@ -130,6 +134,7 @@ class DiveSummary extends Equatable {
       tags: dive.tags,
       siteName: dive.site?.name,
       siteCountry: dive.site?.country,
+      siteCountryCode: dive.site?.countryCode,
       siteRegion: dive.site?.region,
       siteLatitude: dive.site?.location?.latitude,
       siteLongitude: dive.site?.location?.longitude,
@@ -190,6 +195,7 @@ class DiveSummary extends Equatable {
     List<Tag>? tags,
     String? siteName,
     String? siteCountry,
+    String? siteCountryCode,
     String? siteRegion,
     double? siteLatitude,
     double? siteLongitude,
@@ -222,6 +228,7 @@ class DiveSummary extends Equatable {
       tags: tags ?? this.tags,
       siteName: siteName ?? this.siteName,
       siteCountry: siteCountry ?? this.siteCountry,
+      siteCountryCode: siteCountryCode ?? this.siteCountryCode,
       siteRegion: siteRegion ?? this.siteRegion,
       siteLatitude: siteLatitude ?? this.siteLatitude,
       siteLongitude: siteLongitude ?? this.siteLongitude,
@@ -257,6 +264,7 @@ class DiveSummary extends Equatable {
     tags,
     siteName,
     siteCountry,
+    siteCountryCode,
     siteRegion,
     siteLatitude,
     siteLongitude,

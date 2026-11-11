@@ -54,6 +54,7 @@ import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_list_rows.dart';
 import 'package:submersion/features/trips/presentation/widgets/side_trip_indent.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
@@ -1166,7 +1167,28 @@ class TripListTile extends ConsumerWidget {
           ),
           title: Row(
             children: [
-              Expanded(child: Text(trip.name)),
+              Expanded(
+                // The flags ride inline after the name's last word, so a name
+                // that wraps keeps them on its last line (issue #4426). With
+                // no flags to show the title stays plain text.
+                child: tripHasFlags(ref, trip.id)
+                    ? Text.rich(
+                        TextSpan(
+                          text: trip.name,
+                          children: [
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: TripCountryFlags(
+                                tripId: trip.id,
+                                maxFlags: 3,
+                                gap: 6,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Text(trip.name),
+              ),
               if (showSharedBadge) ...[
                 const SizedBox(width: 6),
                 Tooltip(

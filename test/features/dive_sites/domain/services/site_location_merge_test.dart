@@ -58,6 +58,7 @@ void main() {
     final merged = mergeLocationDetails(
       current: const SiteLocationDetails(
         country: 'a',
+        countryCode: 'CH',
         region: 'b',
         city: 'c',
         bodyOfWater: 'd',
@@ -119,7 +120,10 @@ void main() {
 
     test('ignores surrounding whitespace when comparing', () {
       final merged = mergeLocationDetails(
-        current: const SiteLocationDetails(country: ' Switzerland '),
+        current: const SiteLocationDetails(
+          country: ' Switzerland ',
+          countryCode: 'CH',
+        ),
         found: const PlaceLookup(country: 'Switzerland'),
         overwrite: true,
       );
@@ -147,6 +151,7 @@ void main() {
       final merged = mergeLocationDetails(
         current: const SiteLocationDetails(
           country: 'Switzerland',
+          countryCode: 'CH',
           region: 'Lucerne',
           city: 'Weggis',
           bodyOfWater: 'Lake Lucerne',
@@ -155,6 +160,107 @@ void main() {
         overwrite: true,
       );
       expect(merged, isNull);
+    });
+  });
+
+  group('country code (issue #4426)', () {
+    const foundWithCode = PlaceLookup(
+      country: 'Republic of Korea',
+      countryCode: 'KR',
+      region: 'Jeju',
+    );
+
+    test('a written country brings the geocoder code with it', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(),
+        found: foundWithCode,
+        overwrite: false,
+      );
+      expect(merged!.country, 'Republic of Korea');
+      expect(merged.countryCode, 'KR');
+    });
+
+    test('without a geocoder code the written country is read', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(),
+        found: found,
+        overwrite: false,
+      );
+      expect(merged!.countryCode, 'CH');
+    });
+
+    test('a kept country naming nothing still gains the code', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(country: 'Korea', region: 'Jeju'),
+        found: foundWithCode,
+        overwrite: false,
+      );
+      expect(merged!.country, isNull); // the diver's text stays
+      expect(merged.countryCode, 'KR');
+    });
+
+    test('a code is never written beside a blank country', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(region: 'Jeju'),
+        found: const PlaceLookup(countryCode: 'KR'),
+        overwrite: false,
+      );
+      expect(merged, isNull);
+    });
+
+    test('a kept country naming another country keeps its own reading', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(country: 'Japan', region: 'Jeju'),
+        found: foundWithCode,
+        overwrite: false,
+      );
+      expect(merged, isNull);
+    });
+
+    test('a stored code is not replaced while the country is kept', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(
+          country: 'Korea',
+          countryCode: 'KR',
+          region: 'Jeju',
+        ),
+        found: foundWithCode,
+        overwrite: false,
+      );
+      expect(merged, isNull);
+    });
+
+    test('a replaced country with no code clears the stored one', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(
+          country: 'France',
+          countryCode: 'FR',
+        ),
+        found: const PlaceLookup(country: 'Atlantis'),
+        overwrite: true,
+      );
+      expect(merged!.country, 'Atlantis');
+      expect(merged.countryCode, isNull);
+      expect(merged.clearCountryCode, isTrue);
+    });
+
+    test('a replaced country with the same code reports no code change', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(
+          country: 'Mexique',
+          countryCode: 'MX',
+        ),
+        found: const PlaceLookup(country: 'Mexico', countryCode: 'MX'),
+        overwrite: true,
+      );
+      expect(merged!.country, 'Mexico');
+      expect(merged.countryCode, isNull);
+      expect(merged.clearCountryCode, isFalse);
+    });
+
+    test('ofSite reads the stored code', () {
+      const site = DiveSite(id: 's', name: 'n', countryCode: 'KR');
+      expect(SiteLocationDetails.ofSite(site).countryCode, 'KR');
     });
   });
 }

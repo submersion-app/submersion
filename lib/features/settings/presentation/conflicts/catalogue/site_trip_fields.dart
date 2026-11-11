@@ -88,6 +88,11 @@ final Map<String, ConflictField> siteTripFields = {
     (l) => l.settings_conflict_field_completedAt,
     FieldKind.dateTime,
   ),
+  // A site's ISO country code (issue #4426).
+  'countryCode': ConflictField(
+    (l) => l.settings_conflict_field_countryCode,
+    FieldKind.shortText,
+  ),
   'cost': ConflictField(
     (l) => l.settings_conflict_field_cost,
     FieldKind.number,

@@ -111,6 +111,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
 import 'package:submersion/features/certification_agencies/data/services/certification_import_resolver.dart';
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 
 /// Bundles all repositories needed for UDDF import.
 class ImportRepositories {
@@ -2030,6 +2031,12 @@ class UddfEntityImporter {
 
       String? country = siteData['country'] as String?;
       String? region = siteData['region'] as String?;
+      // The code that came with the country (issue #4426): the site's own,
+      // or the geocoder's when it fills the country in.
+      KnownCountryCode knownCode = (
+        country: existing.country,
+        code: existing.countryCode,
+      );
 
       // Auto-lookup country/region if coordinates exist but fields are empty.
       if (lat != null && lon != null && (country == null || region == null)) {
@@ -2039,6 +2046,12 @@ class UddfEntityImporter {
             lon,
             languageCode: _placeNameLanguage,
           );
+          if (country == null && geocodeResult.country != null) {
+            knownCode = (
+              country: geocodeResult.country,
+              code: geocodeResult.countryCode,
+            );
+          }
           country ??= geocodeResult.country;
           region ??= geocodeResult.region;
         } catch (_) {
@@ -2050,6 +2063,12 @@ class UddfEntityImporter {
       final difficulty = difficultyStr != null
           ? SiteDifficulty.fromString(difficultyStr)
           : null;
+
+      // A replaced country re-reads its code, so the flag never stays on
+      // the country it replaced; a kept one keeps the site's code.
+      final countryCode = country == null
+          ? existing.countryCode
+          : countryCodeOnSave(country: country, known: knownCode);
 
       // Every argument is nullable and copyWith treats null as "keep the
       // existing value", so absent payload fields are preserved.
@@ -2063,6 +2082,8 @@ class UddfEntityImporter {
         city: siteData['city'] as String?,
         island: siteData['island'] as String?,
         country: country,
+        countryCode: countryCode,
+        clearCountryCode: countryCode == null,
         region: region,
         rating: siteData['rating'] as double?,
         notes: siteData['notes'] as String?,
@@ -2120,6 +2141,9 @@ class UddfEntityImporter {
 
       String? country = siteData['country'] as String?;
       String? region = siteData['region'] as String?;
+      // The geocoder's code when it fills the country in (issue #4426), so a
+      // name the table cannot read ("Korea") still gets its flag.
+      KnownCountryCode knownCode = (country: null, code: null);
 
       // Auto-lookup country/region if coordinates exist but fields are empty
       if (lat != null && lon != null && (country == null || region == null)) {
@@ -2129,6 +2153,12 @@ class UddfEntityImporter {
             lon,
             languageCode: _placeNameLanguage,
           );
+          if (country == null && geocodeResult.country != null) {
+            knownCode = (
+              country: geocodeResult.country,
+              code: geocodeResult.countryCode,
+            );
+          }
           country ??= geocodeResult.country;
           region ??= geocodeResult.region;
         } catch (_) {
@@ -2154,6 +2184,7 @@ class UddfEntityImporter {
         city: siteData['city'] as String?,
         island: siteData['island'] as String?,
         country: country,
+        countryCode: countryCodeOnSave(country: country, known: knownCode),
         region: region,
         rating: siteData['rating'] as double?,
         notes: siteData['notes'] as String? ?? '',

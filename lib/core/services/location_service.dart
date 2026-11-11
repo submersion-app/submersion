@@ -62,6 +62,9 @@ class LocationResult {
   final double longitude;
   final double? accuracy;
   final String? country;
+
+  /// The geocoder's ISO 3166-1 alpha-2 code for [country] (issue #4426).
+  final String? countryCode;
   final String? region;
   final String? locality;
   final String? bodyOfWater;
@@ -75,6 +78,7 @@ class LocationResult {
     required this.longitude,
     this.accuracy,
     this.country,
+    this.countryCode,
     this.region,
     this.locality,
     this.bodyOfWater,
@@ -84,6 +88,7 @@ class LocationResult {
   /// The geocoded part of this result, in the shape the site form consumes.
   PlaceLookup get place => PlaceLookup(
     country: country,
+    countryCode: countryCode,
     region: region,
     locality: locality,
     bodyOfWater: bodyOfWater,
@@ -94,6 +99,16 @@ class LocationResult {
   String toString() =>
       'LocationResult(lat: $latitude, lng: $longitude, country: $country, region: $region)';
 }
+
+/// A geocoder's country code as the app stores it: upper-cased, and only
+/// when it is two letters (issue #4426). Geocoders give "kr" or "KR"; a
+/// blank or odd value is dropped rather than stored.
+String? _isoCountryCodeOf(String? raw) {
+  final code = raw?.trim().toUpperCase();
+  return code != null && _alpha2.hasMatch(code) ? code : null;
+}
+
+final RegExp _alpha2 = RegExp(r'^[A-Z]{2}$');
 
 /// Service for handling device GPS location and geocoding
 class LocationService {
@@ -308,6 +323,7 @@ class LocationService {
         longitude: position.longitude,
         accuracy: position.accuracy,
         country: place.country,
+        countryCode: place.countryCode,
         region: place.region,
         locality: place.locality,
         bodyOfWater: place.bodyOfWater,
@@ -356,6 +372,7 @@ class LocationService {
             return await _withBodyOfWater(
               PlaceLookup(
                 country: place.country,
+                countryCode: _isoCountryCodeOf(place.isoCountryCode),
                 region: normalizeGeocodedRegion(
                   place.administrativeArea,
                   country: place.country,
@@ -423,7 +440,12 @@ class LocationService {
           address['village'] as String?;
 
       _log.info('Web geocoded: $locality, $region, $country');
-      return PlaceLookup(country: country, region: region, locality: locality);
+      return PlaceLookup(
+        country: country,
+        countryCode: _isoCountryCodeOf(address['country_code'] as String?),
+        region: region,
+        locality: locality,
+      );
     } on SocketException catch (e) {
       _log.warning('Web reverse geocoding unreachable: $e');
       return const PlaceLookup.unavailable();
@@ -574,6 +596,9 @@ class LocationService {
                 latitude: lat,
                 longitude: lon,
                 country: country,
+                countryCode: _isoCountryCodeOf(
+                  addressDetails['country_code'] as String?,
+                ),
                 region: region,
                 locality: locality,
               );

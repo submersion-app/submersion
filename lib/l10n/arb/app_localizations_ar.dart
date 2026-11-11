@@ -1841,6 +1841,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_story_today => 'اليوم';
 
   @override
+  String trips_countryFlags_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(String names) {
+    return 'الدول: $names';
+  }
+
+  @override
+  String get trips_countryFlags_separator => '، ';
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return 'اليوم $current من $total';
   }
@@ -26971,6 +26984,12 @@ class AppLocalizationsAr extends AppLocalizations {
       'خريطة خلف بطاقات المواقع';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'أعلام الدول';
+
+  @override
+  String get settings_conflict_field_countryCode => 'رمز الدولة';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'الملف يعرض أقصى عمق';
 
@@ -39375,6 +39394,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'عرض فترات الانقطاع الطويلة عن الغوص كشريط مخطط ضيق';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'أعلام الدول';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'عرض علم صغير بجانب مواقع الغوص والرحلات';
 
   @override
   String get settings_appearance_mapStyle => 'نمط الخريطة';

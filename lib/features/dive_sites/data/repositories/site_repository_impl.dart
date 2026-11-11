@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_classificati
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
 import 'package:submersion/features/divers/data/repositories/profile_hides_repository.dart';
@@ -177,6 +178,7 @@ class SiteRepository {
                 difficulty: Value(site.difficulty?.name),
                 waterType: Value(site.waterType?.name),
                 country: Value(site.country),
+                countryCode: Value(reconciledCountryCode(site)),
                 region: Value(site.region),
                 city: Value(site.city),
                 island: Value(site.island),
@@ -299,6 +301,7 @@ class SiteRepository {
         difficulty: Value(site.difficulty?.name),
         waterType: Value(site.waterType?.name),
         country: Value(site.country),
+        countryCode: Value(reconciledCountryCode(site, before: before)),
         region: Value(site.region),
         city: Value(site.city),
         island: Value(site.island),
@@ -435,7 +438,8 @@ class SiteRepository {
     ),
   );
 
-  /// Writes country, region, city and body of water on [siteId] from
+  /// Writes country (with its ISO code), region, city and body of water on
+  /// [siteId] from
   /// [found], leaving every other column untouched (issue #1187). With
   /// [overwrite] false only columns that are still empty are written; with
   /// it true a differing stored value is replaced too, which is how sites
@@ -476,6 +480,9 @@ class SiteRepository {
         )..where((t) => t.id.equals(siteId))).write(
           DiveSitesCompanion(
             country: column(merged.country),
+            countryCode: merged.clearCountryCode
+                ? const Value(null)
+                : column(merged.countryCode),
             region: column(merged.region),
             city: column(merged.city),
             bodyOfWater: column(merged.bodyOfWater),
@@ -1215,6 +1222,7 @@ class SiteRepository {
                   difficulty: Value(site.difficulty?.name),
                   waterType: Value(site.waterType?.name),
                   country: Value(site.country),
+                  countryCode: Value(site.countryCode),
                   region: Value(site.region),
                   city: Value(site.city),
                   island: Value(site.island),
@@ -1619,6 +1627,7 @@ class SiteRepository {
         difficulty: Value(site.difficulty?.name),
         waterType: Value(site.waterType?.name),
         country: Value(site.country),
+        countryCode: Value(site.countryCode),
         region: Value(site.region),
         city: Value(site.city),
         island: Value(site.island),

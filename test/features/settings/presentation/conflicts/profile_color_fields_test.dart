@@ -16,6 +16,13 @@ void main() {
     }
   });
 
+  test('the country flags switch is a labelled boolean field', () {
+    final field = diverSettingsFields['showCountryFlags'];
+    expect(field, isNotNull);
+    expect(field!.kind, FieldKind.boolean);
+    expect(field.label(l10n), 'Country flags');
+  });
+
   test('labels the field with the metric name', () {
     expect(
       diverSettingsFields['profileColorPpO2']!.label(l10n),

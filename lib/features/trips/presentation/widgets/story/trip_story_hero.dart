@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Story header: trip identity plus mode-specific extras (countdown and
@@ -33,6 +34,12 @@ class TripStoryHero extends ConsumerWidget {
     final trip = story.trip;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
+    final name = Text(
+      trip.name,
+      style: theme.textTheme.headlineSmall?.copyWith(
+        fontWeight: FontWeight.bold,
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -45,12 +52,22 @@ class TripStoryHero extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                trip.name,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // Every country the trip's dives were in (issue #4426) follows
+              // the name, or takes the next line when it does not fit, so a
+              // long list never squeezes the name. With no flags the name
+              // stands alone: an empty flag slot would still take the Wrap's
+              // spacing and, after a full-width name, an empty second run.
+              child: tripHasFlags(ref, trip.id)
+                  ? Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        name,
+                        TripCountryFlags(tripId: trip.id, flagHeight: 14),
+                      ],
+                    )
+                  : name,
             ),
           ],
         ),

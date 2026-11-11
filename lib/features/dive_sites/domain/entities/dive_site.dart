@@ -43,6 +43,10 @@ class DiveSite extends Equatable {
   final SiteDifficulty? difficulty; // Site difficulty level
   final WaterType? waterType; // Salt / fresh / brackish
   final String? country;
+
+  /// The country's ISO 3166-1 alpha-2 code (issue #4426): the geocoder's,
+  /// or read from [country]. Null when neither named one.
+  final String? countryCode;
   final String? region;
   final String? city;
   final String? island;
@@ -80,6 +84,7 @@ class DiveSite extends Equatable {
     this.difficulty,
     this.waterType,
     this.country,
+    this.countryCode,
     this.region,
     this.city,
     this.island,
@@ -161,6 +166,7 @@ class DiveSite extends Equatable {
     SiteDifficulty? difficulty,
     WaterType? waterType,
     String? country,
+    String? countryCode,
     String? region,
     String? city,
     String? island,
@@ -185,6 +191,7 @@ class DiveSite extends Equatable {
     bool clearDifficulty = false,
     bool clearWaterType = false,
     bool clearCountry = false,
+    bool clearCountryCode = false,
     bool clearRegion = false,
     bool clearCity = false,
     bool clearIsland = false,
@@ -205,6 +212,10 @@ class DiveSite extends Equatable {
       difficulty: clearDifficulty ? null : difficulty ?? this.difficulty,
       waterType: clearWaterType ? null : waterType ?? this.waterType,
       country: clearCountry ? null : country ?? this.country,
+      // A code names its country: clearing the country clears it too.
+      countryCode: clearCountry || clearCountryCode
+          ? null
+          : countryCode ?? this.countryCode,
       region: clearRegion ? null : region ?? this.region,
       city: clearCity ? null : city ?? this.city,
       island: clearIsland ? null : island ?? this.island,
@@ -240,6 +251,7 @@ class DiveSite extends Equatable {
     difficulty,
     waterType,
     country,
+    countryCode,
     region,
     city,
     island,

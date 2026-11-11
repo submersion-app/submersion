@@ -19,7 +19,10 @@ import 'package:submersion/features/query/presentation/providers/narrow_by_ids.d
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_country_queries.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/query/trip_filter_query.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
 import 'package:submersion/shared/models/entity_table_config.dart';
@@ -116,6 +119,31 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
   invalidateOnTripListChanges(ref);
   return repository.getAllTripsWithStats(diverId: validatedDiverId);
 });
+
+/// Every trip's countries, for the flags beside trips (issue #4426): one
+/// read for the whole list, scoped like the trips' dive counts.
+final tripCountryQueriesProvider = Provider<TripCountryQueries>(
+  (ref) => TripCountryQueries(),
+);
+
+/// Auto-disposed: with no trip screen showing flags it stops, so dive and
+/// site writes elsewhere do not keep re-running its query.
+final tripCountriesProvider =
+    FutureProvider.autoDispose<Map<String, List<TripCountry>>>((ref) async {
+      final queries = ref.watch(tripCountryQueriesProvider);
+      final validatedDiverId = await ref.watch(
+        validatedCurrentDiverIdProvider.future,
+      );
+      // Covers trips and every dives write (a dive moved to another site
+      // included).
+      invalidateOnTripListChanges(ref);
+      // A site's country edited changes the flags without touching the trips
+      // or dives tables.
+      ref.invalidateSelfWhen(
+        ref.read(siteRepositoryProvider).watchSitesChanges(),
+      );
+      return queries.getTripCountries(diverId: validatedDiverId);
+    });
 
 /// Rebuilds [ref]'s provider whenever [allTripsWithStatsProvider] would
 /// refresh, for a read of some of the same entries (Global Search's rows,

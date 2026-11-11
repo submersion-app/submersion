@@ -1797,6 +1797,19 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_story_today => 'Ma';
 
   @override
+  String trips_countryFlags_more(int count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(String names) {
+    return 'Országok: $names';
+  }
+
+  @override
+  String get trips_countryFlags_separator => ', ';
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return '$current. nap a(z) $total napból';
   }
@@ -26557,6 +26570,12 @@ class AppLocalizationsHu extends AppLocalizations {
       'Térkép a merülőhely-kártyák mögött';
 
   @override
+  String get settings_conflict_field_showCountryFlags => 'Országzászlók';
+
+  @override
+  String get settings_conflict_field_countryCode => 'Országkód';
+
+  @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'A profil mutatja a legnagyobb mélységet';
 
@@ -38659,6 +38678,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_trendGaps_subtitle =>
       'A hosszú merülési szüneteket keskeny, sraffozott sávként mutatja';
+
+  @override
+  String get settings_appearance_countryFlags_title => 'Országzászlók';
+
+  @override
+  String get settings_appearance_countryFlags_subtitle =>
+      'Kis zászló a merülőhelyek helye és az utak mellett';
 
   @override
   String get settings_appearance_mapStyle => 'Térképstílus';

@@ -65,6 +65,7 @@ import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/appearance_settings_tiles.dart';
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
@@ -707,6 +708,9 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setShowMapBackgroundOnSiteCards(bool value) async =>
       state = state.copyWith(showMapBackgroundOnSiteCards: value);
+  @override
+  Future<void> setShowCountryFlags(bool value) async =>
+      state = state.copyWith(showCountryFlags: value);
   @override
   Future<void> setTissueColorScheme(TissueColorScheme scheme) async =>
       state = state.copyWith(tissueColorScheme: scheme);
@@ -1919,8 +1923,15 @@ void main() {
       expect(find.text('Colored section headers'), findsOneWidget);
       expect(find.text('Colored list icons'), findsOneWidget);
 
+      // Only the accent group's switches: General also holds the country
+      // flags switch (issue #4426).
       final switches = tester
-          .widgetList<SwitchListTile>(find.byType(SwitchListTile))
+          .widgetList<SwitchListTile>(
+            find.descendant(
+              of: find.byType(AppearanceAccentTiles),
+              matching: find.byType(SwitchListTile),
+            ),
+          )
           .toList();
       expect(switches, hasLength(3));
       expect(switches.every((s) => s.value == false), isTrue);

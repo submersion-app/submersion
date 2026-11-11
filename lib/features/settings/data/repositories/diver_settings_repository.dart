@@ -375,6 +375,7 @@ class DiverSettingsRepository {
                 showMapBackgroundOnSiteCards: Value(
                   s.showMapBackgroundOnSiteCards,
                 ),
+                showCountryFlags: Value(s.showCountryFlags),
                 showMaxDepthMarker: Value(s.showMaxDepthMarker),
                 pinProfileOnScroll: Value(s.pinProfileOnScroll),
                 showPressureThresholdMarkers: Value(
@@ -772,6 +773,7 @@ class DiverSettingsRepository {
       showMapBackgroundOnSiteCards: Value(
         settings.showMapBackgroundOnSiteCards,
       ),
+      showCountryFlags: Value(settings.showCountryFlags),
       showMaxDepthMarker: Value(settings.showMaxDepthMarker),
       pinProfileOnScroll: Value(settings.pinProfileOnScroll),
       showPressureThresholdMarkers: Value(
@@ -1053,6 +1055,7 @@ class DiverSettingsRepository {
       cardPhotoOverlayDark: row.cardPhotoOverlayDark,
       cardPhotoOverlayLight: row.cardPhotoOverlayLight,
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
+      showCountryFlags: row.showCountryFlags,
       showMaxDepthMarker: row.showMaxDepthMarker,
       pinProfileOnScroll: row.pinProfileOnScroll,
       showPressureThresholdMarkers: row.showPressureThresholdMarkers,
