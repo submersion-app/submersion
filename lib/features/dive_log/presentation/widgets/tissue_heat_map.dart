@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/highlight_outline.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -264,8 +265,6 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
   Widget build(BuildContext context) {
     if (widget.decoStatuses.isEmpty) return const SizedBox.shrink();
 
-    final colorScheme = Theme.of(context).colorScheme;
-
     return CompositedTransformTarget(
       link: _layerLink,
       child: MouseRegion(
@@ -292,10 +291,8 @@ class _TissueHeatMapStripState extends State<TissueHeatMapStrip> {
                 painter: _TissueHeatMapPainter(
                   decoStatuses: widget.decoStatuses,
                   selectedIndex: widget.selectedIndex,
-                  cursorColor: colorScheme.onSurface,
                   colorFn: widget.colorFn,
                   hoveredCompartmentIndex: widget.hoveredCompartmentIndex,
-                  outlineColor: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -395,7 +392,6 @@ class TissueHeatMapLegend extends StatelessWidget {
 class _TissueHeatMapPainter extends CustomPainter {
   final List<DecoStatus> decoStatuses;
   final int? selectedIndex;
-  final Color cursorColor;
 
   /// Color function mapping tissue loading percentage to a color.
   final TissueColorFn colorFn;
@@ -403,16 +399,11 @@ class _TissueHeatMapPainter extends CustomPainter {
   /// Index of the compartment row to outline (0-based), or null for none.
   final int? hoveredCompartmentIndex;
 
-  /// Color used for the compartment outline.
-  final Color outlineColor;
-
   _TissueHeatMapPainter({
     required this.decoStatuses,
     required this.selectedIndex,
-    required this.cursorColor,
     required this.colorFn,
     this.hoveredCompartmentIndex,
-    this.outlineColor = Colors.white,
   });
 
   @override
@@ -458,20 +449,19 @@ class _TissueHeatMapPainter extends CustomPainter {
       col += step;
     }
 
+    // The cursor and the row outline are two-toned (a dark core inside a
+    // light halo) because the cells under them can be any colour, from pure
+    // black to white, in either theme (issue #4431).
+
     // Draw cursor line at selected index
     if (selectedIndex != null &&
         selectedIndex! >= 0 &&
         selectedIndex! < numTimePoints) {
       final cursorX = (selectedIndex! + 0.5) / numTimePoints * size.width;
-      final cursorPaint = Paint()
-        ..color = cursorColor.withValues(alpha: 0.7)
-        ..strokeWidth = 1.5
-        ..style = PaintingStyle.stroke;
-
-      canvas.drawLine(
+      HighlightOutline.paintLine(
+        canvas,
         Offset(cursorX, 0),
         Offset(cursorX, size.height),
-        cursorPaint,
       );
     }
 
@@ -479,17 +469,32 @@ class _TissueHeatMapPainter extends CustomPainter {
     if (hoveredCompartmentIndex != null &&
         hoveredCompartmentIndex! >= 0 &&
         hoveredCompartmentIndex! < numCompartments) {
-      final y = hoveredCompartmentIndex! * cellHeight;
-      final outlinePaint = Paint()
-        ..color = outlineColor.withValues(alpha: 0.8)
-        ..strokeWidth = 1.5
-        ..style = PaintingStyle.stroke;
-
-      canvas.drawRect(
-        Rect.fromLTWH(0, y, size.width, cellHeight),
-        outlinePaint,
+      HighlightOutline.paintRRect(
+        canvas,
+        RRect.fromRectAndRadius(
+          _rowOutlineRect(hoveredCompartmentIndex!, cellHeight, size),
+          Radius.zero,
+        ),
       );
     }
+  }
+
+  /// Where the row outline's band is centred for compartment [row].
+  ///
+  /// A row is only a few pixels tall, so the band sits just outside it,
+  /// over the neighbouring rows, and leaves the highlighted row itself in
+  /// full view. Its ends are kept inside the strip, where a band outside the
+  /// row would be clipped away; its top and bottom edges on the first and
+  /// last rows fall on the strip's own edge.
+  static Rect _rowOutlineRect(int row, double cellHeight, Size size) {
+    const half = HighlightOutline.haloWidth / 2;
+    final top = row * cellHeight;
+    return Rect.fromLTRB(
+      half,
+      top - half,
+      math.max(half, size.width - half),
+      top + cellHeight + half,
+    );
   }
 
   // colorFn equality works because colorFnForScheme always returns

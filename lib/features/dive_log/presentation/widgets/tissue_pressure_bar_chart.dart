@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/highlight_outline.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/loading_severity_color.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_tooltip_text.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -135,10 +136,6 @@ class _TissuePressureBarChartState extends State<TissuePressureBarChart> {
       fontSize: 11,
       color: colorScheme.onSurfaceVariant,
     );
-    final isDark = colorScheme.brightness == Brightness.dark;
-    final outlineColor = colorScheme.onSurface.withValues(
-      alpha: isDark ? 1.0 : 0.8,
-    );
     final markerColor = TissuePressureBarChart.surfaceLevelMarkerColor(
       colorScheme,
     );
@@ -202,9 +199,7 @@ class _TissuePressureBarChartState extends State<TissuePressureBarChart> {
                                           equilibriumN2,
                                         ),
                                     markerColor: markerColor,
-                                    outlineColor: entry.key == highlightedIndex
-                                        ? outlineColor
-                                        : null,
+                                    highlighted: entry.key == highlightedIndex,
                                   ),
                                 ),
                               ),
@@ -272,14 +267,14 @@ class _CompartmentBar extends StatelessWidget {
   final double chartHeight;
   final double equilibriumPercent;
   final Color markerColor;
-  final Color? outlineColor;
+  final bool highlighted;
 
   const _CompartmentBar({
     required this.comp,
     required this.chartHeight,
     required this.equilibriumPercent,
     required this.markerColor,
-    required this.outlineColor,
+    required this.highlighted,
   });
 
   @override
@@ -320,18 +315,16 @@ class _CompartmentBar extends StatelessWidget {
       ],
     );
 
-    // Highlight via foregroundDecoration so the outline is painted OVER the
-    // bar without enlarging it. A decoration border would inset the child and
-    // add its width to the box on every side, making the bar taller than its
-    // fixed-height slot (overflowing when the bar is already full height) and
-    // wider than its unhighlighted neighbours (hover jitter).
-    final outline = outlineColor;
-    final bar = outline != null
-        ? Container(
-            foregroundDecoration: BoxDecoration(
-              border: Border.all(color: outline, width: 2),
-              borderRadius: BorderRadius.circular(2),
-            ),
+    // Highlight with a foreground painter so the outline is painted OVER the
+    // bar, inside its box, without enlarging it. A decoration border would
+    // inset the child and add its width to the box on every side, making the
+    // bar taller than its fixed-height slot (overflowing when the bar is
+    // already full height) and wider than its unhighlighted neighbours (hover
+    // jitter). The outline is two-toned so it shows on every bar colour in
+    // both themes (issue #4431).
+    final bar = highlighted
+        ? CustomPaint(
+            foregroundPainter: const HighlightOutlinePainter(),
             child: barColumn,
           )
         : barColumn;
