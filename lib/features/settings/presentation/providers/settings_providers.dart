@@ -3238,7 +3238,15 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Waits for the diver's settings to load first: the load replaces the
+  /// whole state, so a switch flipped during startup would otherwise be lost.
   Future<void> setShowCountryFlags(bool value) async {
+    try {
+      await settingsLoaded;
+    } catch (_) {
+      // Already logged by the constructor; the defaults are the fallback.
+    }
+    if (!mounted) return;
     state = state.copyWith(showCountryFlags: value);
     await _saveSettings();
   }

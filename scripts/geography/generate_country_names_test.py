@@ -9,9 +9,14 @@ wrong flag beside a site, so the table keeps only assigned ISO codes and
 drops any name that means two countries.
 """
 
+import contextlib
 import importlib.util
+import io
+import json
 import os
+import tempfile
 import unittest
+from unittest import mock
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(
@@ -197,6 +202,60 @@ class RenderDartTest(unittest.TestCase):
     def test_escapes_quotes_and_backslashes(self):
         source = gen.render_dart({"cote d'ivoire": "CI"}, {}, {"CI"}, "1")
         self.assertIn("'cote d\\'ivoire': 'CI'", source)
+
+
+
+class MainTest(unittest.TestCase):
+    """main() end to end, with CLDR served from fixtures instead of the network."""
+
+    FILES = {
+        "cldr-core/supplemental/codeMappings.json": {
+            "supplemental": {"codeMappings": {
+                "MX": {"_numeric": "484", "_alpha3": "MEX"},
+                "MV": {"_numeric": "462", "_alpha3": "MDV"},
+                "YU": {"_numeric": "891", "_alpha3": "YUG"},
+            }}
+        },
+        "cldr-core/supplemental/aliases.json": {
+            "supplemental": {"metadata": {"alias": {"territoryAlias": {"YU": {}}}}}
+        },
+        "cldr-core/availableLocales.json": {
+            "availableLocales": {"full": [*gen.PLACE_NAME_LANGUAGES, "es"]}
+        },
+        "cldr-core/supplemental/territoryInfo.json": {
+            "supplemental": {"territoryInfo": {
+                "MX": {"languagePopulation": {"es": {"_officialStatus": "official"}}},
+                "MV": {"languagePopulation": {"dv": {"_officialStatus": "official"}}},
+            }}
+        },
+    }
+
+    def _urlopen(self, url, timeout=None):
+        path = url[len(gen._BASE_URL):]
+        if path.startswith("cldr-localenames-full/main/"):
+            locale = path.split("/")[2]
+            body = {"main": {locale: {"localeDisplayNames": {"territories": {
+                "MX": "Mexico" if locale == "en" else "México",
+                "MV": "Maldives",
+                "YU": "Yugoslavia",
+            }}}}}
+        else:
+            body = self.FILES[path]
+        return contextlib.closing(io.BytesIO(json.dumps(body).encode()))
+
+    def test_writes_the_table_from_cldr(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            out = os.path.join(out_dir, "geo", "country_names.generated.dart")
+            with mock.patch.object(gen, "OUTPUT_PATH", out), mock.patch.object(
+                gen.urllib.request, "urlopen", self._urlopen
+            ), contextlib.redirect_stdout(io.StringIO()) as printed:
+                gen.main()
+            source = open(out, encoding="utf-8").read()
+        self.assertIn("'mexico': 'MX'", source)
+        self.assertIn("'maldives': 'MV'", source)
+        self.assertNotIn("yugoslavia", source)  # a withdrawn code
+        self.assertIn("'MEX': 'MX'", source)
+        self.assertIn("wrote", printed.getvalue())
 
 
 if __name__ == "__main__":
