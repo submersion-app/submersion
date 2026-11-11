@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:drift/drift.dart' show Value;
 
@@ -345,8 +346,10 @@ class ChangesetWriter {
       // That same nonce means twins (two installs on one device id) cannot
       // tell each other's heartbeats from their own, so a correction runs
       // once per writer: twins on different builds or names would otherwise
-      // overwrite each other's stamps on every sync. Once per launch is what
-      // an update needs, since the new build starts a new writer.
+      // overwrite each other's stamps on every sync. A writer lives as long
+      // as its SyncService, so this is at least once per launch (more when
+      // the service is rebuilt), which is what an update needs: the new
+      // build starts a new writer.
       final selfKey = '$providerId/$deviceId';
       if (ownManifest != null &&
           (now - ownManifest.updatedAt > heartbeatMaxAgeMillis ||
@@ -539,9 +542,7 @@ class ChangesetWriter {
   int? _legacyFloorCorrection(SyncManifest published) {
     final legacy = published.schemaVersion;
     if (published.writerSchemaVersion != null || legacy == null) return null;
-    return legacy < AppDatabase.minimumCompatibleSchemaVersion
-        ? legacy
-        : AppDatabase.minimumCompatibleSchemaVersion;
+    return math.min(legacy, AppDatabase.minimumCompatibleSchemaVersion);
   }
 
   /// Clears the relay floor this publish read, and only that one: a floor a
