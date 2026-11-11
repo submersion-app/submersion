@@ -150,5 +150,17 @@ void main() {
       expect(find.byIcon(Icons.person), findsOneWidget);
       expect(find.byType(ProfileAvatar), findsNothing);
     });
+
+    testWidgets('says Me when the owner has a blank name', (tester) async {
+      await tester.pumpWidget(
+        _buildSection(
+          dive: _dive(diverId: 'diver-1'),
+          diversById: {'diver-1': _diver('diver-1', '  ')},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Me'), findsOneWidget);
+    });
   });
 }

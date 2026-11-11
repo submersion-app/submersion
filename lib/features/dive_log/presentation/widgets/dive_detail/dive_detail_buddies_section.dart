@@ -124,6 +124,8 @@ class DiveBuddiesSection extends ConsumerWidget {
       rolesById,
     ).joinedLocalizedNames(context.l10n);
     final colorScheme = Theme.of(context).colorScheme;
+    // A diver saved without a name would otherwise leave the row untitled.
+    final name = diver?.name.trim() ?? '';
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: diver?.photo != null
@@ -136,7 +138,7 @@ class DiveBuddiesSection extends ConsumerWidget {
               backgroundColor: colorScheme.primaryContainer,
               child: Icon(Icons.person, color: colorScheme.onPrimaryContainer),
             ),
-      title: Text(diver?.name ?? context.l10n.buddies_picker_me),
+      title: Text(name.isEmpty ? context.l10n.buddies_picker_me : name),
       subtitle: Text(label),
     );
   }
