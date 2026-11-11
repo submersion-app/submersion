@@ -514,14 +514,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         ref.watch(pinProfileOnScrollProvider) &&
         layout == DiveDetailLayout.detailed &&
         watchChartProfile(ref, dive).length >= 2;
-    final content = pinProfile
-        ? PinnedProfileOverlay(
-            key: ValueKey('pinnedProfile_${dive.id}'),
-            dive: dive,
-            profileKey: _profileSectionKey,
-            child: body,
-          )
-        : body;
+    // Always in the tree, switched by `enabled`, so turning the strip on or
+    // off never rebuilds the scroll view under a new parent and resets it.
+    final content = PinnedProfileOverlay(
+      key: ValueKey('pinnedProfile_${dive.id}'),
+      dive: dive,
+      profileKey: _profileSectionKey,
+      enabled: pinProfile,
+      child: body,
+    );
 
     // Embedded mode: Return content with a compact header bar (no Scaffold)
     if (widget.embedded) {

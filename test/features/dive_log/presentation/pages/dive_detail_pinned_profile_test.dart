@@ -66,12 +66,13 @@ void main() {
     WidgetTester tester, {
     AppSettings settings = const AppSettings(),
     ValueNotifier<String>? diveId,
+    MockSettingsNotifier? notifier,
   }) async {
     tester.view.physicalSize = const Size(900, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     final base = await getBaseOverrides(
-      settingsNotifier: MockSettingsNotifier(settings),
+      settingsNotifier: notifier ?? MockSettingsNotifier(settings),
     );
     final original = FlutterError.onError;
     addTearDown(() => FlutterError.onError = original);
@@ -144,22 +145,52 @@ void main() {
     expect(find.byType(PinnedProfileStrip), findsOneWidget);
   });
 
-  testWidgets('no overlay with the setting off', (tester) async {
+  bool overlayEnabled(WidgetTester tester) => tester
+      .widget<PinnedProfileOverlay>(find.byType(PinnedProfileOverlay))
+      .enabled;
+
+  testWidgets('no strip with the setting off', (tester) async {
     await pumpPage(
       tester,
       settings: const AppSettings(pinProfileOnScroll: false),
     );
-    expect(find.byType(PinnedProfileOverlay), findsNothing);
+    expect(overlayEnabled(tester), isFalse);
     await scrollPastProfile(tester);
     expect(find.byType(PinnedProfileStrip), findsNothing);
   });
 
-  testWidgets('no overlay in the list layout', (tester) async {
+  testWidgets('no strip in the list layout', (tester) async {
     await pumpPage(
       tester,
       settings: const AppSettings(diveDetailLayout: DiveDetailLayout.list),
     );
-    expect(find.byType(PinnedProfileOverlay), findsNothing);
+    expect(overlayEnabled(tester), isFalse);
+    await scrollPastProfile(tester);
+    expect(find.byType(PinnedProfileStrip), findsNothing);
+  });
+
+  // The page keeps its place when the strip is turned on or off: the scroll
+  // view is not rebuilt under a different parent (review M3).
+  testWidgets('turning the setting off keeps the scroll position', (
+    tester,
+  ) async {
+    final notifier = MockSettingsNotifier();
+    await pumpPage(tester, notifier: notifier);
+    final scrollable = find.byType(Scrollable).first;
+    tester.state<ScrollableState>(scrollable).position.jumpTo(300);
+    await tester.pump();
+
+    await notifier.setPinProfileOnScroll(false);
+    await tester.pump();
+    await tester.pump();
+
+    expect(
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .pixels,
+      300,
+    );
   });
 
   testWidgets('no strip when the profile section is hidden', (tester) async {

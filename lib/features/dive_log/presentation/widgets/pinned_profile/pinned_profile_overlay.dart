@@ -24,11 +24,17 @@ class PinnedProfileOverlay extends ConsumerStatefulWidget {
     required this.dive,
     required this.profileKey,
     required this.child,
+    this.enabled = true,
   });
 
   final Dive dive;
   final GlobalKey profileKey;
   final Widget child;
+
+  /// Whether the strip is drawn at all. The overlay stays in the tree when
+  /// it is not, so turning the strip on or off never moves [child], the
+  /// page's scroll view, to a new parent, which would reset its position.
+  final bool enabled;
 
   @override
   ConsumerState<PinnedProfileOverlay> createState() =>
@@ -51,14 +57,14 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
   /// condensing) over its top: the card's top is above the viewport's.
   bool coversTopAt(double pixels) {
     final card = _cardInContent;
-    return card != null && card.top - pixels < 0;
+    return widget.enabled && card != null && card.top - pixels < 0;
   }
 
   Rect? get _card => _cardInContent?.shift(Offset(0, -_pixels));
 
   double get _progress {
     final card = _card;
-    return card == null ? 0 : condenseProgress(card: card);
+    return !widget.enabled || card == null ? 0 : condenseProgress(card: card);
   }
 
   @override
