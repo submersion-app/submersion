@@ -34,15 +34,15 @@ final diveDecoStatusRepositoryProvider = Provider<DiveDecoStatusRepository>(
 /// through `awaitQueryCachesIfRead`, and `queryCachesKeeperProvider`
 /// keeps it alive while a live filter names `deco`, so a diver who never
 /// filters on deco pays for no analysis.
+///
+/// Its value is the [diveDecoInputWritesProvider] count the pass began
+/// from: a one-off reader compares the two to tell whether a write landed
+/// after the pass it would read (`prepareQueryCachesFor`).
 // no-tick: a WRITE of derived data, not a cached query. It follows the
 // tables a verdict is derived from (below); its only repository call writes
 // the cache and renders nothing.
 // autoDispose: once no reader or keeper watches it, it is released and
 // stops following those tables.
-///
-/// Its value is the [diveDecoInputWritesProvider] count the pass began
-/// from: a one-off reader compares the two to tell whether a write landed
-/// after the pass it would read (`prepareQueryCachesFor`).
 final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   ref,
 ) async {

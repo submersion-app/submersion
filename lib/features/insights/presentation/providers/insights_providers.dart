@@ -826,11 +826,6 @@ typedef DecoDiveIds = ({
 /// dive can no longer disagree. Dives with no profile at all stay unknown and
 /// are excluded from the rate rather than counted as no-deco.
 final decoDiveIdsProvider = FutureProvider<DecoDiveIds>((ref) async {
-  await _keepAliveWithExpiry(ref);
-  final repository = ref.watch(insightsRepositoryProvider);
-  final currentDiverId = ref.watch(currentDiverIdProvider);
-  final filter = ref.watch(insightsFilterProvider);
-
   void publish(DecoClassificationProgress? progress) {
     if (ref.mounted) {
       ref.read(decoClassificationProgressProvider.notifier).state = progress;
@@ -839,8 +834,15 @@ final decoDiveIdsProvider = FutureProvider<DecoDiveIds>((ref) async {
 
   // A pass this build replaced cannot clear its own progress, and on a diver
   // or filter change the card would show those counts as this pass's. In a
-  // microtask because a provider may not write another while it builds.
+  // microtask because a provider may not write another while it builds, and
+  // before the cache wait below, which under a deco filter can run for as
+  // long as the verdict pass does.
   scheduleMicrotask(() => publish(null));
+
+  await _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
 
   final scan = await repository.scanRecordedDecoSignals(
     diverId: currentDiverId,

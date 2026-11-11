@@ -1,8 +1,10 @@
 import 'package:drift/drift.dart';
+import 'package:meta/meta.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
 /// The local deco verdict cache (`dive_deco_status`, v362): whether each
 /// dive with no recorded deco signal had a deco obligation, as the dive
@@ -14,10 +16,8 @@ class DiveDecoStatusRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(DiveDecoStatusRepository);
 
-  /// Ids bound per `IN (...)` list, well under SQLite's variable limit, so
-  /// a whole logbook's verdicts stay one valid write.
-  static const _chunk = 900;
-
+  /// Every stored verdict, by dive id.
+  @visibleForTesting
   Future<Map<String, bool>> verdicts() async => {
     for (final r in await _db.select(_db.diveDecoStatus).get())
       r.diveId: r.hadDeco,
@@ -65,7 +65,7 @@ class DiveDecoStatusRepository {
     // Only the rows this write may touch: a targeted refresh of an
     // import's few dives need not read every verdict in the table.
     final rows = [
-      for (final chunk in _chunks(within.toList(growable: false)))
+      for (final chunk in seriesIdChunks(within.toList(growable: false)))
         ...await (_db.select(
           _db.diveDecoStatus,
         )..where((t) => t.diveId.isIn(chunk))).get(),
@@ -76,56 +76,35 @@ class DiveDecoStatusRepository {
         for (final r in rows)
           if (r.computedAt > keepWrittenAfter) r.diveId,
     };
-    final live = await _liveDiveIds(byId.keys.toList(growable: false));
     final stale = [
       for (final id in existing.keys)
-        if (!live.contains(id) && !kept.contains(id)) id,
+        if (!byId.containsKey(id) && !kept.contains(id)) id,
     ];
     final changed = {
       for (final e in byId.entries)
-        if (live.contains(e.key) &&
-            !kept.contains(e.key) &&
-            existing[e.key] != e.value)
-          e.key: e.value,
+        if (!kept.contains(e.key) && existing[e.key] != e.value) e.key: e.value,
     };
     if (stale.isEmpty && changed.isEmpty) return;
     await _db.batch((b) {
-      for (final chunk in _chunks(stale)) {
+      for (final chunk in seriesIdChunks(stale)) {
         b.deleteWhere(_db.diveDecoStatus, (t) => t.diveId.isIn(chunk));
       }
       for (final e in changed.entries) {
-        b.insert(
-          _db.diveDecoStatus,
-          DiveDecoStatusCompanion.insert(
-            diveId: e.key,
-            hadDeco: e.value,
-            computedAt: computedAt,
-          ),
-          mode: InsertMode.insertOrReplace,
+        // Written only while the dive still exists: one deleted since it
+        // was analyzed is skipped, with no separate read of the dives table.
+        b.customStatement(
+          'INSERT OR REPLACE INTO dive_deco_status '
+          '(dive_id, had_deco, computed_at) SELECT ?, ?, ? '
+          'WHERE EXISTS (SELECT 1 FROM dives WHERE id = ?)',
+          [e.key, e.value ? 1 : 0, computedAt, e.key],
         );
       }
     });
-  }
-
-  Future<Set<String>> _liveDiveIds(List<String> ids) async {
-    final live = <String>{};
-    for (final chunk in _chunks(ids)) {
-      final rows =
-          await (_db.selectOnly(_db.dives)
-                ..addColumns([_db.dives.id])
-                ..where(_db.dives.id.isIn(chunk)))
-              .get();
-      live.addAll([for (final r in rows) r.read(_db.dives.id)!]);
-    }
-    return live;
-  }
-
-  static Iterable<List<String>> _chunks(List<String> ids) sync* {
-    for (var start = 0; start < ids.length; start += _chunk) {
-      yield ids.sublist(
-        start,
-        start + _chunk < ids.length ? start + _chunk : ids.length,
-      );
+    // A raw statement reports no table, so the readers' tick is raised here.
+    if (changed.isNotEmpty) {
+      _db.notifyUpdates({
+        TableUpdate.onTable(_db.diveDecoStatus, kind: UpdateKind.insert),
+      });
     }
   }
 }

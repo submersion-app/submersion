@@ -512,9 +512,20 @@ a local cache that holds the active diver's verdicts only. `query` does not
 read it. `serviceStatusOverlay` evaluates the named diver's clocks through
 `evaluateServiceClocksForItems`, the same batch the notification scheduler
 uses, and returns a CTE named after the cache. SQLite resolves that name first,
-so the compiled SQL runs unchanged, the answer is right for any profile, and a
-read tool writes nothing. It is why `awaitServiceStatusIfRead` is not used
-here: that provider can only answer for the active diver.
+so the compiled SQL runs unchanged, the answer is right for any profile, and
+the service cache is never written. It is why `awaitQueryCachesIfRead` is not
+used for it here: that helper can only answer for the active diver.
+
+## Deco status in queries
+
+`deco` reads the recorded deco signal first and, for a dive that records none,
+the computed verdict in `dive_deco_status` (#4461). Unlike the service cache,
+that table holds verdicts for any profile, so `query` brings it up to date
+before it runs, through `prepareQueryCachesFor`: the active diver's from the
+writer pass behind the dive list's deco filter, another profile's judged in a
+throwaway container pinned to that profile's settings. That preparation is the
+one write a `query` call can make, and it touches only this local cache, which
+never syncs.
 
 ## The SQL window
 

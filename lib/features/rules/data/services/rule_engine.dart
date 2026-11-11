@@ -208,41 +208,42 @@ class RuleEngine {
     RuleRunRequest request,
     Map<RuleSubject, List<Rule>> rules,
   ) async {
-    final tables = {
+    // Each runnable rule compiled once: the tables it reads, by subject.
+    final read = [
       for (final MapEntry(key: subject, value: list) in rules.entries)
         for (final r in list)
           if (r.isRunnable)
-            ..._scope.tablesTouched(r.condition, subject, request.diverId),
-    };
+            (
+              subject: subject,
+              rule: r,
+              tables: _scope.tablesTouched(
+                r.condition,
+                subject,
+                request.diverId,
+              ),
+            ),
+    ];
+    final tables = {for (final e in read) ...e.tables};
     if (tables.isEmpty) return;
     // A run on named dives whose rules read deco only on those dives needs
     // their verdicts alone; any other read (a site rule's dives, a hop to
     // a trip's) needs the whole logbook's.
     final diveTargets = request.targets[RuleSubject.dives];
     // Only a targeted run that reads deco at all needs the per-rule check,
-    // which compiles each condition again.
+    // and only a dive rule that reads deco needs the relation walk.
     final ownDecoOnly =
         diveTargets != null &&
         tables.contains(kDiveDecoStatusTable) &&
-        !(rules[RuleSubject.sites] ?? const <Rule>[]).any(
-          (r) =>
-              r.isRunnable &&
-              _scope.reads(
-                r.condition,
-                RuleSubject.sites,
-                request.diverId,
-                kDiveDecoStatusTable,
-              ),
-        ) &&
-        !(rules[RuleSubject.dives] ?? const <Rule>[]).any(
-          (r) =>
-              r.isRunnable &&
-              _scope.readsTableThroughRelation(
-                r.condition,
-                RuleSubject.dives,
-                request.diverId,
-                kDiveDecoStatusTable,
-              ),
+        !read.any(
+          (e) =>
+              e.tables.contains(kDiveDecoStatusTable) &&
+              (e.subject != RuleSubject.dives ||
+                  _scope.readsTableThroughRelation(
+                    e.rule.condition,
+                    RuleSubject.dives,
+                    request.diverId,
+                    kDiveDecoStatusTable,
+                  )),
         );
     await _prepareCaches(
       request.diverId,
