@@ -135,20 +135,33 @@ class _CompactTissueLoadingCardState
           children: [
             Row(
               children: [
-                Text(
-                  context.l10n.diveLog_deco_sectionTissueLoading,
-                  style: textTheme.titleSmall,
-                ),
-                if (widget.subtitle != null) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    '@ ${widget.subtitle!}',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                // The title gives way, with an ellipsis, before the cursor
+                // time or the controls: on a phone the full header is wider
+                // than the card once the time joins it (#4423).
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          context.l10n.diveLog_deco_sectionTissueLoading,
+                          style: textTheme.titleSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (widget.subtitle != null) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          '@ ${widget.subtitle!}',
+                          maxLines: 1,
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-                const Spacer(),
+                ),
                 // Every control below shares _headerButtonStyle, so each one
                 // lays out to the same box and the gaps stay even. Do not add
                 // manual spacers between them: the icons are built from three
