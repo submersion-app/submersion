@@ -194,6 +194,10 @@ class DiveSacSegmentsSection extends ConsumerWidget {
               gasSegments: gasSegments,
               rates: rates,
               selectedTimestamp: selectedTimestamp,
+              // The chart's time becomes the shared cursor, an index into the
+              // same series the profile draws, so the profile follows.
+              onCursorSeconds: (seconds) =>
+                  setProfileCursorSeconds(ref, dive.id, chartProfile, seconds),
               laneSelector: display == GasConsumptionDisplay.both
                   ? _buildLaneSelector(context, ref, lane)
                   : null,

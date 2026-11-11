@@ -319,7 +319,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 360;
+  static const int currentSchemaVersion = 361;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1655,14 +1655,19 @@ class AppDatabase extends _$AppDatabase {
     // import stored the file's 1 to 10 value, or 0 for an unrated dive
     // (issue #4415). Data only; the floor does not move.
     358,
-    // v359: diver_settings.show_country_flags, the switch for the flags
-    // beside site locations and trips (issue #4426). Defaulted on, so the
-    // floor does not move.
+    // v359: diver_settings.pin_profile_on_scroll, whether dive details pins
+    // a thin profile strip once the profile card scrolls away (issue #4423).
+    // Additive and defaulted; the floor does not move. Numbered 359 because
+    // main holds 358.
     359,
-    // v360: dive_sites.country_code, the site's ISO country code (issue
-    // #4426), backfilled offline from each site's country text. Nullable,
-    // so the floor does not move.
+    // v360: diver_settings.show_country_flags, the switch for the flags
+    // beside site locations and trips (issue #4426). Defaulted on, so the
+    // floor does not move. Renumbered from 359, which main took for #4423.
     360,
+    // v361: dive_sites.country_code, the site's ISO country code (issue
+    // #4426), backfilled offline from each site's country text. Nullable,
+    // so the floor does not move. Renumbered from 360.
+    361,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

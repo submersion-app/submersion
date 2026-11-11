@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_row_l
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_totals_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_role_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/part_of_section.dart';
@@ -191,6 +192,9 @@ class ComponentsCard extends ConsumerWidget {
                 );
               },
             ),
+            // What the parts add up to (issue #4443); hides itself when no
+            // part declares a buoyancy or dry weight.
+            AssemblyTotalsSection(assemblyId: equipmentId),
           ],
         ),
       ),

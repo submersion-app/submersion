@@ -1350,6 +1350,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_components_title => 'Onderdelen';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Uit $count van $total onderdelen',
+      one: 'Uit $count van $total onderdeel',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Totaal';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Kan het document niet verwijderen: $error';
   }
@@ -7742,6 +7756,31 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Stop $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Sleep om te verschuiven';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Beweeg erover om te verschuiven';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Duikprofiel, verschuif om de cursor te bewegen';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11207,6 +11246,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tissue_title => 'Weefselbelasting';
+
+  @override
+  String get diveLog_tissue_viewMenuTooltip => 'Grafiekweergave';
 
   @override
   String get diveLog_tooltip_avgCalculated => '(gem., berekend)';
@@ -22984,6 +23026,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Toon een markering bij het maximale dieptepunt op duikprofielen';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Profiel vastzetten bij scrollen';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Houd een smal, verschuifbaar profiel bovenaan de duikdetails';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Plafond';
 
   @override
@@ -26476,6 +26526,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profiel toont de maximale diepte';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Profiel vastzetten bij scrollen';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'Profiel toont NDL';
@@ -32982,6 +33036,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen tags komen overeen met je zoekopdracht.';
 
   @override
+  String get tags_picker_otherTags => 'Andere tags';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -33246,6 +33303,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'Kies er minstens één: duiken, duikstekken, uitrusting, media of documenten';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'Deze tag bestaat al. Opslaan voegt de aangevinkte toepassingen eraan toe.';
 
   @override
   String get tags_manage_scope_dives => 'Duiken';
@@ -51467,6 +51528,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'De uitrusting van elke duik op een duiker tonen in de uitrustingskaart';
 
   @override
+  String get settings_appearance_tissueColorScheme =>
+      'Kleuren weefselbelasting';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Kleurenschaal van de weefselheatmaps en de 3D-weergave';
+
+  @override
   String get diveLog_detail_gearFigureName => 'Uitrusting van deze duik';
 
   @override
@@ -60775,10 +60844,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voorbeeldlogboek weggooien en terug naar je eigen logboek';
 
   @override
-  String get demo_strip_label => 'Demomodus: je verkent voorbeeldgegevens';
+  String get demo_active_label => 'Demomodus: je verkent voorbeeldgegevens';
 
   @override
-  String get demo_strip_exit => 'Demo afsluiten';
+  String get demo_exit_button => 'Demo afsluiten';
+
+  @override
+  String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body =>
+      'Je logboek wordt onaangeroerd apart gezet tot je afsluit';
 
   @override
   String get demo_exit_confirm_title => 'Demomodus afsluiten?';

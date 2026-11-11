@@ -76,7 +76,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // selects the whole row, for the same reason as the tank columns.
     await _assertProfileSeriesIsEditColumn();
 
-    // v360: dive_sites.country_code (issue #4426). Every site read selects
+    // v361: dive_sites.country_code (issue #4426). Every site read selects
     // the whole row. Column only: the backfill runs in the rung.
     await _assertSiteCountryCodeColumn();
   }

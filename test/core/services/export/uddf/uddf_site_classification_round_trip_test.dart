@@ -57,11 +57,14 @@ void main() {
       final mine = await SiteTypeRepository().createSiteType(
         SiteTypeEntity.create(id: 'mine', name: 'Mine', diverId: diverId),
       );
-      final toTry = await TagRepository().getOrCreateTag(
-        'To try',
-        diverId: diverId,
-        colorHex: '#EF4444',
-        scope: TagScope.sites,
+      final toTry = await TagRepository().createTag(
+        Tag.create(
+          id: '',
+          name: 'To try',
+          diverId: diverId,
+          colorHex: '#EF4444',
+          scopes: const {TagScope.sites},
+        ),
       );
       final site = await SiteRepository().createSite(
         DiveSite(id: '', name: 'Lake wreck', diverId: diverId),
@@ -113,14 +116,21 @@ void main() {
   test('an imported tag widens the local tag of the same name, never '
       'narrows it', () async {
     final diverId = await createTestDiver();
-    final night = await TagRepository().getOrCreateTag(
-      'Night',
-      diverId: diverId,
+    final night = await TagRepository().createTag(
+      Tag.create(
+        id: '',
+        name: 'Night',
+        diverId: diverId,
+        scopes: const {TagScope.dives},
+      ),
     );
-    final toTry = await TagRepository().getOrCreateTag(
-      'To try',
-      diverId: diverId,
-      scope: TagScope.sites,
+    final toTry = await TagRepository().createTag(
+      Tag.create(
+        id: '',
+        name: 'To try',
+        diverId: diverId,
+        scopes: const {TagScope.sites},
+      ),
     );
 
     const data = UddfImportResult(

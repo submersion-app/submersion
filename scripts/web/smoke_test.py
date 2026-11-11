@@ -668,9 +668,13 @@ def test_sample_logbook(page, tmp_path):
     page.get_by_role(
         "button", name=re.compile(r"^Dive \d+ at %s\b" % re.escape(site))
     ).first.wait_for(timeout=SAMPLE_TIMEOUT_MS)
-    # The shell's chrome is in the semantics tree beside the page: the demo
-    # strip's way out and the rail's named destinations (#4166).
-    button(page, exact("Exit demo")).wait_for(timeout=STEP_TIMEOUT_MS)
+    # What sits outside the page is in the semantics tree beside it: the demo
+    # ribbon's spoken label (#4428) and the rail's named destinations (#4166).
+    # A label-only node may come out as text or as an aria-label.
+    ribbon = "Demo mode: you are exploring sample data"
+    page.get_by_text(exact(ribbon)).or_(
+        page.get_by_label(exact(ribbon))
+    ).first.wait_for(timeout=STEP_TIMEOUT_MS)
     button(page, re.compile(r"^Dives\b")).wait_for(timeout=STEP_TIMEOUT_MS)
     wait_for_dives_at(page, site)
 

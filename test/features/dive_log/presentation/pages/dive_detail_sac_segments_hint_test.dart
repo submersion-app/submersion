@@ -208,8 +208,13 @@ void main() {
   testWidgets('tapping the card\'s hint opens the dive editor', (tester) async {
     final dive = diveWithProfile(tanks: const [backGasNoVolume]);
     final base = await getBaseOverrides(
+      // The hint is scrolled to the top and tapped, where the pinned profile
+      // strip (#4423) would sit over it.
       settingsNotifier: MockSettingsNotifier(
-        const AppSettings(gasConsumptionDisplay: GasConsumptionDisplay.rmv),
+        const AppSettings(
+          gasConsumptionDisplay: GasConsumptionDisplay.rmv,
+          pinProfileOnScroll: false,
+        ),
       ),
     );
     final router = GoRouter(

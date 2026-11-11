@@ -212,18 +212,12 @@ final ConflictEnumLabeler coordinateFormatLabeler = enumLabeler(
 
 final ConflictEnumLabeler tissueColorSchemeLabeler = enumLabeler(
   TissueColorScheme.values,
-  (l, v) => switch (v) {
-    TissueColorScheme.classic => l.enum_tissueColorScheme_classic,
-    TissueColorScheme.thermal => l.enum_tissueColorScheme_thermal,
-  },
+  (l, v) => tissueColorSchemeLabel(l, v),
 );
 
 final ConflictEnumLabeler tissueVizModeLabeler = enumLabeler(
   TissueVizMode.values,
-  (l, v) => switch (v) {
-    TissueVizMode.heatMap => l.enum_tissueVizMode_heatMap,
-    TissueVizMode.stackedArea => l.enum_tissueVizMode_stackedArea,
-  },
+  (l, v) => tissueVizModeLabel(l, v),
 );
 
 final ConflictEnumLabeler manifestFormatLabeler = enumLabeler(

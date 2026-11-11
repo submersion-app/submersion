@@ -146,20 +146,26 @@ extension RungsFromV340 on AppDatabase {
     if (from < 358) await _repairOutOfScaleDiveRatings();
     if (from < 358) await reportProgress();
 
-    // v359: diver_settings.show_country_flags, the switch for the flags
-    // beside site locations and trips (issue #4426). Defaulted on, no
-    // backfill, so the compatibility floor does not move. Re-asserted in
-    // beforeOpen.
-    if (from < 359) await _assertShowCountryFlagsColumn();
+    // v359: diver_settings.pin_profile_on_scroll, whether dive details pins
+    // a profile strip (issue #4423). Column only, defaulted on; re-asserted
+    // in beforeOpen.
+    if (from < 359) await _assertPinProfileOnScrollColumn();
     if (from < 359) await reportProgress();
 
-    // v360: dive_sites.country_code, the site's ISO country code (issue
+    // v360: diver_settings.show_country_flags, the switch for the flags
+    // beside site locations and trips (issue #4426). Defaulted on, no
+    // backfill, so the compatibility floor does not move. Re-asserted in
+    // beforeOpen. Renumbered from 359, which main took for #4423.
+    if (from < 360) await _assertShowCountryFlagsColumn();
+    if (from < 360) await reportProgress();
+
+    // v361: dive_sites.country_code, the site's ISO country code (issue
     // #4426), backfilled from the country text each site already holds where
     // that text names one country. Nullable and offline, so the floor does
     // not move. The column is re-asserted in beforeOpen; the backfill runs
-    // here only.
-    if (from < 360) await _assertSiteCountryCodeColumn();
-    if (from < 360) await _backfillSiteCountryCodes();
-    if (from < 360) await reportProgress();
+    // here only. Renumbered from 360.
+    if (from < 361) await _assertSiteCountryCodeColumn();
+    if (from < 361) await _backfillSiteCountryCodes();
+    if (from < 361) await reportProgress();
   }
 }

@@ -34,7 +34,7 @@ class DiveSites extends Table {
   TextColumn get island => text().nullable()();
   TextColumn get country => text().nullable()();
 
-  /// The country's ISO 3166-1 alpha-2 code (v360, issue #4426): from the
+  /// The country's ISO 3166-1 alpha-2 code (v361, issue #4426): from the
   /// geocoder when the location is geocoded, else read from [country].
   TextColumn get countryCode => text().nullable()();
   TextColumn get region => text().nullable()();

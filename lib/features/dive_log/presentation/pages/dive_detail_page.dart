@@ -6,8 +6,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/router/pushed_route.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
@@ -55,11 +57,13 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
+import 'package:submersion/features/dive_log/presentation/formatters/dive_title.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_embedded_header.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_hero_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_overflow_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/draft_dive_banner.dart';
@@ -143,6 +147,35 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   final GlobalKey _notesSectionKey = GlobalKey();
   final GlobalKey _profileSectionKey = GlobalKey();
 
+  /// The pinned copy's own export key: a GlobalKey cannot be shared with the
+  /// card in the page, and "export profile" reads the page's, not this one.
+  final GlobalKey _pinnedProfileExportKey = GlobalKey();
+
+  /// The card chart's zoom window, so the pinned copy starts where the
+  /// reader left it rather than jumping out to the whole dive (#4423). Only
+  /// read as the copy is built, so updating it rebuilds nothing.
+  final ValueNotifier<ChartViewport> _profileViewport = ValueNotifier(
+    ChartViewport.reset,
+  );
+
+  void _noteProfileViewport(ChartViewport viewport) =>
+      _profileViewport.value = viewport;
+
+  /// How many points the profile chart draws, watched by count alone so the
+  /// page does not rebuild whenever the active source's profile is replaced.
+  /// The same series as [watchChartProfile].
+  int _chartPointCount(Dive dive) =>
+      ref.watch(
+        activeSourceProfileProvider(dive.id).select((p) => p?.points.length),
+      ) ??
+      dive.profile.length;
+
+  @override
+  void dispose() {
+    _profileViewport.dispose();
+    super.dispose();
+  }
+
   /// "Open in Notes" on an annotation's popup (#4109): unfolds the Notes
   /// card when the list layout folds it, scrolls there and highlights the
   /// passage for a moment.
@@ -160,7 +193,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     if (!mounted) return;
     final ctx = _notesSectionKey.currentContext;
     if (ctx != null && ctx.mounted) {
-      await Scrollable.ensureVisible(
+      // Lands below the pinned profile strip while it shows (#4423).
+      await ensureVisibleBelowPinnedStrip(
         ctx,
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOutCubic,
@@ -247,7 +281,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   void _scrollToSafetySection() {
     final ctx = _safetyReviewSectionKey.currentContext;
     if (ctx == null) return;
-    Scrollable.ensureVisible(
+    ensureVisibleBelowPinnedStrip(
       ctx,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeInOutCubic,
@@ -301,6 +335,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   Widget _profileSectionFor(String id) {
     final section = _profileSection;
     if (section != null && section.diveId == id) return section;
+    // A new dive's chart starts unzoomed.
+    _profileViewport.value = ChartViewport.reset;
     return _profileSection = DiveDetailProfileSection(
       key: _profileSectionKey,
       diveId: id,
@@ -308,6 +344,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       onSafetyFindingDetails: _scrollToSafetySection,
       onSetPrimarySource: _setPrimarySource,
       onOpenInNotes: _scrollToNotes,
+      onViewportChanged: _noteProfileViewport,
     );
   }
 
@@ -503,6 +540,39 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       ),
     );
 
+    // Once the profile card scrolls away, a thin scrubbable copy pins to the
+    // top (#4423). Only in the detailed layout, where the card is a full card
+    // rather than a folded row, and only for a dive with a curve to draw.
+    // Keyed by dive so the master-detail pane starts afresh on a new dive.
+    final pinProfile =
+        ref.watch(pinProfileOnScrollProvider) &&
+        layout == DiveDetailLayout.detailed &&
+        _chartPointCount(dive) >= 2;
+    // Always in the tree, switched by `enabled`, so turning the strip on or
+    // off never rebuilds the scroll view under a new parent and resets it.
+    final content = PinnedProfileOverlay(
+      key: ValueKey('pinnedProfile_${dive.id}'),
+      dive: dive,
+      profileKey: _profileSectionKey,
+      enabled: pinProfile,
+      chartViewport: _profileViewport,
+      // A live copy of the card, squashed as it pins: the same section, its
+      // chart filling whatever height is left and showing the zoom window
+      // the overlay hands it.
+      squashedCard: (context, onPlotFrame, viewport) =>
+          DiveDetailProfileSection(
+            diveId: dive.id,
+            exportKey: _pinnedProfileExportKey,
+            onSafetyFindingDetails: _scrollToSafetySection,
+            onSetPrimarySource: _setPrimarySource,
+            onOpenInNotes: _scrollToNotes,
+            fillHeight: true,
+            onPlotFrame: onPlotFrame,
+            viewport: viewport,
+          ),
+      child: body,
+    );
+
     // Embedded mode: Return content with a compact header bar (no Scaffold)
     if (widget.embedded) {
       return Column(
@@ -515,7 +585,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             onDownloadDraft: _downloadForDraft,
             onSurfaceDraft: () => _surfaceDraft(dive),
           ),
-          Expanded(child: body),
+          Expanded(child: content),
         ],
       );
     }
@@ -530,7 +600,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         : context.l10n.diveLog_detail_tooltip_addToFavorites;
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.diveLog_detail_appBar),
+        // Titled like the desktop pane's header, not "Dive Details" (#4445).
+        title: Text(
+          diveTitle(context, dive),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
           if (!compactActions)
@@ -554,7 +629,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
           _overflowMenu(dive, _appBarMenuKey, showFavorite: compactActions),
         ],
       ),
-      body: body,
+      body: content,
     );
   }
 

@@ -24,6 +24,10 @@ void main() {
 
   tearDown(() async => tearDownTestDatabase());
 
+  /// A tag offered in [scopes] only, as one narrowed in Manage Tags is.
+  Future<Tag> narrow(String name, Set<TagScope> scopes) =>
+      repository.createTag(Tag.create(id: '', name: name, scopes: scopes));
+
   Future<void> linkItem(String equipmentId, String tagId) =>
       DatabaseService.instance.database.customStatement(
         "INSERT INTO equipment_tags (id, equipment_id, tag_id, created_at) "
@@ -53,20 +57,20 @@ void main() {
   }
 
   test(
-    'a tag created from the equipment picker applies to equipment only',
+    'a tag created from the equipment picker applies everywhere (#4407)',
     () async {
       final tag = await repository.getOrCreateTag(
         'Rental',
         scope: TagScope.equipment,
       );
-      expect(tag.scopes, {TagScope.equipment});
+      expect(tag.scopes, TagScope.everywhere);
       final stored = await repository.getTagById(tag.id);
-      expect(stored!.scopes, {TagScope.equipment});
+      expect(stored!.scopes, TagScope.everywhere);
     },
   );
 
   test('a name collision widens the existing tag to equipment', () async {
-    final diveTag = await repository.getOrCreateTag('Night');
+    final diveTag = await narrow('Night', {TagScope.dives});
     final widened = await repository.getOrCreateTag(
       'night',
       scope: TagScope.equipment,
@@ -81,9 +85,10 @@ void main() {
   test(
     'createTag on a colliding name widens the incumbent to equipment',
     () async {
-      final diveTag = await repository.getOrCreateTag('Night');
+      final diveTag = await narrow('Night', {TagScope.dives});
       final result = await repository.createTag(
-        Tag.create(id: '', name: 'NIGHT', scope: TagScope.equipment),
+        Tag.create(id: '', name: 'NIGHT', scopes: {TagScope.equipment}),
+        widenExistingTo: const {TagScope.equipment},
       );
       expect(result.id, diveTag.id);
       expect(result.appliesTo(TagScope.equipment), isTrue);
@@ -91,9 +96,9 @@ void main() {
   );
 
   test('scope-filtered listing includes equipment', () async {
-    await repository.getOrCreateTag('Night');
-    await repository.getOrCreateTag('To try', scope: TagScope.sites);
-    await repository.getOrCreateTag('Rental', scope: TagScope.equipment);
+    await narrow('Night', {TagScope.dives});
+    await narrow('To try', {TagScope.sites});
+    await narrow('Rental', {TagScope.equipment});
 
     final gear = await repository.getAllTags(scope: TagScope.equipment);
     final dives = await repository.getAllTags(scope: TagScope.dives);
@@ -103,7 +108,7 @@ void main() {
   });
 
   test('turning off equipment removes and tombstones the links', () async {
-    await repository.getOrCreateTag('Rental', scope: TagScope.equipment);
+    await narrow('Rental', {TagScope.equipment});
     final tag = await repository.getOrCreateTag('Rental');
     expect(tag.scopes, {TagScope.dives, TagScope.equipment});
     await linkItem('e1', tag.id);
@@ -125,10 +130,7 @@ void main() {
   });
 
   test('a plain rename keeps the equipment links', () async {
-    final tag = await repository.getOrCreateTag(
-      'Rental',
-      scope: TagScope.equipment,
-    );
+    final tag = await narrow('Rental', {TagScope.equipment});
     await linkItem('e1', tag.id);
 
     await repository.updateTag(tag.copyWith(name: 'Rented'));
@@ -138,10 +140,7 @@ void main() {
   });
 
   test('usage and statistics count equipment separately', () async {
-    final tag = await repository.getOrCreateTag(
-      'Rental',
-      scope: TagScope.equipment,
-    );
+    final tag = await narrow('Rental', {TagScope.equipment});
     await linkItem('e1', tag.id);
     await linkItem('e2', tag.id);
 
@@ -161,14 +160,8 @@ void main() {
   });
 
   test('statistics break dive and site ties by equipment use', () async {
-    final alpha = await repository.getOrCreateTag(
-      'Alpha',
-      scope: TagScope.equipment,
-    );
-    final zulu = await repository.getOrCreateTag(
-      'Zulu',
-      scope: TagScope.equipment,
-    );
+    final alpha = await narrow('Alpha', {TagScope.equipment});
+    final zulu = await narrow('Zulu', {TagScope.equipment});
     await linkItem('e1', alpha.id);
     await linkItem('e1', zulu.id);
     await linkItem('e2', zulu.id);
@@ -180,8 +173,8 @@ void main() {
   });
 
   test('merged usage counts an item carrying two of the tags once', () async {
-    final a = await repository.getOrCreateTag('A', scope: TagScope.equipment);
-    final b = await repository.getOrCreateTag('B', scope: TagScope.equipment);
+    final a = await narrow('A', {TagScope.equipment});
+    final b = await narrow('B', {TagScope.equipment});
     await linkItem('e1', a.id);
     await linkItem('e1', b.id);
     await linkItem('e2', b.id);
@@ -196,15 +189,9 @@ void main() {
   });
 
   test('merging unions the scopes and relinks equipment tags', () async {
-    final survivor = await repository.getOrCreateTag('Night');
-    final rental = await repository.getOrCreateTag(
-      'Rental',
-      scope: TagScope.equipment,
-    );
-    final travel = await repository.getOrCreateTag(
-      'Travel kit',
-      scope: TagScope.equipment,
-    );
+    final survivor = await narrow('Night', {TagScope.dives});
+    final rental = await narrow('Rental', {TagScope.equipment});
+    final travel = await narrow('Travel kit', {TagScope.equipment});
     await linkItem('e1', rental.id);
     await linkItem('e2', rental.id);
     // e2 carries both sources, so it must end with one survivor link.
@@ -240,10 +227,7 @@ void main() {
   });
 
   test('deleting a tag takes its equipment links with it', () async {
-    final tag = await repository.getOrCreateTag(
-      'Rental',
-      scope: TagScope.equipment,
-    );
+    final tag = await narrow('Rental', {TagScope.equipment});
     await linkItem('e1', tag.id);
 
     await repository.deleteTag(tag.id);
@@ -253,10 +237,7 @@ void main() {
   });
 
   test('an equipment link change emits the tag link tick', () async {
-    final tag = await repository.getOrCreateTag(
-      'Rental',
-      scope: TagScope.equipment,
-    );
+    final tag = await narrow('Rental', {TagScope.equipment});
     final emitted = <void>[];
     final sub = repository.watchTagLinkChanges().listen(emitted.add);
     addTearDown(sub.cancel);

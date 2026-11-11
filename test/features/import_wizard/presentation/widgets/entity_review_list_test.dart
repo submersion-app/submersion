@@ -122,7 +122,7 @@ void main() {
     testWidgets('renders checkboxes for non-duplicate items', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(
         items: [_itemA, _itemB, _itemC],
@@ -141,7 +141,7 @@ void main() {
     testWidgets('checked state reflects selectedIndices', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(
         items: [_itemA, _itemB, _itemC],
@@ -167,7 +167,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       int? toggledIndex;
       const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
@@ -190,7 +190,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(
         items: [_itemA, _dupItem],
@@ -210,7 +210,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final partnerData = IncomingDiveData(
         startTime: DateTime(2026, 8, 1, 10, 15),
@@ -255,7 +255,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(
         items: [_dupItem],
@@ -272,7 +272,7 @@ void main() {
     testWidgets('likely duplicate section label is shown', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(
         items: [_dupItem],
@@ -289,7 +289,7 @@ void main() {
     testWidgets('possible duplicate section label is shown', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(
         items: [_dupItem],
@@ -308,7 +308,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       int? changedIndex;
       DuplicateAction? changedAction;
@@ -349,7 +349,7 @@ void main() {
     testWidgets('tapping Select All fires onSelectAll', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       var selectAllCalled = false;
       const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
@@ -368,7 +368,7 @@ void main() {
     testWidgets('tapping Deselect All fires onDeselectAll', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       var deselectAllCalled = false;
       const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
@@ -389,7 +389,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       // One non-duplicate and one duplicate
       const group = EntityGroup(
@@ -414,7 +414,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(
         items: [_itemA, _itemB, _dupItem],
@@ -434,7 +434,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const dup2 = EntityItem(title: 'Dup 2', subtitle: '10 m · 20 min');
 
@@ -453,7 +453,7 @@ void main() {
     testWidgets('shows only selected count when no duplicates', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
 
@@ -479,7 +479,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -505,7 +505,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -530,7 +530,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       int? changedIndex;
       DuplicateAction? changedAction;
@@ -573,7 +573,7 @@ void main() {
           (tester) async {
             tester.view.physicalSize = const Size(800, 600);
             tester.view.devicePixelRatio = 1.0;
-            addTearDown(tester.view.resetPhysicalSize);
+            addTearDown(tester.view.reset);
 
             await tester.pumpWidget(
               _buildList(
@@ -612,7 +612,7 @@ void main() {
     testWidgets('replaceSource row shows the REPLACE badge', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -630,7 +630,7 @@ void main() {
     testWidgets('tapping Link to existing reports consolidate', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       int? changedIndex;
       DuplicateAction? changedAction;
@@ -660,7 +660,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -690,7 +690,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -711,7 +711,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -731,7 +731,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -752,7 +752,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -772,7 +772,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -799,7 +799,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildList(
@@ -837,7 +837,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       // Dives 3 and 4 are selected (kept for import); dives 0-2 are the
       // auto-skipped ones under test.
@@ -884,7 +884,7 @@ void main() {
         'toggle mechanism', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       int? toggledIndex;
 
@@ -911,7 +911,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 600);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         // No diveData on the dup item: the expanded panel then renders a
         // plain "not available" message instead of DiveComparisonCard,
@@ -968,7 +968,7 @@ void main() {
     testWidgets('no summary row when autoSkipIndices is null', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(items: [_itemA, _itemB], duplicateIndices: {});
 
@@ -983,7 +983,7 @@ void main() {
     testWidgets('no summary row when autoSkipIndices is empty', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(
         items: [_itemA, _itemB],
@@ -1042,7 +1042,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [oldShallowShort, midMediumMedium, newDeepLong],
@@ -1059,7 +1059,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 900);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [oldShallowShort, midMediumMedium, newDeepLong],
@@ -1087,7 +1087,7 @@ void main() {
     testWidgets('ascending date sorts oldest first', (tester) async {
       tester.view.physicalSize = const Size(800, 900);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [oldShallowShort, midMediumMedium, newDeepLong],
@@ -1116,7 +1116,7 @@ void main() {
     testWidgets('sorts by depth, deepest first by default', (tester) async {
       tester.view.physicalSize = const Size(800, 900);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [oldShallowShort, midMediumMedium, newDeepLong],
@@ -1144,7 +1144,7 @@ void main() {
     testWidgets('sorts by duration, longest first by default', (tester) async {
       tester.view.physicalSize = const Size(800, 900);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [oldShallowShort, midMediumMedium, newDeepLong],
@@ -1174,7 +1174,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 900);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         const noData = EntityItem(title: 'No Data', subtitle: '');
         final group = EntityGroup(
@@ -1206,7 +1206,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 900);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       DiveReviewSortField? picked;
       final group = EntityGroup(items: [oldShallowShort, newDeepLong]);
@@ -1240,7 +1240,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 900);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(items: [item1, item2, item3, item4]);
 
@@ -1295,7 +1295,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 900);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(items: [item1, item2, item3, item4]);
 

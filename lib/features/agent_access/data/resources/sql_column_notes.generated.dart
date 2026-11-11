@@ -348,6 +348,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'max_o2_depth_enabled': 'Explicit MOD for 100% O2: bypasses the ppO2 formula (and any environment adjustment) for a pure-O2 deco gas when on',
     'no_fly_preset': 'Flying-after-diving conservatism (NoFlyPreset.dbValue, v125)',
     'omit_unused_oc_gases': 'Whether a rebreather download leaves out an open-circuit gas that no transmitter read and the diver never breathed',
+    'pin_profile_on_scroll': 'Dive details pins a thin profile strip once the profile card scrolls away',
     'place_name_language': 'Language for reverse-geocoded place names, ISO 639-1',
     'planner_reserve_pressure': 'planner reserve-pressure default',
     'planner_turn_pressure_rule': 'planner air-break and turn-pressure global defaults',

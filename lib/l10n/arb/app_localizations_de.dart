@@ -1357,6 +1357,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_components_title => 'Komponenten';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'Aus $count von $total Komponenten',
+      one: 'Aus $count von $total Komponente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Summe';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Dokument konnte nicht entfernt werden: $error';
   }
@@ -7792,6 +7806,31 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Stopp $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Zum Durchsuchen ziehen';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Zum Durchsuchen darüberfahren';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Tauchprofil, zum Bewegen des Cursors ziehen';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11267,6 +11306,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tissue_title => 'Gewebesättigung';
+
+  @override
+  String get diveLog_tissue_viewMenuTooltip => 'Diagrammansicht';
 
   @override
   String get diveLog_tooltip_avgCalculated => '(Durchschn., berechnet)';
@@ -23096,6 +23138,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Markierung am Punkt der maximalen Tiefe in Tauchprofilen anzeigen';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Profil beim Scrollen anheften';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Ein schmales, scrubbares Profil oben in den Tauchgangsdetails behalten';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
 
   @override
@@ -26595,6 +26645,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profil zeigt maximale Tiefe';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Profil beim Scrollen anheften';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'Profil zeigt NDL';
@@ -33132,6 +33186,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tags_picker_noMatches => 'Keine Tags entsprechen deiner Suche.';
 
   @override
+  String get tags_picker_otherTags => 'Andere Tags';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -33397,6 +33454,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'Mindestens eines wählen: Tauchgänge, Tauchplätze, Ausrüstung, Medien oder Dokumente';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'Dieses Tag gibt es schon. Beim Speichern kommen die angehakten Verwendungen dazu.';
 
   @override
   String get tags_manage_scope_dives => 'Tauchgänge';
@@ -51683,6 +51744,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Ausrüstung jedes Tauchgangs in seiner Ausrüstungskarte an einem Taucher zeigen';
 
   @override
+  String get settings_appearance_tissueColorScheme =>
+      'Farben der Gewebesättigung';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Farbskala der Gewebe-Heatmaps und der 3D-Ansicht';
+
+  @override
   String get diveLog_detail_gearFigureName => 'Ausrüstung dieses Tauchgangs';
 
   @override
@@ -61023,10 +61092,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Beispiel-Logbuch verwerfen und zu deinem eigenen zurückkehren';
 
   @override
-  String get demo_strip_label => 'Demomodus: Du erkundest Beispieldaten';
+  String get demo_active_label => 'Demomodus: Du erkundest Beispieldaten';
 
   @override
-  String get demo_strip_exit => 'Demo beenden';
+  String get demo_exit_button => 'Demo beenden';
+
+  @override
+  String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body =>
+      'Dein Logbuch bleibt unberührt beiseite, bis du den Demomodus beendest';
 
   @override
   String get demo_exit_confirm_title => 'Demomodus beenden?';

@@ -4,7 +4,11 @@ import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twin_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -156,5 +160,76 @@ void main() {
     await tester.tap(find.byType(InfoButton));
     await tester.pumpAndSettle();
     expect(find.textContaining('Peak lift needed'), findsWidgets);
+  });
+
+  group('profile cursor sync (#4423)', () {
+    // The chart profile: index i is at i * 30 seconds.
+    final dive = createTestDiveWithBottomTime(id: 'd1').copyWith(
+      profile: [
+        for (var t = 0; t <= 600; t += 30)
+          DiveProfilePoint(timestamp: t, depth: 10),
+      ],
+    );
+
+    Future<ProviderContainer> pumpSynced(WidgetTester tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            buoyancyTwinProvider(
+              'd1',
+            ).overrideWith((ref) async => buoyancyOutcome()),
+            activeSourceProfileProvider('d1').overrideWith((ref) => null),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: BuoyancySection(
+                  diveId: 'd1',
+                  dive: dive,
+                  units: const UnitFormatter(AppSettings()),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return ProviderScope.containerOf(
+        tester.element(find.byType(BuoyancySection)),
+      );
+    }
+
+    testWidgets('the profile cursor moves the buoyancy marker', (tester) async {
+      final c = await pumpSynced(tester);
+      c.read(profileTrackingIndexProvider('d1').notifier).state = 4;
+      await tester.pump();
+      final chart = tester.widget<BuoyancyChart>(find.byType(BuoyancyChart));
+      expect(chart.cursorSeconds, 120);
+    });
+
+    testWidgets('buoyancy hover writes the profile cursor index', (
+      tester,
+    ) async {
+      final c = await pumpSynced(tester);
+      tester.widget<BuoyancyChart>(find.byType(BuoyancyChart)).onCursorSeconds!(
+        95,
+      );
+      expect(c.read(profileTrackingIndexProvider('d1')), 3);
+      tester.widget<BuoyancyChart>(find.byType(BuoyancyChart)).onCursorSeconds!(
+        null,
+      );
+      expect(c.read(profileTrackingIndexProvider('d1')), isNull);
+    });
+
+    testWidgets('without a dive there is no sync', (tester) async {
+      await _pump(tester, buoyancyOutcome());
+      final chart = tester.widget<BuoyancyChart>(find.byType(BuoyancyChart));
+      expect(chart.cursorSeconds, isNull);
+      expect(chart.onCursorSeconds, isNull);
+    });
   });
 }

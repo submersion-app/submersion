@@ -32,6 +32,10 @@ void main() {
 
   tearDown(() async => tearDownTestDatabase());
 
+  /// A tag offered in [scopes] only, as one narrowed in Manage Tags is.
+  Future<Tag> narrow(String name, Set<TagScope> scopes) =>
+      repository.createTag(Tag.create(id: '', name: name, scopes: scopes));
+
   Future<int> count(String sql) async {
     final row = await DatabaseService.instance.database
         .customSelect(sql)
@@ -71,10 +75,17 @@ void main() {
     }
 
     group(scope.name, () {
-      test('a tag created in the scope applies there only', () async {
+      test('a tag created in the scope applies everywhere (#4407)', () async {
         final tag = await repository.getOrCreateTag('Wreck', scope: scope);
-        expect(tag.scopes, {scope});
-        expect((await repository.getTagById(tag.id))!.scopes, {scope});
+        expect(tag.scopes, TagScope.everywhere);
+        expect(
+          (await repository.getTagById(tag.id))!.scopes,
+          TagScope.everywhere,
+        );
+      });
+
+      test('scope-filtered listing includes the scope', () async {
+        await narrow('Wreck', {scope});
         expect((await repository.getAllTags(scope: scope)).map((t) => t.name), [
           'Wreck',
         ]);
@@ -82,14 +93,14 @@ void main() {
       });
 
       test('a name collision widens the existing tag', () async {
-        final diveTag = await repository.getOrCreateTag('Night');
+        final diveTag = await narrow('Night', {TagScope.dives});
         final widened = await repository.getOrCreateTag('NIGHT', scope: scope);
         expect(widened.id, diveTag.id);
         expect(widened.scopes, {TagScope.dives, scope});
       });
 
       test('usage counts the scope separately', () async {
-        final tag = await repository.getOrCreateTag('Wreck', scope: scope);
+        final tag = await narrow('Wreck', {scope});
         await link('p1', tag.id);
         await link('p2', tag.id);
 
@@ -103,7 +114,7 @@ void main() {
       });
 
       test('turning the scope off removes and tombstones the links', () async {
-        await repository.getOrCreateTag('Wreck', scope: scope);
+        await narrow('Wreck', {scope});
         final tag = await repository.getOrCreateTag('Wreck');
         await link('p1', tag.id);
         await link('p2', tag.id);
@@ -122,9 +133,9 @@ void main() {
       });
 
       test('merging unions the scopes and relinks', () async {
-        final survivor = await repository.getOrCreateTag('Night');
-        final a = await repository.getOrCreateTag('A', scope: scope);
-        final b = await repository.getOrCreateTag('B', scope: scope);
+        final survivor = await narrow('Night', {TagScope.dives});
+        final a = await narrow('A', {scope});
+        final b = await narrow('B', {scope});
         await link('p1', a.id);
         await link('p2', a.id);
         await link('p2', b.id);
@@ -147,7 +158,7 @@ void main() {
       });
 
       test('deleting a tag takes its links with it', () async {
-        final tag = await repository.getOrCreateTag('Wreck', scope: scope);
+        final tag = await narrow('Wreck', {scope});
         await link('p1', tag.id);
 
         await repository.deleteTag(tag.id);

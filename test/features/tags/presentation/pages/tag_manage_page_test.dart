@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_color_picker.dart';
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
@@ -35,6 +36,7 @@ final _testStats = [
       colorHex: '#EF4444',
       createdAt: DateTime(2024),
       updatedAt: DateTime(2024),
+      scopes: const {TagScope.dives},
     ),
     counts: const {TagScope.dives: 12},
   ),
@@ -46,6 +48,7 @@ final _testStats = [
       colorHex: '#3B82F6',
       createdAt: DateTime(2024),
       updatedAt: DateTime(2024),
+      scopes: const {TagScope.dives},
     ),
     counts: const {TagScope.dives: 5},
   ),
@@ -65,13 +68,20 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   final List<String> deleted = [];
   final List<List<String>> bulkDeleted = [];
   final List<Tag> added = [];
+  final List<Set<TagScope>?> widenedTo = [];
   final List<Tag> updated = [];
 
   @override
   Future<void> refresh() async {}
   @override
-  Future<Tag> addTag(Tag tag) async {
+  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async {
     added.add(tag);
+    widenedTo.add(widenExistingTo);
+    // As the repository: a name a tag already holds returns that tag.
+    final key = tag.name.trim().toLowerCase();
+    for (final held in state.value ?? const <Tag>[]) {
+      if (held.name.trim().toLowerCase() == key) return held;
+    }
     return tag;
   }
 
@@ -81,16 +91,23 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
     String? colorHex,
     TagScope scope = TagScope.dives,
   }) async {
+    // As the real one: a new tag is offered everywhere (#4407).
     return Tag.create(
       id: 'new-tag',
       name: name,
       colorHex: colorHex,
-      scope: scope,
+      scopes: TagScope.everywhere,
     );
   }
 
   @override
   Future<void> updateTag(Tag tag) async => updated.add(tag);
+
+  /// Colour-only writes, as (tag id, colour).
+  final List<(String, String?)> recoloured = [];
+  @override
+  Future<void> setTagColor(String id, String? colorHex) async =>
+      recoloured.add((id, colorHex));
   @override
   Future<void> deleteTag(String id) async => deleted.add(id);
   @override
@@ -867,6 +884,303 @@ void main() {
       expect(notifier.updated.map((t) => t.name), ['Night Dive Renamed']);
     });
 
+    testWidgets('a new tag starts ticked for every scope (#4407)', (
+      tester,
+    ) async {
+      final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+      await tester.pumpWidget(
+        _buildTestWidget(stats: _testStats, notifier: notifier),
+      );
+      await tester.pumpAndSettle();
+
+      await openCreate(tester, 'Wreck');
+      for (final label in const [
+        'Use for dives',
+        'Use for sites',
+        'Use for equipment',
+        'Use for media',
+        'Use for documents',
+      ]) {
+        final box = tester.widget<CheckboxListTile>(
+          find.widgetWithText(CheckboxListTile, label),
+        );
+        expect(box.value, isTrue, reason: label);
+      }
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.added.single.scopes, TagScope.values.toSet());
+    });
+
+    group('a name an existing tag holds (#4407)', () {
+      const note =
+          'This tag already exists. Saving adds the ticked uses to it.';
+      const labels = [
+        'Use for dives',
+        'Use for sites',
+        'Use for equipment',
+        'Use for media',
+        'Use for documents',
+      ];
+      Set<String> ticked(WidgetTester tester) => {
+        for (final label in labels)
+          if (tester
+                  .widget<CheckboxListTile>(
+                    find.widgetWithText(CheckboxListTile, label),
+                  )
+                  .value ==
+              true)
+            label,
+      };
+
+      testWidgets('mirrors that tag\'s scopes and says so', (tester) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        // 'Night Dive' is a dives-only tag; the match ignores case and
+        // surrounding spaces, as the repository's does.
+        await openCreate(tester, ' night dive ');
+        await tester.pump();
+        expect(ticked(tester), {'Use for dives'});
+        expect(find.text(note), findsOneWidget);
+
+        await tester.tap(find.widgetWithText(TextButton, 'Save'));
+        await tester.pumpAndSettle();
+        // What was shown is what is saved: the tag stays dives-only.
+        expect(notifier.added.single.scopes, {TagScope.dives});
+      });
+
+      String? shownColor(WidgetTester tester) => tester
+          .widget<TagColorPicker>(find.byType(TagColorPicker))
+          .selectedColor;
+
+      testWidgets('mirrors its colour and saves only a picked one', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        // 'Night Dive' is drawn in #EF4444.
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        expect(shownColor(tester), '#EF4444');
+        await tester.tap(find.widgetWithText(TextButton, 'Save'));
+        await tester.pumpAndSettle();
+        expect(notifier.updated, isEmpty, reason: 'colour left as it was');
+
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        await tester.ensureVisible(_dot('#22C55E'));
+        await tester.tap(_dot('#22C55E'));
+        await tester.pump();
+        await tester.tap(find.widgetWithText(TextButton, 'Save'));
+        await tester.pumpAndSettle();
+        // Colour alone: a whole-tag update could reset scopes widened since.
+        expect(notifier.recoloured, [('tag1', '#22C55E')]);
+        expect(notifier.updated, isEmpty);
+      });
+
+      testWidgets('goes back to the default colour once the name stops '
+          'matching', (tester) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        await tester.enterText(find.byType(TextField).last, 'Night Dives');
+        await tester.pump();
+        expect(shownColor(tester), TagColors.predefined.first);
+      });
+
+      testWidgets('drops uses added to it once the name no longer matches', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        // Ticking sites adds it to the dives-only 'Night Dive'...
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        tester
+            .widget<CheckboxListTile>(
+              find.widgetWithText(CheckboxListTile, 'Use for sites'),
+            )
+            .onChanged!(true);
+        await tester.pump();
+        expect(ticked(tester), {'Use for dives', 'Use for sites'});
+
+        // ...so a new name is a new tag, offered everywhere, not narrowed
+        // to the uses meant for that one.
+        await tester.enterText(find.byType(TextField).last, 'Night Dives');
+        await tester.pump();
+        expect(ticked(tester), labels.toSet());
+      });
+
+      testWidgets('keeps boxes the user already changed', (tester) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(FloatingActionButton));
+        await tester.pumpAndSettle();
+        // Toggled through the box's own callback: the focused name field
+        // scrolls the dialog between frames, which makes taps flaky.
+        tester
+            .widget<CheckboxListTile>(
+              find.widgetWithText(CheckboxListTile, 'Use for sites'),
+            )
+            .onChanged!(false);
+        await tester.pump();
+        await tester.enterText(find.byType(TextField).last, 'Night Dive');
+        await tester.pump();
+
+        expect(ticked(tester), {...labels}..remove('Use for sites'));
+        expect(find.text(note), findsOneWidget);
+      });
+
+      testWidgets('goes back to every scope once the name stops matching', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        await tester.enterText(find.byType(TextField).last, 'Night Dives');
+        await tester.pump();
+
+        expect(ticked(tester), labels.toSet());
+        expect(find.text(note), findsNothing);
+      });
+
+      testWidgets('its own scopes cannot be unticked, as Save keeps them', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(FloatingActionButton));
+        await tester.pumpAndSettle();
+        // Unticked before the name matches a dives-only tag.
+        tester
+            .widget<CheckboxListTile>(
+              find.widgetWithText(CheckboxListTile, 'Use for dives'),
+            )
+            .onChanged!(false);
+        await tester.pump();
+        await tester.enterText(find.byType(TextField).last, 'Night Dive');
+        await tester.pump();
+
+        expect(ticked(tester), contains('Use for dives'));
+        final dives = tester.widget<CheckboxListTile>(
+          find.widgetWithText(CheckboxListTile, 'Use for dives'),
+        );
+        expect(dives.onChanged, isNull);
+      });
+
+      testWidgets('drops its scopes again once the name stops matching', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byType(FloatingActionButton));
+        await tester.pumpAndSettle();
+        tester
+            .widget<CheckboxListTile>(
+              find.widgetWithText(CheckboxListTile, 'Use for dives'),
+            )
+            .onChanged!(false);
+        await tester.pump();
+        await tester.enterText(find.byType(TextField).last, 'Night Dive');
+        await tester.pump();
+        expect(ticked(tester), contains('Use for dives'));
+
+        // The matched tag's dives were never the user's pick.
+        await tester.enterText(find.byType(TextField).last, 'Night Dives');
+        await tester.pump();
+        expect(ticked(tester), {...labels}..remove('Use for dives'));
+      });
+
+      testWidgets('untouched boxes widen nothing on Save', (tester) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        await tester.tap(find.widgetWithText(TextButton, 'Save'));
+        await tester.pumpAndSettle();
+
+        // Not even when the list had not loaded to show the match.
+        expect(notifier.widenedTo.single, isEmpty);
+      });
+
+      testWidgets('is found while the tag list reloads', (tester) async {
+        final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+        // The real notifier drops its value while it reloads after an add.
+        // ignore: invalid_use_of_protected_member
+        notifier.state = const AsyncValue.loading();
+
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+
+        expect(ticked(tester), {'Use for dives'});
+        expect(find.text(note), findsOneWidget);
+      });
+
+      testWidgets('is found when the tag list changes after typing', (
+        tester,
+      ) async {
+        final notifier = _MockTagListNotifier(const []);
+        await tester.pumpWidget(
+          _buildTestWidget(stats: _testStats, notifier: notifier),
+        );
+        await tester.pumpAndSettle();
+
+        await openCreate(tester, 'Night Dive');
+        await tester.pump();
+        expect(find.text(note), findsNothing);
+
+        // A sync (or the first load) brings the tag holding the name.
+        // ignore: invalid_use_of_protected_member
+        notifier.state = AsyncValue.data(_tagsFromStats(_testStats));
+        await tester.pump();
+
+        expect(ticked(tester), {'Use for dives'});
+        expect(find.text(note), findsOneWidget);
+      });
+    });
+
     testWidgets('a create saves the chosen color and scope', (tester) async {
       final notifier = _MockTagListNotifier(_tagsFromStats(_testStats));
       await tester.pumpWidget(
@@ -877,7 +1191,7 @@ void main() {
       await openCreate(tester, 'To try');
       await tester.ensureVisible(_dot('#22C55E'));
       await tester.tap(_dot('#22C55E'));
-      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+      // Every scope starts ticked (#4407); narrowing unticks the rest.
       await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
       await tester.pump();
       await tester.tap(find.widgetWithText(TextButton, 'Save'));
@@ -1330,18 +1644,17 @@ void main() {
       await tester.tap(find.byType(FloatingActionButton));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).last, 'Rental');
-      final useForDives = find.widgetWithText(
-        CheckboxListTile,
+      // Every scope starts ticked (#4407): untick all but equipment.
+      for (final label in const [
         'Use for dives',
-      );
-      await tester.ensureVisible(useForDives);
-      await tester.tap(useForDives);
-      final useForEquipment = find.widgetWithText(
-        CheckboxListTile,
-        'Use for equipment',
-      );
-      await tester.ensureVisible(useForEquipment);
-      await tester.tap(useForEquipment);
+        'Use for sites',
+        'Use for media',
+        'Use for documents',
+      ]) {
+        final box = find.widgetWithText(CheckboxListTile, label);
+        await tester.ensureVisible(box);
+        await tester.tap(box);
+      }
       await tester.pump();
       await tester.tap(find.widgetWithText(TextButton, 'Save'));
       await tester.pumpAndSettle();
@@ -1418,6 +1731,7 @@ void main() {
         colorHex: colorHex,
         createdAt: DateTime(2024),
         updatedAt: DateTime(2024),
+        scopes: const {TagScope.dives},
       ),
       counts: const {TagScope.dives: 3},
     );
@@ -1616,7 +1930,7 @@ class _FailingSaveTagListNotifier extends _MockTagListNotifier {
   _FailingSaveTagListNotifier(super.tags);
 
   @override
-  Future<Tag> addTag(Tag tag) async =>
+  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async =>
       throw StateError('create failed for ${tag.name}');
 
   @override
@@ -1631,7 +1945,7 @@ class _GatedSaveTagListNotifier extends _MockTagListNotifier {
   final Completer<void> gate = Completer<void>();
 
   @override
-  Future<Tag> addTag(Tag tag) async {
+  Future<Tag> addTag(Tag tag, {Set<TagScope>? widenExistingTo}) async {
     added.add(tag);
     await gate.future;
     return tag;

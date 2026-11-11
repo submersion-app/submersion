@@ -686,9 +686,10 @@ void main() {
       expect(result.dive.tanks.map((t) => t.index), unorderedEquals([0, 1]));
     });
 
-    test('invents no tank for a gas the header does not list', () {
-      // An app export without a Diving block has no gases at all; the
-      // pressures stay without a cylinder, as they were before.
+    test('pairs a sidemount gas from an export with no gas list', () {
+      // The Suunto app's own JSON export has no Diving block, so no gas
+      // list. The transmitters still name their gas, and their readings
+      // need a cylinder to land on.
       final result = SuuntoDiveParser.parse(
         header: {...nauticHeader()}..remove('Diving'),
         samples: [
@@ -699,7 +700,13 @@ void main() {
         ],
       );
 
-      expect(result.dive.tanks, isEmpty);
+      final tanks = {for (final t in result.dive.tanks) t.index: t};
+      expect(tanks.keys, unorderedEquals([0, 1]));
+      expect(tanks[0]!.role, TankRole.sidemountLeft.name);
+      expect(tanks[1]!.role, TankRole.sidemountRight.name);
+      // Neither cylinder's mix came from the computer.
+      expect(tanks[0]!.mixRecorded, isFalse);
+      expect(tanks[1]!.mixRecorded, isFalse);
       expect(result.dive.profile, hasLength(2));
     });
 
@@ -1160,6 +1167,149 @@ void main() {
       final byIndex = {for (final t in result.dive.tanks) t.index: t};
       expect(byIndex[0]!.o2Percent, closeTo(21.0, 1e-9));
       expect(byIndex[1]!.o2Percent, closeTo(50.0, 1e-9));
+    });
+  });
+
+  // The Suunto app's "export as JSON" file has no Header.Diving block, so
+  // no gas list, unlike the cloud API's export. Its samples still carry the
+  // transmitter readings and gas switches, each naming a gas by number.
+  group('export with no gas list', () {
+    Map<String, dynamic> exportHeader() => {
+      'DateTime': '2026-05-01T10:00:00Z',
+      'ActivityType': 51,
+      'Device': {'Name': 'Vaasa'},
+      'DiveTime': 1800,
+    };
+
+    Map<String, dynamic> sample(
+      int seconds, {
+      List<Map<String, dynamic>>? cylinders,
+      int? switchTo,
+      bool diveStart = false,
+    }) => {
+      'TimeISO8601': '2026-05-01T10:00:${seconds.toString().padLeft(2, '0')}Z',
+      'Depth': diveStart ? 0.5 : 18.0,
+      'Cylinders': ?cylinders,
+      if (diveStart || switchTo != null)
+        'DiveEvents': {
+          if (diveStart) 'DiveStatus': true,
+          if (switchTo != null) 'GasSwitch': {'GasNumber': switchTo},
+        },
+    };
+
+    test('gives each transmitted gas a cylinder of unrecorded mix', () {
+      final result = SuuntoDiveParser.parse(
+        header: exportHeader(),
+        samples: [
+          sample(0, diveStart: true, switchTo: 0),
+          sample(
+            10,
+            cylinders: const [
+              {'GasNumber': 0, 'Pressure': 20700000},
+              {'GasNumber': 1, 'Pressure': 20600000},
+            ],
+            switchTo: 1,
+          ),
+          sample(
+            20,
+            cylinders: const [
+              {'GasNumber': 0, 'Pressure': 20700000},
+              {'GasNumber': 1, 'Pressure': 19800000},
+            ],
+            switchTo: 0,
+          ),
+          sample(
+            30,
+            cylinders: const [
+              {'GasNumber': 0, 'Pressure': 19900000},
+              {'GasNumber': 1, 'Pressure': 19800000},
+            ],
+          ),
+        ],
+      );
+
+      final tanks = {for (final t in result.dive.tanks) t.index: t};
+      expect(tanks.keys, unorderedEquals([0, 1]));
+      for (final tank in tanks.values) {
+        // Nothing in the export says what the mix or the cylinder is: air
+        // stands in, flagged as not the computer's, and the size and
+        // pressures are left for the importer to fill from the series.
+        expect(tank.mixRecorded, isFalse);
+        expect(tank.o2Percent, closeTo(21.0, 1e-9));
+        expect(tank.hePercent, 0);
+        expect(tank.volumeLiters, isNull);
+        expect(tank.startPressure, isNull);
+        expect(tank.endPressure, isNull);
+        expect(tank.role, isNull);
+      }
+
+      expect(result.dive.gasSwitches.map((s) => s.toTankIndex).toList(), [
+        0,
+        1,
+        0,
+      ]);
+      final pressures = result.dive.profile.last.tankPressures!;
+      expect(pressures[0], closeTo(199.0, 0.001));
+      expect(pressures[1], closeTo(198.0, 0.001));
+    });
+
+    test('gives a gas the diver switched to a cylinder without a '
+        'transmitter', () {
+      final result = SuuntoDiveParser.parse(
+        header: exportHeader(),
+        samples: [
+          sample(0, diveStart: true, switchTo: 0),
+          sample(
+            10,
+            cylinders: const [
+              {'GasNumber': 0, 'Pressure': 20700000},
+            ],
+          ),
+          sample(20, switchTo: 1),
+        ],
+      );
+
+      final tanks = {for (final t in result.dive.tanks) t.index: t};
+      expect(tanks.keys, unorderedEquals([0, 1]));
+      expect(tanks[1]!.mixRecorded, isFalse);
+      expect(result.dive.gasSwitches.map((s) => s.toTankIndex).toList(), [
+        0,
+        1,
+      ]);
+    });
+
+    test('invents no cylinder for a dive with no transmitter or switch', () {
+      final result = SuuntoDiveParser.parse(
+        header: exportHeader(),
+        samples: [sample(0, diveStart: true), sample(10)],
+      );
+
+      expect(result.dive.tanks, isEmpty);
+    });
+
+    test('keeps a listed gas as a recorded mix', () {
+      final result = SuuntoDiveParser.parse(
+        header: {
+          ...exportHeader(),
+          'Diving': {
+            'Gases': [
+              {'Oxygen': 0.32, 'Helium': 0.0},
+            ],
+          },
+        },
+        samples: [
+          sample(0, diveStart: true),
+          sample(
+            10,
+            cylinders: const [
+              {'GasNumber': 0, 'Pressure': 20700000},
+            ],
+          ),
+        ],
+      );
+
+      expect(result.dive.tanks.single.mixRecorded, isTrue);
+      expect(result.dive.tanks.single.o2Percent, closeTo(32.0, 1e-9));
     });
   });
 

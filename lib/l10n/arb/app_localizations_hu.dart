@@ -1356,6 +1356,20 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_components_title => 'Alkatrészek';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count/$total alkatrész alapján',
+      one: '$count/$total alkatrész alapján',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Összesen';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'A dokumentum nem távolítható el: $error';
   }
@@ -7772,6 +7786,31 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes perc';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Megálló $depth · $minutes perc';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Húzd a végiggörgetéshez';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Vidd fölé a végiggörgetéshez';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Merülési profil, görgesd a kurzor mozgatásához';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11252,6 +11291,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tissue_title => 'Szövettelítődés';
+
+  @override
+  String get diveLog_tissue_viewMenuTooltip => 'Diagramnézet';
 
   @override
   String get diveLog_tooltip_avgCalculated => '(átl., számított)';
@@ -23054,6 +23096,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Jelölő megjelenítés a maximális mélység pontján a merülési profilokon';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Profil rögzítése görgetéskor';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Keskeny, végiggörgethető profil a merülés részleteinek tetején';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Plafon';
 
   @override
@@ -26528,6 +26578,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'A profil mutatja a legnagyobb mélységet';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Profil rögzítése görgetéskor';
 
   @override
   String get settings_conflict_field_showNdlOnProfile =>
@@ -33040,6 +33094,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_picker_noMatches => 'Nincs a keresésnek megfelelő címke.';
 
   @override
+  String get tags_picker_otherTags => 'Egyéb címkék';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -33304,6 +33361,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'Válasszon legalább egyet: merülések, merülőhelyek, felszerelés, média vagy dokumentumok';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'Ez a címke már létezik. Mentéskor a bejelölt felhasználások hozzáadódnak.';
 
   @override
   String get tags_manage_scope_dives => 'Merülések';
@@ -51516,6 +51577,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden merülés felszerelésének megjelenítése egy búváron a felszerelés kártyán';
 
   @override
+  String get settings_appearance_tissueColorScheme => 'Szövetterheltség színei';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'A szövet-hőtérképek és a 3D nézet színskálája';
+
+  @override
   String get diveLog_detail_gearFigureName => 'A merülés felszerelése';
 
   @override
@@ -60821,10 +60889,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'A mintanapló elvetése és visszatérés a sajátodhoz';
 
   @override
-  String get demo_strip_label => 'Demó mód: mintaadatokat böngészel';
+  String get demo_active_label => 'Demó mód: mintaadatokat böngészel';
 
   @override
-  String get demo_strip_exit => 'Kilépés a demóból';
+  String get demo_exit_button => 'Kilépés a demóból';
+
+  @override
+  String get demo_ribbon_label => 'DEMÓ';
+
+  @override
+  String get demo_card_body =>
+      'A naplód érintetlenül félre van téve, amíg ki nem lépsz';
 
   @override
   String get demo_exit_confirm_title => 'Kilépsz a demó módból?';

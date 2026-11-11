@@ -1345,6 +1345,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_components_title => 'Components';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'From $count of $total components',
+      one: 'From $count of $total component',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Total';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Could not remove the document: $error';
   }
@@ -7673,6 +7687,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Stop $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Drag to scrub';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Hover to scrub';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Dive profile, scrub to move the cursor';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11101,6 +11140,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tissue_title => 'Tissue Loading';
+
+  @override
+  String get diveLog_tissue_viewMenuTooltip => 'Chart view';
 
   @override
   String get diveLog_tooltip_avgCalculated => '(avg, calculated)';
@@ -22786,6 +22828,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Show a marker at the maximum depth point on dive profiles';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'Pin profile when scrolling';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Keep a thin, scrubbable profile at the top of dive details';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
 
   @override
@@ -26200,6 +26250,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Profile shows maximum depth';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Pin profile when scrolling';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'Profile shows NDL';
@@ -32642,6 +32696,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_picker_noMatches => 'No tags match your search.';
 
   @override
+  String get tags_picker_otherTags => 'Other tags';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32904,6 +32961,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'Choose at least one: dives, sites, equipment, media, or documents';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'This tag already exists. Saving adds the ticked uses to it.';
 
   @override
   String get tags_manage_scope_dives => 'Dives';
@@ -51016,6 +51077,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Draw each dive\'s gear on a diver in its equipment card';
 
   @override
+  String get settings_appearance_tissueColorScheme => 'Tissue loading colors';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Color scale for tissue heat maps and the 3D view';
+
+  @override
   String get diveLog_detail_gearFigureName => 'Gear on this dive';
 
   @override
@@ -60193,10 +60261,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Discard the sample logbook and return to your own';
 
   @override
-  String get demo_strip_label => 'Demo mode: you are exploring sample data';
+  String get demo_active_label => 'Demo mode: you are exploring sample data';
 
   @override
-  String get demo_strip_exit => 'Exit demo';
+  String get demo_exit_button => 'Exit demo';
+
+  @override
+  String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body =>
+      'Your logbook is set aside, untouched, until you exit';
 
   @override
   String get demo_exit_confirm_title => 'Exit demo mode?';

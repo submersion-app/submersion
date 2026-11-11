@@ -147,7 +147,12 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     _ref.invalidate(tagsProvider);
   }
 
-  Future<Tag> addTag(Tag tag) async {
+  /// [widenExistingTo] is passed to [TagRepository.createTag]: what a tag
+  /// already holding the name is widened to, nothing by default.
+  Future<Tag> addTag(
+    Tag tag, {
+    Set<TagScope> widenExistingTo = const {},
+  }) async {
     // Get fresh validated diver ID before creating
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
 
@@ -155,14 +160,18 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     final tagWithDiver = validatedId != null
         ? tag.copyWith(diverId: validatedId)
         : tag;
-    final newTag = await _repository.createTag(tagWithDiver);
+    final newTag = await _repository.createTag(
+      tagWithDiver,
+      widenExistingTo: widenExistingTo,
+    );
     await _loadTags();
     _ref.invalidate(tagStatisticsProvider);
     return newTag;
   }
 
-  /// The tag named [name], created or widened so it is offered in [scope]
-  /// (issue #1765).
+  /// The tag named [name], offered in [scope] (issue #1765). A new tag is
+  /// offered everywhere, so the user can reuse it on any kind of item
+  /// (issue #4407); an existing one is only widened to [scope].
   Future<Tag> getOrCreateTag(
     String name, {
     String? colorHex,
@@ -188,6 +197,14 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
 
   Future<void> updateTag(Tag tag) async {
     await _repository.updateTag(tag);
+    await _loadTags();
+    _invalidateDiveProviders();
+  }
+
+  /// Recolours the tag [id] without touching its scopes; see
+  /// [TagRepository.setTagColor].
+  Future<void> setTagColor(String id, String? colorHex) async {
+    await _repository.setTagColor(id, colorHex);
     await _loadTags();
     _invalidateDiveProviders();
   }

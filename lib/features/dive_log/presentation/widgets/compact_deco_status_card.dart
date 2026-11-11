@@ -6,6 +6,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_units.dart';
 import 'package:submersion/features/dive_log/presentation/info/deco_status_info.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_card_title.dart';
 
 /// Compact card displaying decompression status metrics.
 ///
@@ -74,20 +75,13 @@ class CompactDecoStatusCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        Text(
-          context.l10n.diveLog_detail_section_decoStatus,
-          style: textTheme.titleSmall,
-        ),
-        if (subtitle != null) ...[
-          const SizedBox(width: 6),
-          Text(
-            '@ $subtitle',
-            style: textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+        Expanded(
+          child: CompactCardTitle(
+            title: context.l10n.diveLog_detail_section_decoStatus,
+            cursorTime: subtitle,
           ),
-        ],
-        const Spacer(),
+        ),
+        const SizedBox(width: 6),
         Semantics(
           label: status.inDeco
               ? context.l10n.diveLog_deco_semantics_required

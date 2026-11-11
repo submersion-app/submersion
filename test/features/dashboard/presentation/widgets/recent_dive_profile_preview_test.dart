@@ -104,6 +104,17 @@ void main() {
     expect(find.text('Latest dive profile'), findsOneWidget);
   });
 
+  // The dashboard stays mounted under dive details, so its chart must not
+  // overwrite the plot frame the pinned strip starts from (#4423).
+  testWidgets('does not publish its plot frame', (tester) async {
+    await _pump(tester, profile: _profile());
+
+    final chart = tester.widget<DiveProfileChart>(
+      find.byType(DiveProfileChart),
+    );
+    expect(chart.onPlotFrame, isNull);
+  });
+
   // Manually logged dives carry no samples, and that is ordinary rather than
   // an error, so the slot explains itself instead of rendering an empty chart.
   testWidgets('falls back to a message when the dive has no profile', (

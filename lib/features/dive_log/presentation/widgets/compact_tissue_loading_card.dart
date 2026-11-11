@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/features/dive_log/presentation/info/tissue_loading_info.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_card_title.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_compartment_detail.dart';
@@ -135,39 +136,26 @@ class _CompactTissueLoadingCardState
           children: [
             Row(
               children: [
-                Text(
-                  context.l10n.diveLog_deco_sectionTissueLoading,
-                  style: textTheme.titleSmall,
-                ),
-                if (widget.subtitle != null) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    '@ ${widget.subtitle!}',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                Expanded(
+                  child: CompactCardTitle(
+                    title: context.l10n.diveLog_deco_sectionTissueLoading,
+                    cursorTime: widget.subtitle,
                   ),
-                ],
-                const Spacer(),
+                ),
+                // Keeps the cursor time off the first control once the
+                // title has shrunk to make room.
+                const SizedBox(width: 8),
                 // Every control below shares _headerButtonStyle, so each one
                 // lays out to the same box and the gaps stay even. Do not add
-                // manual spacers between them: the icons are built from three
+                // manual spacers between them: the icons are built from
                 // different widget types whose intrinsic widths differ, and
                 // uniform spacers on top of non-uniform boxes is exactly what
                 // made the spacing drift before.
-                _modeIcon(
-                  Icons.grid_on,
-                  TissueVizMode.heatMap,
-                  vizMode,
-                  colorScheme,
-                ),
-                _modeIcon(
-                  Icons.area_chart,
-                  TissueVizMode.stackedArea,
-                  vizMode,
-                  colorScheme,
-                ),
-                _buildColorSchemeSelector(colorScheme),
+                //
+                // One dropdown picks the view (issue #4437). The colour scheme
+                // is a standing preference that also drives Dive Lab and the
+                // 3D view, so it lives in Settings > Appearance > Dives.
+                _buildViewMenu(vizMode, colorScheme),
                 if (widget.onOpen3dView != null)
                   _build3dViewButton(colorScheme),
                 // Laid out to the compact buttons' 40 px box, like its
@@ -312,28 +300,55 @@ class _CompactTissueLoadingCardState
     );
   }
 
-  Widget _modeIcon(
-    IconData icon,
-    TissueVizMode mode,
-    TissueVizMode currentMode,
-    ColorScheme colorScheme,
-  ) {
-    final isActive = mode == currentMode;
-    return IconButton(
-      icon: Icon(
-        icon,
-        size: _headerIconSize,
-        color: isActive
-            ? colorScheme.primary
-            : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+  /// The header's view dropdown: the current view's icon with a caret,
+  /// opening a menu of both views by icon and name, the current one checked.
+  Widget _buildViewMenu(TissueVizMode current, ColorScheme colorScheme) {
+    final l10n = context.l10n;
+    return PopupMenuButton<TissueVizMode>(
+      tooltip: l10n.diveLog_tissue_viewMenuTooltip,
+      icon: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            _viewIcon(current),
+            size: _headerIconSize,
+            color: colorScheme.primary,
+          ),
+          Icon(
+            Icons.arrow_drop_down,
+            size: _headerIconSize,
+            color: colorScheme.onSurfaceVariant,
+          ),
+        ],
       ),
+      // No `constraints:` here. On PopupMenuButton that parameter sizes the
+      // popup menu, not the button.
       padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
       style: _headerButtonStyle,
-      onPressed: () =>
+      initialValue: current,
+      itemBuilder: (context) => [
+        for (final mode in TissueVizMode.values)
+          CheckedPopupMenuItem<TissueVizMode>(
+            value: mode,
+            checked: mode == current,
+            child: Row(
+              children: [
+                Icon(_viewIcon(mode), size: 18),
+                const SizedBox(width: 12),
+                Text(tissueVizModeLabel(l10n, mode)),
+              ],
+            ),
+          ),
+      ],
+      onSelected: (mode) =>
           ref.read(settingsProvider.notifier).setTissueVizMode(mode),
     );
   }
+
+  static IconData _viewIcon(TissueVizMode mode) => switch (mode) {
+    TissueVizMode.heatMap => Icons.grid_on,
+    TissueVizMode.stackedArea => Icons.area_chart,
+  };
 
   Widget _build3dViewButton(ColorScheme colorScheme) {
     return IconButton(
@@ -347,30 +362,6 @@ class _CompactTissueLoadingCardState
       constraints: const BoxConstraints(),
       style: _headerButtonStyle,
       onPressed: widget.onOpen3dView,
-    );
-  }
-
-  Widget _buildColorSchemeSelector(ColorScheme colorScheme) {
-    return PopupMenuButton<TissueColorScheme>(
-      icon: Icon(
-        Icons.palette_outlined,
-        size: _headerIconSize,
-        color: colorScheme.onSurfaceVariant,
-      ),
-      // No `constraints:` here. On PopupMenuButton that parameter sizes the
-      // popup menu, not the button, so passing it the button's BoxConstraints
-      // only stripped the menu's standard minimum width.
-      padding: EdgeInsets.zero,
-      style: _headerButtonStyle,
-      itemBuilder: (context) => TissueColorScheme.values.map((scheme) {
-        return PopupMenuItem<TissueColorScheme>(
-          value: scheme,
-          child: Text(scheme.displayName),
-        );
-      }).toList(),
-      onSelected: (scheme) {
-        ref.read(settingsProvider.notifier).setTissueColorScheme(scheme);
-      },
     );
   }
 

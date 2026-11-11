@@ -4,6 +4,7 @@ import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/info/gas_switches_info.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_switch_format.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_card_title.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
@@ -40,11 +41,11 @@ class GasSwitchEfficiencyCard extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  l10n.diveLog_gasSwitches_title,
-                  style: textTheme.titleSmall,
+                Expanded(
+                  child: CompactCardTitle(
+                    title: l10n.diveLog_gasSwitches_title,
+                  ),
                 ),
-                const Spacer(),
                 HeaderInfoButton(
                   title: l10n.diveLog_gasSwitches_title,
                   height: 20,

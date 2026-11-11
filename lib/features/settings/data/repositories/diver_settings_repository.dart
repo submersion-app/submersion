@@ -377,6 +377,7 @@ class DiverSettingsRepository {
                 ),
                 showCountryFlags: Value(s.showCountryFlags),
                 showMaxDepthMarker: Value(s.showMaxDepthMarker),
+                pinProfileOnScroll: Value(s.pinProfileOnScroll),
                 showPressureThresholdMarkers: Value(
                   s.showPressureThresholdMarkers,
                 ),
@@ -774,6 +775,7 @@ class DiverSettingsRepository {
       ),
       showCountryFlags: Value(settings.showCountryFlags),
       showMaxDepthMarker: Value(settings.showMaxDepthMarker),
+      pinProfileOnScroll: Value(settings.pinProfileOnScroll),
       showPressureThresholdMarkers: Value(
         settings.showPressureThresholdMarkers,
       ),
@@ -1055,6 +1057,7 @@ class DiverSettingsRepository {
       showMapBackgroundOnSiteCards: row.showMapBackgroundOnSiteCards,
       showCountryFlags: row.showCountryFlags,
       showMaxDepthMarker: row.showMaxDepthMarker,
+      pinProfileOnScroll: row.pinProfileOnScroll,
       showPressureThresholdMarkers: row.showPressureThresholdMarkers,
       defaultRightAxisMetric: _parseRightAxisMetric(row.defaultRightAxisMetric),
       defaultShowTemperature: row.defaultShowTemperature,

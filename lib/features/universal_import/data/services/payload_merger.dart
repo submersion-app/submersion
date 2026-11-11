@@ -518,10 +518,33 @@ class PayloadMerger {
     Map<String, dynamic> item,
   ) {
     if (type != ImportEntityType.tags) return;
-    final scopes = {...importedTagScopes(survivor), ...importedTagScopes(item)};
+    // Two records that say nothing of scopes stay silent, so the tag, if
+    // new, is still offered everywhere (issue #4407).
+    if (!importTagStatesScopes(survivor) && !importTagStatesScopes(item)) {
+      return;
+    }
+    // A record stating its scopes exactly (a Submersion backup) keeps the
+    // new tag to the union below, so the everywhere mark survives only when
+    // no record states scopes without it.
+    bool exact(Map<String, dynamic> r) =>
+        importTagStatesScopes(r) && r[importTagNewEverywhereKey] != true;
+    final everywhere =
+        !exact(survivor) &&
+        !exact(item) &&
+        (survivor[importTagNewEverywhereKey] == true ||
+            item[importTagNewEverywhereKey] == true);
+    // Only records that state scopes are unioned: saying nothing is not
+    // saying "dives", so a silent record adds no default to a backup's.
+    final scopes = {
+      for (final r in [survivor, item])
+        if (importTagStatesScopes(r)) ...importedTagScopes(r),
+    };
     for (final MapEntry(key: scope, value: key) in importTagScopeKeys.entries) {
       survivor[key] = scopes.contains(scope);
     }
+    // Written either way: [_enrich] runs next and would fill a missing key
+    // from [item].
+    survivor[importTagNewEverywhereKey] = everywhere;
   }
 
   /// Unions [item]'s reference lists into [survivor]'s, for the fields

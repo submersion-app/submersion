@@ -1,9 +1,9 @@
 part of '../app_database_migrations.dart';
 
-/// A site's stored country code (v360, issue #4426).
+/// A site's stored country code (v361, issue #4426).
 extension SiteCountryCodeMigrations on AppDatabase {
   /// `dive_sites.country_code`. Nullable, so an older peer omits it. Safe
-  /// from both the v360 rung and the beforeOpen backstop.
+  /// from both the v361 rung and the beforeOpen backstop.
   Future<void> _assertSiteCountryCodeColumn() =>
       _addColumnIfMissing('dive_sites', 'country_code', 'TEXT');
 

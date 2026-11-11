@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v359: diver_settings.show_country_flags, the switch for the flags
+/// Schema v360: diver_settings.show_country_flags, the switch for the flags
 /// beside site locations and trips (issue #4426). Defaulted on, no backfill,
 /// so every existing diver keeps seeing flags and the sync floor holds.
 void main() {
@@ -32,23 +32,23 @@ void main() {
               .getSingle())
           .read<int>('v');
 
-  test('v359 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(359));
-    expect(AppDatabase.migrationVersions, contains(359));
+  test('v360 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(360));
+    expect(AppDatabase.migrationVersions, contains(360));
   });
 
   test('the new column is defaulted and kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(359));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(360));
   });
 
-  test('upgrading from v358 adds the column switched on', () async {
-    final db = AppDatabase(dbAt(358));
+  test('upgrading from v359 adds the column switched on', () async {
+    final db = AppDatabase(dbAt(359));
     addTearDown(db.close);
     expect(await storedValue(db), 1);
   });
 
   test('the upgraded column is a boolean, as on a fresh install', () async {
-    final db = AppDatabase(dbAt(358));
+    final db = AppDatabase(dbAt(359));
     addTearDown(db.close);
     await storedValue(db);
     await expectLater(
@@ -58,7 +58,7 @@ void main() {
   });
 
   test('a database already carrying the column keeps its value', () async {
-    final db = AppDatabase(dbAt(358, stored: false));
+    final db = AppDatabase(dbAt(359, stored: false));
     addTearDown(db.close);
     expect(await storedValue(db), 0);
   });

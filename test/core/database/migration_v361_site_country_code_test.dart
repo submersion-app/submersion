@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v360: dive_sites.country_code, a site's ISO 3166-1 alpha-2 code
+/// Schema v361: dive_sites.country_code, a site's ISO 3166-1 alpha-2 code
 /// (issue #4426). Nullable; the rung backfills it from the country text the
 /// site already holds wherever that text names one country, with no network.
 void main() {
@@ -38,15 +38,15 @@ void main() {
       row.read<String>('id'): row.read<String?>('country_code'),
   };
 
-  test('v360 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(360));
-    expect(AppDatabase.migrationVersions, contains(360));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(360));
+  test('v361 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(361));
+    expect(AppDatabase.migrationVersions, contains(361));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(361));
   });
 
   test('upgrading backfills recognised countries only', () async {
     final db = AppDatabase(
-      dbAt(359, [
+      dbAt(360, [
         ('mx', 'Mexico', null),
         ('do', 'República Dominicana', null),
         ('eg', 'مصر', null),
@@ -67,7 +67,7 @@ void main() {
 
   test('a code already stored is kept', () async {
     final db = AppDatabase(
-      dbAt(359, [('geocoded', 'Korea', 'KR'), ('mx', 'Mexico', null)]),
+      dbAt(360, [('geocoded', 'Korea', 'KR'), ('mx', 'Mexico', null)]),
     );
     addTearDown(db.close);
 
@@ -77,7 +77,7 @@ void main() {
   test('a database without dive_sites upgrades without failing', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
-        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 359'),
+        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 360'),
       ),
     );
     addTearDown(db.close);

@@ -177,7 +177,7 @@ void main() {
       // BuddyEditPage's form is taller than the default 800x600 test
       // surface, so its Save button sits below the fold; widen the surface
       // rather than fight scroll offsets to reach it.
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
       tester.view.physicalSize = const Size(800, 2000);
       tester.view.devicePixelRatio = 1.0;
 
@@ -225,7 +225,7 @@ void main() {
     'still shows the real BuddyEditPage on top -- the root-navigator fix '
     'does not regress this flow',
     (tester) async {
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
       tester.view.physicalSize = const Size(800, 2000);
       tester.view.devicePixelRatio = 1.0;
 

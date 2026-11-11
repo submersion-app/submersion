@@ -2096,6 +2096,18 @@ abstract class AppLocalizations {
   /// **'Components'**
   String get equipment_components_title;
 
+  /// No description provided for @equipment_components_totalFromParts.
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, one{From {count} of {total} component} other{From {count} of {total} components}}'**
+  String equipment_components_totalFromParts(int count, int total);
+
+  /// No description provided for @equipment_components_totalsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get equipment_components_totalsSection;
+
   /// No description provided for @equipment_documents_removeError.
   ///
   /// In en, this message translates to:
@@ -12223,6 +12235,42 @@ abstract class AppLocalizations {
   /// **'{timestamp}'**
   String diveLog_detail_collapsed_atTime(Object timestamp);
 
+  /// No description provided for @diveLog_pinnedStrip_ndl.
+  ///
+  /// In en, this message translates to:
+  /// **'NDL {minutes} min'**
+  String diveLog_pinnedStrip_ndl(Object minutes);
+
+  /// No description provided for @diveLog_pinnedStrip_stop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop {depth} · {minutes} min'**
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes);
+
+  /// No description provided for @diveLog_pinnedStrip_ppO2.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 {value}'**
+  String diveLog_pinnedStrip_ppO2(Object value);
+
+  /// No description provided for @diveLog_pinnedStrip_hintDrag.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to scrub'**
+  String get diveLog_pinnedStrip_hintDrag;
+
+  /// No description provided for @diveLog_pinnedStrip_hintHover.
+  ///
+  /// In en, this message translates to:
+  /// **'Hover to scrub'**
+  String get diveLog_pinnedStrip_hintHover;
+
+  /// No description provided for @diveLog_pinnedStrip_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive profile, scrub to move the cursor'**
+  String get diveLog_pinnedStrip_semantics;
+
   /// No description provided for @diveLog_detail_customFieldCount.
   ///
   /// In en, this message translates to:
@@ -17847,6 +17895,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tissue Loading'**
   String get diveLog_tissue_title;
+
+  /// No description provided for @diveLog_tissue_viewMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart view'**
+  String get diveLog_tissue_viewMenuTooltip;
 
   /// No description provided for @diveLog_tooltip_avgCalculated.
   ///
@@ -36594,6 +36648,18 @@ abstract class AppLocalizations {
   /// **'Show a marker at the maximum depth point on dive profiles'**
   String get settings_appearance_maxDepthMarker_subtitleFull;
 
+  /// No description provided for @settings_appearance_pinProfileOnScroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin profile when scrolling'**
+  String get settings_appearance_pinProfileOnScroll;
+
+  /// No description provided for @settings_appearance_pinProfileOnScroll_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep a thin, scrubbable profile at the top of dive details'**
+  String get settings_appearance_pinProfileOnScroll_subtitle;
+
   /// No description provided for @settings_appearance_metric_ceiling.
   ///
   /// In en, this message translates to:
@@ -42320,6 +42386,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile shows maximum depth'**
   String get settings_conflict_field_showMaxDepthMarker;
+
+  /// No description provided for @settings_conflict_field_pinProfileOnScroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pin profile when scrolling'**
+  String get settings_conflict_field_pinProfileOnScroll;
 
   /// No description provided for @settings_conflict_field_showNdlOnProfile.
   ///
@@ -52759,6 +52831,12 @@ abstract class AppLocalizations {
   /// **'No tags match your search.'**
   String get tags_picker_noMatches;
 
+  /// Tag picker section heading over the diver's tags that are not yet offered for what is being tagged; picking one also offers it there
+  ///
+  /// In en, this message translates to:
+  /// **'Other tags'**
+  String get tags_picker_otherTags;
+
   /// Confirm button on the tag picker sheet; count is how many tags are ticked
   ///
   /// In en, this message translates to:
@@ -53052,6 +53130,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose at least one: dives, sites, equipment, media, or documents'**
   String get tags_manage_scopeRequired;
+
+  /// No description provided for @tags_manage_existingTagNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag already exists. Saving adds the ticked uses to it.'**
+  String get tags_manage_existingTagNote;
 
   /// No description provided for @tags_manage_scope_dives.
   ///
@@ -81849,6 +81933,18 @@ abstract class AppLocalizations {
   /// **'Draw each dive\'s gear on a diver in its equipment card'**
   String get settings_appearance_showDiveFigure_subtitle;
 
+  /// No description provided for @settings_appearance_tissueColorScheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue loading colors'**
+  String get settings_appearance_tissueColorScheme;
+
+  /// No description provided for @settings_appearance_tissueColorScheme_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Color scale for tissue heat maps and the 3D view'**
+  String get settings_appearance_tissueColorScheme_subtitle;
+
   /// No description provided for @diveLog_detail_gearFigureName.
   ///
   /// In en, this message translates to:
@@ -96013,17 +96109,29 @@ abstract class AppLocalizations {
   /// **'Discard the sample logbook and return to your own'**
   String get demo_settings_exit_subtitle;
 
-  /// Demo mode (issue #3708)
+  /// Says demo mode is on: the corner ribbon's screen reader label and the dashboard card's title (issues #3708, #4428, #4436)
   ///
   /// In en, this message translates to:
   /// **'Demo mode: you are exploring sample data'**
-  String get demo_strip_label;
+  String get demo_active_label;
 
-  /// Demo mode (issue #3708)
+  /// Leaves demo mode: the dashboard card, the nav rail, the More sheet and the Unavailable in demo mode page (issues #3708, #4436)
   ///
   /// In en, this message translates to:
   /// **'Exit demo'**
-  String get demo_strip_exit;
+  String get demo_exit_button;
+
+  /// Demo mode corner ribbon text; short, written in capitals where the script has them (issue #4428)
+  ///
+  /// In en, this message translates to:
+  /// **'DEMO'**
+  String get demo_ribbon_label;
+
+  /// Body of the demo mode card on the dashboard (issue #4436)
+  ///
+  /// In en, this message translates to:
+  /// **'Your logbook is set aside, untouched, until you exit'**
+  String get demo_card_body;
 
   /// Demo mode (issue #3708)
   ///

@@ -1397,6 +1397,23 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_components_title => 'المكوّنات';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'من $count من أصل $total مكوّن',
+      many: 'من $count من أصل $total مكوّنًا',
+      few: 'من $count من أصل $total مكوّنات',
+      two: 'من $count من أصل مكوّنين',
+      one: 'من $count من أصل $total مكوّن',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'المجموع';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'تعذرت إزالة المستند: $error';
   }
@@ -7907,6 +7924,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes د';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'توقف $depth · $minutes د';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'اسحب للتنقل';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'مرر المؤشر للتنقل';
+
+  @override
+  String get diveLog_pinnedStrip_semantics => 'مخطط الغطسة، اسحب لتحريك المؤشر';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11429,6 +11470,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tissue_title => 'تحميل الأنسجة';
+
+  @override
+  String get diveLog_tissue_viewMenuTooltip => 'عرض المخطط';
 
   @override
   String get diveLog_tooltip_avgCalculated => '(متوسط، محسوب)';
@@ -23493,6 +23537,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض علامة عند نقطة أقصى عمق على ملفات الغوص';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'تثبيت المخطط عند التمرير';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'إبقاء مخطط رفيع قابل للتمرير أعلى تفاصيل الغطسة';
+
+  @override
   String get settings_appearance_metric_ceiling => 'السقف';
 
   @override
@@ -26940,6 +26992,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'الملف يعرض أقصى عمق';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'تثبيت المخطط عند التمرير';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'الملف يعرض NDL';
@@ -33526,6 +33582,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tags_picker_noMatches => 'لا توجد وسوم تطابق بحثك.';
 
   @override
+  String get tags_picker_otherTags => 'وسوم أخرى';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -33826,6 +33885,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'اختر واحدًا على الأقل: الغوصات أو المواقع أو المعدات أو الوسائط أو المستندات';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'هذا الوسم موجود بالفعل. يضيف الحفظ الاستخدامات المحددة إليه.';
 
   @override
   String get tags_manage_scope_dives => 'الغوصات';
@@ -52503,6 +52566,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'عرض معدات كل غطسة على غواص في بطاقة المعدات';
 
   @override
+  String get settings_appearance_tissueColorScheme => 'ألوان تحميل الأنسجة';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'مقياس الألوان لخرائط الأنسجة الحرارية والعرض ثلاثي الأبعاد';
+
+  @override
   String get diveLog_detail_gearFigureName => 'معدات هذه الغطسة';
 
   @override
@@ -62060,10 +62130,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'تجاهل السجل التجريبي والعودة إلى سجلك';
 
   @override
-  String get demo_strip_label => 'الوضع التجريبي: أنت تستكشف بيانات تجريبية';
+  String get demo_active_label => 'الوضع التجريبي: أنت تستكشف بيانات تجريبية';
 
   @override
-  String get demo_strip_exit => 'الخروج من العرض التجريبي';
+  String get demo_exit_button => 'الخروج من العرض التجريبي';
+
+  @override
+  String get demo_ribbon_label => 'تجريبي';
+
+  @override
+  String get demo_card_body => 'يُحفظ سجلك جانبًا دون أي تغيير حتى تخرج';
 
   @override
   String get demo_exit_confirm_title => 'الخروج من الوضع التجريبي؟';

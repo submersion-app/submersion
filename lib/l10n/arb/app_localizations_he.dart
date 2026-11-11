@@ -1338,6 +1338,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_components_title => 'רכיבים';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'לפי $count מתוך $total רכיבים',
+      one: 'לפי $count מתוך $total רכיבים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'סה״כ';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'לא ניתן להסיר את המסמך: $error';
   }
@@ -7628,6 +7642,31 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes דק׳';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'עצירה $depth · $minutes דק׳';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'גרור כדי לדפדף';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'רחף כדי לדפדף';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'פרופיל הצלילה, גרור כדי להזיז את הסמן';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11027,6 +11066,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tissue_title => 'עומס רקמות';
+
+  @override
+  String get diveLog_tissue_viewMenuTooltip => 'תצוגת התרשים';
 
   @override
   String get diveLog_tooltip_avgCalculated => '(ממוצע, מחושב)';
@@ -22619,6 +22661,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצג סמן בנקודת העומק המרבי בפרופילי צלילה';
 
   @override
+  String get settings_appearance_pinProfileOnScroll =>
+      'הצמדת הפרופיל בעת גלילה';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'השארת פרופיל צר וניתן לגרירה בראש פרטי הצלילה';
+
+  @override
   String get settings_appearance_metric_ceiling => 'תקרה';
 
   @override
@@ -25981,6 +26031,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'הפרופיל מציג עומק מרבי';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'הצמדת הפרופיל בעת גלילה';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'הפרופיל מציג NDL';
@@ -32376,6 +32430,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_picker_noMatches => 'אין תגיות התואמות לחיפוש שלך.';
 
   @override
+  String get tags_picker_otherTags => 'תגיות אחרות';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32637,6 +32694,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'בחר לפחות אחד: צלילות, אתרים, ציוד, מדיה או מסמכים';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'תגית זו כבר קיימת. השמירה מוסיפה לה את השימושים המסומנים.';
 
   @override
   String get tags_manage_scope_dives => 'צלילות';
@@ -50679,6 +50740,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצגת הציוד של כל צלילה על צולל בכרטיס הציוד';
 
   @override
+  String get settings_appearance_tissueColorScheme => 'צבעי עומס הרקמות';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'סולם הצבעים של מפות החום של הרקמות ושל תצוגת התלת־ממד';
+
+  @override
   String get diveLog_detail_gearFigureName => 'הציוד בצלילה זו';
 
   @override
@@ -59882,10 +59950,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'השלכת יומן הדוגמה וחזרה ליומן שלכם';
 
   @override
-  String get demo_strip_label => 'מצב הדגמה: אתם מעיינים בנתוני דוגמה';
+  String get demo_active_label => 'מצב הדגמה: אתם מעיינים בנתוני דוגמה';
 
   @override
-  String get demo_strip_exit => 'יציאה מההדגמה';
+  String get demo_exit_button => 'יציאה מההדגמה';
+
+  @override
+  String get demo_ribbon_label => 'הדגמה';
+
+  @override
+  String get demo_card_body => 'היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו';
 
   @override
   String get demo_exit_confirm_title => 'לצאת ממצב ההדגמה?';

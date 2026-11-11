@@ -17,8 +17,11 @@ import 'package:submersion/features/equipment/domain/entities/gear_history_rewri
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/domain/services/assembly_totals.dart';
+import 'package:submersion/features/equipment/presentation/providers/assembly_totals_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/assembly_totals_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/components_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -147,6 +150,7 @@ void main() {
     Object? partOfError,
     bool routed = false,
     Map<String, DueClock> worst = const {},
+    AssemblyTotals? totals,
   }) {
     return ProviderScope(
       overrides: [
@@ -181,6 +185,8 @@ void main() {
               ),
           },
         ),
+        if (totals != null)
+          assemblyTotalsProvider('reg').overrideWith((ref) async => totals),
         activeEquipmentProvider.overrideWith(
           (ref) async => const [first, hose, spare],
         ),
@@ -209,6 +215,23 @@ void main() {
             ),
     );
   }
+
+  testWidgets('ends with what the parts add up to (#4443)', (tester) async {
+    await tester.pumpWidget(
+      build(
+        [part('a', first)],
+        _FakeComponentRepository(),
+        totals: const AssemblyTotals(
+          partCount: 1,
+          buoyancy: (kg: -4.0, parts: 1),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AssemblyTotalsSection), findsOneWidget);
+    expect(find.text('-4 kg'), findsOneWidget);
+  });
 
   group('part of', () {
     const cold = EquipmentItem(

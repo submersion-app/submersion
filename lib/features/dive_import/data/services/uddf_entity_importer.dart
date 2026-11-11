@@ -1482,15 +1482,9 @@ class UddfEntityImporter {
       final existing = await repository.getTagByName(name, diverId: diverId);
       if (existing != null) {
         if (uddfId != null) idMapping[uddfId] = existing.id;
-        // Keep every use the file gives the tag.
-        for (final scope in scopes) {
-          if (!existing.appliesTo(scope)) {
-            await repository.getOrCreateTag(
-              name,
-              diverId: diverId,
-              scope: scope,
-            );
-          }
+        // Keep every use the file gives the tag, in one write.
+        if (!existing.scopes.containsAll(scopes)) {
+          await repository.widenTag(existing, scopes);
         }
         continue;
       }
@@ -1506,11 +1500,16 @@ class UddfEntityImporter {
         colorHex: tagData['colorHex'] as String? ?? tagData['color'] as String?,
         createdAt: now,
         updatedAt: now,
-        scopes: scopes,
+        // A backup's stated scopes, or everywhere for a tag the source
+        // gives no scopes for (issue #4407).
+        scopes: importedNewTagScopes(tagData),
       );
 
-      await repository.createTag(tag);
-      if (uddfId != null) idMapping[uddfId] = newId;
+      // One that took the name meanwhile is widened only as an existing
+      // tag is above.
+      final created = await repository.createTag(tag, widenExistingTo: scopes);
+      // The incumbent's id when one took the name meanwhile, not [newId].
+      if (uddfId != null) idMapping[uddfId] = created.id;
       count++;
       onProgress?.call(ImportPhase.tags, count, selected.length);
     }
@@ -1713,7 +1712,7 @@ class UddfEntityImporter {
         ?tagIdMapping[ref],
     ];
     // The sites CSV's plain tag names (issue #2201): reuse this diver's tag
-    // of that name or create it, scoped to sites either way.
+    // of that name, widened to sites, or create it for every scope (#4407).
     final tagNames = siteData['siteTagNames'];
     for (final name
         in tagNames is List ? tagNames.whereType<String>() : const <String>[]) {

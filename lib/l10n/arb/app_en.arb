@@ -738,6 +738,14 @@
   "equipment_components_roleHint": "e.g. Primary second stage",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "Components",
+  "equipment_components_totalFromParts": "{total, plural, one{From {count} of {total} component} other{From {count} of {total} components}}",
+  "@equipment_components_totalFromParts": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "equipment_components_totalsSection": "Total",
   "equipment_documents_removeError": "Could not remove the document: {error}",
   "@diveLog_o2tox_label_timeAboveLimit": {
     "placeholders": {
@@ -4681,6 +4689,12 @@
   "diveLog_detail_button_rangeAnalysis": "Range Stats",
   "diveLog_detail_captureSignature": "Capture Instructor Signature",
   "diveLog_detail_collapsed_atTime": "{timestamp}",
+  "diveLog_pinnedStrip_ndl": "NDL {minutes} min",
+  "diveLog_pinnedStrip_stop": "Stop {depth} · {minutes} min",
+  "diveLog_pinnedStrip_ppO2": "ppO2 {value}",
+  "diveLog_pinnedStrip_hintDrag": "Drag to scrub",
+  "diveLog_pinnedStrip_hintHover": "Hover to scrub",
+  "diveLog_pinnedStrip_semantics": "Dive profile, scrub to move the cursor",
   "diveLog_detail_customFieldCount": "{count, plural, =1{1 field} other{{count} fields}}",
   "@diveLog_detail_customFieldCount": {
     "placeholders": {
@@ -6358,6 +6372,7 @@
   "diveLog_tank_tripCylinderMissing": "No longer on this trip",
   "diveLog_tank_tripCylinderSuggested": "Suggested from the trip's full cylinders",
   "diveLog_tissue_title": "Tissue Loading",
+  "diveLog_tissue_viewMenuTooltip": "Chart view",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",
   "diveLog_tooltip_ceiling": "Ceiling",
   "diveLog_tooltip_decoStop": "Deco stop",
@@ -14575,6 +14590,8 @@
   "settings_appearance_mapBackgroundSiteCards_subtitleWithNote": "Show map as background on dive site cards (requires site location)",
   "settings_appearance_maxDepthMarker": "Max depth marker",
   "settings_appearance_maxDepthMarker_subtitleFull": "Show a marker at the maximum depth point on dive profiles",
+  "settings_appearance_pinProfileOnScroll": "Pin profile when scrolling",
+  "settings_appearance_pinProfileOnScroll_subtitle": "Keep a thin, scrubbable profile at the top of dive details",
   "settings_appearance_metric_ceiling": "Ceiling",
   "settings_appearance_metric_events": "Events",
   "settings_appearance_metric_estimatedTankPressure": "Estimated Tank Pressure",
@@ -15884,6 +15901,7 @@
   "settings_conflict_field_showCountryFlags": "Country flags",
   "settings_conflict_field_countryCode": "Country code",
   "settings_conflict_field_showMaxDepthMarker": "Profile shows maximum depth",
+  "settings_conflict_field_pinProfileOnScroll": "Pin profile when scrolling",
   "settings_conflict_field_showNdlOnProfile": "Profile shows NDL",
   "settings_conflict_field_showPressureThresholdMarkers": "Profile shows pressure thresholds",
   "settings_conflict_field_showProfilePanelInTableView": "Profile panel in table view",
@@ -19380,6 +19398,10 @@
   },
   "tags_picker_allAdded": "All tags are already added.",
   "tags_picker_noMatches": "No tags match your search.",
+  "tags_picker_otherTags": "Other tags",
+  "@tags_picker_otherTags": {
+    "description": "Tag picker section heading over the diver's tags that are not yet offered for what is being tagged; picking one also offers it there"
+  },
   "tags_picker_addCount": "{count, plural, =0{Add tags} =1{Add 1 tag} other{Add {count} tags}}",
   "@tags_picker_addCount": {
     "description": "Confirm button on the tag picker sheet; count is how many tags are ticked",
@@ -19605,6 +19627,7 @@
   },
   "tags_manage_narrowDialog_title": "Remove tag from existing items?",
   "tags_manage_scopeRequired": "Choose at least one: dives, sites, equipment, media, or documents",
+  "tags_manage_existingTagNote": "This tag already exists. Saving adds the ticked uses to it.",
   "tags_manage_scope_dives": "Dives",
   "tags_manage_scope_equipment": "Equipment",
   "tags_manage_scope_sites": "Sites",
@@ -30258,6 +30281,8 @@
   "settings_appearance_showDataSourceBadges_subtitle": "Display source attribution on dive metrics",
   "settings_appearance_showDiveFigure": "Show diver figure on dives",
   "settings_appearance_showDiveFigure_subtitle": "Draw each dive's gear on a diver in its equipment card",
+  "settings_appearance_tissueColorScheme": "Tissue loading colors",
+  "settings_appearance_tissueColorScheme_subtitle": "Color scale for tissue heat maps and the 3D view",
   "diveLog_detail_gearFigureName": "Gear on this dive",
   "settings_appearance_title_buddies": "Buddies Appearance",
   "settings_appearance_title_certifications": "Certifications Appearance",
@@ -36126,10 +36151,14 @@
   "@demo_settings_exit_title": {"description": "Demo mode (issue #3708)"},
   "demo_settings_exit_subtitle": "Discard the sample logbook and return to your own",
   "@demo_settings_exit_subtitle": {"description": "Demo mode (issue #3708)"},
-  "demo_strip_label": "Demo mode: you are exploring sample data",
-  "@demo_strip_label": {"description": "Demo mode (issue #3708)"},
-  "demo_strip_exit": "Exit demo",
-  "@demo_strip_exit": {"description": "Demo mode (issue #3708)"},
+  "demo_active_label": "Demo mode: you are exploring sample data",
+  "@demo_active_label": {"description": "Says demo mode is on: the corner ribbon's screen reader label and the dashboard card's title (issues #3708, #4428, #4436)"},
+  "demo_exit_button": "Exit demo",
+  "@demo_exit_button": {"description": "Leaves demo mode: the dashboard card, the nav rail, the More sheet and the Unavailable in demo mode page (issues #3708, #4436)"},
+  "demo_ribbon_label": "DEMO",
+  "@demo_ribbon_label": {"description": "Demo mode corner ribbon text; short, written in capitals where the script has them (issue #4428)"},
+  "demo_card_body": "Your logbook is set aside, untouched, until you exit",
+  "@demo_card_body": {"description": "Body of the demo mode card on the dashboard (issue #4436)"},
   "demo_exit_confirm_title": "Exit demo mode?",
   "@demo_exit_confirm_title": {"description": "Demo mode (issue #3708)"},
   "demo_exit_confirm_body": "Changes you made to the sample logbook will be discarded.",

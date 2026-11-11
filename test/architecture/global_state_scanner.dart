@@ -62,6 +62,14 @@ const ioRule = 'IO overrides';
 const harnessRule = 'harness default';
 const channelRule = 'channel mock';
 const foundationRule = 'foundation hook';
+const viewRule = 'test view';
+
+/// The test view's properties a test sets, each with the reset that puts it
+/// back on its own. `view.reset` puts back all of them.
+const viewProperties = [
+  (property: 'devicePixelRatio', reset: 'resetDevicePixelRatio'),
+  (property: 'physicalSize', reset: 'resetPhysicalSize'),
+];
 
 final _platformAssignment = RegExp(r'\b([A-Z]\w*Platform)\.instance\s*=(?!=)');
 final _harnessHelper = RegExp(r'\bapplyGlobalTestDefaults\b');
@@ -279,6 +287,27 @@ List<GlobalStateOffence> scanForUnrestoredGlobals(String path, String source) {
       if (!helperScopes.any((scope) => scope.covers(match.start))) {
         flagged[match.start] = harnessRule;
       }
+    }
+  }
+
+  // A test view's size and pixel ratio outlive the test (issue #4436): the
+  // next file in the isolate lays out at whatever the last one left. Each is
+  // put back by `view.reset` or its own reset, registered in a teardown
+  // somewhere in the file. Unlike the rules above this one is file-wide: the
+  // reset is usually registered by a pump helper, and `addTearDown` belongs
+  // to the running test wherever it is written, so it also covers a test that
+  // resizes again after calling the helper. What it catches is a property
+  // that nothing in the file ever resets, such as a pixel ratio set beside a
+  // size that only `resetPhysicalSize` puts back.
+  for (final (:property, :reset) in viewProperties) {
+    final assignment = RegExp('\\.view\\.$property\\s*=(?!=)');
+    final restore = RegExp('\\.view\\.(?:reset|$reset)\\b');
+    final restored = restore
+        .allMatches(code)
+        .any((match) => _scopeOf(masked, match.start) != null);
+    if (restored) continue;
+    for (final match in assignment.allMatches(code)) {
+      flagged[match.start] = viewRule;
     }
   }
 

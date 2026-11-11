@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:equatable/equatable.dart';
+import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
@@ -19,6 +20,7 @@ import 'package:submersion/features/dive_log/presentation/providers/annotation_p
 import 'package:submersion/features/dive_log/presentation/widgets/annotation_placement_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -71,9 +73,30 @@ class DiveDetailProfileSection extends ConsumerWidget {
     required this.onSafetyFindingDetails,
     required this.onSetPrimarySource,
     this.onOpenInNotes,
+    this.fillHeight = false,
+    this.onPlotFrame,
+    this.viewport,
+    this.onViewportChanged,
   });
 
   final String diveId;
+
+  /// Fill the height the card is given, the chart taking up the slack: the
+  /// pinned copy is laid out shorter and shorter as the card scrolls away,
+  /// squashing its chart (#4423).
+  final bool fillHeight;
+
+  /// Told where the chart's plot is, for the pinned copy's hand-over to the
+  /// strip.
+  final ValueChanged<ProfilePlotFrame>? onPlotFrame;
+
+  /// The zoom window the chart shows, set from outside: the pinned copy's,
+  /// easing out from the full card's (#4423).
+  final ChartViewport? viewport;
+
+  /// Told the chart's zoom window whenever the reader zooms or pans it, so
+  /// the pinned copy can start from it.
+  final ValueChanged<ChartViewport>? onViewportChanged;
 
   /// "Open in Notes" on an annotation's popup (#4109): scrolls to the Notes
   /// card and highlights the passage.
@@ -115,6 +138,7 @@ class DiveDetailProfileSection extends ConsumerWidget {
           padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: fillHeight ? MainAxisSize.max : MainAxisSize.min,
             children: [
               // Header row
               Row(
@@ -179,18 +203,23 @@ class DiveDetailProfileSection extends ConsumerWidget {
                 const SizedBox(height: 8),
               ],
               // Chart with optional range selection overlay
-              DiveProfileChartHost(
-                dive: dive,
-                exportKey: exportKey,
-                annotationActions: annotationActions,
-                onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
-                // fl_chart's own tooltip bubble (issue #2228 follow-up): this
-                // is the exact pre-#2228 presentation for the embedded chart,
-                // positioned above the chart box by fl_chart itself rather
-                // than by the custom ProfileCursorTooltip used elsewhere.
-                // Restored after the custom in-chart tooltip's own upward-
-                // growth approximation still did not land in the same place.
-                tooltipPresentation: TooltipPresentation.nativeBubble,
+              _fill(
+                DiveProfileChartHost(
+                  dive: dive,
+                  exportKey: exportKey,
+                  onPlotFrame: onPlotFrame,
+                  viewport: viewport,
+                  onViewportChanged: onViewportChanged,
+                  annotationActions: annotationActions,
+                  onSafetyFindingDetails: (_) => onSafetyFindingDetails(),
+                  // fl_chart's own tooltip bubble (issue #2228 follow-up): this
+                  // is the exact pre-#2228 presentation for the embedded chart,
+                  // positioned above the chart box by fl_chart itself rather
+                  // than by the custom ProfileCursorTooltip used elsewhere.
+                  // Restored after the custom in-chart tooltip's own upward-
+                  // growth approximation still did not land in the same place.
+                  tooltipPresentation: TooltipPresentation.nativeBubble,
+                ),
               ),
               _ProfilePointCount(dive: dive),
               _ProfileSourceBar(
@@ -204,6 +233,10 @@ class DiveDetailProfileSection extends ConsumerWidget {
       ),
     );
   }
+
+  /// In [fillHeight] mode the chart takes whatever height the rest of the
+  /// card leaves; the chart fills a bounded height, so it squashes.
+  Widget _fill(Widget chart) => fillHeight ? Expanded(child: chart) : chart;
 
   void _showFullscreenProfile(BuildContext context) {
     // Root navigator, not the ShellRoute's: pushing on the shell navigator

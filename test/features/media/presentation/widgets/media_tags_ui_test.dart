@@ -95,6 +95,32 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
   });
 
+  testWidgets('the keyboard never covers the tag sheet\'s field (#4406)', (
+    tester,
+  ) async {
+    // pump() sizes the view to 800 x 1200; the keyboard takes half of it.
+    tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+    await pump(
+      tester,
+      Scaffold(
+        body: Builder(
+          builder: (context) => TextButton(
+            onPressed: () => showMediaTagSheet(context, item),
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    final field = find.descendant(
+      of: find.byType(TagInputWidget),
+      matching: find.byType(TextField),
+    );
+    expect(tester.getBottomLeft(field).dy, lessThanOrEqualTo(1200 - 600));
+  });
+
   testWidgets('the info card lists the tags and offers Edit tags', (
     tester,
   ) async {

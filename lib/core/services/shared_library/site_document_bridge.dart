@@ -286,8 +286,13 @@ class SiteDocumentBridge {
             name: name,
             createdAt: now,
             updatedAt: now,
-            scopes: const {domain.TagScope.sites},
+            // Offered everywhere, as any new tag is, so the diver can reuse
+            // it beyond sites (issue #4407).
+            scopes: domain.TagScope.everywhere,
           ),
+          // One that took the name meanwhile only needs sites, where it is
+          // about to be linked.
+          widenExistingTo: const {domain.TagScope.sites},
         );
         id = created.id;
         byName[_fold(name)] = id;

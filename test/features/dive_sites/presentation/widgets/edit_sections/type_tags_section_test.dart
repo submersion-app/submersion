@@ -162,10 +162,18 @@ void main() {
     await tester.tap(find.text('Browse'));
     await tester.pumpAndSettle();
 
-    // Only site tags, minus the one the site already has.
+    // Site tags first, minus the one the site already has; the dive-only
+    // tag follows under Other tags (issue #4406).
     expect(find.widgetWithText(CheckboxListTile, 'To try'), findsOneWidget);
-    expect(find.widgetWithText(CheckboxListTile, 'Night'), findsNothing);
     expect(find.widgetWithText(CheckboxListTile, 'Avoid'), findsNothing);
+    expect(
+      tester.getTopLeft(find.text('To try')).dy,
+      lessThan(tester.getTopLeft(find.text('Other tags')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Other tags')).dy,
+      lessThan(tester.getTopLeft(find.text('Night')).dy),
+    );
 
     await tester.tap(find.widgetWithText(CheckboxListTile, 'To try'));
     await tester.pump();

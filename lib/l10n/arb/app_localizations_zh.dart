@@ -1302,6 +1302,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_components_title => '组件';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '基于 $total 个组件中的 $count 个',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => '合计';
+
+  @override
   String equipment_documents_removeError(String error) {
     return '无法移除文档：$error';
   }
@@ -7398,6 +7411,30 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes 分钟';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return '停留 $depth · $minutes 分钟';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => '拖动以浏览';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => '悬停以浏览';
+
+  @override
+  String get diveLog_pinnedStrip_semantics => '潜水剖面图，拖动以移动光标';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -10707,6 +10744,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tissue_title => '组织饱和度';
+
+  @override
+  String get diveLog_tissue_viewMenuTooltip => '图表视图';
 
   @override
   String get diveLog_tooltip_avgCalculated => '（平均值，计算）';
@@ -21956,6 +21996,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '在潜水轮廓上最大深度点显示标记';
 
   @override
+  String get settings_appearance_pinProfileOnScroll => '滚动时固定剖面图';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      '在潜水详情顶部保留一条可拖动的窄剖面图';
+
+  @override
   String get settings_appearance_metric_ceiling => '上升限制';
 
   @override
@@ -25138,6 +25185,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_showMaxDepthMarker => '剖面显示最大深度';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll => '滚动时固定剖面图';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => '剖面显示 NDL';
@@ -31265,6 +31315,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_picker_noMatches => '没有标签与您的搜索匹配。';
 
   @override
+  String get tags_picker_otherTags => '其他标签';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31510,6 +31563,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired => '请至少选择一项：潜水、潜水点、装备、媒体或文档';
+
+  @override
+  String get tags_manage_existingTagNote => '此标签已存在。保存后将为其添加所勾选的用途。';
 
   @override
   String get tags_manage_scope_dives => '潜水';
@@ -48639,6 +48695,12 @@ class AppLocalizationsZh extends AppLocalizations {
       '在装备卡片中将每次潜水的装备显示在潜水员图上';
 
   @override
+  String get settings_appearance_tissueColorScheme => '组织饱和度颜色';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle => '组织热力图和3D视图的配色';
+
+  @override
   String get diveLog_detail_gearFigureName => '本次潜水的装备';
 
   @override
@@ -57391,10 +57453,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get demo_settings_exit_subtitle => '丢弃示例日志并返回你自己的日志';
 
   @override
-  String get demo_strip_label => '演示模式：你正在浏览示例数据';
+  String get demo_active_label => '演示模式：你正在浏览示例数据';
 
   @override
-  String get demo_strip_exit => '退出演示';
+  String get demo_exit_button => '退出演示';
+
+  @override
+  String get demo_ribbon_label => '演示';
+
+  @override
+  String get demo_card_body => '你的日志会被原封不动地保留，直到你退出';
 
   @override
   String get demo_exit_confirm_title => '退出演示模式？';

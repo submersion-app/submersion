@@ -181,13 +181,13 @@
 ## Follow-up tasks (stored country code)
 
 ### Task F1: `dive_sites.country_code` and its backfill
-- `DiveSites.countryCode` (`text().nullable()`), schema v360 rung with
+- `DiveSites.countryCode` (`text().nullable()`), schema v361 rung with
   `_assertSiteCountryCodeColumn()` (beforeOpen backstop too) and a rung-only
   backfill that sets `country_code = countryCodeFor(country)` where it is null.
 - `DiveSite.countryCode` with `copyWith(countryCode:, clearCountryCode:)`,
   props, the row mapper and every repository companion that writes `country`.
 - `DiveSite.flagCountryCode` getter: `countryCode ?? countryCodeFor(country)`.
-- Tests: migration from v359 backfills a recognised country, leaves an
+- Tests: migration from v360 backfills a recognised country, leaves an
   unrecognised one null, keeps an existing code; repository round-trip.
 
 ### Task F2: geocoding carries the code

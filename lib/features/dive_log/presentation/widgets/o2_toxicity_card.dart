@@ -5,6 +5,7 @@ import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compact_card_title.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/otu_limit_progress_row.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -585,45 +586,42 @@ class CompactO2ToxicityPanel extends StatelessWidget {
           child: Icon(Icons.air, size: 16, color: colorScheme.primary),
         ),
         const SizedBox(width: 6),
-        Text(
-          context.l10n.diveLog_detail_section_oxygenToxicity,
-          style: textTheme.titleSmall,
-        ),
-        if (subtitle != null) ...[
-          const SizedBox(width: 6),
-          Text(
-            '@ $subtitle',
-            style: textTheme.labelSmall?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-        if (isWarning) ...[
-          const SizedBox(width: 6),
-          Semantics(
-            label: isCritical
-                ? context.l10n.diveLog_o2tox_semantics_criticalWarning
-                : context.l10n.diveLog_o2tox_semantics_warning,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(
-                color: badge.fill,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                isCritical
-                    ? context.l10n.diveLog_detail_badge_critical
-                    : context.l10n.diveLog_detail_badge_warning,
-                style: textTheme.labelSmall?.copyWith(
-                  color: badge.label,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
+        Expanded(
+          child: CompactCardTitle(
+            title: context.l10n.diveLog_detail_section_oxygenToxicity,
+            cursorTime: subtitle,
+            trailing: [
+              if (isWarning) ...[
+                const SizedBox(width: 6),
+                Semantics(
+                  label: isCritical
+                      ? context.l10n.diveLog_o2tox_semantics_criticalWarning
+                      : context.l10n.diveLog_o2tox_semantics_warning,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badge.fill,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      isCritical
+                          ? context.l10n.diveLog_detail_badge_critical
+                          : context.l10n.diveLog_detail_badge_warning,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: badge.label,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
+              ],
+            ],
           ),
-        ],
-        const Spacer(),
+        ),
         HeaderInfoButton(
           title: context.l10n.diveLog_detail_section_oxygenToxicity,
           height: 20,

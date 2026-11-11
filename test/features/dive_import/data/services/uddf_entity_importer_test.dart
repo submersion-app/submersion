@@ -1107,7 +1107,12 @@ void main() {
 
   group('Import tags', () {
     test('imports tags', () async {
-      when(mockTagRepo.createTag(any)).thenAnswer(
+      when(
+        mockTagRepo.createTag(
+          any,
+          widenExistingTo: anyNamed('widenExistingTo'),
+        ),
+      ).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Tag,
       );
 
@@ -1126,8 +1131,52 @@ void main() {
 
       expect(result.tags, 1);
 
-      final captured = verify(mockTagRepo.createTag(captureAny)).captured;
+      final captured = verify(
+        mockTagRepo.createTag(
+          captureAny,
+          widenExistingTo: anyNamed('widenExistingTo'),
+        ),
+      ).captured;
       expect((captured[0] as Tag).colorHex, '#FF0000');
+      // The map gives no scopes, so the new tag is offered everywhere.
+      expect((captured[0] as Tag).scopes, TagScope.everywhere);
+    });
+
+    test('a new tag keeps the scopes a backup states (#4407)', () async {
+      when(
+        mockTagRepo.createTag(
+          any,
+          widenExistingTo: anyNamed('widenExistingTo'),
+        ),
+      ).thenAnswer(
+        (invocation) async => invocation.positionalArguments[0] as Tag,
+      );
+
+      const data = UddfImportResult(
+        tags: [
+          {
+            'name': 'To try',
+            'uddfId': 'tag-1',
+            'appliesToDives': false,
+            'appliesToSites': true,
+          },
+        ],
+      );
+      await importer.import(
+        data: data,
+        selections: const UddfImportSelections(tags: {0}),
+        repositories: repos,
+        diverId: diverId,
+      );
+
+      final captured = verify(
+        mockTagRepo.createTag(
+          captureAny,
+          widenExistingTo: captureAnyNamed('widenExistingTo'),
+        ),
+      ).captured;
+      expect((captured[0] as Tag).scopes, {TagScope.sites});
+      expect(captured[1], {TagScope.sites});
     });
 
     test('reuses a tag the diver already has by that name (#1032)', () async {
@@ -1167,7 +1216,12 @@ void main() {
       );
 
       expect(result.tags, 0, reason: 'nothing new was created');
-      verifyNever(mockTagRepo.createTag(any));
+      verifyNever(
+        mockTagRepo.createTag(
+          any,
+          widenExistingTo: anyNamed('widenExistingTo'),
+        ),
+      );
       verify(mockTagRepo.addTagToDive(any, 'existing-night')).called(1);
     });
   });
@@ -2530,7 +2584,12 @@ void main() {
         preResolvedTagIds: const {'Night': 'existing-tag-1'},
       );
 
-      verifyNever(mockTagRepo.createTag(any));
+      verifyNever(
+        mockTagRepo.createTag(
+          any,
+          widenExistingTo: anyNamed('widenExistingTo'),
+        ),
+      );
       verify(mockTagRepo.addTagToDive(any, 'existing-tag-1')).called(1);
     });
 
@@ -2739,7 +2798,12 @@ void main() {
     });
 
     test('links tags to dive', () async {
-      when(mockTagRepo.createTag(any)).thenAnswer(
+      when(
+        mockTagRepo.createTag(
+          any,
+          widenExistingTo: anyNamed('widenExistingTo'),
+        ),
+      ).thenAnswer(
         (invocation) async => invocation.positionalArguments[0] as Tag,
       );
       when(mockTagRepo.addTagToDive(any, any)).thenAnswer((_) async {});

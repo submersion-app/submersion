@@ -1355,6 +1355,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_components_title => 'Componentes';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'De $count de $total componentes',
+      one: 'De $count de $total componente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'Total';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'Não foi possível remover o documento: $error';
   }
@@ -7791,6 +7805,31 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String diveLog_pinnedStrip_ndl(Object minutes) {
+    return 'NDL $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
+    return 'Parada $depth · $minutes min';
+  }
+
+  @override
+  String diveLog_pinnedStrip_ppO2(Object value) {
+    return 'ppO2 $value';
+  }
+
+  @override
+  String get diveLog_pinnedStrip_hintDrag => 'Arraste para navegar';
+
+  @override
+  String get diveLog_pinnedStrip_hintHover => 'Passe o cursor para navegar';
+
+  @override
+  String get diveLog_pinnedStrip_semantics =>
+      'Perfil do mergulho, navegue para mover o cursor';
+
+  @override
   String diveLog_detail_customFieldCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11275,6 +11314,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tissue_title => 'Carga Tissular';
+
+  @override
+  String get diveLog_tissue_viewMenuTooltip => 'Vista do gráfico';
 
   @override
   String get diveLog_tooltip_avgCalculated => '(méd., calculado)';
@@ -23123,6 +23165,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mostrar um marcador no ponto de profundidade máxima nos perfis de mergulho';
 
   @override
+  String get settings_appearance_pinProfileOnScroll => 'Fixar perfil ao rolar';
+
+  @override
+  String get settings_appearance_pinProfileOnScroll_subtitle =>
+      'Manter um perfil fino e navegável no topo dos detalhes do mergulho';
+
+  @override
   String get settings_appearance_metric_ceiling => 'Teto';
 
   @override
@@ -26632,6 +26681,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_showMaxDepthMarker =>
       'Perfil mostra a profundidade máxima';
+
+  @override
+  String get settings_conflict_field_pinProfileOnScroll =>
+      'Fixar perfil ao rolar';
 
   @override
   String get settings_conflict_field_showNdlOnProfile => 'Perfil mostra o NDL';
@@ -33188,6 +33241,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhuma etiqueta corresponde à sua pesquisa.';
 
   @override
+  String get tags_picker_otherTags => 'Outras etiquetas';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -33454,6 +33510,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'Escolha pelo menos um: mergulhos, pontos, equipamentos, mídia ou documentos';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'Esta tag já existe. Ao salvar, os usos marcados são adicionados a ela.';
 
   @override
   String get tags_manage_scope_dives => 'Mergulhos';
@@ -51784,6 +51844,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Mostrar o equipamento de cada mergulho num mergulhador no cartão de equipamento';
 
   @override
+  String get settings_appearance_tissueColorScheme => 'Cores da carga tecidual';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Escala de cores dos mapas de calor dos tecidos e da visualização 3D';
+
+  @override
   String get diveLog_detail_gearFigureName => 'Equipamento deste mergulho';
 
   @override
@@ -61135,11 +61202,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Descartar o diário de exemplo e voltar ao seu';
 
   @override
-  String get demo_strip_label =>
+  String get demo_active_label =>
       'Modo de demonstração: está a explorar dados de exemplo';
 
   @override
-  String get demo_strip_exit => 'Sair da demonstração';
+  String get demo_exit_button => 'Sair da demonstração';
+
+  @override
+  String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body => 'O seu diário fica de lado, intacto, até sair';
 
   @override
   String get demo_exit_confirm_title => 'Sair do modo de demonstração?';
