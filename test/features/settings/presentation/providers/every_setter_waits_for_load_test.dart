@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/built_ins/built_in_catalog.dart';
 import 'package:submersion/core/constants/app_enums.dart';
@@ -19,6 +21,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
@@ -200,6 +203,10 @@ Future<void> _changeEverySetting(SettingsNotifier n) {
     n.setSeascapeVerticalExaggerationOverride('site-2', 3),
     n.setSeascapeVerticalExaggerationOverride('site-2', null),
     n.setTissueVizMode(TissueVizMode.values.last),
+    n.setSeascapeAppearance(
+      const SeascapeAppearance(rampBanded: true, wallAngleDeg: 30),
+    ),
+    n.updateListArrangements((a) => a.copyWith(diveSort: 'date:asc')),
     n.setShowMapBackgroundOnDiveCards(!d.showMapBackgroundOnDiveCards),
     n.setShowPhotoBackgroundOnDiveCards(!d.showPhotoBackgroundOnDiveCards),
     n.setCardPhotoOverlayDark(0.3),
@@ -318,6 +325,44 @@ void main() {
       stored: await DiverSettingsRepository().getSettingsForDiver(diver.id),
     );
   }
+
+  test('the calls above cover every public setter', () {
+    final source = File(
+      p.join(
+        'lib',
+        'features',
+        'settings',
+        'presentation',
+        'providers',
+        'settings_providers.dart',
+      ),
+    ).readAsStringSync();
+    final start = source.indexOf('class SettingsNotifier ');
+    final end = source.indexOf('\n}\n', start);
+    final setters = RegExp(
+      r'^  Future<void> ([a-z]\w*)\(',
+      multiLine: true,
+    ).allMatches(source.substring(start, end)).map((m) => m.group(1)!);
+    final self = File(
+      p.join(
+        'test',
+        'features',
+        'settings',
+        'presentation',
+        'providers',
+        'every_setter_waits_for_load_test.dart',
+      ),
+    ).readAsStringSync();
+    final missing = [
+      for (final name in setters)
+        if (!self.contains('n.$name(')) name,
+    ];
+    expect(
+      missing,
+      isEmpty,
+      reason: 'Add these to _changeEverySetting so they are checked too.',
+    );
+  });
 
   test('changes made before the load end as the same changes made '
       'after it', () async {
