@@ -135,20 +135,34 @@ class _CompactTissueLoadingCardState
           children: [
             Row(
               children: [
-                Text(
-                  context.l10n.diveLog_deco_sectionTissueLoading,
-                  style: textTheme.titleSmall,
-                ),
-                if (widget.subtitle != null) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    '@ ${widget.subtitle!}',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                // The title gives way in a narrow column (the desktop side
+                // panel), so the cursor time and the controls always fit.
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          context.l10n.diveLog_deco_sectionTissueLoading,
+                          style: textTheme.titleSmall,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (widget.subtitle != null) ...[
+                        const SizedBox(width: 6),
+                        Text(
+                          '@ ${widget.subtitle!}',
+                          style: textTheme.labelSmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-                const Spacer(),
+                ),
+                // Keeps the cursor time off the first control once the
+                // title has shrunk to make room.
+                const SizedBox(width: 8),
                 // Every control below shares _headerButtonStyle, so each one
                 // lays out to the same box and the gaps stay even. Do not add
                 // manual spacers between them: the icons are built from
