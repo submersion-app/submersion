@@ -6,7 +6,11 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/connections/domain/views/timeline_days.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
+import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_view_provider.dart';
@@ -14,6 +18,20 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 final connectionsRepositoryProvider = Provider<ConnectionsRepository>(
   (ref) => ConnectionsRepository(),
 );
+
+/// A filter naming `deco` or `gear.serviceDue` reads a local cache of engine
+/// verdicts (#2365, #4461). Waits for those caches before the query, and
+/// re-runs it when they are written, which the connections tick does not
+/// follow.
+Future<void> _awaitFilterCaches(Ref ref, DiveFilterState filter) async {
+  final touched = diveFilterTablesTouched(filter);
+  await awaitQueryCachesIfRead(ref, touched);
+  final caches = touched.intersection(queryCacheTables);
+  if (caches.isEmpty) return;
+  ref.invalidateSelfWhen(
+    ref.read(queryIdSetRunnerProvider).watchTables(caches),
+  );
+}
 
 /// The graph for the current view and filter, trimmed to the node budget
 /// given as the family key (the page picks 80 or 160 by width).
@@ -25,6 +43,7 @@ final connectionGraphProvider = FutureProvider.autoDispose
       final view = ref.watch(connectionsViewProvider);
       final filter = ref.watch(connectionsFilterProvider);
       if (view.isAroundWithoutFocus) return ConnectionGraph.empty;
+      await _awaitFilterCaches(ref, filter);
       if (view.mode == ConnectionsMode.around) {
         return repository.loadAround(
           focus: view.focus!,
@@ -83,5 +102,6 @@ final connectionsSelectionDiveIdsProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(repository.watchConnectionsChanges());
       final diverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(connectionsFilterProvider);
+      await _awaitFilterCaches(ref, filter);
       return repository.diveIdsFor(selection, diverId: diverId, filter: filter);
     });
