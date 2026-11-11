@@ -2558,18 +2558,25 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// Applies a threshold change and persists it, restoring the previous
   /// state when the write fails so the editing page's error and retry match
   /// what storage actually holds.
+  ///
+  /// Only while [state] is still the change that failed: a change made
+  /// while the write was out was built on it, and its own save retries the
+  /// failed column, so restoring then would drop that later change.
   Future<void> _commitThreshold(
     AppSettings Function(AppSettings current) change,
   ) async {
     AppSettings? previous;
+    AppSettings? attempted;
     try {
       await _update((s) {
         previous = s;
-        return change(s);
+        return attempted = change(s);
       });
     } catch (_) {
       final restore = previous;
-      if (restore != null && mounted) state = restore;
+      if (restore != null && mounted && identical(state, attempted)) {
+        state = restore;
+      }
       rethrow;
     }
   }
