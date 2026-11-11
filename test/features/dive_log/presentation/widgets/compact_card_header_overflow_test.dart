@@ -4,8 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/o2_exposure.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/gas_switch_efficiency_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -16,7 +18,8 @@ import '../../../../helpers/mock_providers.dart';
 /// desktop. Their header carries the title, the "@ mm:ss" cursor time, a
 /// status badge or view controls, and the info icon, and must fit that
 /// column: before the title gave way, adding the info icon overflowed the
-/// Deco Status, Oxygen Toxicity and Tissue Loading headers.
+/// Deco Status, Oxygen Toxicity and Tissue Loading headers. Gas Switches
+/// shares the column and the same title widget.
 const _comp = TissueCompartment(
   compartmentNumber: 1,
   halfTimeN2: 4.0,
@@ -81,6 +84,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('@ 31:00'), findsOneWidget);
+      expect(find.text('Deco Status'), findsOneWidget);
       expect(find.byTooltip('About Deco Status'), findsOneWidget);
     });
   }
@@ -97,6 +101,7 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('@ 31:00'), findsOneWidget);
+    expect(find.text('Oxygen Toxicity'), findsOneWidget);
     expect(find.byTooltip('About Oxygen Toxicity'), findsOneWidget);
   });
 
@@ -115,6 +120,29 @@ void main() {
 
     expect(tester.takeException(), isNull);
     expect(find.text('@ 31:00'), findsOneWidget);
+    expect(find.text('Tissue Loading'), findsOneWidget);
     expect(find.byTooltip('About Tissue Loading'), findsOneWidget);
+  });
+
+  // Gas Switches has no cursor time or badge, only the title and the info
+  // icon, so it needs a narrower card than the others to reach its limit:
+  // under the test font its old fixed title, icon and info slot needed 262 px.
+  testWidgets('Gas Switches header fits a 220 px card', (tester) async {
+    await tester.pumpWidget(
+      _host(
+        220,
+        const GasSwitchEfficiencyCard(
+          efficiency: GasSwitchEfficiency(
+            evaluated: true,
+            windows: [],
+            totalExtraDecoSeconds: 0,
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Gas switches'), findsOneWidget);
+    expect(find.byTooltip('About Gas switches'), findsOneWidget);
   });
 }
