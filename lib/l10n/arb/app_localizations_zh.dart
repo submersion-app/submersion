@@ -36909,9 +36909,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return '无法重新关联数据源：$error';
-  }
+  String get settings_relinkSources_failed => '无法重新关联数据源。未做任何更改。';
 
   @override
   String get settings_reparseDives_intro =>

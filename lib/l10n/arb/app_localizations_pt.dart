@@ -39219,9 +39219,8 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'Não foi possível vincular as fontes de dados: $error';
-  }
+  String get settings_relinkSources_failed =>
+      'Não foi possível vincular as fontes de dados. Nada foi alterado.';
 
   @override
   String get settings_reparseDives_intro =>

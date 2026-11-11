@@ -36,13 +36,14 @@ typedef LinkedSource = ({String diveId, String computerId});
 
 /// Whether a source's snapshots name the model of the computer stored as
 /// [manufacturer] / [model]. The model snapshot names the computer as it was
-/// labeled at the download, by its model or its full name; the descriptor
-/// names what the device reported, so its product must be the model and its
-/// vendor, when both sides have one, the manufacturer (compared by letters
-/// and digits). A computer without a model matches nothing.
+/// labeled at the download, by its model or its full name; the descriptor's
+/// product names the model the device reported. A computer without a model
+/// matches nothing. The descriptor's vendor is not weighed here, since a
+/// computer is often filed under another maker than libdivecomputer reports
+/// (a Galileo under Scubapro rather than Uwatec); [descriptorVendorMatches]
+/// adds it where nothing else vouches for the computer.
 bool sourceNamesComputerModel({
   String? computerModel,
-  String? descriptorVendor,
   String? descriptorProduct,
   String? manufacturer,
   String? model,
@@ -56,14 +57,17 @@ bool sourceNamesComputerModel({
   final snapshot = normalizeComputerIdentityPart(computerModel);
   if (snapshot == modelKey || snapshot == fullKey) return true;
 
-  if (normalizeComputerIdentityPart(descriptorProduct) != modelKey) {
-    return false;
-  }
-  // By letters and digits only, so a brand typed with a hyphen or a dot
-  // ("Heinrichs-Weikamp") is still the vendor libdivecomputer names.
-  final vendor = _brandKey(descriptorVendor);
+  return normalizeComputerIdentityPart(descriptorProduct) == modelKey;
+}
+
+/// Whether the vendor libdivecomputer reported for a source can be the
+/// [manufacturer] a computer is filed under: either is blank, or they are
+/// the same by letters and digits, so a brand typed with a hyphen or a dot
+/// ("Heinrichs-Weikamp") is still the vendor it names.
+bool descriptorVendorMatches(String? vendor, String? manufacturer) {
+  final reported = _brandKey(vendor);
   final maker = _brandKey(manufacturer);
-  return vendor.isEmpty || maker.isEmpty || vendor == maker;
+  return reported.isEmpty || maker.isEmpty || reported == maker;
 }
 
 final RegExp _notLetterOrDigit = RegExp(r'[^\p{L}\p{N}]', unicode: true);
@@ -90,7 +94,6 @@ bool orphanMayBelongTo(
 bool _namesModel(OrphanedSource s, ImportedComputerCandidate c) =>
     sourceNamesComputerModel(
       computerModel: s.computerModel,
-      descriptorVendor: s.descriptorVendor,
       descriptorProduct: s.descriptorProduct,
       manufacturer: c.manufacturer,
       model: c.model,
@@ -109,7 +112,8 @@ bool _namesModel(OrphanedSource s, ImportedComputerCandidate c) =>
 /// A source without one can only say which model it came from, so it is
 /// given a computer only when nothing suggests another unit could be its:
 /// exactly one computer in [computers] has that model, whichever diver it
-/// belongs to; that computer is not another diver's; no source in [sources]
+/// belongs to; that computer is not another diver's, and is filed under the
+/// maker the device reported ([descriptorVendorMatches]); no source in [sources]
 /// of that model names a serial other than the computer's; and the dive
 /// neither holds a source of that computer already ([linkedSources]) nor
 /// gains another in this match. Two units of one model are never told apart
@@ -145,7 +149,6 @@ Map<String, String> matchOrphanedSources({
   final otherUnitSeen = <String, bool>{};
 
   for (final source in sources) {
-    final fitting = computers.where((c) => _namesModel(source, c)).toList();
     if (!blank(source.computerSerial)) {
       final same = computers
           .where(
@@ -159,9 +162,18 @@ Map<String, String> matchOrphanedSources({
       continue;
     }
 
+    final fitting = computers.where((c) => _namesModel(source, c)).toList();
     if (fitting.length != 1) continue;
     final target = fitting.single;
     if (!sameDiver(source, target)) continue;
+    // Only the model vouches for a guess, so a product of the same name
+    // from another maker must not pass for it.
+    if (!descriptorVendorMatches(
+      source.descriptorVendor,
+      target.manufacturer,
+    )) {
+      continue;
+    }
     final otherUnit = otherUnitSeen.putIfAbsent(
       target.id,
       () => sources.any(

@@ -39770,9 +39770,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'تعذّر إعادة ربط مصادر البيانات: $error';
-  }
+  String get settings_relinkSources_failed =>
+      'تعذّر إعادة ربط مصادر البيانات. لم يتم تغيير أي شيء.';
 
   @override
   String get settings_reparseDives_intro =>

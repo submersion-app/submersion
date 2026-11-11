@@ -118,8 +118,9 @@ void main() {
     await confirm(tester);
 
     expect(
-      find.textContaining('Could not relink data sources'),
+      find.text('Could not relink data sources. Nothing was changed.'),
       findsOneWidget,
     );
+    expect(find.textContaining('disk full'), findsNothing);
   });
 }

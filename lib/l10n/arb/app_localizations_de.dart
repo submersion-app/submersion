@@ -39158,9 +39158,8 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'Datenquellen konnten nicht verknüpft werden: $error';
-  }
+  String get settings_relinkSources_failed =>
+      'Datenquellen konnten nicht verknüpft werden. Es wurde nichts geändert.';
 
   @override
   String get settings_reparseDives_intro =>

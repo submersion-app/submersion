@@ -38977,9 +38977,8 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'Gegevensbronnen konden niet worden gekoppeld: $error';
-  }
+  String get settings_relinkSources_failed =>
+      'Gegevensbronnen konden niet worden gekoppeld. Er is niets gewijzigd.';
 
   @override
   String get settings_reparseDives_intro =>

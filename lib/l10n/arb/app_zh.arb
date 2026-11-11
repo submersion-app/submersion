@@ -11083,7 +11083,7 @@
   "settings_relinkSources_confirmBody": "删除潜水电脑条目后，下载的潜水会失去与它的关联。此操作会将它们重新关联到来源潜水电脑：按序列号匹配，或在你只有一台该型号潜水电脑时按型号匹配。",
   "settings_relinkSources_confirmApply": "重新关联",
   "settings_relinkSources_result": "{count, plural, =0{没有未关联的数据源与潜水电脑匹配} other{已将 {count} 个数据源重新关联到潜水电脑}}",
-  "settings_relinkSources_failed": "无法重新关联数据源：{error}",
+  "settings_relinkSources_failed": "无法重新关联数据源。未做任何更改。",
   "settings_reparseDives_intro": "在应用更新改进了潜水电脑数据的读取方式后使用。您的笔记、地点、潜伴和其他编辑内容将被保留。",
   "settings_reparseDives_withRawData": "有原始数据的潜水:{count}",
   "settings_reparseDives_withoutRawData": "没有原始数据的潜水(不会重新解析):{count}",

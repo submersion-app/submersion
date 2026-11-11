@@ -35,7 +35,7 @@ class OrphanedSourceRelinker {
   /// Relinks what can be matched and returns how many sources it linked.
   /// With [computerId], only links to that computer are made; the match is
   /// still decided over the whole library. Runs in the caller's transaction
-  /// when there is one.
+  /// when there is one, and leaves notifying the sync bus to the caller.
   Future<int> relink({String? computerId}) async {
     final orphans = await _orphans();
     if (orphans.isEmpty) return 0;
@@ -82,6 +82,9 @@ class OrphanedSourceRelinker {
 
   Future<void> _link(String computerId, List<_Orphan> orphans) async {
     final sourceIds = [for (final o in orphans) o.source.id];
+    // Restamped in the same write, as every update of a parent-gated child
+    // is (#2644, test/architecture/child_write_restamps_test.dart), even
+    // though the pending mark below stamps the row again.
     final clock = await _syncRepository.issueRowClock();
     for (final chunk in seriesIdChunks(sourceIds)) {
       await _db.customStatement(
@@ -90,10 +93,11 @@ class OrphanedSourceRelinker {
         [computerId, clock, ...chunk],
       );
     }
-    // Each source is published on its own (#2644): its dive is staged below
-    // only when the source is the primary, so a secondary source would
-    // otherwise never leave this device, and a peer's newer copy, still
-    // unlinked, would clear the link again.
+    // Each source is published on its own (#2644), which also gives it a
+    // fresh clock: its dive is staged below only when the source is the
+    // primary, so a secondary source would otherwise never leave this
+    // device, and a peer's newer copy, still unlinked, would clear the link
+    // again.
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final id in sourceIds) {
       await _syncRepository.markRecordPending(
@@ -134,10 +138,16 @@ class OrphanedSourceRelinker {
     }
 
     // Profiles carry no serial snapshot of their own, so they follow only
-    // where the dive's computer attribution is unambiguous.
+    // where the dive's computer attribution is unambiguous. The sync bus is
+    // left to the caller, which notifies once its transaction commits.
     final diveIds = {for (final o in orphans) o.source.diveId}.toList();
     for (final chunk in seriesIdChunks(diveIds)) {
-      await _profileSeries.relinkComputer(computerId, chunk, now: now);
+      await _profileSeries.relinkComputer(
+        computerId,
+        chunk,
+        now: now,
+        notify: false,
+      );
     }
   }
 

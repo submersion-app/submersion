@@ -39249,9 +39249,8 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'Impossibile ricollegare le fonti dati: $error';
-  }
+  String get settings_relinkSources_failed =>
+      'Impossibile ricollegare le fonti dati. Non è stato modificato nulla.';
 
   @override
   String get settings_reparseDives_intro =>

@@ -61566,8 +61566,8 @@ abstract class AppLocalizations {
   /// Data tools relink of orphaned downloaded data sources (issue #4465)
   ///
   /// In en, this message translates to:
-  /// **'Could not relink data sources: {error}'**
-  String settings_relinkSources_failed(String error);
+  /// **'Could not relink data sources. Nothing was changed.'**
+  String get settings_relinkSources_failed;
 
   /// Bulk re-parse (issue #224)
   ///

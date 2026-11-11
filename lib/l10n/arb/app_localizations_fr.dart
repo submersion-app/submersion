@@ -39353,9 +39353,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'Impossible de relier les sources de données : $error';
-  }
+  String get settings_relinkSources_failed =>
+      'Impossible de relier les sources de données. Rien n\'a été modifié.';
 
   @override
   String get settings_reparseDives_intro =>

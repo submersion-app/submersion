@@ -11217,7 +11217,7 @@
   "settings_relinkSources_confirmBody": "Heruntergeladene Tauchgänge verlieren die Verknüpfung zu einem Tauchcomputer, wenn sein Eintrag gelöscht wird. Hiermit werden sie wieder mit dem Tauchcomputer verknüpft, von dem sie stammen: über die Seriennummer, oder über das Modell, wenn du nur einen Tauchcomputer dieses Modells hast.",
   "settings_relinkSources_confirmApply": "Verknüpfen",
   "settings_relinkSources_result": "{count, plural, =0{Keine unverknüpfte Datenquelle passte zu einem Tauchcomputer} =1{1 Datenquelle mit ihrem Tauchcomputer verknüpft} other{{count} Datenquellen mit ihren Tauchcomputern verknüpft}}",
-  "settings_relinkSources_failed": "Datenquellen konnten nicht verknüpft werden: {error}",
+  "settings_relinkSources_failed": "Datenquellen konnten nicht verknüpft werden. Es wurde nichts geändert.",
   "settings_reparseDives_intro": "Nutze dies, wenn ein App-Update das Einlesen von Tauchcomputerdaten verbessert. Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bleiben erhalten.",
   "settings_reparseDives_withRawData": "Tauchgänge mit Rohdaten: {count}",
   "settings_reparseDives_withoutRawData": "Tauchgänge ohne Rohdaten (nicht neu ausgewertet): {count}",

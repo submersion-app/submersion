@@ -39037,9 +39037,8 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'Az adatforrások újracsatolása nem sikerült: $error';
-  }
+  String get settings_relinkSources_failed =>
+      'Az adatforrások újracsatolása nem sikerült. Semmi sem változott.';
 
   @override
   String get settings_reparseDives_intro =>

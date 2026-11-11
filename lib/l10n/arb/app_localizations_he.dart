@@ -38286,9 +38286,8 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'לא ניתן לקשר מחדש את מקורות הנתונים: $error';
-  }
+  String get settings_relinkSources_failed =>
+      'לא ניתן לקשר מחדש את מקורות הנתונים. לא בוצע שום שינוי.';
 
   @override
   String get settings_reparseDives_intro =>

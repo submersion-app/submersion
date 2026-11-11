@@ -38582,9 +38582,8 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String settings_relinkSources_failed(String error) {
-    return 'Could not relink data sources: $error';
-  }
+  String get settings_relinkSources_failed =>
+      'Could not relink data sources. Nothing was changed.';
 
   @override
   String get settings_reparseDives_intro =>

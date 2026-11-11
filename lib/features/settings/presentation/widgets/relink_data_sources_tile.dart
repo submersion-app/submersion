@@ -45,8 +45,10 @@ class _RelinkDataSourcesTileState extends ConsumerState<RelinkDataSourcesTile> {
             .read(diveComputerRepositoryProvider)
             .relinkOrphanedSources();
         message = l10n.settings_relinkSources_result(linked);
-      } catch (e) {
-        message = l10n.settings_relinkSources_failed('$e');
+      } catch (_) {
+        // The repository has logged the cause; the relink ran in one
+        // transaction, so the diver only needs to know nothing changed.
+        message = l10n.settings_relinkSources_failed;
       }
       messenger.showSnackBar(SnackBar(content: Text(message)));
     } finally {

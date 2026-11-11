@@ -11083,7 +11083,7 @@
   "settings_relinkSources_confirmBody": "צלילות שהורדו מאבדות את הקישור למחשב צלילה כאשר הרשומה שלו נמחקת. פעולה זו מקשרת אותן מחדש למחשב הצלילה שממנו הגיעו: לפי מספר סידורי, או לפי דגם כאשר יש לך רק מחשב צלילה אחד מאותו דגם.",
   "settings_relinkSources_confirmApply": "קישור מחדש",
   "settings_relinkSources_result": "{count, plural, =0{אף מקור נתונים לא מקושר לא התאים למחשב צלילה} =1{מקור נתונים אחד קושר למחשב הצלילה שלו} other{{count} מקורות נתונים קושרו למחשבי הצלילה שלהם}}",
-  "settings_relinkSources_failed": "לא ניתן לקשר מחדש את מקורות הנתונים: {error}",
+  "settings_relinkSources_failed": "לא ניתן לקשר מחדש את מקורות הנתונים. לא בוצע שום שינוי.",
   "settings_reparseDives_intro": "השתמש בזה אחרי שעדכון של האפליקציה משפר את קריאת נתוני מחשב הצלילה. ההערות, האתרים, השותפים ושאר העריכות נשמרים.",
   "settings_reparseDives_withRawData": "צלילות עם נתונים גולמיים: {count}",
   "settings_reparseDives_withoutRawData": "צלילות ללא נתונים גולמיים (לא ינותחו מחדש): {count}",

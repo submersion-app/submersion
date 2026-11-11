@@ -55,10 +55,11 @@ void main() {
       );
     });
 
-    test('matches the descriptor product when the vendor agrees', () {
+    test('matches the descriptor product, whatever vendor reported it', () {
+      // The vendor is weighed only where nothing else vouches for the
+      // computer: see descriptorVendorMatches.
       expect(
         sourceNamesComputerModel(
-          descriptorVendor: 'Shearwater',
           descriptorProduct: 'Perdix',
           manufacturer: 'Shearwater',
           model: 'Perdix',
@@ -75,30 +76,6 @@ void main() {
       );
     });
 
-    test('compares the vendor by its letters and digits', () {
-      expect(
-        sourceNamesComputerModel(
-          descriptorVendor: 'Heinrichs Weikamp',
-          descriptorProduct: 'OSTC 4',
-          manufacturer: 'Heinrichs-Weikamp',
-          model: 'OSTC 4',
-        ),
-        isTrue,
-      );
-    });
-
-    test('rejects a descriptor product from another vendor', () {
-      expect(
-        sourceNamesComputerModel(
-          descriptorVendor: 'Mares',
-          descriptorProduct: 'Perdix',
-          manufacturer: 'Shearwater',
-          model: 'Perdix',
-        ),
-        isFalse,
-      );
-    });
-
     test('never matches a computer without a model', () {
       expect(
         sourceNamesComputerModel(
@@ -108,6 +85,24 @@ void main() {
         ),
         isFalse,
       );
+    });
+  });
+
+  group('descriptorVendorMatches', () {
+    test('compares the vendor by its letters and digits', () {
+      expect(
+        descriptorVendorMatches('Heinrichs Weikamp', 'Heinrichs-Weikamp'),
+        isTrue,
+      );
+    });
+
+    test('rejects another vendor', () {
+      expect(descriptorVendorMatches('Mares', 'Shearwater'), isFalse);
+    });
+
+    test('accepts a blank side', () {
+      expect(descriptorVendorMatches(null, 'Shearwater'), isTrue);
+      expect(descriptorVendorMatches('Mares', ' '), isTrue);
     });
   });
 
@@ -182,6 +177,31 @@ void main() {
         computers: [computer('c1', model: null, serial: 'ABC123')],
       );
       expect(result, isEmpty);
+    });
+
+    test('links across a manufacturer renamed since the download', () {
+      // libdivecomputer reports a Galileo under Uwatec; the diver has since
+      // filed the computer under Scubapro. The serial vouches for it.
+      final result = matchOrphanedSources(
+        sources: [
+          source(
+            's1',
+            computerModel: 'Uwatec Galileo Sol',
+            serial: 'G123',
+            vendor: 'Uwatec',
+            product: 'Galileo Sol',
+          ),
+        ],
+        computers: [
+          computer(
+            'c1',
+            manufacturer: 'Scubapro',
+            model: 'Galileo Sol',
+            serial: 'G123',
+          ),
+        ],
+      );
+      expect(result, {'s1': 'c1'});
     });
 
     test('does not choose between two entries with the same serial', () {
@@ -301,6 +321,16 @@ void main() {
         computers: [computer('c1', serial: 'ABC123')],
       );
       expect(result, {'s2': 'c1'});
+    });
+
+    test('does not guess a computer of another vendor\'s make', () {
+      final result = matchOrphanedSources(
+        sources: [
+          source('s1', computerModel: null, vendor: 'Mares', product: 'Perdix'),
+        ],
+        computers: [computer('c1', serial: 'ABC123')],
+      );
+      expect(result, isEmpty);
     });
 
     test('links a serial-less orphan to a computer without a serial', () {
