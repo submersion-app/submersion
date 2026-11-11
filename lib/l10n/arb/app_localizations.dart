@@ -95971,13 +95971,13 @@ abstract class AppLocalizations {
   /// **'Discard the sample logbook and return to your own'**
   String get demo_settings_exit_subtitle;
 
-  /// Says demo mode is on: the corner ribbon's screen reader label and the dashboard card's title (issues #3708, #4428)
+  /// Says demo mode is on: the corner ribbon's screen reader label and the dashboard card's title (issues #3708, #4428, #4436)
   ///
   /// In en, this message translates to:
   /// **'Demo mode: you are exploring sample data'**
   String get demo_active_label;
 
-  /// Leaves demo mode: the dashboard card, the nav rail, the More sheet and the Unavailable in demo mode page (issues #3708, #4428)
+  /// Leaves demo mode: the dashboard card, the nav rail, the More sheet and the Unavailable in demo mode page (issues #3708, #4436)
   ///
   /// In en, this message translates to:
   /// **'Exit demo'**
@@ -95989,7 +95989,7 @@ abstract class AppLocalizations {
   /// **'DEMO'**
   String get demo_ribbon_label;
 
-  /// Body of the demo mode card on the dashboard (issue #4428)
+  /// Body of the demo mode card on the dashboard (issue #4436)
   ///
   /// In en, this message translates to:
   /// **'Your logbook is set aside, untouched, until you exit'**

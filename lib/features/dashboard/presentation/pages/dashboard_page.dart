@@ -159,7 +159,7 @@ class DashboardPage extends ConsumerWidget {
           },
           child: CustomScrollView(
             slivers: [
-              // Demo mode's way out heads the page (issue #4428).
+              // Demo mode's way out heads the page (issue #4436).
               const SliverToBoxAdapter(child: DemoModeDashboardCard()),
               SliverPadding(
                 padding: const EdgeInsets.all(16),

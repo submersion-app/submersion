@@ -217,7 +217,7 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                 shrinkWrap: true,
                 children: [
                   // The sheet closes first; the question is asked from the
-                  // shell, which outlives it (issue #4428).
+                  // shell, which outlives it (issue #4436).
                   DemoExitSheetTile(
                     onTap: () {
                       Navigator.pop(sheetContext);

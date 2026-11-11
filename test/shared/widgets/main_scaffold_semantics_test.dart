@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/main_scaffold.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
 
 import '../../helpers/main_scaffold_stubs.dart';
@@ -24,50 +17,8 @@ class _Page extends StatelessWidget {
       const Scaffold(body: Center(child: Text('Page body')));
 }
 
-Future<void> _pumpShell(WidgetTester tester, {required Size size}) async {
-  tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = size;
-  addTearDown(tester.view.reset);
-
-  SharedPreferences.setMockInitialValues({});
-  final prefs = await SharedPreferences.getInstance();
-  final router = GoRouter(
-    initialLocation: '/dashboard',
-    routes: [
-      ShellRoute(
-        builder: (context, state, child) => MainScaffold(child: child),
-        routes: [
-          GoRoute(
-            path: '/dashboard',
-            builder: (context, state) => const _Page(),
-          ),
-        ],
-      ),
-    ],
-  );
-  addTearDown(router.dispose);
-
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        updateServiceProvider.overrideWith((ref) async => null),
-        updateStatusProvider.overrideWith((ref) => StubUpdateStatusNotifier()),
-        downloadNotifierProvider.overrideWith((ref) => StubDownloadNotifier()),
-        settingsProvider.overrideWith(
-          (ref) => StubSettingsNotifier(const AppSettings()),
-        ),
-      ],
-      child: MaterialApp.router(
-        routerConfig: router,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    ),
-  );
-  await tester.pumpAndSettle();
-}
+Future<void> _pumpShell(WidgetTester tester, {required Size size}) =>
+    pumpMainScaffoldShell(tester, size: size, page: const _Page());
 
 SemanticsNode _root(WidgetTester tester) =>
     tester.binding.renderViews.single.owner!.semanticsOwner!.rootSemanticsNode!;

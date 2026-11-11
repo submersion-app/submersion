@@ -317,7 +317,7 @@ void main() {
     expect(find.byType(YearInReviewCard), findsOneWidget);
   });
 
-  testWidgets('demo mode puts its card first, with the way out (#4428)', (
+  testWidgets('demo mode puts its card first, with the way out (#4436)', (
     tester,
   ) async {
     await pumpDashboard(tester, demo: true);

@@ -1,13 +1,15 @@
+/// The ways out of demo mode beside the corner ribbon (issue #4428), which is
+/// only a label (issue #4436): a card heading the dashboard, a button at the
+/// foot of the navigation rail, and a tile heading the phone's More sheet.
+/// Each is nothing at all while demo mode is off, and each asks before
+/// leaving.
+library;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_confirm.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-/// The ways out of demo mode beside the corner ribbon, which is only a label
-/// (issue #4428): a card heading the dashboard, a button at the foot of the
-/// navigation rail, and a tile heading the phone's More sheet. Each is
-/// nothing at all while demo mode is off, and each asks before leaving.
 
 /// A card at the top of the dashboard saying demo mode is on, with the way
 /// out.

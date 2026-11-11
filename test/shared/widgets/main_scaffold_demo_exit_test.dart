@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
-import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/shared/widgets/main_scaffold.dart';
 
 import '../../helpers/main_scaffold_stubs.dart';
 
@@ -18,59 +11,22 @@ Future<void> _pumpShell(
   required Size size,
   required bool demo,
   Future<void> Function()? exit,
-}) async {
-  tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = size;
-  addTearDown(tester.view.reset);
-
-  SharedPreferences.setMockInitialValues({});
-  final prefs = await SharedPreferences.getInstance();
-  final router = GoRouter(
-    initialLocation: '/dashboard',
-    routes: [
-      ShellRoute(
-        builder: (context, state, child) => MainScaffold(child: child),
-        routes: [
-          GoRoute(
-            path: '/dashboard',
-            builder: (context, state) => const Scaffold(body: Text('Page')),
-          ),
-        ],
-      ),
-    ],
-  );
-  addTearDown(router.dispose);
-
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        updateServiceProvider.overrideWith((ref) async => null),
-        updateStatusProvider.overrideWith((ref) => StubUpdateStatusNotifier()),
-        downloadNotifierProvider.overrideWith((ref) => StubDownloadNotifier()),
-        settingsProvider.overrideWith(
-          (ref) => StubSettingsNotifier(const AppSettings()),
-        ),
-        demoModeActiveProvider.overrideWithValue(demo),
-        if (exit != null) demoExitActionProvider.overrideWithValue(exit),
-      ],
-      child: MaterialApp.router(
-        routerConfig: router,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-      ),
-    ),
-  );
-  await tester.pumpAndSettle();
-}
+}) => pumpMainScaffoldShell(
+  tester,
+  size: size,
+  page: const Scaffold(body: Text('Page')),
+  overrides: [
+    demoModeActiveProvider.overrideWithValue(demo),
+    if (exit != null) demoExitActionProvider.overrideWithValue(exit),
+  ],
+);
 
 void main() {
   final l10n = lookupAppLocalizations(const Locale('en'));
   const wide = Size(1400, 900);
   const phone = Size(390, 844);
 
-  group('a way out of demo mode in the shell (#4428)', () {
+  group('a way out of demo mode in the shell (#4436)', () {
     testWidgets('the rail has none while demo mode is off', (tester) async {
       await _pumpShell(tester, size: wide, demo: false);
 
