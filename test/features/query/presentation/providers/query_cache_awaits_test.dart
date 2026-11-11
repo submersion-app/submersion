@@ -31,10 +31,11 @@ void main() {
     expect(writes, hasLength(1));
   });
 
-  test('leaves it alone for another profile, whose verdicts it does not '
-      'hold', () async {
+  test('never runs the active diver\'s writer for another profile', () async {
+    // Another profile's verdicts come from a pass pinned to its own settings
+    // (see dive_deco_status_cache_test); a query reading no deco needs none.
     final (ref, writes) = await refCountingDecoWrites();
-    await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
+    await prepareQueryCachesFor(ref, 'other', {'dives'});
     expect(writes, isEmpty);
   });
 

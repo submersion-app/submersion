@@ -26,11 +26,18 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
+  /// Every dive the fixture holds, plus one deleted before the write.
+  const all = {'a', 'b', 'c', 'ghost'};
+
   test(
-    'replaceAll writes the map exactly and leaves unchanged rows alone',
+    'replaceFor writes the map exactly and leaves unchanged rows alone',
     () async {
       final repo = DiveDecoStatusRepository();
-      await repo.replaceAll({'a': true, 'b': false}, computedAt: 10);
+      await repo.replaceFor(
+        {'a': true, 'b': false},
+        diveIds: all,
+        computedAt: 10,
+      );
       expect(await repo.verdicts(), {'a': true, 'b': false});
 
       var ticks = 0;
@@ -39,12 +46,20 @@ void main() {
           .listen((_) => ticks++);
       addTearDown(sub.cancel);
       // Same verdicts, later clock: no write, so no filtered list re-query.
-      await repo.replaceAll({'a': true, 'b': false}, computedAt: 20);
+      await repo.replaceFor(
+        {'a': true, 'b': false},
+        diveIds: all,
+        computedAt: 20,
+      );
       await pumpEventQueue();
       expect(ticks, 0);
 
       // 'b' goes, 'c' arrives, 'a' changes.
-      await repo.replaceAll({'a': false, 'c': true}, computedAt: 30);
+      await repo.replaceFor(
+        {'a': false, 'c': true},
+        diveIds: all,
+        computedAt: 30,
+      );
       expect(await repo.verdicts(), {'a': false, 'c': true});
     },
   );
@@ -53,7 +68,11 @@ void main() {
     // A rule run on two imported dives refreshes those two and leaves the
     // rest of the logbook's verdicts as the last full pass wrote them.
     final repo = DiveDecoStatusRepository();
-    await repo.replaceAll({'a': true, 'b': true, 'c': false}, computedAt: 10);
+    await repo.replaceFor(
+      {'a': true, 'b': true, 'c': false},
+      diveIds: all,
+      computedAt: 10,
+    );
 
     // 'a' changes, 'b' has no verdict now (its computer's data arrived),
     // 'c' is not named and stays.
@@ -66,10 +85,15 @@ void main() {
     // scanned before the import was still analyzing: that pass knows
     // nothing of 'b' and must not delete or overwrite it.
     final repo = DiveDecoStatusRepository();
-    await repo.replaceAll({'a': true}, computedAt: 10);
+    await repo.replaceFor({'a': true}, diveIds: all, computedAt: 10);
     await repo.replaceFor({'b': true}, diveIds: {'b'}, computedAt: 30);
 
-    await repo.replaceAll({'a': false}, computedAt: 40, keepWrittenAfter: 20);
+    await repo.replaceFor(
+      {'a': false},
+      diveIds: all,
+      computedAt: 40,
+      keepWrittenAfter: 20,
+    );
     expect(await repo.verdicts(), {'a': false, 'b': true});
   });
 
@@ -78,7 +102,11 @@ void main() {
     // the cache keeps the live dives instead of failing the whole write on
     // the dives foreign key.
     final repo = DiveDecoStatusRepository();
-    await repo.replaceAll({'a': true, 'ghost': false}, computedAt: 10);
+    await repo.replaceFor(
+      {'a': true, 'ghost': false},
+      diveIds: all,
+      computedAt: 10,
+    );
     expect(await repo.verdicts(), {'a': true});
   });
 }

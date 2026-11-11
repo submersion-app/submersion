@@ -58,9 +58,12 @@ Future<void> awaitQueryCachesIfRead(
 }
 
 /// [awaitQueryCachesIfRead] for a query run outside a provider's build on
-/// behalf of [diverId]: a rule run, an agent's query. The caches hold the
-/// active profile's verdicts only, so a query for another profile has none
-/// to prepare.
+/// behalf of [diverId]: a rule run, an agent's query.
+///
+/// For another profile than the active one, its dives' deco verdicts are
+/// judged under its own settings (#4461). The service-due cache holds the
+/// active profile's verdicts only; the agent's query tool overlays another
+/// profile's itself.
 ///
 /// Waits through the container, not a listener on [ref]: the caller is a
 /// long-lived service provider that is usually paused (read, never
@@ -77,9 +80,12 @@ Future<void> prepareQueryCachesFor(
   Set<String> tables, {
   Set<String>? diveIds,
 }) async {
-  final active = await ref.read(validatedCurrentDiverIdProvider.future);
-  if (diverId != active) return;
   final readsDeco = tables.contains(kDiveDecoStatusTable);
+  final active = await ref.read(validatedCurrentDiverIdProvider.future);
+  if (diverId != active) {
+    if (readsDeco) await refreshDiveDecoStatusFor(ref, diverId, diveIds);
+    return;
+  }
   final targeted = readsDeco && diveIds != null;
   await Future.wait<void>([
     for (final writer in _writersFor(tables.difference({kDiveDecoStatusTable})))

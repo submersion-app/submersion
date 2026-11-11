@@ -10,6 +10,8 @@ import 'package:submersion/features/insights/data/repositories/dive_deco_status_
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/settings/presentation/providers/diver_pinned_container.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 final diveDecoStatusRepositoryProvider = Provider<DiveDecoStatusRepository>(
   (ref) => DiveDecoStatusRepository(),
@@ -67,20 +69,17 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
 
   // Every dive the diver logged, not only those statistics count: a dive
   // excluded from the card's rate is still one a deco search should find.
-  final scan = await ref
-      .read(insightsRepositoryProvider)
-      .scanRecordedDecoSignals(diverId: diverId, statsScoped: false);
-  final computed = await const DecoClassificationService().classify(
-    ref,
-    scan.needsCompute,
-  );
+  final judged = await _judgeDiverDives(ref, diverId);
   // A rebuild replaced this pass part way through: its verdicts are
   // incomplete, and the pass that replaced it writes the whole set.
-  if (!ref.mounted) return startedFrom;
+  if (judged == null) return startedFrom;
   await ref
       .read(diveDecoStatusRepositoryProvider)
-      .replaceAll(
-        computed,
+      .replaceFor(
+        judged.verdicts,
+        // This diver's dives only: another profile's rows, prepared for a
+        // query on that profile, are not this pass's to remove.
+        diveIds: judged.scanned,
         computedAt: DateTime.now().millisecondsSinceEpoch,
         // A targeted refresh may have written newer verdicts meanwhile.
         keepWrittenAfter: startedAt,
@@ -88,41 +87,86 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   return startedFrom;
 });
 
-/// How many writes to the tables a deco verdict derives from the running
-/// [diveDecoStatusCacheProvider] has seen. Counted only while it runs; a
-/// pass started afresh reads every write before it.
-final diveDecoInputWritesProvider = StateProvider<int>((ref) => 0);
-
-/// [diveDecoStatusCacheProvider]'s pass for [diveIds] alone: their verdicts
-/// are brought up to date and the rest of the cache is left as it is. For a
-/// rule run over a few dives (an import's), which on a library nothing has
-/// analyzed yet would otherwise wait for every dive in the logbook (#3807).
-/// [ref] must outlive the call: a service provider's.
-Future<void> refreshDiveDecoStatusFor(
+/// Classifies [diverId]'s dives (or [onlyDiveIds] of them) as the Insights
+/// deco card does, under the settings [ref]'s container holds: the dives the
+/// scan covered, and the verdict of each the analysis could judge. Null when
+/// [ref] was rebuilt part way through, whose verdicts are incomplete.
+Future<({Map<String, bool> verdicts, Set<String> scanned})?> _judgeDiverDives(
   Ref ref,
-  String diverId,
-  Set<String> diveIds,
-) async {
-  if (diveIds.isEmpty) return;
+  String? diverId, {
+  Set<String>? onlyDiveIds,
+}) async {
+  // Every dive the diver logged, not only those statistics count: a dive
+  // excluded from the card's rate is still one a deco search should find.
   final scan = await ref
       .read(insightsRepositoryProvider)
       .scanRecordedDecoSignals(
         diverId: diverId,
         statsScoped: false,
-        onlyDiveIds: diveIds,
+        onlyDiveIds: onlyDiveIds,
       );
-  final computed = await const DecoClassificationService().classify(
+  final verdicts = await const DecoClassificationService().classify(
     ref,
     scan.needsCompute,
   );
-  // A rebuild of [ref] stops the analysis part way through: writing its
-  // partial verdicts would delete the rows of the named dives it skipped.
-  if (!ref.mounted) return;
+  if (!ref.mounted) return null;
+  return (
+    verdicts: verdicts,
+    scanned: {
+      ...scan.recordedDeco,
+      ...scan.recordedNoDeco,
+      ...scan.needsCompute.keys,
+      ...scan.noProfile,
+    },
+  );
+}
+
+/// A probe for the [Ref] of a throwaway container, for the services that
+/// take one.
+final _containerRefProvider = Provider<Ref>((ref) => ref);
+
+/// How many writes to the tables a deco verdict derives from the running
+/// [diveDecoStatusCacheProvider] has seen. Counted only while it runs; a
+/// pass started afresh reads every write before it.
+final diveDecoInputWritesProvider = StateProvider<int>((ref) => 0);
+
+/// Brings the cached verdicts of [diverId]'s dives up to date, or of
+/// [diveIds] of them when given, leaving every other row as it is.
+///
+/// For a rule run over a few dives (an import's), which on a library nothing
+/// has analyzed would otherwise wait for every dive in the logbook (#3807),
+/// and for a query on a profile other than the active one (an agent's, a
+/// multi-diver import's rules): that profile's dives are judged in a
+/// throwaway container pinned to its own settings, so its gradient factors,
+/// not the active diver's, decide (#4461). [ref] must outlive the call: a
+/// service provider's.
+Future<void> refreshDiveDecoStatusFor(
+  Ref ref,
+  String diverId,
+  Set<String>? diveIds,
+) async {
+  if (diveIds != null && diveIds.isEmpty) return;
+  final active = await ref.read(validatedCurrentDiverIdProvider.future);
+  final judged = diverId == active
+      ? await _judgeDiverDives(ref, diverId, onlyDiveIds: diveIds)
+      : await runInDiverContainer(
+          ref,
+          diverId: diverId,
+          settingsRepository: ref.read(diverSettingsRepositoryProvider),
+          body: (container) => _judgeDiverDives(
+            container.read(_containerRefProvider),
+            diverId,
+            onlyDiveIds: diveIds,
+          ),
+        );
+  // A rebuild stopped the analysis part way through: writing its partial
+  // verdicts would delete the rows of the dives it skipped.
+  if (judged == null) return;
   await ref
       .read(diveDecoStatusRepositoryProvider)
       .replaceFor(
-        computed,
-        diveIds: diveIds,
+        judged.verdicts,
+        diveIds: diveIds ?? judged.scanned,
         computedAt: DateTime.now().millisecondsSinceEpoch,
       );
 }

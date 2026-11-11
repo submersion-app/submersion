@@ -11,12 +11,14 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/tables/dive_tables.dart';
 
-/// Whether each of the ACTIVE diver's dives that records no deco signal
-/// had a decompression obligation, as the app's own dive analysis judged it
-/// (issue #4461): the same verdict the Insights deco card and the dive's
-/// DECO badge give. A local cache: no hlc column, so sync never reads or
-/// writes it, and a diver switch rewrites it. The `deco` query field reads
-/// it after a dive's recorded signal; a dive with no row is unclassified.
+/// Whether each dive that records no deco signal had a decompression
+/// obligation, as the app's own dive analysis judged it under its own
+/// diver's settings (issue #4461): the same verdict the Insights deco card
+/// and the dive's DECO badge give. Kept current for the active diver's
+/// dives, and refreshed for another profile's before a query on that
+/// profile. A local cache: no hlc column, so sync never reads or writes it.
+/// The `deco` query field reads it after a dive's recorded signal; a dive
+/// with no row is unclassified.
 @DataClassName('DiveDecoStatusRow')
 class DiveDecoStatus extends Table {
   TextColumn get diveId =>

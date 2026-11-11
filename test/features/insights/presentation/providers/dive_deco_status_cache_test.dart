@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,7 +21,15 @@ import 'package:submersion/features/insights/data/repositories/dive_deco_status_
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/core/services/log_file_service.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -217,6 +227,66 @@ void main() {
       await container.read(diveDecoStatusCacheProvider.future);
 
       expect(await sqlIds('deco = true'), {'excluded'});
+    },
+  );
+
+  test(
+    'another profile\'s dives are judged under that profile\'s own settings',
+    () async {
+      // An agent query or a multi-diver import's rules name a profile that
+      // is not the active one. Same 18 m, 30 min dive for both: inside the
+      // NDL at the default GF, past it at the other profile's GF 10/10.
+      final ms = now;
+      for (final id in ['me', 'other']) {
+        await db
+            .into(db.divers)
+            .insert(
+              DiversCompanion.insert(
+                id: id,
+                name: id,
+                createdAt: ms,
+                updatedAt: ms,
+              ),
+            );
+      }
+      await DiverSettingsRepository().createSettingsForDiver(
+        'other',
+        settings: const AppSettings(gfLow: 10, gfHigh: 10),
+      );
+      for (final (id, diver) in [('mine', 'me'), ('theirs', 'other')]) {
+        await insertDive(id);
+        await (db.update(db.dives)..where((t) => t.id.equals(id))).write(
+          DivesCompanion(diverId: Value(diver)),
+        );
+        await insertProfile(id, _square(18, 30));
+      }
+
+      final container = ProviderContainer(
+        overrides: [
+          ...(await getBaseOverrides()).cast(),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+          logFileServiceProvider.overrideWithValue(
+            LogFileService(
+              logDirectory: p.join(Directory.systemTemp.path, 'submersion'),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final ref = container.read(Provider((ref) => ref));
+
+      await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
+      await prepareQueryCachesFor(
+        ref,
+        'me',
+        {kDiveDecoStatusTable},
+        diveIds: {'mine'},
+      );
+
+      expect(await DiveDecoStatusRepository().verdicts(), {
+        'mine': false,
+        'theirs': true,
+      });
     },
   );
 

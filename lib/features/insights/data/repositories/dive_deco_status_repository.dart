@@ -4,11 +4,11 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 
-/// The local deco verdict cache (`dive_deco_status`, v362): whether each of
-/// the active diver's dives with no recorded deco signal had a deco
-/// obligation, as the dive analysis last judged it (issue #4461). The `deco`
-/// query field reads it. Written only through [replaceAll], which writes
-/// nothing when nothing changed, so a steady filtered list does not
+/// The local deco verdict cache (`dive_deco_status`, v362): whether each
+/// dive with no recorded deco signal had a deco obligation, as the dive
+/// analysis last judged it under its own diver's settings (issue #4461). The
+/// `deco` query field reads it. Written only through [replaceFor], which
+/// writes nothing when nothing changed, so a steady filtered list does not
 /// re-query.
 class DiveDecoStatusRepository {
   AppDatabase get _db => DatabaseService.instance.database;
@@ -23,29 +23,20 @@ class DiveDecoStatusRepository {
       r.diveId: r.hadDeco,
   };
 
-  /// Makes the cache hold exactly [byId]: rows for other dives go, new or
-  /// changed verdicts are written, unchanged ones are left alone. One
-  /// transaction, and a verdict for a dive deleted since it was analyzed is
-  /// skipped rather than failing the dives foreign key.
+  /// Makes the rows of [diveIds] hold exactly what [byId] says of them: a
+  /// named dive with no verdict loses its row, new or changed verdicts are
+  /// written, unchanged ones are left alone, and every other dive's row is
+  /// left as it is. One transaction, and a verdict for a dive deleted since
+  /// it was analyzed is skipped rather than failing the dives foreign key.
   ///
   /// [keepWrittenAfter] protects rows written after the pass that produced
-  /// [byId] began (a [replaceFor] for an import's dives meanwhile): that
-  /// pass knew nothing of them, so it neither deletes nor overwrites them.
-  Future<void> replaceAll(
-    Map<String, bool> byId, {
-    required int computedAt,
-    int? keepWrittenAfter,
-  }) =>
-      _write(byId, computedAt: computedAt, keepWrittenAfter: keepWrittenAfter);
-
-  /// [replaceAll] for [diveIds] alone: their rows come to hold exactly what
-  /// [byId] says of them (a named dive with no verdict loses its row), and
-  /// every other dive's row is left as it is. For a rule run over a few
-  /// dives, which need not analyze the whole logbook.
+  /// [byId] began (a refresh of an import's dives meanwhile): that pass knew
+  /// nothing of them, so it neither deletes nor overwrites them.
   Future<void> replaceFor(
     Map<String, bool> byId, {
     required Set<String> diveIds,
     required int computedAt,
+    int? keepWrittenAfter,
   }) => _write(
     {
       for (final e in byId.entries)
@@ -53,12 +44,13 @@ class DiveDecoStatusRepository {
     },
     computedAt: computedAt,
     within: diveIds,
+    keepWrittenAfter: keepWrittenAfter,
   );
 
   Future<void> _write(
     Map<String, bool> byId, {
     required int computedAt,
-    Set<String>? within,
+    required Set<String> within,
     int? keepWrittenAfter,
   }) async {
     try {
@@ -78,7 +70,7 @@ class DiveDecoStatusRepository {
   Future<void> _replace(
     Map<String, bool> byId,
     int computedAt,
-    Set<String>? within,
+    Set<String> within,
     int? keepWrittenAfter,
   ) async {
     final rows = await _db.select(_db.diveDecoStatus).get();
@@ -91,10 +83,7 @@ class DiveDecoStatusRepository {
     final live = await _liveDiveIds(byId.keys.toList(growable: false));
     final stale = [
       for (final id in existing.keys)
-        if ((within == null || within.contains(id)) &&
-            !live.contains(id) &&
-            !kept.contains(id))
-          id,
+        if (within.contains(id) && !live.contains(id) && !kept.contains(id)) id,
     ];
     final changed = {
       for (final e in byId.entries)
