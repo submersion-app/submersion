@@ -14,6 +14,11 @@ const double kPinnedStripRowHeight = 16;
 /// Breathing room above and below the strip's curve.
 const double _curvePad = 4;
 
+/// Height of the pinned strip's curve area, above its values row. The strip
+/// aims its line at this from the start, whatever height its box has while
+/// it condenses, so the line never grows back out toward a tall box.
+const double _curveAreaHeight = kPinnedStripHeight - kPinnedStripRowHeight;
+
 /// Paints the pinned strip's depth curve (issue #4423).
 ///
 /// The curve goes through a [PlotMapping] that moves, as [morph] runs from 0
@@ -43,20 +48,19 @@ class PinnedStripPainter extends CustomPainter {
   final PlotMapping? from;
   final double morph;
 
-  /// The strip's own mapping: the whole dive across the curve area above the
-  /// values row, surface to deepest point down.
+  /// The strip's own mapping: the whole dive across the pinned strip's curve
+  /// area, surface to deepest point down.
   PlotMapping _own(Size size) {
     var maxDepth = 0.0;
     for (final p in profile) {
       maxDepth = math.max(maxDepth, p.depth);
     }
-    final curveHeight = math.max(0.0, size.height - kPinnedStripRowHeight);
     return PlotMapping(
       rect: Rect.fromLTWH(
         0,
         _curvePad,
         size.width,
-        math.max(1.0, curveHeight - 2 * _curvePad),
+        _curveAreaHeight - 2 * _curvePad,
       ),
       minSeconds: profile.isEmpty ? 0 : profile.first.timestamp.toDouble(),
       maxSeconds: profile.isEmpty ? 1 : profile.last.timestamp.toDouble(),
@@ -78,12 +82,7 @@ class PinnedStripPainter extends CustomPainter {
   Rect? clipFor(Size size) {
     final start = from;
     if (start == null) return null;
-    final curveArea = Rect.fromLTWH(
-      0,
-      0,
-      size.width,
-      math.max(0.0, size.height - kPinnedStripRowHeight),
-    );
+    final curveArea = Rect.fromLTWH(0, 0, size.width, _curveAreaHeight);
     return Rect.lerp(start.rect, curveArea, morph);
   }
 

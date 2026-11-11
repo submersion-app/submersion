@@ -53,6 +53,47 @@ void main() {
     expect(m.rect.bottom, lessThanOrEqualTo(kPinnedStripHeight - 16));
   });
 
+  // The strip's box is still tall while it condenses. Aimed at the box's
+  // curve area, the line grew back out of the squashed chart's 48 px plot
+  // and then shrank again as the box closed: a bounce.
+  group('while the box is still tall', () {
+    const tall = Size(400, 300);
+    const squashed = PlotMapping(
+      rect: Rect.fromLTWH(0, 0, 400, 48),
+      minSeconds: 0,
+      maxSeconds: 1500,
+      minDepthMeters: 0,
+      maxDepthMeters: 27,
+    );
+
+    test('its own curve area is already the pinned strip\'s', () {
+      final inTall = painter(morph: 1).mappingFor(tall).rect;
+      final pinned = painter(
+        morph: 1,
+      ).mappingFor(const Size(400, kPinnedStripHeight)).rect;
+      expect(inTall, pinned);
+    });
+
+    test('the line only ever shrinks from the squashed chart', () {
+      var last = double.infinity;
+      for (var i = 0; i <= 10; i++) {
+        final h = painter(
+          from: squashed,
+          morph: i / 10,
+        ).mappingFor(tall).rect.height;
+        expect(h, lessThanOrEqualTo(last + 1e-9), reason: 'morph ${i / 10}');
+        last = h;
+      }
+    });
+
+    test('its clip ends on the pinned curve area', () {
+      expect(
+        painter(from: squashed, morph: 1).clipFor(tall),
+        const Rect.fromLTWH(0, 0, 400, kPinnedStripHeight - 16),
+      );
+    });
+  });
+
   test('without a chart plot it draws through its own mapping', () {
     final own = painter(morph: 1).mappingFor(const Size(400, 300));
     final none = painter().mappingFor(const Size(400, 300));
