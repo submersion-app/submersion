@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -231,6 +232,35 @@ void main() {
     expect(identical(tester.state(strip), morphing), isTrue);
     expect(tester.widget<PinnedProfileStrip>(strip).condense, 1);
     expect(ignoresPointer(tester), isFalse);
+  });
+
+  // The strip lies over the page, not inside its scroll view, so it hands
+  // vertical scrolling on to the page itself (review C1).
+  testWidgets('a vertical drag on the pinned strip scrolls the page', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, 800);
+    final before = position(tester).pixels;
+    await tester.dragFrom(tester.getCenter(strip), const Offset(0, -200));
+    await tester.pump();
+    expect(position(tester).pixels, greaterThan(before + 100));
+  });
+
+  testWidgets('a mouse wheel over the pinned strip scrolls the page', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, 800);
+    final before = position(tester).pixels;
+    tester.binding.handlePointerEvent(
+      PointerScrollEvent(
+        position: tester.getCenter(strip),
+        scrollDelta: const Offset(0, 120),
+      ),
+    );
+    await tester.pump();
+    expect(position(tester).pixels, greaterThan(before + 60));
   });
 
   testWidgets('scrolling back up removes the strip', (tester) async {

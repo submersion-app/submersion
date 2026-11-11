@@ -120,8 +120,25 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
     );
   }
 
+  /// The page's scroll position, so the strip, which lies over the page
+  /// rather than inside its scroll view, can hand vertical drags and wheel
+  /// scrolls on to it.
+  ScrollPosition? _pagePosition;
+
+  void _notePosition(Notification notification) {
+    final context = switch (notification) {
+      ScrollNotification(:final context) => context,
+      ScrollMetricsNotification(:final context) => context,
+      _ => null,
+    };
+    if (context != null && context.mounted) {
+      _pagePosition = Scrollable.maybeOf(context)?.position ?? _pagePosition;
+    }
+  }
+
   bool _onScroll(ScrollNotification notification) {
     if (notification.depth != 0) return false;
+    _notePosition(notification);
     final pixels = notification.metrics.pixels;
     if (pixels != _pixels) setState(() => _pixels = pixels);
     // Content above the card can change height (a card loading in), so the
@@ -132,6 +149,7 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
 
   bool _onMetrics(ScrollMetricsNotification notification) {
     if (notification.depth == 0) {
+      _notePosition(notification);
       _pixels = notification.metrics.pixels;
       _scheduleMeasure();
     }
@@ -181,6 +199,7 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
                         backgroundOpacity: condenseBackgroundOpacity(t),
                         // The chart's line, in the strip's own coordinates.
                         morphFrom: chart?.shift(-box.topLeft),
+                        pageScroll: () => _pagePosition,
                       ),
                     ),
                   );
