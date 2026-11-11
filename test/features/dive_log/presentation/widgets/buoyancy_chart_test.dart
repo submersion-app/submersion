@@ -144,15 +144,11 @@ void main() {
         LineTouchResponse(
           touchLocation: Offset.zero,
           touchChartCoordinate: Offset.zero,
-          lineBarSpots: [
-            TouchLineBarSpot(bar, 0, bar.spots[spotIndex], 0),
-          ],
+          lineBarSpots: [TouchLineBarSpot(bar, 0, bar.spots[spotIndex], 0)],
         );
 
-    LineTouchData touchData(WidgetTester tester) => tester
-        .widget<LineChart>(find.byType(LineChart))
-        .data
-        .lineTouchData;
+    LineTouchData touchData(WidgetTester tester) =>
+        tester.widget<LineChart>(find.byType(LineChart)).data.lineTouchData;
 
     LineChartBarData barOf(WidgetTester tester) => tester
         .widget<LineChart>(find.byType(LineChart))
