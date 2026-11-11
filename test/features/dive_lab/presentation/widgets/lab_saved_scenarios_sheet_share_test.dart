@@ -96,7 +96,7 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(600, 1200);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     final dive = await DiveRepository().createDive(
       Dive(id: 'dive-1', diveNumber: 7, dateTime: DateTime(2026, 8, 1)),
     );
@@ -129,7 +129,7 @@ void main() {
   testWidgets('import, select + share PDF, and share file', (tester) async {
     tester.view.physicalSize = const Size(600, 1200);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     final dive = await DiveRepository().createDive(
       Dive(id: 'dive-1', diveNumber: 7, dateTime: DateTime(2026, 8, 1)),
     );

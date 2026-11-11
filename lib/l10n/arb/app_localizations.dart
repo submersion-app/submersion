@@ -17866,6 +17866,12 @@ abstract class AppLocalizations {
   /// **'Tissue Loading'**
   String get diveLog_tissue_title;
 
+  /// No description provided for @diveLog_tissue_viewMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart view'**
+  String get diveLog_tissue_viewMenuTooltip;
+
   /// No description provided for @diveLog_tooltip_avgCalculated.
   ///
   /// In en, this message translates to:
@@ -52783,6 +52789,12 @@ abstract class AppLocalizations {
   /// **'No tags match your search.'**
   String get tags_picker_noMatches;
 
+  /// Tag picker section heading over the diver's tags that are not yet offered for what is being tagged; picking one also offers it there
+  ///
+  /// In en, this message translates to:
+  /// **'Other tags'**
+  String get tags_picker_otherTags;
+
   /// Confirm button on the tag picker sheet; count is how many tags are ticked
   ///
   /// In en, this message translates to:
@@ -53076,6 +53088,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose at least one: dives, sites, equipment, media, or documents'**
   String get tags_manage_scopeRequired;
+
+  /// No description provided for @tags_manage_existingTagNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag already exists. Saving adds the ticked uses to it.'**
+  String get tags_manage_existingTagNote;
 
   /// No description provided for @tags_manage_scope_dives.
   ///
@@ -55276,6 +55294,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recent Trips'**
   String get trips_summary_recentTitle;
+
+  /// Line under the Trips overview title while the trip list is filtered (for example by an equipment item): the overview covers {shown} of the diver's {total} trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered: summarizing {shown} of {total, plural, =1{{total} trip} other{{total} trips}}'**
+  String trips_summary_filteredBanner(int shown, int total);
+
+  /// Trips overview filter banner text while its trip counts are not known (still loading, or the filter's query failed).
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered trips'**
+  String get trips_summary_filteredBannerPending;
+
+  /// Trips overview stat card label in place of "Total Dives" while the trip list is filtered: every dive on the trips shown, not only the dives that matched the filter (an equipment filter's item may have been on fewer).
+  ///
+  /// In en, this message translates to:
+  /// **'Dives on these trips'**
+  String get trips_summary_stat_filteredDives;
+
+  /// Subtitle of a Recent Trips row of the Trips overview: the trip's start date, then its dive count, e.g. "20/08/2026 • 11 dives". Join the two the way trips_summary_upcomingSubtitle does.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} • {count, plural, =1{1 dive} other{{count} dives}}'**
+  String trips_summary_recentSubtitle(String date, int count);
 
   /// No description provided for @trips_summary_stat_daysDiving.
   ///
@@ -81837,6 +81879,18 @@ abstract class AppLocalizations {
   /// **'Draw each dive\'s gear on a diver in its equipment card'**
   String get settings_appearance_showDiveFigure_subtitle;
 
+  /// No description provided for @settings_appearance_tissueColorScheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue loading colors'**
+  String get settings_appearance_tissueColorScheme;
+
+  /// No description provided for @settings_appearance_tissueColorScheme_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Color scale for tissue heat maps and the 3D view'**
+  String get settings_appearance_tissueColorScheme_subtitle;
+
   /// No description provided for @diveLog_detail_gearFigureName.
   ///
   /// In en, this message translates to:
@@ -96001,17 +96055,29 @@ abstract class AppLocalizations {
   /// **'Discard the sample logbook and return to your own'**
   String get demo_settings_exit_subtitle;
 
-  /// Demo mode (issue #3708)
+  /// Says demo mode is on: the corner ribbon's screen reader label and the dashboard card's title (issues #3708, #4428, #4436)
   ///
   /// In en, this message translates to:
   /// **'Demo mode: you are exploring sample data'**
-  String get demo_strip_label;
+  String get demo_active_label;
 
-  /// Demo mode (issue #3708)
+  /// Leaves demo mode: the dashboard card, the nav rail, the More sheet and the Unavailable in demo mode page (issues #3708, #4436)
   ///
   /// In en, this message translates to:
   /// **'Exit demo'**
-  String get demo_strip_exit;
+  String get demo_exit_button;
+
+  /// Demo mode corner ribbon text; short, written in capitals where the script has them (issue #4428)
+  ///
+  /// In en, this message translates to:
+  /// **'DEMO'**
+  String get demo_ribbon_label;
+
+  /// Body of the demo mode card on the dashboard (issue #4436)
+  ///
+  /// In en, this message translates to:
+  /// **'Your logbook is set aside, untouched, until you exit'**
+  String get demo_card_body;
 
   /// Demo mode (issue #3708)
   ///
@@ -97508,6 +97574,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Twin set partner passport'**
   String get settings_conflict_field_twinPassportId;
+
+  /// No description provided for @equipment_photos_deleteCheckInWithPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this check-in? Its {count, plural, =1{photo} other{{count} photos}} will be removed from Submersion. The files themselves are not touched.'**
+  String equipment_photos_deleteCheckInWithPhotos(int count);
+
+  /// No description provided for @media_import_review_linkToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to equipment'**
+  String get media_import_review_linkToGear;
+
+  /// No description provided for @equipment_photos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get equipment_photos_title;
+
+  /// No description provided for @equipment_photos_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos'**
+  String get equipment_photos_add;
+
+  /// No description provided for @equipment_photos_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos of this item, its serial number label or markings, for reference.'**
+  String get equipment_photos_empty;
+
+  /// No description provided for @equipment_photos_setCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Use as cover photo'**
+  String get equipment_photos_setCover;
+
+  /// No description provided for @equipment_photos_clearCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove cover photo'**
+  String get equipment_photos_clearCover;
+
+  /// No description provided for @equipment_photos_remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get equipment_photos_remove;
+
+  /// No description provided for @equipment_photos_removeConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {count, plural, =1{{count} photo} other{{count} photos}}?'**
+  String equipment_photos_removeConfirmTitle(int count);
+
+  /// No description provided for @equipment_photos_removeConfirmContent.
+  ///
+  /// In en, this message translates to:
+  /// **'The photos are removed from Submersion. The files themselves are not touched.'**
+  String get equipment_photos_removeConfirmContent;
+
+  /// No description provided for @equipment_photos_photoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment photo'**
+  String get equipment_photos_photoLabel;
+
+  /// No description provided for @equipment_photos_coverLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover photo'**
+  String get equipment_photos_coverLabel;
+
+  /// No description provided for @equipment_photos_checkInPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get equipment_photos_checkInPhotos;
+
+  /// No description provided for @equipment_photos_checkInCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in: {title}, {date}'**
+  String equipment_photos_checkInCaption(String title, String date);
+
+  /// No description provided for @media_gearGallery_tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get media_gearGallery_tab;
+
+  /// No description provided for @media_gearGallery_count.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} photo} other{{count} photos}}'**
+  String media_gearGallery_count(int count);
+
+  /// No description provided for @media_gearGallery_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos you add to your equipment and its check-ins show up here.'**
+  String get media_gearGallery_empty;
+
+  /// No description provided for @media_gearGallery_checkInBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in photo'**
+  String get media_gearGallery_checkInBadge;
 
   /// No description provided for @info_button_semantics.
   ///

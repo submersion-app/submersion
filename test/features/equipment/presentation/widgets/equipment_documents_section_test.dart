@@ -86,6 +86,30 @@ void main() {
     expect(find.text('Linked files'), findsNothing);
   });
 
+  testWidgets('legacy card lists only non-photo leftovers', (tester) async {
+    // Gear photos (issue #3355) belong to the Photos card and the check-ins.
+    final photo = testMediaItem(
+      id: 'photo-1',
+      originalFilename: 'label.png',
+    ).copyWith(equipmentId: 'e1');
+    await tester.pumpWidget(await host(documents: [invoice, photo]));
+    await tester.pumpAndSettle();
+
+    expect(find.text('invoice.pdf'), findsOneWidget);
+    expect(find.text('label.png'), findsNothing);
+  });
+
+  testWidgets('only gear photos linked shows no card at all', (tester) async {
+    final photo = testMediaItem(
+      id: 'photo-1',
+      originalFilename: 'label.png',
+    ).copyWith(equipmentId: 'e1');
+    await tester.pumpWidget(await host(documents: [photo]));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Linked files'), findsNothing);
+  });
+
   testWidgets('files left behind are listed as Linked files', (tester) async {
     await tester.pumpWidget(await host(documents: [invoice, warranty]));
     await tester.pumpAndSettle();

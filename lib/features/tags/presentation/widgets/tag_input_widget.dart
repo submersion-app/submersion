@@ -12,9 +12,9 @@ class TagInputWidget extends ConsumerStatefulWidget {
   final void Function(List<Tag> tags) onTagsChanged;
   final bool enabled;
 
-  /// Which tags are suggested and what a new tag applies to (issue #1765).
-  /// A name already used by a tag of the other scope widens that tag rather
-  /// than creating a second one.
+  /// Which tags are suggested (issue #1765). A new tag applies to every
+  /// scope (issue #4407); a name already used by a tag of another scope
+  /// widens that tag to this one rather than creating a second one.
   final TagScope scope;
 
   const TagInputWidget({

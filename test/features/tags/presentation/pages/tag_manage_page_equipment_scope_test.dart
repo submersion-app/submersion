@@ -192,10 +192,17 @@ void main() {
     await tester.tap(find.byType(FloatingActionButton));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'Rental');
-    await tester.ensureVisible(useForDives);
-    await tester.tap(useForDives);
-    await tester.ensureVisible(useForEquipment);
-    await tester.tap(useForEquipment);
+    // Every scope starts ticked (#4407): untick all but equipment.
+    for (final label in const [
+      'Use for dives',
+      'Use for sites',
+      'Use for media',
+      'Use for documents',
+    ]) {
+      final box = find.widgetWithText(CheckboxListTile, label);
+      await tester.ensureVisible(box);
+      await tester.tap(box);
+    }
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
     await tester.pumpAndSettle();

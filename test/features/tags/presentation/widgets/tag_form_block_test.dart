@@ -58,7 +58,9 @@ void main() {
     expect(block.bottom - field.bottom, 12);
   });
 
-  testWidgets('Browse lists only tags of the block scope', (tester) async {
+  testWidgets('Browse lists the block scope\'s tags first, others below', (
+    tester,
+  ) async {
     final night = tag('night', 'Night', {TagScope.dives});
     final avoid = tag('avoid', 'Avoid', {TagScope.sites});
     List<Tag>? reported;
@@ -82,7 +84,15 @@ void main() {
 
     await tester.tap(find.text('Browse'));
     await tester.pumpAndSettle();
-    expect(find.widgetWithText(CheckboxListTile, 'Avoid'), findsNothing);
+    // A sites-only tag is offered under Other tags (issue #4406).
+    expect(
+      tester.getTopLeft(find.text('Night')).dy,
+      lessThan(tester.getTopLeft(find.text('Other tags')).dy),
+    );
+    expect(
+      tester.getTopLeft(find.text('Other tags')).dy,
+      lessThan(tester.getTopLeft(find.text('Avoid')).dy),
+    );
 
     await tester.tap(find.widgetWithText(CheckboxListTile, 'Night'));
     await tester.pump();

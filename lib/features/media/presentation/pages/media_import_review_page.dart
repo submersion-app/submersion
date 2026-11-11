@@ -123,6 +123,8 @@ class _MediaImportReviewPageState extends ConsumerState<MediaImportReviewPage> {
             : l10n.media_import_review_linkChip(number);
       case SiteAttachTarget():
         return l10n.media_import_review_linkToSite;
+      case EquipmentAttachTarget():
+        return l10n.media_import_review_linkToGear;
       case null:
         break;
     }

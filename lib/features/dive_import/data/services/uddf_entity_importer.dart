@@ -39,6 +39,7 @@ import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker
 import 'package:submersion/core/services/images/profile_photo_codec.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/dive_rating_scale.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/number_utils.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
@@ -1480,15 +1481,9 @@ class UddfEntityImporter {
       final existing = await repository.getTagByName(name, diverId: diverId);
       if (existing != null) {
         if (uddfId != null) idMapping[uddfId] = existing.id;
-        // Keep every use the file gives the tag.
-        for (final scope in scopes) {
-          if (!existing.appliesTo(scope)) {
-            await repository.getOrCreateTag(
-              name,
-              diverId: diverId,
-              scope: scope,
-            );
-          }
+        // Keep every use the file gives the tag, in one write.
+        if (!existing.scopes.containsAll(scopes)) {
+          await repository.widenTag(existing, scopes);
         }
         continue;
       }
@@ -1504,11 +1499,16 @@ class UddfEntityImporter {
         colorHex: tagData['colorHex'] as String? ?? tagData['color'] as String?,
         createdAt: now,
         updatedAt: now,
-        scopes: scopes,
+        // A backup's stated scopes, or everywhere for a tag the source
+        // gives no scopes for (issue #4407).
+        scopes: importedNewTagScopes(tagData),
       );
 
-      await repository.createTag(tag);
-      if (uddfId != null) idMapping[uddfId] = newId;
+      // One that took the name meanwhile is widened only as an existing
+      // tag is above.
+      final created = await repository.createTag(tag, widenExistingTo: scopes);
+      // The incumbent's id when one took the name meanwhile, not [newId].
+      if (uddfId != null) idMapping[uddfId] = created.id;
       count++;
       onProgress?.call(ImportPhase.tags, count, selected.length);
     }
@@ -1711,7 +1711,7 @@ class UddfEntityImporter {
         ?tagIdMapping[ref],
     ];
     // The sites CSV's plain tag names (issue #2201): reuse this diver's tag
-    // of that name or create it, scoped to sites either way.
+    // of that name, widened to sites, or create it for every scope (#4407).
     final tagNames = siteData['siteTagNames'];
     for (final name
         in tagNames is List ? tagNames.whereType<String>() : const <String>[]) {
@@ -3061,7 +3061,9 @@ class UddfEntityImporter {
         diveComputerFirmware: diveData['diveComputerFirmware'] as String?,
         buddy: diveData['buddy'] as String?,
         diveMaster: diveData['diveMaster'] as String?,
-        rating: diveData['rating'] as int?,
+        // Every importer's rating lands here, so one off the 1 to 5 star
+        // scale is fixed once for all of them (issue #4415).
+        rating: DiveRatingScale.normalize(diveData['rating'] as int?),
         notes: notes,
         visibility: _parseEnum(diveData['visibility'], Visibility.values),
         visibilityMeters: diveData['visibilityMeters'] as double?,

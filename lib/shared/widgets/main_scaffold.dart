@@ -20,8 +20,8 @@ import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 import 'package:submersion/shared/widgets/nav/nav_selection.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 import 'package:submersion/shared/widgets/shell_chrome_scope.dart';
-import 'package:submersion/features/demo_mode/presentation/widgets/demo_mode_strip.dart';
-import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_confirm.dart';
+import 'package:submersion/features/demo_mode/presentation/widgets/demo_exit_entries.dart';
 
 class MainScaffold extends ConsumerStatefulWidget {
   final Widget child;
@@ -60,30 +60,12 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
     super.dispose();
   }
 
-  /// The demo strip already sits below the status bar, so the page under it
-  /// must not pad for the status bar a second time (issue #3708).
-  ///
-  /// The Builder reads the MediaQuery below the shell's Scaffold, which has
-  /// taken the keyboard and the bottom bar's padding out of it. Read from this
-  /// State's context, both come back, and a page's own Scaffold clears the
-  /// keyboard a second time (issue #3784).
-  Widget _belowDemoStrip(Widget child) {
-    final removeTop = ref.watch(demoModeActiveProvider);
-    return Builder(
-      builder: (context) => MediaQuery.removePadding(
-        context: context,
-        removeTop: removeTop,
-        child: child,
-      ),
-    );
-  }
-
   /// The shell navigator's pages, fenced off as a semantics node of their own.
   ///
   /// Every page route paints a modal barrier, and a modal barrier blocks the
   /// semantics of everything painted before it, up to the nearest semantics
-  /// boundary. Nothing in the shell was one, so the rail and the demo strip,
-  /// both painted before the page, fell out of the semantics tree and a
+  /// boundary. Nothing in the shell was one, so the rail and the banners,
+  /// all painted before the page, fell out of the semantics tree and a
   /// screen reader could not reach them (issue #4166). The boundary keeps the
   /// barrier's reach inside the shell navigator, where its routes stack.
   static Widget _pageArea(Widget page) =>
@@ -96,16 +78,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
   /// every page on the shell navigator alive: go_router builds that
   /// navigator with a GlobalKey (ShellRoute.navigatorKey), so the element is
   /// reparented rather than rebuilt.
-  Widget _buildChromelessScaffold() => Scaffold(
-    body: GlobalDropTarget(
-      child: Column(
-        children: [
-          const DemoModeStrip(),
-          Expanded(child: _pageArea(_belowDemoStrip(widget.child))),
-        ],
-      ),
-    ),
-  );
+  Widget _buildChromelessScaffold() =>
+      Scaffold(body: GlobalDropTarget(child: _pageArea(widget.child)));
 
   /// Builds a per-destination accent color lookup for the navigation surfaces.
   ///
@@ -242,6 +216,14 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
               child: ListView(
                 shrinkWrap: true,
                 children: [
+                  // The sheet closes first; the question is asked from the
+                  // shell, which outlives it (issue #4436).
+                  DemoExitSheetTile(
+                    onTap: () {
+                      Navigator.pop(sheetContext);
+                      confirmAndExitDemo(context, ref);
+                    },
+                  ),
                   for (final destination in overflow)
                     ListTile(
                       leading: Icon(
@@ -369,6 +351,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                           child: NavigationRail(
                             extended: showExtended,
                             minExtendedWidth: 190,
+                            trailing: const DemoExitRailButton(),
+                            trailingAtBottom: true,
                             leading: isDesktopExtended
                                 ? IconButton(
                                     icon: Icon(
@@ -424,7 +408,6 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                 Expanded(
                   child: Column(
                     children: [
-                      const DemoModeStrip(),
                       const UpdateBanner(),
                       Expanded(child: _pageArea(widget.child)),
                       const GpsRecordingStrip(),
@@ -443,9 +426,8 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
       body: GlobalDropTarget(
         child: Column(
           children: [
-            const DemoModeStrip(),
             const UpdateBanner(),
-            Expanded(child: _pageArea(_belowDemoStrip(widget.child))),
+            Expanded(child: _pageArea(widget.child)),
             const GpsRecordingStrip(),
           ],
         ),

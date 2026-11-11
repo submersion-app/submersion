@@ -149,6 +149,14 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
       if (dive == null) continue;
       final row = rowsById[id]!;
       final profile = profiles[id] ?? const <DiveProfilePoint>[];
+      // A dive consolidated from two computers can keep a copy of a
+      // cylinder from each, and these figures add cylinders up.
+      final counted = countedCylinderIds(
+        dive.tanks,
+        primarySourceId: row.primarySourceId,
+        primaryComputerId: row.primaryComputerId,
+        rebreather: dive.isRebreather,
+      );
       uses[id] = roleConsumptionForDive(
         dive: dive,
         cylinders: service.calculateCylinderSac(
@@ -159,13 +167,7 @@ extension InsightsRepositoryRoleConsumption on InsightsRepository {
         ),
         profile: profile,
         tankPressures: pressures[id],
-        // A dive consolidated from two computers can keep a copy of a
-        // cylinder from each, and these figures add cylinders up.
-        counted: (tank) => tankOwnedByPrimary(
-          tank,
-          primarySourceId: row.primarySourceId,
-          primaryComputerId: row.primaryComputerId,
-        ),
+        counted: (tank) => counted.contains(tank.id),
       );
     }
     final incomplete = {

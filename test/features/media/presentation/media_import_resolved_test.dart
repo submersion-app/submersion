@@ -70,6 +70,31 @@ class _FakeImportService implements MediaImportService {
     );
   }
 
+  final List<(String equipmentId, String? observationId, List<String> ids)>
+  equipmentCalls = [];
+  String? throwForEquipment;
+
+  @override
+  Future<ImportResult> importPhotosForEquipment({
+    required List<AssetInfo> selectedAssets,
+    required String equipmentId,
+    String? observationId,
+  }) async {
+    equipmentCalls.add((
+      equipmentId,
+      observationId,
+      [for (final a in selectedAssets) a.id],
+    ));
+    if (equipmentId == throwForEquipment) {
+      throw StateError('equipment import blew up');
+    }
+    return ImportResult(
+      imported: [for (final a in selectedAssets) imported(a.id)],
+      failures: const {},
+      skippedDuplicates: 0,
+    );
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -215,6 +240,37 @@ void main() {
       expect(out.linked, 1);
     },
   );
+
+  test('groups assets by gear item and check-in (issue #3355)', () async {
+    final out = await run(
+      [asset('a'), asset('b'), asset('c')],
+      {
+        'a': const EquipmentAttachTarget('reg-1', observationId: 'obs-1'),
+        'b': const EquipmentAttachTarget('reg-1', observationId: 'obs-1'),
+        'c': const EquipmentAttachTarget('reg-1'),
+      },
+    );
+
+    expect(service.equipmentCalls, hasLength(2));
+    expect(service.equipmentCalls[0].$1, 'reg-1');
+    expect(service.equipmentCalls[0].$2, 'obs-1');
+    expect(service.equipmentCalls[0].$3, ['a', 'b']);
+    expect(service.equipmentCalls[1].$2, isNull);
+    expect(service.equipmentCalls[1].$3, ['c']);
+    expect(out.linked, 3);
+  });
+
+  test('a throwing gear group is recorded as failures', () async {
+    service.throwForEquipment = 'reg-1';
+
+    final out = await run(
+      [asset('a')],
+      {'a': const EquipmentAttachTarget('reg-1')},
+    );
+
+    expect(out.failures['a'], contains('equipment import blew up'));
+    expect(out.linked, 0);
+  });
 
   test('a throwing group is recorded and the loop keeps going', () async {
     service.throwForDive = 'd1';

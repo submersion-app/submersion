@@ -16,6 +16,7 @@ Map<String, Object?> mediaDocument(MediaItem m) {
     'dive_id': m.diveId,
     'site_id': m.siteId,
     'equipment_id': m.equipmentId,
+    'observation_id': m.observationId,
     'source_type': m.sourceType.name,
     'media_type': m.mediaType.name,
     'original_filename': m.originalFilename,

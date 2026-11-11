@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -7,13 +8,19 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/features/equipment/data/repositories/gear_photo_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/observation_tag_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/services/observation_defaults.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/check_in_photos_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_near_miss_action.dart';
+import 'package:submersion/features/media/data/services/media_unlink_service.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/dive_picker_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
@@ -55,10 +62,26 @@ Future<void> confirmDeleteObservation(
   EquipmentObservation observation,
 ) async {
   final l10n = context.l10n;
+  // The check-in's photos go with it (issue #3355); the files stay.
+  // A failed read must not block the delete; any photo left behind still
+  // shows in the Gear gallery, where it can be removed by hand.
+  List<MediaItem> photos;
+  try {
+    photos = await ref
+        .read(gearPhotoRepositoryProvider)
+        .photosForObservation(observation.id);
+  } catch (_) {
+    photos = const [];
+  }
+  if (!context.mounted) return;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      content: Text(l10n.equipmentObservation_sheet_deleteConfirm),
+      content: Text(
+        photos.isEmpty
+            ? l10n.equipmentObservation_sheet_deleteConfirm
+            : l10n.equipment_photos_deleteCheckInWithPhotos(photos.length),
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -73,6 +96,16 @@ Future<void> confirmDeleteObservation(
   );
   if (confirmed != true || !context.mounted) return;
   await ref.read(equipmentObservationRepositoryProvider).delete(observation.id);
+  if (photos.isNotEmpty) {
+    try {
+      await ref.read(mediaUnlinkServiceProvider).unlinkFromEquipment([
+        for (final m in photos) m.id,
+      ]);
+    } catch (_) {
+      // The check-in is gone; its photos now count as identification
+      // photos on the gear page, where they can be removed by hand.
+    }
+  }
   scheduleConditionFindingsRefresh([observation.equipmentId]);
 }
 
@@ -101,9 +134,16 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
   /// tap cannot write the check-in twice.
   bool _saving = false;
 
+  /// Read up front: a sheet dismissed mid-edit still has to unlink what a
+  /// new check-in gathered, and `ref` is gone by then.
+  late final MediaUnlinkService _unlink;
+  late final GearPhotoRepository _gearPhotos;
+
   @override
   void initState() {
     super.initState();
+    _unlink = ref.read(mediaUnlinkServiceProvider);
+    _gearPhotos = ref.read(gearPhotoRepositoryProvider);
     if (widget.editing case final existing?) {
       _draft = _Draft.fromExisting(existing);
     }
@@ -111,16 +151,40 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
 
   @override
   void dispose() {
+    // A Save still in flight may yet create the check-in, so its photos
+    // stay.
+    if (!_saving) {
+      if (_draft case final draft?) _discardUnsavedPhotos(draft);
+    }
     _draft?.note.dispose();
     super.dispose();
   }
 
+  /// A new check-in left unsaved takes its photos with it (issue #3355):
+  /// they name a check-in that will never exist. An existing check-in keeps
+  /// its photos, which were linked to it as they were added.
+  Future<void> _discardUnsavedPhotos(_Draft draft) async {
+    if (draft.existing != null) return;
+    try {
+      final photos = await _gearPhotos.photosForObservation(draft.id);
+      if (photos.isEmpty) return;
+      await _unlink.unlinkFromEquipment([for (final m in photos) m.id]);
+    } catch (_) {
+      // Best effort: an orphan check-in photo still shows in the Gear
+      // gallery, where it can be removed by hand.
+    }
+  }
+
   void _openEditor(_Draft draft) {
+    if (_draft case final previous?) _discardUnsavedPhotos(previous);
     _draft?.note.dispose();
     setState(() => _draft = draft);
   }
 
-  void _closeEditor() {
+  void _closeEditor({bool saved = false}) {
+    if (!saved) {
+      if (_draft case final draft?) _discardUnsavedPhotos(draft);
+    }
     _draft?.note.dispose();
     setState(() => _draft = null);
   }
@@ -231,6 +295,8 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
       final existing = draft.existing;
       if (existing == null) {
         await repo.create(
+          // Chosen when the editor opened, so its photos already name it.
+          id: draft.id,
           equipmentId: widget.equipment.id,
           diveId: draft.diveId,
           // The validated id, as every diver-scoped read uses: a stale raw
@@ -256,7 +322,7 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
       // Stored findings follow the write even with no item page open.
       scheduleConditionFindingsRefresh([widget.equipment.id]);
       if (!mounted) return;
-      _closeEditor();
+      _closeEditor(saved: true);
     } catch (_) {
       // A concurrent sync can delete the item or dive mid-save. Say the
       // check-in was not saved and keep the editor open to try again.
@@ -274,6 +340,10 @@ class _ObservationSheetState extends ConsumerState<_ObservationSheet> {
 /// editor is open and is discarded on Save or Cancel.
 class _Draft {
   final EquipmentObservation? existing;
+
+  /// The check-in's id: the existing row's, or one chosen now for a new
+  /// check-in so its photos can name it before Save (issue #3355).
+  final String id;
   ObservationStatus status;
   final Set<ObservationTag> tags;
   final TextEditingController note;
@@ -283,6 +353,7 @@ class _Draft {
 
   _Draft({
     this.existing,
+    required this.id,
     required this.status,
     required this.tags,
     required this.note,
@@ -292,6 +363,7 @@ class _Draft {
 
   factory _Draft.fresh({required DateTime observedAt, String? diveId}) =>
       _Draft(
+        id: const Uuid().v4(),
         status: ObservationStatus.ok,
         tags: {},
         note: TextEditingController(),
@@ -301,6 +373,7 @@ class _Draft {
 
   factory _Draft.fromExisting(EquipmentObservation o) => _Draft(
     existing: o,
+    id: o.id,
     status: o.status,
     tags: o.issueTags.toSet(),
     note: TextEditingController(text: o.note),
@@ -434,6 +507,11 @@ class _EditorState extends ConsumerState<_Editor> {
           leading: const Icon(Icons.event),
           title: Text(l10n.equipmentObservation_sheet_dateLabel),
           subtitle: Text(units.formatDateTime(draft.observedAt, l10n: l10n)),
+        ),
+        const SizedBox(height: 4),
+        CheckInPhotosRow(
+          equipmentId: widget.equipment.id,
+          observationId: draft.id,
         ),
         if (draft.error case final error?)
           Padding(

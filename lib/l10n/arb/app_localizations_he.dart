@@ -11041,6 +11041,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tissue_title => 'עומס רקמות';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'תצוגת התרשים';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(ממוצע, מחושב)';
 
   @override
@@ -32394,6 +32397,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tags_picker_noMatches => 'אין תגיות התואמות לחיפוש שלך.';
 
   @override
+  String get tags_picker_otherTags => 'תגיות אחרות';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32655,6 +32661,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'בחר לפחות אחד: צלילות, אתרים, ציוד, מדיה או מסמכים';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'תגית זו כבר קיימת. השמירה מוסיפה לה את השימושים המסומנים.';
 
   @override
   String get tags_manage_scope_dives => 'צלילות';
@@ -34113,6 +34123,34 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_summary_recentTitle => 'טיולים אחרונים';
+
+  @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total טיולים',
+      one: 'טיול אחד',
+    );
+    return 'מסונן: סיכום של $shown מתוך $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'טיולים מסוננים';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'צלילות בטיולים אלה';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+    );
+    return '$date • $_temp0';
+  }
 
   @override
   String get trips_summary_stat_daysDiving => 'ימי צלילה';
@@ -50662,6 +50700,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'הצגת הציוד של כל צלילה על צולל בכרטיס הציוד';
 
   @override
+  String get settings_appearance_tissueColorScheme => 'צבעי עומס הרקמות';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'סולם הצבעים של מפות החום של הרקמות ושל תצוגת התלת־ממד';
+
+  @override
   String get diveLog_detail_gearFigureName => 'הציוד בצלילה זו';
 
   @override
@@ -59865,10 +59910,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'השלכת יומן הדוגמה וחזרה ליומן שלכם';
 
   @override
-  String get demo_strip_label => 'מצב הדגמה: אתם מעיינים בנתוני דוגמה';
+  String get demo_active_label => 'מצב הדגמה: אתם מעיינים בנתוני דוגמה';
 
   @override
-  String get demo_strip_exit => 'יציאה מההדגמה';
+  String get demo_exit_button => 'יציאה מההדגמה';
+
+  @override
+  String get demo_ribbon_label => 'הדגמה';
+
+  @override
+  String get demo_card_body => 'היומן שלכם נשמר בצד, ללא שינוי, עד שתצאו';
 
   @override
   String get demo_exit_confirm_title => 'לצאת ממצב ההדגמה?';
@@ -60809,6 +60860,89 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => 'דרכון הבלון השותף';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count התמונות שלה יוסרו',
+      one: 'התמונה שלה תוסר',
+    );
+    return 'למחוק בדיקה זו? $_temp0 מ-Submersion. הקבצים עצמם לא ייפגעו.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'קישור לציוד';
+
+  @override
+  String get equipment_photos_title => 'תמונות';
+
+  @override
+  String get equipment_photos_add => 'הוספת תמונות';
+
+  @override
+  String get equipment_photos_empty =>
+      'הוסיפו תמונות של הפריט, של תווית המספר הסידורי או של הסימונים שלו, לעיון.';
+
+  @override
+  String get equipment_photos_setCover => 'שימוש כתמונת שער';
+
+  @override
+  String get equipment_photos_clearCover => 'הסרת תמונת השער';
+
+  @override
+  String get equipment_photos_remove => 'הסרה';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות',
+      one: 'תמונה אחת',
+    );
+    return 'להסיר $_temp0?';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'התמונות מוסרות מ-Submersion. הקבצים עצמם לא ייפגעו.';
+
+  @override
+  String get equipment_photos_photoLabel => 'תמונת ציוד';
+
+  @override
+  String get equipment_photos_coverLabel => 'תמונת שער';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'תמונות';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'בדיקה: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'ציוד';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות',
+      one: 'תמונה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'תמונות שתוסיפו לציוד ולבדיקות שלו יופיעו כאן.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'תמונת בדיקה';
 
   @override
   String info_button_semantics(String title) {

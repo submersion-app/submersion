@@ -33,6 +33,12 @@ class EquipmentItem extends Equatable {
   /// The item this one is installed in (v202). Null for a standalone item.
   final String? parentEquipmentId;
 
+  /// The media row chosen to represent this item in the equipment list and
+  /// page header (issue #3355); null shows the type icon. May name a row
+  /// this device does not have. Written only through the cover action, never
+  /// by the edit form's save.
+  final String? coverMediaId;
+
   /// Row creation time (null for entities built before persistence); used as
   /// the last anchor fallback for service clocks.
   final DateTime? createdAt;
@@ -57,6 +63,7 @@ class EquipmentItem extends Equatable {
     this.customReminderEnabled,
     this.customReminderDays,
     this.parentEquipmentId,
+    this.coverMediaId,
     this.createdAt,
   });
 
@@ -270,6 +277,8 @@ class EquipmentItem extends Equatable {
     List<int>? customReminderDays,
     String? parentEquipmentId,
     bool clearParentEquipmentId = false,
+    String? coverMediaId,
+    bool clearCoverMediaId = false,
     DateTime? createdAt,
   }) {
     return EquipmentItem(
@@ -295,6 +304,9 @@ class EquipmentItem extends Equatable {
       parentEquipmentId: clearParentEquipmentId
           ? null
           : (parentEquipmentId ?? this.parentEquipmentId),
+      coverMediaId: clearCoverMediaId
+          ? null
+          : (coverMediaId ?? this.coverMediaId),
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -320,6 +332,7 @@ class EquipmentItem extends Equatable {
     customReminderEnabled,
     customReminderDays,
     parentEquipmentId,
+    coverMediaId,
     createdAt,
   ];
 }

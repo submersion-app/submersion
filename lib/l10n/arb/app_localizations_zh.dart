@@ -10720,6 +10720,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tissue_title => '组织饱和度';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => '图表视图';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '（平均值，计算）';
 
   @override
@@ -31280,6 +31283,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tags_picker_noMatches => '没有标签与您的搜索匹配。';
 
   @override
+  String get tags_picker_otherTags => '其他标签';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -31525,6 +31531,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tags_manage_scopeRequired => '请至少选择一项：潜水、潜水点、装备、媒体或文档';
+
+  @override
+  String get tags_manage_existingTagNote => '此标签已存在。保存后将为其添加所勾选的用途。';
 
   @override
   String get tags_manage_scope_dives => '潜水';
@@ -32925,6 +32934,34 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_summary_recentTitle => '近期旅行';
+
+  @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total 次旅行',
+      one: '$total 次旅行',
+    );
+    return '已筛选：汇总 $shown / $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => '已筛选的旅行';
+
+  @override
+  String get trips_summary_stat_filteredDives => '这些旅行中的潜水';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$date • $_temp0';
+  }
 
   @override
   String get trips_summary_stat_daysDiving => '潜水天数';
@@ -48620,6 +48657,12 @@ class AppLocalizationsZh extends AppLocalizations {
       '在装备卡片中将每次潜水的装备显示在潜水员图上';
 
   @override
+  String get settings_appearance_tissueColorScheme => '组织饱和度颜色';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle => '组织热力图和3D视图的配色';
+
+  @override
   String get diveLog_detail_gearFigureName => '本次潜水的装备';
 
   @override
@@ -57372,10 +57415,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get demo_settings_exit_subtitle => '丢弃示例日志并返回你自己的日志';
 
   @override
-  String get demo_strip_label => '演示模式：你正在浏览示例数据';
+  String get demo_active_label => '演示模式：你正在浏览示例数据';
 
   @override
-  String get demo_strip_exit => '退出演示';
+  String get demo_exit_button => '退出演示';
+
+  @override
+  String get demo_ribbon_label => '演示';
+
+  @override
+  String get demo_card_body => '你的日志会被原封不动地保留，直到你退出';
 
   @override
   String get demo_exit_confirm_title => '退出演示模式？';
@@ -58286,6 +58335,87 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => '双瓶搭档护照';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '它的 $count 张照片',
+      one: '它的照片',
+    );
+    return '删除这条检查记录？$_temp0将从 Submersion 中移除。文件本身不受影响。';
+  }
+
+  @override
+  String get media_import_review_linkToGear => '关联到装备';
+
+  @override
+  String get equipment_photos_title => '照片';
+
+  @override
+  String get equipment_photos_add => '添加照片';
+
+  @override
+  String get equipment_photos_empty => '添加这件装备、其序列号标签或标记的照片，以供参考。';
+
+  @override
+  String get equipment_photos_setCover => '设为封面照片';
+
+  @override
+  String get equipment_photos_clearCover => '移除封面照片';
+
+  @override
+  String get equipment_photos_remove => '移除';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片',
+      one: '$count 张照片',
+    );
+    return '移除 $_temp0？';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      '照片将从 Submersion 中移除。文件本身不受影响。';
+
+  @override
+  String get equipment_photos_photoLabel => '装备照片';
+
+  @override
+  String get equipment_photos_coverLabel => '封面照片';
+
+  @override
+  String get equipment_photos_checkInPhotos => '照片';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return '检查记录：$title，$date';
+  }
+
+  @override
+  String get media_gearGallery_tab => '装备';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 张照片',
+      one: '$count 张照片',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty => '你为装备及其检查记录添加的照片会显示在这里。';
+
+  @override
+  String get media_gearGallery_checkInBadge => '检查记录照片';
 
   @override
   String info_button_semantics(String title) {

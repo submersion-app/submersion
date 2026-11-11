@@ -109,7 +109,7 @@ void main() {
     testWidgets('not shown when pendingIndices is empty', (tester) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [_dup0, _dup1],
@@ -133,7 +133,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [_dup0, _dup1],
@@ -158,7 +158,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 1200);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         const group = EntityGroup(items: [_siteDupItem], duplicateIndices: {0});
 
@@ -184,7 +184,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [_dup0],
@@ -214,7 +214,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       // Score is 0.60 (below 0.7 threshold), so consolidate count == 0.
       const belowThresholdMatch = DiveMatchResult(
@@ -248,7 +248,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const belowThresholdMatch = DiveMatchResult(
         diveId: _testDiveId,
@@ -280,7 +280,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 1200);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         // A high-score match that is an exact-source re-download. The provider's
         // applyBulkAction excludes matchedExistingSource rows, so the count and
@@ -319,7 +319,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [_dup0, _dup1],
@@ -359,7 +359,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       DuplicateAction? firedAction;
 
@@ -389,7 +389,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 1200);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         DuplicateAction? firedAction;
 
@@ -424,7 +424,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       // Three likely duplicates (all >= 0.7). Two are non-pending with the
       // highest scores; one is pending with the lowest score within the
@@ -476,7 +476,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       // Two non-pending duplicates, both likely. Highest-score first.
       final group = EntityGroup(
@@ -515,7 +515,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [_dup0],
@@ -538,7 +538,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       final group = EntityGroup(
         items: [_dup0],
@@ -559,7 +559,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       // No matchResults -> routes through _EntityDuplicateCard (non-dive).
       const group = EntityGroup(items: [_siteDupItem], duplicateIndices: {0});
@@ -584,7 +584,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 1200);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       const group = EntityGroup(items: [_siteDupItem], duplicateIndices: {0});
 

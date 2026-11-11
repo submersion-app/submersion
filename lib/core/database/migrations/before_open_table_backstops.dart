@@ -146,5 +146,9 @@ extension TableBackstopsFromV217 on AppDatabase {
     // v345 backstop: twin set pairings and their two columns (issue #4242;
     // idempotent).
     await _assertTwinSetSchema();
+
+    // v352 backstop: media.observation_id and equipment.cover_media_id
+    // (issue #3355; idempotent).
+    await _assertEquipmentPhotoColumns();
   }
 }

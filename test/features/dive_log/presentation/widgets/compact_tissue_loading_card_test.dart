@@ -6,6 +6,7 @@ import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -261,21 +262,26 @@ void main() {
   });
 
   group('CompactTissueLoadingCard header icons', () {
-    // Header controls in left-to-right render order.
-    const headerIcons = [
-      Icons.grid_on,
-      Icons.area_chart,
-      Icons.palette_outlined,
-      Icons.view_in_ar,
-    ];
+    // Header controls in left-to-right render order: the view dropdown
+    // (showing the default heat map view's icon) and the 3D button.
+    const headerIcons = [Icons.grid_on, Icons.view_in_ar];
+
+    Finder viewMenu() => find.byTooltip('Chart view');
 
     testWidgets('are spaced evenly across the header row', (tester) async {
       await tester.pumpWidget(buildCard(onOpen3dView: () {}));
       await tester.pumpAndSettle();
 
-      final rects = headerIcons
-          .map((icon) => tester.getRect(find.byIcon(icon)))
-          .toList();
+      final rects = [
+        for (final icon in headerIcons)
+          tester.getRect(
+            find.ancestor(
+              of: find.byIcon(icon),
+              matching: find.byType(IconButton),
+            ),
+          ),
+        tester.getRect(find.byType(HeaderInfoButton)),
+      ];
 
       // Guard the assumed render order before measuring the gaps.
       for (var i = 1; i < rects.length; i++) {
@@ -317,50 +323,73 @@ void main() {
       }
     });
 
-    testWidgets('switch the visualization mode when tapped', (tester) async {
+    testWidgets('offer one view dropdown and no colour scheme button '
+        '(issue #4437)', (tester) async {
+      await tester.pumpWidget(
+        buildCard(status: _multiCompStatus, decoStatuses: [_multiCompStatus]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(viewMenu(), findsOneWidget);
+      // The dropdown shows the current view's icon with a caret; the other
+      // view's icon and the palette are gone from the header.
+      expect(find.byIcon(Icons.grid_on), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_drop_down), findsOneWidget);
+      expect(find.byIcon(Icons.area_chart), findsNothing);
+      expect(find.byIcon(Icons.palette_outlined), findsNothing);
+    });
+
+    testWidgets('switch the visualization mode from the dropdown', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         buildCard(status: _multiCompStatus, decoStatuses: [_multiCompStatus]),
       );
       await tester.pumpAndSettle();
 
       // The card renders exactly one of the two visualizations, chosen by
-      // tissueVizMode, so the rendered chart type is what proves the tap
+      // tissueVizMode, so the rendered chart type is what proves the pick
       // took effect. AppSettings defaults to TissueVizMode.heatMap.
       expect(find.byType(TissueHeatMapStrip), findsOneWidget);
       expect(find.byType(TissueAreaChart), findsNothing);
 
-      await tester.tap(find.byIcon(Icons.area_chart));
+      await tester.tap(viewMenu());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Stacked area'));
       await tester.pumpAndSettle();
       expect(find.byType(TissueAreaChart), findsOneWidget);
       expect(find.byType(TissueHeatMapStrip), findsNothing);
+      // The dropdown now shows the chosen view's icon.
+      expect(find.byIcon(Icons.area_chart), findsOneWidget);
+      expect(find.byIcon(Icons.grid_on), findsNothing);
 
-      await tester.tap(find.byIcon(Icons.grid_on));
+      await tester.tap(viewMenu());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Heat map'));
       await tester.pumpAndSettle();
       expect(find.byType(TissueHeatMapStrip), findsOneWidget);
       expect(find.byType(TissueAreaChart), findsNothing);
     });
 
-    testWidgets('tint the active visualization mode icon', (tester) async {
+    testWidgets('check the current view in the dropdown menu', (tester) async {
       await tester.pumpWidget(
         buildCard(status: _multiCompStatus, decoStatuses: [_multiCompStatus]),
       );
       await tester.pumpAndSettle();
 
-      final primary = Theme.of(
-        tester.element(find.byType(CompactTissueLoadingCard)),
-      ).colorScheme.primary;
-
-      Color? colorOf(IconData icon) =>
-          tester.widget<Icon>(find.byIcon(icon)).color;
-
-      expect(colorOf(Icons.grid_on), primary);
-      expect(colorOf(Icons.area_chart), isNot(primary));
-
-      await tester.tap(find.byIcon(Icons.area_chart));
+      await tester.tap(viewMenu());
       await tester.pumpAndSettle();
 
-      expect(colorOf(Icons.area_chart), primary);
-      expect(colorOf(Icons.grid_on), isNot(primary));
+      final items = tester
+          .widgetList<CheckedPopupMenuItem<TissueVizMode>>(
+            find.byType(CheckedPopupMenuItem<TissueVizMode>),
+          )
+          .toList();
+      expect(items.map((item) => item.value), TissueVizMode.values);
+      expect(
+        {for (final item in items) item.value: item.checked},
+        {TissueVizMode.heatMap: true, TissueVizMode.stackedArea: false},
+      );
     });
   });
 

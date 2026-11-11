@@ -54,6 +54,12 @@ class Equipment extends Table {
     #id,
     onDelete: KeyAction.setNull,
   )();
+
+  /// The media row chosen to represent this item in the equipment list and
+  /// page header; null shows the type icon (v352, issue #3355). No foreign
+  /// key: a peer can delete the photo, and a reader treats an id with no
+  /// row as none.
+  TextColumn get coverMediaId => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

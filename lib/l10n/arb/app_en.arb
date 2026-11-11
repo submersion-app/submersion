@@ -6358,6 +6358,7 @@
   "diveLog_tank_tripCylinderMissing": "No longer on this trip",
   "diveLog_tank_tripCylinderSuggested": "Suggested from the trip's full cylinders",
   "diveLog_tissue_title": "Tissue Loading",
+  "diveLog_tissue_viewMenuTooltip": "Chart view",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",
   "diveLog_tooltip_ceiling": "Ceiling",
   "diveLog_tooltip_decoStop": "Deco stop",
@@ -19381,6 +19382,10 @@
   },
   "tags_picker_allAdded": "All tags are already added.",
   "tags_picker_noMatches": "No tags match your search.",
+  "tags_picker_otherTags": "Other tags",
+  "@tags_picker_otherTags": {
+    "description": "Tag picker section heading over the diver's tags that are not yet offered for what is being tagged; picking one also offers it there"
+  },
   "tags_picker_addCount": "{count, plural, =0{Add tags} =1{Add 1 tag} other{Add {count} tags}}",
   "@tags_picker_addCount": {
     "description": "Confirm button on the tag picker sheet; count is how many tags are ticked",
@@ -19606,6 +19611,7 @@
   },
   "tags_manage_narrowDialog_title": "Remove tag from existing items?",
   "tags_manage_scopeRequired": "Choose at least one: dives, sites, equipment, media, or documents",
+  "tags_manage_existingTagNote": "This tag already exists. Saving adds the ticked uses to it.",
   "tags_manage_scope_dives": "Dives",
   "tags_manage_scope_equipment": "Equipment",
   "tags_manage_scope_sites": "Sites",
@@ -20222,6 +20228,38 @@
   "trips_summary_quickActions_add": "Add Trip",
   "trips_summary_quickActions_title": "Quick Actions",
   "trips_summary_recentTitle": "Recent Trips",
+  "trips_summary_filteredBanner": "Filtered: summarizing {shown} of {total, plural, =1{{total} trip} other{{total} trips}}",
+  "trips_summary_filteredBannerPending": "Filtered trips",
+  "trips_summary_stat_filteredDives": "Dives on these trips",
+  "@trips_summary_stat_filteredDives": {
+    "description": "Trips overview stat card label in place of \"Total Dives\" while the trip list is filtered: every dive on the trips shown, not only the dives that matched the filter (an equipment filter's item may have been on fewer)."
+  },
+  "@trips_summary_filteredBannerPending": {
+    "description": "Trips overview filter banner text while its trip counts are not known (still loading, or the filter's query failed)."
+  },
+  "trips_summary_recentSubtitle": "{date} • {count, plural, =1{1 dive} other{{count} dives}}",
+  "@trips_summary_filteredBanner": {
+    "description": "Line under the Trips overview title while the trip list is filtered (for example by an equipment item): the overview covers {shown} of the diver's {total} trips.",
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "@trips_summary_recentSubtitle": {
+    "description": "Subtitle of a Recent Trips row of the Trips overview: the trip's start date, then its dive count, e.g. \"20/08/2026 • 11 dives\". Join the two the way trips_summary_upcomingSubtitle does.",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "trips_summary_stat_daysDiving": "Days Diving",
   "trips_summary_stat_liveaboards": "Liveaboards",
   "trips_summary_stat_totalDives": "Total Dives",
@@ -30225,6 +30263,8 @@
   "settings_appearance_showDataSourceBadges_subtitle": "Display source attribution on dive metrics",
   "settings_appearance_showDiveFigure": "Show diver figure on dives",
   "settings_appearance_showDiveFigure_subtitle": "Draw each dive's gear on a diver in its equipment card",
+  "settings_appearance_tissueColorScheme": "Tissue loading colors",
+  "settings_appearance_tissueColorScheme_subtitle": "Color scale for tissue heat maps and the 3D view",
   "diveLog_detail_gearFigureName": "Gear on this dive",
   "settings_appearance_title_buddies": "Buddies Appearance",
   "settings_appearance_title_certifications": "Certifications Appearance",
@@ -36093,10 +36133,14 @@
   "@demo_settings_exit_title": {"description": "Demo mode (issue #3708)"},
   "demo_settings_exit_subtitle": "Discard the sample logbook and return to your own",
   "@demo_settings_exit_subtitle": {"description": "Demo mode (issue #3708)"},
-  "demo_strip_label": "Demo mode: you are exploring sample data",
-  "@demo_strip_label": {"description": "Demo mode (issue #3708)"},
-  "demo_strip_exit": "Exit demo",
-  "@demo_strip_exit": {"description": "Demo mode (issue #3708)"},
+  "demo_active_label": "Demo mode: you are exploring sample data",
+  "@demo_active_label": {"description": "Says demo mode is on: the corner ribbon's screen reader label and the dashboard card's title (issues #3708, #4428, #4436)"},
+  "demo_exit_button": "Exit demo",
+  "@demo_exit_button": {"description": "Leaves demo mode: the dashboard card, the nav rail, the More sheet and the Unavailable in demo mode page (issues #3708, #4436)"},
+  "demo_ribbon_label": "DEMO",
+  "@demo_ribbon_label": {"description": "Demo mode corner ribbon text; short, written in capitals where the script has them (issue #4428)"},
+  "demo_card_body": "Your logbook is set aside, untouched, until you exit",
+  "@demo_card_body": {"description": "Body of the demo mode card on the dashboard (issue #4436)"},
   "demo_exit_confirm_title": "Exit demo mode?",
   "@demo_exit_confirm_title": {"description": "Demo mode (issue #3708)"},
   "demo_exit_confirm_body": "Changes you made to the sample logbook will be discarded.",
@@ -36474,6 +36518,28 @@
   "settings_conflict_field_unpairedOn": "Unlinked on",
   "settings_conflict_field_filledTogetherId": "Twin set fill",
   "settings_conflict_field_twinPassportId": "Twin set partner passport",
+  "equipment_photos_deleteCheckInWithPhotos": "Delete this check-in? Its {count, plural, =1{photo} other{{count} photos}} will be removed from Submersion. The files themselves are not touched.",
+  "@equipment_photos_deleteCheckInWithPhotos": {"placeholders": {"count": {"type": "int"}}},
+  "media_import_review_linkToGear": "Link to equipment",
+  "equipment_photos_title": "Photos",
+  "equipment_photos_add": "Add photos",
+  "equipment_photos_empty": "Add photos of this item, its serial number label or markings, for reference.",
+  "equipment_photos_setCover": "Use as cover photo",
+  "equipment_photos_clearCover": "Remove cover photo",
+  "equipment_photos_remove": "Remove",
+  "equipment_photos_removeConfirmTitle": "Remove {count, plural, =1{{count} photo} other{{count} photos}}?",
+  "@equipment_photos_removeConfirmTitle": {"placeholders": {"count": {"type": "int"}}},
+  "equipment_photos_removeConfirmContent": "The photos are removed from Submersion. The files themselves are not touched.",
+  "equipment_photos_photoLabel": "Equipment photo",
+  "equipment_photos_coverLabel": "Cover photo",
+  "equipment_photos_checkInPhotos": "Photos",
+  "equipment_photos_checkInCaption": "Check-in: {title}, {date}",
+  "@equipment_photos_checkInCaption": {"placeholders": {"title": {"type": "String"}, "date": {"type": "String"}}},
+  "media_gearGallery_tab": "Equipment",
+  "media_gearGallery_count": "{count, plural, =1{{count} photo} other{{count} photos}}",
+  "@media_gearGallery_count": {"placeholders": {"count": {"type": "int"}}},
+  "media_gearGallery_empty": "Photos you add to your equipment and its check-ins show up here.",
+  "media_gearGallery_checkInBadge": "Check-in photo",
   "info_button_semantics": "About {title}",
   "@info_button_semantics": {"placeholders": {"title": {"type": "String"}}},
   "info_sheet_background": "Background",

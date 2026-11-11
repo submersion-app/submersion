@@ -60,7 +60,7 @@ void main() {
     testWidgets('shows NeedsDecisionPill when pending', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_pump(isPending: true));
       await tester.pump();
@@ -71,7 +71,7 @@ void main() {
     testWidgets('does not show pill when not pending', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_pump(isPending: false));
       await tester.pump();
@@ -87,7 +87,7 @@ void main() {
       // flagged without visually out-weighting the surrounding cards.
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_pump(isPending: true));
       await tester.pump();
@@ -103,7 +103,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_pump(isPending: true));
       await tester.pump();
@@ -121,7 +121,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 600);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         await tester.pumpWidget(_pump(isPending: true, selectedAction: null));
         await tester.pump();
@@ -142,7 +142,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _pump(isPending: true, selectedAction: DuplicateAction.skip),

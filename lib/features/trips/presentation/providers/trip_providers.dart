@@ -78,6 +78,11 @@ void setTripQuery(WidgetRef ref, QueryNode? query) {
   );
 }
 
+/// Drops every axis of the trip list's filter: the list's Clear all, and the
+/// Trips overview's (issue #4414).
+void clearTripFilter(WidgetRef ref) =>
+    ref.read(tripFilterProvider.notifier).state = const TripFilterState();
+
 /// Repository provider
 final tripRepositoryProvider = Provider<TripRepository>((ref) {
   return TripRepository();

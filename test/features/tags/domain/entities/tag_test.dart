@@ -11,15 +11,20 @@ void main() {
       ? Tag(id: 't', name: 'T', createdAt: now, updatedAt: now)
       : Tag(id: 't', name: 'T', createdAt: now, updatedAt: now, scopes: scopes);
 
-  test('a tag is a dive tag unless told otherwise', () {
-    expect(tag().scopes, {TagScope.dives});
-    expect(tag().appliesTo(TagScope.dives), isTrue);
-    expect(tag().appliesTo(TagScope.sites), isFalse);
+  test('a tag is offered everywhere unless told otherwise (#4407)', () {
+    expect(tag().scopes, TagScope.everywhere);
+    expect(Tag.create(id: 't', name: 'T').scopes, TagScope.everywhere);
+  });
+
+  test('everywhere names every scope', () {
+    // TagScope.everywhere is spelled out so it can be a constant default;
+    // a new scope must be added there too.
+    expect(TagScope.everywhere, TagScope.values.toSet());
   });
 
   test('create offers the tag in exactly its one scope', () {
     for (final scope in TagScope.values) {
-      expect(Tag.create(id: 't', name: 'T', scope: scope).scopes, {scope});
+      expect(Tag.create(id: 't', name: 'T', scopes: {scope}).scopes, {scope});
     }
   });
 

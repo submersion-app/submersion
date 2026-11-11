@@ -259,16 +259,22 @@ class TagWrites extends WritableEntry {
     final name = values['name']! as String;
     await _nameStillFree(name, diverId);
     final now = DateTime.now();
+    final chosen = _scopes(values['scopes']);
     final tag = await _r.tags.createTag(
       domain.Tag(
         id: '',
         diverId: diverId,
         name: name,
         colorHex: values['color_hex'] as String?,
-        scopes: _scopes(values['scopes']) ?? const {domain.TagScope.dives},
+        // Offered everywhere unless told, as a tag made in the app is
+        // (issue #4407).
+        scopes: chosen ?? domain.TagScope.everywhere,
         createdAt: now,
         updatedAt: now,
       ),
+      // The default is not a choice: a tag that took the name meanwhile is
+      // widened only to scopes the agent asked for, as the tag page does.
+      widenExistingTo: chosen ?? const {},
     );
     return tag.id;
   }

@@ -13,6 +13,19 @@ enum TagScope {
   media,
   documents;
 
+  /// Every scope: where a tag the user creates is offered, so it can be
+  /// reused on dives, sites, media and the rest alike (issue #4407).
+  /// Narrowing it is a choice made in Manage Tags. A constant, so it can be
+  /// a default parameter; a test keeps it equal to [values], so a new scope
+  /// must be added here too.
+  static const Set<TagScope> everywhere = {
+    dives,
+    sites,
+    equipment,
+    media,
+    documents,
+  };
+
   /// Where this scope stores its flag and its links.
   TagScopeTable get table => switch (this) {
     TagScope.dives => diveTagScopeTable,
@@ -45,7 +58,9 @@ class Tag extends Equatable {
     this.colorHex,
     required this.createdAt,
     required this.updatedAt,
-    this.scopes = const {TagScope.dives},
+    // A tag built without scopes is offered everywhere, as any new tag is
+    // (issue #4407).
+    this.scopes = TagScope.everywhere,
   });
 
   /// The colour the tag is drawn in. A tag with no usable colour (one an
@@ -55,13 +70,14 @@ class Tag extends Equatable {
   /// Whether the tag is offered where [scope] is.
   bool appliesTo(TagScope scope) => scopes.contains(scope);
 
-  /// Create a new tag with a default color, offered in [scope] only.
+  /// Create a new tag with a default color, offered in [scopes]: everywhere
+  /// when null, as every new tag is unless narrowed (issue #4407).
   factory Tag.create({
     required String id,
     required String name,
     String? diverId,
     String? colorHex,
-    TagScope scope = TagScope.dives,
+    Set<TagScope>? scopes,
   }) {
     final now = DateTime.now();
     return Tag(
@@ -71,7 +87,7 @@ class Tag extends Equatable {
       colorHex: colorHex,
       createdAt: now,
       updatedAt: now,
-      scopes: {scope},
+      scopes: scopes ?? TagScope.everywhere,
     );
   }
 

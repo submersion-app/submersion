@@ -11115,6 +11115,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_tissue_title => 'Tissue Loading';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Chart view';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(avg, calculated)';
 
   @override
@@ -32660,6 +32663,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tags_picker_noMatches => 'No tags match your search.';
 
   @override
+  String get tags_picker_otherTags => 'Other tags';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -32922,6 +32928,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'Choose at least one: dives, sites, equipment, media, or documents';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'This tag already exists. Saving adds the ticked uses to it.';
 
   @override
   String get tags_manage_scope_dives => 'Dives';
@@ -34387,6 +34397,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_summary_recentTitle => 'Recent Trips';
+
+  @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total trips',
+      one: '$total trip',
+    );
+    return 'Filtered: summarizing $shown of $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'Filtered trips';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'Dives on these trips';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$date • $_temp0';
+  }
 
   @override
   String get trips_summary_stat_daysDiving => 'Days Diving';
@@ -50999,6 +51037,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Draw each dive\'s gear on a diver in its equipment card';
 
   @override
+  String get settings_appearance_tissueColorScheme => 'Tissue loading colors';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Color scale for tissue heat maps and the 3D view';
+
+  @override
   String get diveLog_detail_gearFigureName => 'Gear on this dive';
 
   @override
@@ -60176,10 +60221,17 @@ class AppLocalizationsEn extends AppLocalizations {
       'Discard the sample logbook and return to your own';
 
   @override
-  String get demo_strip_label => 'Demo mode: you are exploring sample data';
+  String get demo_active_label => 'Demo mode: you are exploring sample data';
 
   @override
-  String get demo_strip_exit => 'Exit demo';
+  String get demo_exit_button => 'Exit demo';
+
+  @override
+  String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body =>
+      'Your logbook is set aside, untouched, until you exit';
 
   @override
   String get demo_exit_confirm_title => 'Exit demo mode?';
@@ -61130,6 +61182,89 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Twin set partner passport';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: 'photo',
+    );
+    return 'Delete this check-in? Its $_temp0 will be removed from Submersion. The files themselves are not touched.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'Link to equipment';
+
+  @override
+  String get equipment_photos_title => 'Photos';
+
+  @override
+  String get equipment_photos_add => 'Add photos';
+
+  @override
+  String get equipment_photos_empty =>
+      'Add photos of this item, its serial number label or markings, for reference.';
+
+  @override
+  String get equipment_photos_setCover => 'Use as cover photo';
+
+  @override
+  String get equipment_photos_clearCover => 'Remove cover photo';
+
+  @override
+  String get equipment_photos_remove => 'Remove';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '$count photo',
+    );
+    return 'Remove $_temp0?';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'The photos are removed from Submersion. The files themselves are not touched.';
+
+  @override
+  String get equipment_photos_photoLabel => 'Equipment photo';
+
+  @override
+  String get equipment_photos_coverLabel => 'Cover photo';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'Photos';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'Check-in: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'Equipment';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '$count photo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'Photos you add to your equipment and its check-ins show up here.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'Check-in photo';
 
   @override
   String info_button_semantics(String title) {

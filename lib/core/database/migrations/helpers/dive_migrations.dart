@@ -782,4 +782,13 @@ extension DiveMigrations on AppDatabase {
       await repairWeatherFetchedAtSeconds(this);
     }
   }
+
+  /// v358: [repairOutOfScaleDiveRatings] (issue #4415). Guarded on the
+  /// column, as the other helpers are, for migration fixtures that build only
+  /// part of the schema.
+  Future<void> _repairOutOfScaleDiveRatings() async {
+    if (await _columnExists('dives', 'rating')) {
+      await repairOutOfScaleDiveRatings(this);
+    }
+  }
 }

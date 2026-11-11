@@ -68,7 +68,7 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     final inputs = _inputs();
     final outcome = _outcome(inputs);
     await tester.pumpWidget(
@@ -92,7 +92,7 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     final inputs = _inputs();
     final outcome = _outcome(inputs);
     await tester.pumpWidget(
@@ -137,7 +137,7 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     // A logbook may list the deco cylinder before the back gas.
     final inputs = _inputs(tanks: [..._inputs().tanks.reversed]);
     final outcome = _outcome(inputs);
@@ -160,7 +160,7 @@ void main() {
   ) async {
     tester.view.physicalSize = const Size(800, 1600);
     tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.reset);
     final inputs = _inputs();
     final outcome = _outcome(inputs);
     await tester.pumpWidget(

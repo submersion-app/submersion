@@ -11266,6 +11266,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tissue_title => 'Szövettelítődés';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Diagramnézet';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(átl., számított)';
 
   @override
@@ -33058,6 +33061,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tags_picker_noMatches => 'Nincs a keresésnek megfelelő címke.';
 
   @override
+  String get tags_picker_otherTags => 'Egyéb címkék';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -33322,6 +33328,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'Válasszon legalább egyet: merülések, merülőhelyek, felszerelés, média vagy dokumentumok';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'Ez a címke már létezik. Mentéskor a bejelölt felhasználások hozzáadódnak.';
 
   @override
   String get tags_manage_scope_dives => 'Merülések';
@@ -34798,6 +34808,34 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_summary_recentTitle => 'Legutóbbi utak';
+
+  @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total út',
+      one: '$total út',
+    );
+    return 'Szűrve: $shown / $_temp0 összesítve';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'Szűrt utak';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'Merülések ezeken az utakon';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$date • $_temp0';
+  }
 
   @override
   String get trips_summary_stat_daysDiving => 'Merülési napok';
@@ -51499,6 +51537,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden merülés felszerelésének megjelenítése egy búváron a felszerelés kártyán';
 
   @override
+  String get settings_appearance_tissueColorScheme => 'Szövetterheltség színei';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'A szövet-hőtérképek és a 3D nézet színskálája';
+
+  @override
   String get diveLog_detail_gearFigureName => 'A merülés felszerelése';
 
   @override
@@ -60804,10 +60849,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'A mintanapló elvetése és visszatérés a sajátodhoz';
 
   @override
-  String get demo_strip_label => 'Demó mód: mintaadatokat böngészel';
+  String get demo_active_label => 'Demó mód: mintaadatokat böngészel';
 
   @override
-  String get demo_strip_exit => 'Kilépés a demóból';
+  String get demo_exit_button => 'Kilépés a demóból';
+
+  @override
+  String get demo_ribbon_label => 'DEMÓ';
+
+  @override
+  String get demo_card_body =>
+      'A naplód érintetlenül félre van téve, amíg ki nem lépsz';
 
   @override
   String get demo_exit_confirm_title => 'Kilépsz a demó módból?';
@@ -61758,6 +61810,89 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => 'Társpalack útlevele';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'A(z) $count fotója',
+      one: 'A fotója',
+    );
+    return 'Törli ezt az ellenőrzést? $_temp0 törlődik a Submersionből. Maguk a fájlok érintetlenek maradnak.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'Csatolás felszereléshez';
+
+  @override
+  String get equipment_photos_title => 'Fotók';
+
+  @override
+  String get equipment_photos_add => 'Fotók hozzáadása';
+
+  @override
+  String get equipment_photos_empty =>
+      'Adjon hozzá fotókat erről a felszerelésről, a sorozatszám-címkéjéről vagy a jelöléseiről, referenciaként.';
+
+  @override
+  String get equipment_photos_setCover => 'Használat borítófotóként';
+
+  @override
+  String get equipment_photos_clearCover => 'Borítófotó eltávolítása';
+
+  @override
+  String get equipment_photos_remove => 'Eltávolítás';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotót',
+      one: '$count fotót',
+    );
+    return 'Eltávolítja a kijelölt $_temp0?';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'A fotók törlődnek a Submersionből. Maguk a fájlok érintetlenek maradnak.';
+
+  @override
+  String get equipment_photos_photoLabel => 'Felszerelésfotó';
+
+  @override
+  String get equipment_photos_coverLabel => 'Borítófotó';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'Fotók';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'Ellenőrzés: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'Felszerelés';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotó',
+      one: '$count fotó',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'A felszereléséhez és az ellenőrzéseihez hozzáadott fotók itt jelennek meg.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'Ellenőrzési fotó';
 
   @override
   String info_button_semantics(String title) {

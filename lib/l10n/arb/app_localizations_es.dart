@@ -11293,6 +11293,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_tissue_title => 'Carga tisular';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Vista del gráfico';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(prom., calculado)';
 
   @override
@@ -33245,6 +33248,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ninguna etiqueta coincide con tu búsqueda.';
 
   @override
+  String get tags_picker_otherTags => 'Otras etiquetas';
+
+  @override
   String tags_picker_addCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -33510,6 +33516,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get tags_manage_scopeRequired =>
       'Elige al menos uno: inmersiones, puntos, equipo, multimedia o documentos';
+
+  @override
+  String get tags_manage_existingTagNote =>
+      'Esta etiqueta ya existe. Al guardar se le añaden los usos marcados.';
 
   @override
   String get tags_manage_scope_dives => 'Inmersiones';
@@ -35003,6 +35013,34 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get trips_summary_recentTitle => 'Viajes recientes';
+
+  @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total viajes',
+      one: '$total viaje',
+    );
+    return 'Filtrado: resumen de $shown de $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'Viajes filtrados';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'Inmersiones en estos viajes';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$date • $_temp0';
+  }
 
   @override
   String get trips_summary_stat_daysDiving => 'Días de buceo';
@@ -51806,6 +51844,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mostrar el equipo de cada inmersión sobre un buceador en su tarjeta de equipo';
 
   @override
+  String get settings_appearance_tissueColorScheme =>
+      'Colores de la carga tisular';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Escala de colores de los mapas de calor de tejidos y de la vista 3D';
+
+  @override
   String get diveLog_detail_gearFigureName => 'Equipo de esta inmersión';
 
   @override
@@ -61177,10 +61223,18 @@ class AppLocalizationsEs extends AppLocalizations {
       'Descartar el diario de ejemplo y volver al tuyo';
 
   @override
-  String get demo_strip_label => 'Modo demo: estás explorando datos de ejemplo';
+  String get demo_active_label =>
+      'Modo demo: estás explorando datos de ejemplo';
 
   @override
-  String get demo_strip_exit => 'Salir de la demo';
+  String get demo_exit_button => 'Salir de la demo';
+
+  @override
+  String get demo_ribbon_label => 'DEMO';
+
+  @override
+  String get demo_card_body =>
+      'Tu diario se guarda aparte, intacto, hasta que salgas';
 
   @override
   String get demo_exit_confirm_title => '¿Salir del modo demo?';
@@ -62143,6 +62197,89 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Pasaporte de la botella pareja';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sus $count fotos se quitarán',
+      one: 'Su foto se quitará',
+    );
+    return '¿Eliminar esta revisión? $_temp0 de Submersion. Los archivos no se tocan.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'Vincular a un equipo';
+
+  @override
+  String get equipment_photos_title => 'Fotos';
+
+  @override
+  String get equipment_photos_add => 'Añadir fotos';
+
+  @override
+  String get equipment_photos_empty =>
+      'Añade fotos de este equipo, de su etiqueta con el número de serie o de sus marcas, como referencia.';
+
+  @override
+  String get equipment_photos_setCover => 'Usar como foto de portada';
+
+  @override
+  String get equipment_photos_clearCover => 'Quitar foto de portada';
+
+  @override
+  String get equipment_photos_remove => 'Quitar';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return '¿Quitar $_temp0?';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'Las fotos se quitan de Submersion. Los archivos no se tocan.';
+
+  @override
+  String get equipment_photos_photoLabel => 'Foto del equipo';
+
+  @override
+  String get equipment_photos_coverLabel => 'Foto de portada';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'Fotos';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'Revisión: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'Equipo';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'Las fotos que añadas a tu equipo y a sus revisiones aparecen aquí.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'Foto de revisión';
 
   @override
   String info_button_semantics(String title) {

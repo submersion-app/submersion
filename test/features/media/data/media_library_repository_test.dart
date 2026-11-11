@@ -373,8 +373,9 @@ void main() {
       expect(byId('site-map').attachedSiteName, 'Rubis');
       expect(byId('site-map').attachedEquipmentName, isNull);
       expect(byId('site-map').siteName, isNull);
-      expect(byId('gear-shot').attachedEquipmentName, 'Primary light');
-      expect(byId('gear-shot').attachedSiteName, isNull);
+      // A gear-only photo lives in the Gear gallery, not the library
+      // (issue #3355).
+      expect(page.entries.map((e) => e.item.id), isNot(contains('gear-shot')));
       expect(byId('unlinked-1').attachedSiteName, isNull);
       expect(byId('unlinked-1').attachedEquipmentName, isNull);
     });

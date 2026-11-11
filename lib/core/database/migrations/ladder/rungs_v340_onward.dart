@@ -106,6 +106,13 @@ extension RungsFromV340 on AppDatabase {
     if (from < 351) await _assertEquipmentCollapsedGroupsColumn();
     if (from < 351) await reportProgress();
 
+    // v352: media.observation_id, the check-in a gear photo backs up, and
+    // equipment.cover_media_id, the photo that stands for an item (issue
+    // #3355). Nullable columns, no backfill. Re-asserted in beforeOpen.
+    // Numbered 352: main holds 350, 351 and 354, and left 352 for this.
+    if (from < 352) await _assertEquipmentPhotoColumns();
+    if (from < 352) await reportProgress();
+
     // v354: dives.is_draft, a dive marked at the site that waits for its
     // readings (issue #637). Defaulted, no backfill, so the compatibility
     // floor does not move. Numbered 354: main holds 351 and open work
@@ -131,6 +138,13 @@ extension RungsFromV340 on AppDatabase {
     // 357 because main holds 356; renumbered from 353, then 355.
     if (from < 357) await _assertProfileSeriesIsEditColumn();
     if (from < 357) await reportProgress();
+
+    // v358: a dive's rating back on the 1 to 5 star scale where a UDDF
+    // import stored the file's 1 to 10 value, or 0 for an unrated dive
+    // (issue #4415). Data only, so the compatibility floor does not move.
+    // It rewrites dives.rating, so changeLogRewrittenColumns lists it.
+    if (from < 358) await _repairOutOfScaleDiveRatings();
+    if (from < 358) await reportProgress();
 
     // v359: diver_settings.pin_profile_on_scroll, whether dive details pins
     // a profile strip (issue #4423). Column only, defaulted on; re-asserted

@@ -399,6 +399,9 @@ final exempt = <String, String>{
     'lib/features/media/data/repositories/media_repository.dart:unlinkFromEquipment',
     'lib/features/media/data/repositories/media_repository.dart:unlinkFromSite',
     'lib/features/media/data/repositories/media_repository.dart:updateMedia',
+    // A gear item's cover photo is picked from its photos (issue #3355).
+    'lib/features/equipment/data/repositories/gear_photo_repository.dart:clearCoversNaming',
+    'lib/features/equipment/data/repositories/gear_photo_repository.dart:setCover',
   ])
     method:
         'media is attached, linked to gear or a site, and captioned in the app; an agent edits what the media writer lists',

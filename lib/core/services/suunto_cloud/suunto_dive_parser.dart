@@ -303,14 +303,34 @@ class SuuntoDiveParser {
   /// A sample's `GasNumber` names a header gas, so gas `g` is cylinder `g`
   /// whatever order the diver breathed them in. [usedGases] holds every gas
   /// the dive switched to or read a transmitter on; a configured gas the
-  /// dive never touched gets no cylinder, and nor does a used gas the header
-  /// does not list.
+  /// dive never touched gets no cylinder, and nor does a used gas a header
+  /// gas list leaves out.
+  ///
+  /// The Suunto app's own JSON export has no gas list at all (no
+  /// `Header.Diving` block, which only the cloud export carries). Its
+  /// transmitter readings and gas switches still name their gas, so each
+  /// used gas gets a cylinder of unrecorded mix rather than none: with no
+  /// cylinder, the importer would drop every pressure reading and switch.
   static List<DownloadedTank> _buildTanks(
     Map<String, dynamic>? diving,
     Set<int> usedGases,
   ) {
     final gases = _gases(diving);
-    if (gases.isEmpty) return const [];
+    if (gases.isEmpty) {
+      return [
+        for (final gasIndex in usedGases.toList()..sort())
+          // Air stands in for the mix the export does not give, flagged so
+          // nothing later takes it for the computer's. Size and pressures
+          // are unknown; the importer derives the pressures from the
+          // cylinder's own series.
+          DownloadedTank(
+            index: gasIndex,
+            o2Percent: 21,
+            hePercent: 0,
+            mixRecorded: false,
+          ),
+      ];
+    }
 
     // A dive with only one recorded gas never emits a gas-switch event (there
     // is nothing to switch to/from), and a dive without air integration reads
@@ -391,6 +411,7 @@ class SuuntoDiveParser {
           hePercent: primary.hePercent,
           volumeLiters: primary.volumeLiters,
           role: isRight ? TankRole.sidemountRight.name : null,
+          mixRecorded: primary.mixRecorded,
         ),
       );
     }

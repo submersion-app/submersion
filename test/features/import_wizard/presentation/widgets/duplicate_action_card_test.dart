@@ -173,7 +173,7 @@ void main() {
     testWidgets('renders item title and subtitle', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_buildCard(card: _makeCard()));
       await tester.pump();
@@ -185,7 +185,7 @@ void main() {
     testWidgets('renders match percentage text', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_buildCard(card: _makeCard()));
       await tester.pump();
@@ -198,7 +198,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(card: _makeCard(matchResult: _likelyMatchResult)),
@@ -218,7 +218,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(card: _makeCard(matchResult: _possibleMatchResult)),
@@ -234,7 +234,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(card: _makeCard(selectedAction: DuplicateAction.skip)),
@@ -249,7 +249,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(
@@ -266,7 +266,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(
@@ -281,7 +281,7 @@ void main() {
     testWidgets('expand chevron is visible in collapsed state', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_buildCard(card: _makeCard()));
       await tester.pump();
@@ -295,7 +295,7 @@ void main() {
     testWidgets('tapping chevron area toggles expanded state', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_buildCard(card: _makeCard()));
       await tester.pump();
@@ -315,7 +315,7 @@ void main() {
     testWidgets('tapping expanded chevron collapses the card', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(_buildCard(card: _makeCard()));
       await tester.pump();
@@ -336,7 +336,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       // Item with no diveData
       const item = EntityItem(title: 'Some Site', subtitle: '10 m · 30 min');
@@ -361,7 +361,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 600);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         await tester.pumpWidget(
           _buildCard(
@@ -387,7 +387,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 600);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         final notifier = ValueNotifier<DuplicateAction?>(null);
         addTearDown(notifier.dispose);
@@ -430,7 +430,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 600);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         final notifier = ValueNotifier<DuplicateAction?>(DuplicateAction.skip);
         addTearDown(notifier.dispose);
@@ -473,7 +473,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(
@@ -493,7 +493,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(
@@ -513,7 +513,7 @@ void main() {
       (tester) async {
         tester.view.physicalSize = const Size(800, 600);
         tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.reset);
 
         await tester.pumpWidget(
           _buildCard(
@@ -534,7 +534,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(
@@ -566,7 +566,7 @@ void main() {
     ) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(
@@ -583,7 +583,7 @@ void main() {
     testWidgets('no action badge when selectedAction is null', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
-      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.reset);
 
       await tester.pumpWidget(
         _buildCard(card: _makeCardNullable(selectedAction: null)),

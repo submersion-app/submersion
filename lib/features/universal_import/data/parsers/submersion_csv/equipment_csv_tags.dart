@@ -8,9 +8,9 @@ import 'package:submersion/features/universal_import/data/models/import_tag_scop
 ///
 /// Names are distinct by the key the tags table is unique on (trimmed,
 /// case-folded), so "Travel" and "travel" are one tag, spelled as first
-/// seen. Each map says it applies to equipment only, so the importer
-/// creates a new tag for gear alone and widens an existing tag of the same
-/// name (a dive tag, say) instead of adding a second one.
+/// seen. Each map widens an existing tag of the same name (a dive tag, say)
+/// to equipment instead of adding a second one, and marks a new tag to be
+/// offered everywhere, as any new tag is (issue #4407).
 ///
 /// Not TagExtractor: that splits dive CSV cells on commas, while this
 /// column uses the equipment CSV's list codec ('; ' between names, a ';'
@@ -35,6 +35,7 @@ class EquipmentCsvTags {
           for (final MapEntry(key: scope, value: key)
               in importTagScopeKeys.entries)
             key: scope == TagScope.equipment,
+          importTagNewEverywhereKey: true,
         };
       });
       refs.add(tag['uddfId'] as String);

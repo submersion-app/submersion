@@ -525,6 +525,7 @@ restores it, so the next file starts from the same place.
 | `debugPrint`, `FlutterError.onError` or `debugDefaultTargetPlatformOverride` | Put the saved value (or `null` for the platform override) back before the test ends. flutter_test requires this in the body of a `testWidgets` |
 | `QualityScanScheduler.enabled`, `SensorSummaryScheduler.enabled`, `debugCanShareFiles` or `GoogleFonts.config.allowRuntimeFetching` | `applyGlobalTestDefaults()` from `test/helpers/global_test_defaults.dart`, in `tearDown` |
 | A mock handler on the path provider or share channel | `clearPathAndShareChannelMocks()` from `test/helpers/mock_channels.dart`, or `setMockMethodCallHandler(channel, null)`, in a `tearDown` or `tearDownAll` |
+| `tester.view.physicalSize` or `tester.view.devicePixelRatio` | `addTearDown(tester.view.reset)`, which puts back both. `resetPhysicalSize` alone leaves a changed pixel ratio for the next file, which then lays out at the wrong width (issue #4436) |
 | The share sheet | Assign your fake to `SharePlatform.instance` and restore it. The harness pins a forwarder, so the fake is looked up on every share |
 | PDF fonts | `loadPdfRoboto()` in `setUpAll` and `unloadPdfRoboto()` in `tearDownAll`, from `test/helpers/pdf_roboto.dart` |
 
