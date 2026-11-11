@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_sites/presentation/site_difficulty_disp
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/features/shared_library/presentation/providers/shared_library_providers.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/site_attribution_line.dart';
 
@@ -84,19 +85,18 @@ class SiteDetailHeader extends ConsumerWidget {
           ),
           if (location.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(
-                  Icons.location_on_outlined,
-                  size: 20,
-                  color: colorScheme.outline,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(location, style: theme.textTheme.bodyLarge),
-                ),
-              ],
+            // The flag takes the pin's place; the pin returns when there is
+            // no flag (issue #4426).
+            LocationWithFlag(
+              country: site.country,
+              flagHeight: 14,
+              gap: 8,
+              fallbackLeading: Icon(
+                Icons.location_on_outlined,
+                size: 20,
+                color: colorScheme.outline,
+              ),
+              text: Text(location, style: theme.textTheme.bodyLarge),
             ),
           ],
           if (labels.isNotEmpty) ...[

@@ -6,7 +6,9 @@ import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_co
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/compact_site_list_tile.dart';
 import 'package:submersion/shared/models/entity_card_view_config.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/providers/entity_card_config_providers.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -100,6 +102,31 @@ void main() {
       expect(find.text('Unknown Site'), findsOneWidget);
       expect(find.textContaining('dives'), findsNothing);
       expect(find.textContaining('--'), findsNothing);
+    });
+  });
+
+  group('country flag (issue #4426)', () {
+    Future<void> pumpTile(WidgetTester tester, {bool flags = true}) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...await _overrides(),
+            showCountryFlagsProvider.overrideWithValue(flags),
+          ],
+          child: CompactSiteListTile(entry: _entry, onTap: () {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('the location line carries the country flag', (tester) async {
+      await pumpTile(tester);
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'FM');
+    });
+
+    testWidgets('no flag when flags are off', (tester) async {
+      await pumpTile(tester, flags: false);
+      expect(find.byType(CountryFlag), findsNothing);
     });
   });
 }

@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_co
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
@@ -59,9 +60,12 @@ class CompactSiteListTile extends ConsumerWidget {
     final title =
         slotText(resolveCardSlot(slots, 'title', SiteField.siteName)) ??
         site.name;
-    final subtitle = slotText(
-      resolveCardSlot(slots, 'subtitle', SiteField.location),
+    final subtitleField = resolveCardSlot(
+      slots,
+      'subtitle',
+      SiteField.location,
     );
+    final subtitle = slotText(subtitleField);
     final stat2Field = resolveCardSlot(slots, 'stat2', SiteField.depthRange);
     final showSecondLine = subtitle != null || slotText(stat2Field) != null;
 
@@ -164,12 +168,23 @@ class CompactSiteListTile extends ConsumerWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                subtitle ?? '',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: secondaryTextColor),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              child: Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: LocationWithFlag(
+                                  // A flag only beside a line naming the place.
+                                  country:
+                                      subtitle != null &&
+                                          showsPlace(subtitleField)
+                                      ? site.country
+                                      : null,
+                                  text: Text(
+                                    subtitle ?? '',
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: secondaryTextColor),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),

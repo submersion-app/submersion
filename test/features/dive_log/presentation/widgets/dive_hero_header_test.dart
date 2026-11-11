@@ -5,9 +5,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_hero_header.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
 
@@ -22,13 +24,18 @@ void main() {
     bottomTime: const Duration(minutes: 41, seconds: 30),
   );
 
-  Future<void> pump(WidgetTester tester, DiveHeroHeader header) async {
+  Future<void> pump(
+    WidgetTester tester,
+    DiveHeroHeader header, {
+    bool flags = true,
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           diveTypesProvider.overrideWith(
             (ref) async => const <DiveTypeEntity>[],
           ),
+          showCountryFlagsProvider.overrideWithValue(flags),
         ],
         child: localizedMaterialApp(
           locale: const Locale('en'),
@@ -38,6 +45,38 @@ void main() {
     );
     await tester.pump();
   }
+
+  group('country flag (issue #4426)', () {
+    final atSite = Dive(
+      id: 'd2',
+      diveNumber: 8,
+      dateTime: DateTime.utc(2026, 5, 2, 9),
+      site: const DiveSite(
+        id: 's1',
+        name: 'Shark Point',
+        region: 'New Jersey',
+        country: 'United States',
+      ),
+    );
+
+    testWidgets('the site location line carries the flag', (tester) async {
+      await pump(tester, DiveHeroHeader(dive: atSite, units: units));
+
+      expect(tester.widget<CountryFlag>(find.byType(CountryFlag)).code, 'US');
+      expect(find.text('New Jersey, United States'), findsOneWidget);
+    });
+
+    testWidgets('no flag when flags are off', (tester) async {
+      await pump(
+        tester,
+        DiveHeroHeader(dive: atSite, units: units),
+        flags: false,
+      );
+
+      expect(find.byType(CountryFlag), findsNothing);
+      expect(find.text('New Jersey, United States'), findsOneWidget);
+    });
+  });
 
   testWidgets('falls back to the dive\'s own runtime and bottom time', (
     tester,

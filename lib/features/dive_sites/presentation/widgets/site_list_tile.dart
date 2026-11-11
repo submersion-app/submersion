@@ -26,6 +26,7 @@ import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_extra_fields.dart';
 import 'package:submersion/shared/widgets/entity_card/entity_card_stat.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/shared_library/presentation/widgets/library_site_badge.dart';
 
@@ -254,12 +255,18 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                       ),
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
-                        Text(
-                          subtitle,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: secondaryTextColor),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        LocationWithFlag(
+                          // A flag only beside a line that names the place.
+                          country: showsPlace(subtitleField)
+                              ? widget.entry.site.country
+                              : null,
+                          text: Text(
+                            subtitle,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: secondaryTextColor),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ],
