@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/change_log/change_log_policy.dart';
+import 'package:submersion/core/database/change_log/change_log_rewrites.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_dependencies.dart';
@@ -20,13 +21,16 @@ class ChangeLogRecordPlanner {
     this._db,
     this._repository,
     this._dependencies,
-    this._rewrittenColumns,
-  );
+    this._rewrittenColumns, {
+    Map<String, ChangeLogValueRepair> rewrittenValues =
+        changeLogRewrittenValues,
+  }) : _rewrittenValues = rewrittenValues;
 
   final AppDatabase _db;
   final ChangeLogRepository _repository;
   final ChangeLogDependencyIndex _dependencies;
   final Map<String, int> _rewrittenColumns;
+  final Map<String, ChangeLogValueRepair> _rewrittenValues;
 
   /// Restores for the deletes among [events]. A record that cannot return
   /// takes down whatever needed it, so this repeats until nothing changes.
@@ -82,8 +86,13 @@ class ChangeLogRecordPlanner {
       return ChangeLogBlock.alreadyRestored;
     }
     for (final field in event.fields) {
-      final rewrittenAt = _rewrittenColumns['${event.table}.${field.column}'];
-      if (rewrittenAt != null && event.schemaVersion < rewrittenAt) {
+      if (changeLogValueRewritten(
+        _rewrittenColumns,
+        event.table,
+        field.column,
+        event.schemaVersion,
+        rewrittenValues: _rewrittenValues,
+      )) {
         return ChangeLogBlock.rewritten;
       }
     }

@@ -5,9 +5,13 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/observation_tag_display.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_observation_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_near_miss_action.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The item page's check-in list: every observation on the item, newest
@@ -118,6 +122,11 @@ class _ObservationRow extends ConsumerWidget {
         ? l10n.equipmentObservation_sheet_diveLabel
         : l10n.equipmentObservation_card_onDive(diveNumber);
     final detail = '$when, $where';
+    // From the card's one batched read (issue #3355).
+    final photos =
+        ref.watch(checkInPhotosProvider(equipment.id)).value?[observation.id] ??
+        const <MediaItem>[];
+    final settings = units.settings;
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Icon(
@@ -132,6 +141,31 @@ class _ObservationRow extends ConsumerWidget {
           if (note.isNotEmpty)
             Text(note, maxLines: 1, overflow: TextOverflow.ellipsis),
           Text(detail),
+          if (photos.isNotEmpty)
+            Padding(
+              key: ValueKey('checkin_strip_${observation.id}'),
+              padding: const EdgeInsets.only(top: 6),
+              child: Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children: [
+                  for (final photo in photos)
+                    SizedBox.square(
+                      dimension: 44,
+                      child: GestureDetector(
+                        onTap: () => openMediaViewer(context, photos, photo.id),
+                        child: MediaThumbnailTile(
+                          item: photo,
+                          settings: settings,
+                          isSelectionMode: false,
+                          isSelected: false,
+                          semanticsLabel: l10n.equipment_photos_photoLabel,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ObservationNearMissAction(observation: observation),
         ],
       ),

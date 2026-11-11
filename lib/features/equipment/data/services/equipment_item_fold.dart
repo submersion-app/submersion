@@ -259,6 +259,11 @@ class EquipmentItemFold {
           ? Value(from.purchaseCurrency)
           : const Value.absent(),
       notes: notes != into.notes ? Value(notes) : const Value.absent(),
+      // The folded item's photos move here, so its cover still names one of
+      // this item's photos (issue #3355).
+      coverMediaId: into.coverMediaId == null && from.coverMediaId != null
+          ? Value(from.coverMediaId)
+          : const Value.absent(),
     );
     if (fill == const EquipmentCompanion()) return;
     await (_db.update(_db.equipment)..where((t) => t.id.equals(into.id))).write(

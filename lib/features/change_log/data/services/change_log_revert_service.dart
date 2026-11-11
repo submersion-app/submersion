@@ -36,12 +36,15 @@ class ChangeLogRevertService {
     ChangeLogRepository? repository,
     SyncRepository? sync,
     Map<String, int> rewrittenColumns = changeLogRewrittenColumns,
+    Map<String, ChangeLogValueRepair> rewrittenValues =
+        changeLogRewrittenValues,
     void Function(Iterable<String> diveIds)? afterDiveWrites,
     MediaDeletionCoordinator? mediaDeletionCoordinator,
     Future<void> Function(String trackId)? evictTrackGeometry,
   }) : _repository = repository ?? ChangeLogRepository(),
        _sync = sync ?? SyncRepository(),
        _rewrittenColumns = rewrittenColumns,
+       _rewrittenValues = rewrittenValues,
        _afterDiveWrites = afterDiveWrites ?? refreshAfterRuleWrites,
        _media =
            mediaDeletionCoordinator ??
@@ -57,6 +60,7 @@ class ChangeLogRevertService {
   final ChangeLogRepository _repository;
   final SyncRepository _sync;
   final Map<String, int> _rewrittenColumns;
+  final Map<String, ChangeLogValueRepair> _rewrittenValues;
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
   final MediaDeletionCoordinator _media;
   final Future<void> Function(String trackId) _evictTrackGeometry;
@@ -134,7 +138,13 @@ class ChangeLogRevertService {
   }
 
   ChangeLogRecordPlanner _plannerWith(ChangeLogDependencyIndex dependencies) =>
-      ChangeLogRecordPlanner(_db, _repository, dependencies, _rewrittenColumns);
+      ChangeLogRecordPlanner(
+        _db,
+        _repository,
+        dependencies,
+        _rewrittenColumns,
+        rewrittenValues: _rewrittenValues,
+      );
 
   /// The column edits among [events], oldest first. Several edits to one
   /// column in an entry count as one: the value goes back to what the first
@@ -152,7 +162,15 @@ class ChangeLogRevertService {
       final column = field.column;
       if (only != null && column != only) continue;
       final logged = field.newValue;
-      final target = field.oldValue;
+      // A rung that reshaped the column (v358's ratings, issue #4415) means
+      // the value goes back as it reads now, not as it was logged.
+      final target = changeLogRepairedValue(
+        _rewrittenColumns,
+        event.table,
+        column,
+        field.oldValue,
+        rewrittenValues: _rewrittenValues,
+      );
       final returning = restoring.contains(
         changeLogRecordKey(event.table, event.recordId),
       );
@@ -176,18 +194,30 @@ class ChangeLogRevertService {
         );
         continue;
       }
+      // What the logged value is now, after any rung that reshaped the
+      // column: a rating logged as 8 reads 4 since v358, which is not a
+      // change made since (issue #4415).
+      final loggedNow = changeLogRepairedValue(
+        _rewrittenColumns,
+        event.table,
+        column,
+        logged,
+        rewrittenValues: _rewrittenValues,
+      );
       final current = returning
-          ? logged
+          ? loggedNow
           : await _repository.liveValue(event.table, event.recordId, column);
       if (_same(current, target)) continue;
       items.add(
         ChangeLogRevertItem(
           event: event,
           column: column,
-          logged: logged,
+          // Shown beside current and target, so on the same scale they are,
+          // and as changedSince compares it.
+          logged: loggedNow,
           target: target,
           current: current,
-          changedSince: !_same(current, logged),
+          changedSince: !_same(current, loggedNow),
         ),
       );
     }
@@ -204,8 +234,13 @@ class ChangeLogRevertService {
   }) async {
     final columns = await _repository.liveColumns(event.table);
     if (!columns.contains(column)) return ChangeLogBlock.columnGone;
-    final rewrittenAt = _rewrittenColumns['${event.table}.$column'];
-    if (rewrittenAt != null && event.schemaVersion < rewrittenAt) {
+    if (changeLogValueRewritten(
+      _rewrittenColumns,
+      event.table,
+      column,
+      event.schemaVersion,
+      rewrittenValues: _rewrittenValues,
+    )) {
       return ChangeLogBlock.rewritten;
     }
     if (!returning &&
@@ -326,7 +361,14 @@ class ChangeLogRevertService {
       for (final column in await _repository.nullableDefaultedColumns(table))
         if (!changeLogDeleteCopySkips(column)) column: null,
       for (final field in event.fields)
-        if (columns.contains(field.column)) field.column: field.oldValue,
+        if (columns.contains(field.column))
+          field.column: changeLogRepairedValue(
+            _rewrittenColumns,
+            table,
+            field.column,
+            field.oldValue,
+            rewrittenValues: _rewrittenValues,
+          ),
       if (columns.contains('updated_at')) 'updated_at': now,
     };
     await _db.customInsert(

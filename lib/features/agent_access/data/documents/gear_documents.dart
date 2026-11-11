@@ -39,6 +39,7 @@ Map<String, Object?> equipmentDocument(EquipmentItem e) => {
   'custom_reminder_enabled': e.customReminderEnabled,
   'custom_reminder_days': e.customReminderDays,
   'parent_equipment_id': e.parentEquipmentId,
+  'cover_media_id': e.coverMediaId,
   'attributes': [for (final a in e.attributes) _attributeDocument(a)],
   // The tag id the passport and gear tag cards link, a system attribute.
   'passport_id': [

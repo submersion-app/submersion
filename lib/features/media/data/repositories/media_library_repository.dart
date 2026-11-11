@@ -7,6 +7,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/media/data/repositories/media_library_group_order.dart';
+import 'package:submersion/features/media/data/repositories/media_library_rows.dart';
 import 'package:submersion/features/media/data/repositories/media_library_tile_markers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
@@ -61,22 +62,12 @@ class MediaLibraryRepository {
   Expression<int> get _sizeKey =>
       coalesce<int>([_db.media.contentSizeBytes, const Constant(-1)]);
 
-  /// The library is the photo and video gallery. Signatures never appear,
-  /// in any spelling, and neither do documents (#3052): invoices and
-  /// briefings attached through a dive's, site's or equipment's Documents
-  /// section belong to that section, and an equipment-only document showed
-  /// up in the grid as "Unlinked".
-  ///
-  /// An exclusion list rather than `IN ('photo', 'video')`: parseMediaType
-  /// reads any file_type it does not recognise as a photo, and a whitelist
-  /// would hide those rows here while every other surface shows them.
-  static final List<String> _nonGalleryFileTypes = [
-    ...kSignatureFileTypes,
-    mediaTypeToDbString(MediaType.document),
-  ];
+  /// Which rows are library rows at all (see [MediaLibraryRows]).
+  MediaLibraryRows get _rows => MediaLibraryRows(_db);
 
-  Expression<bool> get _galleryRow =>
-      _db.media.fileType.isNotIn(_nonGalleryFileTypes);
+  /// A row of the ordinary library views: no signature, document or gear
+  /// photo.
+  Expression<bool> get _galleryRow => _rows.galleryRow;
 
   /// Dive-linked rows belong to their dive's diver; unlinked and site-only
   /// rows are diver-global. Needs `dives` joined on `media.dive_id`.
@@ -195,7 +186,8 @@ class MediaLibraryRepository {
     final m = _db.media;
     final d = _db.dives;
 
-    Expression<bool> where = _galleryRow & _diverScope(diverId);
+    Expression<bool> where =
+        _rows.forFilter(filter, diverId) & _diverScope(diverId);
     final type = filter.mediaType;
     if (type != null) {
       where = where & m.fileType.equals(mediaTypeToDbString(type));
@@ -689,7 +681,8 @@ class MediaLibraryRepository {
   /// points are in scope, changes: the media row itself, a dive's entry fix,
   /// a site's coordinates, or a species, tag or people tag (each filter is
   /// an EXISTS over its link table), or a time in the dive (the "not placed"
-  /// facet's EXISTS over `media_enrichment`). Built and debounced exactly like
+  /// facet's EXISTS over `media_enrichment`), or which gear an Equipment pick
+  /// may show (`equipment`, `equipment_shares`). Built and debounced exactly like
   /// [watchMediaChanges]; see its notes on why a `tableUpdates` stream and
   /// not a watched query.
   Stream<void> watchMapChanges() => _db
@@ -702,6 +695,8 @@ class MediaLibraryRepository {
           _db.mediaTags,
           _db.mediaPeople,
           _db.mediaEnrichment,
+          _db.equipment,
+          _db.equipmentShares,
         ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
@@ -741,7 +736,9 @@ class MediaLibraryRepository {
   /// the side-trip links its trip filter takes in (issue #3658), `dives` and
   /// `dive_sites` give the trip and site filters, each row's dive header and
   /// the name of the site a dive-less row is attached to, `equipment` names
-  /// an equipment-attached row's group (issue #4149), and `tags`, `buddies`
+  /// an equipment-attached row's group (issue #4149), `equipment_shares`
+  /// decides whose gear photos an Equipment pick shows (issue #3355), and
+  /// `tags`, `buddies`
   /// and `divers` decide whether a facet applies at all
   /// and who Me names. Deleting a tag or buddy already ticks through its
   /// cascade; these catch one arriving late or changing owner.
@@ -759,6 +756,7 @@ class MediaLibraryRepository {
           _db.dives,
           _db.diveSites,
           _db.equipment,
+          _db.equipmentShares,
           _db.tags,
           _db.buddies,
           _db.divers,

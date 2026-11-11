@@ -786,10 +786,7 @@ class _TripListContentState extends ConsumerState<TripListContent> {
             ),
           ),
           TextButton(
-            onPressed: () {
-              ref.read(tripFilterProvider.notifier).state =
-                  const TripFilterState();
-            },
+            onPressed: () => clearTripFilter(ref),
             child: Text(context.l10n.trips_list_filters_clearAll),
           ),
         ],

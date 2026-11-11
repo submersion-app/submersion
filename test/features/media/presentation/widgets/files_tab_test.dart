@@ -362,6 +362,32 @@ void main() {
     });
   });
 
+  // Issue #3355. Opened from a gear item, every file is the item's, like a
+  // site session, but nothing should claim the files go to a site.
+  group('equipment target', () {
+    testWidgets('the commit button names no site', (tester) async {
+      final files = [_ef('/a.jpg')];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            filesTabNotifierProvider.overrideWith(
+              (ref) => _SeededFilesTabNotifier(
+                FilesTabState.initial().copyWith(
+                  files: files,
+                  match: MatchedSelection(matched: const {}, unmatched: files),
+                ),
+              ),
+            ),
+          ],
+          child: _host(const FilesTab(target: EquipmentAttachTarget('reg-1'))),
+        ),
+      );
+
+      expect(find.text('Link 1 item'), findsOneWidget);
+      expect(find.textContaining('site'), findsNothing);
+    });
+  });
+
   // Issue #1098. Opened from a dive site, the tab offered no way to accept the
   // picked files: the commit button was gated on the dive matcher having
   // produced a group, and a site never produces one. The site is now the

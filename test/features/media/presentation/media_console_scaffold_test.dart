@@ -64,11 +64,12 @@ void main() {
   AppBar appBar(WidgetTester tester) =>
       tester.widget<AppBar>(find.byType(AppBar));
 
-  test('the console has exactly four destinations', () {
+  test('the console has exactly five destinations', () {
     // Unlinked media no longer exists and Missing files is a Library chip,
-    // so neither gets a tab.
+    // so neither gets a tab. Gear photos have their own (issue #3355).
     expect(MediaConsoleSection.values, [
       MediaConsoleSection.library,
+      MediaConsoleSection.gear,
       MediaConsoleSection.sources,
       MediaConsoleSection.transfers,
       MediaConsoleSection.importMedia,

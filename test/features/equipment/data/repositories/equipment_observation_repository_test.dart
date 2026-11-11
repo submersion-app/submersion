@@ -68,6 +68,20 @@ void main() {
     expect(row.hlc, isNotNull);
   });
 
+  test('create keeps a given id', () async {
+    // The check-in sheet picks the id up front so photos added before Save
+    // can name the check-in they back up (issue #3355).
+    final created = await repo.create(
+      id: 'obs-chosen',
+      equipmentId: 'reg',
+      observedAt: DateTime.utc(2026, 9, 9, 15),
+      status: ObservationStatus.ok,
+    );
+
+    expect(created.id, 'obs-chosen');
+    expect((await repo.getById('obs-chosen'))!.equipmentId, 'reg');
+  });
+
   test('an OK check stores and exports no tags, known or unknown', () async {
     // An imported or synced OK row can arrive carrying tags; the invariant
     // is that an OK check has none, so neither the row nor an export (which

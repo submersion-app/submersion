@@ -34712,6 +34712,34 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_summary_recentTitle => 'Recente reizen';
 
   @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total reizen',
+      one: '$total reis',
+    );
+    return 'Gefilterd: overzicht van $shown van $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'Gefilterde reizen';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'Duiken op deze reizen';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$date • $_temp0';
+  }
+
+  @override
   String get trips_summary_stat_daysDiving => 'Duikdagen';
 
   @override
@@ -61689,6 +61717,89 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Paspoort van de partnerfles';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'De $count foto\'s worden',
+      one: 'De foto wordt',
+    );
+    return 'Deze check-in verwijderen? $_temp0 uit Submersion verwijderd. De bestanden zelf blijven onaangeroerd.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'Aan uitrusting koppelen';
+
+  @override
+  String get equipment_photos_title => 'Foto\'s';
+
+  @override
+  String get equipment_photos_add => 'Foto\'s toevoegen';
+
+  @override
+  String get equipment_photos_empty =>
+      'Voeg foto\'s toe van dit item, het serienummerlabel of de markeringen, ter referentie.';
+
+  @override
+  String get equipment_photos_setCover => 'Als omslagfoto gebruiken';
+
+  @override
+  String get equipment_photos_clearCover => 'Omslagfoto verwijderen';
+
+  @override
+  String get equipment_photos_remove => 'Verwijderen';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s',
+      one: '$count foto',
+    );
+    return '$_temp0 verwijderen?';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'De foto\'s worden uit Submersion verwijderd. De bestanden zelf blijven onaangeroerd.';
+
+  @override
+  String get equipment_photos_photoLabel => 'Uitrustingsfoto';
+
+  @override
+  String get equipment_photos_coverLabel => 'Omslagfoto';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'Foto\'s';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'Check-in: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'Uitrusting';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto\'s',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'Foto\'s die je aan je uitrusting en de check-ins toevoegt, verschijnen hier.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'Check-in-foto';
 
   @override
   String info_button_semantics(String title) {

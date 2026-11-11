@@ -39,9 +39,14 @@ abstract class FieldCodec {
     int? fractionDigits,
   }) = _NumberCodec;
 
-  /// A whole number, optionally inside [min] to [max].
-  const factory FieldCodec.integer({int? min, int? max, bool nullable}) =
-      _IntegerCodec;
+  /// A whole number, optionally inside [min] to [max]. With [zeroClears], on
+  /// a nullable field, 0 reads as null, so the plan shows what is stored.
+  const factory FieldCodec.integer({
+    int? min,
+    int? max,
+    bool nullable,
+    bool zeroClears,
+  }) = _IntegerCodec;
 
   const factory FieldCodec.flag({bool nullable}) = _FlagCodec;
 
@@ -204,13 +209,24 @@ class _NumberCodec extends FieldCodec {
 }
 
 class _IntegerCodec extends FieldCodec {
-  const _IntegerCodec({this.min, this.max, super.nullable});
+  const _IntegerCodec({
+    this.min,
+    this.max,
+    super.nullable,
+    this.zeroClears = false,
+  });
 
   final int? min;
   final int? max;
+  final bool zeroClears;
 
   @override
   String get describe => 'whole number';
+
+  @override
+  Object? parse(Object? raw) => zeroClears && nullable && raw is int && raw == 0
+      ? null
+      : super.parse(raw);
 
   @override
   Object parseValue(Object raw) {

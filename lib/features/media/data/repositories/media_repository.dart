@@ -326,6 +326,7 @@ class MediaRepository {
               diveId: Value(item.diveId),
               siteId: Value(item.siteId),
               equipmentId: Value(item.equipmentId),
+              observationId: Value(item.observationId),
               filePath: Value(item.filePath ?? ''),
               fileType: Value(mediaTypeToDbString(item.mediaType)),
               platformAssetId: Value(item.platformAssetId),
@@ -2236,8 +2237,17 @@ class MediaRepository {
   /// row sync-pending. The dive and site twins hand-roll the same block and
   /// explain it as avoiding retain_in_library, but [_unlinkColumns] does not
   /// touch that column, so there is nothing here to avoid.
+  ///
+  /// The check-in link goes too (issue #3355): the item's check-ins go with
+  /// it, so a surviving row backs up none of them.
   Future<void> unlinkMediaFromDeletedEquipment(List<String> mediaIds) =>
-      _unlinkColumns(mediaIds, const MediaCompanion(equipmentId: Value(null)));
+      _unlinkColumns(
+        mediaIds,
+        const MediaCompanion(
+          equipmentId: Value(null),
+          observationId: Value(null),
+        ),
+      );
 
   /// Stage B of the repair apply (Media section Phase 3): commits every
   /// prepared write in one transaction with per-row HLC marking. Stage A
@@ -2590,9 +2600,12 @@ class MediaRepository {
       _unlinkColumns(mediaIds, MediaCompanion(siteId: Value(siteId)));
 
   /// Same mechanic for the equipment link, for media a dive or site still
-  /// needs.
-  Future<void> unlinkFromEquipment(List<String> mediaIds) =>
-      _unlinkColumns(mediaIds, const MediaCompanion(equipmentId: Value(null)));
+  /// needs. The check-in link goes with it: a photo off its item backs up
+  /// none of that item's check-ins (issue #3355).
+  Future<void> unlinkFromEquipment(List<String> mediaIds) => _unlinkColumns(
+    mediaIds,
+    const MediaCompanion(equipmentId: Value(null), observationId: Value(null)),
+  );
 
   /// Attaches the equipment link, same sync-safe shape.
   Future<void> linkMediaToEquipment(

@@ -341,6 +341,41 @@ void main() {
     );
   });
 
+  test('clone copies no gear photos', () async {
+    // A new unit must not show the old unit's serial label (issue #3355).
+    final source = await make('Hood', EquipmentType.hood);
+    for (final (type, observation) in [
+      (MediaType.document, null),
+      (MediaType.photo, null),
+      (MediaType.photo, 'obs-1'),
+      (MediaType.video, null),
+    ]) {
+      await media.createMedia(
+        MediaItem(
+          id: '',
+          equipmentId: source.id,
+          observationId: observation,
+          mediaType: type,
+          originalFilename: 'file-$type',
+          takenAt: t0,
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+      );
+    }
+    final clone = await make('Hood (copy)', EquipmentType.hood);
+
+    await EquipmentCloneService().copyExtras(
+      sourceId: source.id,
+      cloneId: clone.id,
+      cloneType: clone.type,
+      diverId: null,
+    );
+
+    final copied = await media.getMediaForEquipment(clone.id);
+    expect(copied.single.mediaType, MediaType.document);
+  });
+
   test('a failing step is reported and does not skip the others', () async {
     final source = await make('Hood', EquipmentType.hood);
     await media.createMedia(

@@ -34,7 +34,9 @@ List<DiveEditorColumn> diveEditorColumns({
   textColumn(DiveField.diveOperator, (d) => d.diveOperator),
   textColumn(DiveField.boatName, (d) => d.boatName),
   textColumn(DiveField.boatCaptain, (d) => d.boatCaptain),
-  integerColumn(DiveField.ratingStars, (d) => d.rating, min: 0, max: 5),
+  // 1 to 5 stars; an empty cell is unrated. A 0 would show as a rating of 0
+  // and read as out of scale, as the v358 rung found it (issue #4415).
+  integerColumn(DiveField.ratingStars, (d) => d.rating, min: 1, max: 5),
   toggleColumn(DiveField.isFavorite, (d) => d.isFavorite),
   toggleColumn(DiveField.excludedFromStats, (d) => d.excludedFromStats),
   toggleColumn(DiveField.excludedFromGasStats, (d) => d.excludedFromGasStats),

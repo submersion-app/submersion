@@ -2003,6 +2003,7 @@ class EquipmentRepository {
           ? (jsonDecode(row.customReminderDays!) as List<dynamic>).cast<int>()
           : null,
       parentEquipmentId: row.parentEquipmentId,
+      coverMediaId: row.coverMediaId,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     );
   }

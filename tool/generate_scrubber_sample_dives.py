@@ -583,7 +583,9 @@ for num, (day, hour, country, is_trip, tech) in enumerate(dive_rows, 1):
       '<diveduration>%d</diveduration><lowesttemperature>%s</lowesttemperature>'
       % (md, runtime, kelvin(wt)))
     if rating is not None:
-        w('<rating><ratingvalue>%d</ratingvalue></rating>' % rating)
+        # UDDF rates on 1 to 10, two points per star; 0 is unrated, as Diving
+        # Log writes it (issue #4415).
+        w('<rating><ratingvalue>%d</ratingvalue></rating>' % (rating * 2))
     w('</informationafterdive>')
     w('</dive>')
     stats["depth"].append(md)
