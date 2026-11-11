@@ -2118,8 +2118,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       } catch (_) {
         // Already logged by the load; the defaults are the fallback.
       }
-      if (!mounted) return;
     }
+    // Disposed (a soft restart tears the scope down): nothing to change.
+    if (!mounted) return;
     final current = state;
     final next = change(current);
     if (identical(next, current)) return;

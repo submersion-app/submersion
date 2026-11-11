@@ -40,6 +40,25 @@ class _StateAssignments extends RecursiveAstVisitor<void> {
     super.visitAssignmentExpression(node);
   }
 
+  /// A public member (a setter) reading `state` outside a change closure
+  /// would build its change on the defaults before the load lands.
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    final parent = node.parent;
+    final isMemberName =
+        (parent is PropertyAccess && parent.propertyName == node) ||
+        (parent is PrefixedIdentifier && parent.identifier == node) ||
+        parent is Label ||
+        node.thisOrAncestorOfType<CommentReference>() != null;
+    if (node.name == 'state' && !isMemberName) {
+      final member = _enclosingMember(node);
+      if (!member.startsWith('_') && !member.startsWith('SettingsNotifier.')) {
+        offenders.add('$member reads state (line ${lineOf(node.offset)})');
+      }
+    }
+    super.visitSimpleIdentifier(node);
+  }
+
   static String _enclosingMember(AstNode node) {
     for (AstNode? n = node; n != null; n = n.parent) {
       if (n is MethodDeclaration) return n.name.lexeme;
@@ -52,7 +71,7 @@ class _StateAssignments extends RecursiveAstVisitor<void> {
 }
 
 void main() {
-  test('SettingsNotifier setters apply changes only through _update', () {
+  test('SettingsNotifier setters change state only through _update', () {
     final path = p.join(
       'lib',
       'features',
