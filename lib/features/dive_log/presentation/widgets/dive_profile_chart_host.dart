@@ -29,6 +29,7 @@ import 'package:submersion/features/dive_log/presentation/providers/annotation_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_annotations_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_annotation_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/planned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
@@ -513,6 +514,11 @@ class DiveProfileChartHost extends ConsumerWidget {
             .setRange(start, end),
         onPointSelected: (index) {
           ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
+        },
+        // Where the plot is, so the pinned strip can start its condense on
+        // this chart's depth line (#4423).
+        onPlotFrame: (frame) {
+          ref.read(profilePlotFrameProvider(diveId).notifier).state = frame;
         },
       ),
     );

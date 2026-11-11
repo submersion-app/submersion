@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -27,11 +28,23 @@ void main() {
   const profileTop = 100.0;
   const profileHeight = 300.0;
 
+  /// The card's chart plot: 40 px in, 20 px down, 320 x 200.
+  const plotInCard = Rect.fromLTWH(40, 20, 320, 200);
+  final plotKey = GlobalKey();
+  final plotFrame = ProfilePlotFrame(
+    plotKey: plotKey,
+    minSeconds: 0,
+    maxSeconds: 600,
+    minDepthMeters: 0,
+    maxDepthMeters: 18,
+  );
+
   Future<void> pump(
     WidgetTester tester, {
     required GlobalKey profileKey,
     GlobalKey? targetKey,
     bool showProfile = true,
+    bool withPlotFrame = true,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -43,6 +56,8 @@ void main() {
             diveId: dive.id,
             sourceId: null,
           )).overrideWith((ref) async => ProfileAnalysis.empty()),
+          if (withPlotFrame)
+            profilePlotFrameProvider(dive.id).overrideWith((ref) => plotFrame),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -59,7 +74,18 @@ void main() {
                     children: [
                       const SizedBox(height: profileTop),
                       if (showProfile)
-                        SizedBox(key: profileKey, height: profileHeight)
+                        SizedBox(
+                          key: profileKey,
+                          height: profileHeight,
+                          child: Stack(
+                            children: [
+                              Positioned.fromRect(
+                                rect: plotInCard,
+                                child: SizedBox.expand(key: plotKey),
+                              ),
+                            ],
+                          ),
+                        )
                       else
                         const SizedBox(height: profileHeight),
                       const SizedBox(height: 1100),
@@ -97,11 +123,8 @@ void main() {
         (kPinnedStripHeight + kCondenseWindow * (1 - t)),
   );
 
-  double opacityOf(WidgetTester tester) => tester
-      .widget<Opacity>(
-        find.ancestor(of: strip, matching: find.byType(Opacity)).first,
-      )
-      .opacity;
+  PinnedProfileStrip stripWidget(WidgetTester tester) =>
+      tester.widget<PinnedProfileStrip>(strip);
 
   bool ignoresPointer(WidgetTester tester) => tester
       .widget<IgnorePointer>(
@@ -128,26 +151,48 @@ void main() {
     );
   });
 
-  testWidgets('mid-condense the strip itself is morphing, not yet scrubbable', (
+  testWidgets(
+    'first its line sits exactly on the chart plot while its background '
+    'fades in and its shape holds still',
+    (tester) async {
+      await pump(tester, profileKey: GlobalKey());
+      await condenseTo(tester, kCondenseFadePortion / 2);
+      final s = stripWidget(tester);
+      expect(s.backgroundOpacity, closeTo(0.5, 1e-6));
+      expect(s.condense, 0);
+      // The strip's starting mapping, placed on screen, is the chart plot.
+      final stripTopLeft = tester.getTopLeft(strip);
+      expect(s.morphFrom, isNotNull);
+      final onScreen = s.morphFrom!.rect.shift(stripTopLeft);
+      final plot = tester.getRect(find.byKey(plotKey));
+      expect(onScreen.left, closeTo(plot.left, 0.01));
+      expect(onScreen.top, closeTo(plot.top, 0.01));
+      expect(onScreen.width, closeTo(plot.width, 0.01));
+      expect(onScreen.height, closeTo(plot.height, 0.01));
+      expect(s.morphFrom!.maxSeconds, 600);
+      expect(s.morphFrom!.maxDepthMeters, 18);
+    },
+  );
+
+  testWidgets('then, opaque, its shape morphs, not yet scrubbable', (
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
-    await condenseTo(tester, 0.5);
-    expect(strip, findsOneWidget);
-    expect(
-      tester.widget<PinnedProfileStrip>(strip).condense,
-      closeTo(0.5, 1e-6),
-    );
+    await condenseTo(tester, 0.6);
+    final s = stripWidget(tester);
+    expect(s.backgroundOpacity, 1);
+    expect(s.condense, closeTo(condenseMorphProgress(0.6), 1e-6));
+    expect(s.condense, inExclusiveRange(0, 1));
     expect(tester.getSize(strip).height, greaterThan(kPinnedStripHeight));
     expect(ignoresPointer(tester), isTrue);
   });
 
-  testWidgets('it fades in over the start of the condense', (tester) async {
-    await pump(tester, profileKey: GlobalKey());
-    await condenseTo(tester, 0.1);
-    expect(opacityOf(tester), lessThan(0.5));
-    await condenseTo(tester, 0.6);
-    expect(opacityOf(tester), 1);
+  testWidgets('without the chart plot, it has no starting mapping', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey(), withPlotFrame: false);
+    await condenseTo(tester, kCondenseFadePortion / 2);
+    expect(stripWidget(tester).morphFrom, isNull);
   });
 
   testWidgets('the morphing strip carries through to pinned without a swap', (

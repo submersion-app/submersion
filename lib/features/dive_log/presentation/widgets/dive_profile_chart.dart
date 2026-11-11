@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/chart_touch_re
 import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
@@ -269,6 +270,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final bool showTemperature;
   final bool showPressure;
   final void Function(int? index)? onPointSelected;
+
+  /// Where the plot sits and what it spans, reported after a frame whenever
+  /// it changes (issue #4423).
+  final ValueChanged<ProfilePlotFrame>? onPlotFrame;
 
   /// Dive time in seconds under the cursor, reported with every
   /// [onPointSelected]: the selected sample's timestamp, or 0 on the surface
@@ -815,6 +820,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showTemperature = true,
     this.showPressure = false,
     this.onPointSelected,
+    this.onPlotFrame,
     this.onTimeSelected,
     this.onTimeChosen,
     this.depthAndPressureOnly = false,
@@ -896,6 +902,22 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Where this chart last published its legend for the card's info icon.
   ProfileLegendSnapshot? _legendSnapshot;
+
+  /// Marks a box laid over the plot, for [DiveProfileChart.onPlotFrame].
+  final GlobalKey _plotFrameKey = GlobalKey();
+
+  /// The plot frame last reported, so an unchanged frame is not re-sent.
+  ProfilePlotFrame? _reportedPlotFrame;
+
+  /// Reports [frame] after this frame, once, if it differs from the last.
+  void _publishPlotFrame(ProfilePlotFrame frame) {
+    final onPlotFrame = widget.onPlotFrame;
+    if (onPlotFrame == null || frame == _reportedPlotFrame) return;
+    _reportedPlotFrame = frame;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _reportedPlotFrame == frame) onPlotFrame(frame);
+    });
+  }
 
   /// The diver's metric colours (issue #3012), resolved at the top of
   /// every build so tooltip and gesture code reads the same palette.
@@ -3991,6 +4013,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // all read them from here.
     final plotInsets = _plotInsets(availableWidth, units);
 
+    // The axis is in the diver's depth unit; the frame is in meters.
+    final metersPerDisplayUnit = 1 / units.convertDepth(1.0);
+    _publishPlotFrame(
+      ProfilePlotFrame(
+        plotKey: _plotFrameKey,
+        minSeconds: visibleMinX,
+        maxSeconds: visibleMaxX,
+        minDepthMeters: visibleMinDepth * metersPerDisplayUnit,
+        maxDepthMeters: visibleMaxDepth * metersPerDisplayUnit,
+      ),
+    );
+
     // Highlight band, inflated to a 12 px minimum so short/instant findings
     // stay visible (spec: safety-findings-lane). Computed once and shared by
     // the band annotation and its edge lines.
@@ -4385,6 +4419,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       // cursor (issue #2228 follow-up).
       clipBehavior: Clip.none,
       children: [
+        // An empty box exactly over the plot, so the pinned profile strip
+        // can find where the depth line is drawn (issue #4423).
+        Positioned(
+          left: plotInsets.left,
+          top: plotInsets.top,
+          right: plotInsets.right,
+          bottom: plotInsets.bottom,
+          child: IgnorePointer(child: SizedBox.expand(key: _plotFrameKey)),
+        ),
         LineChart(
           LineChartData(
             minX: visibleMinX,

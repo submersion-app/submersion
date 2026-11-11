@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
-
-/// The share of the condense over which the strip fades in over the card.
-const double _fadeInPortion = 0.25;
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 
 /// Pins a thin, scrubbable profile strip over the top of [child], the dive
 /// details scroll view, once the profile card ([profileKey]) has scrolled
 /// away (issue #4423).
 ///
-/// While the card's last stretch leaves the viewport, the strip itself fades
-/// in over the card's footprint and condenses into place; the live chart is
-/// never transformed. Nothing here takes space in the scroll
-/// content, so the page never reflows.
-class PinnedProfileOverlay extends StatefulWidget {
+/// While the card's last stretch leaves the viewport the strip condenses out
+/// of it in two phases. First its depth line lies exactly on the full
+/// chart's (the chart reports where its plot is, [profilePlotFrameProvider])
+/// while its surface fades in over the card, hiding the chart's own line;
+/// then the one line left morphs into the strip. Only one depth line is ever
+/// seen. Nothing here takes space in the scroll content, so the page never
+/// reflows.
+class PinnedProfileOverlay extends ConsumerStatefulWidget {
   const PinnedProfileOverlay({
     super.key,
     required this.dive,
@@ -29,13 +31,20 @@ class PinnedProfileOverlay extends StatefulWidget {
   final Widget child;
 
   @override
-  State<PinnedProfileOverlay> createState() => _PinnedProfileOverlayState();
+  ConsumerState<PinnedProfileOverlay> createState() =>
+      _PinnedProfileOverlayState();
 }
 
-class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
+class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
   /// The card's rect in scroll-content coordinates (its top as if the page
   /// were scrolled to 0), or null when the card is not on the page.
   Rect? _cardInContent;
+
+  /// The chart's plot rect, in scroll-content coordinates like the card's.
+  Rect? _plotInContent;
+
+  /// The plot frame [_plotInContent] was measured for.
+  ProfilePlotFrame? _measuredFrame;
   double _pixels = 0;
 
   /// Whether the strip is fully pinned, rather than still condensing.
@@ -71,18 +80,44 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
   /// because the card's on-screen top is its content top minus the offset.
   void _measure() {
     final overlay = context.findRenderObject();
-    final card = widget.profileKey.currentContext?.findRenderObject();
-    Rect? inContent;
-    if (overlay is RenderBox &&
-        card is RenderBox &&
-        card.attached &&
-        card.hasSize) {
-      final topLeft = card.localToGlobal(Offset.zero, ancestor: overlay);
-      inContent = (topLeft & card.size).shift(Offset(0, _pixels));
+    final frame = ref.read(profilePlotFrameProvider(widget.dive.id));
+    Rect? inContent(BuildContext? target) {
+      final box = target?.findRenderObject();
+      if (overlay is! RenderBox ||
+          box is! RenderBox ||
+          !box.attached ||
+          !box.hasSize) {
+        return null;
+      }
+      final topLeft = box.localToGlobal(Offset.zero, ancestor: overlay);
+      return (topLeft & box.size).shift(Offset(0, _pixels));
     }
-    if (inContent != _cardInContent) {
-      setState(() => _cardInContent = inContent);
+
+    final card = inContent(widget.profileKey.currentContext);
+    final plot = inContent(frame?.plotKey.currentContext);
+    if (card != _cardInContent ||
+        plot != _plotInContent ||
+        frame != _measuredFrame) {
+      setState(() {
+        _cardInContent = card;
+        _plotInContent = plot;
+        _measuredFrame = frame;
+      });
     }
+  }
+
+  /// Where the chart draws its depth line right now, in overlay coordinates.
+  PlotMapping? get _chartMapping {
+    final plot = _plotInContent;
+    final frame = _measuredFrame;
+    if (plot == null || frame == null) return null;
+    return PlotMapping(
+      rect: plot.shift(Offset(0, -_pixels)),
+      minSeconds: frame.minSeconds,
+      maxSeconds: frame.maxSeconds,
+      minDepthMeters: frame.minDepthMeters,
+      maxDepthMeters: frame.maxDepthMeters,
+    );
   }
 
   bool _onScroll(ScrollNotification notification) {
@@ -105,8 +140,15 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    // A new plot frame (the chart laid out, zoomed or panned) is measured
+    // once the frame it arrived in is laid out.
+    if (ref.watch(profilePlotFrameProvider(widget.dive.id)) != _measuredFrame) {
+      _scheduleMeasure();
+    }
     final card = _card;
     final t = _progress;
+    final morph = condenseMorphProgress(t);
+    final chart = _chartMapping;
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
@@ -120,23 +162,29 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
             ),
             // One strip, at one place in the tree, from the first pixel of
             // the condense to pinned: it is never swapped for another widget,
-            // so the morph has no cut. It fades in over the start of the
-            // condense, while the real card is still mostly on screen beneath
-            // it, and only takes input once pinned.
+            // so the morph has no cut. It takes input only once pinned.
             if (card != null && t > 0)
-              Positioned.fromRect(
-                rect: condenseRect(
-                  card: card,
-                  width: constraints.maxWidth,
-                  t: t,
-                ),
-                child: IgnorePointer(
-                  ignoring: t < 1,
-                  child: Opacity(
-                    opacity: (t / _fadeInPortion).clamp(0.0, 1.0),
-                    child: PinnedProfileStrip(dive: widget.dive, condense: t),
-                  ),
-                ),
+              Builder(
+                builder: (context) {
+                  final box = condenseRect(
+                    card: card,
+                    width: constraints.maxWidth,
+                    t: morph,
+                  );
+                  return Positioned.fromRect(
+                    rect: box,
+                    child: IgnorePointer(
+                      ignoring: t < 1,
+                      child: PinnedProfileStrip(
+                        dive: widget.dive,
+                        condense: morph,
+                        backgroundOpacity: condenseBackgroundOpacity(t),
+                        // The chart's line, in the strip's own coordinates.
+                        morphFrom: chart?.shift(-box.topLeft),
+                      ),
+                    ),
+                  );
+                },
               ),
           ],
         );

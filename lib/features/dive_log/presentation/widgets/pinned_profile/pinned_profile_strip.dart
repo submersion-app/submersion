@@ -9,14 +9,11 @@ import 'package:submersion/features/dive_log/domain/services/profile_position.da
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/mini_profile_picker.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_values.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-
-/// Height of the strip's values row; the curve takes the rest.
-const double _rowHeight = 16;
 
 /// Corner radius of the profile card the strip condenses out of.
 const double _cardRadius = 12;
@@ -31,17 +28,34 @@ const double _cardRadius = 12;
 ///
 /// The same widget draws the condense itself, so it never swaps for another
 /// at any point: below [condense] 1 it fills whatever box it is given (the
-/// shrinking footprint of the profile card), its curve stretching to fit,
-/// its corners rounding like the card's, and its values row fading in.
+/// shrinking footprint of the profile card), its corners rounding like the
+/// card's and its values row fading in. Its depth line starts exactly on the
+/// full chart's ([morphFrom]) and moves continuously into the strip, so only
+/// one depth line is ever seen.
 class PinnedProfileStrip extends ConsumerStatefulWidget {
-  const PinnedProfileStrip({super.key, required this.dive, this.condense = 1});
+  const PinnedProfileStrip({
+    super.key,
+    required this.dive,
+    this.condense = 1,
+    this.backgroundOpacity = 1,
+    this.morphFrom,
+  });
 
   final Dive dive;
 
-  /// How far the card has condensed into the strip, from 0 to 1. At 1 the
+  /// How far the shape has condensed into the strip, from 0 to 1. At 1 the
   /// strip is its pinned [kPinnedStripHeight]; below 1 it needs a bounded
   /// height from its parent.
   final double condense;
+
+  /// The opacity of the strip's surface, faded in over the card before the
+  /// shape moves.
+  final double backgroundOpacity;
+
+  /// Where the full chart draws its depth line, in this widget's
+  /// coordinates: the line's mapping at [condense] 0. Null when the chart
+  /// has not reported its plot.
+  final PlotMapping? morphFrom;
 
   @override
   ConsumerState<PinnedProfileStrip> createState() => _PinnedProfileStripState();
@@ -103,12 +117,13 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         : null;
 
     final condense = widget.condense.clamp(0.0, 1.0);
+    final background = widget.backgroundOpacity.clamp(0.0, 1.0);
     return Semantics(
       container: true,
       label: context.l10n.diveLog_pinnedStrip_semantics,
       child: Material(
-        color: colors.surface,
-        elevation: 2,
+        color: colors.surface.withValues(alpha: colors.surface.a * background),
+        elevation: 2 * background,
         borderRadius: BorderRadius.circular(_cardRadius * (1 - condense)),
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
@@ -134,24 +149,34 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                         _scrubTo(d.localPosition.dx, width, profile),
                     onHorizontalDragEnd: (_) => _write(null),
                     onHorizontalDragCancel: () => _write(null),
-                    child: Column(
+                    child: Stack(
                       children: [
-                        Expanded(
-                          child: CustomPaint(
-                            size: Size(width, double.infinity),
-                            painter: MiniProfilePainter(
-                              profile: profile,
-                              selectedSeconds: selectedSeconds,
-                              curveColor: ProfileMetricColors.depth,
-                              fillColor: ProfileMetricColors.depth.withValues(
-                                alpha: 0.18,
+                        Positioned.fill(
+                          // With no chart plot to start from, the line cannot
+                          // sit on the chart's, so it fades in with the
+                          // background instead of appearing beside it.
+                          child: Opacity(
+                            opacity: widget.morphFrom == null ? background : 1,
+                            child: CustomPaint(
+                              painter: PinnedStripPainter(
+                                profile: profile,
+                                selectedSeconds: selectedSeconds,
+                                curveColor: ProfileMetricColors.depth,
+                                fillColor: ProfileMetricColors.depth.withValues(
+                                  alpha: 0.18,
+                                ),
+                                markerColor: colors.primary,
+                                from: widget.morphFrom,
+                                morph: condense,
                               ),
-                              markerColor: colors.primary,
                             ),
                           ),
                         ),
-                        SizedBox(
-                          height: _rowHeight,
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          height: kPinnedStripRowHeight,
                           child: Opacity(
                             opacity: condense,
                             child: values == null
