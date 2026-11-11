@@ -17,7 +17,10 @@ import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/security/database_security_key_store.dart';
 import 'package:submersion/core/services/security/database_security_service.dart';
 import 'package:submersion/features/demo_mode/data/demo_mode_gate.dart';
+import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/demo_mode/data/demo_startup.dart';
+import 'package:submersion/features/demo_mode/data/demo_state_store.dart';
+import 'package:submersion/features/demo_mode/domain/demo_state.dart';
 
 import '../../../helpers/global_test_defaults.dart';
 import '../../../helpers/security_test_kdf.dart';
@@ -190,25 +193,32 @@ void main() {
 
     /// Startup in demo mode whose open of the n-th database (1-based) runs
     /// [open]. Records which files the schema probe saw and how often demo
-    /// mode was abandoned.
+    /// mode was abandoned. [abandonError] makes leaving demo mode throw;
+    /// [realDemoPaths] leaves it through the real [DemoStartup.abandon].
     Widget failingWrapper({
       required List<String> probed,
       required List<int> abandoned,
       required Future<void> Function(int attempt) open,
+      Object? abandonError,
+      bool realDemoPaths = false,
     }) {
       var attempt = 0;
       return StartupWrapper(
         prefs: prefs,
         logFileService: logFileService,
         locationService: _PathLocationService(prefs, realPath),
+        demoPaths: realDemoPaths ? DemoPaths(tmp.path) : null,
         demoStartupOverride: () async {
           DemoModeGate.instance.markActive(true);
           return DemoStartupDecision(demoPath);
         },
-        demoAbandonOverride: () async {
-          abandoned.add(attempt);
-          DemoModeGate.instance.markActive(false);
-        },
+        demoAbandonOverride: realDemoPaths
+            ? null
+            : () async {
+                abandoned.add(attempt);
+                if (abandonError != null) throw abandonError;
+                DemoModeGate.instance.markActive(false);
+              },
         initializerOverride: (_) => open(++attempt),
         schemaVersionProbeOverride: (path) {
           probed.add(path);
@@ -280,6 +290,87 @@ void main() {
       expect(abandoned, [1]);
       expect(find.byType(VersionMismatchView), findsOneWidget);
       expect(DemoModeGate.instance.isActive, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+    });
+    testWidgets('one SQLite refuses to open also leaves demo mode', (
+      tester,
+    ) async {
+      final probed = <String>[];
+      final abandoned = <int>[];
+
+      await tester.pumpWidget(
+        failingWrapper(
+          probed: probed,
+          abandoned: abandoned,
+          open: (attempt) => attempt == 1
+              ? Future.error(
+                  sqlite3.SqliteException(
+                    extendedResultCode: 776,
+                    message: 'attempt to write a readonly database',
+                  ),
+                )
+              : Completer<void>().future,
+        ),
+      );
+      await settleThroughSplash(tester);
+
+      expect(probed, [demoPath, realPath]);
+      expect(abandoned, [1]);
+      expect(DemoModeGate.instance.isActive, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('leaving clears the demo state on disk, so the next launch '
+        'opens the user\'s logbook', (tester) async {
+      final probed = <String>[];
+      final store = DemoStateStore(DemoPaths(tmp.path));
+      await tester.runAsync(
+        () => store.write(
+          DemoState(
+            phase: DemoPhase.active,
+            fromFirstRun: false,
+            enteredAt: DateTime.utc(2026, 11, 10),
+          ),
+        ),
+      );
+
+      await tester.pumpWidget(
+        failingWrapper(
+          probed: probed,
+          abandoned: [],
+          realDemoPaths: true,
+          open: (attempt) =>
+              attempt == 1 ? Future.error(tooNew) : Completer<void>().future,
+        ),
+      );
+      await settleThroughSplash(tester);
+
+      expect(probed, [demoPath, realPath]);
+      expect(Directory(p.dirname(demoPath)).existsSync(), isFalse);
+      expect(DemoModeGate.instance.isActive, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('a demo directory that cannot be cleared still opens the '
+        'user\'s logbook, outside demo mode', (tester) async {
+      final probed = <String>[];
+      final abandoned = <int>[];
+
+      await tester.pumpWidget(
+        failingWrapper(
+          probed: probed,
+          abandoned: abandoned,
+          abandonError: const FileSystemException('directory in use'),
+          open: (attempt) =>
+              attempt == 1 ? Future.error(tooNew) : Completer<void>().future,
+        ),
+      );
+      await settleThroughSplash(tester);
+
+      expect(probed, [demoPath, realPath]);
+      expect(abandoned, [1]);
+      expect(DemoModeGate.instance.isActive, isFalse);
+      expect(find.byType(VersionMismatchView), findsNothing);
       await tester.pump(const Duration(seconds: 2));
     });
   });
