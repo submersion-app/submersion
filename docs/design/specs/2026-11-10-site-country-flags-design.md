@@ -19,7 +19,10 @@ compete with the site or trip name.
      When there is no flag (country unknown, or flags turned off) the pin
      comes back exactly as today.
   3. **Dive details:** before the site location line, which ends in the
-     country (`DiveHeroHeader` and `DiveDetailEmbeddedHeader`).
+     country, on the header card (`DiveHeroHeader`). The slim bar at the
+     top of the desktop details pane (`DiveDetailEmbeddedHeader`) stays
+     plain, as Site Details' does, so one view never shows two flags
+     (chosen with the user from a mockup during the build).
   4. **Trip list:** after the trip name, one flag per country.
   5. **Trip details:** after the trip name in the header, one flag per
      country.
