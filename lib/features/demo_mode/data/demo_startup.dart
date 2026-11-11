@@ -50,6 +50,28 @@ class DemoStartup {
     return DemoStartupDecision(demoPath);
   }
 
+  /// Leaves demo mode during startup because this build cannot open the
+  /// sample logbook, for example one a newer build already upgraded before a
+  /// downgrade. The sample is discarded on exit anyway, so nothing is lost,
+  /// and the user's own logbook opens in its place.
+  ///
+  /// The state is marked exiting first, so a launch killed part way through
+  /// finishes the exit through [resolve] instead of reopening the sample.
+  static Future<void> abandon({
+    required DemoStateStore store,
+    required SharedPreferences prefs,
+  }) async {
+    try {
+      final state = await store.read();
+      if (state != null) {
+        await store.write(state.copyWith(phase: DemoPhase.exiting));
+      }
+      await _finishExit(store, prefs);
+    } finally {
+      DemoModeGate.instance.markActive(false);
+    }
+  }
+
   static Future<void> _finishExit(
     DemoStateStore store,
     SharedPreferences prefs,

@@ -7,8 +7,10 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/database_version_exception.dart';
 import 'package:submersion/core/presentation/pages/startup_page.dart';
 import 'package:submersion/core/presentation/pages/lock_screen_view.dart';
+import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
@@ -168,4 +170,117 @@ void main() {
       await tester.pump(const Duration(seconds: 2));
     },
   );
+
+  group('a sample logbook this build cannot open', () {
+    const tooNew = DatabaseVersionMismatchException(
+      storedSchemaVersion: AppDatabase.currentSchemaVersion + 1,
+      supportedSchemaVersion: AppDatabase.currentSchemaVersion,
+    );
+
+    /// Each run of startup waits out a one-second splash alongside the open,
+    /// so a failure only surfaces once fake time passes it: once for the
+    /// sample logbook, once more for the user's own.
+    Future<void> settleThroughSplash(WidgetTester tester) async {
+      await settleRealAsync(tester);
+      for (var run = 0; run < 2; run++) {
+        await tester.pump(const Duration(seconds: 1));
+        await settleRealAsync(tester);
+      }
+    }
+
+    /// Startup in demo mode whose open of the n-th database (1-based) runs
+    /// [open]. Records which files the schema probe saw and how often demo
+    /// mode was abandoned.
+    Widget failingWrapper({
+      required List<String> probed,
+      required List<int> abandoned,
+      required Future<void> Function(int attempt) open,
+    }) {
+      var attempt = 0;
+      return StartupWrapper(
+        prefs: prefs,
+        logFileService: logFileService,
+        locationService: _PathLocationService(prefs, realPath),
+        demoStartupOverride: () async {
+          DemoModeGate.instance.markActive(true);
+          return DemoStartupDecision(demoPath);
+        },
+        demoAbandonOverride: () async {
+          abandoned.add(attempt);
+          DemoModeGate.instance.markActive(false);
+        },
+        initializerOverride: (_) => open(++attempt),
+        schemaVersionProbeOverride: (path) {
+          probed.add(path);
+          return (needsMigration: false, totalSteps: 0);
+        },
+      );
+    }
+
+    testWidgets('one too new after a downgrade leaves demo mode and opens '
+        'the user\'s own logbook, with no mismatch screen', (tester) async {
+      final probed = <String>[];
+      final abandoned = <int>[];
+
+      await tester.pumpWidget(
+        failingWrapper(
+          probed: probed,
+          abandoned: abandoned,
+          open: (attempt) =>
+              attempt == 1 ? Future.error(tooNew) : Completer<void>().future,
+        ),
+      );
+      await settleThroughSplash(tester);
+
+      expect(probed, [demoPath, realPath]);
+      expect(abandoned, [1]);
+      expect(find.byType(VersionMismatchView), findsNothing);
+      expect(DemoModeGate.instance.isActive, isFalse);
+      expect(find.textContaining('DemoModeSealedException'), findsNothing);
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('one that fails to open for another reason also leaves demo '
+        'mode rather than offering recovery for the sample', (tester) async {
+      final probed = <String>[];
+      final abandoned = <int>[];
+
+      await tester.pumpWidget(
+        failingWrapper(
+          probed: probed,
+          abandoned: abandoned,
+          open: (attempt) => attempt == 1
+              ? Future.error(StateError('sample logbook is corrupt'))
+              : Completer<void>().future,
+        ),
+      );
+      await settleThroughSplash(tester);
+
+      expect(probed, [demoPath, realPath]);
+      expect(abandoned, [1]);
+      expect(DemoModeGate.instance.isActive, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    testWidgets('when the user\'s own logbook is too new as well, its own '
+        'mismatch screen shows, outside demo mode', (tester) async {
+      final probed = <String>[];
+      final abandoned = <int>[];
+
+      await tester.pumpWidget(
+        failingWrapper(
+          probed: probed,
+          abandoned: abandoned,
+          open: (_) => Future.error(tooNew),
+        ),
+      );
+      await settleThroughSplash(tester);
+
+      expect(probed, [demoPath, realPath]);
+      expect(abandoned, [1]);
+      expect(find.byType(VersionMismatchView), findsOneWidget);
+      expect(DemoModeGate.instance.isActive, isFalse);
+      await tester.pump(const Duration(seconds: 2));
+    });
+  });
 }

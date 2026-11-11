@@ -139,6 +139,22 @@ void main() {
     expect(Directory(paths.root).existsSync(), isFalse);
   });
 
+  test('abandon leaves a sample logbook this build cannot open', () async {
+    await PrefsSnapshot.capture(prefs, File(paths.prefsSnapshotFile));
+    await prefs.setString('current_diver_id', 'demo-diver');
+    await writeState(DemoPhase.active);
+    File(paths.databaseFile).writeAsStringSync('db');
+    DemoModeGate.instance.markActive(true);
+
+    await DemoStartup.abandon(store: store, prefs: prefs);
+
+    expect(prefs.getString('current_diver_id'), 'real');
+    expect(Directory(paths.root).existsSync(), isFalse);
+    expect(DemoModeGate.instance.isActive, isFalse);
+    // The next launch opens the user's own logbook.
+    expect((await resolve()).demoDatabasePath, isNull);
+  });
+
   test('the demo directory sits under the support directory', () {
     expect(p.isWithin(root.path, paths.databaseFile), isTrue);
   });
