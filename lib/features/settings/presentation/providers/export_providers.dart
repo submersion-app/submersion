@@ -664,8 +664,9 @@ class ExportNotifier extends StateNotifier<ExportState>
 
     // Get current diver for personalization
     final diver = await _ref.read(currentDiverProvider.future);
-    final diverPhoto = await _ref.read(diverPhotoLoaderProvider)(
-      diver?.photoPath,
+    final diverPhoto = await diverPortrait(
+      diver,
+      _ref.read(diverPhotoLoaderProvider),
     );
 
     // Depth profiles, for the templates that chart them. getAllDives skips
