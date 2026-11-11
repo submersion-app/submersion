@@ -115,13 +115,39 @@ void main() {
 
   final strip = find.byType(PinnedProfileStrip);
 
-  /// Scrolls so the card's bottom edge sits at progress [t] of the condense.
-  Future<void> condenseTo(WidgetTester tester, double t) => jump(
+  /// Scrolls so the condense is at progress [t]: it runs from the card's
+  /// top reaching the viewport top to its bottom reaching the strip's.
+  Future<void> condenseTo(WidgetTester tester, double t) =>
+      jump(tester, profileTop + t * (profileHeight - kPinnedStripHeight));
+
+  testWidgets('the condense starts as soon as the card top leaves the view', (
     tester,
-    profileTop +
-        profileHeight -
-        (kPinnedStripHeight + kCondenseWindow * (1 - t)),
-  );
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, profileTop);
+    expect(strip, findsNothing);
+    await jump(tester, profileTop + 4);
+    expect(strip, findsOneWidget);
+  });
+
+  testWidgets('the condensing strip covers all of the card left on screen', (
+    tester,
+  ) async {
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey);
+    for (final t in [0.1, 0.4, 0.8]) {
+      await condenseTo(tester, t);
+      final card = tester.getRect(find.byKey(profileKey));
+      final box = tester.getRect(strip);
+      final viewportTop = tester
+          .getTopLeft(find.byType(PinnedProfileOverlay))
+          .dy;
+      expect(box.top, closeTo(viewportTop, 0.01), reason: 't=$t');
+      expect(box.bottom, greaterThanOrEqualTo(card.bottom - 0.01));
+      expect(box.left, lessThanOrEqualTo(card.left + 0.01));
+      expect(box.right, greaterThanOrEqualTo(card.right - 0.01));
+    }
+  });
 
   PinnedProfileStrip stripWidget(WidgetTester tester) =>
       tester.widget<PinnedProfileStrip>(strip);

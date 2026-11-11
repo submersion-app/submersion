@@ -3,38 +3,36 @@ import 'dart:ui';
 /// Height of the pinned profile strip: a 40 px curve over a 16 px values row.
 const double kPinnedStripHeight = 56;
 
-/// How far, in logical pixels, the profile card's bottom edge travels while
-/// the card condenses into the strip.
-const double kCondenseWindow = 120;
-
 /// How far the profile card has condensed into the strip, from 0 to 1.
 ///
-/// [cardBottom] is the card's bottom edge relative to the top of the scroll
-/// viewport. Progress starts once that edge is within [kCondenseWindow] of
-/// the strip's bottom edge and completes as it reaches it, so scrolling
-/// slowly plays the condense slowly and scrolling back reverses it.
-double condenseProgress({required double cardBottom}) {
-  final t =
-      (kPinnedStripHeight + kCondenseWindow - cardBottom) / kCondenseWindow;
-  return t.clamp(0.0, 1.0);
+/// [card] is the card's rect relative to the top of the scroll viewport. The
+/// condense runs over the card's whole scroll-out: it starts the moment the
+/// card's top passes the viewport's top and completes as its bottom reaches
+/// the strip's, so scrolling slowly plays it slowly and scrolling back
+/// reverses it.
+double condenseProgress({required Rect card}) {
+  if (card.top >= 0) return 0;
+  final travel = card.height - kPinnedStripHeight;
+  if (travel <= 0) return 1;
+  return (-card.top / travel).clamp(0.0, 1.0);
 }
 
-/// Where the condensing proxy is drawn at progress [t]: from the visible part
-/// of [card] (its top clamped to the viewport's top) to the full-[width]
-/// strip at the top.
+/// Where the condensing strip is drawn at progress [t]: always all of [card]
+/// still on screen (top to its bottom edge), so the real card never shows
+/// around it, widening from the card's margins to the full [width]. As the
+/// card scrolls up the box shrinks with it, down to the strip.
 Rect condenseRect({
   required Rect card,
   required double width,
   required double t,
 }) {
-  final visible = Rect.fromLTRB(
-    card.left,
-    card.top < 0 ? 0 : card.top,
-    card.right,
-    card.bottom,
+  double mix(double a, double b) => a + (b - a) * t;
+  return Rect.fromLTRB(
+    mix(card.left, 0),
+    card.top > 0 ? card.top : 0,
+    mix(card.right, width),
+    card.bottom > kPinnedStripHeight ? card.bottom : kPinnedStripHeight,
   );
-  final strip = Rect.fromLTWH(0, 0, width, kPinnedStripHeight);
-  return Rect.lerp(visible, strip, t)!;
 }
 
 /// The share of the condense spent fading the strip's background in over the

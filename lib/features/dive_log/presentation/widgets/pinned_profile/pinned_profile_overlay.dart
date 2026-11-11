@@ -54,7 +54,7 @@ class _PinnedProfileOverlayState extends ConsumerState<PinnedProfileOverlay> {
 
   double get _progress {
     final card = _card;
-    return card == null ? 0 : condenseProgress(cardBottom: card.bottom);
+    return card == null ? 0 : condenseProgress(card: card);
   }
 
   @override
