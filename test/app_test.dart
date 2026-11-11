@@ -327,6 +327,7 @@ void main() {
           }),
           diveDecoStatusCacheProvider.overrideWith((ref) async {
             decoCacheBuilds++;
+            return 0;
           }),
           ...extraOverrides,
         ],

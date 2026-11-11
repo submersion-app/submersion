@@ -138,9 +138,13 @@ class QueryTool implements AgentTool {
       appQueryRegistry,
       diverId: ctx.diverId,
     );
-    await _prepareCaches(ctx.diverId, compiled.tablesTouched);
     // The cache `serviceDue` reads holds the active diver's verdicts only,
-    // so the named diver's come from the engine and shadow it here.
+    // so the named diver's come from the engine and shadow it here. That
+    // overlay replaces the service cache, so only the others are prepared.
+    await _prepareCaches(
+      ctx.diverId,
+      compiled.tablesTouched.difference({serviceStatusTable}),
+    );
     final cte = compiled.tablesTouched.contains(serviceStatusTable)
         ? await serviceStatusOverlay(
             diverId: ctx.diverId,

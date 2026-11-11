@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/data/repositories/dive_deco_status_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 
@@ -175,6 +176,27 @@ void main() {
         await container.read(queryFilteredDiveIdsProvider(filter).future),
         {'deep'},
       );
+    },
+  );
+
+  test(
+    'an Insights card under a Deco filter computes once the verdicts are in',
+    () async {
+      await insertDive('deep');
+      await insertProfile('deep', _square(40, 25));
+      await insertDive('shallow', dayOffset: 1);
+      await insertProfile('shallow', _square(18, 30));
+
+      final container = await makeContainer();
+      container.read(insightsFilterProvider.notifier).state =
+          const DiveFilterState(decoOnly: true);
+      final sub = container.listen(decoObligationStatsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      // The first answer, not one corrected later by a tick.
+      final stats = await container.read(decoObligationStatsProvider.future);
+      expect(stats.decoCount, 1);
+      expect(stats.noDecoCount, 0);
     },
   );
 

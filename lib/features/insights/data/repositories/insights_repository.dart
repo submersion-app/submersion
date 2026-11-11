@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show compute, visibleForTesting;
 
@@ -353,25 +355,19 @@ class InsightsRepository with InsightsChartDives {
       gas: gas,
       consumptionRate: consumptionRate,
     );
-    final f = buildFilteredDiveIdSubquery(filter);
-    if (f.subquery.isEmpty) {
-      return (clause: scope, params: const <Object?>[]);
-    }
-    return (
-      clause: '$scope AND $alias.id IN (${f.subquery})',
-      params: f.params,
-    );
+    final view = _viewFilterOnly(filter, alias: alias);
+    return (clause: '$scope${view.clause}', params: view.params);
   }
 
   /// [_diveFilter] without [DiveStatsScope]: the view filter alone, as an
-  /// `AND` clause (empty when it keeps every dive).
+  /// ` AND ...` clause (empty when it keeps every dive).
   ({String clause, List<Object?> params}) _viewFilterOnly(
     DiveFilterState filter, {
     required String alias,
   }) {
     final f = buildFilteredDiveIdSubquery(filter);
     if (f.subquery.isEmpty) return (clause: '', params: const <Object?>[]);
-    return (clause: 'AND $alias.id IN (${f.subquery})', params: f.params);
+    return (clause: ' AND $alias.id IN (${f.subquery})', params: f.params);
   }
 
   /// The ids of the dives [filter] keeps, or null when it keeps them all.
@@ -2770,23 +2766,35 @@ class InsightsRepository with InsightsChartDives {
   /// [statsScoped] keeps to the dives statistics count ([DiveStatsScope]),
   /// as the deco card does. The `deco` search classifies every dive the
   /// diver logged, so its cache writer turns it off (#4461).
+  ///
+  /// [onlyDiveIds] narrows the scan to those dives, for a rule run over an
+  /// import's few dives that need not scan the whole logbook.
   Future<DecoSignalScan> scanRecordedDecoSignals({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
     bool statsScoped = true,
+    Set<String>? onlyDiveIds,
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = statsScoped
           ? _diveFilter(filter, alias: 'd')
           : _viewFilterOnly(filter, alias: 'd');
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+      // One bind for any number of ids, so no variable limit applies.
+      final idFilter = onlyDiveIds == null
+          ? ''
+          : 'AND d.id IN (SELECT value FROM json_each(?))';
+      final params = [
+        ?diverId,
+        ...df.params,
+        if (onlyDiveIds != null) jsonEncode(onlyDiveIds.toList()),
+      ];
 
       final results = await _db.customSelect('''
         WITH scoped AS (
           SELECT d.id AS dive_id
           FROM dives d
-          WHERE 1=1 $diverFilter ${df.clause}
+          WHERE 1=1 $diverFilter ${df.clause} $idFilter
         ),
         signals AS (
           SELECT

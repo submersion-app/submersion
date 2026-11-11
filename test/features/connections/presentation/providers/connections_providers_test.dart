@@ -192,6 +192,7 @@ void main() {
                   computedAt: 0,
                 ),
               );
+          return 0;
         }),
       ],
     );

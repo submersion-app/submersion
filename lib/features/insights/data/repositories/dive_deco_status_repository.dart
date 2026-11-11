@@ -27,8 +27,16 @@ class DiveDecoStatusRepository {
   /// changed verdicts are written, unchanged ones are left alone. One
   /// transaction, and a verdict for a dive deleted since it was analyzed is
   /// skipped rather than failing the dives foreign key.
-  Future<void> replaceAll(Map<String, bool> byId, {required int computedAt}) =>
-      _write(byId, computedAt: computedAt);
+  ///
+  /// [keepWrittenAfter] protects rows written after the pass that produced
+  /// [byId] began (a [replaceFor] for an import's dives meanwhile): that
+  /// pass knew nothing of them, so it neither deletes nor overwrites them.
+  Future<void> replaceAll(
+    Map<String, bool> byId, {
+    required int computedAt,
+    int? keepWrittenAfter,
+  }) =>
+      _write(byId, computedAt: computedAt, keepWrittenAfter: keepWrittenAfter);
 
   /// [replaceAll] for [diveIds] alone: their rows come to hold exactly what
   /// [byId] says of them (a named dive with no verdict loses its row), and
@@ -51,9 +59,12 @@ class DiveDecoStatusRepository {
     Map<String, bool> byId, {
     required int computedAt,
     Set<String>? within,
+    int? keepWrittenAfter,
   }) async {
     try {
-      await _db.transaction(() => _replace(byId, computedAt, within));
+      await _db.transaction(
+        () => _replace(byId, computedAt, within, keepWrittenAfter),
+      );
     } catch (e, st) {
       _log.error(
         'Failed to write the deco verdict cache',
@@ -68,16 +79,29 @@ class DiveDecoStatusRepository {
     Map<String, bool> byId,
     int computedAt,
     Set<String>? within,
+    int? keepWrittenAfter,
   ) async {
-    final existing = await verdicts();
+    final rows = await _db.select(_db.diveDecoStatus).get();
+    final existing = {for (final r in rows) r.diveId: r.hadDeco};
+    final kept = {
+      if (keepWrittenAfter != null)
+        for (final r in rows)
+          if (r.computedAt > keepWrittenAfter) r.diveId,
+    };
     final live = await _liveDiveIds(byId.keys.toList(growable: false));
     final stale = [
       for (final id in existing.keys)
-        if ((within == null || within.contains(id)) && !live.contains(id)) id,
+        if ((within == null || within.contains(id)) &&
+            !live.contains(id) &&
+            !kept.contains(id))
+          id,
     ];
     final changed = {
       for (final e in byId.entries)
-        if (live.contains(e.key) && existing[e.key] != e.value) e.key: e.value,
+        if (live.contains(e.key) &&
+            !kept.contains(e.key) &&
+            existing[e.key] != e.value)
+          e.key: e.value,
     };
     if (stale.isEmpty && changed.isEmpty) return;
     await _db.batch((b) {

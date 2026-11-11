@@ -68,12 +68,6 @@ Future<void> awaitQueryCachesIfRead(
 /// a writer invalidated mid-load by a table tick would never complete
 /// (see `AwaitFuture`). No listener is kept past the wait.
 ///
-/// The deco writer re-runs on a debounced tick of the tables a verdict
-/// derives from, so a query that follows a write (an import's rules, an
-/// agent's query after its own edit) could read the pass from before it.
-/// It is invalidated first; on a warm library the new pass costs one scan
-/// and one cache read, and writes nothing when no verdict moved.
-///
 /// [diveIds], when given, are the only dives whose deco verdicts the query
 /// reads (a rule run over an import's dives, whose conditions read `deco`
 /// on the dive itself): just those are analyzed, rather than the logbook.
@@ -87,14 +81,28 @@ Future<void> prepareQueryCachesFor(
   if (diverId != active) return;
   final readsDeco = tables.contains(kDiveDecoStatusTable);
   final targeted = readsDeco && diveIds != null;
-  if (readsDeco && !targeted) ref.invalidate(diveDecoStatusCacheProvider);
   await Future.wait<void>([
-    for (final writer in _writersFor(
-      targeted ? tables.difference({kDiveDecoStatusTable}) : tables,
-    ))
+    for (final writer in _writersFor(tables.difference({kDiveDecoStatusTable})))
       ref.container.awaitFuture(writer),
-    if (targeted) refreshDiveDecoStatusFor(ref, diverId, diveIds),
+    if (targeted)
+      refreshDiveDecoStatusFor(ref, diverId, diveIds)
+    else if (readsDeco)
+      _awaitCurrentDecoPass(ref.container),
   ]);
+}
+
+/// Waits for a deco writer pass that has seen every write before this call.
+/// The writer re-runs on a debounced tick, so a query just after a write (an
+/// agent's query after its own edit) could otherwise read the pass from
+/// before it. A pass already current is not re-run, so a run of queries
+/// costs one pass, not one each.
+Future<void> _awaitCurrentDecoPass(ProviderContainer container) async {
+  final startedFrom = await container.awaitFuture(
+    diveDecoStatusCacheProvider.future,
+  );
+  if (container.read(diveDecoInputWritesProvider) == startedFrom) return;
+  container.invalidate(diveDecoStatusCacheProvider);
+  await container.awaitFuture(diveDecoStatusCacheProvider.future);
 }
 
 /// [awaitQueryCachesIfRead] for a widget, which has a [WidgetRef] rather

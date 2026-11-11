@@ -16,6 +16,7 @@ void main() {
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
         diveDecoStatusCacheProvider.overrideWith((ref) async {
           writes.add(1);
+          return 0;
         }),
       ],
     );
@@ -35,6 +36,44 @@ void main() {
     final (ref, writes) = await refCountingDecoWrites();
     await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
     expect(writes, isEmpty);
+  });
+
+  group('a pass the keeper holds', () {
+    // The writer's value is the input-write count its pass began from.
+    late ProviderContainer container;
+    late Ref ref;
+    var builds = 0;
+
+    setUp(() {
+      builds = 0;
+      container = ProviderContainer(
+        overrides: [
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+          diveDecoStatusCacheProvider.overrideWith((ref) async {
+            builds++;
+            return ref.read(diveDecoInputWritesProvider);
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      final keeper = container.listen(diveDecoStatusCacheProvider, (_, _) {});
+      addTearDown(keeper.close);
+      ref = container.read(Provider((ref) => ref));
+    });
+
+    test('is reused while no input was written since it began', () async {
+      await prepareQueryCachesFor(ref, 'me', {kDiveDecoStatusTable});
+      await prepareQueryCachesFor(ref, 'me', {kDiveDecoStatusTable});
+      expect(builds, 1);
+    });
+
+    test('is re-run when an input was written after it began', () async {
+      await prepareQueryCachesFor(ref, 'me', {kDiveDecoStatusTable});
+      // A dive write the debounced tick has not yet acted on.
+      container.read(diveDecoInputWritesProvider.notifier).state++;
+      await prepareQueryCachesFor(ref, 'me', {kDiveDecoStatusTable});
+      expect(builds, 2);
+    });
   });
 
   test('runs no analysis for a query that reads no cache', () async {

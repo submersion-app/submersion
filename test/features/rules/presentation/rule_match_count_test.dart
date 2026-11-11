@@ -71,6 +71,7 @@ void main() {
         ruleTargetScopeProvider.overrideWithValue(_CountingScope(calls)),
         diveDecoStatusCacheProvider.overrideWith((ref) async {
           writerRuns++;
+          return 0;
         }),
       ],
     );
@@ -96,6 +97,7 @@ void main() {
         ruleTargetScopeProvider.overrideWithValue(_CountingScope([])),
         diveDecoStatusCacheProvider.overrideWith((ref) async {
           writerRuns++;
+          return 0;
         }),
       ],
     );

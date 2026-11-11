@@ -40,6 +40,7 @@ void main() {
         sharedPreferencesProvider.overrideWithValue(prefs),
         diveDecoStatusCacheProvider.overrideWith((ref) async {
           writerBuilds++;
+          return 0;
         }),
       ],
     );

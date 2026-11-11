@@ -34,7 +34,11 @@ final diveDecoStatusRepositoryProvider = Provider<DiveDecoStatusRepository>(
 // the cache and renders nothing.
 // autoDispose: once no reader or keeper watches it, it is released and
 // stops following those tables.
-final diveDecoStatusCacheProvider = FutureProvider.autoDispose<void>((
+///
+/// Its value is the [diveDecoInputWritesProvider] count the pass began
+/// from: a one-off reader compares the two to tell whether a write landed
+/// after the pass it would read (`prepareQueryCachesFor`).
+final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   ref,
 ) async {
   final diverId = ref.watch(currentDiverIdProvider);
@@ -42,17 +46,24 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<void>((
   // cache by this same fingerprint.
   ref.watch(diverAnalysisSettingsProvider.select((s) => s.fingerprint));
   final db = DatabaseService.instance.database;
-  ref.invalidateSelfWhen(
-    db
-        .tableUpdates(
-          TableUpdateQuery.allOf([
-            for (final table in diveSourceStampTables(db))
-              TableUpdateQuery.onTable(table),
-            TableUpdateQuery.onTable(db.diveProfileEvents),
-          ]),
-        )
-        .debounce(QueryIdSetRunner.changeTickDebounce),
+  final inputWrites = db.tableUpdates(
+    TableUpdateQuery.allOf([
+      for (final table in diveSourceStampTables(db))
+        TableUpdateQuery.onTable(table),
+      TableUpdateQuery.onTable(db.diveProfileEvents),
+    ]),
   );
+  // Undebounced, so the count moves the moment a write lands, while the
+  // pass itself waits out a burst of writes before it re-runs.
+  final counting = inputWrites.listen((_) {
+    ref.read(diveDecoInputWritesProvider.notifier).state++;
+  });
+  ref.onDispose(counting.cancel);
+  ref.invalidateSelfWhen(
+    inputWrites.debounce(QueryIdSetRunner.changeTickDebounce),
+  );
+  final startedFrom = ref.read(diveDecoInputWritesProvider);
+  final startedAt = DateTime.now().millisecondsSinceEpoch;
 
   // Every dive the diver logged, not only those statistics count: a dive
   // excluded from the card's rate is still one a deco search should find.
@@ -65,11 +76,22 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<void>((
   );
   // A rebuild replaced this pass part way through: its verdicts are
   // incomplete, and the pass that replaced it writes the whole set.
-  if (!ref.mounted) return;
+  if (!ref.mounted) return startedFrom;
   await ref
       .read(diveDecoStatusRepositoryProvider)
-      .replaceAll(computed, computedAt: DateTime.now().millisecondsSinceEpoch);
+      .replaceAll(
+        computed,
+        computedAt: DateTime.now().millisecondsSinceEpoch,
+        // A targeted refresh may have written newer verdicts meanwhile.
+        keepWrittenAfter: startedAt,
+      );
+  return startedFrom;
 });
+
+/// How many writes to the tables a deco verdict derives from the running
+/// [diveDecoStatusCacheProvider] has seen. Counted only while it runs; a
+/// pass started afresh reads every write before it.
+final diveDecoInputWritesProvider = StateProvider<int>((ref) => 0);
 
 /// [diveDecoStatusCacheProvider]'s pass for [diveIds] alone: their verdicts
 /// are brought up to date and the rest of the cache is left as it is. For a
@@ -84,11 +106,18 @@ Future<void> refreshDiveDecoStatusFor(
   if (diveIds.isEmpty) return;
   final scan = await ref
       .read(insightsRepositoryProvider)
-      .scanRecordedDecoSignals(diverId: diverId, statsScoped: false);
-  final computed = await const DecoClassificationService().classify(ref, {
-    for (final e in scan.needsCompute.entries)
-      if (diveIds.contains(e.key)) e.key: e.value,
-  });
+      .scanRecordedDecoSignals(
+        diverId: diverId,
+        statsScoped: false,
+        onlyDiveIds: diveIds,
+      );
+  final computed = await const DecoClassificationService().classify(
+    ref,
+    scan.needsCompute,
+  );
+  // A rebuild of [ref] stops the analysis part way through: writing its
+  // partial verdicts would delete the rows of the named dives it skipped.
+  if (!ref.mounted) return;
   await ref
       .read(diveDecoStatusRepositoryProvider)
       .replaceFor(

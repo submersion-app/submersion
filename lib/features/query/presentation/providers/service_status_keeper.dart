@@ -11,11 +11,17 @@ import 'package:submersion/features/insights/presentation/providers/insights_fil
 /// the writer, and Insights stays filtered while its tab is away. The site,
 /// trip and equipment id sets hold the writer themselves exactly while their
 /// list is shown, so a filter left on those does not keep clocks running.
-final serviceStatusDemandProvider = Provider<bool>((ref) {
-  bool reads(Set<String> tables) => tables.contains(serviceStatusTable);
+final serviceStatusDemandProvider = Provider<bool>(
+  (ref) => liveFiltersRead(ref, serviceStatusTable),
+);
+
+/// Whether the dive list's or Insights' live filter reads [table]: the
+/// demand test every query cache keeper shares (#2365, #4461).
+bool liveFiltersRead(Ref ref, String table) {
+  bool reads(Set<String> tables) => tables.contains(table);
   return reads(diveFilterTablesTouched(ref.watch(diveFilterProvider))) ||
       reads(diveFilterTablesTouched(ref.watch(insightsFilterProvider)));
-});
+}
 
 /// Keeps the service-due cache writer running while [serviceStatusDemandProvider]
 /// says a filter reads it, and idle otherwise. The app root listens to this

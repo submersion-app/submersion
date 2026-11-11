@@ -61,6 +61,18 @@ void main() {
     expect(await repo.verdicts(), {'a': false, 'c': false});
   });
 
+  test('a whole pass leaves alone rows written after it began', () async {
+    // A targeted refresh (an import's rules) wrote 'b' while a pass that
+    // scanned before the import was still analyzing: that pass knows
+    // nothing of 'b' and must not delete or overwrite it.
+    final repo = DiveDecoStatusRepository();
+    await repo.replaceAll({'a': true}, computedAt: 10);
+    await repo.replaceFor({'b': true}, diveIds: {'b'}, computedAt: 30);
+
+    await repo.replaceAll({'a': false}, computedAt: 40, keepWrittenAfter: 20);
+    expect(await repo.verdicts(), {'a': false, 'b': true});
+  });
+
   test('a verdict for a dive deleted mid-analysis is skipped', () async {
     // The analysis judged 'ghost', then it was deleted before the write:
     // the cache keeps the live dives instead of failing the whole write on
