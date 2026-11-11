@@ -220,4 +220,47 @@ void main() {
     expect(flags.maxFlags, isNull);
     expect(find.byType(CountryFlag), findsNWidgets(4));
   });
+
+  testWidgets('many countries wrap instead of overflowing on a phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final now = DateTime.now();
+    final trip = _trip(start: _daysFrom(now, -10), end: _daysFrom(now, -3));
+    const codes = [
+      'BQ',
+      'CW',
+      'AW',
+      'VE',
+      'CO',
+      'PA',
+      'CR',
+      'NI',
+      'HN',
+      'BZ',
+      'MX',
+      'CU',
+      'JM',
+      'HT',
+    ];
+    await pumpHero(
+      tester,
+      _story(trip, today: _dayOnly(now)),
+      extra: [
+        tripCountriesProvider.overrideWith(
+          (ref) async => {
+            'trip-1': [
+              for (final code in codes) TripCountry(code: code, name: code),
+            ],
+          },
+        ),
+      ],
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CountryFlag), findsNWidgets(codes.length));
+    // The name keeps a full line rather than being squeezed by the flags.
+    expect(tester.getSize(find.text('Bonaire')).height, lessThan(40));
+  });
 }

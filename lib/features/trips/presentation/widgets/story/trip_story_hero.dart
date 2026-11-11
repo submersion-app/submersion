@@ -46,18 +46,20 @@ class TripStoryHero extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Row(
+              // Every country the trip's dives were in (issue #4426) follows
+              // the name, or takes the next line when it does not fit, so a
+              // long list never squeezes the name.
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Flexible(
-                    child: Text(
-                      trip.name,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  Text(
+                    trip.name,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  // Every country the trip's dives were in (issue #4426).
                   TripCountryFlags(tripId: trip.id, flagHeight: 14),
                 ],
               ),

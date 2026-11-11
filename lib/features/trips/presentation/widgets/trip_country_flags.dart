@@ -47,15 +47,18 @@ class TripCountryFlags extends ConsumerWidget {
       child: Semantics(
         label: context.l10n.trips_countryFlags_semantics(names),
         excludeSemantics: true,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        // A Wrap, so a trip with more flags than fit on the line (all of
+        // them, on trip details) runs onto another line instead of
+        // overflowing.
+        child: Wrap(
+          spacing: 2,
+          runSpacing: 2,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            for (var i = 0; i < shown.length; i++) ...[
-              if (i > 0) const SizedBox(width: 2),
-              CountryFlag(code: shown[i].code, height: flagHeight),
-            ],
+            for (final country in shown)
+              CountryFlag(code: country.code, height: flagHeight),
             if (hidden > 0) ...[
-              const SizedBox(width: 3),
+              const SizedBox(width: 1),
               Text(
                 context.l10n.trips_countryFlags_more(hidden),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
