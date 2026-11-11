@@ -34,14 +34,34 @@ class EntityCardStat<T, F extends EntityField> extends StatelessWidget {
     this.formatter,
   });
 
-  @override
-  Widget build(BuildContext context) {
+  /// The text the stat shows for [field], or null when it has nothing to
+  /// show. A card that must leave an empty stat out entirely (rather than
+  /// render the empty box [build] returns) asks this first.
+  static String? displayText<T, F extends EntityField>({
+    required EntityFieldAdapter<T, F> adapter,
+    required T entity,
+    required F field,
+    required UnitFormatter units,
+    String Function(F field, dynamic value)? formatter,
+  }) {
     final value = adapter.extractValue(field, entity);
-    if (value == null) return const SizedBox.shrink();
+    if (value == null) return null;
     final formatted =
         formatter?.call(field, value) ??
         adapter.formatValue(field, value, units);
-    if (isBlankFieldValue(formatted)) return const SizedBox.shrink();
+    return isBlankFieldValue(formatted) ? null : formatted;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final formatted = displayText(
+      adapter: adapter,
+      entity: entity,
+      field: field,
+      units: units,
+      formatter: formatter,
+    );
+    if (formatted == null) return const SizedBox.shrink();
     final style = Theme.of(
       context,
     ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600, color: color);
