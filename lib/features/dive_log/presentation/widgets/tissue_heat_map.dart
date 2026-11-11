@@ -151,6 +151,25 @@ class TissueHeatMapStrip extends StatefulWidget {
     this.hoveredCompartmentIndex,
   });
 
+  /// Width of the highlighted compartment row's outline.
+  static const double rowOutlineStrokeWidth = 1.5;
+
+  /// The rect the highlighted row's outline is stroked along: the row grown
+  /// by half a stroke, so the stroke lies wholly outside the row and every
+  /// cell in it stays fully visible. A stroke centred on the row's own edges
+  /// put half of each line inside, and on a thin row that left little of
+  /// the row itself to see.
+  static Rect rowOutlineRect({
+    required int index,
+    required double cellHeight,
+    required double width,
+  }) => Rect.fromLTWH(
+    0,
+    index * cellHeight,
+    width,
+    cellHeight,
+  ).inflate(rowOutlineStrokeWidth / 2);
+
   @override
   State<TissueHeatMapStrip> createState() => _TissueHeatMapStripState();
 }
@@ -479,14 +498,17 @@ class _TissueHeatMapPainter extends CustomPainter {
     if (hoveredCompartmentIndex != null &&
         hoveredCompartmentIndex! >= 0 &&
         hoveredCompartmentIndex! < numCompartments) {
-      final y = hoveredCompartmentIndex! * cellHeight;
       final outlinePaint = Paint()
         ..color = outlineColor.withValues(alpha: 0.8)
-        ..strokeWidth = 1.5
+        ..strokeWidth = TissueHeatMapStrip.rowOutlineStrokeWidth
         ..style = PaintingStyle.stroke;
 
       canvas.drawRect(
-        Rect.fromLTWH(0, y, size.width, cellHeight),
+        TissueHeatMapStrip.rowOutlineRect(
+          index: hoveredCompartmentIndex!,
+          cellHeight: cellHeight,
+          width: size.width,
+        ),
         outlinePaint,
       );
     }
