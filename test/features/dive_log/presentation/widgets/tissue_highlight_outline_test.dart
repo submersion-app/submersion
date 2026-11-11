@@ -123,13 +123,18 @@ void main() {
         ),
       );
 
+      // Centring the band on a box thinner than the band still lets half the
+      // stroke width spill over its top and bottom, into the chart around a
+      // nearly empty bar, so the painter clips to its own box first.
       expect(
         find.byType(CustomPaint),
-        paints..something((method, arguments) {
-          if (method != #drawRRect) return false;
-          final rrect = arguments.first as RRect;
-          return rrect.top >= 0 && rrect.bottom <= 2 && rrect.top <= 1;
-        }),
+        paints
+          ..clipRect(rect: const Rect.fromLTWH(0, 0, 20, 2))
+          ..something((method, arguments) {
+            if (method != #drawRRect) return false;
+            final rrect = arguments.first as RRect;
+            return rrect.top >= 0 && rrect.bottom <= 2 && rrect.top <= 1;
+          }),
       );
     });
   });

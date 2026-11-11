@@ -60,16 +60,21 @@ class HighlightOutlinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // Inset by half the band so the whole band lies inside the box. A box
     // thinner than the band (a nearly empty bar) is inset by at most half
-    // its own size, so the band never crosses to the far side.
+    // its own size, which centres the band on it; half the stroke width
+    // would still spill over its edges into the chart around it, so the
+    // band is clipped to the box.
+    final box = Offset.zero & size;
     final inset = math.min(
       HighlightOutline.haloWidth / 2,
       size.shortestSide / 2,
     );
-    final rect = (Offset.zero & size).deflate(inset);
+    canvas.save();
+    canvas.clipRect(box);
     HighlightOutline.paintRRect(
       canvas,
-      RRect.fromRectAndRadius(rect, HighlightOutline.barRadius),
+      RRect.fromRectAndRadius(box.deflate(inset), HighlightOutline.barRadius),
     );
+    canvas.restore();
   }
 
   @override
