@@ -3,26 +3,76 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 
 void main() {
-  // A 456 px card: it scrolls out over 456 - 56 = 400 px.
+  // A 456 px card. The squash takes the first kSquashRange px of its
+  // scroll-out; the hand-over to the strip takes the remaining
+  // 456 - kSquashRange - 56 px.
   Rect cardAt(double top) => Rect.fromLTWH(16, top, 368, 456);
 
-  group('condenseProgress', () {
-    test('is 0 until the card top reaches the viewport top', () {
-      expect(condenseProgress(card: cardAt(120)), 0);
+  group('squashDepth', () {
+    test('is 0 until the card top passes the viewport top', () {
+      expect(squashDepth(card: cardAt(120)), 0);
+      expect(squashDepth(card: cardAt(0)), 0);
+    });
+
+    test('follows the scroll, up to the squash range', () {
+      expect(squashDepth(card: cardAt(-50)), 50);
+      expect(squashDepth(card: cardAt(-400)), kSquashRange);
+    });
+
+    // The range is however much the chart's plot can lose and keep
+    // kMinPlotHeight: measured, since axes and legends vary.
+    test('takes the measured range', () {
+      expect(squashDepth(card: cardAt(-400), range: 90), 90);
+      expect(slideDepth(card: cardAt(-120), range: 90), 30);
+    });
+
+    test('squashRangeFor leaves the plot at its minimum height', () {
+      expect(squashRangeFor(restPlotHeight: 150), 150 - kMinPlotHeight);
+      expect(squashRangeFor(restPlotHeight: 30), 0);
+    });
+  });
+
+  group('condenseProgress (the hand-over to the strip)', () {
+    test('is 0 while the card is still squashing', () {
       expect(condenseProgress(card: cardAt(0)), 0);
+      expect(condenseProgress(card: cardAt(-kSquashRange)), 0);
     });
 
-    test('starts as soon as the card top passes the viewport top', () {
-      expect(condenseProgress(card: cardAt(-1)), greaterThan(0));
-    });
-
-    test('runs over the whole scroll-out, linearly', () {
-      expect(condenseProgress(card: cardAt(-200)), closeTo(0.5, 1e-9));
+    test('runs over the rest of the scroll-out, linearly', () {
+      expect(
+        condenseProgress(
+          card: cardAt(-(kSquashRange + (456 - kSquashRange - 56) / 2)),
+        ),
+        closeTo(0.5, 1e-9),
+      );
     });
 
     test('is 1 once the card bottom reaches the strip', () {
       expect(condenseProgress(card: cardAt(-400)), 1);
       expect(condenseProgress(card: cardAt(-900)), 1);
+    });
+
+    // After the squash the card slides up until its plot reaches the top;
+    // the hand-over starts there.
+    test('can start later, once the plot reaches the top', () {
+      const start = kSquashRange + 60;
+      expect(condenseProgress(card: cardAt(-start), start: start), 0);
+      // Halfway through the 456 - start - 56 px of hand-over.
+      expect(
+        condenseProgress(
+          card: cardAt(-(start + (456 - start - 56) / 2)),
+          start: start,
+        ),
+        closeTo(0.5, 1e-9),
+      );
+      expect(condenseProgress(card: cardAt(-400), start: start), 1);
+    });
+  });
+
+  group('slideDepth', () {
+    test('is 0 while the card squashes, then follows the scroll', () {
+      expect(slideDepth(card: cardAt(-100)), 0);
+      expect(slideDepth(card: cardAt(-(kSquashRange + 30))), 30);
     });
   });
 

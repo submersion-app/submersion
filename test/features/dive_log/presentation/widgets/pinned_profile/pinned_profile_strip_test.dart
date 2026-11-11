@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_log/presentation/providers/active_sourc
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -275,6 +277,88 @@ void main() {
     expect(material.color!.g, closeTo(card.g, 1e-6));
     expect(material.color!.b, closeTo(card.b, 1e-6));
     expect(material.color!.a, closeTo(card.a * 0.5, 1e-6));
+  });
+
+  Future<void> pumpMorphing(
+    WidgetTester tester, {
+    required double condense,
+    required double background,
+  }) async {
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          activeSourceProfileProvider(dive.id).overrideWith((ref) => null),
+          sourceProfileAnalysisProvider((
+            diveId: dive.id,
+            sourceId: null,
+          )).overrideWith((ref) async => analysis),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.topLeft,
+              child: SizedBox(
+                width: stripWidth,
+                height: 200,
+                child: PinnedProfileStrip(
+                  dive: dive,
+                  condense: condense,
+                  backgroundOpacity: background,
+                  morphFrom: const PlotMapping(
+                    rect: Rect.fromLTWH(30, 40, 340, 120),
+                    minSeconds: 0,
+                    maxSeconds: 1500,
+                    minDepthMeters: 0,
+                    maxDepthMeters: 33,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+  }
+
+  // The strip's shading is drawn over the chart's own while it fades in; at
+  // full strength the two stacked into a darker blue. It cross-fades instead.
+  testWidgets('its curve fades in with its surface, even on the chart line', (
+    tester,
+  ) async {
+    await pumpMorphing(tester, condense: 0, background: 0.4);
+    final curveLayer = tester.widget<Opacity>(
+      find
+          .ancestor(
+            of: find.byWidgetPredicate(
+              (w) => w is CustomPaint && w.painter is PinnedStripPainter,
+            ),
+            matching: find.byType(Opacity),
+          )
+          .first,
+    );
+    expect(curveLayer.opacity, closeTo(0.4, 1e-6));
+  });
+
+  // A shadow switching on the moment the surface turned opaque flashed grey
+  // in both directions; it grows with the condense instead.
+  testWidgets('its shadow grows with the condense', (tester) async {
+    Material surface() => tester.widget<Material>(
+      find
+          .descendant(
+            of: find.byType(PinnedProfileStrip),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    await pumpMorphing(tester, condense: 0, background: 1);
+    expect(surface().elevation, 0);
+    await pumpMorphing(tester, condense: 0.5, background: 1);
+    expect(surface().elevation, closeTo(1, 1e-6));
   });
 
   testWidgets('the strip has a semantics label', (tester) async {

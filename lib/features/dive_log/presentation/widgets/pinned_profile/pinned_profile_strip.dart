@@ -152,9 +152,10 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         color: colors.surfaceContainerLow.withValues(
           alpha: colors.surfaceContainerLow.a * background,
         ),
-        // No shadow until the surface is opaque: a shadow beneath a
-        // see-through surface shows through it and greys the whole card.
-        elevation: background >= 1 ? 2 : 0,
+        // No shadow while the surface is see-through (it would show through
+        // and grey the card), then one that grows with the condense, so it
+        // never switches on or off in a single frame either way.
+        elevation: background >= 1 ? 2 * condense : 0,
         borderRadius: BorderRadius.circular(_cardRadius * (1 - condense)),
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
@@ -201,11 +202,11 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                     child: Stack(
                       children: [
                         Positioned.fill(
-                          // With no chart plot to start from, the line cannot
-                          // sit on the chart's, so it fades in with the
-                          // background instead of appearing beside it.
+                          // Cross-fades with the surface: drawn on the chart's
+                          // own line and shading, so at full strength the two
+                          // shadings would stack into a darker blue.
                           child: Opacity(
-                            opacity: widget.morphFrom == null ? background : 1,
+                            opacity: background,
                             child: CustomPaint(
                               painter: PinnedStripPainter(
                                 profile: profile,

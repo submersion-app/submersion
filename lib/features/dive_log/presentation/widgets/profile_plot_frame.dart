@@ -1,13 +1,11 @@
 import 'package:flutter/widgets.dart';
 
-import 'package:submersion/core/providers/provider.dart';
-
 /// Where a [DiveProfileChart]'s plot sits and what it spans: [plotKey] marks
 /// a box laid exactly over the plot, and the ranges are the visible time and
 /// depth (depth in meters, whatever unit the axis shows).
 ///
-/// The pinned profile strip reads it so its condense starts with its depth
-/// line exactly on the chart's (issue #4423).
+/// The pinned profile card's chart reports it, so the strip's hand-over
+/// starts with its depth line exactly on the chart's (issue #4423).
 @immutable
 class ProfilePlotFrame {
   const ProfilePlotFrame({
@@ -50,7 +48,3 @@ class ProfilePlotFrame {
     maxDepthMeters,
   );
 }
-
-/// The dive details profile chart's current [ProfilePlotFrame], by dive id.
-final profilePlotFrameProvider =
-    StateProvider.family<ProfilePlotFrame?, String>((ref, diveId) => null);

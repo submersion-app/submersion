@@ -3,18 +3,45 @@ import 'dart:ui';
 /// Height of the pinned profile strip: a 40 px curve over a 16 px values row.
 const double kPinnedStripHeight = 56;
 
-/// How far the profile card has condensed into the strip, from 0 to 1.
+/// The shortest the squashed chart's plot gets, about the strip's own curve,
+/// so it is still a readable chart when the strip takes over from it.
+const double kMinPlotHeight = 48;
+
+/// The squash range used until the chart's plot has been measured.
+const double kSquashRange = 100;
+
+/// How far the card can squash: the plot's resting height down to
+/// [kMinPlotHeight]. Measured, since the axes and legend around the plot
+/// vary with the chart's settings and the window.
+double squashRangeFor({required double restPlotHeight}) =>
+    (restPlotHeight - kMinPlotHeight).clamp(0.0, double.infinity);
+
+/// How far the pinned card has squashed, from 0 to [range]: the distance
+/// [card] (relative to the viewport's top) has scrolled past the top. The
+/// squash starts the moment the card's top passes the viewport's; the
+/// chart's plot takes all of it, its axes, grid and lines intact.
+double squashDepth({required Rect card, double range = kSquashRange}) =>
+    (-card.top).clamp(0.0, range);
+
+/// How far the squashed card has slid up since the squash finished: after
+/// it, the card leaves the top as it naturally would, header first, until
+/// its chart's plot reaches the top.
+double slideDepth({required Rect card, double range = kSquashRange}) =>
+    (-card.top - range).clamp(0.0, double.infinity);
+
+/// How far the card has handed over to the strip, from 0 to 1.
 ///
 /// [card] is the card's rect relative to the top of the scroll viewport. The
-/// condense runs over the card's whole scroll-out: it starts the moment the
-/// card's top passes the viewport's top and completes as its bottom reaches
-/// the strip's, so scrolling slowly plays it slowly and scrolling back
-/// reverses it.
-double condenseProgress({required Rect card}) {
-  if (card.top >= 0) return 0;
-  final travel = card.height - kPinnedStripHeight;
+/// hand-over starts once the card has scrolled [start] past the top (the
+/// squash, then the slide that brings its plot to the top) and completes as
+/// the card's bottom reaches the strip's, so scrolling slowly plays it
+/// slowly and scrolling back reverses it.
+double condenseProgress({required Rect card, double start = kSquashRange}) {
+  final past = -card.top - start;
+  if (past <= 0) return 0;
+  final travel = card.height - start - kPinnedStripHeight;
   if (travel <= 0) return 1;
-  return (-card.top / travel).clamp(0.0, 1.0);
+  return (past / travel).clamp(0.0, 1.0);
 }
 
 /// Where the condensing strip is drawn at progress [t]: always all of [card]

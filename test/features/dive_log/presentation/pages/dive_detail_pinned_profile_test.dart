@@ -15,7 +15,8 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_anal
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -115,20 +116,48 @@ void main() {
     await tester.pump();
   }
 
-  // Only the dive details chart says where its plot is: the dashboard preview
-  // and the planner chart share the host but never the strip (review M1).
-  testWidgets('the dive details chart publishes its plot frame', (
+  // Scrolling the card's top past the page's pins a live copy of the whole
+  // card that squashes: its chart keeps its axes and lines as it shortens.
+  testWidgets('the card pins and its chart squashes as it scrolls away', (
     tester,
   ) async {
     await pumpPage(tester);
-    final host = tester.widget<DiveProfileChartHost>(
+    // The card in the page reports nothing: only the pinned copy does.
+    final inPage = tester.widget<DiveProfileChartHost>(
       find.byType(DiveProfileChartHost),
     );
-    expect(host.publishPlotFrame, isTrue);
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(DiveDetailPage)),
+    expect(inPage.onPlotFrame, isNull);
+    final cardTop = tester.getTopLeft(find.byType(DiveDetailProfileSection)).dy;
+    final viewportTop = tester.getTopLeft(find.byType(Scrollable).first).dy;
+    final restHeight = tester.getSize(find.byType(DiveProfileChart)).height;
+
+    tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position
+        .jumpTo(cardTop - viewportTop + 80);
+    for (var i = 0; i < 3; i++) {
+      await tester.pump();
+    }
+
+    final copy = find.byWidgetPredicate(
+      (w) => w is DiveDetailProfileSection && w.fillHeight,
     );
-    expect(container.read(profilePlotFrameProvider(diveA.id)), isNotNull);
+    expect(copy, findsOneWidget);
+    final squashed = tester.getSize(
+      find.descendant(of: copy, matching: find.byType(DiveProfileChart)),
+    );
+    expect(squashed.height, closeTo(restHeight - 80, 1));
+    expect(
+      tester
+          .widget<DiveProfileChartHost>(
+            find.descendant(
+              of: copy,
+              matching: find.byType(DiveProfileChartHost),
+            ),
+          )
+          .onPlotFrame,
+      isNotNull,
+    );
   });
 
   testWidgets('no strip while the profile card is on screen', (tester) async {

@@ -145,6 +145,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   final GlobalKey _notesSectionKey = GlobalKey();
   final GlobalKey _profileSectionKey = GlobalKey();
 
+  /// The pinned copy's own export key: a GlobalKey cannot be shared with the
+  /// card in the page, and "export profile" reads the page's, not this one.
+  final GlobalKey _pinnedProfileExportKey = GlobalKey();
+
   /// "Open in Notes" on an annotation's popup (#4109): unfolds the Notes
   /// card when the list layout folds it, scrolls there and highlights the
   /// passage for a moment.
@@ -521,6 +525,17 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
       dive: dive,
       profileKey: _profileSectionKey,
       enabled: pinProfile,
+      // A live copy of the card, squashed as it pins: the same section, its
+      // chart filling whatever height is left.
+      squashedCard: (context, onPlotFrame) => DiveDetailProfileSection(
+        diveId: dive.id,
+        exportKey: _pinnedProfileExportKey,
+        onSafetyFindingDetails: _scrollToSafetySection,
+        onSetPrimarySource: _setPrimarySource,
+        onOpenInNotes: _scrollToNotes,
+        fillHeight: true,
+        onPlotFrame: onPlotFrame,
+      ),
       child: body,
     );
 

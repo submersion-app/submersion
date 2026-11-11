@@ -116,14 +116,13 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.onTooltipData,
     this.onSafetyFindingDetails,
     this.annotationActions,
-    this.publishPlotFrame = false,
+    this.onPlotFrame,
   });
 
-  /// Whether this chart publishes where its plot is, for the pinned profile
-  /// strip (#4423). Only the dive details chart does: the dashboard preview
-  /// and the planner chart share this host, and the dashboard stays mounted
-  /// under dive details, where it would overwrite the frame for the same dive.
-  final bool publishPlotFrame;
+  /// Told where the chart's plot is after each layout that moves it. Only
+  /// the pinned dive details card passes one (#4423), straight to its own
+  /// overlay, so no other chart on this host can affect the strip.
+  final ValueChanged<ProfilePlotFrame>? onPlotFrame;
 
   /// The hydrated dive: tanks and profile samples included. A dive loaded for
   /// a list view carries neither, and would draw an empty chart.
@@ -522,14 +521,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         onPointSelected: (index) {
           ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
         },
-        // Where the plot is, so the pinned strip can start its condense on
-        // this chart's depth line (#4423).
-        onPlotFrame: publishPlotFrame
-            ? (frame) {
-                ref.read(profilePlotFrameProvider(diveId).notifier).state =
-                    frame;
-              }
-            : null,
+        onPlotFrame: onPlotFrame,
       ),
     );
   }

@@ -14,8 +14,44 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 
+/// Stands in for the profile card's chart: fills its box and, like the real
+/// chart, reports where its plot is after each layout.
+class _FakeChart extends StatefulWidget {
+  const _FakeChart({required this.onPlotFrame});
+
+  final ValueChanged<ProfilePlotFrame>? onPlotFrame;
+
+  @override
+  State<_FakeChart> createState() => _FakeChartState();
+}
+
+class _FakeChartState extends State<_FakeChart> {
+  static final plotKey = GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final frame = ProfilePlotFrame(
+          plotKey: plotKey,
+          plotRect: Offset.zero & constraints.biggest,
+          minSeconds: 0,
+          maxSeconds: 600,
+          minDepthMeters: 0,
+          maxDepthMeters: 18,
+        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) widget.onPlotFrame?.call(frame);
+        });
+        return SizedBox.expand(key: plotKey);
+      },
+    );
+  }
+}
+
 /// A synthetic page: a 100 px header, a 300 px "profile card", then a long
-/// body with a target box 1500 px down.
+/// body with a target box 1500 px down. The card copy the overlay pins is a
+/// 40 px header, a chart that takes the rest, and a 20 px footer.
 void main() {
   final dive = createTestDiveWithBottomTime().copyWith(
     profile: [
@@ -29,24 +65,21 @@ void main() {
   const profileTop = 100.0;
   const profileHeight = 300.0;
 
-  /// The card's chart plot: 40 px in, 20 px down, 320 x 200.
-  const plotInCard = Rect.fromLTWH(40, 20, 320, 200);
-  final plotKey = GlobalKey();
-  final plotFrame = ProfilePlotFrame(
-    plotKey: plotKey,
-    plotRect: plotInCard,
-    minSeconds: 0,
-    maxSeconds: 600,
-    minDepthMeters: 0,
-    maxDepthMeters: 18,
-  );
+  /// The copy's footer: the real card has its time axis and point count
+  /// under the plot, so the hand-over has some height to cover.
+  const footer = 100.0;
+
+  /// The copy's chart rests at 300 - 40 - 100 = 160 px; the squash takes it
+  /// down to kMinPlotHeight.
+  const range = profileHeight - 40 - footer - kMinPlotHeight;
+  final copyKey = find.byKey(const ValueKey('pinnedSquashedCard'));
 
   Future<void> pump(
     WidgetTester tester, {
     required GlobalKey profileKey,
     GlobalKey? targetKey,
     bool showProfile = true,
-    bool withPlotFrame = true,
+    bool reportsPlot = true,
     ValueNotifier<double>? width,
   }) async {
     final base = await getBaseOverrides();
@@ -59,8 +92,6 @@ void main() {
             diveId: dive.id,
             sourceId: null,
           )).overrideWith((ref) async => ProfileAnalysis.empty()),
-          if (withPlotFrame)
-            profilePlotFrameProvider(dive.id).overrideWith((ref) => plotFrame),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -75,28 +106,23 @@ void main() {
                 child: PinnedProfileOverlay(
                   dive: dive,
                   profileKey: profileKey,
+                  squashedCard: (context, onPlotFrame) => Column(
+                    children: [
+                      const SizedBox(height: 40),
+                      Expanded(
+                        child: _FakeChart(
+                          onPlotFrame: reportsPlot ? onPlotFrame : null,
+                        ),
+                      ),
+                      const SizedBox(height: footer),
+                    ],
+                  ),
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
                         const SizedBox(height: profileTop),
                         if (showProfile)
-                          SizedBox(
-                            key: profileKey,
-                            height: profileHeight,
-                            child: Stack(
-                              children: [
-                                // Stretches with the page, as the chart's
-                                // plot does.
-                                Positioned(
-                                  left: plotInCard.left,
-                                  top: plotInCard.top,
-                                  right: 400 - plotInCard.right,
-                                  height: plotInCard.height,
-                                  child: SizedBox.expand(key: plotKey),
-                                ),
-                              ],
-                            ),
-                          )
+                          SizedBox(key: profileKey, height: profileHeight)
                         else
                           const SizedBox(height: profileHeight),
                         const SizedBox(height: 1100),
@@ -123,48 +149,44 @@ void main() {
     position(tester).jumpTo(pixels);
     await tester.pump();
     await tester.pump();
+    await tester.pump();
   }
 
   final strip = find.byType(PinnedProfileStrip);
+  double overlayTop(WidgetTester tester) =>
+      tester.getTopLeft(find.byType(PinnedProfileOverlay)).dy;
 
-  /// Scrolls so the condense is at progress [t]: it runs from the card's
-  /// top reaching the viewport top to its bottom reaching the strip's.
+  /// The copy's plot sits under its 40 px header: after the squash the card
+  /// slides up 40 px to bring the plot to the top, then hands over.
+  const start = range + 40;
+  const handOver = profileHeight - start - kPinnedStripHeight;
+
+  /// Scrolls so the hand-over to the strip is at progress [t].
   Future<void> condenseTo(WidgetTester tester, double t) =>
-      jump(tester, profileTop + t * (profileHeight - kPinnedStripHeight));
+      jump(tester, profileTop + start + t * handOver);
 
-  testWidgets('the condense starts as soon as the card top leaves the view', (
-    tester,
-  ) async {
-    await pump(tester, profileKey: GlobalKey());
-    await jump(tester, profileTop);
-    expect(strip, findsNothing);
-    await jump(tester, profileTop + 4);
-    expect(strip, findsOneWidget);
-  });
-
-  testWidgets('the condensing strip covers all of the card left on screen', (
-    tester,
-  ) async {
-    final profileKey = GlobalKey();
-    await pump(tester, profileKey: profileKey);
-    for (final t in [0.1, 0.4, 0.8]) {
-      await condenseTo(tester, t);
-      final card = tester.getRect(find.byKey(profileKey));
-      final box = tester.getRect(strip);
-      final viewportTop = tester
-          .getTopLeft(find.byType(PinnedProfileOverlay))
-          .dy;
-      expect(box.top, closeTo(viewportTop, 0.01), reason: 't=$t');
-      expect(box.bottom, greaterThanOrEqualTo(card.bottom - 0.01));
-      expect(box.left, lessThanOrEqualTo(card.left + 0.01));
-      expect(box.right, greaterThanOrEqualTo(card.right - 0.01));
-    }
-  });
+  testWidgets(
+    'after the squash the copy slides up, header first, with no strip yet',
+    (tester) async {
+      await pump(tester, profileKey: GlobalKey());
+      await jump(tester, profileTop + range + 20);
+      expect(
+        tester.getTopLeft(copyKey).dy,
+        closeTo(overlayTop(tester) - 20, 0.01),
+      );
+      // The chart stays at its squashed height while it slides.
+      expect(
+        tester.getSize(find.byType(_FakeChart)).height,
+        closeTo(kMinPlotHeight, 0.01),
+      );
+      expect(strip, findsNothing);
+    },
+  );
 
   PinnedProfileStrip stripWidget(WidgetTester tester) =>
       tester.widget<PinnedProfileStrip>(strip);
 
-  bool ignoresPointer(WidgetTester tester) => tester
+  bool stripIgnoresPointer(WidgetTester tester) => tester
       .widget<IgnorePointer>(
         find.ancestor(of: strip, matching: find.byType(IgnorePointer)).first,
       )
@@ -174,35 +196,53 @@ void main() {
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
+    expect(copyKey, findsNothing);
     expect(strip, findsNothing);
   });
 
-  testWidgets('the strip shows once the card has scrolled past', (
+  testWidgets('the squash starts as soon as the card top leaves the view', (
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
-    await jump(tester, 800);
-    expect(find.byType(PinnedProfileStrip), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.byType(PinnedProfileStrip)),
-      tester.getTopLeft(find.byType(PinnedProfileOverlay)),
-    );
+    await jump(tester, profileTop);
+    expect(copyKey, findsNothing);
+    await jump(tester, profileTop + 4);
+    expect(copyKey, findsOneWidget);
   });
 
   testWidgets(
-    'first its line sits exactly on the chart plot while its background '
-    'fades in and its shape holds still',
+    'squashing, a live copy of the card pins to the top, filling exactly '
+    'what is left of the card, its chart shrinking',
+    (tester) async {
+      final profileKey = GlobalKey();
+      await pump(tester, profileKey: profileKey);
+      await jump(tester, profileTop + 60);
+      final copy = tester.getRect(copyKey);
+      final card = tester.getRect(find.byKey(profileKey));
+      expect(copy.top, closeTo(overlayTop(tester), 0.01));
+      expect(copy.bottom, closeTo(card.bottom, 0.01));
+      expect(copy.left, closeTo(card.left, 0.01));
+      expect(copy.right, closeTo(card.right, 0.01));
+      // 300 - 40 - 100 = 160 at rest; 60 px squashed out of the chart.
+      expect(
+        tester.getSize(find.byType(_FakeChart)).height,
+        closeTo(100, 0.01),
+      );
+      expect(strip, findsNothing);
+    },
+  );
+
+  testWidgets(
+    'at the hand-over the strip fades in with its line on the copy\'s plot',
     (tester) async {
       await pump(tester, profileKey: GlobalKey());
       await condenseTo(tester, kCondenseFadePortion / 2);
       final s = stripWidget(tester);
       expect(s.backgroundOpacity, closeTo(0.5, 1e-6));
       expect(s.condense, 0);
-      // The strip's starting mapping, placed on screen, is the chart plot.
-      final stripTopLeft = tester.getTopLeft(strip);
       expect(s.morphFrom, isNotNull);
-      final onScreen = s.morphFrom!.rect.shift(stripTopLeft);
-      final plot = tester.getRect(find.byKey(plotKey));
+      final onScreen = s.morphFrom!.rect.shift(tester.getTopLeft(strip));
+      final plot = tester.getRect(find.byType(_FakeChart));
       expect(onScreen.left, closeTo(plot.left, 0.01));
       expect(onScreen.top, closeTo(plot.top, 0.01));
       expect(onScreen.width, closeTo(plot.width, 0.01));
@@ -212,7 +252,7 @@ void main() {
     },
   );
 
-  testWidgets('then, opaque, its shape morphs, not yet scrubbable', (
+  testWidgets('then, opaque, the strip morphs, not yet scrubbable', (
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey());
@@ -222,12 +262,59 @@ void main() {
     expect(s.condense, closeTo(condenseMorphProgress(0.6), 1e-6));
     expect(s.condense, inExclusiveRange(0, 1));
     expect(tester.getSize(strip).height, greaterThan(kPinnedStripHeight));
-    expect(ignoresPointer(tester), isTrue);
+    expect(stripIgnoresPointer(tester), isTrue);
   });
 
-  // A resize moves the chart plot without any scrolling; the strip's line
-  // must still start on it, or two lines show (review I2).
-  testWidgets('after a resize its line still starts on the chart plot', (
+  testWidgets('without a plot from the copy, the strip has no start line', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey(), reportsPlot: false);
+    await condenseTo(tester, kCondenseFadePortion / 2);
+    expect(stripWidget(tester).morphFrom, isNull);
+  });
+
+  testWidgets('what is drawn always covers the card left on screen', (
+    tester,
+  ) async {
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey);
+    for (final pixels in [
+      profileTop + 30,
+      profileTop + range - 10,
+      profileTop + range + 20,
+      profileTop + start + handOver * 0.4,
+      profileTop + start + handOver * 0.8,
+    ]) {
+      await jump(tester, pixels);
+      final card = tester.getRect(find.byKey(profileKey));
+      final box = tester.getRect(
+        find.byKey(const ValueKey('pinnedProfileBox')),
+      );
+      expect(box.top, closeTo(overlayTop(tester), 0.01), reason: '$pixels');
+      expect(box.bottom, greaterThanOrEqualTo(card.bottom - 0.01));
+      expect(box.left, lessThanOrEqualTo(card.left + 0.01));
+      expect(box.right, greaterThanOrEqualTo(card.right - 0.01));
+    }
+  });
+
+  testWidgets('the strip carries through to pinned without a swap', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    await condenseTo(tester, 0.9);
+    final morphing = tester.state(strip);
+    await jump(tester, 800);
+    expect(identical(tester.state(strip), morphing), isTrue);
+    expect(stripWidget(tester).condense, 1);
+    expect(stripIgnoresPointer(tester), isFalse);
+    expect(copyKey, findsNothing);
+    expect(
+      tester.getTopLeft(strip),
+      tester.getTopLeft(find.byType(PinnedProfileOverlay)),
+    );
+  });
+
+  testWidgets('after a resize the strip line still starts on the copy plot', (
     tester,
   ) async {
     final width = ValueNotifier(400.0);
@@ -236,32 +323,30 @@ void main() {
     width.value = 520;
     await tester.pump();
     await tester.pump();
+    await tester.pump();
 
     final s = stripWidget(tester);
     final onScreen = s.morphFrom!.rect.shift(tester.getTopLeft(strip));
-    final plot = tester.getRect(find.byKey(plotKey));
+    final plot = tester.getRect(find.byType(_FakeChart));
     expect(onScreen.width, closeTo(plot.width, 0.01));
     expect(onScreen.left, closeTo(plot.left, 0.01));
   });
 
-  testWidgets('without the chart plot, it has no starting mapping', (
-    tester,
-  ) async {
-    await pump(tester, profileKey: GlobalKey(), withPlotFrame: false);
-    await condenseTo(tester, kCondenseFadePortion / 2);
-    expect(stripWidget(tester).morphFrom, isNull);
+  testWidgets('scrolling back up removes everything', (tester) async {
+    await pump(tester, profileKey: GlobalKey());
+    await jump(tester, 800);
+    await jump(tester, 0);
+    expect(strip, findsNothing);
+    expect(copyKey, findsNothing);
   });
 
-  testWidgets('the morphing strip carries through to pinned without a swap', (
+  testWidgets('nothing is drawn when the profile is not on the page', (
     tester,
   ) async {
-    await pump(tester, profileKey: GlobalKey());
-    await condenseTo(tester, 0.9);
-    final morphing = tester.state(strip);
+    await pump(tester, profileKey: GlobalKey(), showProfile: false);
     await jump(tester, 800);
-    expect(identical(tester.state(strip), morphing), isTrue);
-    expect(tester.widget<PinnedProfileStrip>(strip).condense, 1);
-    expect(ignoresPointer(tester), isFalse);
+    expect(strip, findsNothing);
+    expect(copyKey, findsNothing);
   });
 
   // The strip lies over the page, not inside its scroll view, so it hands
@@ -293,33 +378,19 @@ void main() {
     expect(position(tester).pixels, greaterThan(before + 60));
   });
 
-  testWidgets('scrolling back up removes the strip', (tester) async {
-    await pump(tester, profileKey: GlobalKey());
-    await jump(tester, 800);
-    await jump(tester, 0);
-    expect(strip, findsNothing);
-  });
-
-  testWidgets('no strip when the profile is not on the page', (tester) async {
-    await pump(tester, profileKey: GlobalKey(), showProfile: false);
-    await jump(tester, 800);
-    expect(find.byType(PinnedProfileStrip), findsNothing);
-  });
-
   testWidgets('scrolling to a section leaves it clear of the strip', (
     tester,
   ) async {
     final target = GlobalKey();
     await pump(tester, profileKey: GlobalKey(), targetKey: target);
     await jump(tester, 800);
-    expect(find.byType(PinnedProfileStrip), findsOneWidget);
+    expect(strip, findsOneWidget);
 
     await ensureVisibleBelowPinnedStrip(target.currentContext!);
     await tester.pumpAndSettle();
 
-    final overlayTop = tester.getTopLeft(find.byType(PinnedProfileOverlay)).dy;
     expect(
-      tester.getTopLeft(find.byKey(target)).dy - overlayTop,
+      tester.getTopLeft(find.byKey(target)).dy - overlayTop(tester),
       greaterThanOrEqualTo(kPinnedStripHeight - 0.5),
     );
   });
@@ -332,17 +403,14 @@ void main() {
     (tester) async {
       final target = GlobalKey();
       await pump(tester, profileKey: GlobalKey(), targetKey: target);
-      expect(find.byType(PinnedProfileStrip), findsNothing);
+      expect(strip, findsNothing);
 
       await ensureVisibleBelowPinnedStrip(target.currentContext!);
       await tester.pumpAndSettle();
 
-      expect(find.byType(PinnedProfileStrip), findsOneWidget);
-      final overlayTop = tester
-          .getTopLeft(find.byType(PinnedProfileOverlay))
-          .dy;
+      expect(strip, findsOneWidget);
       expect(
-        tester.getTopLeft(find.byKey(target)).dy - overlayTop,
+        tester.getTopLeft(find.byKey(target)).dy - overlayTop(tester),
         greaterThanOrEqualTo(kPinnedStripHeight - 0.5),
       );
     },
@@ -358,7 +426,9 @@ void main() {
     await ensureVisibleBelowPinnedStrip(profileKey.currentContext!);
     await tester.pumpAndSettle();
 
-    final overlayTop = tester.getTopLeft(find.byType(PinnedProfileOverlay)).dy;
-    expect(tester.getTopLeft(find.byKey(profileKey)).dy - overlayTop, 0);
+    expect(
+      tester.getTopLeft(find.byKey(profileKey)).dy - overlayTop(tester),
+      0,
+    );
   });
 }
