@@ -205,7 +205,7 @@ void main() {
         'and inside the strip at its ends', (tester) async {
       await pump(tester, strip(hovered: 3));
 
-      final width = tester.getSize(find.byType(CustomPaint).last).width;
+      final width = tester.getSize(find.byType(TissueHeatMapStrip)).width;
       const rowHeight = stripHeight / 16;
       const half = HighlightOutline.haloWidth / 2;
       final expected = RRect.fromLTRBR(

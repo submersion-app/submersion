@@ -39,12 +39,13 @@ abstract final class HighlightOutline {
     canvas.drawLine(p1, p2, _core);
   }
 
-  static Paint get _halo => Paint()
+  // Built once and never mutated: the outline's style is constant.
+  static final Paint _halo = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = haloWidth
     ..color = haloColor;
 
-  static Paint get _core => Paint()
+  static final Paint _core = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = coreWidth
     ..color = coreColor;
