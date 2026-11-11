@@ -68,16 +68,19 @@ bool sourceNamesComputerModel({
 ///
 /// A source with a serial snapshot goes to the one computer whose model it
 /// names and whose serial is the same serial (Shearwater hex and decimal
-/// included, #3106).
+/// included, #3106). Either way a source never goes to a computer of a
+/// diver other than its dive's: a unit that changed hands leaves its old
+/// dives with their diver.
 ///
 /// A source without one can only say which model it came from, so it is
 /// given a computer only when nothing suggests another unit could be its:
 /// exactly one computer in [computers] has that model, whichever diver it
 /// belongs to; that computer is not another diver's; no source in [sources]
-/// of that model names a serial other than the computer's; and the dive does
-/// not already hold a source of that computer ([linkedSources]). Two units
-/// of one model are never told apart this way, so their sources stay as
-/// they are.
+/// of that model names a serial other than the computer's; and the dive
+/// neither holds a source of that computer already ([linkedSources]) nor
+/// gains another in this match. Two units of one model are never told apart
+/// this way, so their sources stay as they are, including two serial-less
+/// sources of the model on one dive.
 ///
 /// [sources] and [computers] must be the whole library's, even when only one
 /// computer's matches are wanted: whether a model is unambiguous depends on
@@ -105,15 +108,23 @@ Map<String, String> matchOrphanedSources({
         ),
       );
   bool blank(String? v) => normalizeComputerIdentityPart(v).isEmpty;
+  // A computer that names no diver, or the source's dive's diver.
+  bool sameDiver(OrphanedSource s, ImportedComputerCandidate c) =>
+      blank(s.diverId) || blank(c.diverId) || s.diverId == c.diverId;
 
   final matches = <String, String>{};
+  // Serial-less sources that pass every check but the per-dive one.
+  final guesses = <OrphanedSource, String>{};
   // Per computer: whether an orphan of its model names another serial.
   final otherUnitSeen = <String, bool>{};
   for (final source in sources) {
     final fitting = computers.where((c) => names(source, c)).toList();
     if (!blank(source.computerSerial)) {
       final same = fitting
-          .where((c) => serialsMatch(source.computerSerial, c))
+          .where(
+            (c) =>
+                serialsMatch(source.computerSerial, c) && sameDiver(source, c),
+          )
           .toList();
       if (same.length == 1) matches[source.id] = same.single.id;
       continue;
@@ -121,11 +132,7 @@ Map<String, String> matchOrphanedSources({
 
     if (fitting.length != 1) continue;
     final target = fitting.single;
-    if (!blank(source.diverId) &&
-        !blank(target.diverId) &&
-        source.diverId != target.diverId) {
-      continue;
-    }
+    if (!sameDiver(source, target)) continue;
     final otherUnit = otherUnitSeen.putIfAbsent(
       target.id,
       () => sources.any(
@@ -136,13 +143,24 @@ Map<String, String> matchOrphanedSources({
       ),
     );
     if (otherUnit) continue;
-    if (linkedSources.contains((
-      diveId: source.diveId,
-      computerId: target.id,
-    ))) {
-      continue;
-    }
-    matches[source.id] = target.id;
+    guesses[source] = target.id;
+  }
+
+  // A dive holds at most one source of a computer, so a guess is dropped
+  // when its dive already has a source of that computer, or gains another
+  // in this match from a serial or from a second guess (a diver carrying
+  // two units of the model).
+  final claims = <LinkedSource, int>{};
+  for (final source in sources) {
+    final target = matches[source.id] ?? guesses[source];
+    if (target == null) continue;
+    final key = (diveId: source.diveId, computerId: target);
+    claims[key] = (claims[key] ?? 0) + 1;
+  }
+  for (final MapEntry(key: source, value: target) in guesses.entries) {
+    final key = (diveId: source.diveId, computerId: target);
+    if (linkedSources.contains(key) || claims[key]! > 1) continue;
+    matches[source.id] = target;
   }
   return matches;
 }

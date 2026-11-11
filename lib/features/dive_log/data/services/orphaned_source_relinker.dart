@@ -57,6 +57,16 @@ class OrphanedSourceRelinker {
       await _link(entry.key, entry.value);
       linked += entry.value.length;
     }
+    if (linked > 0) {
+      // An empty serial snapshot takes its computer's serial now, so a later
+      // delete of that computer leaves the source something to match on.
+      // Once for the run: one computer's copies when only one was linked,
+      // else the whole library's, as every open does anyway.
+      await healDownloadedSnapshotSerials(
+        _db,
+        computerId: byComputer.length == 1 ? byComputer.keys.single : null,
+      );
+    }
     return linked;
   }
 
@@ -70,10 +80,6 @@ class OrphanedSourceRelinker {
         [computerId, clock, ...chunk],
       );
     }
-    // An empty serial snapshot takes the computer's serial now, so a later
-    // delete of this computer leaves the source something to match on.
-    await healDownloadedSnapshotSerials(_db, computerId: computerId);
-
     // Each source is published on its own (#2644): its dive is staged below
     // only when the source is the primary, so a secondary source would
     // otherwise never leave this device, and a peer's newer copy, still

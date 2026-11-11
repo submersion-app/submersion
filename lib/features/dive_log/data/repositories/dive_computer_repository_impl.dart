@@ -368,6 +368,7 @@ class DiveComputerRepository {
       // way through used to leave the registry row behind with no pending
       // mark, and a caller retrying the save would then register the same
       // computer a second time under a fresh id.
+      var relinked = 0;
       final equipmentId = await _db.transaction(() async {
         await _db
             .into(_db.diveComputers)
@@ -428,9 +429,11 @@ class DiveComputerRepository {
 
         // If a computer with this hardware identity was deleted earlier, its
         // dives kept provenance snapshots; give them their link back.
-        await _relinkOrphanedRows(id);
+        relinked = await _relinkOrphanedRows(id);
         return twinId;
       });
+      // The relink's raw statements reach no watcher on their own.
+      if (relinked > 0) _notifyRelinked();
       SyncEventBus.notifyLocalChange();
 
       _log.info('Created dive computer with id: $id');
@@ -455,6 +458,9 @@ class DiveComputerRepository {
     try {
       _log.info('Updating dive computer: ${computer.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
+      final stored = await (_db.select(
+        _db.diveComputers,
+      )..where((t) => t.id.equals(computer.id))).getSingleOrNull();
 
       await (_db.update(
         _db.diveComputers,
@@ -487,8 +493,12 @@ class DiveComputerRepository {
       await _healSnapshotSerials(computer.id);
       // A serial given now, by hand or by a download that learned it, can
       // match sources a deleted entry for this hardware left behind
-      // (issue #4465).
-      if (await _relinkOrphanedRows(computer.id) > 0) {
+      // (issue #4465). Only a save that changes what sources are matched on
+      // relinks: the save after every download leaves it as it was, and
+      // Data tools covers the rest.
+      if (stored != null &&
+          _identityChanged(stored, computer) &&
+          await _relinkOrphanedRows(computer.id) > 0) {
         _notifyRelinked();
         SyncEventBus.notifyLocalChange();
       }
@@ -502,6 +512,19 @@ class DiveComputerRepository {
       );
       rethrow;
     }
+  }
+
+  /// Whether saving [computer] over [stored] changes the hardware identity a
+  /// downloaded source is matched on, by more than spelling.
+  static bool _identityChanged(
+    db.DiveComputer stored,
+    domain.DiveComputer computer,
+  ) {
+    bool differs(String? a, String? b) =>
+        normalizeComputerIdentityPart(a) != normalizeComputerIdentityPart(b);
+    return differs(stored.manufacturer, computer.manufacturer) ||
+        differs(stored.model, computer.model) ||
+        differs(stored.serialNumber, computer.serialNumber);
   }
 
   /// Brings the serial copies on [computerId]'s downloaded sources and dives
@@ -552,7 +575,9 @@ class DiveComputerRepository {
         // link still says which computer it is, or nothing would identify
         // the unit once the link is gone (issue #4465). The detach below
         // restamps and stages these rows, so the serial syncs with it.
-        await healDownloadedSnapshotSerials(_db, computerId: id);
+        // Best-effort like every other serial heal: it must not block the
+        // delete.
+        await _healSnapshotSerials(id);
       }
 
       // Clear the series first: their FK is ON DELETE SET NULL, so the

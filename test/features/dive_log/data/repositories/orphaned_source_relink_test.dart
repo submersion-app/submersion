@@ -264,6 +264,22 @@ void main() {
       expect((await sourceRow(sourceId)).computerId, 'live');
       expect((await diveRow(diveId)).computerId, 'live');
     });
+
+    test(
+      'does not relink on a save that leaves the identity as it was',
+      () async {
+        // A rename, or the save after every download: nothing a source is
+        // matched on changed, so the computer's routine saves never guess.
+        final diveId = await insertDive();
+        final sourceId = await insertDownloadedSource(diveId: diveId);
+        await insertComputer(id: 'live', serialNumber: 'SN-12345');
+        final live = (await repository.getComputerById('live'))!;
+
+        await repository.updateComputer(live.copyWith(name: 'Renamed'));
+
+        expect((await sourceRow(sourceId)).computerId, isNull);
+      },
+    );
   });
 
   group('relinkOrphanedSources', () {

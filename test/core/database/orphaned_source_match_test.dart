@@ -138,6 +138,23 @@ void main() {
       expect(result, isEmpty);
     });
 
+    test('does not link to another diver\'s computer', () {
+      // A unit that changed hands: its old dives stay the old diver's.
+      final result = matchOrphanedSources(
+        sources: [source('s1', serial: 'ABC123', diverId: 'diver-a')],
+        computers: [computer('c1', serial: 'ABC123', diverId: 'diver-b')],
+      );
+      expect(result, isEmpty);
+    });
+
+    test('links to a computer that names no diver', () {
+      final result = matchOrphanedSources(
+        sources: [source('s1', serial: 'ABC123', diverId: 'diver-a')],
+        computers: [computer('c1', serial: 'ABC123')],
+      );
+      expect(result, {'s1': 'c1'});
+    });
+
     test('does not choose between two entries with the same serial', () {
       final result = matchOrphanedSources(
         sources: [source('s1', serial: 'ABC123')],
@@ -236,6 +253,26 @@ void main() {
         expect(result, isEmpty);
       },
     );
+
+    test('does not link two serial-less orphans on one dive to one unit', () {
+      // A diver carrying two units of the model: only one can be c1's.
+      final result = matchOrphanedSources(
+        sources: [source('s1'), source('s2')],
+        computers: [computer('c1', serial: 'ABC123')],
+      );
+      expect(result, isEmpty);
+    });
+
+    test('does not guess on a dive where a serial claims the unit', () {
+      final result = matchOrphanedSources(
+        sources: [
+          source('s1'),
+          source('s2', serial: 'ABC123'),
+        ],
+        computers: [computer('c1', serial: 'ABC123')],
+      );
+      expect(result, {'s2': 'c1'});
+    });
 
     test('links a serial-less orphan to a computer without a serial', () {
       final result = matchOrphanedSources(
