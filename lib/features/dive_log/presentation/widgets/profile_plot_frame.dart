@@ -1,5 +1,9 @@
 import 'package:flutter/widgets.dart';
 
+/// Stroke width of a dive profile chart's depth line. The pinned strip draws
+/// its line at the same width, so the hand-over shows one line throughout.
+const double kProfileDepthLineWidth = 1;
+
 /// Where a [DiveProfileChart]'s plot sits and what it spans: [plotKey] marks
 /// a box laid exactly over the plot, and the ranges are the visible time and
 /// depth (depth in meters, whatever unit the axis shows).

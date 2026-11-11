@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 
 /// Height of the strip's values row, under its curve.
 const double kPinnedStripRowHeight = 16;
@@ -129,7 +130,7 @@ class PinnedStripPainter extends CustomPainter {
       Paint()
         ..color = curveColor
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..strokeWidth = kProfileDepthLineWidth,
     );
 
     final selected = selectedSeconds;

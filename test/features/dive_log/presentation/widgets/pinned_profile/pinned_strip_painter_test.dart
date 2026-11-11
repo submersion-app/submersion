@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 
 void main() {
   const profile = [
@@ -117,5 +118,33 @@ void main() {
       final belowShallowPart = m.project(120, 20);
       expect(fill.contains(belowShallowPart), isTrue);
     });
+  });
+
+  // One depth line throughout the hand-over: the strip draws it at the full
+  // chart's own width, so it does not thicken as it takes over.
+  testWidgets('draws the depth line at the full chart line width', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      Center(
+        child: SizedBox(
+          width: 400,
+          height: kPinnedStripHeight,
+          child: CustomPaint(painter: painter(morph: 1)),
+        ),
+      ),
+    );
+    expect(
+      find.byType(CustomPaint),
+      paints
+        // The shading below the line comes first.
+        ..path()
+        ..path(
+          color: Colors.blue,
+          style: PaintingStyle.stroke,
+          strokeWidth: kProfileDepthLineWidth,
+        ),
+    );
+    expect(kProfileDepthLineWidth, 1);
   });
 }

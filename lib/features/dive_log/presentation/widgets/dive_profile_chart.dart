@@ -6496,7 +6496,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       preventCurveOverShooting:
           startIndex == 0 && shouldDrawSurfaceLeadIn(widget.profile),
       color: color,
-      barWidth: 1,
+      barWidth: kProfileDepthLineWidth,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
       belowBarData: showFill
