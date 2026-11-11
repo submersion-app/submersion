@@ -11418,6 +11418,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tissue_title => 'تحميل الأنسجة';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'عرض المخطط';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(متوسط، محسوب)';
 
   @override
@@ -52482,6 +52485,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'عرض معدات كل غطسة على غواص في بطاقة المعدات';
+
+  @override
+  String get settings_appearance_tissueColorScheme => 'ألوان تحميل الأنسجة';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'مقياس الألوان لخرائط الأنسجة الحرارية والعرض ثلاثي الأبعاد';
 
   @override
   String get diveLog_detail_gearFigureName => 'معدات هذه الغطسة';

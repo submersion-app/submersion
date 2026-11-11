@@ -11306,6 +11306,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_tissue_title => 'Charge tissulaire';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Vue du graphique';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(moy., calculé)';
 
   @override
@@ -51889,6 +51892,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'Représenter l’équipement de chaque plongée sur un plongeur dans sa carte Équipement';
+
+  @override
+  String get settings_appearance_tissueColorScheme =>
+      'Couleurs de la charge tissulaire';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Échelle de couleurs des cartes thermiques des tissus et de la vue 3D';
 
   @override
   String get diveLog_detail_gearFigureName => 'Équipement de cette plongée';

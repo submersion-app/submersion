@@ -17830,6 +17830,12 @@ abstract class AppLocalizations {
   /// **'Tissue Loading'**
   String get diveLog_tissue_title;
 
+  /// No description provided for @diveLog_tissue_viewMenuTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Chart view'**
+  String get diveLog_tissue_viewMenuTooltip;
+
   /// No description provided for @diveLog_tooltip_avgCalculated.
   ///
   /// In en, this message translates to:
@@ -81818,6 +81824,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Draw each dive\'s gear on a diver in its equipment card'**
   String get settings_appearance_showDiveFigure_subtitle;
+
+  /// No description provided for @settings_appearance_tissueColorScheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue loading colors'**
+  String get settings_appearance_tissueColorScheme;
+
+  /// No description provided for @settings_appearance_tissueColorScheme_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Color scale for tissue heat maps and the 3D view'**
+  String get settings_appearance_tissueColorScheme_subtitle;
 
   /// No description provided for @diveLog_detail_gearFigureName.
   ///

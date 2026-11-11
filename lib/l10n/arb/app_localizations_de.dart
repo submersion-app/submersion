@@ -11256,6 +11256,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_tissue_title => 'Gewebesättigung';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Diagrammansicht';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(Durchschn., berechnet)';
 
   @override
@@ -51662,6 +51665,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'Die Ausrüstung jedes Tauchgangs in seiner Ausrüstungskarte an einem Taucher zeigen';
+
+  @override
+  String get settings_appearance_tissueColorScheme =>
+      'Farben der Gewebesättigung';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Farbskala der Gewebe-Heatmaps und der 3D-Ansicht';
 
   @override
   String get diveLog_detail_gearFigureName => 'Ausrüstung dieses Tauchgangs';

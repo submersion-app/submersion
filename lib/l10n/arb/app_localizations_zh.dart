@@ -10696,6 +10696,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tissue_title => '组织饱和度';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => '图表视图';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '（平均值，计算）';
 
   @override
@@ -48618,6 +48621,12 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       '在装备卡片中将每次潜水的装备显示在潜水员图上';
+
+  @override
+  String get settings_appearance_tissueColorScheme => '组织饱和度颜色';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle => '组织热力图和3D视图的配色';
 
   @override
   String get diveLog_detail_gearFigureName => '本次潜水的装备';

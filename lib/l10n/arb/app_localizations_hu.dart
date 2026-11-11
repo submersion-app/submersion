@@ -11241,6 +11241,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tissue_title => 'Szövettelítődés';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Diagramnézet';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(átl., számított)';
 
   @override
@@ -51495,6 +51498,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'Minden merülés felszerelésének megjelenítése egy búváron a felszerelés kártyán';
+
+  @override
+  String get settings_appearance_tissueColorScheme => 'Szövetterheltség színei';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'A szövet-hőtérképek és a 3D nézet színskálája';
 
   @override
   String get diveLog_detail_gearFigureName => 'A merülés felszerelése';

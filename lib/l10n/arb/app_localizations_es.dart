@@ -11268,6 +11268,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_tissue_title => 'Carga tisular';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Vista del gráfico';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(prom., calculado)';
 
   @override
@@ -51802,6 +51805,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'Mostrar el equipo de cada inmersión sobre un buceador en su tarjeta de equipo';
+
+  @override
+  String get settings_appearance_tissueColorScheme =>
+      'Colores de la carga tisular';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Escala de colores de los mapas de calor de tejidos y de la vista 3D';
 
   @override
   String get diveLog_detail_gearFigureName => 'Equipo de esta inmersión';

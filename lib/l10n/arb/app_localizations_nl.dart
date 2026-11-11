@@ -11196,6 +11196,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_tissue_title => 'Weefselbelasting';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'Grafiekweergave';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(gem., berekend)';
 
   @override
@@ -51446,6 +51449,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'De uitrusting van elke duik op een duiker tonen in de uitrustingskaart';
+
+  @override
+  String get settings_appearance_tissueColorScheme =>
+      'Kleuren weefselbelasting';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'Kleurenschaal van de weefselheatmaps en de 3D-weergave';
 
   @override
   String get diveLog_detail_gearFigureName => 'Uitrusting van deze duik';

@@ -11016,6 +11016,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_tissue_title => 'עומס רקמות';
 
   @override
+  String get diveLog_tissue_viewMenuTooltip => 'תצוגת התרשים';
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(ממוצע, מחושב)';
 
   @override
@@ -50658,6 +50661,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_appearance_showDiveFigure_subtitle =>
       'הצגת הציוד של כל צלילה על צולל בכרטיס הציוד';
+
+  @override
+  String get settings_appearance_tissueColorScheme => 'צבעי עומס הרקמות';
+
+  @override
+  String get settings_appearance_tissueColorScheme_subtitle =>
+      'סולם הצבעים של מפות החום של הרקמות ושל תצוגת התלת־ממד';
 
   @override
   String get diveLog_detail_gearFigureName => 'הציוד בצלילה זו';
