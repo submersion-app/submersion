@@ -259,6 +259,8 @@
   "equipment_components_roleHint": "לדוגמה: שלב שני ראשי",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "רכיבים",
+  "equipment_components_totalFromParts": "{total, plural, one{לפי {count} מתוך {total} רכיבים} other{לפי {count} מתוך {total} רכיבים}}",
+  "equipment_components_totalsSection": "סה״כ",
   "equipment_setEdit_defaultSwitch_title": "סט ברירת מחדל",
   "equipment_setEdit_defaultSwitch_subtitle": "מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין",
   "equipment_setDetail_showFigure": "הצגת דמות הצולל",

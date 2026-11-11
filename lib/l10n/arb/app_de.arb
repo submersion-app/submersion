@@ -271,6 +271,8 @@
   "equipment_components_roleHint": "z. B. Primäre zweite Stufe",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "Komponenten",
+  "equipment_components_totalFromParts": "{total, plural, one{Aus {count} von {total} Komponente} other{Aus {count} von {total} Komponenten}}",
+  "equipment_components_totalsSection": "Summe",
   "equipment_setEdit_defaultSwitch_title": "Standard-Set",
   "equipment_setEdit_defaultSwitch_subtitle": "Wird automatisch auf neue Tauchgänge ohne Ausrüstung angewendet",
   "equipment_setDetail_showFigure": "Taucherfigur anzeigen",

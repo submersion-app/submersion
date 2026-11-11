@@ -1338,6 +1338,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_components_title => 'רכיבים';
 
   @override
+  String equipment_components_totalFromParts(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: 'לפי $count מתוך $total רכיבים',
+      one: 'לפי $count מתוך $total רכיבים',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_components_totalsSection => 'סה״כ';
+
+  @override
   String equipment_documents_removeError(String error) {
     return 'לא ניתן להסיר את המסמך: $error';
   }

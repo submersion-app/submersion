@@ -259,6 +259,8 @@
   "equipment_components_roleHint": "p. ex. Deuxième étage principal",
   "equipment_components_rollupClock": "{component} : {kind}",
   "equipment_components_title": "Composants",
+  "equipment_components_totalFromParts": "{total, plural, one{D'après {count} sur {total} composant} other{D'après {count} sur {total} composants}}",
+  "equipment_components_totalsSection": "Total",
   "equipment_setEdit_defaultSwitch_title": "Ensemble par défaut",
   "equipment_setEdit_defaultSwitch_subtitle": "Appliqué automatiquement aux nouvelles plongées sans équipement",
   "equipment_setDetail_showFigure": "Afficher la silhouette du plongeur",

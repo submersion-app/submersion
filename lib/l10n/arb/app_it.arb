@@ -259,6 +259,8 @@
   "equipment_components_roleHint": "es. Secondo stadio principale",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "Componenti",
+  "equipment_components_totalFromParts": "{total, plural, one{Da {count} di {total} componente} other{Da {count} di {total} componenti}}",
+  "equipment_components_totalsSection": "Totale",
   "equipment_setEdit_defaultSwitch_title": "Set predefinito",
   "equipment_setEdit_defaultSwitch_subtitle": "Applicato automaticamente alle nuove immersioni senza attrezzatura",
   "equipment_setDetail_showFigure": "Mostra figura del subacqueo",

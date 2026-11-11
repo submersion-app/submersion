@@ -259,6 +259,8 @@
   "equipment_components_roleHint": "مثال: المرحلة الثانية الرئيسية",
   "equipment_components_rollupClock": "{component}: {kind}",
   "equipment_components_title": "المكوّنات",
+  "equipment_components_totalFromParts": "{total, plural, one{من {count} من أصل {total} مكوّن} two{من {count} من أصل مكوّنين} few{من {count} من أصل {total} مكوّنات} many{من {count} من أصل {total} مكوّنًا} other{من {count} من أصل {total} مكوّن}}",
+  "equipment_components_totalsSection": "المجموع",
   "equipment_setEdit_defaultSwitch_title": "المجموعة الافتراضية",
   "equipment_setEdit_defaultSwitch_subtitle": "تُطبَّق تلقائيًا على الغطسات الجديدة التي لا تحتوي على معدات بعد",
   "equipment_setDetail_showFigure": "إظهار رسم الغواص",
