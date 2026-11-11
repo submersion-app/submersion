@@ -1,0 +1,71 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
+
+/// The flags of the countries a trip's dives were in (issue #4426), most
+/// dived first.
+///
+/// Nothing at all while the countries load, when the trip has none, or when
+/// the diver has turned flags off, so a trip row never shows a placeholder.
+/// The trip's countries are not written beside the flags, so the group
+/// names them for screen readers and in a tooltip.
+class TripCountryFlags extends ConsumerWidget {
+  const TripCountryFlags({
+    super.key,
+    required this.tripId,
+    this.maxFlags,
+    this.flagHeight = 11,
+  });
+
+  final String tripId;
+
+  /// How many flags to draw before summing the rest as "+N"; null draws all.
+  final int? maxFlags;
+
+  final double flagHeight;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(showCountryFlagsProvider)) return const SizedBox.shrink();
+    final countries =
+        ref.watch(tripCountriesProvider).value?[tripId] ?? const [];
+    if (countries.isEmpty) return const SizedBox.shrink();
+
+    final shown = maxFlags == null
+        ? countries
+        : countries.take(maxFlags!).toList();
+    final hidden = countries.length - shown.length;
+    final names = countries.map((c) => c.name).join(', ');
+
+    return Tooltip(
+      message: names,
+      excludeFromSemantics: true,
+      child: Semantics(
+        label: context.l10n.trips_countryFlags_semantics(names),
+        excludeSemantics: true,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < shown.length; i++) ...[
+              if (i > 0) const SizedBox(width: 2),
+              CountryFlag(code: shown[i].code, height: flagHeight),
+            ],
+            if (hidden > 0) ...[
+              const SizedBox(width: 3),
+              Text(
+                context.l10n.trips_countryFlags_more(hidden),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1775,6 +1775,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get trips_story_today => 'Vandaag';
 
   @override
+  String trips_countryFlags_more(Object count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(Object names) {
+    return 'Landen: $names';
+  }
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return 'Dag $current van $total';
   }

@@ -361,6 +361,8 @@
   "trips_story_dayLabel": "Dag {number}",
   "trips_story_surfaceDay": "Oppervlaktedag",
   "trips_story_today": "Vandaag",
+  "trips_countryFlags_more": "+{count}",
+  "trips_countryFlags_semantics": "Landen: {names}",
   "trips_story_dayOfTrip": "Dag {current} van {total}",
   "trips_story_daysUntil": "{days, plural, =1{Nog 1 dag tot vertrek} other{Nog {days} dagen tot vertrek}}",
   "trips_story_checklistProgress": "{done} van {total} klaar",

@@ -1769,6 +1769,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_story_today => 'Today';
 
   @override
+  String trips_countryFlags_more(Object count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(Object names) {
+    return 'Countries: $names';
+  }
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return 'Day $current of $total';
   }

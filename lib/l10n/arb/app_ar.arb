@@ -361,6 +361,8 @@
   "trips_story_dayLabel": "اليوم {number}",
   "trips_story_surfaceDay": "يوم سطح",
   "trips_story_today": "اليوم",
+  "trips_countryFlags_more": "+{count}",
+  "trips_countryFlags_semantics": "الدول: {names}",
   "trips_story_dayOfTrip": "اليوم {current} من {total}",
   "trips_story_daysUntil": "{days, plural, =1{يوم واحد حتى المغادرة} two{يومان حتى المغادرة} few{{days} أيام حتى المغادرة} many{{days} يومًا حتى المغادرة} other{{days} يوم حتى المغادرة}}",
   "trips_story_checklistProgress": "اكتمل {done} من {total}",

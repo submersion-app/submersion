@@ -2785,6 +2785,18 @@ abstract class AppLocalizations {
   /// **'Today'**
   String get trips_story_today;
 
+  /// No description provided for @trips_countryFlags_more.
+  ///
+  /// In en, this message translates to:
+  /// **'+{count}'**
+  String trips_countryFlags_more(Object count);
+
+  /// No description provided for @trips_countryFlags_semantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Countries: {names}'**
+  String trips_countryFlags_semantics(Object names);
+
   /// No description provided for @trips_story_dayOfTrip.
   ///
   /// In en, this message translates to:

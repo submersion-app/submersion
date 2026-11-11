@@ -1061,6 +1061,8 @@
   },
   "trips_story_surfaceDay": "Surface day",
   "trips_story_today": "Today",
+  "trips_countryFlags_more": "+{count}",
+  "trips_countryFlags_semantics": "Countries: {names}",
   "trips_story_dayOfTrip": "Day {current} of {total}",
   "@trips_story_dayOfTrip": {
     "placeholders": {

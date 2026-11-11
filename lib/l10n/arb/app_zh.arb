@@ -361,6 +361,8 @@
   "trips_story_dayLabel": "第 {number} 天",
   "trips_story_surfaceDay": "水面日",
   "trips_story_today": "今天",
+  "trips_countryFlags_more": "+{count}",
+  "trips_countryFlags_semantics": "国家/地区：{names}",
   "trips_story_dayOfTrip": "第 {current} 天，共 {total} 天",
   "trips_story_daysUntil": "{days, plural, other{距出发还有 {days} 天}}",
   "trips_story_checklistProgress": "已完成 {done}/{total}",

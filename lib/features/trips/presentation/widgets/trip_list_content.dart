@@ -54,6 +54,7 @@ import 'package:submersion/shared/widgets/shared_items/item_bulk_share.dart';
 import 'package:submersion/core/data/visibility/item_sharing.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_list_rows.dart';
 import 'package:submersion/features/trips/presentation/widgets/side_trip_indent.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 
 /// Content widget for the trip list, used in master-detail layout.
@@ -1169,7 +1170,15 @@ class TripListTile extends ConsumerWidget {
           ),
           title: Row(
             children: [
-              Expanded(child: Text(trip.name)),
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(child: Text(trip.name)),
+                    const SizedBox(width: 6),
+                    TripCountryFlags(tripId: trip.id, maxFlags: 3),
+                  ],
+                ),
+              ),
               if (showSharedBadge) ...[
                 const SizedBox(width: 6),
                 Tooltip(

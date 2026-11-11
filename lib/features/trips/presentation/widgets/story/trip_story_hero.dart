@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Story header: trip identity plus mode-specific extras (countdown and
@@ -45,11 +46,20 @@ class TripStoryHero extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                trip.name,
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      trip.name,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Every country the trip's dives were in (issue #4426).
+                  TripCountryFlags(tripId: trip.id, flagHeight: 14),
+                ],
               ),
             ),
           ],

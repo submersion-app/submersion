@@ -361,6 +361,8 @@
   "trips_story_dayLabel": "Giorno {number}",
   "trips_story_surfaceDay": "Giorno di superficie",
   "trips_story_today": "Oggi",
+  "trips_countryFlags_more": "+{count}",
+  "trips_countryFlags_semantics": "Paesi: {names}",
   "trips_story_dayOfTrip": "Giorno {current} di {total}",
   "trips_story_daysUntil": "{days, plural, =1{1 giorno alla partenza} other{{days} giorni alla partenza}}",
   "trips_story_checklistProgress": "{done} di {total} completati",

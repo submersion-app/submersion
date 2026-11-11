@@ -1712,6 +1712,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_story_today => '今天';
 
   @override
+  String trips_countryFlags_more(Object count) {
+    return '+$count';
+  }
+
+  @override
+  String trips_countryFlags_semantics(Object names) {
+    return '国家/地区：$names';
+  }
+
+  @override
   String trips_story_dayOfTrip(int current, int total) {
     return '第 $current 天，共 $total 天';
   }

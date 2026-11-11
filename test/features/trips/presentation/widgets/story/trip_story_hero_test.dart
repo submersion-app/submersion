@@ -5,10 +5,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/trip_checklist_item.dart';
 import 'package:submersion/features/trips/domain/entities/itinerary_day.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
+import 'package:submersion/features/trips/presentation/widgets/trip_country_flags.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/country_flag.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 
@@ -185,5 +189,35 @@ void main() {
     expect(find.text('No dives or itinerary yet'), findsOneWidget);
     await tester.tap(find.text('Find matching dives'));
     expect(scanned, isTrue);
+  });
+
+  testWidgets('the title carries every country flag (issue #4426)', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final trip = _trip(start: _daysFrom(now, -10), end: _daysFrom(now, -3));
+    await pumpHero(
+      tester,
+      _story(trip, today: _dayOnly(now)),
+      extra: [
+        tripCountriesProvider.overrideWith(
+          (ref) async => {
+            'trip-1': const [
+              TripCountry(code: 'BQ', name: 'Bonaire'),
+              TripCountry(code: 'CW', name: 'Curaçao'),
+              TripCountry(code: 'AW', name: 'Aruba'),
+              TripCountry(code: 'VE', name: 'Venezuela'),
+            ],
+          },
+        ),
+      ],
+    );
+
+    final flags = tester.widget<TripCountryFlags>(
+      find.byType(TripCountryFlags),
+    );
+    expect(flags.tripId, 'trip-1');
+    expect(flags.maxFlags, isNull);
+    expect(find.byType(CountryFlag), findsNWidgets(4));
   });
 }
