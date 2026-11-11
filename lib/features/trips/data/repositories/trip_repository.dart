@@ -939,16 +939,25 @@ class _CountryTally {
   final String code;
   var name = '';
   var _nameDives = 0;
+  var _nameFirst = 0;
   var dives = 0;
   int? firstDive;
 
-  /// Adds one stored country name's dives; the name with the most dives is
-  /// the one the tooltip shows.
+  /// Adds one stored country name's dives. The tooltip shows the name with
+  /// the most dives; on a tie, the one dived first, then the lesser name, so
+  /// it never depends on the order SQLite returns the groups in.
   void add(String storedName, int count, int first) {
     dives += count;
-    if (count > _nameDives) {
+    final wins =
+        name.isEmpty ||
+        count > _nameDives ||
+        (count == _nameDives &&
+            (first < _nameFirst ||
+                (first == _nameFirst && storedName.compareTo(name) < 0)));
+    if (wins) {
       name = storedName;
       _nameDives = count;
+      _nameFirst = first;
     }
     if (firstDive == null || first < firstDive!) firstDive = first;
   }

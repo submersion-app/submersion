@@ -75,6 +75,15 @@ void main() {
     expect(countries.single.name, isIn(['Mexico', 'México']));
   });
 
+  test('on a tie between spellings the one dived first names it', () async {
+    await trip('T');
+    await dive('a', 'T', 'cozumel', at: 9); // "Mexico"
+    await dive('b', 'T', 'cancun', at: 1); // "México", dived first
+
+    final countries = (await trips.getTripCountries())['T']!;
+    expect(countries.single.name, 'México');
+  });
+
   test('a country it cannot name adds nothing', () async {
     await trip('T');
     await dive('a', 'T', 'atlantis');
