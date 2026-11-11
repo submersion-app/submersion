@@ -370,7 +370,8 @@ class TagRepository {
   }
 
   /// [tag] widened to also cover every scope in [scopes], in one write and
-  /// one sync mark; returned as stored. Never narrows it.
+  /// one sync mark; returns [tag] with those scopes added. Never narrows it,
+  /// and never clears a flag another widening set meanwhile.
   Future<domain.Tag> widenTag(domain.Tag tag, Set<domain.TagScope> scopes) =>
       _widenTo(tag, scopes);
 
@@ -394,9 +395,9 @@ class TagRepository {
         ...TagsCompanion(updatedAt: Value(now)).toColumns(false),
       }),
     );
-    final widened =
-        await getTagById(tag.id) ??
-        tag.copyWith(scopes: {...tag.scopes, ...missing});
+    // Not re-read: the stored flags are right whatever else landed, and a
+    // logbook rule widening many tags keeps to one read each (#3513).
+    final widened = tag.copyWith(scopes: {...tag.scopes, ...missing});
     await _syncRepository.markRecordPending(
       entityType: 'tags',
       recordId: tag.id,
