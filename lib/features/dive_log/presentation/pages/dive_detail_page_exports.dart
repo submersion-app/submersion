@@ -399,7 +399,13 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
       // a failed owner lookup must not drop the buddies, nor the reverse.
       final (buddies, owner) = await (
         _valueOrNull(ref.read(buddiesForDiveProvider(dive.id).future)),
-        _valueOrNull(ref.read(diveOwnerProvider(dive.diverId).future)),
+        // Held with a listener: nothing on this page need be watching the
+        // owner (a dive with no roles of the diver's own), and a paused
+        // provider whose active-diver dependency settles mid-load would
+        // otherwise never complete (#3807).
+        _valueOrNull(
+          ref.container.awaitFuture(diveOwnerProvider(dive.diverId).future),
+        ),
       ).wait;
       if (buddies != null && buddies.isNotEmpty) {
         exportDive = dive.copyWith(buddies: buddies);

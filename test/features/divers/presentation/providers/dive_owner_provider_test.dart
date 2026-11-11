@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -37,7 +39,7 @@ void main() {
     final active = diver('active');
     final c = container(current: () async => active);
 
-    expect(await c.read(diveOwnerProvider(null).future), same(active));
+    expect(await c.awaitFuture(diveOwnerProvider(null).future), same(active));
   });
 
   test("the active diver's own dive reuses their instance", () async {
@@ -47,8 +49,37 @@ void main() {
       diversById: {'active': diver('active')},
     );
 
-    expect(await c.read(diveOwnerProvider('active').future), same(active));
+    // In the app the active diver is loaded long before a dive opens.
+    await c.awaitFuture(currentDiverProvider.future);
+
+    expect(
+      await c.awaitFuture(diveOwnerProvider('active').future),
+      same(active),
+    );
     expect(byIdReads, isEmpty);
+  });
+
+  test("an active diver settling late moves onto their instance", () async {
+    final active = diver('active');
+    final settle = Completer<Diver?>();
+    final c = container(
+      current: () => settle.future,
+      diversById: {'active': diver('active')},
+    );
+    final sub = c.listen(diveOwnerProvider('active'), (_, _) {});
+    addTearDown(sub.close);
+
+    // Not waited for: the owner loads by id meanwhile.
+    final early = await c.awaitFuture(diveOwnerProvider('active').future);
+    expect(early?.id, 'active');
+    expect(early, isNot(same(active)));
+
+    settle.complete(active);
+    await c.awaitFuture(currentDiverProvider.future);
+    expect(
+      await c.awaitFuture(diveOwnerProvider('active').future),
+      same(active),
+    );
   });
 
   test("another profile's dive loads that profile", () async {
@@ -58,7 +89,7 @@ void main() {
       diversById: {'owner': owner},
     );
 
-    expect(await c.read(diveOwnerProvider('owner').future), same(owner));
+    expect(await c.awaitFuture(diveOwnerProvider('owner').future), same(owner));
   });
 
   test(
@@ -70,7 +101,22 @@ void main() {
         diversById: {'owner': owner},
       );
 
-      expect(await c.read(diveOwnerProvider('owner').future), same(owner));
+      expect(
+        await c.awaitFuture(diveOwnerProvider('owner').future),
+        same(owner),
+      );
     },
   );
+
+  test("an active-diver read that never settles does not block another "
+      "profile's dive", () async {
+    // Stands in for a read stuck loading or in Riverpod's retries.
+    final owner = diver('owner');
+    final c = container(
+      current: () => Completer<Diver?>().future,
+      diversById: {'owner': owner},
+    );
+
+    expect(await c.awaitFuture(diveOwnerProvider('owner').future), same(owner));
+  });
 }

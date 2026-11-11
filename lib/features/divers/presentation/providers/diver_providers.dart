@@ -295,20 +295,22 @@ final currentDiverProvider = FutureProvider<Diver?>((ref) async {
 /// rather than loading them again: a second copy would carry its own photo
 /// bytes, which the avatar image cache keys by identity and would decode
 /// twice.
+///
+/// That reuse reads the active diver's settled value and never waits for it,
+/// so an active-diver read still loading, retrying or failed cannot hold up
+/// another profile's owner: those load by id at once. Should the active diver
+/// settle later and turn out to be this dive's owner, the watch rebuilds this
+/// provider onto their instance, keeping the value it already had meanwhile.
+/// Because of that rebuild, a one-off read must hold a listener
+/// (`container.awaitFuture`) rather than `ref.read(...future)`, or a paused
+/// load can never complete (#3807).
 final diveOwnerProvider = FutureProvider.family<Diver?, String?>((
   ref,
   diverId,
-) async {
+) {
   if (diverId == null) return ref.watch(currentDiverProvider.future);
-  Diver? current;
-  try {
-    current = await ref.watch(currentDiverProvider.future);
-  } catch (_) {
-    // Only the reuse is lost: another profile's dive still resolves its
-    // owner below, and the active diver's own failure surfaces wherever that
-    // diver is shown.
-  }
-  if (diverId == current?.id) return current;
+  final current = ref.watch(currentDiverProvider).value;
+  if (current != null && current.id == diverId) return current;
   return ref.watch(diverByIdProvider(diverId).future);
 });
 
