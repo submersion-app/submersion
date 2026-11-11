@@ -22,6 +22,16 @@ TagStatistic _stat(String id, String name, int diveCount) => TagStatistic(
   counts: {TagScope.dives: diveCount},
 );
 
+/// A repository whose widening always fails, for the picker's error path.
+class _FailingWidenRepository extends TagRepository {
+  @override
+  Future<void> widenScope(
+    Iterable<String> tagIds,
+    TagScope scope, {
+    bool notify = true,
+  }) => Future.error(StateError('disk full'));
+}
+
 void main() {
   // Ordered the way tagStatisticsProvider returns them: most used first.
   final testStats = [
@@ -41,9 +51,12 @@ void main() {
     Object? error,
     bool pending = false,
     TagScope scope = TagScope.dives,
+    TagRepository? repository,
   }) {
     return ProviderScope(
       overrides: [
+        if (repository != null)
+          tagRepositoryProvider.overrideWithValue(repository),
         tagStatisticsProvider.overrideWith((ref) {
           // A future that never completes keeps the sheet in its loading
           // state for as long as the test needs it.
@@ -414,6 +427,41 @@ void main() {
       expect(find.byType(CheckboxListTile), findsNothing);
       expect(find.textContaining('Create "'), findsNothing);
       expect(find.text('No tags match your search.'), findsOneWidget);
+    });
+
+    testWidgets('a failed widening reports nothing and offers a retry', (
+      tester,
+    ) async {
+      final siteOnly = TagStatistic(
+        tag: Tag(
+          id: 'site-tag',
+          name: 'To try',
+          createdAt: DateTime(2024),
+          updatedAt: DateTime(2024),
+          scopes: const {TagScope.sites},
+        ),
+        counts: const {TagScope.sites: 3},
+      );
+      await tester.pumpWidget(
+        buildTestWidget(
+          stats: [...testStats, siteOnly],
+          repository: _FailingWidenRepository(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('To try'));
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Add 1 tag'));
+      await tester.pumpAndSettle();
+
+      expect(picked, isNull);
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+      final button = tester.widget<FilledButton>(find.byType(FilledButton));
+      expect(button.onPressed, isNotNull, reason: 'busy is cleared again');
     });
 
     testWidgets('a load failure reports tags, not some other noun', (
