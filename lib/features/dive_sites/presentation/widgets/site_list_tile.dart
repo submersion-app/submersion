@@ -21,6 +21,7 @@ import 'package:submersion/features/site_scape/presentation/site_feature_glyph.d
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
@@ -34,8 +35,8 @@ import 'package:submersion/features/shared_library/presentation/widgets/library_
 ///
 /// Configurable slots (title, subtitle, stat1, stat2, extra fields) come from
 /// [siteDetailedCardConfigProvider]; the rating, shared badge, site type
-/// badges (at the end of the stat line), water type and feature chips are
-/// fixed identity elements. Hand-rolled
+/// badges (at the end of the stat line), water type chip (after the stats on
+/// that line) and feature chips are fixed identity elements. Hand-rolled
 /// rather than a ListTile so the title keeps its font role under every theme
 /// preset and nothing text-bearing sits in the trailing slot.
 class SiteListTile extends ConsumerStatefulWidget {
@@ -125,11 +126,16 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
       return adapter.formatValue(field, value, units);
     }
 
-    Widget stat(SiteField field) {
+    // Null, not an empty box, for a stat with nothing to show: the stat line
+    // is a Wrap, which spaces even a zero-width child, so an empty stat
+    // before the water type chip would leave a double gap (issue #4469).
+    Widget? stat(SiteField field) {
       // A count of zero reads as noise on a card; the site simply has no
       // dives yet, and the empty card already says so.
-      if (field == SiteField.diveCount && entry.diveCount == 0) {
-        return const SizedBox.shrink();
+      if (field == SiteField.diveCount && entry.diveCount == 0) return null;
+      final value = adapter.extractValue(field, entry);
+      if (value == null || isBlankFieldValue(formatStat(field, value))) {
+        return null;
       }
       return EntityCardStat<SiteWithDiveCount, SiteField>(
         adapter: adapter,
@@ -150,14 +156,21 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
     ];
     final shownTags = entry.tags.take(3).toList();
     final hiddenTagCount = entry.tags.length - shownTags.length;
-    final chips = <Widget>[
-      if (site.waterType != null)
+    final waterType = site.waterType;
+    // The water type follows the stats on their line rather than opening the
+    // chip row, so it costs the card no line of its own (issue #4469).
+    final statItems = <Widget>[
+      ?stat(stat1Field),
+      ?stat(stat2Field),
+      if (waterType != null)
         _SiteChip(
           icon: Icons.water_drop,
-          label: site.waterType!.localizedName(l10n),
+          label: waterType.localizedName(l10n),
           color: statColor,
           textColor: chipTextColor,
         ),
+    ];
+    final chips = <Widget>[
       // A wreck pin on a site typed wreck would read "Wreck Wreck".
       for (final typeName in entry.featureTypes)
         if (!(typeName == 'wreck' && typeIds.contains('wreck')))
@@ -283,7 +296,7 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
               isSelectionMode: widget.isSelectionMode,
               start: _contentInset,
               child: _SiteStatRow(
-                stats: [stat(stat1Field), stat(stat2Field)],
+                stats: statItems,
                 siteTypeLabels: siteTypeLabels,
               ),
             ),
@@ -406,9 +419,9 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
   }
 }
 
-/// The card's stat line: the stat slots on the start side and the site type
-/// badges right-aligned on the same line, where a dive card puts its dive
-/// type badges (issue #4353).
+/// The card's stat line: the stat slots and water type chip on the start
+/// side (issue #4469) and the site type badges right-aligned on the same
+/// line, where a dive card puts its dive type badges (issue #4353).
 ///
 /// The badges' narrowest width (every type collapsed into "+N") is reserved
 /// first, so the stats keep their natural width up to the remainder and wrap
@@ -466,8 +479,8 @@ class _SiteStatRow extends StatelessWidget {
   }
 }
 
-/// A small outlined chip with an icon, used for the fixed identity row
-/// (water type, feature pins and the hidden-tag count).
+/// A small outlined chip with an icon, used for the water type on the stat
+/// line and for the identity row (feature pins and the hidden-tag count).
 ///
 /// The outline uses the muted outlineVariant tone a dive card's type badges
 /// use, not the accent: the icon already carries the chip's colour, and an
