@@ -705,23 +705,15 @@ void main() {
       // Each stat is an icon and text, and the chip pads its label, so
       // measure the widgets themselves: the gap after the depth stat must be
       // the single stat gap the visited card shows before its dive count.
-      Rect statRect(String text) => tester.getRect(
+      Rect statRect(Finder text) => tester.getRect(
         find
             .ancestor(
-              of: find.text(text),
+              of: text,
               matching: find.byWidgetPredicate((w) => w is EntityCardStat),
             )
             .first,
       );
       final depths = find.text('5-50m');
-      Rect depthStat(int index) => tester.getRect(
-        find
-            .ancestor(
-              of: depths.at(index),
-              matching: find.byWidgetPredicate((w) => w is EntityCardStat),
-            )
-            .first,
-      );
       final chip = tester.getRect(
         find
             .ancestor(
@@ -736,9 +728,9 @@ void main() {
             .first,
       );
       expect(
-        chip.left - depthStat(0).right,
+        chip.left - statRect(depths.at(0)).right,
         moreOrLessEquals(
-          statRect('2 dives').left - depthStat(1).right,
+          statRect(find.text('2 dives')).left - statRect(depths.at(1)).right,
           epsilon: 0.5,
         ),
         reason: 'the missing count does not leave two stat gaps',

@@ -21,7 +21,6 @@ import 'package:submersion/features/site_scape/presentation/site_feature_glyph.d
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
-import 'package:submersion/shared/constants/entity_field.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/widgets/entity_card/card_slot_resolver.dart';
@@ -133,10 +132,14 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
       // A count of zero reads as noise on a card; the site simply has no
       // dives yet, and the empty card already says so.
       if (field == SiteField.diveCount && entry.diveCount == 0) return null;
-      final value = adapter.extractValue(field, entry);
-      if (value == null || isBlankFieldValue(formatStat(field, value))) {
-        return null;
-      }
+      final text = EntityCardStat.displayText(
+        adapter: adapter,
+        entity: entry,
+        field: field,
+        units: units,
+        formatter: formatStat,
+      );
+      if (text == null) return null;
       return EntityCardStat<SiteWithDiveCount, SiteField>(
         adapter: adapter,
         entity: entry,
