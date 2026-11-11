@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_profile_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -266,4 +268,59 @@ void main() {
       expect(container.read(profileTrackingIndexProvider(diveB.id)), isNull);
     },
   );
+
+  // The pinned copy starts at the zoom the reader left the card at, rather
+  // than jumping out to the whole dive as it pins.
+  testWidgets('the pinned copy starts at the card chart\'s zoom', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    await tester.tap(find.byTooltip('Zoom in').first);
+    await tester.pump();
+    final cardTop = tester.getTopLeft(find.byType(DiveDetailProfileSection)).dy;
+    final viewportTop = tester.getTopLeft(find.byType(Scrollable).first).dy;
+    tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position
+        .jumpTo(cardTop - viewportTop + 2);
+    for (var i = 0; i < 3; i++) {
+      await tester.pump();
+    }
+    final copy = find.byWidgetPredicate(
+      (w) => w is DiveDetailProfileSection && w.fillHeight,
+    );
+    final chart = tester.widget<DiveProfileChart>(
+      find.descendant(of: copy, matching: find.byType(DiveProfileChart)),
+    );
+    expect(chart.viewport, isNotNull);
+    expect(chart.viewport!.zoom, greaterThan(1.3));
+  });
+
+  // "Details" on a finding in the profile card scrolls to the safety review,
+  // landing below the strip that pins on the way.
+  testWidgets('a finding\'s Details lands the safety review below the strip', (
+    tester,
+  ) async {
+    await pumpPage(tester);
+    final host = tester.widget<DiveProfileChartHost>(
+      find.byType(DiveProfileChartHost),
+    );
+    host.onSafetyFindingDetails!(
+      SafetyFinding(
+        id: 'f1',
+        diveId: diveA.id,
+        ruleId: SafetyRuleId.values.first,
+        severity: SafetySeverity.values.first,
+        engineVersion: 1,
+        createdAt: DateTime(2026),
+      ),
+    );
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.byType(PinnedProfileStrip), findsOneWidget);
+    final overlayTop = tester.getTopLeft(find.byType(PinnedProfileOverlay)).dy;
+    final section = tester.getTopLeft(find.byType(DiveSafetySummarySection)).dy;
+    expect(section - overlayTop, greaterThanOrEqualTo(56 - 0.5));
+  });
 }

@@ -403,4 +403,19 @@ void main() {
     );
     handle.dispose();
   });
+
+  // A held touch sets the cursor; once the finger moves off into a scroll,
+  // the tap is cancelled and the cursor goes with it.
+  testWidgets('a held touch that turns into a scroll clears the cursor', (
+    tester,
+  ) async {
+    final c = await pump(tester, insideScrollView: true);
+    final gesture = await tester.startGesture(at(tester, 0.5));
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(cursor(c), isNotNull);
+    await gesture.moveBy(const Offset(0, -80));
+    await tester.pump();
+    expect(cursor(c), isNull);
+    await gesture.up();
+  });
 }

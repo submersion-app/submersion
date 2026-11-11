@@ -755,4 +755,33 @@ void main() {
       0,
     );
   });
+
+  // Called for a section on a page with no pinned profile around it, it is
+  // the plain jump.
+  testWidgets('outside the overlay, the jump is a plain ensureVisible', (
+    tester,
+  ) async {
+    final target = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                const SizedBox(height: 1500),
+                SizedBox(key: target, height: 100),
+                const SizedBox(height: 1500),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await ensureVisibleBelowPinnedStrip(target.currentContext!);
+    await tester.pump();
+    expect(
+      tester.getTopLeft(find.byKey(target)).dy,
+      closeTo(tester.getTopLeft(find.byType(Scrollable)).dy, 0.5),
+    );
+  });
 }
