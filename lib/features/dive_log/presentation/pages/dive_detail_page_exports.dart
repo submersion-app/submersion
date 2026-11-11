@@ -396,10 +396,16 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
       try {
         final buddies = await ref.read(buddiesForDiveProvider(dive.id).future);
         if (buddies.isNotEmpty) exportDive = dive.copyWith(buddies: buddies);
+        // The dive's owner, as this page's Buddies card shows: a sibling dive
+        // from another profile is theirs, not the active diver's (#4458).
+        final ownerId = dive.diverId;
+        diver = await ref.read(diveOwnerProvider(ownerId).future);
         if (pdfOptions.includeCertificationCards) {
-          certifications = await ref.read(allCertificationsProvider.future);
+          certifications =
+              ownerId == null || ownerId == ref.read(currentDiverIdProvider)
+              ? await ref.read(allCertificationsProvider.future)
+              : await ref.read(certificationsForDiverProvider(ownerId).future);
         }
-        diver = await ref.read(currentDiverProvider.future);
         // The portrait travels with the diver: passing one without the other
         // leaves the Detailed front matter on its placeholder frame.
         diverPhoto = await ref.read(diverPhotoLoaderProvider)(diver?.photoPath);

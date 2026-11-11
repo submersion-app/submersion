@@ -44,6 +44,16 @@ final allCertificationsProvider = FutureProvider<List<Certification>>((
   return repository.getAllCertifications(diverId: validatedDiverId);
 });
 
+/// Every certification of the diver [diverId], whichever profile is active:
+/// a dive's PDF export carries its owner's cards, and a sibling dive from
+/// another profile (#2002) is not the active diver's (#4458).
+final certificationsForDiverProvider =
+    FutureProvider.family<List<Certification>, String>((ref, diverId) async {
+      final repository = ref.watch(certificationRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchCertificationsChanges());
+      return repository.getAllCertifications(diverId: diverId);
+    });
+
 /// All certifications without their card images, so what depends on credential
 /// data never waits on or holds the scans (issue #3848). Refreshes when a row
 /// changes, and only then: a card's pages are not part of it.

@@ -214,6 +214,7 @@ void main() {
     List<BuddyWithRole> linkedBuddies = const [],
     Object? buddiesFailure,
     Future<List<DiveTypeEntity>>? diveTypes,
+    Map<String, Diver> diversById = const {},
   }) async {
     final base = await getBaseOverrides();
 
@@ -265,6 +266,7 @@ void main() {
           }),
           allCertificationsProvider.overrideWith((ref) async => const []),
           currentDiverProvider.overrideWith((ref) async => diver),
+          diverByIdProvider.overrideWith((ref, id) async => diversById[id]),
           // The real loader reads the file system, and a dart:io await never
           // completes inside testWidgets' FakeAsync zone.
           if (photoLoader != null)
@@ -369,6 +371,27 @@ void main() {
         'me',
         reason: 'a missing portrait must not drop the diver as well',
       );
+    });
+
+    testWidgets("a sibling dive exports its owner, not the active diver "
+        '(#4458)', (tester) async {
+      dive = dive.copyWith(diverId: 'owner');
+      await pumpAndOpenExportSheet(
+        tester,
+        diver: diver,
+        diversById: {
+          'owner': Diver(
+            id: 'owner',
+            name: 'Bo',
+            createdAt: DateTime(2026, 1, 1),
+            updatedAt: DateTime(2026, 1, 1),
+          ),
+        },
+        photoLoader: (path) async => null,
+      );
+      await choosePdfAndDestination(tester, 'Save to Files');
+
+      expect(exportService.pdfDiver?.id, 'owner');
     });
   });
 
