@@ -333,10 +333,12 @@ class ChangesetWriter {
       // Nothing to publish -- but a manifest that goes stale reads as a dead
       // device to peers (retirement) and its acks stop advancing tombstone
       // GC. Rewrite it (contents unchanged, fresh updatedAt + acks) once it
-      // ages past the threshold. The nonce is preserved: a heartbeat is not
-      // an upload event and must not disturb twin detection.
+      // ages past the threshold, or as soon as it no longer describes this
+      // build. The nonce is preserved: a heartbeat is not an upload event and
+      // must not disturb twin detection.
       if (ownManifest != null &&
-          now - ownManifest.updatedAt > heartbeatMaxAgeMillis) {
+          (now - ownManifest.updatedAt > heartbeatMaxAgeMillis ||
+              _describesAnotherBuild(ownManifest, deviceName))) {
         final beat = SyncManifest(
           deviceId: ownManifest.deviceId,
           // A heartbeat is also the cheapest way a renamed device republishes
@@ -498,6 +500,18 @@ class ChangesetWriter {
   }
 
   int _max(int a, int b) => a > b ? a : b;
+
+  /// True when [published] was stamped by a different build, or under a name
+  /// this device has since dropped. Peers read the stamps on the manifest,
+  /// not the build that runs here: an updated device with nothing new to say
+  /// would otherwise keep its old writer schema for up to a heartbeat
+  /// interval, and every peer would warn that it runs an older version
+  /// (issue #4462). A null [deviceName] corrects nothing, because the
+  /// heartbeat keeps the published name in that case.
+  bool _describesAnotherBuild(SyncManifest published, String? deviceName) =>
+      published.writerSchemaVersion != AppDatabase.currentSchemaVersion ||
+      published.schemaVersion != AppDatabase.minimumCompatibleSchemaVersion ||
+      (deviceName != null && deviceName != published.deviceName);
 
   /// Clears the relay floor this publish read, and only that one: a floor a
   /// nearby apply lowered while the publish ran covers rows the publish did
