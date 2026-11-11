@@ -27,7 +27,7 @@ Map<String, List<TripCountry>> tallyTripCountries(
   final byTrip = <String, Map<String, _CountryTally>>{};
   for (final row in rows) {
     // A stored code wins; only a site without one has its text read.
-    final code = row.code ?? countryCodeFor(row.name);
+    final code = siteFlagCode(country: row.name, code: row.code);
     if (code == null) continue;
     final tallies = byTrip.putIfAbsent(row.tripId, () => {});
     final tally = tallies[code];

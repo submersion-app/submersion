@@ -17,7 +17,13 @@ bool tripHasFlags(WidgetRef ref, String tripId) =>
 /// the trip has none, or when the diver has turned flags off.
 List<TripCountry> _shownCountries(WidgetRef ref, String tripId) {
   if (!ref.watch(showCountryFlagsProvider)) return const [];
-  return ref.watch(tripCountriesProvider).value?[tripId] ?? const [];
+  final countries = ref.watch(tripCountriesProvider).value?[tripId];
+  if (countries == null) return const [];
+  // A code the flag package cannot draw would leave an empty slot.
+  return [
+    for (final country in countries)
+      if (CountryFlag.canDraw(country.code)) country,
+  ];
 }
 
 /// The flags of the countries a trip's dives were in (issue #4426), most

@@ -125,7 +125,8 @@ class DiveSite extends Equatable {
 
   /// The code a flag is drawn for: the stored [countryCode], else the
   /// country [country]'s text names, else null (issue #4426).
-  String? get flagCountryCode => countryCode ?? countryCodeFor(country);
+  String? get flagCountryCode =>
+      siteFlagCode(country: country, code: countryCode);
 
   /// Compact one-line location formatted as `locality · region, country`.
   /// Locality prefers [city], falling back to [island]. [bodyOfWater] is

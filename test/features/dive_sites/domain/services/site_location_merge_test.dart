@@ -221,6 +221,34 @@ void main() {
       expect(merged, isNull);
     });
 
+    test('a replaced country with no code clears the stored one', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(
+          country: 'France',
+          countryCode: 'FR',
+        ),
+        found: const PlaceLookup(country: 'Atlantis'),
+        overwrite: true,
+      );
+      expect(merged!.country, 'Atlantis');
+      expect(merged.countryCode, isNull);
+      expect(merged.clearCountryCode, isTrue);
+    });
+
+    test('a replaced country with the same code reports no code change', () {
+      final merged = mergeLocationDetails(
+        current: const SiteLocationDetails(
+          country: 'Mexique',
+          countryCode: 'MX',
+        ),
+        found: const PlaceLookup(country: 'Mexico', countryCode: 'MX'),
+        overwrite: true,
+      );
+      expect(merged!.country, 'Mexico');
+      expect(merged.countryCode, isNull);
+      expect(merged.clearCountryCode, isFalse);
+    });
+
     test('ofSite reads the stored code', () {
       const site = DiveSite(id: 's', name: 'n', countryCode: 'KR');
       expect(SiteLocationDetails.ofSite(site).countryCode, 'KR');

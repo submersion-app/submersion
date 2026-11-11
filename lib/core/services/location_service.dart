@@ -105,8 +105,10 @@ class LocationResult {
 /// blank or odd value is dropped rather than stored.
 String? _isoCountryCodeOf(String? raw) {
   final code = raw?.trim().toUpperCase();
-  return code != null && RegExp(r'^[A-Z]{2}$').hasMatch(code) ? code : null;
+  return code != null && _alpha2.hasMatch(code) ? code : null;
 }
+
+final RegExp _alpha2 = RegExp(r'^[A-Z]{2}$');
 
 /// Service for handling device GPS location and geocoding
 class LocationService {

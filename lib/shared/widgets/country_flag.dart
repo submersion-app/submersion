@@ -36,13 +36,18 @@ class CountryFlag extends StatelessWidget {
   /// table on every call, and a list draws a flag in every row.
   static final Map<String, String?> _flagCodes = {};
 
+  /// [code]'s asset name, or null when the package draws no flag for it.
+  static String? _flagCodeOf(String code) =>
+      _flagCodes.putIfAbsent(code, () => flags.FlagCode.fromCountryCode(code));
+
+  /// Whether a flag can be drawn for [code]. A code the package has no
+  /// asset for would leave an empty slot, so callers show their fallback.
+  static bool canDraw(String code) => _flagCodeOf(code) != null;
+
   @override
   Widget build(BuildContext context) {
     final width = height * 16 / 11;
-    final flagCode = _flagCodes.putIfAbsent(
-      code,
-      () => flags.FlagCode.fromCountryCode(code),
-    );
+    final flagCode = _flagCodeOf(code);
     final outline = Theme.of(context).colorScheme.outlineVariant;
     // Its own size whatever the parent's constraints: a stretched or tight
     // slot must not turn the flag into a banner. The slot is kept while the
@@ -120,9 +125,9 @@ class LocationWithFlag extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final code = ref.watch(showCountryFlagsProvider)
-        ? countryCode ?? countryCodeFor(country)
+        ? siteFlagCode(country: country, code: countryCode)
         : null;
-    final leading = code != null
+    final leading = code != null && CountryFlag.canDraw(code)
         ? CountryFlag(code: code, height: flagHeight)
         : fallbackLeading;
     if (leading == null) return text;

@@ -115,6 +115,8 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
 
     final title = slotText(titleField) ?? site.name;
     final subtitle = slotText(subtitleField);
+    // A flag only beside a line that names the place.
+    final flagSite = showsPlace(subtitleField) ? site : null;
 
     String formatStat(SiteField field, dynamic value) {
       if (field == SiteField.diveCount) {
@@ -256,13 +258,8 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
                       if (subtitle != null) ...[
                         const SizedBox(height: 2),
                         LocationWithFlag(
-                          // A flag only beside a line that names the place.
-                          country: showsPlace(subtitleField)
-                              ? widget.entry.site.country
-                              : null,
-                          countryCode: showsPlace(subtitleField)
-                              ? widget.entry.site.countryCode
-                              : null,
+                          country: flagSite?.country,
+                          countryCode: flagSite?.countryCode,
                           text: Text(
                             subtitle,
                             style: Theme.of(context).textTheme.bodyMedium

@@ -54,6 +54,9 @@ const Map<String, String> _punctuation = {
   '-': ' ', '‐': ' ', '‑': ' ', '–': ' ',
 };
 
+/// Folded placeholder text that also happens to be a country code.
+const Set<String> _placeholders = {'na'};
+
 final RegExp _whitespace = RegExp(r'\s+');
 
 /// The key a country name is looked up by: [textSortKey]'s case and accent
@@ -98,6 +101,11 @@ String? countryCodeFor(String? text) {
   return _resolved[text] = _resolve(text);
 }
 
+/// The code a site's flag is drawn for (issue #4426): its stored [code],
+/// else the country its free-text [country] names, else null.
+String? siteFlagCode({required String? country, required String? code}) =>
+    code ?? countryCodeFor(country);
+
 /// Stored country texts already resolved, bounded so a stream of distinct
 /// texts (an import) cannot grow it without end.
 final Map<String, String?> _resolved = {};
@@ -107,6 +115,9 @@ String? _resolve(String text) {
   final key = countryLookupKey(text);
   if (key.isEmpty) return null;
   final upper = key.toUpperCase();
+  // "NA" fills unknown cells in imports and spreadsheets far more often than
+  // it names Namibia, so it is not read as a code; "Namibia" and "NAM" are.
+  if (_placeholders.contains(key)) return null;
   if (key.length == 2 && assignedAlpha2Codes.contains(upper)) return upper;
   if (key.length == 3) {
     final fromAlpha3 = alpha3ToAlpha2[upper];

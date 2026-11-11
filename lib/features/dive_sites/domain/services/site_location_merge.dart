@@ -8,6 +8,7 @@ class SiteLocationDetails {
   const SiteLocationDetails({
     this.country,
     this.countryCode,
+    this.clearCountryCode = false,
     this.region,
     this.city,
     this.bodyOfWater,
@@ -23,6 +24,11 @@ class SiteLocationDetails {
 
   final String? country;
   final String? countryCode;
+
+  /// In a merge result, whether the stored code must be cleared: the
+  /// country was replaced by one that names no code, so the old code would
+  /// put the previous country's flag beside it.
+  final bool clearCountryCode;
   final String? region;
   final String? city;
   final String? bodyOfWater;
@@ -30,6 +36,7 @@ class SiteLocationDetails {
   bool get isEmpty =>
       country == null &&
       countryCode == null &&
+      !clearCountryCode &&
       region == null &&
       city == null &&
       bodyOfWater == null;
@@ -64,9 +71,11 @@ SiteLocationDetails? mergeLocationDetails({
   }
 
   final country = fill(current.country, found.country);
+  final code = _mergeCode(current, country, found);
   final merged = SiteLocationDetails(
     country: country,
-    countryCode: _mergeCode(current, country, found),
+    countryCode: code.code,
+    clearCountryCode: code.clear,
     region: fill(current.region, found.region),
     city: fill(current.city, found.locality),
     bodyOfWater: fill(current.bodyOfWater, found.bodyOfWater),
@@ -74,23 +83,34 @@ SiteLocationDetails? mergeLocationDetails({
   return merged.isEmpty ? null : merged;
 }
 
-/// The code to write beside [writtenCountry] (null when the country stays).
+/// The code to write beside [writtenCountry] (null when the code stays),
+/// and whether the stored code must be cleared instead.
 ///
 /// A written country brings the geocoder's code with it, or the code its
-/// name reads as. A kept country (the diver's own text) gains the geocoder's
-/// code only when it has none stored and its text names no other country,
-/// so geocoding never contradicts what the diver wrote.
-String? _mergeCode(
+/// name reads as; when it has neither, a stored code is cleared rather than
+/// left beside a country it no longer names. A kept country (the diver's own
+/// text) gains the geocoder's code only when it has none stored and its text
+/// names no other country, so geocoding never contradicts what the diver
+/// wrote.
+({String? code, bool clear}) _mergeCode(
   SiteLocationDetails current,
   String? writtenCountry,
   PlaceLookup found,
 ) {
-  final foundCode = found.countryCode ?? countryCodeFor(found.country);
   if (writtenCountry != null) {
     final code = found.countryCode ?? countryCodeFor(writtenCountry);
-    return code == current.countryCode ? null : code;
+    if (code == null) {
+      return (code: null, clear: !_isBlank(current.countryCode));
+    }
+    return (code: code == current.countryCode ? null : code, clear: false);
   }
-  if (foundCode == null || !_isBlank(current.countryCode)) return null;
+  final foundCode = found.countryCode ?? countryCodeFor(found.country);
+  if (foundCode == null || !_isBlank(current.countryCode)) {
+    return (code: null, clear: false);
+  }
   final readAs = countryCodeFor(current.country);
-  return readAs == null || readAs == foundCode ? foundCode : null;
+  return (
+    code: readAs == null || readAs == foundCode ? foundCode : null,
+    clear: false,
+  );
 }

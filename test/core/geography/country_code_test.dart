@@ -102,6 +102,15 @@ void main() {
       expectCode('Congo-Brazzaville', 'CG');
     });
 
+    test('"NA" is read as not available, not Namibia', () {
+      // Imports and spreadsheets fill an unknown country with "NA" or "N/A";
+      // a Namibian flag there would be wrong. Namibia's name still works.
+      expectCode('NA', null);
+      expectCode('n/a', null);
+      expectCode('Namibia', 'NA');
+      expectCode('NAM', 'NA');
+    });
+
     test('ignores accents either way', () {
       expectCode('Curacao', 'CW');
       expectCode('Curaçao', 'CW');

@@ -16,6 +16,7 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 
 /// Turns a local library site into its document and a document back into
 /// the row and children (issue #2567).
@@ -175,6 +176,17 @@ class SiteDocumentBridge {
         city: pick('city', strOrNull),
         island: pick('island', strOrNull),
         country: pick('country', strOrNull),
+        // Documents carry no code: a country another member changed is read
+        // afresh, so this device's code never names the country it replaced
+        // (issue #4426). Unchanged text keeps the code stored here.
+        countryCode: scalars.contains('country')
+            ? Value(
+                countryCodeOnSave(
+                  country: strOrNull(f['country']),
+                  known: (country: exists?.country, code: exists?.countryCode),
+                ),
+              )
+            : const Value.absent(),
         region: pick('region', strOrNull),
         rating: pick('rating', dbl),
         notes: pick('notes', str),

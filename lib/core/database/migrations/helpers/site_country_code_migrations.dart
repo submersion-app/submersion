@@ -15,25 +15,22 @@ extension SiteCountryCodeMigrations on AppDatabase {
   Future<void> _backfillSiteCountryCodes() async {
     // A partial database (a restore, a test fixture) may lack the table or
     // its columns; there is then nothing to fill.
-    final columns = {
-      for (final column in await customSelect(
-        "PRAGMA table_info('dive_sites')",
-      ).get())
-        column.read<String>('name'),
-    };
-    if (!columns.contains('country') || !columns.contains('country_code')) {
-      return;
-    }
+    final columns = await tableColumnNames(this, 'dive_sites');
+    if (!columns.containsAll(const {'country', 'country_code'})) return;
+    // One write per distinct country text, not per site: a logbook holds
+    // thousands of sites in a few dozen countries.
     final rows = await customSelect(
-      'SELECT id, country FROM dive_sites '
+      'SELECT DISTINCT country FROM dive_sites '
       'WHERE country_code IS NULL AND country IS NOT NULL',
     ).get();
     for (final row in rows) {
-      final code = countryCodeFor(row.read<String>('country'));
+      final country = row.read<String>('country');
+      final code = countryCodeFor(country);
       if (code == null) continue;
       await customStatement(
-        'UPDATE dive_sites SET country_code = ? WHERE id = ?',
-        [code, row.read<String>('id')],
+        'UPDATE dive_sites SET country_code = ? '
+        'WHERE country = ? AND country_code IS NULL',
+        [code, country],
       );
     }
   }

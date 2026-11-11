@@ -479,7 +479,9 @@ class SiteRepository {
         )..where((t) => t.id.equals(siteId))).write(
           DiveSitesCompanion(
             country: column(merged.country),
-            countryCode: column(merged.countryCode),
+            countryCode: merged.clearCountryCode
+                ? const Value(null)
+                : column(merged.countryCode),
             region: column(merged.region),
             city: column(merged.city),
             bodyOfWater: column(merged.bodyOfWater),

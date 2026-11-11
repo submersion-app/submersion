@@ -13,6 +13,7 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart'
     show DocumentOwner, DocumentOwnerKind;
 
@@ -390,6 +391,14 @@ class SiteWrites extends WritableEntry {
         : WaterType.values.byName(v['water_type']! as String);
     final latitude = value<double>('latitude') ?? site.location?.latitude;
     final longitude = value<double>('longitude') ?? site.location?.longitude;
+    // A country written here re-reads its code as the site editor does, so
+    // the flag never stays on the country it replaced (issue #4426).
+    final countryCode = v.containsKey('country')
+        ? countryCodeOnSave(
+            country: value<String>('country'),
+            known: (country: site.country, code: site.countryCode),
+          )
+        : site.countryCode;
     return site.copyWith(
       name: value<String>('name'),
       isShared: value<bool>('is_shared'),
@@ -408,6 +417,8 @@ class SiteWrites extends WritableEntry {
       clearWaterType: clears('water_type'),
       country: value<String>('country'),
       clearCountry: clears('country'),
+      countryCode: countryCode,
+      clearCountryCode: countryCode == null,
       region: value<String>('region'),
       clearRegion: clears('region'),
       city: value<String>('city'),

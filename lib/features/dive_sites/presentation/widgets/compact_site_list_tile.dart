@@ -66,6 +66,10 @@ class CompactSiteListTile extends ConsumerWidget {
       SiteField.location,
     );
     final subtitle = slotText(subtitleField);
+    // A flag only beside a line naming the place.
+    final flagSite = subtitle != null && showsPlace(subtitleField)
+        ? site
+        : null;
     final stat2Field = resolveCardSlot(slots, 'stat2', SiteField.depthRange);
     final showSecondLine = subtitle != null || slotText(stat2Field) != null;
 
@@ -171,17 +175,8 @@ class CompactSiteListTile extends ConsumerWidget {
                               child: Align(
                                 alignment: AlignmentDirectional.centerStart,
                                 child: LocationWithFlag(
-                                  // A flag only beside a line naming the place.
-                                  country:
-                                      subtitle != null &&
-                                          showsPlace(subtitleField)
-                                      ? site.country
-                                      : null,
-                                  countryCode:
-                                      subtitle != null &&
-                                          showsPlace(subtitleField)
-                                      ? site.countryCode
-                                      : null,
+                                  country: flagSite?.country,
+                                  countryCode: flagSite?.countryCode,
                                   text: Text(
                                     subtitle ?? '',
                                     style: Theme.of(context).textTheme.bodySmall

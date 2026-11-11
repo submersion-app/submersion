@@ -164,6 +164,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   /// geocoder's after a lookup fills the country (issue #4426). Save keeps
   /// it while the country text is unchanged, and re-reads an edited text.
   KnownCountryCode _knownCountryCode = (country: null, code: null);
+
+  /// Each merged site's stored country and code, by site id, so choosing a
+  /// site's country while merging brings that site's code with it.
+  final Map<String, KnownCountryCode> _mergeCountryCodes = {};
   final _regionController = TextEditingController();
   final _cityController = TextEditingController();
   final _islandController = TextEditingController();
@@ -367,13 +371,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
   /// [mergeLocationDetails]. Returns whether any field changed. Callers
   /// decide whether that dirties the form.
   bool _applyPlaceLookup(PlaceLookup lookup, {required bool overwrite}) {
+    final currentCode =
+        _knownCountryCode.country?.trim() == _countryController.text.trim()
+        ? _knownCountryCode.code
+        : null;
     final merged = mergeLocationDetails(
       current: SiteLocationDetails(
         country: _countryController.text,
-        countryCode:
-            _knownCountryCode.country?.trim() == _countryController.text.trim()
-            ? _knownCountryCode.code
-            : null,
+        countryCode: currentCode,
         region: _regionController.text,
         city: _cityController.text,
         bodyOfWater: _bodyOfWaterController.text,
@@ -391,10 +396,14 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     }
 
     set(_countryController, merged.country);
-    if (merged.countryCode != null) {
+    // A written country keeps its code even when the merge reports the code
+    // as unchanged (null), so save does not re-read a name the table cannot.
+    if (merged.country != null || merged.countryCode != null) {
       _knownCountryCode = (
         country: _countryController.text,
-        code: merged.countryCode,
+        code: merged.clearCountryCode
+            ? null
+            : merged.countryCode ?? currentCode,
       );
     }
     set(_regionController, merged.region);
@@ -633,6 +642,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       getValue: (site) => site.country ?? '',
       isMeaningful: (value) => value.trim().isNotEmpty,
     );
+    _mergeCountryCodes
+      ..clear()
+      ..addAll({
+        for (final site in data.sites)
+          site.id: (country: site.country, code: site.countryCode),
+      });
+    _adoptMergeCountryCode(_mergeFieldIndices['country'] ?? 0);
     _initializeMergeTextField(
       key: 'region',
       controller: _regionController,
@@ -1615,9 +1631,19 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return index >= 0 ? index : 0;
   }
 
+  /// Takes the stored code of the site whose country merge candidate
+  /// [index] shows, so save keeps it while the text is left as chosen.
+  void _adoptMergeCountryCode(int index) {
+    final candidates = _mergeTextCandidates['country'];
+    if (candidates == null || index < 0 || index >= candidates.length) return;
+    final known = _mergeCountryCodes[candidates[index].siteId];
+    if (known != null) _knownCountryCode = known;
+  }
+
   void _selectTextFieldCandidate(String key, int index) {
     final candidates = _mergeTextCandidates[key];
     if (candidates == null || index < 0 || index >= candidates.length) return;
+    if (key == 'country') _adoptMergeCountryCode(index);
 
     // Text rows only. Enum-valued merge fields (difficulty, waterType,
     // entryMethod, exitMethod) and rating are cycled by their own _cycleX
