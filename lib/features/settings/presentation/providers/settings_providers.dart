@@ -2090,6 +2090,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await prefs.setString(cachedThemePresetKey, state.themePresetId);
   }
 
+  /// The last change still waiting in [_update] to apply, or null when none
+  /// is. Each waiting change applies after the one before it, and a change
+  /// made while any waits joins the queue rather than applying at once, so
+  /// changes apply in the order they were made.
+  Future<void>? _queuedChange;
+
   /// Applies [change] to the settings and saves the result. Every setter
   /// changes the settings through this.
   ///
@@ -2102,8 +2108,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   /// also lets a change worked out from the current settings (a set gaining
   /// an entry) build on the diver's rather than on the defaults. A failed
   /// load is already logged where it started and leaves the defaults, so the
-  /// change applies on top of them. Once the load has landed the change
-  /// applies at once, before this returns.
+  /// change applies on top of them. Once the load has landed, and no earlier
+  /// change is still waiting, the change applies at once, before this
+  /// returns.
   ///
   /// [change] returning its argument itself means there is nothing to
   /// change, and nothing is saved. [devicePrefs] is passed to
@@ -2112,20 +2119,39 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     AppSettings Function(AppSettings current) change, {
     bool devicePrefs = true,
   }) async {
-    if (_landedGeneration != _loadGeneration) {
+    // Runs synchronously up to the save's first await, so [state] holds the
+    // change, and the save has taken its turn, by the time it returns.
+    Future<void> apply() async {
+      // Disposed (a soft restart tears the scope down): nothing to change.
+      if (!mounted) return;
+      final current = state;
+      final next = change(current);
+      if (identical(next, current)) return;
+      state = next;
+      await _saveSettings(devicePrefs: devicePrefs);
+    }
+
+    final before = _queuedChange;
+    if (before == null && _landedGeneration == _loadGeneration) {
+      return apply();
+    }
+    final applied = Completer<void>();
+    final ticket = applied.future;
+    _queuedChange = ticket;
+    Future<void> saving;
+    try {
+      if (before != null) await before;
       try {
         await settingsLoaded;
       } catch (_) {
         // Already logged by the load; the defaults are the fallback.
       }
+      saving = apply();
+    } finally {
+      if (identical(_queuedChange, ticket)) _queuedChange = null;
+      applied.complete();
     }
-    // Disposed (a soft restart tears the scope down): nothing to change.
-    if (!mounted) return;
-    final current = state;
-    final next = change(current);
-    if (identical(next, current)) return;
-    state = next;
-    await _saveSettings(devicePrefs: devicePrefs);
+    await saving;
   }
 
   Future<void> setDepthUnit(DepthUnit unit) =>

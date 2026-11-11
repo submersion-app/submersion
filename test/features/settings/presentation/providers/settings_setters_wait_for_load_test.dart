@@ -103,6 +103,26 @@ void main() {
     expect(stored.coldWaterThresholdC, 15);
   });
 
+  test('a change made just after the load lands is not undone by one queued '
+      'before it', () async {
+    final notifier = container.read(settingsProvider.notifier);
+    final queued = notifier.setDepthUnit(DepthUnit.feet);
+    Future<void>? later;
+    // The load assigns state when it lands, then finishes its own writes.
+    // A change made in between is the diver's latest and must win.
+    final sub = container.listen(settingsProvider, (_, _) {
+      later ??= Future.microtask(() => notifier.setDepthUnit(DepthUnit.meters));
+    });
+    addTearDown(sub.close);
+    gate.complete();
+    await queued;
+    await later;
+
+    expect(container.read(settingsProvider).depthUnit, DepthUnit.meters);
+    final stored = await DiverSettingsRepository().getSettingsForDiver(diverId);
+    expect(stored!.depthUnit, DepthUnit.meters);
+  });
+
   test('once the load has landed a change applies before the setter '
       'returns', () async {
     gate.complete();
