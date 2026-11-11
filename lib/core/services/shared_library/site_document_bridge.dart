@@ -403,6 +403,12 @@ class SiteDocumentBridge {
 /// The code a library site stores from a document (issue #4426): the
 /// document's own code when its [country] text does not read as a different
 /// country, else what [countryCodeOnSave] gives for the text.
+///
+/// A document with a code but no country text stores no code, on purpose.
+/// No writer in the app keeps a code without its country (clearing the
+/// country clears the code), while an older build that clears the country
+/// passes the old code through untouched; keeping it would draw a flag
+/// beside a site with no country.
 String? _documentCountryCode({
   required String? country,
   required String? documentCode,

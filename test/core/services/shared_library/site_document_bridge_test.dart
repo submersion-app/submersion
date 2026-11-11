@@ -315,6 +315,14 @@ void main() {
       );
     });
 
+    test('a code with no country text is not kept', () async {
+      // An older build cleared the country and passed the old code through.
+      expect(
+        await applyAndRead({'country': null, 'countryCode': 'KR'}),
+        isNull,
+      );
+    });
+
     test('a document without a code reads its country text', () async {
       expect(await applyAndRead({'country': 'Mexico'}), 'MX');
     });
