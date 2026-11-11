@@ -130,17 +130,46 @@ class LocationWithFlag extends ConsumerWidget {
   }
 
   /// The height of one line of [text] as it will lay out.
+  ///
+  /// Measured once per style, text scale and direction: a list's rows share
+  /// one style, so a long list lays text out for this once, not per row.
   double _firstLineHeight(BuildContext context) {
     final own = text is Text ? (text as Text).style : null;
     final style = DefaultTextStyle.of(context).style.merge(own);
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    final key = (style, scaler, direction);
+    final cached = _lineHeights[key];
+    if (cached != null) return cached;
+
     final painter = TextPainter(
       text: TextSpan(text: 'Ag', style: style),
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
+      textDirection: direction,
+      textScaler: scaler,
       maxLines: 1,
     )..layout();
     final height = painter.height;
     painter.dispose();
-    return height;
+    _measurements++;
+    // A handful of styles in practice; the bound only stops a theme or
+    // scale being changed over and over from growing it without end.
+    if (_lineHeights.length >= _maxLineHeights) _lineHeights.clear();
+    return _lineHeights[key] = height;
+  }
+
+  static const _maxLineHeights = 32;
+  static final Map<(TextStyle, TextScaler, TextDirection), double>
+  _lineHeights = {};
+  static int _measurements = 0;
+
+  /// How many lines have been measured since [debugResetLineHeights].
+  @visibleForTesting
+  static int get debugLineMeasurements => _measurements;
+
+  /// Forgets every measured line height.
+  @visibleForTesting
+  static void debugResetLineHeights() {
+    _lineHeights.clear();
+    _measurements = 0;
   }
 }

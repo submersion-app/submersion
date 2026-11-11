@@ -168,6 +168,23 @@ void main() {
       expect(flagTop, lessThan(textRect.bottom));
     });
 
+    testWidgets('rows sharing a text style measure the line once', (
+      tester,
+    ) async {
+      LocationWithFlag.debugResetLineHeights();
+      await _pump(
+        tester,
+        const Column(
+          children: [
+            LocationWithFlag(country: 'Mexico', text: Text('Cozumel')),
+            LocationWithFlag(country: 'Belize', text: Text('Lighthouse')),
+            LocationWithFlag(country: 'Egypt', text: Text('Dahab')),
+          ],
+        ),
+      );
+      expect(LocationWithFlag.debugLineMeasurements, 1);
+    });
+
     testWidgets('the flag lines up with the first line of wrapped text', (
       tester,
     ) async {
