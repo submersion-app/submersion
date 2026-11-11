@@ -175,3 +175,34 @@
 - [ ] **Step 3: Implement**, then `flutter gen-l10n`.
 - [ ] **Step 4: Run** the affected tests and `test/architecture/`. Expected: PASS.
 - [ ] **Step 5: Commit** `feat(trips): show country flags on trips`
+
+---
+
+## Follow-up tasks (stored country code)
+
+### Task F1: `dive_sites.country_code` and its backfill
+- `DiveSites.countryCode` (`text().nullable()`), schema v360 rung with
+  `_assertSiteCountryCodeColumn()` (beforeOpen backstop too) and a rung-only
+  backfill that sets `country_code = countryCodeFor(country)` where it is null.
+- `DiveSite.countryCode` with `copyWith(countryCode:, clearCountryCode:)`,
+  props, the row mapper and every repository companion that writes `country`.
+- `DiveSite.flagCountryCode` getter: `countryCode ?? countryCodeFor(country)`.
+- Tests: migration from v359 backfills a recognised country, leaves an
+  unrecognised one null, keeps an existing code; repository round-trip.
+
+### Task F2: geocoding carries the code
+- `PlaceLookup.countryCode` and `LocationResult.countryCode`; native from
+  `Placemark.isoCountryCode`, web from `address['country_code']`, upper-cased.
+- `mergeLocationDetails` writes the code whenever it writes the country;
+  `applyLocationDetails` stores it.
+- Site editor: a geocoded country keeps the geocoder's code; a hand-edited
+  country recomputes it with `countryCodeFor` (null when unrecognised).
+- Tests for each rule.
+
+### Task F3: lookups prefer the stored code
+- `LocationWithFlag` takes `countryCode` and prefers it over `country`.
+- Site tiles, site details and the dive header pass the site's code.
+- `TripCountryQueries` reads `s.country_code`; the tally prefers it.
+- `DiveSummary.siteCountryCode`; `emergencyRegionProvider` prefers it.
+- Tests: a site whose text is unrecognised but whose code is stored shows its
+  flag, counts toward its trip, and picks its emergency region.

@@ -157,3 +157,22 @@ language.
 - Which list tile density variants of the site and trip lists get the flag:
   my call is every variant that already shows the location (sites) or the
   trip name (trips).
+
+## Follow-up: a stored country code on sites
+
+Added during code review round 2, decided with the user. Name matching alone
+misses names outside the table (informal names, misspellings, languages CLDR
+does not ship), while reverse geocoding already knows the country's ISO code.
+
+- `dive_sites.country_code` (schema v360): a nullable, synced ISO 3166-1
+  alpha-2 code.
+- Geocoding stores the geocoder's code with the country name: the native
+  geocoder's `isoCountryCode`, Nominatim's `address.country_code` on the web.
+- A hand edit of the country text recomputes the code from that text with
+  `countryCodeFor`, or clears it when the text is not recognised, so an edit
+  never leaves a stale flag. Text filled by geocoding and left as it was keeps
+  the geocoder's code.
+- The v360 migration backfills the code for every existing site whose country
+  text `countryCodeFor` recognises today. No network, no re-geocoding.
+- Flags, trip flags and the emergency card use the stored code first and fall
+  back to name matching when a site has none.
