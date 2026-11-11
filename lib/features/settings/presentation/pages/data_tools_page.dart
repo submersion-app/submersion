@@ -5,12 +5,14 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/agent_access/presentation/providers/agent_access_providers.dart';
 import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
+import 'package:submersion/features/settings/presentation/widgets/relink_data_sources_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings > Data > Advanced > Data tools (issue #3482): the one-off repair
 /// tools that used to sit at the bottom of the Data page, each opening its
 /// own page. Re-parse dives (issue #224) is offered where the dive parser
-/// runs.
+/// runs. Relink data sources (issue #4465) runs in place after a
+/// confirmation.
 ///
 /// Agent access (the in-app MCP server) is listed here too, on desktop only
 /// and, until its write surface is complete, only while debug mode is on.
@@ -72,6 +74,7 @@ class DataToolsPage extends ConsumerWidget {
               l10n.settings_reparseDives_subtitle,
               '/settings/reparse-dives',
             ),
+          const RelinkDataSourcesTile(),
           if (showAgentAccess)
             DataRowTile(
               icon: Icons.smart_toy_outlined,

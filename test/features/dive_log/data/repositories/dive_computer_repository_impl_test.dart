@@ -655,7 +655,10 @@ void main() {
       expect(pending, isNotEmpty);
     });
 
-    test('does not relink without a serial number', () async {
+    test('does not relink without a serial number when another computer of '
+        'the model exists (#4465)', () async {
+      // Without a serial only the model identifies the source, and a second
+      // Perdix means it could be either unit's.
       final oldId = await insertComputer(
         manufacturer: 'Shearwater',
         model: 'Perdix',
@@ -670,6 +673,12 @@ void main() {
         sourceFormat: 'dive_computer',
       );
       await repository.deleteComputer(oldId);
+      await insertComputer(
+        id: 'second-perdix',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: 'SN-99999',
+      );
 
       await repository.createComputer(newComputer(serialNumber: null));
 

@@ -39222,6 +39222,38 @@ class AppLocalizationsIt extends AppLocalizations {
       'Riesegui il parser su ogni immersione con dati grezzi salvati';
 
   @override
+  String get settings_relinkSources_title => 'Ricollega le fonti dati';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'Ricollega le immersioni scaricate al computer subacqueo da cui provengono';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'Le immersioni scaricate perdono il collegamento con un computer subacqueo quando la sua voce viene eliminata. Questa azione le ricollega al computer da cui provengono: tramite numero di serie, oppure tramite modello se hai un solo computer di quel modello.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'Ricollega';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fonti dati ricollegate ai loro computer subacquei',
+      one: '1 fonte dati ricollegata al suo computer subacqueo',
+      zero:
+          'Nessuna fonte dati non collegata corrisponde a un computer subacqueo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_relinkSources_failed(String error) {
+    return 'Impossibile ricollegare le fonti dati: $error';
+  }
+
+  @override
   String get settings_reparseDives_intro =>
       'Usalo quando un aggiornamento dell\'app migliora la lettura dei dati del computer subacqueo. Note, siti, compagni e altre modifiche vengono conservati.';
 

@@ -39132,6 +39132,37 @@ class AppLocalizationsDe extends AppLocalizations {
       'Den Tauchgang-Parser für jeden Tauchgang mit gespeicherten Rohdaten erneut ausführen';
 
   @override
+  String get settings_relinkSources_title => 'Datenquellen neu verknüpfen';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'Heruntergeladene Tauchgänge wieder mit ihrem Tauchcomputer verknüpfen';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'Heruntergeladene Tauchgänge verlieren die Verknüpfung zu einem Tauchcomputer, wenn sein Eintrag gelöscht wird. Hiermit werden sie wieder mit dem Tauchcomputer verknüpft, von dem sie stammen: über die Seriennummer, oder über das Modell, wenn du nur einen Tauchcomputer dieses Modells hast.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'Verknüpfen';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Datenquellen mit ihren Tauchcomputern verknüpft',
+      one: '1 Datenquelle mit ihrem Tauchcomputer verknüpft',
+      zero: 'Keine unverknüpfte Datenquelle passte zu einem Tauchcomputer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_relinkSources_failed(String error) {
+    return 'Datenquellen konnten nicht verknüpft werden: $error';
+  }
+
+  @override
   String get settings_reparseDives_intro =>
       'Nutze dies, wenn ein App-Update das Einlesen von Tauchcomputerdaten verbessert. Notizen, Tauchplätze, Tauchpartner und andere Bearbeitungen bleiben erhalten.';
 

@@ -39011,6 +39011,37 @@ class AppLocalizationsHu extends AppLocalizations {
       'A merüléselemző újrafuttatása minden merülésre, amelyhez nyers adat tartozik';
 
   @override
+  String get settings_relinkSources_title => 'Adatforrások újracsatolása';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'A letöltött merülések visszacsatolása ahhoz a búvárkomputerhez, amelyről származnak';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'A letöltött merülések elveszítik a kapcsolatot egy búvárkomputerrel, ha annak bejegyzését törlik. Ez újra összekapcsolja őket azzal a búvárkomputerrel, amelyről származnak: sorozatszám alapján, vagy típus alapján, ha csak egy ilyen típusú búvárkomputered van.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'Újracsatolás';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count adatforrás visszacsatolva a búvárkomputereihez',
+      one: '1 adatforrás visszacsatolva a búvárkomputeréhez',
+      zero: 'Egyetlen csatolatlan adatforrás sem illett búvárkomputerhez',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_relinkSources_failed(String error) {
+    return 'Az adatforrások újracsatolása nem sikerült: $error';
+  }
+
+  @override
   String get settings_reparseDives_intro =>
       'Akkor használd, ha egy alkalmazásfrissítés javítja a búvárkomputer-adatok beolvasását. A jegyzetek, helyszínek, búvártársak és egyéb szerkesztések megmaradnak.';
 

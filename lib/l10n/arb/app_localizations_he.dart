@@ -38260,6 +38260,37 @@ class AppLocalizationsHe extends AppLocalizations {
       'הפעל את מנתח הצלילות מחדש על כל צלילה שיש לה נתונים גולמיים שמורים';
 
   @override
+  String get settings_relinkSources_title => 'קישור מחדש של מקורות נתונים';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'קישור צלילות שהורדו בחזרה למחשב הצלילה שממנו הגיעו';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'צלילות שהורדו מאבדות את הקישור למחשב צלילה כאשר הרשומה שלו נמחקת. פעולה זו מקשרת אותן מחדש למחשב הצלילה שממנו הגיעו: לפי מספר סידורי, או לפי דגם כאשר יש לך רק מחשב צלילה אחד מאותו דגם.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'קישור מחדש';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מקורות נתונים קושרו למחשבי הצלילה שלהם',
+      one: 'מקור נתונים אחד קושר למחשב הצלילה שלו',
+      zero: 'אף מקור נתונים לא מקושר לא התאים למחשב צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_relinkSources_failed(String error) {
+    return 'לא ניתן לקשר מחדש את מקורות הנתונים: $error';
+  }
+
+  @override
   String get settings_reparseDives_intro =>
       'השתמש בזה אחרי שעדכון של האפליקציה משפר את קריאת נתוני מחשב הצלילה. ההערות, האתרים, השותפים ושאר העריכות נשמרים.';
 

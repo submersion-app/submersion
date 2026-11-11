@@ -39741,6 +39741,37 @@ class AppLocalizationsAr extends AppLocalizations {
       'إعادة تشغيل محلل الغطسات على كل غطسة لها بيانات أولية مخزنة';
 
   @override
+  String get settings_relinkSources_title => 'إعادة ربط مصادر البيانات';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'إعادة ربط الغطسات المنزّلة بكمبيوتر الغوص الذي جاءت منه';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'تفقد الغطسات المنزّلة ارتباطها بكمبيوتر الغوص عند حذف إدخاله. يعيد هذا ربطها بكمبيوتر الغوص الذي جاءت منه: حسب الرقم التسلسلي، أو حسب الطراز عندما يكون لديك كمبيوتر غوص واحد فقط من هذا الطراز.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'إعادة الربط';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم ربط $count من مصادر البيانات بأجهزة كمبيوتر الغوص الخاصة بها',
+      one: 'تم ربط مصدر بيانات واحد بكمبيوتر الغوص الخاص به',
+      zero: 'لم يطابق أي مصدر بيانات غير مرتبط كمبيوتر غوص',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_relinkSources_failed(String error) {
+    return 'تعذّر إعادة ربط مصادر البيانات: $error';
+  }
+
+  @override
   String get settings_reparseDives_intro =>
       'استخدم هذا بعد أن يُحسّن تحديث للتطبيق قراءة بيانات كمبيوتر الغوص. تبقى الملاحظات والمواقع والشركاء والتعديلات الأخرى محفوظة.';
 

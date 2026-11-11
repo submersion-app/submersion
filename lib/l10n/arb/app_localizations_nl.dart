@@ -38951,6 +38951,37 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voer de duikparser opnieuw uit voor elke duik met opgeslagen ruwe data';
 
   @override
+  String get settings_relinkSources_title => 'Gegevensbronnen opnieuw koppelen';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'Gedownloade duiken weer koppelen aan de duikcomputer waar ze vandaan komen';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'Gedownloade duiken verliezen hun koppeling met een duikcomputer wanneer de invoer ervan wordt verwijderd. Hiermee worden ze weer gekoppeld aan de duikcomputer waar ze vandaan komen: op serienummer, of op model als je maar één duikcomputer van dat model hebt.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'Koppelen';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gegevensbronnen gekoppeld aan hun duikcomputers',
+      one: '1 gegevensbron gekoppeld aan zijn duikcomputer',
+      zero: 'Geen ongekoppelde gegevensbron paste bij een duikcomputer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_relinkSources_failed(String error) {
+    return 'Gegevensbronnen konden niet worden gekoppeld: $error';
+  }
+
+  @override
   String get settings_reparseDives_intro =>
       'Gebruik dit nadat een app-update het inlezen van duikcomputerdata verbetert. Je notities, locaties, buddy\'s en andere wijzigingen blijven behouden.';
 

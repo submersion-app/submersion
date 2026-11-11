@@ -61533,6 +61533,42 @@ abstract class AppLocalizations {
   /// **'Re-run the dive parser on every dive with stored raw data'**
   String get settings_reparseDives_subtitle;
 
+  /// Data tools relink of orphaned downloaded data sources (issue #4465)
+  ///
+  /// In en, this message translates to:
+  /// **'Relink data sources'**
+  String get settings_relinkSources_title;
+
+  /// Data tools relink of orphaned downloaded data sources (issue #4465)
+  ///
+  /// In en, this message translates to:
+  /// **'Link downloaded dives back to the dive computer they came from'**
+  String get settings_relinkSources_subtitle;
+
+  /// Data tools relink of orphaned downloaded data sources (issue #4465)
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded dives lose their link to a dive computer when its entry is deleted. This links them to the dive computer they came from again: by serial number, or by model when you have only one dive computer of that model.'**
+  String get settings_relinkSources_confirmBody;
+
+  /// Data tools relink of orphaned downloaded data sources (issue #4465)
+  ///
+  /// In en, this message translates to:
+  /// **'Relink'**
+  String get settings_relinkSources_confirmApply;
+
+  /// Data tools relink of orphaned downloaded data sources (issue #4465)
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No unlinked data sources matched a dive computer} =1{Linked 1 data source to its dive computer} other{Linked {count} data sources to their dive computers}}'**
+  String settings_relinkSources_result(int count);
+
+  /// Data tools relink of orphaned downloaded data sources (issue #4465)
+  ///
+  /// In en, this message translates to:
+  /// **'Could not relink data sources: {error}'**
+  String settings_relinkSources_failed(String error);
+
   /// Bulk re-parse (issue #224)
   ///
   /// In en, this message translates to:

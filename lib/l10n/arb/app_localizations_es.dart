@@ -39238,6 +39238,39 @@ class AppLocalizationsEs extends AppLocalizations {
       'Volver a ejecutar el analizador en cada inmersión con datos sin procesar almacenados';
 
   @override
+  String get settings_relinkSources_title =>
+      'Volver a vincular fuentes de datos';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'Vincular de nuevo las inmersiones descargadas con el ordenador de buceo del que proceden';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'Las inmersiones descargadas pierden el vínculo con un ordenador de buceo cuando se elimina su entrada. Esto las vuelve a vincular con el ordenador del que proceden: por número de serie, o por modelo cuando solo tienes un ordenador de ese modelo.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'Vincular';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fuentes de datos vinculadas a sus ordenadores de buceo',
+      one: '1 fuente de datos vinculada a su ordenador de buceo',
+      zero:
+          'Ninguna fuente de datos sin vincular coincidió con un ordenador de buceo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_relinkSources_failed(String error) {
+    return 'No se pudieron vincular las fuentes de datos: $error';
+  }
+
+  @override
   String get settings_reparseDives_intro =>
       'Úsalo cuando una actualización de la app mejore la lectura de los datos del ordenador de buceo. Se conservan tus notas, sitios, compañeros y otras ediciones.';
 

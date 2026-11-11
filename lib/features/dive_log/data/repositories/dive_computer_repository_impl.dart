@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/features/dive_log/data/services/orphaned_source_relinker.dart';
 import 'package:submersion/features/dive_log/data/services/user_event_preservation.dart';
 import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/database/database.dart'
@@ -90,6 +91,10 @@ class DiveComputerRepository {
   final ProfileSeriesRepository _profileSeries = ProfileSeriesRepository();
   final TankPressureSeriesRepository _tankSeries =
       TankPressureSeriesRepository();
+  late final OrphanedSourceRelinker _relinker = OrphanedSourceRelinker(
+    syncRepository: _syncRepository,
+    profileSeries: _profileSeries,
+  );
   final _uuid = const Uuid();
   final _log = LoggerService.forClass(DiveComputerRepository);
 
@@ -423,7 +428,7 @@ class DiveComputerRepository {
 
         // If a computer with this hardware identity was deleted earlier, its
         // dives kept provenance snapshots; give them their link back.
-        await _relinkOrphanedRows(id, computer);
+        await _relinkOrphanedRows(id);
         return twinId;
       });
       SyncEventBus.notifyLocalChange();
@@ -480,6 +485,13 @@ class DiveComputerRepository {
       );
       SyncEventBus.notifyLocalChange();
       await _healSnapshotSerials(computer.id);
+      // A serial given now, by hand or by a download that learned it, can
+      // match sources a deleted entry for this hardware left behind
+      // (issue #4465).
+      if (await _relinkOrphanedRows(computer.id) > 0) {
+        _notifyRelinked();
+        SyncEventBus.notifyLocalChange();
+      }
 
       _log.info('Updated dive computer: ${computer.id}');
     } catch (e, stackTrace) {
@@ -535,6 +547,12 @@ class DiveComputerRepository {
       )..where((t) => t.id.equals(id))).getSingleOrNull();
       if (row != null) {
         await _backfillProvenanceSnapshots(_mapRowToComputer(row));
+        // A source saved before the computer knew its serial still has an
+        // empty serial copy unless a heal has run since. Fill it while the
+        // link still says which computer it is, or nothing would identify
+        // the unit once the link is gone (issue #4465). The detach below
+        // restamps and stages these rows, so the serial syncs with it.
+        await healDownloadedSnapshotSerials(_db, computerId: id);
       }
 
       // Clear the series first: their FK is ON DELETE SET NULL, so the
@@ -677,114 +695,62 @@ class DiveComputerRepository {
     );
   }
 
-  /// Restore the links a deleted computer with this hardware identity left
-  /// behind. Orphaned `dive_data_sources` rows are matched on the model +
-  /// serial snapshot; their dives (when the matched source is the dive's
-  /// primary and no live computer claims the dive) and, for dives whose
-  /// computer attribution is unambiguous, their profiles get [computerId]
-  /// back. Relinked dives are marked pending so the restored link syncs.
-  /// Best-effort: a relink failure must never fail the computer creation.
-  Future<void> _relinkOrphanedRows(
-    String computerId,
-    domain.DiveComputer computer,
-  ) async {
-    final serial = computer.serialNumber;
-    if (serial == null || serial.isEmpty) return;
+  /// Give the downloaded sources a deleted computer left behind back to
+  /// [computerId] when they came from the same hardware (issue #4465), with
+  /// their dives and profiles; see [OrphanedSourceRelinker]. Runs when a
+  /// computer is created or saved, since either can complete the identity a
+  /// source is matched on. Best-effort: a relink failure must never fail the
+  /// save, and rolls back only its own writes (inside the creation's
+  /// transaction, drift nests this one as a savepoint). Returns how many
+  /// sources it linked.
+  Future<int> _relinkOrphanedRows(String computerId) async {
     try {
-      final matched = await _db
-          .customSelect(
-            'SELECT id, dive_id, is_primary FROM dive_data_sources '
-            'WHERE computer_id IS NULL AND source_format = ? '
-            'AND computer_model = ? AND computer_serial = ?',
-            variables: [
-              const Variable('dive_computer'),
-              Variable(computer.fullName),
-              Variable(serial),
-            ],
-            readsFrom: {_db.diveDataSources},
-          )
-          .get();
-      if (matched.isEmpty) return;
-
-      final sourceIds = matched.map((r) => r.read<String>('id')).toList();
-      final sourcePh = List.filled(sourceIds.length, '?').join(', ');
-      await _db.customStatement(
-        'UPDATE dive_data_sources SET computer_id = ?, hlc = ? '
-        'WHERE id IN ($sourcePh)',
-        [computerId, await _syncRepository.issueRowClock(), ...sourceIds],
+      final linked = await _db.transaction(
+        () => _relinker.relink(computerId: computerId),
       );
-      // Each source is published on its own, which also gives it a fresh
-      // clock (#2644): its dive is staged below only when the source is the
-      // primary, so a secondary source would otherwise never leave this
-      // device, and a peer's newer copy, still orphaned, would clear the
-      // link again.
-      final relinkedAt = DateTime.now().millisecondsSinceEpoch;
-      for (final id in sourceIds) {
-        await _syncRepository.markRecordPending(
-          entityType: 'diveDataSources',
-          recordId: id,
-          localUpdatedAt: relinkedAt,
-        );
+      if (linked > 0) {
+        _log.info('Relinked $linked data source(s) to computer $computerId');
       }
-
-      // Restore the dive's primary-computer link where the matched source is
-      // the dive's primary and no live computer claims the dive.
-      final primaryDiveIds = matched
-          .where((r) => r.read<int>('is_primary') != 0)
-          .map((r) => r.read<String>('dive_id'))
-          .toSet()
-          .toList();
-      if (primaryDiveIds.isNotEmpty) {
-        final divePh = List.filled(primaryDiveIds.length, '?').join(', ');
-        final claimable = await _db
-            .customSelect(
-              'SELECT id FROM dives '
-              'WHERE computer_id IS NULL AND id IN ($divePh)',
-              variables: [for (final d in primaryDiveIds) Variable(d)],
-              readsFrom: {_db.dives},
-            )
-            .get();
-        final diveIds = claimable.map((r) => r.read<String>('id')).toList();
-        if (diveIds.isNotEmpty) {
-          final now = DateTime.now().millisecondsSinceEpoch;
-          final ph = List.filled(diveIds.length, '?').join(', ');
-          await _db.customStatement(
-            'UPDATE dives SET computer_id = ?, updated_at = ? '
-            'WHERE id IN ($ph)',
-            [computerId, now, ...diveIds],
-          );
-          for (final diveId in diveIds) {
-            await _syncRepository.markRecordPending(
-              entityType: 'dives',
-              recordId: diveId,
-              localUpdatedAt: now,
-            );
-          }
-        }
-      }
-
-      // Profiles carry no serial snapshot of their own, so restore them only
-      // when the dive's computer attribution is unambiguous: exactly one
-      // dive_computer source row.
-      final matchedDiveIds = matched
-          .map((r) => r.read<String>('dive_id'))
-          .toSet()
-          .toList();
-      await _profileSeries.relinkComputer(computerId, matchedDiveIds);
-
-      _log.info(
-        'Relinked ${sourceIds.length} data source(s) from previous '
-        '${computer.fullName} (${computer.serialNumber}) '
-        'to computer $computerId',
-      );
+      return linked;
     } catch (e, stackTrace) {
       _log.error(
         'Failed to relink orphaned rows to computer $computerId',
         error: e,
         stackTrace: stackTrace,
       );
+      return 0;
     }
   }
+
+  /// Settings > Data tools > Relink data sources (issue #4465): give every
+  /// downloaded source with no computer link the registered computer it came
+  /// from, where that can be told, and return how many were linked. Unlike
+  /// the relink on a computer save, this one reports a failure.
+  Future<int> relinkOrphanedSources() async {
+    try {
+      final linked = await _db.transaction(_relinker.relink);
+      if (linked > 0) {
+        _notifyRelinked();
+        SyncEventBus.notifyLocalChange();
+      }
+      _log.info('Relinked $linked orphaned data source(s)');
+      return linked;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to relink orphaned data sources',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Wakes the dive and data source watchers after a relink, whose raw
+  /// statements drift cannot attribute to a table on its own.
+  void _notifyRelinked() => _db.notifyUpdates({
+    TableUpdate.onTable(_db.diveDataSources, kind: UpdateKind.update),
+    TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
+  });
 
   /// Set or clear one computer's opt-out from auto-download (issue #3361),
   /// leaving every other column as it is.

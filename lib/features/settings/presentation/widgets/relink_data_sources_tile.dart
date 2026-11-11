@@ -1,0 +1,63 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/settings/presentation/widgets/data_row_tile.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
+
+/// Settings > Data tools > Relink data sources (issue #4465): links the
+/// downloaded data sources that lost their dive computer, when its entry was
+/// deleted, back to the computer they came from. A one-tap repair after a
+/// confirmation, so it runs in place rather than on a page of its own.
+class RelinkDataSourcesTile extends ConsumerWidget {
+  const RelinkDataSourcesTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    return DataRowTile(
+      icon: Icons.link,
+      title: l10n.settings_relinkSources_title,
+      subtitle: l10n.settings_relinkSources_subtitle,
+      onTap: () => _relink(context, ref),
+    );
+  }
+
+  Future<void> _relink(BuildContext context, WidgetRef ref) async {
+    if (!await _confirm(context) || !context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    String message;
+    try {
+      final linked = await ref
+          .read(diveComputerRepositoryProvider)
+          .relinkOrphanedSources();
+      message = l10n.settings_relinkSources_result(linked);
+    } catch (e) {
+      message = l10n.settings_relinkSources_failed('$e');
+    }
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<bool> _confirm(BuildContext context) async {
+    final l10n = context.l10n;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.settings_relinkSources_title),
+        content: Text(l10n.settings_relinkSources_confirmBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.common_action_cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.settings_relinkSources_confirmApply),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+}

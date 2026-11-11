@@ -38556,6 +38556,37 @@ class AppLocalizationsEn extends AppLocalizations {
       'Re-run the dive parser on every dive with stored raw data';
 
   @override
+  String get settings_relinkSources_title => 'Relink data sources';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'Link downloaded dives back to the dive computer they came from';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'Downloaded dives lose their link to a dive computer when its entry is deleted. This links them to the dive computer they came from again: by serial number, or by model when you have only one dive computer of that model.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'Relink';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Linked $count data sources to their dive computers',
+      one: 'Linked 1 data source to its dive computer',
+      zero: 'No unlinked data sources matched a dive computer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String settings_relinkSources_failed(String error) {
+    return 'Could not relink data sources: $error';
+  }
+
+  @override
   String get settings_reparseDives_intro =>
       'Use this after an app update improves how dive computer data is read. Your notes, sites, buddies, and other edits are preserved.';
 
