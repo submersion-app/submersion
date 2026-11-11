@@ -67,10 +67,27 @@ class PinnedStripPainter extends CustomPainter {
     return start == null ? own : PlotMapping.lerp(start, own, morph);
   }
 
+  /// Where the curve is clipped while it morphs: from the chart's plot (the
+  /// chart clips its line there, so a zoomed-in chart hides the rest of the
+  /// dive) to the strip's whole curve area. Null without a chart plot.
+  Rect? clipFor(Size size) {
+    final start = from;
+    if (start == null) return null;
+    final curveArea = Rect.fromLTWH(
+      0,
+      0,
+      size.width,
+      math.max(0.0, size.height - kPinnedStripRowHeight),
+    );
+    return Rect.lerp(start.rect, curveArea, morph);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     if (profile.length < 2) return;
     final m = mappingFor(size);
+    final clip = clipFor(size);
+    if (clip != null) canvas.clipRect(clip);
     final surfaceY = m.project(0, 0).dy;
 
     final line = Path();
@@ -123,7 +140,5 @@ class PinnedStripPainter extends CustomPainter {
       old.fillColor != fillColor ||
       old.markerColor != markerColor ||
       old.morph != morph ||
-      old.from?.rect != from?.rect ||
-      old.from?.maxSeconds != from?.maxSeconds ||
-      old.from?.maxDepthMeters != from?.maxDepthMeters;
+      old.from != from;
 }

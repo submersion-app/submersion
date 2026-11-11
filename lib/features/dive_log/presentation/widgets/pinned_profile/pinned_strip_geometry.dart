@@ -85,6 +85,19 @@ class PlotMapping {
     );
   }
 
+  @override
+  bool operator ==(Object other) =>
+      other is PlotMapping &&
+      other.rect == rect &&
+      other.minSeconds == minSeconds &&
+      other.maxSeconds == maxSeconds &&
+      other.minDepthMeters == minDepthMeters &&
+      other.maxDepthMeters == maxDepthMeters;
+
+  @override
+  int get hashCode =>
+      Object.hash(rect, minSeconds, maxSeconds, minDepthMeters, maxDepthMeters);
+
   PlotMapping shift(Offset offset) => PlotMapping(
     rect: rect.shift(offset),
     minSeconds: minSeconds,
