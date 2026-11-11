@@ -25,6 +25,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/dive_owner_display.dart';
 import 'package:submersion/features/divers/presentation/widgets/dive_owner_avatar.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
@@ -318,7 +319,9 @@ class _MeChip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
-    final diver = ref.watch(diveOwnerProvider(diveOwnerId)).value;
+    final ownerAsync = ref.watch(diveOwnerProvider(diveOwnerId));
+    final diver = ownerAsync.value;
+    final pending = isDiveOwnerPending(ownerAsync);
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     final roleLabel = diverRoleIds.isEmpty
@@ -329,12 +332,14 @@ class _MeChip extends ConsumerWidget {
           ).joinedLocalizedNames(context.l10n);
     return InputChip(
       tooltip: roleLabel,
-      avatar: DiveOwnerAvatar(diver: diver, iconSize: 14),
+      avatar: DiveOwnerAvatar(diver: diver, iconSize: 14, pending: pending),
       label: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(diveOwnerLabel(diver, context.l10n)),
+          // Empty while pending: it still takes a line, so the chip keeps its
+          // size when the name arrives.
+          Text(pending ? '' : diveOwnerLabel(diver, context.l10n)),
           _RoleLine(roleLabel),
         ],
       ),

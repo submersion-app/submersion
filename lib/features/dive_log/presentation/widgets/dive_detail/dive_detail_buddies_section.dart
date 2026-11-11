@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_roles/presentation/dive_role_list_displ
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/dive_owner_display.dart';
 import 'package:submersion/features/divers/presentation/widgets/dive_owner_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
@@ -24,15 +25,11 @@ class DiveBuddiesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final buddiesAsync = ref.watch(buddiesForDiveProvider(dive.id));
-    // The own-role row needs the dive's owner too. Waiting for it keeps the
-    // row from reading "Me" for a frame before switching to their name and
-    // photo.
+    // Only the own-role row needs the dive's owner; it draws a placeholder
+    // while the owner loads rather than holding back the whole card.
     final ownerAsync = dive.diverRoleIds.isEmpty
         ? null
         : ref.watch(diveOwnerProvider(dive.diverId));
-    if (ownerAsync != null && ownerAsync.isLoading && !ownerAsync.hasValue) {
-      return _loadingCard;
-    }
 
     return buddiesAsync.when(
       data: (buddies) {
@@ -68,7 +65,7 @@ class DiveBuddiesSection extends ConsumerWidget {
                 ),
                 const Divider(),
                 if (ownerAsync != null)
-                  _buildMyRoleTile(context, ref, ownerAsync.value),
+                  _buildMyRoleTile(context, ref, ownerAsync),
                 if (showLegacyText)
                   LegacyBuddyTextSection(dive: dive)
                 else if (buddies.isEmpty && dive.diverRoleIds.isEmpty)
@@ -91,17 +88,15 @@ class DiveBuddiesSection extends ConsumerWidget {
           ),
         );
       },
-      loading: () => _loadingCard,
+      loading: () => const Card(
+        child: Padding(
+          padding: EdgeInsets.all(32),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ),
       error: (_, _) => const SizedBox.shrink(),
     );
   }
-
-  static const _loadingCard = Card(
-    child: Padding(
-      padding: EdgeInsets.all(32),
-      child: Center(child: CircularProgressIndicator()),
-    ),
-  );
 
   Widget _buildBuddyTile(BuildContext context, BuddyWithRole bwr) {
     return ListTile(
@@ -121,17 +116,23 @@ class DiveBuddiesSection extends ConsumerWidget {
   /// The diver's own roles on this dive (#547, #1221), shown above buddies,
   /// with the dive owner's photo and name like the edit view's Me chip
   /// (#4458).
-  Widget _buildMyRoleTile(BuildContext context, WidgetRef ref, Diver? owner) {
+  Widget _buildMyRoleTile(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<Diver?> ownerAsync,
+  ) {
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     final label = rolesForIds(
       dive.diverRoleIds,
       rolesById,
     ).joinedLocalizedNames(context.l10n);
+    final owner = ownerAsync.value;
+    final pending = isDiveOwnerPending(ownerAsync);
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: DiveOwnerAvatar(diver: owner),
-      title: Text(diveOwnerLabel(owner, context.l10n)),
+      leading: DiveOwnerAvatar(diver: owner, pending: pending),
+      title: Text(pending ? '' : diveOwnerLabel(owner, context.l10n)),
       subtitle: Text(label),
     );
   }

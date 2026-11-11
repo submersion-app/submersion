@@ -31,6 +31,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/dive_owner_display.dart';
 import 'package:submersion/features/signatures/domain/entities/signature.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -544,7 +545,6 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
   ) {
     final ownerId = dive.diverId;
     final owner = ownerId == null || ownerId == diver?.id ? diver : null;
-    final ownerName = owner?.name.trim() ?? '';
     return [
       // The diver's own roles (#1221), then each person with every role
       // they held, comma-joined.
@@ -554,7 +554,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             dive.diverRoleIds,
             diveRolesById,
           ).joinedLocalizedNames(l10n),
-          ownerName.isEmpty ? l10n.buddies_picker_me : ownerName,
+          diveOwnerLabel(owner, l10n),
         ),
       for (final buddy in dive.buddies)
         _Field(buddy.roles.joinedLocalizedNames(l10n), buddy.buddy.name),

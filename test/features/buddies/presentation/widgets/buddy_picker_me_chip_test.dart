@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -275,6 +276,40 @@ void main() {
     expect(avatar.photo, same(ownerPhoto));
     expect(find.text('Owner'), findsOneWidget);
     expect(find.text('Active Diver'), findsNothing);
+  });
+
+  testWidgets('Me chip draws a placeholder while the owner loads', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          allDiveRolesProvider.overrideWith((ref) async => _testRoles),
+          allBuddiesProvider.overrideWith((ref) async => const <Buddy>[]),
+          diverByIdProvider.overrideWith(
+            (ref, id) => Completer<Diver?>().future,
+          ),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: BuddyPicker(
+              selectedBuddies: const [],
+              onChanged: (_) {},
+              diverRoleIds: const [DiveRole.rearGuardId],
+              onDiverRoleChanged: (_) {},
+              diveOwnerId: 'owner',
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Me'), findsNothing);
+    expect(find.byIcon(Icons.person), findsNothing);
+    expect(find.text('Rear Guard'), findsOneWidget);
   });
 
   testWidgets('Me chip says Me when the diver has a blank name', (

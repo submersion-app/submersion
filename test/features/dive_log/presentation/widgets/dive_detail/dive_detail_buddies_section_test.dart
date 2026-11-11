@@ -169,17 +169,22 @@ void main() {
       expect(find.text('Me'), findsOneWidget);
     });
 
-    testWidgets('waits for the owner instead of flashing Me', (tester) async {
+    testWidgets('draws a placeholder while the owner loads, without holding '
+        'back the card', (tester) async {
       await tester.pumpWidget(
         _buildSection(dive: _dive(diverId: 'diver-1'), ownerNeverLoads: true),
       );
-      // The spinner animates forever, so pump frames rather than settle.
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pumpAndSettle();
 
+      // Not "Me" and the icon, which the name and photo would replace a
+      // moment later.
       expect(find.text('Me'), findsNothing);
       expect(find.byIcon(Icons.person), findsNothing);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      // The rest of the card is up: a lookup stuck in retries must not hide
+      // it behind a spinner.
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.text('Buddies'), findsOneWidget);
+      expect(find.text('Rear Guard'), findsOneWidget);
     });
   });
 }
