@@ -50,7 +50,45 @@ class DemoStartup {
     return DemoStartupDecision(demoPath);
   }
 
-  static Future<void> _finishExit(
+  /// Leaves demo mode during startup because this build cannot open the
+  /// sample logbook, for example one a newer build already upgraded before a
+  /// downgrade. The sample is discarded on exit anyway, so nothing is lost,
+  /// and the user's own logbook opens in its place.
+  ///
+  /// The user's preferences go back FIRST, and only then is the state marked
+  /// exiting. When they cannot be put back this throws with demo mode on and
+  /// the state still active, so the next launch returns to the sample rather
+  /// than finishing an exit that would open the user's logbook under the
+  /// sample's preferences. A snapshot that cannot be read is the exception,
+  /// kept as [resolve] treats it (the preferences stay as they are).
+  ///
+  /// Past that point nothing stops the exit. A state that cannot be marked or
+  /// a directory that cannot be removed is left for the next launch: exiting
+  /// finishes there through [resolve], and an active state reopens the
+  /// sample, fails the same way and comes back here, where restoring from
+  /// the snapshot again changes nothing.
+  static Future<void> abandon({
+    required DemoStateStore store,
+    required SharedPreferences prefs,
+  }) async {
+    final state = await store.read();
+    await _restorePrefs(store, prefs);
+    DemoModeGate.instance.markActive(false);
+    try {
+      if (state != null) {
+        await store.write(state.copyWith(phase: DemoPhase.exiting));
+      }
+    } catch (e) {
+      _log.warning('Demo mode state could not be marked exiting: $e');
+    }
+    try {
+      await store.deleteAll();
+    } catch (e) {
+      _log.warning('Demo mode files are left for the next launch: $e');
+    }
+  }
+
+  static Future<void> _restorePrefs(
     DemoStateStore store,
     SharedPreferences prefs,
   ) async {
@@ -59,6 +97,13 @@ class DemoStartup {
     } on StateError catch (e) {
       _log.warning('Demo mode preferences could not be restored: $e');
     }
+  }
+
+  static Future<void> _finishExit(
+    DemoStateStore store,
+    SharedPreferences prefs,
+  ) async {
+    await _restorePrefs(store, prefs);
     await store.deleteAll();
   }
 }
