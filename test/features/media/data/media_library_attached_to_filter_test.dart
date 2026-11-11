@@ -107,7 +107,14 @@ void main() {
   });
 
   test('no kind picked leaves the library unfiltered', () async {
-    expect(await ids(MediaLibraryFilter.none), hasLength(5));
+    // Every row but the gear-only one, which shows only when Equipment is
+    // picked (issue #3355).
+    expect(await ids(MediaLibraryFilter.none), [
+      'dive-photo',
+      'site1-map',
+      'site2-map',
+      'loose',
+    ]);
   });
 
   test(

@@ -81,6 +81,10 @@ class MediaItem extends Equatable {
   /// Equipment this item is attached to (issue #1517): invoices,
   /// receipts and warranty paperwork filed against a piece of gear.
   final String? equipmentId;
+
+  /// The gear check-in this photo backs up (issue #3355); null for an
+  /// identification photo. May name a check-in this device does not have.
+  final String? observationId;
   final String? platformAssetId;
   final String? filePath;
   final String? originalFilename;
@@ -158,6 +162,7 @@ class MediaItem extends Equatable {
     this.diveId,
     this.siteId,
     this.equipmentId,
+    this.observationId,
     this.platformAssetId,
     this.filePath,
     this.originalFilename,
@@ -226,6 +231,13 @@ class MediaItem extends Equatable {
 
   /// True for attachment documents (PDFs and opaque files).
   bool get isDocument => mediaType == MediaType.document;
+
+  /// A photo or video of a piece of gear (issue #3355): linked to an item
+  /// and neither a document nor a signature.
+  bool get isGearPhoto => equipmentId != null && !isDocument && !isSignature;
+
+  /// A gear photo that backs up a check-in rather than identifying the item.
+  bool get isCheckInPhoto => isGearPhoto && observationId != null;
 
   /// Lowercased extension of [originalFilename] without the dot; '' when
   /// absent. Presentation-only: storage addressing uses StoreKeys.
@@ -318,6 +330,7 @@ class MediaItem extends Equatable {
     Object? diveId = _undefined,
     Object? siteId = _undefined,
     Object? equipmentId = _undefined,
+    Object? observationId = _undefined,
     Object? platformAssetId = _undefined,
     Object? filePath = _undefined,
     Object? originalFilename = _undefined,
@@ -371,6 +384,9 @@ class MediaItem extends Equatable {
       equipmentId: equipmentId == _undefined
           ? this.equipmentId
           : equipmentId as String?,
+      observationId: observationId == _undefined
+          ? this.observationId
+          : observationId as String?,
       platformAssetId: platformAssetId == _undefined
           ? this.platformAssetId
           : platformAssetId as String?,
@@ -483,6 +499,7 @@ class MediaItem extends Equatable {
     diveId,
     siteId,
     equipmentId,
+    observationId,
     platformAssetId,
     filePath,
     originalFilename,

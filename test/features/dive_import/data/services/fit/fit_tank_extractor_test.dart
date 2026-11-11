@@ -76,6 +76,16 @@ void main() {
     expect(p.pressureBar, closeTo(180.0, 1e-6));
   });
 
+  test('a FIT invalid sensor value makes no tank, so no serial (#4419)', () {
+    final data = FitTankExtractor.extract([
+      tankSummary(sensor: 0xFFFFFFFF, startRaw: 20000, endRaw: 9000, volRaw: 1),
+      tankSummary(sensor: 2772884913, startRaw: 20000, endRaw: 9000, volRaw: 1),
+    ]);
+    // fit_tool reads the invalid value as null, so only the real
+    // transmitter becomes a tank and no tank shares a sentinel serial.
+    expect(data.tanks.map((t) => t.transmitterSerial), ['2772884913']);
+  });
+
   test('collapses repeated tank_summary for the same sensor into one tank', () {
     final data = FitTankExtractor.extract([
       tankSummary(sensor: 100, startRaw: 20000, endRaw: 9000, volRaw: 100000),

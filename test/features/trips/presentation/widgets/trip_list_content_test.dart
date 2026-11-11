@@ -286,6 +286,43 @@ void main() {
       expect(find.text('1 of 3 trips'), findsOneWidget);
     });
 
+    // The filter bar's Clear all and the Trips overview's banner clear the
+    // same shared filter (issue #4414).
+    testWidgets('Clear all drops every axis of the filter', (tester) async {
+      final all = [
+        _makeTrip(id: 't1', name: 'Bonaire'),
+        _makeTrip(id: 't2', name: 'Palau'),
+      ];
+      final overrides = await _buildPhoneOverrides(
+        trips: all.take(1).toList(),
+        allTrips: all,
+        // Both axes, so the test shows the query goes with the equipment.
+        filter: TripFilterState(
+          equipmentId: 'reg',
+          query: ConditionNode(
+            FieldPath(const ['tripType']),
+            QueryOp.inList,
+            ListValue(const [EnumValue('liveaboard')]),
+          ),
+        ),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const TripListContent(showAppBar: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Clear all'));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TripListContent)),
+      );
+      expect(container.read(tripFilterProvider), const TripFilterState());
+    });
+
     for (final showAppBar in const [true, false]) {
       testWidgets('${showAppBar ? 'app bar' : 'compact bar'} counts the list', (
         tester,

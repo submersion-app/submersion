@@ -35377,6 +35377,40 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_summary_recentTitle => 'الرحلات الأخيرة';
 
   @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total رحلة',
+      many: '$total رحلة',
+      few: '$total رحلات',
+      two: 'رحلتين',
+      one: 'رحلة واحدة',
+    );
+    return 'مُصفّى: ملخص $shown من $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'رحلات مُصفّاة';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'الغوصات في هذه الرحلات';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة',
+      many: '$count غوصة',
+      few: '$count غوصات',
+      two: 'غوصتان',
+      one: 'غوصة واحدة',
+    );
+    return '$date • $_temp0';
+  }
+
+  @override
   String get trips_summary_stat_daysDiving => 'أيام الغوص';
 
   @override
@@ -63001,6 +63035,98 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_conflict_field_twinPassportId => 'جواز الأسطوانة الشريكة';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'ستُزال صوره الـ$count',
+      many: 'ستُزال صوره الـ$count',
+      few: 'ستُزال صوره الـ$count',
+      two: 'ستُزال صورتاه',
+      one: 'ستُزال صورته',
+    );
+    return 'هل تريد حذف هذا الفحص؟ $_temp0 من Submersion. لن تُمس الملفات نفسها.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'ربط بمعدات';
+
+  @override
+  String get equipment_photos_title => 'الصور';
+
+  @override
+  String get equipment_photos_add => 'إضافة صور';
+
+  @override
+  String get equipment_photos_empty =>
+      'أضف صورًا لهذه القطعة أو لملصق رقمها التسلسلي أو لعلاماتها، للرجوع إليها.';
+
+  @override
+  String get equipment_photos_setCover => 'استخدام كصورة غلاف';
+
+  @override
+  String get equipment_photos_clearCover => 'إزالة صورة الغلاف';
+
+  @override
+  String get equipment_photos_remove => 'إزالة';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      many: '$count صورة',
+      few: '$count صور',
+      two: 'صورتين',
+      one: '$count صورة',
+    );
+    return 'إزالة $_temp0؟';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'تُزال الصور من Submersion. لن تُمس الملفات نفسها.';
+
+  @override
+  String get equipment_photos_photoLabel => 'صورة معدات';
+
+  @override
+  String get equipment_photos_coverLabel => 'صورة الغلاف';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'الصور';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'الفحص: $title، $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'المعدات';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة',
+      many: '$count صورة',
+      few: '$count صور',
+      two: 'صورتان',
+      one: '$count صورة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'الصور التي تضيفها إلى معداتك وفحوصاتها تظهر هنا.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'صورة فحص';
 
   @override
   String info_button_semantics(String title) {

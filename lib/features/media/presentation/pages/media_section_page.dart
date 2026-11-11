@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/presentation/pages/gear_gallery_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_import_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_library_view.dart';
 import 'package:submersion/features/media/presentation/pages/media_sources_section_view.dart';
@@ -58,6 +59,7 @@ class _MediaSectionPageState extends ConsumerState<MediaSectionPage> {
       badgeCounts: {MediaConsoleSection.library: missingCount},
       child: switch (_section) {
         MediaConsoleSection.library => const MediaLibraryView(),
+        MediaConsoleSection.gear => const GearGalleryView(),
         MediaConsoleSection.sources => MediaSourcesSectionView(
           onBrowseSource: () =>
               setState(() => _section = MediaConsoleSection.library),

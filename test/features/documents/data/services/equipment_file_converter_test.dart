@@ -166,6 +166,30 @@ void main() {
     ]);
   });
 
+  test('converter skips photo and video rows by media type', () async {
+    // Gear photos (issue #3355) are links the Photos card shows, never
+    // paperwork, whatever their extension.
+    await db.customStatement(
+      'INSERT INTO media (id, equipment_id, file_path, original_filename, '
+      'file_type, created_at, updated_at) VALUES '
+      "('m1', 'e1', '/x/Label.png', 'Label.png', 'photo', 0, 0) "
+      'ON CONFLICT(id) DO UPDATE SET file_type = excluded.file_type, '
+      'file_path = excluded.file_path, '
+      'original_filename = excluded.original_filename',
+    );
+    await db.customStatement(
+      'INSERT INTO media (id, equipment_id, file_path, original_filename, '
+      "file_type, created_at, updated_at) VALUES ('m6', 'e1', "
+      "'/x/Clip.pdf', 'Clip.pdf', 'video', 0, 0)",
+    );
+
+    await converter().run();
+
+    expect(await mediaIds(), containsAll(['m1', 'm6']));
+    expect(reads, isNot(contains('m1')));
+    expect(reads, isNot(contains('m6')));
+  });
+
   test('leaves what it cannot convert', () async {
     await converter().run();
     expect(await mediaIds(), containsAll(['m2', 'm3', 'm4', 'm5']));

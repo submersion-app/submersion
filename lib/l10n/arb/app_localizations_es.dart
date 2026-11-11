@@ -34984,6 +34984,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String get trips_summary_recentTitle => 'Viajes recientes';
 
   @override
+  String trips_summary_filteredBanner(int shown, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$total viajes',
+      one: '$total viaje',
+    );
+    return 'Filtrado: resumen de $shown de $_temp0';
+  }
+
+  @override
+  String get trips_summary_filteredBannerPending => 'Viajes filtrados';
+
+  @override
+  String get trips_summary_stat_filteredDives => 'Inmersiones en estos viajes';
+
+  @override
+  String trips_summary_recentSubtitle(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$date • $_temp0';
+  }
+
+  @override
   String get trips_summary_stat_daysDiving => 'Días de buceo';
 
   @override
@@ -62129,6 +62157,89 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_twinPassportId =>
       'Pasaporte de la botella pareja';
+
+  @override
+  String equipment_photos_deleteCheckInWithPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sus $count fotos se quitarán',
+      one: 'Su foto se quitará',
+    );
+    return '¿Eliminar esta revisión? $_temp0 de Submersion. Los archivos no se tocan.';
+  }
+
+  @override
+  String get media_import_review_linkToGear => 'Vincular a un equipo';
+
+  @override
+  String get equipment_photos_title => 'Fotos';
+
+  @override
+  String get equipment_photos_add => 'Añadir fotos';
+
+  @override
+  String get equipment_photos_empty =>
+      'Añade fotos de este equipo, de su etiqueta con el número de serie o de sus marcas, como referencia.';
+
+  @override
+  String get equipment_photos_setCover => 'Usar como foto de portada';
+
+  @override
+  String get equipment_photos_clearCover => 'Quitar foto de portada';
+
+  @override
+  String get equipment_photos_remove => 'Quitar';
+
+  @override
+  String equipment_photos_removeConfirmTitle(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return '¿Quitar $_temp0?';
+  }
+
+  @override
+  String get equipment_photos_removeConfirmContent =>
+      'Las fotos se quitan de Submersion. Los archivos no se tocan.';
+
+  @override
+  String get equipment_photos_photoLabel => 'Foto del equipo';
+
+  @override
+  String get equipment_photos_coverLabel => 'Foto de portada';
+
+  @override
+  String get equipment_photos_checkInPhotos => 'Fotos';
+
+  @override
+  String equipment_photos_checkInCaption(String title, String date) {
+    return 'Revisión: $title, $date';
+  }
+
+  @override
+  String get media_gearGallery_tab => 'Equipo';
+
+  @override
+  String media_gearGallery_count(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotos',
+      one: '$count foto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_gearGallery_empty =>
+      'Las fotos que añadas a tu equipo y a sus revisiones aparecen aquí.';
+
+  @override
+  String get media_gearGallery_checkInBadge => 'Foto de revisión';
 
   @override
   String info_button_semantics(String title) {

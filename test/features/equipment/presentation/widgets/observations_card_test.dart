@@ -8,7 +8,10 @@ import 'package:submersion/features/equipment/data/repositories/equipment_observ
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_observation_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/gear_photo_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observations_card.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -32,13 +35,15 @@ void main() {
 
   Future<void> pump(
     WidgetTester tester,
-    List<EquipmentObservation> observations,
-  ) async {
+    List<EquipmentObservation> observations, {
+    Map<String, List<MediaItem>> photos = const {},
+  }) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           equipmentObservationRepositoryProvider.overrideWithValue(repo),
+          checkInPhotosProvider('reg').overrideWith((ref) async => photos),
           observationsForEquipmentProvider(
             'reg',
           ).overrideWith((ref) async => observations),
@@ -67,6 +72,40 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('row shows a strip only when the check-in has photos', (
+    tester,
+  ) async {
+    // Issue #3355: a check-in's condition photos sit under its note.
+    EquipmentObservation checkIn(String id) => EquipmentObservation(
+      id: id,
+      equipmentId: 'reg',
+      observedAt: DateTime.utc(2026, 3, 1),
+      status: ObservationStatus.ok,
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+    MediaItem photo(String id) => MediaItem(
+      id: id,
+      equipmentId: 'reg',
+      observationId: 'o1',
+      mediaType: MediaType.photo,
+      takenAt: DateTime.utc(2026),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+    await pump(
+      tester,
+      [checkIn('o1'), checkIn('o2')],
+      photos: {
+        'o1': [photo('m1'), photo('m2')],
+      },
+    );
+
+    expect(find.byKey(const ValueKey('checkin_strip_o1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('checkin_strip_o2')), findsNothing);
+    expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
+  });
 
   testWidgets('empty state names the section', (tester) async {
     await pump(tester, const []);

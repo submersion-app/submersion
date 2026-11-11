@@ -794,6 +794,56 @@ void main() {
       );
     },
   );
+
+  test(
+    "a consolidated dive counts a cylinder only the other computer logged",
+    () async {
+      // Issue #4420: the second computer's stage is no copy of the primary's
+      // back gas. It lost gas with no switch to time it, so the dive is left
+      // out, which it would not be were the stage dropped as a copy.
+      await insertDive('two');
+      for (final (computer, primary) in [('c1', true), ('c2', false)]) {
+        await db
+            .into(db.diveComputers)
+            .insert(
+              DiveComputersCompanion(
+                id: Value(computer),
+                name: Value(computer),
+                createdAt: const Value(0),
+                updatedAt: const Value(0),
+              ),
+            );
+        await db
+            .into(db.diveDataSources)
+            .insert(
+              DiveDataSourcesCompanion(
+                id: Value('src-$computer'),
+                diveId: const Value('two'),
+                computerId: Value(computer),
+                isPrimary: Value(primary),
+                importedAt: Value(DateTime.utc(2024)),
+                createdAt: Value(DateTime.utc(2024)),
+              ),
+            );
+      }
+      await insertTank('two', 'back-c1', 'backGas', computerId: 'c1');
+      await insertTank(
+        'two',
+        'stage-c2',
+        'stage',
+        volume: 7,
+        o2: 50,
+        end: 140,
+        order: 1,
+        computerId: 'c2',
+      );
+
+      final trend = await repository.getRoleConsumptionPerDive();
+
+      expect(trend.leftOutDives, 1);
+      expect(trend.rmv, isEmpty);
+    },
+  );
 }
 
 typedef CylinderSacRowsForTest = ({

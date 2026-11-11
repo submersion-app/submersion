@@ -27,6 +27,7 @@ import 'package:submersion/core/services/sync/device_local_fields.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/peer_sync_snapshot.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/core/services/sync/sync_dive_rating.dart';
 import 'package:submersion/core/services/sync/media_resolution_hints.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_apply_progress.dart';
@@ -503,10 +504,15 @@ class SyncService {
       if (record.conflictData != null) {
         try {
           // A conflict stored before a column became device-local may still
-          // carry it; fetchRecord strips the local side the same way.
-          final remoteData = withoutDeviceLocalColumns(
+          // carry it; fetchRecord strips the local side the same way. A
+          // dive's rating is put on the star scale as an apply would put it,
+          // so a peer below v358 shows no false rating difference (#4415).
+          final remoteData = withDiveRatingInScale(
             record.entityType,
-            _parseConflictData(record.conflictData!),
+            withoutDeviceLocalColumns(
+              record.entityType,
+              _parseConflictData(record.conflictData!),
+            ),
           );
           final localData = await _serializer.fetchRecord(
             record.entityType,
@@ -1491,7 +1497,10 @@ class SyncService {
   /// (issue #4333); that fill reads the same touched dives. One below v356
   /// publishes a dive combined before v184 with no merge slot on its source
   /// rows, which a consolidation then left open to a re-parse (issue
-  /// #4367); that stamp reads the same touched dives too.
+  /// #4367); that stamp reads the same touched dives too. One below v358
+  /// publishes a UDDF import's 1 to 10 rating or a 0 (issue #4415); that
+  /// one is not repaired here but as the serializer writes each dive row
+  /// (`withDiveRatingInScale`), which conflict resolution also goes through.
   Future<void> _repairLegacyPeerRows({Iterable<String>? touchedDiveIds}) async {
     try {
       final db = DatabaseService.instance.database;

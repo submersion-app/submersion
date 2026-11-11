@@ -31,12 +31,18 @@ class EquipmentDocumentsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Gear photos (issue #3355) belong to the Photos card and the check-ins;
+    // what is left here is the paperwork Documents could not take.
     final documentsAsync = ref.watch(mediaForEquipmentProvider(equipmentId));
+    final leftovers = [
+      for (final m in documentsAsync.value ?? const <MediaItem>[])
+        if (!m.isGearPhoto) m,
+    ];
     // Nothing left behind, or not known yet: no card at all. Almost every
     // item has nothing linked, so a card shown while loading would only
     // flash and vanish.
     final unknown = !documentsAsync.hasValue && !documentsAsync.hasError;
-    if (unknown || (documentsAsync.value?.isEmpty ?? false)) {
+    if (unknown || (documentsAsync.hasValue && leftovers.isEmpty)) {
       return const SizedBox.shrink();
     }
 
@@ -70,9 +76,9 @@ class EquipmentDocumentsSection extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             documentsAsync.when(
-              data: (documents) => Column(
+              data: (_) => Column(
                 children: [
-                  for (final item in documents) _buildTile(context, ref, item),
+                  for (final item in leftovers) _buildTile(context, ref, item),
                 ],
               ),
               loading: () => const Padding(

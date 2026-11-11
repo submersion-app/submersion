@@ -1630,6 +1630,10 @@ class AppDatabase extends _$AppDatabase {
     // folded group keys (issue #4184). A nullable column an older peer
     // omits, so the floor does not move.
     351,
+    // v352: media.observation_id and equipment.cover_media_id, gear photos
+    // and an item's cover photo (issue #3355). Nullable columns an older
+    // peer omits, with no backfill, so the floor does not move.
+    352,
     // v354: dives.is_draft, a dive marked at the site that waits for its
     // dive computer readings, and dive_health_records, heart rate, recovery
     // and sleep from Apple Health per dive (issue #637). Additive and
@@ -1647,10 +1651,13 @@ class AppDatabase extends _$AppDatabase {
     // omits, with no backfill, so the floor does not move. Numbered 357
     // because main holds 356; renumbered from 353, then 355.
     357,
+    // v358: a dive's rating back on the 1 to 5 star scale where a UDDF
+    // import stored the file's 1 to 10 value, or 0 for an unrated dive
+    // (issue #4415). Data only; the floor does not move.
+    358,
     // v359: diver_settings.show_country_flags, the switch for the flags
     // beside site locations and trips (issue #4426). Defaulted on, so the
-    // floor does not move. Numbered 359 because main holds 357 and open PR
-    // #4417 claims 358.
+    // floor does not move.
     359,
   ];
 

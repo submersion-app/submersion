@@ -491,7 +491,81 @@ void main() {
     });
 
     test(
-      'a gas switch on a cylinder the primary does not own is ignored',
+      'a gas switch on another computer\'s copy of a cylinder is ignored',
+      () async {
+        // A backup left on air beside a primary on 32%: its back gas is the
+        // same cylinder on a stale mix, not a second gas.
+        await insertDive('a');
+        await insertSource('s', 'a', 'primary');
+        await insertProfile('a');
+        await insertTank(
+          'a-0',
+          'a',
+          0,
+          const _Tank('backGas', volume: 12, o2: 32, computerId: 'primary'),
+        );
+        await insertTank(
+          'a-1',
+          'a',
+          1,
+          const _Tank('backGas', volume: 12, computerId: 'other'),
+        );
+        await insertSwitch('a', 'a-1', 600);
+
+        final result = await viaSql('a');
+        expect(result.extras, isEmpty);
+      },
+    );
+
+    test('a stage only another computer logged counts (issue #4420)', () async {
+      await insertDive('a');
+      await insertSource('s', 'a', 'primary');
+      await insertProfile('a');
+      await insertTank(
+        'a-0',
+        'a',
+        0,
+        const _Tank(
+          'sidemountLeft',
+          volume: 10,
+          start: 196,
+          end: 153,
+          computerId: 'primary',
+        ),
+      );
+      await insertTank(
+        'a-1',
+        'a',
+        1,
+        const _Tank(
+          'sidemountRight',
+          volume: 10,
+          start: 197,
+          end: 138,
+          computerId: 'primary',
+        ),
+      );
+      await insertTank(
+        'a-2',
+        'a',
+        2,
+        const _Tank(
+          'stage',
+          volume: 10,
+          o2: 46,
+          start: 170,
+          end: 170,
+          computerId: 'other',
+        ),
+      );
+
+      final result = await viaSql('a');
+      expect(result.base, TankBaseConfiguration.sidemount);
+      expect(result.extras, {TankConfigurationExtra.stages});
+    });
+
+    test(
+      'a deco gas only another computer logged counts with its switch',
       () async {
         await insertDive('a');
         await insertSource('s', 'a', 'primary');
@@ -506,12 +580,15 @@ void main() {
           'a-1',
           'a',
           1,
-          const _Tank('backGas', volume: 12, o2: 50, computerId: 'other'),
+          const _Tank('deco', volume: 7, o2: 50, computerId: 'other'),
         );
         await insertSwitch('a', 'a-1', 600);
 
         final result = await viaSql('a');
-        expect(result.extras, isEmpty);
+        expect(result.extras, {
+          TankConfigurationExtra.decoGas,
+          TankConfigurationExtra.multiGas,
+        });
       },
     );
   });

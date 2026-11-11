@@ -37,6 +37,7 @@ import 'package:submersion/features/import_wizard/domain/models/unified_import_r
 import 'package:submersion/features/import_wizard/presentation/widgets/garmin_cloud_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/garmin_cloud_dive_list.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/transmitters/data/services/transmitter_auto_registrar.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 
 /// Signals that the sign-in step can advance (a usable session was obtained).
@@ -96,8 +97,11 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     required String diverId,
     WidgetRef? ref,
     DiveComputerConnectionRepository? connectionRepository,
+    Future<void> Function(Iterable<String> diveIds) settleTransmitters =
+        settleTransmittersForDives,
   }) : _importService = importService,
        _connectionRepository = connectionRepository,
+       _settleTransmitters = settleTransmitters,
        _computerRepository = computerRepository,
        _diveRepository = diveRepository,
        _consolidationService = consolidationService,
@@ -114,6 +118,10 @@ class GarminCloudAdapter implements ImportSourceAdapter {
   /// Where each computer's Garmin Connect connection is recorded (issue
   /// #3106); read from [_ref] when not given.
   final DiveComputerConnectionRepository? _connectionRepository;
+
+  /// Registers the transmitter serials on the dives an import wrote and fills
+  /// any setup the diver gave them, as a file import does (issue #4419).
+  final Future<void> Function(Iterable<String> diveIds) _settleTransmitters;
 
   List<GarminParsedDive> _parsedDives = [];
 
@@ -361,6 +369,9 @@ class GarminCloudAdapter implements ImportSourceAdapter {
     final importedDiveIds = <String>[];
     // Dives already in the log that a download was merged into.
     final updatedExistingDiveIds = <String>[];
+    // The subset of those a download was folded into. A Replace source is
+    // settled by the import service itself, so only these need it here.
+    final consolidatedDiveIds = <String>[];
 
     for (var i = 0; i < allIndices.length; i++) {
       if (cancelToken?.isCancelled ?? false) break;
@@ -387,6 +398,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
             case _ConsolidateOutcome.consolidated:
               consolidated++;
               updatedExistingDiveIds.add(matchResult.diveId);
+              consolidatedDiveIds.add(matchResult.diveId);
               importedCountByComputerId[comp.id] =
                   (importedCountByComputerId[comp.id] ?? 0) + 1;
               // The fold keeps the target's own header, so Connect's notes
@@ -473,6 +485,12 @@ class GarminCloudAdapter implements ImportSourceAdapter {
         log: _log,
       );
     }
+
+    // Each T2 transmitter gets its Transmitter item and joins its dives, as
+    // a download's or a FIT file's does (issue #4419). A folded-in dive's
+    // tanks now live on the dive it joined, so that dive is settled too.
+    final written = {...importedDiveIds, ...consolidatedDiveIds};
+    if (written.isNotEmpty) await _settleTransmitters(written);
 
     scheduleQualityScan(importedDiveIds);
     scheduleSensorSummaryRefresh(importedDiveIds);

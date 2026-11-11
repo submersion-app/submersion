@@ -80,6 +80,19 @@ void main() {
       expect(conflicts.first.recordId, 'd-getc');
     });
 
+    test(
+      'getConflicts shows a rating from a peer below v358 on the 1 to 5 scale',
+      () async {
+        // Such a peer can still store a UDDF file's 1 to 10 rating (#4415),
+        // which keepRemote would write as 4, so the conflict shows 4 too.
+        final base = await seedDive('d-getc-rating', 10);
+        await raiseConflict('dives', 'd-getc-rating', {...base, 'rating': 8});
+
+        final conflict = (await buildService().getConflicts()).single;
+        expect(conflict.remoteData['rating'], 4);
+      },
+    );
+
     test('getConflicts resolves foreign keys on both sides (#1031)', () async {
       final serializer = SyncDataSerializer();
       await serializer.upsertRecord('tags', {
@@ -214,6 +227,24 @@ void main() {
           reason: 'keepRemote must apply the remote row',
         );
         expect(await buildService().getConflicts(), isEmpty);
+      },
+    );
+
+    test(
+      'keepRemote puts a rating from a peer below v358 on the 1 to 5 scale',
+      () async {
+        // Such a peer can still store a UDDF file's 1 to 10 rating (#4415).
+        final base = await seedDive('d-rating', 10);
+        await raiseConflict('dives', 'd-rating', {...base, 'rating': 8});
+
+        await buildService().resolveConflict(
+          'dives',
+          'd-rating',
+          ConflictResolution.keepRemote,
+        );
+
+        final dive = await DiveRepository().getDiveById('d-rating');
+        expect(dive!.rating, 4);
       },
     );
 

@@ -53,7 +53,11 @@ class EquipmentObservationRepository {
     return row == null ? null : _toDomain(row);
   }
 
+  /// [id] is the check-in's id when the caller chose it up front, as the
+  /// check-in sheet does so photos added before Save can name it (issue
+  /// #3355); a fresh one otherwise.
   Future<EquipmentObservation> create({
+    String? id,
     required String equipmentId,
     String? diveId,
     String? diverId,
@@ -66,7 +70,7 @@ class EquipmentObservationRepository {
   }) async {
     final stamp = now ?? DateTime.now();
     final observation = EquipmentObservation(
-      id: _uuid.v4(),
+      id: id ?? _uuid.v4(),
       diverId: diverId,
       equipmentId: equipmentId,
       diveId: diveId,

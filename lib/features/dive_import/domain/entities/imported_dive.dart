@@ -31,6 +31,7 @@ class ImportedTank extends Equatable {
     this.volumeLiters,
     this.o2Percent,
     this.hePercent,
+    this.transmitterSerial,
   });
 
   final int order;
@@ -44,6 +45,11 @@ class ImportedTank extends Equatable {
   final double? o2Percent;
   final double? hePercent;
 
+  /// The air-integration transmitter that reported this tank's pressure, or
+  /// null for a tank known only from its gas mix. For Garmin it is the FIT
+  /// `sensor` ANT channel id in decimal (issue #4419).
+  final String? transmitterSerial;
+
   @override
   List<Object?> get props => [
     order,
@@ -53,6 +59,7 @@ class ImportedTank extends Equatable {
     volumeLiters,
     o2Percent,
     hePercent,
+    transmitterSerial,
   ];
 }
 

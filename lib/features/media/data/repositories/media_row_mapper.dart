@@ -41,6 +41,7 @@ domain.MediaItem mediaItemFromRow(
     diveId: row.diveId,
     siteId: row.siteId,
     equipmentId: row.equipmentId,
+    observationId: row.observationId,
     platformAssetId: row.platformAssetId,
     filePath: row.filePath,
     originalFilename: row.originalFilename,

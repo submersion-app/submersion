@@ -59,7 +59,14 @@ class DiveWrites extends WritableEntry {
     'water_temp_c': const FieldCodec.number(min: -3, max: 45, nullable: true),
     'air_temp_c': const FieldCodec.number(min: -60, max: 60, nullable: true),
     'visibility': FieldCodec.enumName(Visibility.values, nullable: true),
-    'rating': const FieldCodec.integer(min: 0, max: 5, nullable: true),
+    // 0 clears the rating, so the plan shows the dive going unrated and a
+    // rating of 0 is never stored (issue #4415).
+    'rating': const FieldCodec.integer(
+      min: 0,
+      max: 5,
+      nullable: true,
+      zeroClears: true,
+    ),
     'is_favorite': const FieldCodec.flag(),
     'excluded_from_stats': const FieldCodec.flag(),
     'excluded_from_gas_stats': const FieldCodec.flag(),

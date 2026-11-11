@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/dive_rating_repair.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
@@ -116,6 +117,56 @@ void main() {
     expect(item.current, 'Later');
     expect(item.target, 'Calm');
   });
+
+  test(
+    'a rating the v358 rung put on the scale is not changed since',
+    () async {
+      // An import logged the file's 1 to 10 rating before v358 (#4415); the
+      // rung halved it in place, which is no edit made since.
+      await db.customStatement("UPDATE dives SET rating = 3 WHERE id = 'dive'");
+      await repository.settleAll();
+      await clearLog(db);
+      await db.customStatement("UPDATE dives SET rating = 8 WHERE id = 'dive'");
+      final event = await lastEventId();
+      await repairOutOfScaleDiveRatings(db);
+      await repository.settleAll();
+      await db.customStatement(
+        'DELETE FROM change_log_events WHERE id > $event',
+      );
+
+      final plan = await service.planField(event, 'rating');
+
+      final item = plan.items.single;
+      expect(item.block, isNull);
+      expect(item.logged, 4);
+      expect(item.current, 4);
+      expect(item.target, 3);
+      expect(item.changedSince, isFalse);
+    },
+  );
+
+  test(
+    'an edit away from an imported rating of 0 reverts to unrated',
+    () async {
+      // An import stored 0 for an unrated dive before v358 (#4415), and the
+      // diver then rated it. The 0 means unrated, so that is what comes back.
+      await db.customStatement("UPDATE dives SET rating = 0 WHERE id = 'dive'");
+      await repository.settleAll();
+      await clearLog(db);
+      await db.customStatement("UPDATE dives SET rating = 3 WHERE id = 'dive'");
+      final event = await lastEventId();
+
+      final plan = await service.planField(event, 'rating');
+      expect(plan.items.single.block, isNull);
+      expect(plan.items.single.target, isNull);
+      await service.execute(plan);
+
+      final row = await db
+          .customSelect("SELECT rating FROM dives WHERE id = 'dive'")
+          .getSingle();
+      expect(row.data['rating'], isNull);
+    },
+  );
 
   test('skipping changed since keeps that field', () async {
     await edit('Current');

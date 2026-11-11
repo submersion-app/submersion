@@ -123,6 +123,12 @@ class Media extends Table {
     #id,
     onDelete: KeyAction.setNull,
   )();
+
+  /// The check-in (equipment_observations.id) this gear photo backs up; null
+  /// for an identification photo (v352, issue #3355). No foreign key: sync
+  /// applies media before check-ins, and a peer can delete either end, so a
+  /// reader treats an id with no check-in as none.
+  TextColumn get observationId => text().nullable()();
   // coverage:ignore-end
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
