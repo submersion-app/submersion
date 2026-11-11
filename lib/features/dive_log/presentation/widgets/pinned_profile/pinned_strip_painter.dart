@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_depth_at.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_plot_frame.dart';
 
 /// Height of the strip's values row, under its curve.
@@ -18,6 +19,44 @@ const double _curvePad = 4;
 /// aims its line at this from the start, whatever height its box has while
 /// it condenses, so the line never grows back out toward a tall box.
 const double _curveAreaHeight = kPinnedStripHeight - kPinnedStripRowHeight;
+
+/// The most points the strip draws, the full chart's own curve budget.
+const int kPinnedStripPointBudget = 2000;
+
+/// What the strip draws of a profile: its points cut down to
+/// [kPinnedStripPointBudget], keeping the depth envelope and the deepest
+/// point, and the depth its axis runs to.
+@immutable
+class PinnedStripCurve {
+  const PinnedStripCurve({required this.points, required this.maxDepthMeters});
+
+  final List<DiveProfilePoint> points;
+  final double maxDepthMeters;
+}
+
+final Expando<PinnedStripCurve> _curves = Expando('pinnedStripCurve');
+
+/// The [PinnedStripCurve] of [profile], worked out once per profile list
+/// rather than on every paint: the strip repaints on every scroll frame
+/// while it shows.
+PinnedStripCurve pinnedStripCurve(List<DiveProfilePoint> profile) =>
+    _curves[profile] ??= _curveOf(profile);
+
+PinnedStripCurve _curveOf(List<DiveProfilePoint> profile) {
+  var maxDepth = 0.0;
+  for (final p in profile) {
+    maxDepth = math.max(maxDepth, p.depth);
+  }
+  final kept = decimateSeriesIndices([
+    for (final p in profile) p.depth,
+  ], targetPoints: kPinnedStripPointBudget);
+  return PinnedStripCurve(
+    points: kept.length == profile.length
+        ? profile
+        : [for (final i in kept) profile[i]],
+    maxDepthMeters: maxDepth,
+  );
+}
 
 /// Paints the pinned strip's depth curve (issue #4423).
 ///
@@ -51,10 +90,7 @@ class PinnedStripPainter extends CustomPainter {
   /// The strip's own mapping: the whole dive across the pinned strip's curve
   /// area, surface to deepest point down.
   PlotMapping _own(Size size) {
-    var maxDepth = 0.0;
-    for (final p in profile) {
-      maxDepth = math.max(maxDepth, p.depth);
-    }
+    final maxDepth = pinnedStripCurve(profile).maxDepthMeters;
     return PlotMapping(
       rect: Rect.fromLTWH(
         0,
@@ -92,14 +128,15 @@ class PinnedStripPainter extends CustomPainter {
       profile.length < 2 ? null : _fillPath(mappingFor(size));
 
   Path _fillPath(PlotMapping m) {
+    final points = pinnedStripCurve(profile).points;
     final bottomY = m.rect.bottom;
-    final first = m.project(profile.first.timestamp, profile.first.depth);
+    final first = m.project(points.first.timestamp, points.first.depth);
     final path = Path()..moveTo(first.dx, bottomY);
-    for (final p in profile) {
+    for (final p in points) {
       final o = m.project(p.timestamp, p.depth);
       path.lineTo(o.dx, o.dy);
     }
-    final last = m.project(profile.last.timestamp, profile.last.depth);
+    final last = m.project(points.last.timestamp, points.last.depth);
     return path
       ..lineTo(last.dx, bottomY)
       ..close();
@@ -111,9 +148,12 @@ class PinnedStripPainter extends CustomPainter {
     final m = mappingFor(size);
     final clip = clipFor(size);
     if (clip != null) canvas.clipRect(clip);
+    // The bounded set of points, as the full chart draws; the cursor below
+    // still reads its depth from the whole profile.
+    final points = pinnedStripCurve(profile).points;
     final line = Path();
-    for (var i = 0; i < profile.length; i++) {
-      final o = m.project(profile[i].timestamp, profile[i].depth);
+    for (var i = 0; i < points.length; i++) {
+      final o = m.project(points[i].timestamp, points[i].depth);
       i == 0 ? line.moveTo(o.dx, o.dy) : line.lineTo(o.dx, o.dy);
     }
     canvas.drawPath(

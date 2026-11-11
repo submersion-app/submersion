@@ -188,4 +188,42 @@ void main() {
     );
     expect(kProfileDepthLineWidth, 1);
   });
+
+  // The painter runs on every scroll frame while the strip shows. Like the
+  // full chart, it draws a bounded set of points and works out the dive's
+  // depth bound once per profile, not once per paint (review).
+  group('pinnedStripCurve', () {
+    final dense = [
+      for (var t = 0; t < 12000; t++)
+        DiveProfilePoint(
+          timestamp: t,
+          depth: t == 7777 ? 41.5 : 20 + 5 * ((t % 60) / 60),
+        ),
+    ];
+
+    test('keeps a dense dive within the chart\'s point budget', () {
+      final curve = pinnedStripCurve(dense);
+      expect(curve.points.length, lessThanOrEqualTo(kPinnedStripPointBudget));
+      expect(curve.points.first.timestamp, 0);
+      expect(curve.points.last.timestamp, 11999);
+    });
+
+    test('keeps the deepest point and knows the depth bound', () {
+      final curve = pinnedStripCurve(dense);
+      expect(curve.maxDepthMeters, 41.5);
+      expect(curve.points.any((p) => p.depth == 41.5), isTrue);
+    });
+
+    test('is worked out once per profile', () {
+      expect(
+        identical(pinnedStripCurve(dense), pinnedStripCurve(dense)),
+        isTrue,
+      );
+    });
+
+    test('leaves a short dive as it is', () {
+      expect(pinnedStripCurve(profile).points, profile);
+      expect(pinnedStripCurve(profile).maxDepthMeters, 24);
+    });
+  });
 }
