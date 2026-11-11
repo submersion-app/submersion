@@ -59832,7 +59832,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'מצב הדגמה: אתם מעיינים בנתוני דוגמה';
 
   @override
-  String get demo_strip_exit => 'יציאה מההדגמה';
+  String get demo_unavailable_exit => 'יציאה מההדגמה';
 
   @override
   String get demo_ribbon_label => 'הדגמה';

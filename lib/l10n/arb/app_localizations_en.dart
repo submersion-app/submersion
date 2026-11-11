@@ -60143,7 +60143,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Demo mode: you are exploring sample data';
 
   @override
-  String get demo_strip_exit => 'Exit demo';
+  String get demo_unavailable_exit => 'Exit demo';
 
   @override
   String get demo_ribbon_label => 'DEMO';

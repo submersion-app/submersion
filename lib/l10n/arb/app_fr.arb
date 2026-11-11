@@ -17928,7 +17928,7 @@
   "demo_settings_exit_title": "Quitter la démo",
   "demo_settings_exit_subtitle": "Abandonner le carnet d'exemple et revenir au vôtre",
   "demo_ribbon_semanticsLabel": "Mode démo : vous explorez des données d'exemple",
-  "demo_strip_exit": "Quitter la démo",
+  "demo_unavailable_exit": "Quitter la démo",
   "demo_ribbon_label": "DÉMO",
   "demo_exit_confirm_title": "Quitter le mode démo ?",
   "demo_exit_confirm_body": "Les modifications apportées au carnet d'exemple seront perdues.",

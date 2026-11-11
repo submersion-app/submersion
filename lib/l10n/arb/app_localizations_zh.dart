@@ -57341,7 +57341,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get demo_ribbon_semanticsLabel => '演示模式：你正在浏览示例数据';
 
   @override
-  String get demo_strip_exit => '退出演示';
+  String get demo_unavailable_exit => '退出演示';
 
   @override
   String get demo_ribbon_label => '演示';

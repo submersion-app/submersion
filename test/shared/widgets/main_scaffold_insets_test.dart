@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/auto_update/presentation/providers/update_providers.dart';
-import 'package:submersion/features/demo_mode/presentation/providers/demo_mode_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -40,7 +39,6 @@ Future<void> _pumpShell(
   Widget page, {
   double keyboard = 0,
   FakeViewPadding padding = FakeViewPadding.zero,
-  bool demo = false,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = _screen;
@@ -73,7 +71,6 @@ Future<void> _pumpShell(
         settingsProvider.overrideWith(
           (ref) => StubSettingsNotifier(const AppSettings()),
         ),
-        demoModeActiveProvider.overrideWithValue(demo),
       ],
       child: MaterialApp.router(
         routerConfig: router,
@@ -115,12 +112,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(NavigationBar), findsNothing);
-      _expectKeyboardClearedOnce(tester);
-    });
-
-    testWidgets('so does a page in demo mode', (tester) async {
-      await _pumpShell(tester, const _Page(), keyboard: _keyboard, demo: true);
-
       _expectKeyboardClearedOnce(tester);
     });
 
@@ -189,18 +180,17 @@ void main() {
       expect(_pageQuery(tester).padding.bottom, 0);
     });
 
-    testWidgets('in demo mode the page still clears the status bar (#4428)', (
+    testWidgets('the page clears the status bar itself (#4428)', (
       tester,
     ) async {
       await _pumpShell(
         tester,
         const _Page(),
         padding: const FakeViewPadding(top: 47),
-        demo: true,
       );
 
-      // No strip sits above the page any more, so the page keeps the status
-      // bar inset and pads for it itself.
+      // Nothing sits above the page, so it keeps the status bar inset and
+      // pads for it itself (the demo strip once took it away, #3708).
       expect(_pageQuery(tester).padding.top, 47);
     });
   });

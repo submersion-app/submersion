@@ -61103,7 +61103,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Modalità demo: stai esplorando dati di esempio';
 
   @override
-  String get demo_strip_exit => 'Esci dalla demo';
+  String get demo_unavailable_exit => 'Esci dalla demo';
 
   @override
   String get demo_ribbon_label => 'DEMO';

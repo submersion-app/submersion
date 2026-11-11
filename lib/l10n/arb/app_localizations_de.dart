@@ -60973,7 +60973,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Demomodus: Du erkundest Beispieldaten';
 
   @override
-  String get demo_strip_exit => 'Demo beenden';
+  String get demo_unavailable_exit => 'Demo beenden';
 
   @override
   String get demo_ribbon_label => 'DEMO';

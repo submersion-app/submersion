@@ -60725,7 +60725,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Demomodus: je verkent voorbeeldgegevens';
 
   @override
-  String get demo_strip_exit => 'Demo afsluiten';
+  String get demo_unavailable_exit => 'Demo afsluiten';
 
   @override
   String get demo_ribbon_label => 'DEMO';

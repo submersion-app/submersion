@@ -61085,7 +61085,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Modo de demonstração: está a explorar dados de exemplo';
 
   @override
-  String get demo_strip_exit => 'Sair da demonstração';
+  String get demo_unavailable_exit => 'Sair da demonstração';
 
   @override
   String get demo_ribbon_label => 'DEMO';

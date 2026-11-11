@@ -17928,7 +17928,7 @@
   "demo_settings_exit_title": "יציאה מההדגמה",
   "demo_settings_exit_subtitle": "השלכת יומן הדוגמה וחזרה ליומן שלכם",
   "demo_ribbon_semanticsLabel": "מצב הדגמה: אתם מעיינים בנתוני דוגמה",
-  "demo_strip_exit": "יציאה מההדגמה",
+  "demo_unavailable_exit": "יציאה מההדגמה",
   "demo_ribbon_label": "הדגמה",
   "demo_exit_confirm_title": "לצאת ממצב ההדגמה?",
   "demo_exit_confirm_body": "השינויים שביצעתם ביומן הדוגמה יימחקו.",

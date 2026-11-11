@@ -18053,7 +18053,7 @@
   "demo_settings_exit_title": "Demo beenden",
   "demo_settings_exit_subtitle": "Beispiel-Logbuch verwerfen und zu deinem eigenen zurückkehren",
   "demo_ribbon_semanticsLabel": "Demomodus: Du erkundest Beispieldaten",
-  "demo_strip_exit": "Demo beenden",
+  "demo_unavailable_exit": "Demo beenden",
   "demo_ribbon_label": "DEMO",
   "demo_exit_confirm_title": "Demomodus beenden?",
   "demo_exit_confirm_body": "Änderungen am Beispiel-Logbuch werden verworfen.",

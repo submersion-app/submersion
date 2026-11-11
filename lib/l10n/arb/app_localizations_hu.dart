@@ -60770,7 +60770,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get demo_ribbon_semanticsLabel => 'Demó mód: mintaadatokat böngészel';
 
   @override
-  String get demo_strip_exit => 'Kilépés a demóból';
+  String get demo_unavailable_exit => 'Kilépés a demóból';
 
   @override
   String get demo_ribbon_label => 'DEMÓ';

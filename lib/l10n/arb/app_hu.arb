@@ -17928,7 +17928,7 @@
   "demo_settings_exit_title": "Kilépés a demóból",
   "demo_settings_exit_subtitle": "A mintanapló elvetése és visszatérés a sajátodhoz",
   "demo_ribbon_semanticsLabel": "Demó mód: mintaadatokat böngészel",
-  "demo_strip_exit": "Kilépés a demóból",
+  "demo_unavailable_exit": "Kilépés a demóból",
   "demo_ribbon_label": "DEMÓ",
   "demo_exit_confirm_title": "Kilépsz a demó módból?",
   "demo_exit_confirm_body": "A mintanaplóban végzett módosítások elvesznek.",

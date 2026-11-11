@@ -95953,11 +95953,11 @@ abstract class AppLocalizations {
   /// **'Demo mode: you are exploring sample data'**
   String get demo_ribbon_semanticsLabel;
 
-  /// Demo mode (issue #3708)
+  /// Exit button on the Unavailable in demo mode page (issues #3708, #4428)
   ///
   /// In en, this message translates to:
   /// **'Exit demo'**
-  String get demo_strip_exit;
+  String get demo_unavailable_exit;
 
   /// Demo mode corner ribbon text; short, written in capitals where the script has them (issue #4428)
   ///
