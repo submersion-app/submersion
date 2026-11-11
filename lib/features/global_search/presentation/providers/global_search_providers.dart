@@ -4,7 +4,6 @@ import 'package:submersion/core/query/syntax/query_parser.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/global_search/data/global_search_plan.dart';
 import 'package:submersion/features/global_search/data/global_search_repository.dart';
 import 'package:submersion/features/global_search/domain/global_search_models.dart';
@@ -12,6 +11,7 @@ import 'package:submersion/features/query/presentation/providers/query_id_set_pr
 import 'package:submersion/features/query/presentation/providers/query_language_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
 /// Bumped by whatever wants the caret in the search field while the page is
 /// already up (Cmd/Ctrl+K pressed on it).
@@ -83,7 +83,7 @@ final globalSearchProvider = FutureProvider.autoDispose
 
       final touched = {for (final r in plan.runs) ...r.tables};
       if (touched.isEmpty) return const [];
-      await awaitServiceStatusIfRead(ref, touched);
+      await awaitQueryCachesIfRead(ref, touched);
       ref.invalidateSelfWhen(
         ref.watch(queryIdSetRunnerProvider).watchTables(touched),
       );

@@ -23,7 +23,6 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_l
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/helpers/saved_equipment_visibility.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_id_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_location_field.dart';
@@ -43,6 +42,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 import 'package:submersion/shared/widgets/label_with_control.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
 class EquipmentEditPage extends ConsumerStatefulWidget {
   final String? equipmentId;
@@ -1172,8 +1172,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         diverId: await ref.read(validatedCurrentDiverIdProvider.future),
         equipmentId: savedId,
         status: status,
-        beforeQuery: (tables) =>
-            awaitServiceStatusIfReadFromWidget(ref, tables),
+        beforeQuery: (tables) => awaitQueryCachesIfReadFromWidget(ref, tables),
         defaultStatuses: ref.read(equipmentDefaultStatusesProvider),
       );
       return (view: view, failed: false);

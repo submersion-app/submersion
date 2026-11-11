@@ -74,6 +74,7 @@ part 'helpers/course_link_migrations.dart';
 part 'helpers/cylinder_migrations.dart';
 part 'helpers/cylinder_pairing_migrations.dart';
 part 'helpers/data_source_migrations.dart';
+part 'helpers/deco_status_migrations.dart';
 part 'helpers/derived_metrics_migrations.dart';
 part 'helpers/dive_computer_auto_download_migrations.dart';
 part 'helpers/dive_computer_connection_migrations.dart';

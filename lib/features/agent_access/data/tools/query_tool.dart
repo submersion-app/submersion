@@ -26,11 +26,21 @@ class QueryTool implements AgentTool {
   QueryTool({
     required DiverContextLoader loader,
     required RecordCatalog catalog,
+    Future<void> Function(String diverId, Set<String> tables)? prepareCaches,
   }) : _loader = loader,
-       _catalog = catalog;
+       _catalog = catalog,
+       _prepareCaches = prepareCaches ?? _noCaches;
 
   final DiverContextLoader _loader;
   final RecordCatalog _catalog;
+
+  /// Brings the caches of engine verdicts among a query's tables up to date
+  /// for a diver before it runs: the computed deco verdicts `deco` reads
+  /// (#4461), which the app mirrors on demand.
+  final Future<void> Function(String diverId, Set<String> tables)
+  _prepareCaches;
+
+  static Future<void> _noCaches(String diverId, Set<String> tables) async {}
 
   @override
   String get name => 'query';
@@ -128,6 +138,7 @@ class QueryTool implements AgentTool {
       appQueryRegistry,
       diverId: ctx.diverId,
     );
+    await _prepareCaches(ctx.diverId, compiled.tablesTouched);
     // The cache `serviceDue` reads holds the active diver's verdicts only,
     // so the named diver's come from the engine and shadow it here.
     final cte = compiled.tablesTouched.contains(serviceStatusTable)

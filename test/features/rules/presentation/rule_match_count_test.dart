@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/services/rule_target_scope.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
@@ -57,5 +58,55 @@ void main() {
       settled.close();
       container.dispose();
     });
+  });
+
+  test('the live count waits for the deco verdicts it reads (#4461)', () async {
+    // A dive with no recorded deco data is judged by the analysis, mirrored
+    // into a cache: a count taken before that write would undercount.
+    var writerRuns = 0;
+    final calls = <String>[];
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        ruleTargetScopeProvider.overrideWithValue(_CountingScope(calls)),
+        diveDecoStatusCacheProvider.overrideWith((ref) async {
+          writerRuns++;
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    final key = (
+      subject: RuleSubject.dives,
+      conditionJson: encodeRuleCondition(
+        ConditionNode(FieldPath(['deco']), QueryOp.eq, const BoolValue(true)),
+      ),
+    );
+    final sub = container.listen(ruleMatchCountProvider(key), (_, _) {});
+    addTearDown(sub.close);
+    await container.read(ruleMatchCountProvider(key).future);
+    expect(writerRuns, 1);
+    expect(calls, ['condition']);
+  });
+
+  test('a count that reads no cache runs no analysis', () async {
+    var writerRuns = 0;
+    final container = ProviderContainer(
+      overrides: [
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        ruleTargetScopeProvider.overrideWithValue(_CountingScope([])),
+        diveDecoStatusCacheProvider.overrideWith((ref) async {
+          writerRuns++;
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    final key = (
+      subject: RuleSubject.dives,
+      conditionJson: encodeRuleCondition(depthOver(30)),
+    );
+    final sub = container.listen(ruleMatchCountProvider(key), (_, _) {});
+    addTearDown(sub.close);
+    await container.read(ruleMatchCountProvider(key).future);
+    expect(writerRuns, 0);
   });
 }

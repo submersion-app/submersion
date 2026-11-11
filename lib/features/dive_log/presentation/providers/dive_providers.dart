@@ -36,13 +36,13 @@ import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/filter_aware_tick.dart';
 import 'package:submersion/features/dive_log/presentation/providers/narrow_dives.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/features/documents/presentation/providers/document_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
 // Re-export DiveFilterState so existing imports continue to work
 export 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -92,7 +92,7 @@ final queryFilteredDiveIdsProvider = FutureProvider.autoDispose
       // Compiled once: the same object names the tables to follow and is
       // the query the repository runs.
       final compiled = compileDiveFilter(filter, rootAlias: 'd');
-      await awaitServiceStatusIfRead(ref, compiled.tablesTouched);
+      await awaitQueryCachesIfRead(ref, compiled.tablesTouched);
       ref.invalidateSelfWhen(repository.watchTables(compiled.tablesTouched));
       return repository.getDiveIdsForQuery(compiled, diverId: diverId);
     });
@@ -143,7 +143,7 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   // tables under an attribute condition (#1805). One stream, not two, so a
   // junction write followed by the dive write recomputes the ids once.
   final touched = diveFilterTablesTouched(filter);
-  await awaitServiceStatusIfRead(ref, touched);
+  await awaitQueryCachesIfRead(ref, touched);
   final extra = touched.difference({'dives'});
   ref.invalidateSelfWhen(
     extra.isEmpty
@@ -941,11 +941,12 @@ class PaginatedDiveListNotifier
   /// which stays null for rows loaded with no filter active.
   static int? _shifted(int? count, int by) => count == null ? null : count + by;
 
-  /// A filter naming gear.serviceDue reads the service cache: each load waits
-  /// for it to mirror the engine, so no page shows an empty cache or the
-  /// previous diver's verdicts (#2365).
-  Future<void> _awaitServiceCache(DiveFilterState filter) =>
-      awaitServiceStatusIfRead(
+  /// A filter naming gear.serviceDue reads the service cache, and one naming
+  /// deco reads the computed deco verdicts: each load waits for those it
+  /// reads to mirror their engine, so no page shows an empty cache or the
+  /// previous diver's verdicts (#2365, #4461).
+  Future<void> _awaitQueryCaches(DiveFilterState filter) =>
+      awaitQueryCachesIfRead(
         _ref,
         diveFilterTablesTouched(filter),
         hold: false,
@@ -963,7 +964,7 @@ class PaginatedDiveListNotifier
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
-      await _awaitServiceCache(filter);
+      await _awaitQueryCaches(filter);
       if (!mounted) return;
       final results = await Future.wait([
         _repository.getDiveSummaries(
@@ -1230,7 +1231,7 @@ class PaginatedDiveListNotifier
     try {
       final filter = _ref.read(diveFilterProvider);
       final sort = _ref.read(diveSortProvider);
-      await _awaitServiceCache(filter);
+      await _awaitQueryCaches(filter);
       if (!mounted) return;
       final results = await Future.wait([
         _repository.getDiveSummaries(

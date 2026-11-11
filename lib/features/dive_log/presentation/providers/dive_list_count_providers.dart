@@ -4,10 +4,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/models/list_entry_count.dart';
 import 'package:submersion/shared/models/subtitle_text.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
 /// The dive list's entry count, read from the loaded page state rather than
 /// the live filter: a filter change reaches [diveFilterProvider] before the
@@ -36,7 +36,7 @@ final _diveTableCountsProvider = FutureProvider.autoDispose
       final repository = ref.watch(diveRepositoryProvider);
       final (:diverId, :filter) = key;
       final touched = diveFilterTablesTouched(filter);
-      await awaitServiceStatusIfRead(ref, touched);
+      await awaitQueryCachesIfRead(ref, touched);
       final extra = touched.difference({'dives'});
       ref.invalidateSelfWhen(
         extra.isEmpty

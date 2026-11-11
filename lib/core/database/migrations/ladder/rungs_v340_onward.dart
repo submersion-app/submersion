@@ -167,5 +167,11 @@ extension RungsFromV340 on AppDatabase {
     if (from < 361) await _assertSiteCountryCodeColumn();
     if (from < 361) await _backfillSiteCountryCodes();
     if (from < 361) await reportProgress();
+
+    // v362: dive_deco_status, the computed deco verdicts the query
+    // language's deco field reads (issue #4461). Table-only rung, no
+    // backfill: the app fills it on demand. Re-asserted in beforeOpen.
+    if (from < 362) await _assertDiveDecoStatusTable();
+    if (from < 362) await reportProgress();
   }
 }

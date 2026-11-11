@@ -44,6 +44,7 @@ import 'package:submersion/features/cylinder_passports/presentation/services/pas
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/providers/dive_deco_status_keeper.dart';
 import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
@@ -196,6 +197,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
     // gear.serviceDue). The keeper runs the cache writer while a filter
     // names it, and leaves the clocks idle otherwise (#2365).
     ref.listenManual(serviceStatusKeeperProvider, (_, _) {});
+    // Likewise the deco query field reads a cache of the dive analysis's
+    // verdicts for dives that record no deco data (#4461).
+    ref.listenManual(diveDecoStatusKeeperProvider, (_, _) {});
     // Nearby Bluetooth sync (issue #3731): the switch re-decides whether the
     // radio is on.
     ref.listenManual<bool>(

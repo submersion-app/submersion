@@ -117,6 +117,10 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'raw_data': 'The raw bytes libdivecomputer returned for this download, zlib-compressed at rest behind a self-describing header',
     'time_offset_seconds': 'Seconds added to this source\'s own sample times to place them on the dive\'s timeline',
   },
+  'dive_deco_status': {
+    'computed_at': 'When this verdict was written, epoch ms',
+    'had_deco': 'Whether the analysis found a decompression obligation on the dive',
+  },
   'dive_derived_metrics': {
     'final_stop_kind': '`FinalStopKind.name`, defaulting to none so a row always classifies',
     'final_stop_state': '`FinalStopState.name`',

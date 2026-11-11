@@ -77,9 +77,17 @@ class RuleTargetScope {
     RuleSubject s,
     String diverId,
     String table,
-  ) =>
-      condition != null &&
-      _compile(condition, s, diverId).tablesTouched.contains(table);
+  ) => tablesTouched(condition, s, diverId).contains(table);
+
+  /// Every table [condition] reads, for the caches a caller must bring up
+  /// to date before matching it. Empty for no condition.
+  Set<String> tablesTouched(
+    QueryNode? condition,
+    RuleSubject s,
+    String diverId,
+  ) => condition == null
+      ? const {}
+      : _compile(condition, s, diverId).tablesTouched;
 
   /// Every dive or site the diver's rules may change.
   Future<Set<String>> allEligibleIds(RuleSubject s, String diverId) =>

@@ -9,6 +9,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 import 'package:submersion/features/query/presentation/providers/query_name_index_provider.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
@@ -54,6 +55,10 @@ final ruleEngineProvider = Provider<RuleEngine>(
     runs: ref.watch(ruleRunRepositoryProvider),
     scope: ref.watch(ruleTargetScopeProvider),
     names: (diverId) => ruleNamesFor(ref, diverId),
+    // A run for another profile (a multi-diver import) has no cached
+    // verdicts to prepare; prepareQueryCachesFor skips it.
+    prepareCaches: (diverId, tables) =>
+        prepareQueryCachesFor(ref, diverId, tables),
   ),
 );
 
@@ -140,9 +145,14 @@ final ruleMatchCountProvider = FutureProvider.autoDispose
       if (diverId == null) return null;
       final condition = decodeRuleCondition(key.conditionJson);
       try {
-        return await ref
-            .read(ruleTargetScopeProvider)
-            .countMatches(condition, key.subject, diverId);
+        final scope = ref.read(ruleTargetScopeProvider);
+        // A condition reading a cache of engine verdicts (deco, #4461)
+        // counts only once the cache mirrors the engine.
+        await awaitQueryCachesIfRead(
+          ref,
+          scope.tablesTouched(condition, key.subject, diverId),
+        );
+        return await scope.countMatches(condition, key.subject, diverId);
       } on Object {
         // A half-typed condition the compiler rejects shows no count.
         return null;

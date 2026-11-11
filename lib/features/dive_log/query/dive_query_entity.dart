@@ -619,7 +619,11 @@ final QueryEntity diveQueryEntity = QueryEntity(
         whenTrue: decoSignalCondition(wantDeco: true, diveIdRef: '{r}.id'),
         whenFalse: decoSignalCondition(wantDeco: false, diveIdRef: '{r}.id'),
       ),
-      tables: const ['dive_profile_series', 'dive_profile_events'],
+      tables: const [
+        'dive_profile_series',
+        'dive_profile_events',
+        kDiveDecoStatusTable,
+      ],
     ),
     QueryField(
       key: 'hasProfile',

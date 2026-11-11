@@ -363,6 +363,17 @@ class InsightsRepository with InsightsChartDives {
     );
   }
 
+  /// [_diveFilter] without [DiveStatsScope]: the view filter alone, as an
+  /// `AND` clause (empty when it keeps every dive).
+  ({String clause, List<Object?> params}) _viewFilterOnly(
+    DiveFilterState filter, {
+    required String alias,
+  }) {
+    final f = buildFilteredDiveIdSubquery(filter);
+    if (f.subquery.isEmpty) return (clause: '', params: const <Object?>[]);
+    return (clause: 'AND $alias.id IN (${f.subquery})', params: f.params);
+  }
+
   /// The ids of the dives [filter] keeps, or null when it keeps them all.
   /// For the cards that aggregate from their own sources (the condition
   /// rankings) and narrow them to the filter afterwards. The view filter
@@ -2755,13 +2766,20 @@ class InsightsRepository with InsightsChartDives {
   ///    evidence there is. It is also what the dive detail page displays.
   /// 5. A dive with no profile is unclassifiable and must not be counted as
   ///    no-deco.
+  ///
+  /// [statsScoped] keeps to the dives statistics count ([DiveStatsScope]),
+  /// as the deco card does. The `deco` search classifies every dive the
+  /// diver logged, so its cache writer turns it off (#4461).
   Future<DecoSignalScan> scanRecordedDecoSignals({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
+    bool statsScoped = true,
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
+      final df = statsScoped
+          ? _diveFilter(filter, alias: 'd')
+          : _viewFilterOnly(filter, alias: 'd');
       final params = diverId != null ? [diverId, ...df.params] : [...df.params];
 
       final results = await _db.customSelect('''

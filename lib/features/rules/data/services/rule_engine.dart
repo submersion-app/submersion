@@ -38,6 +38,7 @@ class RuleEngine {
     Future<String?> Function()? deviceLabel,
     Future<void> Function(String diverId, Iterable<String> diveIds)?
     ensureDerived,
+    Future<void> Function(String diverId, Set<String> tables)? prepareCaches,
     void Function(Iterable<String> diveIds)? afterDiveWrites,
   }) : _rules = rules ?? RuleRepository(),
        _runs = runs ?? RuleRunRepository(),
@@ -48,6 +49,7 @@ class RuleEngine {
        _deviceLabel =
            deviceLabel ?? (() => const DeviceDisplayNameService().resolve()),
        _ensureDerived = ensureDerived ?? ensureDerivedCurrent,
+       _prepareCaches = prepareCaches ?? _noCaches,
        _afterDiveWrites = afterDiveWrites ?? refreshAfterRuleWrites;
 
   final RuleRepository _rules;
@@ -59,7 +61,11 @@ class RuleEngine {
   final Future<String?> Function() _deviceLabel;
   final Future<void> Function(String diverId, Iterable<String> diveIds)
   _ensureDerived;
+  final Future<void> Function(String diverId, Set<String> tables)
+  _prepareCaches;
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
+
+  static Future<void> _noCaches(String diverId, Set<String> tables) async {}
 
   /// Rebuilds the derived fields of those of [diverId]'s [diveIds] whose
   /// stored ones are missing or stale, found in one query over the diver's
@@ -95,6 +101,7 @@ class RuleEngine {
     final names = await _names(request.diverId);
     final rules = await _load(request, names);
     await _prepareDerived(request, rules);
+    await _prepareQueryCaches(request, rules);
     try {
       return await _db.transaction<RuleRunResult>(() async {
         throw _RollbackPreview(await _pass(request, rules));
@@ -116,6 +123,7 @@ class RuleEngine {
     final device = await _device();
     final rules = await _load(request, names);
     await _prepareDerived(request, rules);
+    await _prepareQueryCaches(request, rules);
     final result = await ChangeLogScope.run(
       _db,
       source: ChangeLogSource.rule,
@@ -175,6 +183,25 @@ class RuleEngine {
               requested,
             ),
     );
+  }
+
+  /// Some fields read a local cache of a Dart engine's verdicts, mirrored on
+  /// demand: `serviceDue` the service clocks', `deco` the dive analysis's
+  /// (#4461). The tables the runnable rules read go to [_prepareCaches],
+  /// which brings those caches up to date, before the transaction: their
+  /// writers need the connection the transaction would hold.
+  Future<void> _prepareQueryCaches(
+    RuleRunRequest request,
+    Map<RuleSubject, List<Rule>> rules,
+  ) async {
+    final tables = {
+      for (final MapEntry(key: subject, value: list) in rules.entries)
+        for (final r in list)
+          if (r.isRunnable)
+            ..._scope.tablesTouched(r.condition, subject, request.diverId),
+    };
+    if (tables.isEmpty) return;
+    await _prepareCaches(request.diverId, tables);
   }
 
   bool _selected(Rule rule, RuleRunRequest request) =>

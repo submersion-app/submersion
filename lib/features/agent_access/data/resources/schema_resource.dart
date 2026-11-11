@@ -26,6 +26,9 @@ Conventions:
 - `hlc` columns are sync clocks and say nothing about the data.
 - `equipment_service_status` is a cache of the active profile's verdicts only.
   For another profile, use the `query` tool with `serviceDue`.
+- `dive_deco_status` holds the active profile's computed deco verdicts only,
+  for dives whose computer recorded no deco data, once the app has analyzed
+  them.
 ''';
 
 /// `submersion://schema`: what the SQL window may read, from the live schema

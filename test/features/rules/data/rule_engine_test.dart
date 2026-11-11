@@ -8,6 +8,7 @@ import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
 import 'package:submersion/features/rules/data/services/rule_engine.dart';
@@ -326,6 +327,45 @@ void main() {
         ensured,
       ).run(request(trigger: RuleRunTrigger.imported, dives: {'d20', 'd35'}));
       expect(ensured, isEmpty);
+    });
+  });
+
+  group('cached engine verdicts', () {
+    // `deco` reads the analysis's verdicts for dives that record no deco
+    // data (#4461), mirrored by a writer the SQL cannot stand in for: a run
+    // must not judge dives against an empty or stale cache.
+    final deco = ConditionNode(
+      FieldPath(['deco']),
+      QueryOp.eq,
+      const BoolValue(true),
+    );
+
+    RuleEngine engineNoting(List<Set<String>> prepared) => RuleEngine(
+      names: (_) async => NameIndex(const []),
+      deviceLabel: () async => 'Test device',
+      prepareCaches: (_, tables) async => prepared.add(tables),
+    );
+
+    test('are brought up to date before a rule reading them runs', () async {
+      final prepared = <Set<String>>[];
+      await rule('Deco', deco, tagCold);
+      await engineNoting(prepared).run(request());
+      expect(prepared, hasLength(1));
+      expect(prepared.single, contains(kDiveDecoStatusTable));
+    });
+
+    test('and before a preview of one', () async {
+      final prepared = <Set<String>>[];
+      await rule('Deco', deco, tagCold);
+      await engineNoting(prepared).preview(request());
+      expect(prepared.single, contains(kDiveDecoStatusTable));
+    });
+
+    test('are not asked for when no rule reads them', () async {
+      final prepared = <Set<String>>[];
+      await rule('Cold when deep', depthOver(30), tagCold);
+      await engineNoting(prepared).run(request());
+      expect(prepared.expand((t) => t), isNot(contains(kDiveDecoStatusTable)));
     });
   });
 
