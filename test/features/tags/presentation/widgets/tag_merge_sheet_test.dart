@@ -56,6 +56,8 @@ class MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
   @override
   Future<void> updateTag(Tag tag) async {}
   @override
+  Future<void> setTagColor(String id, String? colorHex) async {}
+  @override
   Future<void> deleteTag(String id) async {}
   @override
   Future<void> deleteTags(List<String> ids) async {}

@@ -142,6 +142,16 @@ void main() {
     expect(result.appliesTo(TagScope.sites), isTrue);
   });
 
+  test('setTagColor changes the colour and leaves every scope', () async {
+    final snapshot = await narrow('Night', {TagScope.dives});
+    // A widening that lands after the caller read its snapshot.
+    await repository.widenTag(snapshot, {TagScope.sites});
+    await repository.setTagColor(snapshot.id, '#22C55E');
+    final stored = (await repository.getTagById(snapshot.id))!;
+    expect(stored.colorHex, '#22C55E');
+    expect(stored.scopes, {TagScope.dives, TagScope.sites});
+  });
+
   test('widenings from one stale snapshot both land', () async {
     // Each widening writes only the flags it adds, so a second one read
     // before the first was stored cannot turn the first one's flag off.

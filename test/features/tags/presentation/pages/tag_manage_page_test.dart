@@ -102,6 +102,12 @@ class _MockTagListNotifier extends StateNotifier<AsyncValue<List<Tag>>>
 
   @override
   Future<void> updateTag(Tag tag) async => updated.add(tag);
+
+  /// Colour-only writes, as (tag id, colour).
+  final List<(String, String?)> recoloured = [];
+  @override
+  Future<void> setTagColor(String id, String? colorHex) async =>
+      recoloured.add((id, colorHex));
   @override
   Future<void> deleteTag(String id) async => deleted.add(id);
   @override
@@ -975,8 +981,9 @@ void main() {
         await tester.pump();
         await tester.tap(find.widgetWithText(TextButton, 'Save'));
         await tester.pumpAndSettle();
-        expect(notifier.updated.single.id, 'tag1');
-        expect(notifier.updated.single.colorHex, '#22C55E');
+        // Colour alone: a whole-tag update could reset scopes widened since.
+        expect(notifier.recoloured, [('tag1', '#22C55E')]);
+        expect(notifier.updated, isEmpty);
       });
 
       testWidgets('goes back to the default colour once the name stops '

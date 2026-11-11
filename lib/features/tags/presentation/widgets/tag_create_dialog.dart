@@ -133,10 +133,10 @@ class _TagCreateDialogState extends ConsumerState<TagCreateDialog> {
       setFailed: (v) => setState(() => _failed = v),
       save: () async {
         final saved = await notifier.addTag(newTag, widenExistingTo: widen);
+        // Colour alone: rewriting the whole tag would reset scopes widened
+        // since [saved] was read, and remove their links.
         if (colorPicked && saved.colorHex != color) {
-          await notifier.updateTag(
-            saved.copyWith(colorHex: color, updatedAt: DateTime.now()),
-          );
+          await notifier.setTagColor(saved.id, color);
         }
         return true;
       },

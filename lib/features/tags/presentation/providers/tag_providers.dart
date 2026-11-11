@@ -201,6 +201,14 @@ class TagListNotifier extends StateNotifier<AsyncValue<List<Tag>>> {
     _invalidateDiveProviders();
   }
 
+  /// Recolours the tag [id] without touching its scopes; see
+  /// [TagRepository.setTagColor].
+  Future<void> setTagColor(String id, String? colorHex) async {
+    await _repository.setTagColor(id, colorHex);
+    await _loadTags();
+    _invalidateDiveProviders();
+  }
+
   Future<void> deleteTag(String id) async {
     await _repository.deleteTag(id);
     await _loadTags();

@@ -353,6 +353,22 @@ class TagRepository {
     }
   }
 
+  /// Sets the colour of the tag [id] alone, leaving its name and every
+  /// scope flag as stored: unlike [updateTag], it cannot narrow a tag or
+  /// undo a widening that landed after the caller read it (issue #4407).
+  Future<void> setTagColor(String id, String? colorHex) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await (_db.update(_db.tags)..where((t) => t.id.equals(id))).write(
+      TagsCompanion(color: Value(colorHex), updatedAt: Value(now)),
+    );
+    await _syncRepository.markRecordPending(
+      entityType: 'tags',
+      recordId: id,
+      localUpdatedAt: now,
+    );
+    SyncEventBus.notifyLocalChange();
+  }
+
   /// [tag] widened to also cover every scope in [scopes], in one write and
   /// one sync mark; returned as stored. Never narrows it.
   Future<domain.Tag> widenTag(domain.Tag tag, Set<domain.TagScope> scopes) =>
