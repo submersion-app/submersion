@@ -32,10 +32,17 @@ class CountryFlag extends StatelessWidget {
   /// Every flag a logbook is likely to show at once, and then some.
   static final ScalableImageCache _cache = ScalableImageCache(size: 64);
 
+  /// Each code's asset name, looked up once: the package scans its whole
+  /// table on every call, and a list draws a flag in every row.
+  static final Map<String, String?> _flagCodes = {};
+
   @override
   Widget build(BuildContext context) {
     final width = height * 16 / 11;
-    final flagCode = flags.FlagCode.fromCountryCode(code);
+    final flagCode = _flagCodes.putIfAbsent(
+      code,
+      () => flags.FlagCode.fromCountryCode(code),
+    );
     final outline = Theme.of(context).colorScheme.outlineVariant;
     // Its own size whatever the parent's constraints: a stretched or tight
     // slot must not turn the flag into a banner. The slot is kept while the
@@ -139,6 +146,12 @@ class LocationWithFlag extends ConsumerWidget {
     final scaler = MediaQuery.textScalerOf(context);
     final direction = Directionality.of(context);
     final key = (style, scaler, direction);
+    // A font that loads after a line was measured (a theme's Google Font)
+    // changes the line's height, so a font change forgets every measurement.
+    if (!_listeningForFonts) {
+      _listeningForFonts = true;
+      PaintingBinding.instance.systemFonts.addListener(_lineHeights.clear);
+    }
     final cached = _lineHeights[key];
     if (cached != null) return cached;
 
@@ -161,6 +174,7 @@ class LocationWithFlag extends ConsumerWidget {
   static final Map<(TextStyle, TextScaler, TextDirection), double>
   _lineHeights = {};
   static int _measurements = 0;
+  static bool _listeningForFonts = false;
 
   /// How many lines have been measured since [debugResetLineHeights].
   @visibleForTesting

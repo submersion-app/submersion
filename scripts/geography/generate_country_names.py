@@ -80,6 +80,16 @@ _WIDER_LATIN = {
 }
 
 
+# Punctuation people type in more than one way, mirrored by _punctuation in
+# lib/core/geography/country_code.dart: a typed straight apostrophe finds
+# CLDR's curly one ("Cote d'Ivoire"), and a hyphen or dash reads as a space
+# ("Guinea Bissau", "Timor Leste").
+_PUNCTUATION = {
+    "’": "'", "‘": "'", "ʼ": "'", "`": "'",
+    "-": " ", "‐": " ", "‑": " ", "–": " ",
+}
+
+
 def _is_combining_mark(ch: str) -> bool:
     return 0x300 <= ord(ch) <= 0x36F
 
@@ -88,15 +98,18 @@ def fold(text: str) -> str:
     """The lookup key for [text], as countryLookupKey in Dart builds it.
 
     The Dart text fold (trim, lowercase, common diacritics), then periods
-    removed, "&" read as "and", runs of whitespace collapsed to one space,
+    removed, apostrophes made straight, hyphens and dashes read as spaces,
+    "&" read as "and", runs of whitespace collapsed to one space,
     and a leading "the " dropped: "The Bahamas", "Trinidad & Tobago" and
     "Trinidad and Tobago" all find their country.
     """
     folded = "".join(_DIACRITICS.get(ord(ch), ch) for ch in text.strip().lower())
     # Decomposed accents ("e" + U+0301) drop their mark; wider Latin letters
-    # fold to plain ones.
+    # fold to plain ones, and apostrophes and dashes to one form each.
     folded = "".join(
-        _WIDER_LATIN.get(ch, ch) for ch in folded if not _is_combining_mark(ch)
+        _WIDER_LATIN.get(ch, _PUNCTUATION.get(ch, ch))
+        for ch in folded
+        if not _is_combining_mark(ch)
     )
     folded = folded.replace(".", "").replace("&", " and ")
     folded = " ".join(folded.split())

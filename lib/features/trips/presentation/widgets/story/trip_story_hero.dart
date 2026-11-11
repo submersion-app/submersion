@@ -34,6 +34,12 @@ class TripStoryHero extends ConsumerWidget {
     final trip = story.trip;
     final theme = Theme.of(context);
     final units = ref.watch(unitFormatterProvider);
+    final name = Text(
+      trip.name,
+      style: theme.textTheme.headlineSmall?.copyWith(
+        fontWeight: FontWeight.bold,
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,21 +54,20 @@ class TripStoryHero extends ConsumerWidget {
             Expanded(
               // Every country the trip's dives were in (issue #4426) follows
               // the name, or takes the next line when it does not fit, so a
-              // long list never squeezes the name.
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  Text(
-                    trip.name,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TripCountryFlags(tripId: trip.id, flagHeight: 14),
-                ],
-              ),
+              // long list never squeezes the name. With no flags the name
+              // stands alone: an empty flag slot would still take the Wrap's
+              // spacing and, after a full-width name, an empty second run.
+              child: tripHasFlags(ref, trip.id)
+                  ? Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        name,
+                        TripCountryFlags(tripId: trip.id, flagHeight: 14),
+                      ],
+                    )
+                  : name,
             ),
           ],
         ),

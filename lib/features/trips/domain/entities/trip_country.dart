@@ -12,6 +12,9 @@ class TripCountry extends Equatable {
   /// screen reader label.
   final String name;
 
+  TripCountry copyWith({String? code, String? name}) =>
+      TripCountry(code: code ?? this.code, name: name ?? this.name);
+
   @override
   List<Object?> get props => [code, name];
 }

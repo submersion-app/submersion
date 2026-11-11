@@ -76,6 +76,16 @@ void main() {
       expectCode('Cesko', 'CZ');
     });
 
+    test('reads any apostrophe, hyphen or dash the same way', () {
+      // CLDR writes a curly apostrophe; a keyboard types a straight one.
+      expectCode("Côte d'Ivoire", 'CI');
+      expectCode('Côte d’Ivoire', 'CI');
+      expectCode('Guinea Bissau', 'GW');
+      expectCode('Guinea-Bissau', 'GW');
+      expectCode('Timor Leste', 'TL');
+      expectCode('Congo-Brazzaville', 'CG');
+    });
+
     test('ignores accents either way', () {
       expectCode('Curacao', 'CW');
       expectCode('Curaçao', 'CW');

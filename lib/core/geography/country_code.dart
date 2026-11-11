@@ -5,8 +5,9 @@ import 'package:submersion/core/text/text_sort.dart';
 /// country (issue #4426). Keyed by [countryLookupKey]; CLDR's own names in
 /// every place-name language and each country's official languages live in
 /// the generated table.
+/// "USA" and "Czech Republic" need no entry: the alpha-3 code and CLDR's
+/// own variant name already find them.
 const Map<String, String> _aliases = {
-  'usa': 'US',
   'united states of america': 'US',
   'uae': 'AE',
   'dr congo': 'CD',
@@ -21,7 +22,6 @@ const Map<String, String> _aliases = {
   'sint eustatius': 'BQ',
   'saba': 'BQ',
   'turks and caicos': 'TC',
-  'czech republic': 'CZ',
   // The Maldives in Dhivehi: CLDR ships no Dhivehi locale data.
   'ދިވެހިރާއްޖެ': 'MV',
 };
@@ -37,8 +37,20 @@ const Map<String, String> _widerLatin = {
   'ż': 'z', 'ž': 'z',
 };
 
+/// Punctuation people type in more than one way, mirrored by _PUNCTUATION in
+/// scripts/geography/generate_country_names.py: a typed straight apostrophe
+/// finds CLDR's curly one ("Cote d'Ivoire"), and a hyphen or dash reads as a
+/// space ("Guinea Bissau", "Timor Leste").
+const Map<String, String> _punctuation = {
+  '’': "'", '‘': "'", 'ʼ': "'", '`': "'", //
+  '-': ' ', '‐': ' ', '‑': ' ', '–': ' ',
+};
+
+final RegExp _whitespace = RegExp(r'\s+');
+
 /// The key a country name is looked up by: [textSortKey]'s case and accent
-/// fold, with periods removed ("U.S.A." reads as "USA"), "&" read as "and"
+/// fold, with periods removed ("U.S.A." reads as "USA"), apostrophes made
+/// straight, hyphens and dashes read as spaces, "&" read as "and"
 /// ("Trinidad & Tobago"), runs of whitespace collapsed, and a leading
 /// "the " dropped ("The Bahamas").
 ///
@@ -50,13 +62,13 @@ String countryLookupKey(String text) {
     // Decomposed accents ("e" + U+0301) drop their mark.
     if (rune >= 0x300 && rune <= 0x36F) continue;
     final char = String.fromCharCode(rune);
-    folded.write(_widerLatin[char] ?? char);
+    folded.write(_widerLatin[char] ?? _punctuation[char] ?? char);
   }
   final key = folded
       .toString()
       .replaceAll('.', '')
       .replaceAll('&', ' and ')
-      .split(RegExp(r'\s+'))
+      .split(_whitespace)
       .where((word) => word.isNotEmpty)
       .join(' ');
   return key.startsWith('the ') ? key.substring(4) : key;

@@ -943,6 +943,20 @@ void main() {
   });
 
   group('tripCountriesProvider (issue #4426)', () {
+    test('stops re-querying once nothing shows trip flags', () async {
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(tripCountriesProvider, (_, _) {});
+      await container.read(tripCountriesProvider.future);
+      expect(container.exists(tripCountriesProvider), isTrue);
+
+      sub.close();
+      await Future<void>.delayed(Duration.zero);
+
+      // Disposed: a dive or site write no longer re-runs the query.
+      expect(container.exists(tripCountriesProvider), isFalse);
+    });
+
     Future<String> tripWithDiveIn(String country) async {
       final t = await tripRepo.createTrip(_makeTrip(name: 'Flags'));
       await db.customStatement(

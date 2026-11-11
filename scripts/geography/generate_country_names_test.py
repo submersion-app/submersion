@@ -63,6 +63,14 @@ class FoldTest(unittest.TestCase):
         self.assertEqual(gen.fold("Türkiye"), "turkiye")
         self.assertEqual(gen.fold("Łódź"), "lodz")
 
+    def test_straightens_apostrophes(self):
+        self.assertEqual(gen.fold("Côte d’Ivoire"), "cote d'ivoire")
+        self.assertEqual(gen.fold("Cote d'Ivoire"), "cote d'ivoire")
+
+    def test_reads_hyphens_and_dashes_as_spaces(self):
+        self.assertEqual(gen.fold("Guinea-Bissau"), "guinea bissau")
+        self.assertEqual(gen.fold("Kongo – Brazzaville"), "kongo brazzaville")
+
     def test_keeps_non_latin_scripts(self):
         self.assertEqual(gen.fold(" مصر "), "مصر")
 

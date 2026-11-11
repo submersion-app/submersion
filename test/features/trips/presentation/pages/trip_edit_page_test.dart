@@ -10,7 +10,6 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_edit_navigation.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
@@ -2647,11 +2646,6 @@ class _CandidateScanRepo extends _MockTripRepository {
 /// Mock repository that returns null for trips
 class _MockTripRepository implements TripRepository {
   @override
-  Future<Map<String, List<TripCountry>>> getTripCountries({
-    String? diverId,
-  }) async => const {};
-
-  @override
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
@@ -2799,11 +2793,6 @@ class _MockTripRepositoryWithForecastTrip extends _MockTripRepositoryWithTrip {
 
 class _MockTripRepositoryWithTrip implements TripRepository {
   @override
-  Future<Map<String, List<TripCountry>>> getTripCountries({
-    String? diverId,
-  }) async => const {};
-
-  @override
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
@@ -2901,11 +2890,6 @@ class _MockTripRepositoryWithOwnedSharedTrip
 }
 
 class _MockTripRepositoryWithSharedTrip implements TripRepository {
-  @override
-  Future<Map<String, List<TripCountry>>> getTripCountries({
-    String? diverId,
-  }) async => const {};
-
   @override
   Future<Trip> createTrip(Trip trip) async => trip;
 
@@ -3095,11 +3079,6 @@ class _ThrowingTripListNotifier
 /// Repository that takes its sweet time returning a trip to simulate loading.
 class _SlowTripRepository implements TripRepository {
   @override
-  Future<Map<String, List<TripCountry>>> getTripCountries({
-    String? diverId,
-  }) async => const {};
-
-  @override
   Future<Trip> createTrip(Trip trip) async => trip;
 
   @override
@@ -3181,11 +3160,6 @@ class _SlowTripRepository implements TripRepository {
 
 /// Repository that throws when getTripById is called.
 class _ErrorTripRepository implements TripRepository {
-  @override
-  Future<Map<String, List<TripCountry>>> getTripCountries({
-    String? diverId,
-  }) async => const {};
-
   @override
   Future<Trip> createTrip(Trip trip) async => trip;
 

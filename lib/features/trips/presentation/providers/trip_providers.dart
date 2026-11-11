@@ -20,6 +20,7 @@ import 'package:submersion/features/query/presentation/providers/query_id_set_pr
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/constants/trip_field.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/trips/data/repositories/trip_country_queries.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 import 'package:submersion/features/trips/query/trip_filter_query.dart';
@@ -121,20 +122,29 @@ final allTripsWithStatsProvider = FutureProvider<List<TripWithStats>>((
 
 /// Every trip's countries, for the flags beside trips (issue #4426): one
 /// read for the whole list, scoped like the trips' dive counts.
-final tripCountriesProvider = FutureProvider<Map<String, List<TripCountry>>>((
-  ref,
-) async {
-  final repository = ref.watch(tripRepositoryProvider);
-  final validatedDiverId = await ref.watch(
-    validatedCurrentDiverIdProvider.future,
-  );
-  invalidateOnTripListChanges(ref);
-  // A dive moved to another site, or a site's country edited, changes the
-  // flags without touching the trips table.
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
-  ref.invalidateSelfWhen(ref.read(siteRepositoryProvider).watchSitesChanges());
-  return repository.getTripCountries(diverId: validatedDiverId);
-});
+final tripCountryQueriesProvider = Provider<TripCountryQueries>(
+  (ref) => TripCountryQueries(),
+);
+
+/// Auto-disposed: with no trip screen showing flags it stops, so dive and
+/// site writes elsewhere do not keep re-running its query.
+final tripCountriesProvider =
+    FutureProvider.autoDispose<Map<String, List<TripCountry>>>((ref) async {
+      final queries = ref.watch(tripCountryQueriesProvider);
+      final validatedDiverId = await ref.watch(
+        validatedCurrentDiverIdProvider.future,
+      );
+      invalidateOnTripListChanges(ref);
+      // A dive moved to another site, or a site's country edited, changes the
+      // flags without touching the trips table.
+      ref.invalidateSelfWhen(
+        ref.read(diveRepositoryProvider).watchDivesChanges(),
+      );
+      ref.invalidateSelfWhen(
+        ref.read(siteRepositoryProvider).watchSitesChanges(),
+      );
+      return queries.getTripCountries(diverId: validatedDiverId);
+    });
 
 /// Rebuilds [ref]'s provider whenever [allTripsWithStatsProvider] would
 /// refresh, for a read of some of the same entries (Global Search's rows,

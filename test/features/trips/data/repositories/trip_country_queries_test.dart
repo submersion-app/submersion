@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_country_queries.dart';
 import 'package:submersion/features/trips/domain/entities/trip_country.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -10,7 +10,7 @@ import '../../../../helpers/test_database.dart';
 /// larger trip counting its side trips' dives.
 void main() {
   late AppDatabase db;
-  late TripRepository trips;
+  late TripCountryQueries trips;
 
   Future<void> trip(String id, {String? parent, String? owner}) =>
       db.customStatement(
@@ -45,7 +45,7 @@ void main() {
 
   setUp(() async {
     db = await setUpTestDatabase();
-    trips = TripRepository();
+    trips = TripCountryQueries();
     await site('cozumel', 'Mexico');
     await site('cancun', 'México');
     await site('belize', 'Belize');
