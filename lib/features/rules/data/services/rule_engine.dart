@@ -6,6 +6,7 @@ import 'package:submersion/core/services/device_display_name_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
 import 'package:submersion/features/rules/data/services/dive_rule_applier.dart';
@@ -38,7 +39,12 @@ class RuleEngine {
     Future<String?> Function()? deviceLabel,
     Future<void> Function(String diverId, Iterable<String> diveIds)?
     ensureDerived,
-    Future<void> Function(String diverId, Set<String> tables)? prepareCaches,
+    Future<void> Function(
+      String diverId,
+      Set<String> tables,
+      Set<String>? diveIds,
+    )?
+    prepareCaches,
     void Function(Iterable<String> diveIds)? afterDiveWrites,
   }) : _rules = rules ?? RuleRepository(),
        _runs = runs ?? RuleRunRepository(),
@@ -61,11 +67,19 @@ class RuleEngine {
   final Future<String?> Function() _deviceLabel;
   final Future<void> Function(String diverId, Iterable<String> diveIds)
   _ensureDerived;
-  final Future<void> Function(String diverId, Set<String> tables)
+  final Future<void> Function(
+    String diverId,
+    Set<String> tables,
+    Set<String>? diveIds,
+  )
   _prepareCaches;
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
 
-  static Future<void> _noCaches(String diverId, Set<String> tables) async {}
+  static Future<void> _noCaches(
+    String diverId,
+    Set<String> tables,
+    Set<String>? diveIds,
+  ) async {}
 
   /// Rebuilds the derived fields of those of [diverId]'s [diveIds] whose
   /// stored ones are missing or stale, found in one query over the diver's
@@ -201,7 +215,36 @@ class RuleEngine {
             ..._scope.tablesTouched(r.condition, subject, request.diverId),
     };
     if (tables.isEmpty) return;
-    await _prepareCaches(request.diverId, tables);
+    // A run on named dives whose rules read deco only on those dives needs
+    // their verdicts alone; any other read (a site rule's dives, a hop to
+    // a trip's) needs the whole logbook's.
+    final diveTargets = request.targets[RuleSubject.dives];
+    final ownDecoOnly =
+        !(rules[RuleSubject.sites] ?? const <Rule>[]).any(
+          (r) =>
+              r.isRunnable &&
+              _scope.reads(
+                r.condition,
+                RuleSubject.sites,
+                request.diverId,
+                kDiveDecoStatusTable,
+              ),
+        ) &&
+        !(rules[RuleSubject.dives] ?? const <Rule>[]).any(
+          (r) =>
+              r.isRunnable &&
+              _scope.readsTableThroughRelation(
+                r.condition,
+                RuleSubject.dives,
+                request.diverId,
+                kDiveDecoStatusTable,
+              ),
+        );
+    await _prepareCaches(
+      request.diverId,
+      tables,
+      ownDecoOnly ? diveTargets : null,
+    );
   }
 
   bool _selected(Rule rule, RuleRunRequest request) =>

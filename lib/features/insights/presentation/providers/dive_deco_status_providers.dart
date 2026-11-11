@@ -6,7 +6,6 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/dive_deco_status_repository.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -72,39 +71,29 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<void>((
       .replaceAll(computed, computedAt: DateTime.now().millisecondsSinceEpoch);
 });
 
-/// Waits for the deco verdict cache to mirror the analysis before a query
-/// that reads it, so the query never sees an empty cache or another
-/// diver's verdicts. Listens rather than watches: a writer run that changes
-/// no verdict must not re-run the query, and one that does writes the
-/// table, whose tick the caller follows. A provider [hold]s the writer for
-/// its own life; a notifier, whose ref outlives each load, passes
-/// `hold: false` so repeated loads add no listeners.
-Future<void> awaitDiveDecoStatusIfRead(
+/// [diveDecoStatusCacheProvider]'s pass for [diveIds] alone: their verdicts
+/// are brought up to date and the rest of the cache is left as it is. For a
+/// rule run over a few dives (an import's), which on a library nothing has
+/// analyzed yet would otherwise wait for every dive in the logbook (#3807).
+/// [ref] must outlive the call: a service provider's.
+Future<void> refreshDiveDecoStatusFor(
   Ref ref,
-  Set<String> tablesTouched, {
-  bool hold = true,
-}) async {
-  if (!tablesTouched.contains(kDiveDecoStatusTable)) return;
-  final sub = ref.listen(diveDecoStatusCacheProvider.future, (_, _) {});
-  try {
-    await sub.read();
-  } finally {
-    if (!hold) sub.close();
-  }
-}
-
-/// [awaitDiveDecoStatusIfRead] for a widget, which has a [WidgetRef] rather
-/// than a provider's [Ref]: a one-off wait, so the listener is always
-/// released.
-Future<void> awaitDiveDecoStatusIfReadFromWidget(
-  WidgetRef ref,
-  Set<String> tablesTouched,
+  String diverId,
+  Set<String> diveIds,
 ) async {
-  if (!tablesTouched.contains(kDiveDecoStatusTable)) return;
-  final sub = ref.listenManual(diveDecoStatusCacheProvider.future, (_, _) {});
-  try {
-    await sub.read();
-  } finally {
-    sub.close();
-  }
+  if (diveIds.isEmpty) return;
+  final scan = await ref
+      .read(insightsRepositoryProvider)
+      .scanRecordedDecoSignals(diverId: diverId, statsScoped: false);
+  final computed = await const DecoClassificationService().classify(ref, {
+    for (final e in scan.needsCompute.entries)
+      if (diveIds.contains(e.key)) e.key: e.value,
+  });
+  await ref
+      .read(diveDecoStatusRepositoryProvider)
+      .replaceFor(
+        computed,
+        diveIds: diveIds,
+        computedAt: DateTime.now().millisecondsSinceEpoch,
+      );
 }

@@ -340,11 +340,50 @@ void main() {
       const BoolValue(true),
     );
 
-    RuleEngine engineNoting(List<Set<String>> prepared) => RuleEngine(
+    RuleEngine engineNoting(
+      List<Set<String>> prepared, [
+      List<Set<String>?>? diveIds,
+    ]) => RuleEngine(
       names: (_) async => NameIndex(const []),
       deviceLabel: () async => 'Test device',
-      prepareCaches: (_, tables) async => prepared.add(tables),
+      prepareCaches: (_, tables, ids) async {
+        prepared.add(tables);
+        diveIds?.add(ids);
+      },
     );
+
+    test('a run on named dives prepares only theirs', () async {
+      // An import's rules need the imported dives' verdicts, not an
+      // analysis of the whole logbook.
+      final prepared = <Set<String>>[];
+      final ids = <Set<String>?>[];
+      await rule('Deco', deco, tagCold);
+      await engineNoting(
+        prepared,
+        ids,
+      ).run(request(trigger: RuleRunTrigger.imported, dives: {'d20', 'd35'}));
+      expect(ids.single, {'d20', 'd35'});
+    });
+
+    test('a run whose rule reads other dives\' deco prepares all', () async {
+      final prepared = <Set<String>>[];
+      final ids = <Set<String>?>[];
+      await rule(
+        'Deco site',
+        ConditionNode(
+          FieldPath(['site', 'dives', 'deco']),
+          QueryOp.eq,
+          const BoolValue(true),
+        ),
+        tagCold,
+      );
+      await engineNoting(
+        prepared,
+        ids,
+      ).run(request(trigger: RuleRunTrigger.imported, dives: {'d20'}));
+      expect(prepared.single, contains(kDiveDecoStatusTable));
+      expect(ids.single, isNull);
+    });
 
     test('are brought up to date before a rule reading them runs', () async {
       final prepared = <Set<String>>[];

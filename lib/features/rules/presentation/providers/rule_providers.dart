@@ -57,8 +57,8 @@ final ruleEngineProvider = Provider<RuleEngine>(
     names: (diverId) => ruleNamesFor(ref, diverId),
     // A run for another profile (a multi-diver import) has no cached
     // verdicts to prepare; prepareQueryCachesFor skips it.
-    prepareCaches: (diverId, tables) =>
-        prepareQueryCachesFor(ref, diverId, tables),
+    prepareCaches: (diverId, tables, diveIds) =>
+        prepareQueryCachesFor(ref, diverId, tables, diveIds: diveIds),
   ),
 );
 

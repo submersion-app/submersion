@@ -27,12 +27,33 @@ class DiveDecoStatusRepository {
   /// changed verdicts are written, unchanged ones are left alone. One
   /// transaction, and a verdict for a dive deleted since it was analyzed is
   /// skipped rather than failing the dives foreign key.
-  Future<void> replaceAll(
+  Future<void> replaceAll(Map<String, bool> byId, {required int computedAt}) =>
+      _write(byId, computedAt: computedAt);
+
+  /// [replaceAll] for [diveIds] alone: their rows come to hold exactly what
+  /// [byId] says of them (a named dive with no verdict loses its row), and
+  /// every other dive's row is left as it is. For a rule run over a few
+  /// dives, which need not analyze the whole logbook.
+  Future<void> replaceFor(
+    Map<String, bool> byId, {
+    required Set<String> diveIds,
+    required int computedAt,
+  }) => _write(
+    {
+      for (final e in byId.entries)
+        if (diveIds.contains(e.key)) e.key: e.value,
+    },
+    computedAt: computedAt,
+    within: diveIds,
+  );
+
+  Future<void> _write(
     Map<String, bool> byId, {
     required int computedAt,
+    Set<String>? within,
   }) async {
     try {
-      await _db.transaction(() => _replaceAll(byId, computedAt));
+      await _db.transaction(() => _replace(byId, computedAt, within));
     } catch (e, st) {
       _log.error(
         'Failed to write the deco verdict cache',
@@ -43,12 +64,16 @@ class DiveDecoStatusRepository {
     }
   }
 
-  Future<void> _replaceAll(Map<String, bool> byId, int computedAt) async {
+  Future<void> _replace(
+    Map<String, bool> byId,
+    int computedAt,
+    Set<String>? within,
+  ) async {
     final existing = await verdicts();
     final live = await _liveDiveIds(byId.keys.toList(growable: false));
     final stale = [
       for (final id in existing.keys)
-        if (!live.contains(id)) id,
+        if ((within == null || within.contains(id)) && !live.contains(id)) id,
     ];
     final changed = {
       for (final e in byId.entries)

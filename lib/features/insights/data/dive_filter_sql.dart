@@ -63,10 +63,12 @@ String decoSignalCondition({
       'EXISTS (SELECT 1 FROM $kDiveDecoStatusTable c '
       'WHERE c.dive_id = $diveIdRef AND c.had_deco = ${wantDeco ? 1 : 0})';
   // The two recorded branches never both hold, so a dive the recorded data
-  // answers ignores any computed verdict left over from before it did.
+  // answers ignores any computed verdict left over from before it did. The
+  // verdict probe (a primary key lookup) goes first: most dives have no
+  // verdict row, and SQLite then skips the other recorded branch's scans.
   return wantDeco
-      ? '($recordedDeco OR (NOT $recordedNoDeco AND $computed))'
-      : '($recordedNoDeco OR (NOT $recordedDeco AND $computed))';
+      ? '($recordedDeco OR ($computed AND NOT $recordedNoDeco))'
+      : '($recordedNoDeco OR ($computed AND NOT $recordedDeco))';
 }
 
 String _recordedDecoCondition({

@@ -49,6 +49,18 @@ void main() {
     },
   );
 
+  test('replaceFor rewrites only the dives it names', () async {
+    // A rule run on two imported dives refreshes those two and leaves the
+    // rest of the logbook's verdicts as the last full pass wrote them.
+    final repo = DiveDecoStatusRepository();
+    await repo.replaceAll({'a': true, 'b': true, 'c': false}, computedAt: 10);
+
+    // 'a' changes, 'b' has no verdict now (its computer's data arrived),
+    // 'c' is not named and stays.
+    await repo.replaceFor({'a': false}, diveIds: {'a', 'b'}, computedAt: 20);
+    expect(await repo.verdicts(), {'a': false, 'c': false});
+  });
+
   test('a verdict for a dive deleted mid-analysis is skipped', () async {
     // The analysis judged 'ghost', then it was deleted before the write:
     // the cache keeps the live dives instead of failing the whole write on

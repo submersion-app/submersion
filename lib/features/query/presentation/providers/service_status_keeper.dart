@@ -20,7 +20,7 @@ final serviceStatusDemandProvider = Provider<bool>((ref) {
 /// Keeps the service-due cache writer running while [serviceStatusDemandProvider]
 /// says a filter reads it, and idle otherwise. The app root listens to this
 /// all session; readers that can wait also await the write themselves
-/// ([awaitServiceStatusIfRead]).
+/// (`awaitQueryCachesIfRead`).
 final serviceStatusKeeperProvider = FutureProvider<void>((ref) async {
   if (!ref.watch(serviceStatusDemandProvider)) return;
   await ref.watch(equipmentServiceStatusCacheProvider.future);
