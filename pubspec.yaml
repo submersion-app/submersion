@@ -191,6 +191,7 @@ dependencies:
   ndef_record: ^1.4.2
   window_manager: ^0.5.2
   markdown: ^7.3.1  # Markdown formatting in notes (#3683)
+  country_flags: ^4.1.2  # Flags beside site locations and trips (#4426)
 
 dev_dependencies:
   flutter_test:
