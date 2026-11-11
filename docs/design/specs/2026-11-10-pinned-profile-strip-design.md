@@ -136,6 +136,11 @@ directions. A setting turns the strip off.
      exactly on the copy's (the copy's chart reports its plot rect and
      visible ranges), its line and shading cross-fading with its surface so
      shading never doubles; then it condenses into the 56 px strip.
+  The squash and slide share the scroll in one motion. The fade starts a
+  fifth of the way into it and ends exactly as the copy's plot reaches the
+  top, because past that point the copy slides its plot out of view: no
+  data on the chart is ever seen leaving the view. From there the strip's
+  line is held at the top while it condenses.
 - Whatever is drawn always covers all of the card still on screen, so the
   real card never shows around it. It is an overlay on the scroll view and
   takes no space in the scroll content, so the content never jumps.

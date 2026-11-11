@@ -276,7 +276,14 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     _layoutSquash = squash;
     final start = (range + plotTop) * kHandOverOverlap;
     final t = condenseProgress(card: card, start: start);
-    final morph = condenseMorphProgress(t);
+    // The full chart is gone by the time its plot reaches the top, so none of
+    // its data is seen leaving the view.
+    final fadeEnd = condenseFadeEnd(
+      start: start,
+      plotAtTop: range + plotTop,
+      cardHeight: card.height,
+    );
+    final morph = condenseMorphProgress(t, fadeEnd: fadeEnd);
     // The copy, on the page: at the card's place, slid up by its share of
     // the scroll.
     final copyOrigin = Offset(
@@ -360,9 +367,17 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
                   child: PinnedProfileStrip(
                     dive: widget.dive,
                     condense: morph,
-                    backgroundOpacity: condenseBackgroundOpacity(t),
-                    // The copy's line, in the strip's own coordinates.
-                    morphFrom: copy?.shift(copyAt - stripAt.topLeft),
+                    backgroundOpacity: condenseBackgroundOpacity(
+                      t,
+                      fadeEnd: fadeEnd,
+                    ),
+                    // The copy's line, in the strip's own coordinates; once
+                    // the copy slides its plot past the top, held at the top
+                    // instead, so the line never leaves the view.
+                    morphFrom: copy
+                        ?.shift(copyOrigin)
+                        .keptInView()
+                        .shift(-box.topLeft - stripAt.topLeft),
                   ),
                 ),
               ),

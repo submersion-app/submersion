@@ -179,6 +179,9 @@ void main() {
   const start = together * kHandOverOverlap;
   const handOver = profileHeight - start - kPinnedStripHeight;
 
+  /// The fade ends as the copy's plot reaches the top, 152 px in.
+  const fadeEnd = (together - start) / handOver;
+
   /// The squash and slide [scrolled] px past the card's top.
   double squashAt(double scrolled) =>
       range * (scrolled / together).clamp(0.0, 1.0);
@@ -191,7 +194,7 @@ void main() {
     'the card squashes and slides up in one motion, with no strip at first',
     (tester) async {
       await pump(tester, profileKey: GlobalKey());
-      const scrolled = 60.0;
+      const scrolled = 25.0;
       await jump(tester, profileTop + scrolled);
       final squash = squashAt(scrolled);
       // Both are under way at once: the chart is shorter and the card has
@@ -242,16 +245,16 @@ void main() {
     (tester) async {
       final profileKey = GlobalKey();
       await pump(tester, profileKey: profileKey);
-      await jump(tester, profileTop + 60);
+      await jump(tester, profileTop + 25);
       final copy = tester.getRect(copyKey);
       final card = tester.getRect(find.byKey(profileKey));
       expect(copy.bottom, closeTo(card.bottom, 0.01));
       expect(copy.left, closeTo(card.left, 0.01));
       expect(copy.right, closeTo(card.right, 0.01));
-      // 300 - 40 - 100 = 160 at rest, less its share of the 60 px scrolled.
+      // 300 - 40 - 100 = 160 at rest, less its share of the 25 px scrolled.
       expect(
         tester.getSize(find.byType(_FakeChart)).height,
-        closeTo(160 - squashAt(60), 0.01),
+        closeTo(160 - squashAt(25), 0.01),
       );
       expect(strip, findsNothing);
     },
@@ -261,7 +264,7 @@ void main() {
     'at the hand-over the strip fades in with its line on the copy\'s plot',
     (tester) async {
       await pump(tester, profileKey: GlobalKey());
-      await condenseTo(tester, kCondenseFadePortion / 2);
+      await condenseTo(tester, fadeEnd / 2);
       final s = stripWidget(tester);
       expect(s.backgroundOpacity, closeTo(0.5, 1e-6));
       expect(s.condense, 0);
@@ -290,13 +293,13 @@ void main() {
     await jump(tester, profileTop + profileHeight + 40);
     expect(copyKey, findsNothing);
 
-    position(tester).jumpTo(profileTop + 40);
+    position(tester).jumpTo(profileTop + 25);
     await tester.pump();
 
     expect(strip, findsNothing);
     expect(
       tester.getSize(find.byType(_FakeChart)).height,
-      closeTo(160 - squashAt(40), 0.01),
+      closeTo(160 - squashAt(25), 0.01),
     );
   });
 
@@ -326,7 +329,7 @@ void main() {
   ) async {
     final profileKey = GlobalKey();
     await pump(tester, profileKey: profileKey);
-    await condenseTo(tester, kCondenseFadePortion / 2);
+    await condenseTo(tester, fadeEnd / 2);
     final stripBox = tester.getRect(strip);
     final plot = tester.getRect(find.byType(_FakeChart));
     final card = tester.getRect(find.byKey(profileKey));
@@ -347,21 +350,60 @@ void main() {
   ) async {
     await pump(tester, profileKey: GlobalKey());
     // Halfway through the morph, after the fade.
-    const t = (1 + kCondenseFadePortion) / 2;
+    const t = (1 + fadeEnd) / 2;
     await condenseTo(tester, t);
     final s = stripWidget(tester);
     expect(s.backgroundOpacity, 1);
-    expect(s.condense, closeTo(condenseMorphProgress(t), 1e-6));
+    expect(
+      s.condense,
+      closeTo(condenseMorphProgress(t, fadeEnd: fadeEnd), 1e-6),
+    );
     expect(s.condense, inExclusiveRange(0, 1));
     expect(tester.getSize(strip).height, greaterThan(kPinnedStripHeight));
     expect(stripIgnoresPointer(tester), isTrue);
+  });
+
+  // Past the moment its plot reaches the top, the card slides the plot out
+  // of view, so the full chart is gone by then: no data on it leaves the
+  // view while it can still be seen.
+  testWidgets('the full chart is gone as its plot reaches the top', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    for (final scrolled in [together * 0.5, together - 10, together - 1]) {
+      await jump(tester, profileTop + scrolled);
+      expect(stripWidget(tester).backgroundOpacity, lessThan(1));
+      expect(
+        tester.getTopLeft(find.byType(_FakeChart)).dy,
+        greaterThanOrEqualTo(overlayTop(tester) - 0.01),
+        reason: '$scrolled',
+      );
+    }
+    await jump(tester, profileTop + together);
+    expect(stripWidget(tester).backgroundOpacity, 1);
+  });
+
+  // The strip's line started on the copy's plot even after that slid above
+  // the top, so the line went up out of view and came back down.
+  testWidgets('the strip line never goes above the top', (tester) async {
+    await pump(tester, profileKey: GlobalKey());
+    for (var scrolled = start + 1; scrolled < profileHeight; scrolled += 7) {
+      await jump(tester, profileTop + scrolled);
+      final s = stripWidget(tester);
+      final from = s.morphFrom!.rect.shift(tester.getTopLeft(strip));
+      expect(
+        from.top,
+        greaterThanOrEqualTo(overlayTop(tester) - 0.01),
+        reason: '$scrolled',
+      );
+    }
   });
 
   testWidgets('without a plot from the copy, the strip has no start line', (
     tester,
   ) async {
     await pump(tester, profileKey: GlobalKey(), reportsPlot: false);
-    await condenseTo(tester, kCondenseFadePortion / 2);
+    await condenseTo(tester, fadeEnd / 2);
     expect(stripWidget(tester).morphFrom, isNull);
   });
 
@@ -411,7 +453,7 @@ void main() {
   ) async {
     final width = ValueNotifier(400.0);
     await pump(tester, profileKey: GlobalKey(), width: width);
-    await condenseTo(tester, kCondenseFadePortion / 2);
+    await condenseTo(tester, fadeEnd / 2);
     width.value = 520;
     await tester.pump();
     await tester.pump();

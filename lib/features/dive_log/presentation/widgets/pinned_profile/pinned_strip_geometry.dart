@@ -50,9 +50,9 @@ double slideDepth({
 }
 
 /// The share of the squash-and-slide after which the strip starts to fade
-/// in, so the hand-over overlaps the card's motion instead of following it,
-/// and its fade has a long stretch of scroll to spread over.
-const double kHandOverOverlap = 0.4;
+/// in. The fade has to be over by the end of it ([condenseFadeEnd]), so an
+/// early start gives it a long stretch of scroll to spread over.
+const double kHandOverOverlap = 0.2;
 
 /// How far the card has handed over to the strip, from 0 to 1.
 ///
@@ -69,27 +69,41 @@ double condenseProgress({required Rect card, double start = kSquashRange}) {
   return (past / travel).clamp(0.0, 1.0);
 }
 
-/// The share of the condense spent fading the strip's background in over the
-/// card while its depth line still sits exactly on the chart's, before the
-/// shape moves at all. The chart's own line is hidden before the two could
-/// part, so only one depth line is ever seen. Two thirds of the hand-over:
-/// the chart's axes, grid and other lines fade out gradually under it rather
-/// than vanishing and leaving a large blank strip. The fade follows the
-/// scroll position, so this one point is where the chart is gone scrolling
-/// down and where it starts coming back scrolling up.
-const double kCondenseFadePortion = 0.65;
+/// Where, as a share of the hand-over ([condenseProgress]), the strip's
+/// background has fully faded in over the card: the moment the card's plot
+/// reaches the top of the page, [plotAtTop] px past the card's top.
+///
+/// Until then the strip's depth line sits exactly on the chart's, so only
+/// one line is seen. Past it the card slides its plot up out of view, so
+/// the full chart has to be gone by then, or the data on it would be seen
+/// leaving the view; the strip alone carries the line on, below the top
+/// ([PlotMapping.keptInView]). The fade follows the scroll position, so the
+/// same point is where the chart starts coming back when scrolling up.
+double condenseFadeEnd({
+  required double start,
+  required double plotAtTop,
+  required double cardHeight,
+}) {
+  final travel = cardHeight - start - kPinnedStripHeight;
+  if (travel <= 0) return 1;
+  return ((plotAtTop - start) / travel).clamp(0.0, 1.0);
+}
 
-/// The strip background's opacity at condense progress [t].
-double condenseBackgroundOpacity(double t) =>
-    (t / kCondenseFadePortion).clamp(0.0, 1.0);
+/// The strip background's opacity at condense progress [t], fully opaque
+/// from [fadeEnd] on.
+double condenseBackgroundOpacity(double t, {required double fadeEnd}) =>
+    fadeEnd <= 0 ? 1 : (t / fadeEnd).clamp(0.0, 1.0);
 
 /// How far the shape has morphed from the card's chart to the strip at
-/// condense progress [t]: still until the background is opaque, then eased.
-double condenseMorphProgress(double t) {
-  final u = ((t - kCondenseFadePortion) / (1 - kCondenseFadePortion)).clamp(
-    0.0,
-    1.0,
-  );
+/// condense progress [t]: still until the background is opaque at
+/// [fadeEnd], then eased.
+double condenseMorphProgress(double t, {required double fadeEnd}) {
+  final double u;
+  if (fadeEnd >= 1) {
+    u = t >= 1 ? 1 : 0;
+  } else {
+    u = ((t - fadeEnd) / (1 - fadeEnd)).clamp(0.0, 1.0);
+  }
   return u * u * (3 - 2 * u);
 }
 
@@ -143,6 +157,12 @@ class PlotMapping {
     minDepthMeters: minDepthMeters,
     maxDepthMeters: maxDepthMeters,
   );
+
+  /// This mapping, moved down just enough that its plot is not above the top
+  /// of the page (y 0), so no part of a curve drawn through it is out of
+  /// view there. Unchanged when it is already in view.
+  PlotMapping keptInView() =>
+      rect.top >= 0 ? this : shift(Offset(0, -rect.top));
 
   /// The mapping [t] of the way from [a] to [b]: every point of a curve
   /// drawn through it moves continuously from where [a] draws it to where

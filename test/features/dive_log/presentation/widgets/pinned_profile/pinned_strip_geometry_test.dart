@@ -100,39 +100,56 @@ void main() {
     });
   });
 
-  // The chart's axes, grid and other lines under the strip fade out as the
-  // strip fades in; done too quickly, they vanish and leave a large blank
-  // strip while its box is still big.
-  test('the full chart still shows through well into the hand-over', () {
-    expect(condenseBackgroundOpacity(0.3), lessThan(0.75));
-    expect(condenseMorphProgress(0.3), 0);
+  group('condenseFadeEnd', () {
+    // Past the moment the plot reaches the top, the card slides its plot out
+    // of view; the full chart must be gone by then, so no data leaves the
+    // view, and the strip carries the line on.
+    test('is where the plot reaches the top, as a share of the hand-over', () {
+      // Starts 30 px in, plot at the top 150 px in, 456 - 30 - 56 = 370 px
+      // of hand-over: the fade takes the first 120 of them.
+      expect(
+        condenseFadeEnd(start: 30, plotAtTop: 150, cardHeight: 456),
+        closeTo(120 / 370, 1e-9),
+      );
+    });
+
+    test('stays within the hand-over', () {
+      expect(condenseFadeEnd(start: 30, plotAtTop: 20, cardHeight: 456), 0);
+      expect(condenseFadeEnd(start: 30, plotAtTop: 900, cardHeight: 456), 1);
+      expect(condenseFadeEnd(start: 30, plotAtTop: 150, cardHeight: 80), 1);
+    });
   });
 
-  // The fade follows the scroll position, so one point is both where it
-  // ends scrolling down and where it starts scrolling back up.
-  test('the chart is still fading out past halfway through the hand-over', () {
-    expect(condenseBackgroundOpacity(0.6), lessThan(1));
-    expect(condenseMorphProgress(0.6), 0);
-  });
-
-  test('the hand-over starts before the card has finished moving', () {
-    expect(kHandOverOverlap, lessThanOrEqualTo(0.45));
+  test('the hand-over starts early in the card\'s motion', () {
+    expect(kHandOverOverlap, lessThanOrEqualTo(0.25));
   });
 
   group('two-phase condense', () {
+    const fadeEnd = 0.4;
+
     test('the background fades in first, while the shape holds still', () {
-      expect(condenseBackgroundOpacity(0), 0);
-      expect(condenseBackgroundOpacity(kCondenseFadePortion / 2), 0.5);
-      expect(condenseBackgroundOpacity(kCondenseFadePortion), 1);
-      expect(condenseMorphProgress(kCondenseFadePortion), 0);
+      expect(condenseBackgroundOpacity(0, fadeEnd: fadeEnd), 0);
+      expect(condenseBackgroundOpacity(0.2, fadeEnd: fadeEnd), 0.5);
+      expect(condenseBackgroundOpacity(fadeEnd, fadeEnd: fadeEnd), 1);
+      expect(condenseMorphProgress(fadeEnd, fadeEnd: fadeEnd), 0);
     });
 
     test('the shape morphs only once the background is opaque', () {
-      expect(condenseMorphProgress(0), 0);
-      expect(condenseMorphProgress(1), 1);
-      final mid = condenseMorphProgress((1 + kCondenseFadePortion) / 2);
+      expect(condenseMorphProgress(0, fadeEnd: fadeEnd), 0);
+      expect(condenseMorphProgress(1, fadeEnd: fadeEnd), 1);
+      final mid = condenseMorphProgress(0.7, fadeEnd: fadeEnd);
       expect(mid, greaterThan(0));
       expect(mid, lessThan(1));
+    });
+
+    test('a fade that takes no scroll is already done', () {
+      expect(condenseBackgroundOpacity(0, fadeEnd: 0), 1);
+      expect(condenseMorphProgress(0.5, fadeEnd: 0), closeTo(0.5, 1e-9));
+    });
+
+    test('a fade that takes the whole hand-over leaves no morph', () {
+      expect(condenseMorphProgress(0.99, fadeEnd: 1), 0);
+      expect(condenseMorphProgress(1, fadeEnd: 1), 1);
     });
   });
 
@@ -173,6 +190,16 @@ void main() {
         expect(a.dx, closeTo(b.dx, 1e-9));
         expect(a.dy, closeTo(b.dy, 1e-9));
       }
+    });
+
+    test('keptInView moves a plot above the top down onto it', () {
+      final above = chart.shift(const Offset(0, -130));
+      final kept = above.keptInView();
+      expect(kept.rect.top, 0);
+      expect(kept.rect.height, above.rect.height);
+      expect(kept.rect.left, above.rect.left);
+      expect(kept.maxDepthMeters, 33);
+      expect(chart.keptInView(), chart);
     });
 
     test('shift moves the rect and keeps the ranges', () {
