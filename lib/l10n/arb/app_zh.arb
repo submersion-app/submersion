@@ -11901,6 +11901,7 @@
   "attrChoice_plate_material_aluminum": "铝",
   "attrChoice_plate_material_carbon_fiber": "碳纤维",
   "attrChoice_plate_material_steel": "钢",
+  "attrChoice_plate_material_titanium": "钛",
   "attrChoice_unit_type_eccr": "电子式 CCR (eCCR)",
   "attrChoice_unit_type_mccr": "手动式 CCR (mCCR)",
   "attrChoice_unit_type_hccr": "混合式 CCR (hCCR)",

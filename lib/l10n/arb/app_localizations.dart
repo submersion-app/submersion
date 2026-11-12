@@ -64799,6 +64799,12 @@ abstract class AppLocalizations {
   /// **'Steel'**
   String get attrChoice_plate_material_steel;
 
+  /// No description provided for @attrChoice_plate_material_titanium.
+  ///
+  /// In en, this message translates to:
+  /// **'Titanium'**
+  String get attrChoice_plate_material_titanium;
+
   /// No description provided for @attrChoice_unit_type_eccr.
   ///
   /// In en, this message translates to:

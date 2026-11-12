@@ -11901,6 +11901,7 @@
   "attrChoice_plate_material_aluminum": "אלומיניום",
   "attrChoice_plate_material_carbon_fiber": "סיבי פחמן",
   "attrChoice_plate_material_steel": "פלדה",
+  "attrChoice_plate_material_titanium": "טיטניום",
   "attrChoice_unit_type_eccr": "CCR אלקטרוני (eCCR)",
   "attrChoice_unit_type_mccr": "CCR ידני (mCCR)",
   "attrChoice_unit_type_hccr": "CCR היברידי (hCCR)",

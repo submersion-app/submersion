@@ -497,7 +497,7 @@ abstract final class EquipmentAttributeCatalog {
       EquipmentAttributeDef(
         key: 'plate_material',
         kind: AttributeKind.choice,
-        choiceKeys: ['steel', 'aluminum', 'carbon_fiber'],
+        choiceKeys: ['steel', 'aluminum', 'titanium', 'carbon_fiber'],
       ),
     ],
     EquipmentType.wing: [_liftCapacity],

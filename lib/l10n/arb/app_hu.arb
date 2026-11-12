@@ -11901,6 +11901,7 @@
   "attrChoice_plate_material_aluminum": "Alumínium",
   "attrChoice_plate_material_carbon_fiber": "Szénszál",
   "attrChoice_plate_material_steel": "Acél",
+  "attrChoice_plate_material_titanium": "Titán",
   "attrChoice_unit_type_eccr": "Elektronikus CCR (eCCR)",
   "attrChoice_unit_type_mccr": "Manuális CCR (mCCR)",
   "attrChoice_unit_type_hccr": "Hibrid CCR (hCCR)",

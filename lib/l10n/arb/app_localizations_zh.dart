@@ -38823,6 +38823,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrChoice_plate_material_steel => '钢';
 
   @override
+  String get attrChoice_plate_material_titanium => '钛';
+
+  @override
   String get attrChoice_unit_type_eccr => '电子式 CCR (eCCR)';
 
   @override
