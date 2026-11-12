@@ -9,6 +9,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/logged_with_ti
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_list_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/widgets/dive_owner_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 
@@ -21,6 +24,11 @@ class DiveBuddiesSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final buddiesAsync = ref.watch(buddiesForDiveProvider(dive.id));
+    // Only the own-role row needs the dive's owner; it draws a placeholder
+    // while the owner loads rather than holding back the whole card.
+    final ownerAsync = dive.diverRoleIds.isEmpty
+        ? null
+        : ref.watch(diveOwnerProvider(dive.diverId));
 
     return buddiesAsync.when(
       data: (buddies) {
@@ -55,8 +63,8 @@ class DiveBuddiesSection extends ConsumerWidget {
                   ],
                 ),
                 const Divider(),
-                if (dive.diverRoleIds.isNotEmpty)
-                  _buildMyRoleTile(context, ref),
+                if (ownerAsync != null)
+                  _buildMyRoleTile(context, ref, ownerAsync),
                 if (showLegacyText)
                   LegacyBuddyTextSection(dive: dive)
                 else if (buddies.isEmpty && dive.diverRoleIds.isEmpty)
@@ -104,25 +112,26 @@ class DiveBuddiesSection extends ConsumerWidget {
     );
   }
 
-  /// The active diver's own roles on this dive (#547, #1221), shown above
-  /// buddies.
-  Widget _buildMyRoleTile(BuildContext context, WidgetRef ref) {
+  /// The diver's own roles on this dive (#547, #1221), shown above buddies,
+  /// with the dive owner's photo and name like the edit view's Me chip
+  /// (#4458).
+  Widget _buildMyRoleTile(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<Diver?> ownerAsync,
+  ) {
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     final label = rolesForIds(
       dive.diverRoleIds,
       rolesById,
     ).joinedLocalizedNames(context.l10n);
+    final owner = ownerAsync.value;
+    final pending = isDiveOwnerPending(ownerAsync);
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: Icon(
-          Icons.person,
-          color: Theme.of(context).colorScheme.onPrimaryContainer,
-        ),
-      ),
-      title: Text(context.l10n.buddies_picker_me),
+      leading: DiveOwnerAvatar(diver: owner, pending: pending),
+      title: DiveOwnerName(diver: owner, pending: pending),
       subtitle: Text(label),
     );
   }

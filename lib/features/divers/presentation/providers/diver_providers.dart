@@ -284,6 +284,36 @@ final currentDiverProvider = FutureProvider<Diver?>((ref) async {
   return repository.getDefaultDiver();
 });
 
+/// The diver a dive belongs to, given the dive's `diverId`.
+///
+/// A dive from another profile (a sibling logged with this one, #2002) opens
+/// on the same screens, so "me" on a dive is its owner, not the active diver.
+/// A null id (a new dive, or one never assigned an owner) resolves to the
+/// active diver.
+///
+/// A dive of the active diver, the usual case, reuses [currentDiverProvider]
+/// rather than loading them again: a second copy would carry its own photo
+/// bytes, which the avatar image cache keys by identity and would decode
+/// twice.
+///
+/// That reuse reads the active diver's settled value and never waits for it,
+/// so an active-diver read still loading, retrying or failed cannot hold up
+/// another profile's owner: those load by id at once. Should the active diver
+/// settle later and turn out to be this dive's owner, the watch rebuilds this
+/// provider onto their instance, keeping the value it already had meanwhile.
+/// Because of that rebuild, a one-off read must hold a listener
+/// (`container.awaitFuture`) rather than `ref.read(...future)`, or a paused
+/// load can never complete (#3807).
+final diveOwnerProvider = FutureProvider.family<Diver?, String?>((
+  ref,
+  diverId,
+) {
+  if (diverId == null) return ref.watch(currentDiverProvider.future);
+  final current = ref.watch(currentDiverProvider).value;
+  if (current != null && current.id == diverId) return current;
+  return ref.watch(diverByIdProvider(diverId).future);
+});
+
 /// Validated current diver ID provider
 /// Returns the current diver ID only if it exists in the database,
 /// otherwise returns the default diver ID

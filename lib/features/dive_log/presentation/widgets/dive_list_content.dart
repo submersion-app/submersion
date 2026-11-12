@@ -1095,8 +1095,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
           diver = await ref.read(currentDiverProvider.future);
           // The portrait travels with the diver: passing one without the
           // other leaves the Detailed front matter on its placeholder frame.
-          diverPhoto = await ref.read(diverPhotoLoaderProvider)(
-            diver?.photoPath,
+          diverPhoto = await diverPortrait(
+            diver,
+            ref.read(diverPhotoLoaderProvider),
           );
         } catch (_) {
           // Keep the export going without the personalization.

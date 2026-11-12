@@ -44,6 +44,25 @@ final allCertificationsProvider = FutureProvider<List<Certification>>((
   return repository.getAllCertifications(diverId: validatedDiverId);
 });
 
+/// Loads every certification of a given diver, with card images, whichever
+/// profile is active: a dive's PDF export carries its owner's cards, and a
+/// sibling dive from another profile (#2002) is not the active diver's
+/// (#4458).
+///
+/// A loader rather than a cached family: an export reads it once, and a
+/// family entry would keep that diver's card scans in memory for the rest of
+/// the session.
+typedef DiverCertificationsLoader =
+    Future<List<Certification>> Function(String diverId);
+
+// no-tick: the value is a CLOSURE, not a query result; each call reads fresh.
+final diverCertificationsLoaderProvider = Provider<DiverCertificationsLoader>((
+  ref,
+) {
+  final repository = ref.watch(certificationRepositoryProvider);
+  return (diverId) => repository.getAllCertifications(diverId: diverId);
+});
+
 /// All certifications without their card images, so what depends on credential
 /// data never waits on or holds the scans (issue #3848). Refreshes when a row
 /// changes, and only then: a card's pages are not part of it.

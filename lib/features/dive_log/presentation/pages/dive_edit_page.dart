@@ -6079,6 +6079,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           selectedBuddies: _selectedBuddies,
           keepRoleIds: _loadedRoleIds,
           diverRoleIds: _diverRoleIds,
+          diveOwnerId: _existingDive?.diverId,
           onDiverRoleChanged: (roleIds) {
             _markDirty();
             setState(() => _diverRoleIds = roleIds);

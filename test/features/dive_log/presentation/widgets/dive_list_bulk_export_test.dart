@@ -585,6 +585,25 @@ void main() {
         reason: 'a missing portrait must not drop the diver as well',
       );
     });
+
+    testWidgets('uses the profile photo bytes, with no legacy path '
+        '(#4458)', (tester) async {
+      final bytes = Uint8List.fromList([5, 5, 5]);
+      await pumpAndOpenExportSheet(
+        tester,
+        diver: Diver(
+          id: 'me',
+          name: 'Ada',
+          photo: bytes,
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        ),
+        photoLoader: (path) async => null,
+      );
+      await chooseFormatAndDestination(tester, 'PDF Logbook', 'Share');
+
+      expect(exportService.pdfDiverPhoto, same(bytes));
+    });
   });
 
   testWidgets('dismissing the PDF template picker exports nothing', (

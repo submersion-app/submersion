@@ -25,6 +25,7 @@ import 'package:submersion/features/certifications/domain/entities/certification
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_selector_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/widgets/dive_owner_avatar.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_context.dart';
 import 'package:submersion/features/certification_agencies/presentation/providers/certification_catalog_providers.dart';
 
@@ -44,6 +45,11 @@ class BuddyPicker extends ConsumerWidget {
   /// the dive had when the editor opened.
   final Set<String> keepRoleIds;
 
+  /// The dive's owner (`Dive.diverId`), whose photo and name the Me chip
+  /// shows (#4458). Null for a new dive or one with no owner, which shows the
+  /// active diver.
+  final String? diveOwnerId;
+
   const BuddyPicker({
     super.key,
     this.diveId,
@@ -52,6 +58,7 @@ class BuddyPicker extends ConsumerWidget {
     this.diverRoleIds = const [],
     this.onDiverRoleChanged,
     this.keepRoleIds = const {},
+    this.diveOwnerId,
   });
 
   @override
@@ -94,6 +101,7 @@ class BuddyPicker extends ConsumerWidget {
                   diverRoleIds: diverRoleIds,
                   onChanged: onDiverRoleChanged!,
                   keepRoleIds: keepRoleIds,
+                  diveOwnerId: diveOwnerId,
                 ),
               ...selectedBuddies.map((bwr) {
                 return _BuddyChip(
@@ -298,15 +306,21 @@ class _MeChip extends ConsumerWidget {
     required this.diverRoleIds,
     required this.onChanged,
     this.keepRoleIds = const {},
+    this.diveOwnerId,
   });
 
   /// Roles offered even when hidden.
   final Set<String> keepRoleIds;
 
+  /// See [BuddyPicker.diveOwnerId].
+  final String? diveOwnerId;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(certificationCatalogSyncProvider);
-    final diver = ref.watch(currentDiverProvider).value;
+    final ownerAsync = ref.watch(diveOwnerProvider(diveOwnerId));
+    final diver = ownerAsync.value;
+    final pending = isDiveOwnerPending(ownerAsync);
     final rolesById =
         ref.watch(diveRoleMapProvider).value ?? const <String, DiveRole>{};
     final roleLabel = diverRoleIds.isEmpty
@@ -317,28 +331,12 @@ class _MeChip extends ConsumerWidget {
           ).joinedLocalizedNames(context.l10n);
     return InputChip(
       tooltip: roleLabel,
-      // The active diver's own chip. Falls back to the generic person icon
-      // rather than initials when there is no photo, preserving how this chip
-      // has always looked.
-      avatar: diver?.photo != null
-          ? ProfileAvatar(
-              photo: diver!.photo,
-              initials: diver.initials,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            )
-          : CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(
-                Icons.person,
-                size: 14,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              ),
-            ),
+      avatar: DiveOwnerAvatar(diver: diver, iconSize: 14, pending: pending),
       label: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(diver?.name ?? context.l10n.buddies_picker_me),
+          DiveOwnerName(diver: diver, pending: pending),
           _RoleLine(roleLabel),
         ],
       ),
