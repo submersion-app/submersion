@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -38,7 +40,28 @@ class _RelinkDataSourcesTileState extends ConsumerState<RelinkDataSourcesTile> {
     try {
       if (!await _confirm() || !mounted) return;
       final messenger = ScaffoldMessenger.of(context);
+      final navigator = Navigator.of(context);
       final l10n = context.l10n;
+      // A library-wide relink can take a while: say so, and keep the page
+      // from taking another tap until it is done.
+      unawaited(
+        showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => PopScope(
+            canPop: false,
+            child: AlertDialog(
+              content: Row(
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(width: 24),
+                  Expanded(child: Text(l10n.settings_relinkSources_title)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
       String message;
       try {
         final linked = await ref
@@ -50,6 +73,7 @@ class _RelinkDataSourcesTileState extends ConsumerState<RelinkDataSourcesTile> {
         // transaction, so the diver only needs to know nothing changed.
         message = l10n.settings_relinkSources_failed;
       }
+      navigator.pop();
       messenger.showSnackBar(SnackBar(content: Text(message)));
     } finally {
       _running = false;

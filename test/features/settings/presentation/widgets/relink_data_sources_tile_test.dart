@@ -99,14 +99,27 @@ void main() {
     final gate = Completer<void>();
     final repo = _FakeRepository(linked: 1, gate: gate);
     await pumpTile(tester, repo);
-    await confirm(tester);
-
     await tester.tap(find.text('Relink data sources'));
     await tester.pumpAndSettle();
-    expect(find.byType(AlertDialog), findsNothing);
+    await tester.tap(find.widgetWithText(FilledButton, 'Relink'));
+    // Pumped, not settled: the progress indicator spins until the relink
+    // ends.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // A library-wide relink can take a while: it says it is running, and
+    // blocks the page so a second tap cannot start another.
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await tester.tap(
+      find.text('Relink data sources').first,
+      warnIfMissed: false,
+    );
+    await tester.pump();
+    expect(find.widgetWithText(FilledButton, 'Relink'), findsNothing);
 
     gate.complete();
     await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(repo.calls, 1);
     expect(find.text('Linked 1 data source to its dive computer'), findsOne);
   });

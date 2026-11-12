@@ -76,12 +76,11 @@ class OrphanedSourceRelinker {
     if (linked > 0) {
       // An empty serial snapshot takes its computer's serial now, so a later
       // delete of that computer leaves the source something to match on.
-      // Once for the run: one computer's copies when only one was linked,
-      // else the whole library's, as every open does anyway.
-      await healDownloadedSnapshotSerials(
-        _db,
-        computerId: byComputer.length == 1 ? byComputer.keys.single : null,
-      );
+      // Only the computers that gained a source: the whole-library heal,
+      // decimal conversion included, is left to the next open.
+      for (final linkedComputerId in byComputer.keys) {
+        await healDownloadedSnapshotSerials(_db, computerId: linkedComputerId);
+      }
     }
     return linked;
   }
