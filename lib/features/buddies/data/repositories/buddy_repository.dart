@@ -639,7 +639,8 @@ class BuddyRepository {
   /// restoring old rows beside their replacements. A buddy linked twice
   /// (#3895) is left with one link, as the full rewrite left them.
   ///
-  /// Returns whether any link row changed, so the caller bumps the dive.
+  /// Returns whether any link or role row changed, so the caller bumps the
+  /// dive.
   Future<bool> _writeDiveBuddies(
     String diveId,
     List<domain.BuddyWithRole> buddies,
@@ -686,8 +687,8 @@ class BuddyRepository {
           bwr,
     ];
     await _insertLinks(diveId, added, now);
-    await _writeRoleSets(diveId, existing, buddies, now);
-    return changed || added.isNotEmpty;
+    final rolesChanged = await _writeRoleSets(diveId, existing, buddies, now);
+    return changed || added.isNotEmpty || rolesChanged;
   }
 
   /// One fresh `dive_buddies` row per entry of [buddies], carrying the
@@ -720,25 +721,28 @@ class BuddyRepository {
 
   /// After a dive's links were replaced: drops the role rows of everyone in
   /// [previous] who is not in [buddies], and writes each entry's set.
-  Future<void> _writeRoleSets(
+  /// Returns whether any row was written.
+  Future<bool> _writeRoleSets(
     String diveId,
     List<DiveBuddy> previous,
     List<domain.BuddyWithRole> buddies,
     int now,
   ) async {
     final kept = {for (final b in buddies) b.buddy.id};
-    await _roleLinks.deleteBuddyRoles(diveId, {
+    var changed = await _roleLinks.deleteBuddyRoles(diveId, {
       for (final row in previous)
         if (!kept.contains(row.buddyId)) row.buddyId,
     });
     for (final bwr in buddies) {
-      await _roleLinks.writeBuddyRoles(
+      final wrote = await _roleLinks.writeBuddyRoles(
         diveId,
         bwr.buddy.id,
         bwr.roleIds,
         now: now,
       );
+      changed = changed || wrote;
     }
+    return changed;
   }
 
   /// Add a buddy to a dive in one role. [roleId] is a dive_roles id (see

@@ -8,6 +8,7 @@ import 'package:submersion/features/change_log/data/repositories/change_log_repo
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
+import 'package:submersion/features/dive_roles/domain/services/dive_role_set.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
@@ -224,7 +225,7 @@ void main() {
       updatedAt: epoch,
     );
 
-    BuddyWithRole as(Buddy buddy, String roleId) =>
+    BuddyWithRole withRole(Buddy buddy, String roleId) =>
         BuddyWithRole(buddy: buddy, roles: [role(roleId)]);
 
     setUp(() async {
@@ -246,14 +247,18 @@ void main() {
           updatedAt: epoch,
         ),
       );
-      await buddies.setBuddiesForDive('dive', [as(samBuddy, DiveRole.buddyId)]);
+      await buddies.setBuddiesForDive('dive', [
+        withRole(samBuddy, DiveRole.buddyId),
+      ]);
       await changeLog.settleAll();
     });
 
     test('saving the same buddies leaves their rows alone', () async {
       final before = await rows('dive_buddies');
 
-      await buddies.setBuddiesForDive('dive', [as(samBuddy, DiveRole.buddyId)]);
+      await buddies.setBuddiesForDive('dive', [
+        withRole(samBuddy, DiveRole.buddyId),
+      ]);
 
       expect(await rows('dive_buddies'), before);
     });
@@ -262,7 +267,7 @@ void main() {
       final before = (await rows('dive_buddies')).single;
 
       await buddies.setBuddiesForDive('dive', [
-        as(samBuddy, DiveRole.instructorId),
+        withRole(samBuddy, DiveRole.instructorId),
       ]);
 
       final after = (await rows('dive_buddies')).single;
@@ -276,8 +281,8 @@ void main() {
       final before = (await rows('dive_buddies')).single;
 
       await buddies.setBuddiesForDive('dive', [
-        as(samBuddy, DiveRole.buddyId),
-        as(alexBuddy, DiveRole.buddyId),
+        withRole(samBuddy, DiveRole.buddyId),
+        withRole(alexBuddy, DiveRole.buddyId),
       ]);
 
       final after = await rows('dive_buddies');
@@ -291,16 +296,66 @@ void main() {
         "VALUES ('again', 'dive', 'sam', 'buddy', 1)",
       );
 
-      await buddies.setBuddiesForDive('dive', [as(samBuddy, DiveRole.buddyId)]);
+      await buddies.setBuddiesForDive('dive', [
+        withRole(samBuddy, DiveRole.buddyId),
+      ]);
 
       expect(await rows('dive_buddies'), hasLength(1));
+    });
+
+    group('a change to secondary roles only', () {
+      // The primary role, held on the link row, stays the same; only the
+      // dive_buddy_roles rows change.
+      const roles = [DiveRole.instructorId, DiveRole.safetyDiverId];
+      final primary = DiveRoleSet.normalizeBuddy(roles).first;
+      BuddyWithRole both() => BuddyWithRole(
+        buddy: samBuddy,
+        roles: [for (final id in roles) role(id)],
+      );
+
+      Future<int> diveUpdatedAt() async =>
+          (await db
+                  .customSelect(
+                    "SELECT updated_at FROM dives WHERE id = 'dive'",
+                  )
+                  .getSingle())
+              .read<int>('updated_at');
+
+      setUp(() async {
+        await buddies.setBuddiesForDive('dive', [withRole(samBuddy, primary)]);
+        await db.customStatement(
+          "UPDATE dives SET updated_at = 1 WHERE id = 'dive'",
+        );
+      });
+
+      test('bumps the dive through setBuddiesForDive', () async {
+        final link = (await rows('dive_buddies')).single;
+
+        await buddies.setBuddiesForDive('dive', [both()]);
+
+        expect((await rows('dive_buddies')).single, link);
+        expect(await diveUpdatedAt(), isNot(1));
+      });
+
+      test('bumps the dive through bulkReplaceBuddies', () async {
+        await buddies.bulkReplaceBuddies(['dive'], [both()]);
+
+        expect(await diveUpdatedAt(), isNot(1));
+      });
+
+      test('an unchanged save leaves the dive alone', () async {
+        await buddies.setBuddiesForDive('dive', [withRole(samBuddy, primary)]);
+
+        expect(await diveUpdatedAt(), 1);
+      });
     });
 
     test('reverting a save that kept the buddies puts them back', () async {
       await expectRevertRestores(
         const ['dive_buddies', 'dive_buddy_roles'],
-        () =>
-            buddies.setBuddiesForDive('dive', [as(samBuddy, DiveRole.buddyId)]),
+        () => buddies.setBuddiesForDive('dive', [
+          withRole(samBuddy, DiveRole.buddyId),
+        ]),
       );
     });
 
@@ -308,7 +363,7 @@ void main() {
       await expectRevertRestores(
         const ['dive_buddies', 'dive_buddy_roles'],
         () => buddies.setBuddiesForDive('dive', [
-          as(samBuddy, DiveRole.instructorId),
+          withRole(samBuddy, DiveRole.instructorId),
         ]),
       );
     });
@@ -318,7 +373,10 @@ void main() {
 
       await buddies.bulkReplaceBuddies(
         ['dive'],
-        [as(samBuddy, DiveRole.buddyId), as(alexBuddy, DiveRole.buddyId)],
+        [
+          withRole(samBuddy, DiveRole.buddyId),
+          withRole(alexBuddy, DiveRole.buddyId),
+        ],
       );
 
       final after = await rows('dive_buddies');
@@ -331,8 +389,8 @@ void main() {
         () => buddies.bulkReplaceBuddies(
           ['dive'],
           [
-            as(samBuddy, DiveRole.instructorId),
-            as(alexBuddy, DiveRole.buddyId),
+            withRole(samBuddy, DiveRole.instructorId),
+            withRole(alexBuddy, DiveRole.buddyId),
           ],
         ),
       );
@@ -342,7 +400,7 @@ void main() {
       await expectRevertRestores(
         const ['dive_buddies', 'dive_buddy_roles'],
         () => buddies.setBuddiesForDive('dive', [
-          as(alexBuddy, DiveRole.buddyId),
+          withRole(alexBuddy, DiveRole.buddyId),
         ]),
       );
     });
