@@ -73,7 +73,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/site_suggestio
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_detail_page.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
-import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
