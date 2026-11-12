@@ -8038,9 +8038,10 @@ class DiveRepository {
 
   /// Replace each dive's tag membership with exactly [tagIds]. No notify/txn.
   ///
-  /// Only what changed is written (issue #4477): a tag a dive keeps keeps its
-  /// row, a dropped tag's row is deleted, and an added tag gets a row under
-  /// a fresh id, so a revert never restores a row beside its replacement.
+  /// Only what changed is written (issue #4477): a tag that stays on a dive
+  /// keeps its row, a dropped tag's row is deleted, and an added tag gets a
+  /// row under a fresh id, so a revert never restores a row beside its
+  /// replacement.
   /// Only the dives whose tags changed are bumped.
   Future<void> bulkReplaceTags(
     List<String> diveIds,
