@@ -8037,29 +8037,44 @@ class DiveRepository {
   }
 
   /// Replace each dive's tag membership with exactly [tagIds]. No notify/txn.
+  ///
+  /// Only what changed is written (issue #4477): a tag a dive keeps keeps its
+  /// row, a dropped tag's row is deleted, and an added tag gets a row under
+  /// a fresh id, so a revert never restores a row beside its replacement.
+  /// Only the dives whose tags changed are bumped.
   Future<void> bulkReplaceTags(
     List<String> diveIds,
     List<String> tagIds,
   ) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    final existing = await (_db.select(
-      _db.diveTags,
-    )..where((t) => t.diveId.isIn(diveIds))).get();
-    await (_db.delete(_db.diveTags)..where((t) => t.diveId.isIn(diveIds))).go();
-    for (final row in existing) {
-      await _syncRepository.logDeletion(
-        entityType: 'diveTags',
-        recordId: row.id,
-      );
-    }
     // Deduplicated: `dive_tags` is uniquely indexed on (dive_id, tag_id)
     // since v149, so a repeated id in the selection would throw (#1032).
     // Hoisted out of the loop -- the selection does not change per dive, and a
     // bulk edit multiplies this by the number of dives (PR #1033 review).
     final uniqueTagIds = tagIds.toSet();
+    final existing = await (_db.select(
+      _db.diveTags,
+    )..where((t) => t.diveId.isIn(diveIds))).get();
+    final haveByDive = <String, Set<String>>{};
+    final changedDives = <String>{};
+    for (final row in existing) {
+      if (uniqueTagIds.contains(row.tagId)) {
+        (haveByDive[row.diveId] ??= {}).add(row.tagId);
+        continue;
+      }
+      await (_db.delete(_db.diveTags)..where((t) => t.id.equals(row.id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'diveTags',
+        recordId: row.id,
+      );
+      changedDives.add(row.diveId);
+    }
     for (final diveId in diveIds) {
+      final have = haveByDive[diveId] ?? const <String>{};
       for (final tagId in uniqueTagIds) {
+        if (have.contains(tagId)) continue;
+        changedDives.add(diveId);
         final id = _uuid.v4();
         await _db
             .into(_db.diveTags)
@@ -8078,16 +8093,8 @@ class DiveRepository {
         );
       }
     }
-    await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
-      DivesCompanion(updatedAt: Value(now)),
-    );
-    for (final diveId in diveIds) {
-      await _syncRepository.markRecordPending(
-        entityType: 'dives',
-        recordId: diveId,
-        localUpdatedAt: now,
-      );
-    }
+    if (changedDives.isEmpty) return;
+    await _bumpDives(changedDives.toList(), now);
   }
 
   /// Bump updatedAt + mark pending for a set of dives (shared by bulk ops).

@@ -588,7 +588,12 @@ class TagRepository {
     }
   }
 
-  /// Set tags for a dive (replaces existing tags)
+  /// Makes [tags] the dive's tags. Only what changed is written (issue
+  /// #4477): a tag that stays keeps its row, a dropped tag's row is deleted,
+  /// and an added tag gets a row under a fresh id. Rewriting every row made
+  /// a revert of the save restore the old rows beside the new ones, which
+  /// the unique index on (dive_id, tag_id) refuses. A save that changes
+  /// nothing writes nothing.
   Future<void> setTagsForDive(String diveId, List<domain.Tag> tags) async {
     try {
       _log.info('Setting ${tags.length} tags for dive: $diveId');
@@ -596,25 +601,27 @@ class TagRepository {
       final existingDiveTags = await (_db.select(
         _db.diveTags,
       )..where((t) => t.diveId.equals(diveId))).get();
+      // Deduplicated by id: `dive_tags` is uniquely indexed on
+      // (dive_id, tag_id) since v149, so the same tag listed twice would
+      // throw rather than quietly double up.
+      final wanted = {for (final tag in tags) tag.id};
+      final have = {for (final row in existingDiveTags) row.tagId};
+      if (wanted.length == have.length && wanted.containsAll(have)) return;
 
-      // Delete existing tags for this dive
-      await (_db.delete(
-        _db.diveTags,
-      )..where((t) => t.diveId.equals(diveId))).go();
       for (final diveTag in existingDiveTags) {
+        if (wanted.contains(diveTag.tagId)) continue;
+        await (_db.delete(
+          _db.diveTags,
+        )..where((t) => t.id.equals(diveTag.id))).go();
         await _syncRepository.logDeletion(
           entityType: 'diveTags',
           recordId: diveTag.id,
         );
       }
 
-      // Insert new tags. Deduplicated by id: `dive_tags` is uniquely indexed
-      // on (dive_id, tag_id) since v149, so the same tag listed twice would
-      // throw rather than quietly double up.
       final now = DateTime.now().millisecondsSinceEpoch;
-      final seen = <String>{};
-      for (final tag in tags) {
-        if (!seen.add(tag.id)) continue;
+      for (final tagId in wanted) {
+        if (have.contains(tagId)) continue;
         final id = _uuid.v4();
         await _db
             .into(_db.diveTags)
@@ -622,7 +629,7 @@ class TagRepository {
               DiveTagsCompanion(
                 id: Value(id),
                 diveId: Value(diveId),
-                tagId: Value(tag.id),
+                tagId: Value(tagId),
                 createdAt: Value(now),
               ),
             );
