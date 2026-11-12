@@ -124,6 +124,41 @@ void main() {
     expect(find.text('Linked 1 data source to its dive computer'), findsOne);
   });
 
+  testWidgets('closes its progress dialog inside a nested navigator', (
+    tester,
+  ) async {
+    // The app hosts Data tools in a ShellRoute, so the tile's nearest
+    // navigator is the shell's while showDialog pushes onto the root one.
+    final repo = _FakeRepository(linked: 2);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [diveComputerRepositoryProvider.overrideWithValue(repo)],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: Navigator(
+              onGenerateRoute: (_) => MaterialPageRoute<void>(
+                builder: (_) => const Scaffold(body: RelinkDataSourcesTile()),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await confirm(tester);
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text('Relink data sources'), findsOneWidget);
+    expect(
+      find.text('Linked 2 data sources to their dive computers'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('reports a failure', (tester) async {
     final repo = _FakeRepository(error: StateError('disk full'));
     await pumpTile(tester, repo);

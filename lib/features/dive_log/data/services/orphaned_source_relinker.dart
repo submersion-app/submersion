@@ -6,6 +6,7 @@ import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/database/orphaned_source_match.dart';
 import 'package:submersion/core/database/snapshot_serial_heal.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_computer_links.dart';
@@ -37,6 +38,7 @@ class OrphanedSourceRelinker {
   final TankPressureSeriesRepository _tankSeries;
 
   AppDatabase get _db => DatabaseService.instance.database;
+  final _log = LoggerService.forClass(OrphanedSourceRelinker);
 
   /// Relinks what can be matched and returns how many sources it linked.
   /// With [computerId], only links to that computer are made; the match is
@@ -77,9 +79,23 @@ class OrphanedSourceRelinker {
       // An empty serial snapshot takes its computer's serial now, so a later
       // delete of that computer leaves the source something to match on.
       // Only the computers that gained a source: the whole-library heal,
-      // decimal conversion included, is left to the next open.
+      // decimal conversion included, is left to the next open. Best-effort
+      // like every other serial heal: a failure here must not roll back the
+      // links themselves, and the next open repeats it.
       for (final linkedComputerId in byComputer.keys) {
-        await healDownloadedSnapshotSerials(_db, computerId: linkedComputerId);
+        try {
+          await healDownloadedSnapshotSerials(
+            _db,
+            computerId: linkedComputerId,
+          );
+        } catch (e, stackTrace) {
+          _log.warning(
+            'Failed to update serial copies for dive computer: '
+            '$linkedComputerId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
       }
     }
     return linked;

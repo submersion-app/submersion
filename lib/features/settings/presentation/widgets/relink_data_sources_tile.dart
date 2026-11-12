@@ -40,7 +40,10 @@ class _RelinkDataSourcesTileState extends ConsumerState<RelinkDataSourcesTile> {
     try {
       if (!await _confirm() || !mounted) return;
       final messenger = ScaffoldMessenger.of(context);
-      final navigator = Navigator.of(context);
+      // showDialog pushes onto the root navigator, but this page sits in the
+      // app's ShellRoute, whose nearest navigator is the shell's: popping
+      // that one would close the page and strand the progress dialog.
+      final navigator = Navigator.of(context, rootNavigator: true);
       final l10n = context.l10n;
       // A library-wide relink can take a while: say so, and keep the page
       // from taking another tap until it is done.

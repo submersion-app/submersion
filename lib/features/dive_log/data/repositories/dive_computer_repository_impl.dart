@@ -545,10 +545,7 @@ class DiveComputerRepository {
             includeDives: includeDives,
           ) >
           0) {
-        _db.notifyUpdates({
-          TableUpdate.onTable(_db.diveDataSources),
-          TableUpdate.onTable(_db.dives),
-        });
+        _notifyRelinked();
       }
     } catch (e, stackTrace) {
       _log.warning(
@@ -780,8 +777,9 @@ class DiveComputerRepository {
     }
   }
 
-  /// Wakes the dive and data source watchers after a relink, whose raw
-  /// statements drift cannot attribute to a table on its own.
+  /// Wakes the dive and data source watchers after a relink or a serial
+  /// heal, whose raw statements drift cannot attribute to a table on its
+  /// own.
   void _notifyRelinked() => _db.notifyUpdates({
     TableUpdate.onTable(_db.diveDataSources, kind: UpdateKind.update),
     TableUpdate.onTable(_db.dives, kind: UpdateKind.update),
