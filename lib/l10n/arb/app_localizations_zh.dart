@@ -17058,6 +17058,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => '新建装备套装';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => '复制装备套装';
+
+  @override
   String get equipment_setEdit_descriptionHint => '可选描述...';
 
   @override
@@ -17106,6 +17109,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => '装备套装已创建';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => '装备套装已复制';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {

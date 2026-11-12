@@ -17921,6 +17921,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Nuevo conjunto de equipo';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Duplicar conjunto de equipo';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Descripción opcional...';
 
   @override
@@ -17975,6 +17979,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Conjunto de equipo creado';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned =>
+      'Conjunto de equipo duplicado';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {

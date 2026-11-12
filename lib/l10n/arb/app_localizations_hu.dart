@@ -17871,6 +17871,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Új felszerelés csoport';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Felszerelés csoport duplikálása';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Opcionális leírás...';
 
   @override
@@ -17926,6 +17930,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_setEdit_snackbar_created =>
       'Felszerelés csoport létrehozva';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned =>
+      'Felszerelés csoport duplikálva';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
