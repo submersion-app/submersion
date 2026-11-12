@@ -7916,15 +7916,22 @@ class DiveRepository {
     return {for (final r in rows) r.id: r.diveType};
   }
 
-  /// Replace [diveId]'s dive-type rows with exactly [typeIds] (>= 1 enforced),
-  /// and write the representative `dives.dive_type` column. Fresh UUIDs per row
-  /// so a reinsert never collides with a replaced row's tombstone (#347).
+  /// Make [diveId]'s dive-type rows exactly [typeIds] (>= 1 enforced), in
+  /// that order, and write the representative `dives.dive_type` column.
+  ///
+  /// Only what changed is written (issue #4477): a type that stays keeps its
+  /// row, a dropped type's row is deleted, and an added type gets a row under
+  /// a fresh UUID, so a reinsert never collides with a replaced row's
+  /// tombstone (#347). Rewriting every row on each save made a revert of the
+  /// save restore the old rows beside the new ones, which the unique index
+  /// refuses. Read-back order is `created_at`, so when the kept rows no longer
+  /// lead in the wanted order, every row is renumbered in place.
   ///
   /// [typeIds] is deduped first, keeping the first occurrence so the
-  /// representative type (the first row written) is unchanged. The junction
-  /// carries a unique index on (dive, type) since v178, so a repeated id here
-  /// would throw rather than duplicate -- and a caller passing one is asking
-  /// for a set it already believes it has (issue #1360).
+  /// representative type (the first row) is unchanged. The junction carries a
+  /// unique index on (dive, type) since v178, so a repeated id here would
+  /// throw rather than duplicate -- and a caller passing one is asking for a
+  /// set it already believes it has (issue #1360).
   Future<void> _replaceDiveTypeRows(
     String diveId,
     List<String> typeIds,
@@ -7932,46 +7939,101 @@ class DiveRepository {
   ) async {
     // `Iterable.toSet()` builds a LinkedHashSet, which iterates in insertion
     // order, so this keeps the FIRST occurrence of each id. That ordering is
-    // load-bearing, not incidental: the first row written becomes the dive's
+    // load-bearing, not incidental: the first row becomes the dive's
     // representative type. Do not swap in an unordered Set implementation.
     final deduped = typeIds.toSet().toList();
     final types = deduped.isEmpty ? const ['recreational'] : deduped;
-    final existing = await (_db.select(
-      _db.diveDiveTypes,
-    )..where((t) => t.diveId.equals(diveId))).get();
-    await (_db.delete(
-      _db.diveDiveTypes,
-    )..where((t) => t.diveId.equals(diveId))).go();
+    final existing =
+        await (_db.select(_db.diveDiveTypes)
+              ..where((t) => t.diveId.equals(diveId))
+              // The order the types are read back in.
+              ..orderBy([
+                (t) => OrderingTerm(expression: t.createdAt),
+                (t) => OrderingTerm(expression: t.id),
+              ]))
+            .get();
+    if (!_sameOrder([for (final r in existing) r.diveTypeId], types)) {
+      await _writeDiveTypeChanges(diveId, existing, types, now);
+    }
+    // Keep the denormalized representative column in lockstep with the set.
+    final dive =
+        await (_db.selectOnly(_db.dives)
+              ..addColumns([_db.dives.diveType])
+              ..where(_db.dives.id.equals(diveId)))
+            .getSingleOrNull();
+    if (dive != null && dive.read(_db.dives.diveType) != types.first) {
+      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
+        DivesCompanion(diveType: Value(types.first)),
+      );
+    }
+  }
+
+  /// Turns [existing], [diveId]'s rows in read-back order, into [types]. Each
+  /// row ends with a `created_at` above every row before it in [types]; one
+  /// millisecond apart, so several written at once still read back in order.
+  Future<void> _writeDiveTypeChanges(
+    String diveId,
+    List<DiveDiveType> existing,
+    List<String> types,
+    int now,
+  ) async {
+    final kept = {
+      for (final row in existing)
+        if (types.contains(row.diveTypeId)) row.diveTypeId: row,
+    };
     for (final row in existing) {
+      if (kept.containsKey(row.diveTypeId)) continue;
+      await (_db.delete(
+        _db.diveDiveTypes,
+      )..where((t) => t.id.equals(row.id))).go();
       await _syncRepository.logDeletion(
         entityType: 'diveDiveTypes',
         recordId: row.id,
       );
     }
-    for (var i = 0; i < types.length; i++) {
-      final id = _uuid.v4();
-      await _db
-          .into(_db.diveDiveTypes)
-          .insert(
-            DiveDiveTypesCompanion(
-              id: Value(id),
-              diveId: Value(diveId),
-              diveTypeId: Value(types[i]),
-              // +i keeps read-back order deterministic (representative = first)
-              // even when several rows are written in the same millisecond.
-              createdAt: Value(now + i),
-            ),
-          );
+    // Kept rows that already lead in the wanted order stay as they are, and
+    // the added types follow them; otherwise every row takes its place anew.
+    final inPlace = _sameOrder(
+      kept.keys.toList(),
+      types.take(kept.length).toList(),
+    );
+    var base = now;
+    for (final row in existing) {
+      if (row.createdAt >= base) base = row.createdAt + 1;
+    }
+    for (final (i, type) in types.indexed) {
+      final row = kept[type];
+      if (row != null && inPlace) continue;
+      final id = row?.id ?? _uuid.v4();
+      if (row == null) {
+        await _db
+            .into(_db.diveDiveTypes)
+            .insert(
+              DiveDiveTypesCompanion(
+                id: Value(id),
+                diveId: Value(diveId),
+                diveTypeId: Value(type),
+                createdAt: Value(base + i),
+              ),
+            );
+      } else {
+        await (_db.update(_db.diveDiveTypes)..where((t) => t.id.equals(id)))
+            .write(DiveDiveTypesCompanion(createdAt: Value(base + i)));
+      }
       await _syncRepository.markRecordPending(
         entityType: 'diveDiveTypes',
         recordId: id,
         localUpdatedAt: now,
       );
     }
-    // Keep the denormalized representative column in lockstep with the set.
-    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-      DivesCompanion(diveType: Value(types.first)),
-    );
+  }
+
+  static bool _sameOrder(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   /// Replace each dive's tag membership with exactly [tagIds]. No notify/txn.
