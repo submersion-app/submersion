@@ -1141,10 +1141,15 @@ class ProfileSeriesRepository {
   /// edit demoted beneath it, where the shape cannot tell it apart
   /// (issue #4386). That demoted edit does not shield the original above it
   /// either, which is relinked like any other.
+  ///
+  /// [notify] false leaves the sync bus alone, for a caller that runs this
+  /// inside its own transaction and notifies once after commit: a
+  /// notification here would publish uncommitted rows.
   Future<int> relinkComputer(
     String computerId,
     List<String> diveIds, {
     int? now,
+    bool notify = true,
   }) {
     if (diveIds.isEmpty) return Future.value(0);
     final sibling = _db.alias(_db.diveProfileSeries, 'demoted_sibling');
@@ -1179,6 +1184,7 @@ class ProfileSeriesRepository {
                   ),
               )),
       now: now,
+      notify: notify,
     );
   }
 

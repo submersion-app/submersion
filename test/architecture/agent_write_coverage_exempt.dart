@@ -107,6 +107,11 @@ final exempt = <String, String>{
     'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearEventsForDive',
     'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:clearSourceAndProfiles',
     'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:insertTanks',
+    // Restores the computer links a deleted computer's downloads lost, from
+    // their serial and model snapshots (issue #4465).
+    'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:relinkOrphanedSources',
+    'lib/features/dive_log/data/repositories/tank_computer_links.dart:setTankComputerLinks',
+    'lib/features/dive_log/data/repositories/tank_pressure_series_repository.dart:relinkSources',
     'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateLastDownload',
     'lib/features/dive_log/data/repositories/dive_computer_repository_impl.dart:updateLastFingerprint',
     'lib/features/dive_log/data/repositories/dive_fill_if_empty_repository.dart:addCustomFieldsIfMissing',

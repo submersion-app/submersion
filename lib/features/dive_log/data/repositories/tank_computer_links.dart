@@ -19,6 +19,27 @@ Future<int> clearTankComputerLinks(
   SyncRepository syncRepository,
   Expression<bool> Function($DiveTanksTable t) where, {
   required int now,
+}) => _writeTankComputerLinks(db, syncRepository, null, where, now: now);
+
+/// Links every tank [where] selects to [computerId] and stages those tanks,
+/// the same way [clearTankComputerLinks] unlinks them, and returns the number
+/// linked. For a relink that gives a deleted computer's tanks back to the
+/// same hardware (issue #4465). The parent dive is not staged, for the
+/// reason given there.
+Future<int> setTankComputerLinks(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  String computerId,
+  Expression<bool> Function($DiveTanksTable t) where, {
+  required int now,
+}) => _writeTankComputerLinks(db, syncRepository, computerId, where, now: now);
+
+Future<int> _writeTankComputerLinks(
+  AppDatabase db,
+  SyncRepository syncRepository,
+  String? computerId,
+  Expression<bool> Function($DiveTanksTable t) where, {
+  required int now,
 }) async {
   final ids =
       await (db.selectOnly(db.diveTanks)
@@ -29,7 +50,7 @@ Future<int> clearTankComputerLinks(
   if (ids.isEmpty) return 0;
   await (db.update(db.diveTanks)..where(where)).write(
     DiveTanksCompanion(
-      computerId: const Value(null),
+      computerId: Value(computerId),
       // Its own clock, beside the marks below (#2644).
       hlc: Value(await syncRepository.issueRowClock()),
     ),

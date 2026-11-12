@@ -24,6 +24,7 @@ void main() {
 
   Future<void> insertComputer(
     String id, {
+    String manufacturer = 'Shearwater',
     String model = 'Teric',
     String? serial = '8629AC48',
   }) async {
@@ -33,7 +34,7 @@ void main() {
           DiveComputersCompanion(
             id: Value(id),
             name: Value('Computer $id'),
-            manufacturer: const Value('Shearwater'),
+            manufacturer: Value(manufacturer),
             model: Value(model),
             serialNumber: Value(serial),
             createdAt: const Value(nowMs),
@@ -63,6 +64,7 @@ void main() {
     String? model = 'Shearwater Teric',
     String? serial,
     String sourceFormat = 'dive_computer',
+    String? descriptorVendor,
     String? descriptorProduct,
   }) async {
     await db
@@ -75,6 +77,7 @@ void main() {
             computerModel: Value(model),
             computerSerial: Value(serial),
             sourceFormat: Value(sourceFormat),
+            descriptorVendor: Value(descriptorVendor),
             descriptorProduct: Value(descriptorProduct),
             hlc: const Value('source-hlc'),
             importedAt: now,
@@ -168,6 +171,25 @@ void main() {
     expect(await relinkDiveAttributedSources(db), 1);
     expect((await source('s1')).computerId, 'sw');
     expect((await source('s2')).computerId, isNull);
+  });
+
+  test('a computer filed under another maker since the download is still '
+      'found by the product, on its own dive\'s word', () async {
+    // libdivecomputer reports a Galileo under Uwatec; the diver has since
+    // filed the computer under Scubapro. The dive names the computer, so
+    // the reporting vendor is not weighed.
+    await insertComputer('g', manufacturer: 'Scubapro', model: 'Galileo Sol');
+    await insertDive('d1', computerId: 'g');
+    await insertSource(
+      's1',
+      diveId: 'd1',
+      model: 'Uwatec Galileo Sol',
+      descriptorVendor: 'Uwatec',
+      descriptorProduct: 'Galileo Sol',
+    );
+
+    expect(await relinkDiveAttributedSources(db), 1);
+    expect((await source('s1')).computerId, 'g');
   });
 
   test('a dive with no computer of its own is never guessed at', () async {

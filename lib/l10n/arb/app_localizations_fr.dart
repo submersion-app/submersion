@@ -39326,6 +39326,37 @@ class AppLocalizationsFr extends AppLocalizations {
       'Relancer l\'analyseur sur chaque plongée disposant de données brutes stockées';
 
   @override
+  String get settings_relinkSources_title => 'Relier les sources de données';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'Relier les plongées téléchargées à l\'ordinateur de plongée dont elles proviennent';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'Les plongées téléchargées perdent leur lien avec un ordinateur de plongée lorsque son entrée est supprimée. Cette action les relie de nouveau à l\'ordinateur dont elles proviennent : par numéro de série, ou par modèle si vous n\'avez qu\'un seul ordinateur de ce modèle.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'Relier';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sources de données reliées à leurs ordinateurs de plongée',
+      one: '$count source de données reliée à son ordinateur de plongée',
+      zero:
+          'Aucune source de données non liée ne correspond à un ordinateur de plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_relinkSources_failed =>
+      'Impossible de relier les sources de données. Rien n\'a été modifié.';
+
+  @override
   String get settings_reparseDives_intro =>
       'À utiliser lorsqu\'une mise à jour de l\'app améliore la lecture des données des ordinateurs de plongée. Vos notes, sites, équipiers et autres modifications sont préservés.';
 

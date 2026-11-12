@@ -39191,6 +39191,38 @@ class AppLocalizationsPt extends AppLocalizations {
       'Reexecutar o analisador em cada mergulho com dados brutos armazenados';
 
   @override
+  String get settings_relinkSources_title => 'Revincular fontes de dados';
+
+  @override
+  String get settings_relinkSources_subtitle =>
+      'Vincular novamente os mergulhos baixados ao computador de mergulho de onde vieram';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      'Os mergulhos baixados perdem o vínculo com um computador de mergulho quando a entrada dele é excluída. Isto os vincula novamente ao computador de onde vieram: pelo número de série, ou pelo modelo quando você tem apenas um computador desse modelo.';
+
+  @override
+  String get settings_relinkSources_confirmApply => 'Vincular';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fontes de dados vinculadas aos seus computadores de mergulho',
+      one: '$count fonte de dados vinculada ao seu computador de mergulho',
+      zero:
+          'Nenhuma fonte de dados sem vínculo correspondeu a um computador de mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_relinkSources_failed =>
+      'Não foi possível vincular as fontes de dados. Nada foi alterado.';
+
+  @override
   String get settings_reparseDives_intro =>
       'Use isto depois que uma atualização do app melhorar a leitura dos dados do computador de mergulho. Suas notas, locais, parceiros e outras edições são preservados.';
 

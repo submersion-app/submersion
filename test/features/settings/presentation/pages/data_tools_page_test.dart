@@ -1,6 +1,6 @@
 // Issue #3482: the data tools moved off the Data page onto their own Data
 // tools page under Advanced, each still opening its own page. #3422 added
-// the table editor.
+// the table editor, #4465 the relink of data sources, which runs in place.
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -74,12 +74,12 @@ void main() {
     return router;
   }
 
-  testWidgets('lists the six tools and pushes their routes', (tester) async {
+  testWidgets('lists the seven tools and pushes their routes', (tester) async {
     await pumpPage(tester);
 
     expect(find.text('Data tools'), findsOneWidget);
     // Same row widget as the Data page, so the tools look like its rows.
-    expect(find.byType(DataRowTile), findsNWidgets(6));
+    expect(find.byType(DataRowTile), findsNWidgets(7));
     for (final title in const [
       'Fix dive times',
       'Link buddy names',
@@ -87,6 +87,7 @@ void main() {
       'Data quality',
       'Table editor',
       'Re-parse dives',
+      'Relink data sources',
     ]) {
       expect(find.text(title), findsOneWidget, reason: title);
     }
@@ -113,7 +114,7 @@ void main() {
 
   testWidgets('hides the agent access row off the desktop', (tester) async {
     await pumpPage(tester);
-    expect(find.byType(DataRowTile), findsNWidgets(6));
+    expect(find.byType(DataRowTile), findsNWidgets(7));
     expect(find.text('Agent access'), findsNothing);
   });
 
@@ -123,7 +124,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester);
-    expect(find.byType(DataRowTile), findsNWidgets(7));
+    expect(find.byType(DataRowTile), findsNWidgets(8));
     expect(find.text('Agent access'), findsOneWidget);
     await tester.tap(find.text('Agent access'));
     await tester.pumpAndSettle();
@@ -137,7 +138,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester, debugMode: true);
-    expect(find.byType(DataRowTile), findsNWidgets(6));
+    expect(find.byType(DataRowTile), findsNWidgets(7));
     debugDefaultTargetPlatformOverride = null;
   });
 
@@ -158,9 +159,9 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     addTearDown(() => debugDefaultTargetPlatformOverride = null);
     await pumpPage(tester, debugMode: true, browser: true);
-    // The five tools a browser can run: no re-parse (the dive parser is
+    // The six tools a browser can run: no re-parse (the dive parser is
     // native) and no agent access row.
-    expect(find.byType(DataRowTile), findsNWidgets(5));
+    expect(find.byType(DataRowTile), findsNWidgets(6));
     expect(find.text('Agent access'), findsNothing);
     expect(find.text('Re-parse dives'), findsNothing);
     debugDefaultTargetPlatformOverride = null;

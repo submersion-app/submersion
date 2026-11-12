@@ -2,7 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/computer_serial_identity.dart';
-import 'package:submersion/core/database/imported_computer_identity.dart';
+import 'package:submersion/core/database/orphaned_source_match.dart';
 import 'package:submersion/core/database/table_columns.dart';
 
 /// Gives a downloaded `dive_data_sources` row back the computer link it lost
@@ -116,19 +116,12 @@ Future<List<String>> _seriesTablesWithSource(DatabaseConnectionUser db) async {
 bool _fits(QueryRow row) {
   final manufacturer = row.readNullable<String>('manufacturer');
   final model = row.readNullable<String>('model');
-  final modelKey = normalizeComputerIdentityPart(model);
-  if (modelKey.isEmpty) return false;
-  final fullKey = normalizeComputerIdentityPart(
-    manufacturer == null ? model : '$manufacturer $model',
+  final namesModel = sourceNamesComputerModel(
+    computerModel: row.readNullable<String>('computer_model'),
+    descriptorProduct: row.readNullable<String>('descriptor_product'),
+    manufacturer: manufacturer,
+    model: model,
   );
-  final snapshot = normalizeComputerIdentityPart(
-    row.readNullable<String>('computer_model'),
-  );
-  final product = normalizeComputerIdentityPart(
-    row.readNullable<String>('descriptor_product'),
-  );
-  final namesModel =
-      snapshot == modelKey || snapshot == fullKey || product == modelKey;
   if (!namesModel) return false;
 
   final serial = row.readNullable<String>('computer_serial')?.trim() ?? '';

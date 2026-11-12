@@ -36885,6 +36885,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_reparseDives_subtitle => '对每次已存储原始数据的潜水重新运行潜水解析器';
 
   @override
+  String get settings_relinkSources_title => '重新关联数据源';
+
+  @override
+  String get settings_relinkSources_subtitle => '将下载的潜水重新关联到其来源潜水电脑';
+
+  @override
+  String get settings_relinkSources_confirmBody =>
+      '删除潜水电脑条目后，下载的潜水会失去与它的关联。此操作会将它们重新关联到来源潜水电脑：按序列号匹配，或在你只有一台该型号潜水电脑时按型号匹配。';
+
+  @override
+  String get settings_relinkSources_confirmApply => '重新关联';
+
+  @override
+  String settings_relinkSources_result(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已将 $count 个数据源重新关联到潜水电脑',
+      zero: '没有未关联的数据源与潜水电脑匹配',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get settings_relinkSources_failed => '无法重新关联数据源。未做任何更改。';
+
+  @override
   String get settings_reparseDives_intro =>
       '在应用更新改进了潜水电脑数据的读取方式后使用。您的笔记、地点、潜伴和其他编辑内容将被保留。';
 

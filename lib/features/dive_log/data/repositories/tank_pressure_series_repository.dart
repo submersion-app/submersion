@@ -403,6 +403,24 @@ class TankPressureSeriesRepository {
   Future<int> clearComputer(String computerId, {int? now}) =>
       _setComputer(null, (t) => t.computerId.equals(computerId), now: now);
 
+  /// Gives [computerId] back every unlinked series recorded by one of
+  /// [sourceIds], and restamps each: the relink of a deleted computer's
+  /// sources once the same hardware is set up again (issue #4465). A series
+  /// says whose it is through its source, so the match is exact. Notifies
+  /// nothing, like the rest of this repository's computer writes. Returns
+  /// the number of series touched.
+  Future<int> relinkSources(
+    String computerId,
+    List<String> sourceIds, {
+    int? now,
+  }) => sourceIds.isEmpty
+      ? Future.value(0)
+      : _setComputer(
+          computerId,
+          (t) => t.computerId.isNull() & t.sourceId.isIn(sourceIds),
+          now: now,
+        );
+
   /// Moves every series of [fromComputerIds] onto [toComputerId] and restamps
   /// each, for a dive computer merge (#645). Returns the number touched.
   ///
