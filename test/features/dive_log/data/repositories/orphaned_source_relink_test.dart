@@ -300,6 +300,48 @@ void main() {
     );
   });
 
+  group('when the relink fails', () {
+    test('creating the computer still succeeds, and the relink leaves '
+        'nothing half done', () async {
+      final diveId = await insertDive();
+      final sourceId = await insertDownloadedSource(
+        diveId: diveId,
+        computerSerial: 'SN-12345',
+      );
+      // Fails the relink's own write: linking a source.
+      await db.customStatement(
+        'CREATE TRIGGER fail_relink BEFORE UPDATE OF computer_id '
+        'ON dive_data_sources '
+        "BEGIN SELECT RAISE(ABORT, 'relink failed'); END",
+      );
+
+      final created = await repository.createComputer(newComputer());
+
+      expect(await repository.getComputerById(created.id), isNotNull);
+      expect((await sourceRow(sourceId)).computerId, isNull);
+      expect((await diveRow(diveId)).computerId, isNull);
+    });
+
+    test('a failed serial copy keeps the links', () async {
+      await insertComputer(id: 'perdix', serialNumber: 'SN-12345');
+      final diveId = await insertDive();
+      final sourceId = await insertDownloadedSource(diveId: diveId);
+      // Fails only the best-effort step after linking: filling the empty
+      // serial copy.
+      await db.customStatement(
+        'CREATE TRIGGER fail_serial_copy BEFORE UPDATE OF computer_serial '
+        'ON dive_data_sources '
+        "BEGIN SELECT RAISE(ABORT, 'serial copy failed'); END",
+      );
+
+      expect(await repository.relinkOrphanedSources(), 1);
+
+      final source = await sourceRow(sourceId);
+      expect(source.computerId, 'perdix');
+      expect(source.computerSerial, isNull);
+    });
+  });
+
   group('updateComputer', () {
     test('relinks orphaned sources once the computer gains a serial', () async {
       final diveId = await insertDive();

@@ -312,4 +312,8 @@ void main() {
       expect(read.map((s) => s.id), [goodId]);
     });
   });
+
+  test('relinkSources with no sources touches nothing (issue #4465)', () async {
+    expect(await repo.relinkSources('comp-1', const []), 0);
+  });
 }

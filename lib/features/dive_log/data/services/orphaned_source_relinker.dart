@@ -25,13 +25,14 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 /// dive has no other computer source. Each relinked row is restamped and
 /// marked pending, so the links reach the diver's other devices.
 class OrphanedSourceRelinker {
+  /// Shares its owner's repositories rather than building its own.
   OrphanedSourceRelinker({
-    SyncRepository? syncRepository,
-    ProfileSeriesRepository? profileSeries,
-    TankPressureSeriesRepository? tankSeries,
-  }) : _syncRepository = syncRepository ?? SyncRepository(),
-       _profileSeries = profileSeries ?? ProfileSeriesRepository(),
-       _tankSeries = tankSeries ?? TankPressureSeriesRepository();
+    required SyncRepository syncRepository,
+    required ProfileSeriesRepository profileSeries,
+    required TankPressureSeriesRepository tankSeries,
+  }) : _syncRepository = syncRepository,
+       _profileSeries = profileSeries,
+       _tankSeries = tankSeries;
 
   final SyncRepository _syncRepository;
   final ProfileSeriesRepository _profileSeries;
