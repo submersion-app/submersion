@@ -618,40 +618,76 @@ class BuddyRepository {
     };
   }
 
-  /// Set buddies for a dive (replaces existing). Each person's roles are
-  /// written to `dive_buddy_roles` (issue #1221); a buddy who left the dive
-  /// loses their role rows.
+  /// Makes [buddies] the dive's buddies. Each person's roles are written to
+  /// `dive_buddy_roles` (issue #1221); a buddy who left the dive loses their
+  /// role rows. Only what changed is written (see [_writeDiveBuddies]).
   Future<void> setBuddiesForDive(
     String diveId,
     List<domain.BuddyWithRole> buddies,
   ) async {
-    // Delete existing dive buddies
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (await _writeDiveBuddies(diveId, buddies, now)) {
+      await _bumpDive(diveId, now);
+    }
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Makes [buddies] the buddies of [diveId], writing only what changed
+  /// (issue #4477): a buddy who stays keeps their link row, with its primary
+  /// role updated in place; a dropped buddy's links are deleted; an added
+  /// buddy gets a link under a fresh id. Rewriting every link left a revert
+  /// restoring old rows beside their replacements. A buddy linked twice
+  /// (#3895) is left with one link, as the full rewrite left them.
+  ///
+  /// Returns whether any link row changed, so the caller bumps the dive.
+  Future<bool> _writeDiveBuddies(
+    String diveId,
+    List<domain.BuddyWithRole> buddies,
+    int now,
+  ) async {
     final existing = await (_db.select(
       _db.diveBuddies,
     )..where((t) => t.diveId.equals(diveId))).get();
-    await (_db.delete(
-      _db.diveBuddies,
-    )..where((t) => t.diveId.equals(diveId))).go();
+    final wanted = <String, domain.BuddyWithRole>{
+      for (final bwr in buddies.reversed) bwr.buddy.id: bwr,
+    };
+
+    final kept = <String>{};
+    var changed = false;
     for (final row in existing) {
-      await _syncRepository.logDeletion(
+      final bwr = wanted[row.buddyId];
+      if (bwr == null || !kept.add(row.buddyId)) {
+        await (_db.delete(
+          _db.diveBuddies,
+        )..where((t) => t.id.equals(row.id))).go();
+        await _syncRepository.logDeletion(
+          entityType: 'diveBuddies',
+          recordId: row.id,
+        );
+        changed = true;
+        continue;
+      }
+      final role = DiveRoleSet.normalizeBuddy(bwr.roleIds).first;
+      if (row.role == role) continue;
+      await (_db.update(_db.diveBuddies)..where((t) => t.id.equals(row.id)))
+          .write(DiveBuddiesCompanion(role: Value(role)));
+      await _syncRepository.markRecordPending(
         entityType: 'diveBuddies',
         recordId: row.id,
+        localUpdatedAt: now,
       );
+      changed = true;
     }
 
-    // Insert new dive buddies
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _insertLinks(diveId, buddies, now);
+    final added = [
+      for (final bwr in buddies)
+        if (!kept.contains(bwr.buddy.id) &&
+            identical(wanted[bwr.buddy.id], bwr))
+          bwr,
+    ];
+    await _insertLinks(diveId, added, now);
     await _writeRoleSets(diveId, existing, buddies, now);
-    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-      DivesCompanion(updatedAt: Value(now)),
-    );
-    await _syncRepository.markRecordPending(
-      entityType: 'dives',
-      recordId: diveId,
-      localUpdatedAt: now,
-    );
-    SyncEventBus.notifyLocalChange();
+    return changed || added.isNotEmpty;
   }
 
   /// One fresh `dive_buddies` row per entry of [buddies], carrying the
@@ -888,8 +924,9 @@ class BuddyRepository {
     }
   }
 
-  /// Replace each dive's buddy set with exactly [buddies], roles included.
-  /// No notify/transaction.
+  /// Replace each dive's buddy set with exactly [buddies], roles included,
+  /// writing only what changed (see [_writeDiveBuddies]). No
+  /// notify/transaction.
   Future<void> bulkReplaceBuddies(
     List<String> diveIds,
     List<domain.BuddyWithRole> buddies,
@@ -897,21 +934,9 @@ class BuddyRepository {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
-      final existing = await (_db.select(
-        _db.diveBuddies,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      await (_db.delete(
-        _db.diveBuddies,
-      )..where((t) => t.diveId.equals(diveId))).go();
-      for (final row in existing) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveBuddies',
-          recordId: row.id,
-        );
+      if (await _writeDiveBuddies(diveId, buddies, now)) {
+        await _bumpDive(diveId, now);
       }
-      await _insertLinks(diveId, buddies, now);
-      await _writeRoleSets(diveId, existing, buddies, now);
-      await _bumpDive(diveId, now);
     }
   }
 
