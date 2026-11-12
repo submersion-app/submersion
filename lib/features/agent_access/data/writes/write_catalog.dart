@@ -61,11 +61,13 @@ import 'package:submersion/features/agent_access/data/writes/families/weight_ent
 import 'package:submersion/features/agent_access/data/writes/families/weight_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_child_row_repository.dart';
+import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 
 /// Every entity an agent can change, by the read catalogue's names.
 class WriteCatalog {
   /// [refreshReminders] re-arms an item's service reminders after a write
-  /// to its clocks or history, as the service dialogs do.
+  /// to its clocks or history, as the service dialogs do. [followOf] reads
+  /// the logged dive a new series follows.
   WriteCatalog(
     RecordRepositories repositories, {
     LibraryEditStamper? stamper,
@@ -73,6 +75,7 @@ class WriteCatalog {
     ConditionFindingsRefresh? refreshFindings,
     DocumentRearm? rearmDocuments,
     AppStrings? strings,
+    SeriesFollowReader? followOf,
   }) : all = _entries(
          repositories,
          stamper,
@@ -80,6 +83,7 @@ class WriteCatalog {
          refreshFindings,
          rearmDocuments,
          strings,
+         followOf,
        );
 
   /// A catalog of exactly [entries], for a test that swaps one writer.
@@ -95,6 +99,7 @@ class WriteCatalog {
     ConditionFindingsRefresh? refreshFindings,
     DocumentRearm? rearmDocuments,
     AppStrings? strings,
+    SeriesFollowReader? followOf,
   ) {
     final rows = DiveChildRowRepository();
     return List.unmodifiable(<WritableEntry>[
@@ -156,7 +161,7 @@ class WriteCatalog {
       PreDiveSessionWrites(repositories),
       PreDiveSessionItemWrites(repositories),
       DivePlanWrites(repositories),
-      DivePlanSeriesWrites(repositories),
+      DivePlanSeriesWrites(repositories, followOf: followOf),
       RuleWrites(repositories),
       SavedQueryWrites(repositories),
       ConnectionMapWrites(repositories),

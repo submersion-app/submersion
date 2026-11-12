@@ -1,20 +1,32 @@
 import 'package:submersion/features/agent_access/data/records/record_repositories.dart';
+import 'package:submersion/features/agent_access/data/writes/families/dive_plan_series_create.dart';
 import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
+import 'package:submersion/features/planner/data/services/plan_engine_settings.dart';
+import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/planner/domain/entities/stored_series.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart'
+    show AppSettings;
 
 /// Repetitive dive series, through the repository the planner saves them
-/// with. A series is made in the planner, or as a copy of another; here it
-/// is renamed, its dives kept, reordered or dropped (a dropped dive's plan
-/// goes with it), dissolved into one plan, or deleted with its plans.
+/// with. A series is created from its dives, as `compute_plan` takes them,
+/// or as a copy of another; here it is renamed, its dives kept, reordered
+/// or dropped (a dropped dive's plan goes with it), dissolved into one
+/// plan, or deleted with its plans.
 class DivePlanSeriesWrites extends WritableEntry {
-  DivePlanSeriesWrites(this._r);
+  /// [followOf] reads the logged dive a new series follows, as
+  /// `compute_plan` reads it; without it a series cannot follow one.
+  DivePlanSeriesWrites(this._r, {SeriesFollowReader? followOf})
+    : _followOf = followOf;
 
   final RecordRepositories _r;
+  final SeriesFollowReader? _followOf;
 
   static const _copy = 'duplicate_of';
   static const _dissolve = 'dissolve_keeping_plan_id';
+  static const _dives = 'dives';
+  static const _follow = 'followed_dive_id';
 
   @override
   String get name => 'dive_plan_series';
@@ -26,8 +38,10 @@ class DivePlanSeriesWrites extends WritableEntry {
   String get note =>
       'plan_ids are the series\' dives in order, a selection of the ones it '
       'holds; a plan left out is deleted. $_dissolve turns the series back '
-      'into that one plan, deleting the rest. A new series is a copy, '
-      '$_copy.';
+      'into that one plan, deleting the rest. A new series takes a name and '
+      '$_dives, as compute_plan takes them (a dive\'s resolved_inputs save '
+      'unchanged), and $_follow for the logged dive it follows; or it is a '
+      'copy, $_copy. A single dive is a dive_plans record.';
 
   @override
   late final Map<String, FieldCodec> fields = {
@@ -35,13 +49,15 @@ class DivePlanSeriesWrites extends WritableEntry {
     'plan_ids': const FieldCodec.textList(maxItems: 20),
     _dissolve: const FieldCodec.reference('dive_plans'),
     _copy: const FieldCodec.reference('dive_plan_series'),
+    _dives: const PlanSeriesDivesCodec(),
+    _follow: const FieldCodec.reference('dives'),
   };
 
   @override
-  Set<String> get requiredOnCreate => const {_copy};
+  Set<String> get requiredOnCreate => const {};
 
   @override
-  Set<String> get createOnly => const {_copy};
+  Set<String> get createOnly => const {_copy, _dives, _follow};
 
   @override
   Set<String> get effectFields => const {_dissolve};
@@ -60,6 +76,7 @@ class DivePlanSeriesWrites extends WritableEntry {
 
   @override
   Future<PlanBlock?> refuse(WriteCheck check) async {
+    if (check.kind == ChangeKind.create) return _refuseCreate(check);
     if (check.kind != ChangeKind.update) return null;
     final held = [
       for (final d in check.document?['dives'] as List? ?? const [])
@@ -88,6 +105,71 @@ class DivePlanSeriesWrites extends WritableEntry {
       }
     }
     return null;
+  }
+
+  Future<PlanBlock?> _refuseCreate(WriteCheck check) async {
+    final v = check.values;
+    final dives = v[_dives];
+    if (v[_copy] != null) {
+      return dives != null || v[_follow] != null
+          ? const PlanBlock(
+              BlockReason.notPermitted,
+              'A copy takes its dives, and the dive it follows, from '
+              '$_copy.',
+            )
+          : null;
+    }
+    if (dives == null) {
+      return const PlanBlock(
+        BlockReason.missingField,
+        'A new dive_plan_series record needs $_dives, or $_copy.',
+      );
+    }
+    if (v['name'] == null) {
+      return const PlanBlock(
+        BlockReason.missingField,
+        'A new dive_plan_series record needs a name.',
+      );
+    }
+    if (seriesDiveCountProblem(dives) case final problem?) {
+      return PlanBlock(BlockReason.invalidValue, problem);
+    }
+    try {
+      await _built(v, check.ownerId!);
+    } on AgentToolException catch (e) {
+      final field = e.details?['field'];
+      return PlanBlock(
+        BlockReason.invalidValue,
+        field == null ? e.message : '$field: ${e.message}',
+      );
+    }
+    return null;
+  }
+
+  @override
+  Future<Map<String, int>> alsoCreates(
+    String diverId,
+    Map<String, Object?> values,
+  ) async => {
+    if (values[_dives] case final Object dives)
+      'dive_plans': PlanSeriesDivesCodec.dives(dives).length,
+  };
+
+  /// The series [values] create from their dives, computed with [diverId]'s
+  /// planner settings, as the planner computes a series it saves for them.
+  Future<StoredSeries> _built(
+    Map<String, Object?> values,
+    String diverId,
+  ) async {
+    final settings = await _r.diverSettings.getSettingsForDiver(diverId);
+    return seriesFromDives(
+      dives: values[_dives],
+      name: values['name']! as String,
+      diverId: diverId,
+      followedDiveId: values[_follow] as String?,
+      config: planEngineConfigFromSettings(settings ?? const AppSettings()),
+      followOf: _followOf,
+    );
   }
 
   @override
@@ -120,6 +202,12 @@ class DivePlanSeriesWrites extends WritableEntry {
 
   @override
   Future<String> create(String diverId, Map<String, Object?> values) async {
+    if (values[_copy] == null) {
+      final saved = await _r.divePlanSeries.saveSeries(
+        await _built(values, diverId),
+      );
+      return saved.id;
+    }
     final from = values[_copy]! as String;
     final copy =
         await _r.divePlanSeries.duplicateSeries(from) ??

@@ -9,6 +9,7 @@ import 'package:submersion/features/agent_access/domain/write_confirmer.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/documents/domain/entities/document.dart';
+import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/rules/data/services/rule_applier_support.dart';
 
 /// What the write tools need. Built per request on the stateless protocol,
@@ -24,11 +25,13 @@ class AgentWriteServices {
     this.rearmDocuments,
     GearReminderRefresh? refreshGearReminders,
     AppStrings? strings,
+    SeriesFollowReader? followOf,
   }) : catalog = WriteCatalog(
          records,
          refreshReminders: refreshGearReminders,
          rearmDocuments: rearmDocuments,
          strings: strings,
+         followOf: followOf,
        ),
        _confirmer = confirmer,
        _confirmEnabled = confirmEnabled,
