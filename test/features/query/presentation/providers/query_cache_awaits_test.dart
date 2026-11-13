@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -14,6 +16,9 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        diveDecoInputWritesProvider.overrideWith(
+          (ref) => DecoInputWritesCounter(const Stream.empty()),
+        ),
         diveDecoStatusCacheProvider.overrideWith((ref) async {
           writes.add(1);
           return 0;
@@ -43,13 +48,19 @@ void main() {
     // The writer's value is the input-write count its pass began from.
     late ProviderContainer container;
     late Ref ref;
+    late StreamController<void> inputWrites;
     var builds = 0;
 
     setUp(() {
       builds = 0;
+      inputWrites = StreamController<void>();
+      addTearDown(inputWrites.close);
       container = ProviderContainer(
         overrides: [
           validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+          diveDecoInputWritesProvider.overrideWith(
+            (ref) => DecoInputWritesCounter(inputWrites.stream),
+          ),
           diveDecoStatusCacheProvider.overrideWith((ref) async {
             builds++;
             return ref.read(diveDecoInputWritesProvider);
@@ -71,7 +82,8 @@ void main() {
     test('is re-run when an input was written after it began', () async {
       await prepareQueryCachesFor(ref, 'me', {kDiveDecoStatusTable});
       // A dive write the debounced tick has not yet acted on.
-      container.read(diveDecoInputWritesProvider.notifier).state++;
+      inputWrites.add(null);
+      await pumpEventQueue();
       await prepareQueryCachesFor(ref, 'me', {kDiveDecoStatusTable});
       expect(builds, 2);
     });

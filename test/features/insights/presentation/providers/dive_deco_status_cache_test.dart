@@ -314,6 +314,25 @@ void main() {
         'mine': false,
         'theirs': true,
       });
+
+      // A repeat query on that profile, with nothing written since, does not
+      // re-scan it: the row removed behind its back stays removed.
+      await db.customStatement(
+        "DELETE FROM dive_deco_status WHERE dive_id = 'theirs'",
+      );
+      await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
+      expect(await DiveDecoStatusRepository().verdicts(), {'mine': false});
+
+      // A dive write moves the input count, so the next query re-scans.
+      await (db.update(db.dives)..where((t) => t.id.equals('theirs'))).write(
+        const DivesCompanion(notes: Value('edited')),
+      );
+      await pumpEventQueue();
+      await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
+      expect(await DiveDecoStatusRepository().verdicts(), {
+        'mine': false,
+        'theirs': true,
+      });
     },
   );
 
