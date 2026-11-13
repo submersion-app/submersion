@@ -159,6 +159,21 @@ void main() {
     expect(box.left, closeTo(stripWidth * 0.5 + 10, 1));
   });
 
+  // At the largest text sizes the rows are wider than a phone's strip; the
+  // box scales down to fit rather than overflowing (review).
+  testWidgets('the tooltip fits the strip at the largest text size', (
+    tester,
+  ) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 4;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    final c = await pump(tester);
+    await setCursor(c, tester, 75);
+    expect(tester.takeException(), isNull);
+    final box = tester.getRect(find.byKey(const ValueKey('pinnedTooltipBox')));
+    expect(box.width, lessThanOrEqualTo(stripWidth - 16 + 0.01));
+    expect(box.left, greaterThanOrEqualTo(8 - 0.01));
+  });
+
   testWidgets('the tooltip goes when the cursor clears', (tester) async {
     final c = await pump(tester);
     await setCursor(c, tester, 75);

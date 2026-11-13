@@ -92,14 +92,13 @@ PinnedStripCurve _curveOf(List<DiveProfilePoint> profile) {
 /// exactly on the chart's, so the condense never shows two depth lines; every
 /// point then travels continuously into the strip. The layers the strip adds
 /// fade in with [morph], so the hand-over never doubles the chart's own deco
-/// bands at full strength.
+/// bands at full strength. The cursor is [PinnedStripCursorPainter]'s, so
+/// moving it repaints only the cursor.
 class PinnedStripPainter extends CustomPainter {
   const PinnedStripPainter({
     required this.profile,
-    required this.selectedSeconds,
     required this.curveColor,
     required this.fillColors,
-    required this.markerColor,
     this.from,
     this.morph = 1,
     this.ndlCurve,
@@ -115,17 +114,16 @@ class PinnedStripPainter extends CustomPainter {
   });
 
   final List<DiveProfilePoint> profile;
-  final int? selectedSeconds;
   final Color curveColor;
 
   /// Top and bottom of the shading under the line, as the full chart's depth
   /// gradient.
   final List<Color> fillColors;
-  final Color markerColor;
   final PlotMapping? from;
   final double morph;
 
-  /// NDL in seconds, index-aligned with [profile]; zero or less in deco.
+  /// NDL in seconds, index-aligned with [profile]: zero once the limit is
+  /// reached, negative in deco. The line runs only where it is above zero.
   final List<int>? ndlCurve;
 
   /// Ceiling depth in metres, index-aligned with [profile]; zero with no
@@ -278,8 +276,17 @@ class PinnedStripPainter extends CustomPainter {
         fill.lineTo(o.dx, o.dy);
         edge.lineTo(o.dx, o.dy);
       }
+      // The last stop, too, holds until the next sample before it lifts,
+      // so a stop logged on a single sample still shows.
+      var endX = points.last.dx;
+      final next = run.last.index + 1;
+      if (stepped && next < profile.length) {
+        endX = m.project(profile[next].timestamp, 0).dx;
+        fill.lineTo(endX, points.last.dy);
+        edge.lineTo(endX, points.last.dy);
+      }
       fill
-        ..lineTo(points.last.dx, surface)
+        ..lineTo(endX, surface)
         ..close();
     }
     canvas
@@ -439,35 +446,13 @@ class PinnedStripPainter extends CustomPainter {
         ? _paintNdl(canvas, m, ndl, layers)
         : const <List<Offset>>[];
     if (layers > 0) _paintMaxDepth(canvas, size, m, ndlPoints, layers);
-
-    final selected = selectedSeconds;
-    if (selected == null) return;
-    final depth = profileDepthAt(profile, selected);
-    final top = m.project(selected, m.minDepthMeters);
-    final bottom = m.project(selected, m.maxDepthMeters);
-    canvas.drawLine(
-      Offset(top.dx, math.max(0, top.dy)),
-      Offset(bottom.dx, math.min(size.height, bottom.dy)),
-      Paint()
-        ..color = markerColor
-        ..strokeWidth = 1.5,
-    );
-    if (depth != null) {
-      canvas.drawCircle(
-        m.project(selected, depth),
-        4,
-        Paint()..color = markerColor,
-      );
-    }
   }
 
   @override
   bool shouldRepaint(PinnedStripPainter old) =>
       old.profile != profile ||
-      old.selectedSeconds != selectedSeconds ||
       old.curveColor != curveColor ||
       !listEquals(old.fillColors, fillColors) ||
-      old.markerColor != markerColor ||
       old.morph != morph ||
       old.from != from ||
       old.ndlCurve != ndlCurve ||
@@ -480,4 +465,52 @@ class PinnedStripPainter extends CustomPainter {
       old.ndlColor != ndlColor ||
       old.ceilingColor != ceilingColor ||
       old.maxDepthColor != maxDepthColor;
+}
+
+/// The pinned strip's scrub cursor: a line across the strip at
+/// [selectedSeconds] and a dot on the depth line, drawn through [strip]'s
+/// mapping and clip so it sits exactly on the curve [strip] draws.
+///
+/// Apart from the strip's own painter, so moving the cursor repaints only
+/// the cursor, not the depth curve, bands, NDL line and max-depth label.
+class PinnedStripCursorPainter extends CustomPainter {
+  const PinnedStripCursorPainter({
+    required this.strip,
+    required this.selectedSeconds,
+    required this.color,
+  });
+
+  final PinnedStripPainter strip;
+  final int? selectedSeconds;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final selected = selectedSeconds;
+    if (selected == null || strip.profile.length < 2) return;
+    final m = strip.mappingFor(size);
+    final clip = strip.clipFor(size);
+    if (clip != null) canvas.clipRect(clip);
+    final top = m.project(selected, m.minDepthMeters);
+    final bottom = m.project(selected, m.maxDepthMeters);
+    canvas.drawLine(
+      Offset(top.dx, math.max(0, top.dy)),
+      Offset(bottom.dx, math.min(size.height, bottom.dy)),
+      Paint()
+        ..color = color
+        ..strokeWidth = 1.5,
+    );
+    final depth = profileDepthAt(strip.profile, selected);
+    if (depth != null) {
+      canvas.drawCircle(m.project(selected, depth), 4, Paint()..color = color);
+    }
+  }
+
+  @override
+  bool shouldRepaint(PinnedStripCursorPainter old) =>
+      old.selectedSeconds != selectedSeconds ||
+      old.color != color ||
+      old.strip.profile != strip.profile ||
+      old.strip.from != strip.from ||
+      old.strip.morph != strip.morph;
 }

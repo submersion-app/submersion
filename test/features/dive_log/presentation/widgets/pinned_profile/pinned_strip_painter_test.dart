@@ -32,10 +32,8 @@ void main() {
     String? maxDepthLabel,
   }) => PinnedStripPainter(
     profile: profile,
-    selectedSeconds: null,
     curveColor: Colors.blue,
     fillColors: const [Colors.blue, Colors.blue],
-    markerColor: Colors.red,
     from: from,
     morph: morph,
     ndlCurve: ndlCurve,
@@ -328,6 +326,24 @@ void main() {
       );
     });
 
+    // The chart's step band holds a stop until the next sample before it
+    // drops, so a stop logged on one sample still shows (review).
+    testWidgets('a stop holds until the next sample', (tester) async {
+      await pumpPainter(tester, painter(morph: 1, decoStopCurve: [0, 6, 0]));
+      // Halfway from 600 s to 1260 s, at 3 m: inside a 6 m stop held to the
+      // next sample.
+      const held = Offset(290, 4 + 3 / 24 * 36);
+      expect(
+        find.byType(CustomPaint),
+        paints
+          ..path()
+          ..path(
+            color: decoStopBandColor.withValues(alpha: decoStopFillAlpha),
+            includes: const [held],
+          ),
+      );
+    });
+
     testWidgets('no obligation, no band', (tester) async {
       await pumpPainter(
         tester,
@@ -366,10 +382,8 @@ void main() {
                 DiveProfilePoint(timestamp: 0, depth: 0),
                 DiveProfilePoint(timestamp: 60, depth: 0),
               ],
-              selectedSeconds: null,
               curveColor: Colors.blue,
               fillColors: [Colors.blue, Colors.blue],
-              markerColor: Colors.red,
               morph: 1,
               maxDepthLabel: '0.0m',
               maxDepthLabelColor: ProfileMetricColors.maxDepth,
@@ -403,10 +417,8 @@ void main() {
       tester,
       const PinnedStripPainter(
         profile: profile,
-        selectedSeconds: null,
         curveColor: Colors.blue,
         fillColors: [Colors.blue, Colors.blue],
-        markerColor: Colors.red,
         morph: 1,
         ndlCurve: [3600, 1800, 600],
         ceilingCurve: [0, 4, 0],
@@ -465,10 +477,8 @@ void main() {
       tester,
       PinnedStripPainter(
         profile: profile,
-        selectedSeconds: null,
         curveColor: Colors.blue,
         fillColors: const [Colors.blue, Colors.blue],
-        markerColor: Colors.red,
         morph: 1,
         ceilingCurve: const [0, 4, 0],
         ceilingColor: half,
@@ -481,6 +491,68 @@ void main() {
         ..path()
         ..path(color: half, style: PaintingStyle.stroke),
     );
+  });
+
+  // The cursor has a painter of its own, so moving it repaints only the
+  // cursor, not the curve, bands, NDL line and label (review).
+  group('cursor', () {
+    PinnedStripCursorPainter cursor(int? seconds, {double morph = 1}) =>
+        PinnedStripCursorPainter(
+          strip: painter(morph: morph),
+          selectedSeconds: seconds,
+          color: Colors.red,
+        );
+
+    testWidgets('draws the cursor line and its depth dot', (tester) async {
+      await pumpPainter(tester, painter(morph: 1));
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              height: kPinnedStripHeight,
+              child: CustomPaint(painter: cursor(600)),
+            ),
+          ),
+        ),
+      );
+      // 600 s of 60 to 1260 s across 400 px, 24 m at the plot's bottom.
+      expect(
+        find.byType(CustomPaint),
+        paints
+          ..line(
+            p1: const Offset(180, 4),
+            p2: const Offset(180, 40),
+            color: Colors.red,
+            strokeWidth: 1.5,
+          )
+          ..circle(x: 180, y: 40, radius: 4, color: Colors.red),
+      );
+    });
+
+    testWidgets('no cursor, nothing drawn', (tester) async {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 400,
+              height: kPinnedStripHeight,
+              child: CustomPaint(painter: cursor(null)),
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(CustomPaint), paintsNothing);
+    });
+
+    test('moving the cursor does not repaint the strip itself', () {
+      expect(cursor(600).shouldRepaint(cursor(300)), isTrue);
+      expect(cursor(600).shouldRepaint(cursor(600)), isFalse);
+      expect(cursor(600, morph: 0.5).shouldRepaint(cursor(600)), isTrue);
+      expect(painter(morph: 1).shouldRepaint(painter(morph: 1)), isFalse);
+    });
   });
 
   test('repaints when a curve or the label changes', () {

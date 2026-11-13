@@ -12,11 +12,13 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// What the pinned strip's last slot shows at the cursor: the no-deco limit,
-/// the current stop once in deco, or nothing known.
+/// What the pinned strip's tooltip shows for deco at the cursor: the no-deco
+/// limit, the current stop once in deco, or nothing known.
 ///
-/// Read from the same `DecoStatus` the deco status card reads, so the strip
-/// always agrees with that card (issue #4423).
+/// The limit is read from the NDL curve the strip draws its NDL line from,
+/// so the readout follows the line (issue #4509); the stop is read from the
+/// same `DecoStatus` the deco status card reads, the only source of a stop's
+/// duration, so it agrees with that card (issue #4423).
 sealed class DecoSlot {
   const DecoSlot();
 }
@@ -115,6 +117,9 @@ DecoSlot _decoSlotAt(ProfileAnalysis? analysis, int index) {
 
 const _missing = '--';
 
+/// [seconds] in whole minutes, rounded up.
+String _ceilMinutes(int seconds) => '${(seconds / 60).ceil()}';
+
 /// The pinned strip's tooltip rows at one cursor position (issue #4509):
 /// Time, Depth and ppO2, then NDL, or the deco stop and ceiling in deco.
 ///
@@ -167,9 +172,10 @@ List<TooltipRow> pinnedStripTooltipRows(
       StopSlot(:final depthMeters, :final durationSeconds) => [
         TooltipRow(
           label: l10n.diveLog_tooltip_decoStop,
-          value:
-              '${units.formatDepth(depthMeters, decimals: 0)} · '
-              '${l10n.diveLog_deco_minutesValue('${(durationSeconds / 60).ceil()}')}',
+          value: [
+            units.formatDepth(depthMeters, decimals: 0),
+            l10n.diveLog_deco_minutesValue(_ceilMinutes(durationSeconds)),
+          ].join(' · '),
           bulletColor: decoStopBandColor,
         ),
         TooltipRow(
