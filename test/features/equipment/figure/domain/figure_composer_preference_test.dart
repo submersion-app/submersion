@@ -221,6 +221,39 @@ void main() {
     });
   });
 
+  group('a back-mounted rebreather', () {
+    // The back is the set default, so a role or Worn as naming it must not
+    // claim it early and push the rebreather, which needs the whole back,
+    // into the tray.
+    test('keeps the back beside a diluent tank', () {
+      final model = composeFigure([
+        item('ccr', EquipmentType.rebreather),
+        item('dil', EquipmentType.tank, tankRole: TankRole.diluent),
+      ]);
+      expect(model.byId('ccr')!.zone, FigureZone.backTank);
+      expect(model.byId('dil')!.zone, FigureZone.stageLeft);
+    });
+
+    test('keeps the back beside a back-mount cylinder', () {
+      final model = composeFigure([
+        item('ccr', EquipmentType.rebreather),
+        tank('o2', wornAs: 'back'),
+      ]);
+      expect(model.byId('ccr')!.zone, FigureZone.backTank);
+      expect(model.byId('o2')!.zone, FigureZone.stageLeft);
+    });
+  });
+
+  test('a position a tank has no artwork for does not hide its Worn as', () {
+    final model = composeFigure([
+      tank('left', wornAs: 'sidemount_left', position: 'mouth'),
+      tank('plain'),
+    ]);
+    expect(model.byId('left')!.zone, FigureZone.sidemountLeft);
+    // The rig is sidemount, so the untagged cylinder goes to the other side.
+    expect(model.byId('plain')!.zone, FigureZone.sidemountRight);
+  });
+
   test('a sidemount rig hint sends plain cylinders to the sides', () {
     final model = composeFigure([tank('a'), tank('b')], sidemountRig: true);
     expect(model.byId('a')!.zone, FigureZone.sidemountLeft);

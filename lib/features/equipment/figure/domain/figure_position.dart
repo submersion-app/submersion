@@ -1,5 +1,3 @@
-import 'package:collection/collection.dart';
-
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
@@ -34,9 +32,12 @@ const Map<FigureZone, String> figurePositionKeys = {
 
 /// The zone a stored `figure_position` names, or null for none or a value
 /// this version does not know.
-FigureZone? figurePositionZone(String? key) => key == null
-    ? null
-    : figurePositionKeys.entries.firstWhereOrNull((e) => e.value == key)?.key;
+FigureZone? figurePositionZone(String? key) =>
+    key == null ? null : _zoneByKey[key];
+
+final Map<String, FigureZone> _zoneByKey = {
+  for (final e in figurePositionKeys.entries) e.value: e.key,
+};
 
 /// The zones a cylinder's `worn_as` choice sends it to, the named side
 /// first so a full side still lands the tank on the other one.

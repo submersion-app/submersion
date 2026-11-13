@@ -39,6 +39,9 @@ FigureModel composeFigure(
   final numberById = <String, int>{
     for (var i = 0; i < topLevel.length; i++) topLevel[i].id: i + 1,
   };
+  final preferences = {
+    for (final item in topLevel) item.id: _Preferences.of(item),
+  };
   final context = FigureContext(
     sidemountRig:
         sidemountRig ||
@@ -48,7 +51,7 @@ FigureModel composeFigure(
                 item.type,
                 item.attributes,
               ) ||
-              _wornAtTheSide(item),
+              preferences[item.id]!.atTheSide,
         ),
   );
   // Within a type, an item that makes the rig sidemount is placed first, so
@@ -96,10 +99,11 @@ FigureModel composeFigure(
   // The diver's own choices first, then the set rule for everything else,
   // including a chosen spot that was already full.
   for (var i = 0; i < ordered.length; i++) {
-    claim(i, _preferredZones(ordered[i]));
+    claim(i, preferences[ordered[i].id]!.claimFirst);
   }
   for (var i = 0; i < ordered.length; i++) {
-    if (zones[i] == null) claim(i, specs[i].zones);
+    if (zones[i] != null) continue;
+    claim(i, [...preferences[ordered[i].id]!.tankZones, ...specs[i].zones]);
   }
 
   final placed = <PlacedItem>[];
@@ -123,30 +127,58 @@ FigureModel composeFigure(
   return FigureModel(placed: _mergeDoubles(placed), tray: tray);
 }
 
-/// Where the diver put [item], best first: its position on the figure,
-/// then for a tank its dive role or, with no role, its Worn as. Empty when
-/// the set rule decides.
-List<FigureZone> _preferredZones(FigureItemInput item) {
-  final position = figurePositionZone(
-    item.attributes[EquipmentAttrKeys.figurePosition],
-  );
-  final tankZones = item.type != EquipmentType.tank
-      ? const <FigureZone>[]
-      : item.tankRole != null
-      ? _zonesForTankRole(item.tankRole!)
-      : wornAsZones(item.attributes[EquipmentAttrKeys.wornAs]);
-  return [?position, ...tankZones];
+/// Where the diver put an item: its position on the figure, and for a tank
+/// its dive role or, with no role, its Worn as.
+class _Preferences {
+  const _Preferences(this.position, this.tankZones, {required this.isTank});
+
+  factory _Preferences.of(FigureItemInput item) {
+    final isTank = item.type == EquipmentType.tank;
+    final tankZones = !isTank
+        ? const <FigureZone>[]
+        : item.tankRole != null
+        ? _zonesForTankRole(item.tankRole!)
+        : wornAsZones(item.attributes[EquipmentAttrKeys.wornAs]);
+    return _Preferences(
+      figurePositionZone(item.attributes[EquipmentAttrKeys.figurePosition]),
+      tankZones,
+      isTank: isTank,
+    );
+  }
+
+  final FigureZone? position;
+  final List<FigureZone> tankZones;
+  final bool isTank;
+
+  /// What the item claims ahead of the set rule. A role or Worn as naming
+  /// the back is left to the set rule's own walk, where it is tried first:
+  /// the back is where a tank goes anyway, and claiming it early would push
+  /// a back-mounted rebreather, which needs the whole back, into the tray.
+  List<FigureZone> get claimFirst => [
+    ?position,
+    for (final zone in tankZones)
+      if (zone != FigureZone.backTank) zone,
+  ];
+
+  /// Whether this is a cylinder put at the diver's side, which makes the
+  /// whole rig sidemount: a further cylinder with no place of its own is
+  /// then a stage, not a back tank. A stored position a tank has no artwork
+  /// for is skipped, as placement skips it.
+  bool get atTheSide {
+    if (!isTank) return false;
+    final first = [
+      if (position != null && _tankArtwork.containsKey(position)) position!,
+      ...tankZones,
+    ].firstOrNull;
+    return first == FigureZone.sidemountLeft ||
+        first == FigureZone.sidemountRight;
+  }
 }
 
-/// Whether [item] is a cylinder the diver put at their side, which makes
-/// the whole rig sidemount: a further cylinder with no place of its own is
-/// then a stage, not a back tank.
-bool _wornAtTheSide(FigureItemInput item) =>
-    item.type == EquipmentType.tank &&
-    switch (_preferredZones(item).firstOrNull) {
-      FigureZone.sidemountLeft || FigureZone.sidemountRight => true,
-      _ => false,
-    };
+/// Every zone a tank has artwork for, which is the same in either rig.
+final Map<FigureZone, List<String>> _tankArtwork = FigurePlacement.forType(
+  EquipmentType.tank,
+).piecesByZone;
 
 List<FigureZone> _zonesForTankRole(TankRole role) => switch (role) {
   TankRole.sidemountLeft => const [
