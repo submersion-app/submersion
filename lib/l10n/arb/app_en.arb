@@ -30061,7 +30061,7 @@
     "placeholders": {
       "description": {
         "type": "String",
-        "example": "5 mm: 12"
+        "example": "Wetsuit · 5 mm full: 12, Drysuit: 3"
       }
     }
   },
