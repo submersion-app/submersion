@@ -4,6 +4,7 @@ import 'package:submersion/features/equipment/domain/constants/equipment_colors.
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_position.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 
 /// The attribute key an item's own colour lives under.
@@ -20,7 +21,19 @@ int? parseFigureColor(String? hex) {
 ///
 /// Numbers follow the order of [items]; placement walks the canonical type
 /// order so the outcome does not depend on the diver's sort setting.
-FigureModel composeFigure(List<FigureItemInput> items) {
+///
+/// An item the diver moved on the figure takes that spot first, ahead of
+/// every item the set rule places, so an earlier type cannot take it (issue
+/// #4493). A tank's dive role or Worn as is tried first in its own turn,
+/// and within the tanks those come before the ones with no place of their
+/// own; an earlier type keeps its zone, so a rebreather is never pushed off
+/// the body by a cylinder. [sidemountRig] says the rig is sidemount when the items alone do
+/// not, as on a dive whose tanks carry sidemount roles but are not linked
+/// to the cylinders.
+FigureModel composeFigure(
+  List<FigureItemInput> items, {
+  bool sidemountRig = false,
+}) {
   final topLevel = [
     for (final item in items)
       if (!item.isChild) item,
@@ -28,11 +41,20 @@ FigureModel composeFigure(List<FigureItemInput> items) {
   final numberById = <String, int>{
     for (var i = 0; i < topLevel.length; i++) topLevel[i].id: i + 1,
   };
+  final preferences = {
+    for (final item in topLevel) item.id: _Preferences.of(item),
+  };
   final context = FigureContext(
-    sidemountRig: topLevel.any(
-      (item) =>
-          FigurePlacement.contributesSidemountRig(item.type, item.attributes),
-    ),
+    sidemountRig:
+        sidemountRig ||
+        topLevel.any(
+          (item) =>
+              FigurePlacement.contributesSidemountRig(
+                item.type,
+                item.attributes,
+              ) ||
+              preferences[item.id]!.atTheSide,
+        ),
   );
   // Within a type, an item that makes the rig sidemount is placed first, so
   // with a jacket and a sidemount harness in one set the harness takes the
@@ -41,6 +63,10 @@ FigureModel composeFigure(List<FigureItemInput> items) {
       FigurePlacement.contributesSidemountRig(item.type, item.attributes)
       ? 0
       : 1;
+  // Within a type, a tank with a role or Worn as goes before one with none,
+  // so a plain tank listed first cannot take the side the other names.
+  int placedFirst(FigureItemInput item) =>
+      preferences[item.id]!.tankZones.isEmpty ? 1 : 0;
   final ordered = [...topLevel]
     ..sort((a, b) {
       final byType = equipmentTypeRank(
@@ -49,92 +75,129 @@ FigureModel composeFigure(List<FigureItemInput> items) {
       ).compareTo(equipmentTypeRank(b.type, kCanonicalTypeOrder));
       if (byType != 0) return byType;
       final byRig = rigFirst(a).compareTo(rigFirst(b));
-      return byRig != 0
-          ? byRig
+      if (byRig != 0) return byRig;
+      final byPlace = placedFirst(a).compareTo(placedFirst(b));
+      return byPlace != 0
+          ? byPlace
           : numberById[a.id]!.compareTo(numberById[b.id]!);
     });
+  final specs = [
+    for (final item in ordered)
+      FigurePlacement.forType(
+        item.type,
+        attributes: item.attributes,
+        context: context,
+      ),
+  ];
 
   final occupancy = <FigureZone, int>{};
+  final zones = List<FigureZone?>.filled(ordered.length, null);
+  void claim(int i, Iterable<FigureZone> candidates) {
+    final spec = specs[i];
+    for (final zone in candidates) {
+      if (spec.piecesFor(zone).isEmpty) continue;
+      if ((occupancy[zone] ?? 0) + spec.occupies <= zone.capacity) {
+        occupancy[zone] = (occupancy[zone] ?? 0) + spec.occupies;
+        zones[i] = zone;
+        return;
+      }
+    }
+  }
+
+  // Spots the diver moved items to first, then everything else in order,
+  // including an item whose chosen spot was already full.
+  for (var i = 0; i < ordered.length; i++) {
+    final position = preferences[ordered[i].id]!.position;
+    if (position != null) claim(i, [position]);
+  }
+  for (var i = 0; i < ordered.length; i++) {
+    if (zones[i] != null) continue;
+    claim(i, [...preferences[ordered[i].id]!.tankZones, ...specs[i].zones]);
+  }
+
   final placed = <PlacedItem>[];
   final tray = <PlacedItem>[];
-  for (final item in ordered) {
-    final spec = FigurePlacement.forType(
-      item.type,
-      attributes: item.attributes,
-      context: context,
+  for (var i = 0; i < ordered.length; i++) {
+    final item = ordered[i];
+    final spec = specs[i];
+    final zone = zones[i];
+    final placedItem = PlacedItem(
+      number: numberById[item.id]!,
+      item: item,
+      zone: zone,
+      pieceIds: zone == null ? const [] : spec.piecesFor(zone),
+      color:
+          parseFigureColor(item.attributes[kFigureColorAttribute]) ??
+          spec.defaultColor,
     );
-    final color =
-        parseFigureColor(item.attributes[kFigureColorAttribute]) ??
-        spec.defaultColor;
-    final zone = _pickZone(item, spec, occupancy);
-    final number = numberById[item.id]!;
-    if (zone == null) {
-      tray.add(
-        PlacedItem(
-          number: number,
-          item: item,
-          zone: null,
-          pieceIds: const [],
-          color: color,
-        ),
-      );
-      continue;
-    }
-    occupancy[zone] = (occupancy[zone] ?? 0) + spec.occupies;
-    placed.add(
-      PlacedItem(
-        number: number,
-        item: item,
-        zone: zone,
-        pieceIds: spec.piecesFor(zone),
-        color: color,
-      ),
-    );
+    (zone == null ? tray : placed).add(placedItem);
   }
   tray.sort((a, b) => a.number.compareTo(b.number));
   return FigureModel(placed: _mergeDoubles(placed), tray: tray);
 }
 
-/// A dive tank role names its own zones ahead of the set rule; otherwise the
-/// first candidate with room wins.
-FigureZone? _pickZone(
-  FigureItemInput item,
-  FigurePlacementSpec spec,
-  Map<FigureZone, int> occupancy,
-) {
-  final candidates = [..._zonesForTankRole(item), ...spec.zones];
-  for (final zone in candidates) {
-    if ((occupancy[zone] ?? 0) + spec.occupies <= zone.capacity) return zone;
+/// Where the diver put an item: its position on the figure, and for a tank
+/// its dive role or, with no role, its Worn as.
+class _Preferences {
+  const _Preferences(this.position, this.tankZones, {required this.isTank});
+
+  factory _Preferences.of(FigureItemInput item) {
+    final isTank = item.type == EquipmentType.tank;
+    final tankZones = !isTank
+        ? const <FigureZone>[]
+        : item.tankRole != null
+        ? _zonesForTankRole(item.tankRole!)
+        : wornAsZones(item.attributes[EquipmentAttrKeys.wornAs]);
+    return _Preferences(
+      figurePositionZone(item.attributes[EquipmentAttrKeys.figurePosition]),
+      tankZones,
+      isTank: isTank,
+    );
   }
-  return null;
+
+  final FigureZone? position;
+  final List<FigureZone> tankZones;
+  final bool isTank;
+
+  /// Whether this is a cylinder put at the diver's side, which makes the
+  /// whole rig sidemount: a further cylinder with no place of its own is
+  /// then a stage, not a back tank. A stored position a tank has no artwork
+  /// for is skipped, as placement skips it.
+  bool get atTheSide {
+    if (!isTank) return false;
+    final first = [
+      if (position != null && _tankArtwork.containsKey(position)) position!,
+      ...tankZones,
+    ].firstOrNull;
+    return first == FigureZone.sidemountLeft ||
+        first == FigureZone.sidemountRight;
+  }
 }
 
-List<FigureZone> _zonesForTankRole(FigureItemInput item) {
-  if (item.type != EquipmentType.tank) return const [];
-  return switch (item.tankRole) {
-    TankRole.sidemountLeft => const [
-      FigureZone.sidemountLeft,
-      FigureZone.sidemountRight,
-    ],
-    TankRole.sidemountRight => const [
-      FigureZone.sidemountRight,
-      FigureZone.sidemountLeft,
-    ],
-    TankRole.stage ||
-    TankRole.deco ||
-    TankRole.bailout ||
-    TankRole.pony ||
-    TankRole.suitInflation => const [
-      FigureZone.stageLeft,
-      FigureZone.stageRight,
-    ],
-    TankRole.backGas ||
-    TankRole.twinSet ||
-    TankRole.diluent ||
-    TankRole.oxygenSupply => const [FigureZone.backTank],
-    null => const [],
-  };
-}
+/// Every zone a tank has artwork for, which is the same in either rig.
+final Map<FigureZone, List<String>> _tankArtwork = FigurePlacement.forType(
+  EquipmentType.tank,
+).piecesByZone;
+
+List<FigureZone> _zonesForTankRole(TankRole role) => switch (role) {
+  TankRole.sidemountLeft => const [
+    FigureZone.sidemountLeft,
+    FigureZone.sidemountRight,
+  ],
+  TankRole.sidemountRight => const [
+    FigureZone.sidemountRight,
+    FigureZone.sidemountLeft,
+  ],
+  TankRole.stage ||
+  TankRole.deco ||
+  TankRole.bailout ||
+  TankRole.pony ||
+  TankRole.suitInflation => const [FigureZone.stageLeft, FigureZone.stageRight],
+  TankRole.backGas ||
+  TankRole.twinSet ||
+  TankRole.diluent ||
+  TankRole.oxygenSupply => const [FigureZone.backTank],
+};
 
 /// Two tanks in the back tank zone are one manifolded pair: the first draws
 /// the doubles piece and the second draws nothing (its label still shows).

@@ -102,6 +102,10 @@ abstract final class EquipmentAttrKeys {
   // The item's colour (issue #2326), read by the diver figure.
   static const color = 'color';
 
+  // Where the diver wants the item drawn on the figure (issue #4493), when
+  // the figure's own choice is wrong. Unset means the figure decides.
+  static const figurePosition = 'figure_position';
+
   // Hose kind (issue #1805): LP regulator, HP gauge/transmitter, LPI inflator.
   static const hoseType = 'hose_type';
 
@@ -114,6 +118,12 @@ abstract final class EquipmentAttrKeys {
   // drysuit's inflation (often argon). Unset means breathing gas. Picking or
   // linking a suit inflation cylinder sets a dive tank's role to match.
   static const cylinderUse = 'cylinder_use';
+
+  // How a cylinder is usually carried (issue #4493): on the back, at the
+  // diver's left or right side as a sidemount tank, or clipped on as a
+  // stage. The diver figure draws it there unless a dive tank's role says
+  // otherwise.
+  static const wornAs = 'worn_as';
 
   // A cylinder's last visual inspection and hydro test dates. The VIP and
   // hydro service clocks count from them (issue #3662).
@@ -227,6 +237,38 @@ abstract final class EquipmentAttributeCatalog {
       key: EquipmentAttrKeys.color,
       kind: AttributeKind.color,
       group: AttributeGroup.appearance,
+    ),
+    // Every spot an item can be moved to on the figure (issue #4493). The
+    // edit form offers only the ones that draw that item differently
+    // (`pickableFigureZones`); the keys match `figurePositionKeys`.
+    EquipmentAttributeDef(
+      key: EquipmentAttrKeys.figurePosition,
+      kind: AttributeKind.choice,
+      group: AttributeGroup.appearance,
+      choiceKeys: [
+        'mouth',
+        'octo',
+        'chest_left',
+        'chest_right',
+        'console',
+        'wrist_left',
+        'wrist_right',
+        'hand_left',
+        'hand_right',
+        'hip_left',
+        'hip_right',
+        'thigh_left',
+        'thigh_right',
+        'calf_left',
+        'back',
+        'trim_left',
+        'trim_right',
+        'butt_d_ring',
+        'sidemount_left',
+        'sidemount_right',
+        'stage_left',
+        'stage_right',
+      ],
     ),
   ];
 
@@ -406,6 +448,11 @@ abstract final class EquipmentAttributeCatalog {
         key: EquipmentAttrKeys.cylinderUse,
         kind: AttributeKind.choice,
         choiceKeys: ['breathing_gas', 'suit_inflation'],
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.wornAs,
+        kind: AttributeKind.choice,
+        choiceKeys: ['back', 'sidemount_left', 'sidemount_right', 'stage'],
       ),
       EquipmentAttributeDef(
         key: EquipmentAttrKeys.lastVisualInspection,

@@ -1260,6 +1260,36 @@ void main() {
       expect(find.byKey(const ValueKey('detail-color-swatch')), findsOneWidget);
     });
 
+    testWidgets('shows the spot the diver moved the item to on the figure', (
+      tester,
+    ) async {
+      // Issue #4493: a cylinder moved to the diver's left side.
+      await pumpItem(
+        tester,
+        EquipmentItem(
+          id: 'tank-position',
+          name: '12L left',
+          type: EquipmentType.tank,
+          attributes: [
+            EquipmentAttribute.curated(
+              equipmentId: 'tank-position',
+              key: 'figure_position',
+              valueText: 'sidemount_left',
+            ),
+            EquipmentAttribute.curated(
+              equipmentId: 'tank-position',
+              key: 'worn_as',
+              valueText: 'stage',
+            ),
+          ],
+        ),
+      );
+      expect(find.text('Position on figure'), findsOneWidget);
+      expect(find.text('Sidemount, left'), findsOneWidget);
+      expect(find.text('Worn as'), findsOneWidget);
+      expect(find.text('Stage'), findsOneWidget);
+    });
+
     testWidgets('shows no colour row for a value that is not a colour', (
       tester,
     ) async {

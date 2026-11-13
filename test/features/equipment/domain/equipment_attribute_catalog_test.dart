@@ -232,6 +232,7 @@ void main() {
         'retailer',
         'product_url',
         'color',
+        'figure_position',
       ]);
     });
 
@@ -352,6 +353,7 @@ void main() {
         'retailer',
         'product_url',
         'color',
+        'figure_position',
       ]);
       // Warmth belongs to baselayer (#1537). Two ways to say "this one is
       // warm" is how one idea drifts into two words per locale.
@@ -382,6 +384,7 @@ void main() {
         'retailer',
         'product_url',
         'color',
+        'figure_position',
       ]);
       expect(EquipmentAttributeCatalog.defFor('snorkel_type')!.choiceKeys, [
         'classic',
@@ -403,6 +406,7 @@ void main() {
         'retailer',
         'product_url',
         'color',
+        'figure_position',
       ]);
       // A spanner width or a hex key has no closed list to pick from.
       expect(
@@ -425,6 +429,7 @@ void main() {
         'retailer',
         'product_url',
         'color',
+        'figure_position',
       ]);
       expect(
         EquipmentAttributeCatalog.defFor('gauge_max_pressure_bar')!.dimension,
@@ -461,6 +466,7 @@ void main() {
         'retailer',
         'product_url',
         'color',
+        'figure_position',
       ]);
       expect(EquipmentAttributeCatalog.defFor('balance_zone')!.choiceKeys, [
         'northern',
@@ -545,6 +551,7 @@ void main() {
         'retailer',
         'product_url',
         'color',
+        'figure_position',
       ]);
     });
 

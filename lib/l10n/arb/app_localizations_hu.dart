@@ -40879,6 +40879,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Palack felhasználása';
 
   @override
+  String get attrLabel_worn_as => 'Viselés módja';
+
+  @override
   String get attrLabel_tank_identifier => 'Azonosító';
 
   @override
@@ -41040,6 +41043,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Szín';
+
+  @override
+  String get attrLabel_figure_position => 'Hely a búváralakon';
 
   @override
   String get attrLabel_sleeve_length => 'Ujjak';
@@ -41244,6 +41250,84 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Ruhatöltő palack';
+
+  @override
+  String get attrChoice_worn_as_back => 'Háti rögzítés';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount bal';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount jobb';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stage';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Száj';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Mellkas (oktopusz)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Mellkas, bal';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Mellkas, jobb';
+
+  @override
+  String get attrChoice_figure_position_console => 'Konzol';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Bal csukló';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Jobb csukló';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Bal kéz';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Jobb kéz';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Bal csípő';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Jobb csípő';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Bal comb';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Jobb comb';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Bal vádli';
+
+  @override
+  String get attrChoice_figure_position_back => 'Hát';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Trimmzseb, bal';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Trimmzseb, jobb';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'Hátsó D-gyűrű';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, bal';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, jobb';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, bal';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, jobb';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41586,6 +41670,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attr_flagNo => 'Nem';
+
+  @override
+  String get attr_figurePosition_automatic => 'Automatikus';
 
   @override
   String get equipment_edit_invalidThickness => 'Formátum: 5, 5/4 vagy 7/5/3';

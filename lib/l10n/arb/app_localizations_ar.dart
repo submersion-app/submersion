@@ -41670,6 +41670,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_cylinder_use => 'استخدام الأسطوانة';
 
   @override
+  String get attrLabel_worn_as => 'يُحمل كـ';
+
+  @override
   String get attrLabel_tank_identifier => 'المعرف';
 
   @override
@@ -41830,6 +41833,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'اللون';
+
+  @override
+  String get attrLabel_figure_position => 'الموضع على مجسم الغواص';
 
   @override
   String get attrLabel_sleeve_length => 'الأكمام';
@@ -42034,6 +42040,84 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'نفخ البدلة';
+
+  @override
+  String get attrChoice_worn_as_back => 'تثبيت خلفي';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'تعليق جانبي أيسر';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'تعليق جانبي أيمن';
+
+  @override
+  String get attrChoice_worn_as_stage => 'أسطوانة مرحلية';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'الفم';
+
+  @override
+  String get attrChoice_figure_position_octo => 'الصدر (أوكتوبوس)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'الصدر، يسار';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'الصدر، يمين';
+
+  @override
+  String get attrChoice_figure_position_console => 'كونسول';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'المعصم الأيسر';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'المعصم الأيمن';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'اليد اليسرى';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'اليد اليمنى';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'الورك الأيسر';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'الورك الأيمن';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'الفخذ الأيسر';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'الفخذ الأيمن';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'ربلة الساق اليسرى';
+
+  @override
+  String get attrChoice_figure_position_back => 'الظهر';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'جيب الموازنة، يسار';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'جيب الموازنة، يمين';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'حلقة D الخلفية';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'تعليق جانبي، يسار';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'تعليق جانبي، يمين';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'أسطوانة مرحلية، يسار';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'أسطوانة مرحلية، يمين';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -42374,6 +42458,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attr_flagNo => 'لا';
+
+  @override
+  String get attr_figurePosition_automatic => 'تلقائي';
 
   @override
   String get equipment_edit_invalidThickness => 'استخدم 5 أو 5/4 أو 7/5/3';

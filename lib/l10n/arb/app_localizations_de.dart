@@ -41021,6 +41021,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Flaschenverwendung';
 
   @override
+  String get attrLabel_worn_as => 'Getragen als';
+
+  @override
   String get attrLabel_tank_identifier => 'Kennung';
 
   @override
@@ -41183,6 +41186,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Farbe';
+
+  @override
+  String get attrLabel_figure_position => 'Position an der Taucherfigur';
 
   @override
   String get attrLabel_sleeve_length => 'Ärmel';
@@ -41389,6 +41395,84 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Anzugflasche';
+
+  @override
+  String get attrChoice_worn_as_back => 'Rückenmontage';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount links';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount rechts';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stageflasche';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Mund';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Brust (Oktopus)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Brust, links';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Brust, rechts';
+
+  @override
+  String get attrChoice_figure_position_console => 'Konsole';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Linkes Handgelenk';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Rechtes Handgelenk';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Linke Hand';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Rechte Hand';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Linke Hüfte';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Rechte Hüfte';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Linker Oberschenkel';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Rechter Oberschenkel';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Linke Wade';
+
+  @override
+  String get attrChoice_figure_position_back => 'Rücken';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Trimmtasche, links';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Trimmtasche, rechts';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'D-Ring am Gesäß';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, links';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, rechts';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, links';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, rechts';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41730,6 +41814,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attr_flagNo => 'Nein';
+
+  @override
+  String get attr_figurePosition_automatic => 'Automatisch';
 
   @override
   String get equipment_edit_invalidThickness => 'Format: 5, 5/4 oder 7/5/3';
