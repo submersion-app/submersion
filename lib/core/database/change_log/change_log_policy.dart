@@ -158,6 +158,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'change_log_operations': ChangeLogClass.excluded,
   'connected_accounts': ChangeLogClass.excluded,
   'deletion_log': ChangeLogClass.excluded,
+  'dive_deco_status': ChangeLogClass.excluded,
   'dive_derived_metrics': ChangeLogClass.excluded,
   'dive_sensor_summaries': ChangeLogClass.excluded,
   'equipment_condition_reviews': ChangeLogClass.excluded,

@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
+import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -42,6 +45,8 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     required DecoClassificationProgress? progress,
+    DiveDecoAnalysisProgress? writer,
+    DiveFilterState filter = const DiveFilterState(),
   }) async {
     final neverLoads = Completer<DecoObligationStats>();
     await tester.pumpWidget(
@@ -49,6 +54,8 @@ void main() {
         overrides: [
           decoObligationStatsProvider.overrideWith((ref) => neverLoads.future),
           decoClassificationProgressProvider.overrideWith((ref) => progress),
+          diveDecoStatusProgressProvider.overrideWith((ref) => writer),
+          insightsFilterProvider.overrideWith((ref) => filter),
           ascentDescentRatesProvider.overrideWith(
             (ref) async => (avgAscent: null, avgDescent: null),
           ),
@@ -152,5 +159,27 @@ void main() {
     );
 
     expect(find.byIcon(Icons.chevron_right), findsNothing);
+  });
+
+  testWidgets('under a Deco filter, shows the verdict pass it waits on '
+      '(#4461)', (tester) async {
+    await pumpPage(
+      tester,
+      progress: null,
+      writer: (analyzed: 7, total: 20),
+      filter: const DiveFilterState(decoOnly: true),
+    );
+
+    expect(find.text('Analyzing dives: 7 of 20'), findsOneWidget);
+    expect(find.text('Deco Dives'), findsNothing);
+  });
+
+  testWidgets('ignores a verdict pass run for another reader', (tester) async {
+    // The dive list's Deco filter runs the pass; this card does not wait
+    // on it, so its numbers are not this card's.
+    await pumpPage(tester, progress: null, writer: (analyzed: 7, total: 20));
+
+    expect(find.textContaining('Analyzing dives'), findsNothing);
+    expect(find.byType(CircularProgressIndicator), findsWidgets);
   });
 }

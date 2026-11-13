@@ -10,7 +10,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_worker.dart';
-import 'package:submersion/features/dive_log/data/sql/multi_cylinder_sac_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_tank.dart'
@@ -199,33 +199,14 @@ class DerivedMetricsRepository {
     return best;
   }
 
-  /// [diveSourceStampSql] plus the dive's effective water type, which the SAC
-  /// metrics read (issue #3958), and its gas switches and primary computer,
-  /// which say whether a cylinder was breathed on the surface (issue #2930):
-  /// the pressure series read are the primary computer's. Neither a site's
-  /// water, a synced switch nor a synced source flag re-stamps the dive.
-  /// The primary term is the source row's local rowid, which differs for
-  /// each source of a dive. Terms of this cache alone, because no other
-  /// cache built on the source stamp reads them.
-  static final String _stampSql = () {
-    final whens = [
-      for (final type in WaterType.values)
-        "WHEN '${type.name}' THEN ${type.index + 1}",
-    ].join(' ');
-    return '(${diveSourceStampSql()} + '
-        '(CASE ${diveEffectiveWaterTypeSql('d')} $whens ELSE 0 END) + '
-        'COALESCE((SELECT COUNT(*) + SUM(stamp_g.timestamp) + '
-        'SUM(COALESCE(CAST(substr(stamp_g.hlc, 1, 15) AS INTEGER), 0)) '
-        'FROM gas_switches stamp_g WHERE stamp_g.dive_id = d.id), 0) + '
-        'COALESCE((SELECT SUM(stamp_s.rowid) FROM dive_data_sources stamp_s '
-        'WHERE stamp_s.dive_id = d.id AND stamp_s.is_primary = 1), 0))';
-  }();
+  /// [diveSourceStampSql] plus the analysis inputs the SAC metrics and the
+  /// surface-breathing window read ([diveAnalysisInputsStampSql]).
+  static final String _stampSql =
+      '(${diveSourceStampSql()} + ${diveAnalysisInputsStampSql('d')})';
 
   Set<ResultSetImplementation<dynamic, dynamic>> get _stampTables => {
     ...diveSourceStampTables(_db),
-    _db.diveSites,
-    _db.gasSwitches,
-    _db.diveDataSources,
+    ...diveAnalysisInputsStampTables(_db),
   };
 
   /// [_stampSql] for one dive, or null when [diveId] does not exist.

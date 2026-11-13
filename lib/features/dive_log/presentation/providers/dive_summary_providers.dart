@@ -4,7 +4,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
 /// Overview totals for the Dive Log Summary pane, scoped by the dive list's
 /// filter (issue #1078): the pane sits beside the list, so it describes the
@@ -49,7 +49,7 @@ Future<void> _refreshOnFilterTables(
   DiveFilterState filter,
 ) async {
   final touched = diveFilterTablesTouched(filter);
-  await awaitServiceStatusIfRead(ref, touched);
+  await awaitQueryCachesIfRead(ref, touched);
   ref.invalidateSelfWhen(
     repository.watchTables({
       ...DiveRepository.statisticsTickTables,

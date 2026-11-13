@@ -8,6 +8,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/presentation/entity_query_editor.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
@@ -235,6 +237,19 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
           }),
   );
 
+  /// Whether the condition reads the computed deco verdicts. The diver only
+  /// narrows what a compiled query binds, not which tables it reads.
+  bool _readsDeco() {
+    try {
+      return ref
+          .read(ruleTargetScopeProvider)
+          .reads(_condition, _subject, '', kDiveDecoStatusTable);
+    } on Object {
+      // A half-typed condition the compiler rejects reads nothing yet.
+      return false;
+    }
+  }
+
   Widget _matchCount(BuildContext context) {
     final l10n = context.l10n;
     final style = Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -248,6 +263,11 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
           )),
         )
         .value;
+    // A count over deco waits for the dive analysis, which on a library
+    // nothing has analyzed runs for minutes: say how far it has got (#4461).
+    final analysis = count == null && _readsDeco()
+        ? ref.watch(diveDecoStatusProgressProvider)
+        : null;
     final dives = _subject == RuleSubject.dives;
     final unloaded = _original?.problem != null && !_conditionTouched;
     final text = unloaded
@@ -256,6 +276,11 @@ class _RuleEditPageState extends ConsumerState<RuleEditPage> {
         ? (dives
               ? l10n.rules_edit_matchesEveryDive
               : l10n.rules_edit_matchesEverySite)
+        : analysis != null
+        ? l10n.insights_profile_deco_analyzing(
+            analysis.analyzed,
+            analysis.total,
+          )
         : count == null
         ? ''
         : dives
