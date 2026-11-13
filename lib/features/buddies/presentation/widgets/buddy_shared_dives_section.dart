@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_number_badge.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card listing the newest dives shared with a buddy, capped at five, with a
@@ -92,23 +93,7 @@ class BuddySharedDivesSection extends ConsumerWidget {
                           ),
                           child: Row(
                             children: [
-                              // Dive number badge
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primaryContainer,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '#${dive.diveNumber ?? '-'}',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
+                              DiveNumberBadge(diveNumber: dive.diveNumber),
                               const SizedBox(width: 12),
                               // Dive details
                               Expanded(
