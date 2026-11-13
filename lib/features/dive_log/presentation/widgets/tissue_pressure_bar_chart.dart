@@ -233,7 +233,32 @@ class _TissuePressureBarChartState extends State<TissuePressureBarChart> {
             ),
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
+        // Each compartment's number under its own bar, so "Leading: #3"
+        // points at a bar the diver can see (issue #4503). The cells mirror
+        // the bars' so the numbers stay centred on them in either direction;
+        // the chart's own label already speaks for them.
+        ExcludeSemantics(
+          child: Row(
+            children: [
+              for (final comp in comps)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 0.5),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        '${comp.compartmentNumber}',
+                        style: labelStyle,
+                        maxLines: 1,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 2),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -388,7 +413,9 @@ class _LegendItem extends StatelessWidget {
           child: Container(width: 12, height: swatchHeight, color: color),
         ),
         const SizedBox(width: 4),
-        Text(label, style: style),
+        // Flexible, so a long label or large text wraps inside the legend's
+        // run instead of overflowing it.
+        Flexible(child: Text(label, style: style)),
       ],
     );
   }

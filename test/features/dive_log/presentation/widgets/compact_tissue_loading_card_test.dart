@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/deco/buhlmann_algorithm.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
@@ -812,6 +813,77 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.text('Fast, blood-rich tissue'), findsOneWidget);
+    });
+  });
+
+  group('TissuePressureBarChart bar numbers (issue #4503)', () {
+    final sixteen = DecoStatus(
+      compartments: BuhlmannAlgorithm().compartments,
+      ndlSeconds: 600,
+      ceilingMeters: 0.0,
+      ttsSeconds: 0,
+      gfLow: 0.4,
+      gfHigh: 0.85,
+      decoStops: const [],
+      currentDepthMeters: 0.0,
+      ambientPressureBar: 1.0,
+    );
+    Finder inChart(Finder f) =>
+        find.descendant(of: find.byType(TissuePressureBarChart), matching: f);
+
+    for (final direction in TextDirection.values) {
+      testWidgets('numbers every bar under its own bar (${direction.name})', (
+        tester,
+      ) async {
+        await tester.pumpWidget(
+          buildCard(status: sixteen, textDirection: direction),
+        );
+        await tester.pumpAndSettle();
+
+        // Each bar sits in its own tooltip, in compartment order.
+        final bars = tester.widgetList<Tooltip>(inChart(find.byType(Tooltip)));
+        expect(bars, hasLength(16));
+        final cells = [
+          for (final bar in bars) tester.getRect(find.byWidget(bar)),
+        ];
+        for (var n = 1; n <= 16; n++) {
+          final number = inChart(find.text('$n'));
+          expect(number, findsOneWidget, reason: 'bar $n');
+          expect(
+            tester.getCenter(number).dx,
+            closeTo(cells[n - 1].center.dx, 1),
+            reason: 'bar $n',
+          );
+        }
+      });
+    }
+
+    testWidgets('keeps the numbers inside their cells at 2x text scale', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(334, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: buildCard(status: sixteen, scrollable: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(inChart(find.text('16')), findsOneWidget);
+    });
+
+    testWidgets('leaves the numbers to the chart\'s own spoken label', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      await tester.pumpWidget(buildCard(status: sixteen));
+      await tester.pumpAndSettle();
+
+      expect(find.bySemanticsLabel(RegExp(r'^16$')), findsNothing);
+      semantics.dispose();
     });
   });
 
