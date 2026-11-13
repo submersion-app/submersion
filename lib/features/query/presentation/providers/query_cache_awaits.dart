@@ -46,15 +46,29 @@ Future<void> awaitQueryCachesIfRead(
   Ref ref,
   Set<String> tablesTouched, {
   bool hold = true,
+}) => _awaitWriters(
+  tablesTouched,
+  (writer) => ref.listen(writer, (_, _) {}),
+  release: !hold,
+);
+
+/// Listens to each writer [tablesTouched] needs through [listen], waits for
+/// them all, and closes the listeners afterwards when [release] is set.
+Future<void> _awaitWriters(
+  Set<String> tablesTouched,
+  ProviderSubscription<Future<void>> Function(
+    ProviderListenable<Future<void>> writer,
+  )
+  listen, {
+  required bool release,
 }) async {
   final subs = [
-    for (final writer in _writersFor(tablesTouched))
-      ref.listen(writer, (_, _) {}),
+    for (final writer in _writersFor(tablesTouched)) listen(writer),
   ];
   try {
     await Future.wait<void>([for (final sub in subs) sub.read()]);
   } finally {
-    if (!hold) {
+    if (release) {
       for (final sub in subs) {
         sub.close();
       }
@@ -109,10 +123,17 @@ Future<QueryCte?> prepareQueryCachesFor(
     validatedCurrentDiverIdProvider.future,
   );
   if (diverId != active) {
-    if (readsDeco) {
-      await refreshDiveDecoStatusFor(ref, diverId, diveIds, isActive: false);
-    }
-    return readsService ? _serviceOverlayFor(ref, diverId) : null;
+    // Independent of each other, so they run together: the deco refresh can
+    // analyze a whole logbook, and the service overlay need not wait for it.
+    final overlay = readsService
+        ? _serviceOverlayFor(ref, diverId)
+        : Future<QueryCte?>.value();
+    await Future.wait<void>([
+      if (readsDeco)
+        refreshDiveDecoStatusFor(ref, diverId, diveIds, isActive: false),
+      overlay,
+    ]);
+    return overlay;
   }
   // The service clocks re-evaluate on undebounced ticks of their ledger and
   // gear tables, so the writer awaited below has already seen a write made
@@ -171,16 +192,8 @@ Future<void> _awaitCurrentDecoPass(ProviderContainer container) async {
 Future<void> awaitQueryCachesIfReadFromWidget(
   WidgetRef ref,
   Set<String> tablesTouched,
-) async {
-  final subs = [
-    for (final writer in _writersFor(tablesTouched))
-      ref.listenManual(writer, (_, _) {}),
-  ];
-  try {
-    await Future.wait<void>([for (final sub in subs) sub.read()]);
-  } finally {
-    for (final sub in subs) {
-      sub.close();
-    }
-  }
-}
+) => _awaitWriters(
+  tablesTouched,
+  (writer) => ref.listenManual(writer, (_, _) {}),
+  release: true,
+);

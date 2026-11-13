@@ -141,12 +141,10 @@ class QueryTool implements AgentTool {
     // The cache `serviceDue` reads holds the active diver's verdicts only,
     // so the named diver's come from the engine and shadow it here. That
     // overlay replaces the service cache, so only the others are prepared.
-    await _prepareCaches(
-      ctx.diverId,
-      compiled.tablesTouched.difference({serviceStatusTable}),
-    );
-    final cte = compiled.tablesTouched.contains(serviceStatusTable)
-        ? await serviceStatusOverlay(
+    // The two are independent, so they run together: a deco preparation can
+    // analyze a whole logbook, and the overlay need not wait for it.
+    final overlay = compiled.tablesTouched.contains(serviceStatusTable)
+        ? serviceStatusOverlay(
             diverId: ctx.diverId,
             settings: ctx.settings,
             equipment: _catalog.repositories.equipment,
@@ -155,7 +153,15 @@ class QueryTool implements AgentTool {
             records: _catalog.repositories.serviceRecords,
             now: now,
           )
-        : null;
+        : Future<QueryCte?>.value();
+    await Future.wait<void>([
+      _prepareCaches(
+        ctx.diverId,
+        compiled.tablesTouched.difference({serviceStatusTable}),
+      ),
+      overlay,
+    ]);
+    final cte = await overlay;
     final runner = QueryIdSetRunner(context.db);
     final all = (await runner.ids(
       compiled,

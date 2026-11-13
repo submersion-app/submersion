@@ -83,7 +83,17 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
     db
         .tableUpdates(_divesQuery(db))
         .debounce(QueryIdSetRunner.changeTickDebounce)
-        .asyncMap((_) => _decoDiveColumnsSignature(db, diverId))
+        // A signature read that fails (a connection a storage move or a
+        // restore has just closed) re-runs the pass rather than raising an
+        // error nothing listens for: the stream's only listener ignores
+        // errors, so one would reach the zone as an uncaught error.
+        .asyncMap<int?>((_) async {
+          try {
+            return await _decoDiveColumnsSignature(db, diverId);
+          } catch (_) {
+            return null;
+          }
+        })
         .where((now) => now != columns),
   );
   final startedFrom = ref.read(diveDecoInputWritesProvider);
@@ -482,16 +492,14 @@ Future<void> refreshDiveDecoStatusFor(
   var settingsAtStart = startedFrom.settings ?? await _settingsStamp(diverId);
   var stampAtStart = nextDecoWriteStamp();
   var judged = await judge();
-  for (
-    var retry = 0;
-    judged != null &&
-        retry < 3 &&
-        (ref.read(diveDecoInputWritesProvider) != writesAtStart ||
-            await _settingsStamp(diverId) != settingsAtStart);
-    retry++
-  ) {
-    writesAtStart = ref.read(diveDecoInputWritesProvider);
-    settingsAtStart = await _settingsStamp(diverId);
+  for (var retry = 0; judged != null && retry < 3; retry++) {
+    // Each input read once per round: what this round compares is what the
+    // next judgment starts from.
+    final writesNow = ref.read(diveDecoInputWritesProvider);
+    final settingsNow = await _settingsStamp(diverId);
+    if (writesNow == writesAtStart && settingsNow == settingsAtStart) break;
+    writesAtStart = writesNow;
+    settingsAtStart = settingsNow;
     stampAtStart = nextDecoWriteStamp();
     judged = await judge();
   }
