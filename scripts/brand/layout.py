@@ -4,20 +4,25 @@ No Pillow import: text is measured through an injected callable, so the
 layout rules are testable with a fake measurer. Every dimension is derived
 from the icon size using the approved 1280x640 card's proportions, measured
 between ink edges on that render. Text boxes are ink bounding boxes, so the
-slogan's left and right ink edges line up exactly with the wordmark's.
+slogan's left and right ink edges line up exactly with the wordmark's, and
+the rule runs under the first letters of the name, from the "S" to the "b".
 """
 
 from dataclasses import dataclass
 
 NAME = "Submersion"
 SLOGAN = "Dive safe. Log everything."
+# The leading letters of NAME the red rule underlines, ink edge to ink edge.
+RULE_SPAN = "Sub"
+# The rule starts at the name's left ink edge, which is right only for a prefix.
+if not NAME.startswith(RULE_SPAN):
+    raise ValueError(f"RULE_SPAN {RULE_SPAN!r} must be a leading prefix of NAME {NAME!r}")
 
 # Reference proportions, in pixels, at a 340px icon on the approved card.
 REF_ICON = 340.0
 REF_NAME_PX = 116.0
 REF_GAP_ICON_TEXT = 64.0
 REF_GAP_NAME_RULE = 40.0
-REF_RULE_W = 96.0
 REF_RULE_H = 8.0
 REF_GAP_RULE_SLOGAN = 46.0
 
@@ -82,6 +87,7 @@ class _Text:
     slogan_px: float | None
     slogan_w: float
     slogan_h: float
+    rule_w: float
 
     @property
     def width(self):
@@ -104,11 +110,14 @@ def _measure_text(icon, show_slogan, measure):
     name_px = REF_NAME_PX * unit
     name_w, name_h = measure(NAME, "name", name_px)
     if not show_slogan:
-        return _Text(unit, name_px, name_w, name_h, None, 0.0, 0.0)
+        return _Text(unit, name_px, name_w, name_h, None, 0.0, 0.0, 0.0)
     probe_w, _ = measure(SLOGAN, "slogan", SLOGAN_PROBE_PX)
     slogan_px = SLOGAN_PROBE_PX * name_w / probe_w
     slogan_w, slogan_h = measure(SLOGAN, "slogan", slogan_px)
-    return _Text(unit, name_px, name_w, name_h, slogan_px, slogan_w, slogan_h)
+    # RULE_SPAN starts with NAME's first glyph, so the two ink boxes share
+    # their left edge and this width ends the rule at the last span letter.
+    rule_w, _ = measure(RULE_SPAN, "name", name_px)
+    return _Text(unit, name_px, name_w, name_h, slogan_px, slogan_w, slogan_h, rule_w)
 
 
 def _block_size(kind, icon, text):
@@ -176,8 +185,9 @@ def _place(kind, safe, icon, text, block_w, block_h):
     if text.slogan_px is None:
         return Layout(icon_box, name, text.name_px, None, None, None, block)
 
-    rule_w, rule_h = REF_RULE_W * u, REF_RULE_H * u
-    rule = Box(align(rule_w), name.bottom + REF_GAP_NAME_RULE * u, rule_w, rule_h)
+    # Left-aligned with the name in both layouts, so it stays under RULE_SPAN
+    # even where the stacked layout centers the name.
+    rule = Box(name.x, name.bottom + REF_GAP_NAME_RULE * u, text.rule_w, REF_RULE_H * u)
     slogan = Box(
         align(text.slogan_w),
         rule.bottom + REF_GAP_RULE_SLOGAN * u,

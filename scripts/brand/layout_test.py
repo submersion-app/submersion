@@ -91,8 +91,19 @@ class LayoutTest(unittest.TestCase):
         self.assertLessEqual(result.icon.bottom, result.name.y + EPS)
         self.assertAlmostEqual(result.icon.center_x, result.block.center_x, places=6)
         self.assertAlmostEqual(result.name.center_x, result.block.center_x, places=6)
-        self.assertAlmostEqual(result.rule.center_x, result.block.center_x, places=6)
         self.assertAlmostEqual(result.slogan.center_x, result.block.center_x, places=6)
+
+    def test_rule_spans_the_rule_span_letters_of_the_name(self):
+        # Regression (#4489): the rule was a fixed width that stopped partway
+        # under the "S". It runs from the "S" to the end of the "b" of "Sub",
+        # in the stacked layout too, where the name itself is centered.
+        self.assertEqual(layout.RULE_SPAN, "Sub")
+        for name in ("github-social", "reddit-banner", "lockup-dark", "square"):
+            with self.subTest(preset=name):
+                result = layout_for(presets.find(name))
+                span_w, _ = fake_measure(layout.RULE_SPAN, "name", result.name_px)
+                self.assertAlmostEqual(result.rule.x, result.name.x, places=6)
+                self.assertAlmostEqual(result.rule.w, span_w, places=6)
 
     def test_wordmark_has_no_rule_or_slogan(self):
         result = layout_for(presets.find("wordmark-dark"))
@@ -127,6 +138,7 @@ class PresetsTest(unittest.TestCase):
             "square": (1080, 1080),
             "reddit-banner": (2144, 256),
             "reddit-mobile-banner": (2160, 256),
+            "youtube-banner": (2560, 1440),
             "mark-256": (256, 256),
             "mark-512": (512, 512),
             "mark-1024": (1024, 1024),
@@ -150,6 +162,32 @@ class PresetsTest(unittest.TestCase):
                     result.icon.h, preset.height - ins.top - ins.bottom, places=6
                 )
                 self.assertIsNotNone(result.slogan)
+
+    def test_youtube_banner_keeps_everything_in_the_all_devices_safe_area(self):
+        # YouTube crops the 2560x1440 channel banner per device; only the
+        # centered 1546x423 area shows on TV, desktop, tablet and phone.
+        preset = presets.find("youtube-banner")
+        left, top = (2560 - 1546) / 2, (1440 - 423) / 2
+        self.assertEqual(presets.safe_insets(preset), Insets(left, top, left, top))
+        result = layout_for(preset)
+        self.assertIsNotNone(result.slogan)
+        for box in boxes(result):
+            self.assertGreaterEqual(box.x, left - EPS)
+            self.assertGreaterEqual(box.y, top - EPS)
+            self.assertLessEqual(box.right, left + 1546 + EPS)
+            self.assertLessEqual(box.bottom, top + 423 + EPS)
+
+    def test_safe_size_must_fit_the_canvas(self):
+        for size in ((2561, 423), (1546, 1441), (0, 423)):
+            with self.subTest(safe_size=size):
+                with self.assertRaises(ValueError):
+                    presets.Preset("x", 2560, 1440, "banner", "horizontal", "x", safe_size=size)
+
+    def test_safe_size_and_left_inset_are_exclusive(self):
+        with self.assertRaises(ValueError):
+            presets.Preset(
+                "x", 2560, 1440, "banner", "horizontal", "x", left_inset=600, safe_size=(1546, 423)
+            )
 
     def test_default_inset_is_one_eighth_of_height(self):
         ins = presets.safe_insets(presets.find("github-social"))
