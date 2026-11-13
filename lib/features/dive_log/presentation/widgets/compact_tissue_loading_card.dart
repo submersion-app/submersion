@@ -53,9 +53,10 @@ class CompactTissueLoadingCard extends ConsumerStatefulWidget {
   /// Optional time label (e.g. "at 3:42") shown next to the title on hover
   final String? subtitle;
 
-  /// Seconds from dive start, one per [decoStatuses] entry, for the heat
-  /// map's time axis (issue #4503): the times those statuses were computed
-  /// at (`ProfileAnalysis.sampleTimestamps`). The axis is left out when null
+  /// Seconds on the profile chart's clock, one per [decoStatuses] entry, for
+  /// the heat map's time axis (issue #4503): the times those statuses were
+  /// computed at (`ProfileAnalysis.sampleTimestamps`). Negative for samples
+  /// before the dive's zero point, as from a computer switched on early. The axis is left out when null
   /// or when it does not match [decoStatuses] (see
   /// [TissueHeatMapTimeAxis.fits]).
   final List<int>? profileTimestamps;
