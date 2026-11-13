@@ -4689,11 +4689,6 @@
   "diveLog_detail_button_rangeAnalysis": "Range Stats",
   "diveLog_detail_captureSignature": "Capture Instructor Signature",
   "diveLog_detail_collapsed_atTime": "{timestamp}",
-  "diveLog_pinnedStrip_ndl": "NDL {minutes} min",
-  "diveLog_pinnedStrip_stop": "Stop {depth} · {minutes} min",
-  "diveLog_pinnedStrip_ppO2": "ppO2 {value}",
-  "diveLog_pinnedStrip_hintDrag": "Drag to scrub",
-  "diveLog_pinnedStrip_hintHover": "Hover to scrub",
   "diveLog_pinnedStrip_semantics": "Dive profile, scrub to move the cursor",
   "diveLog_detail_customFieldCount": "{count, plural, =1{1 field} other{{count} fields}}",
   "@diveLog_detail_customFieldCount": {
