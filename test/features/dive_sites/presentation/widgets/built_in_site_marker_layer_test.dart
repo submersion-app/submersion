@@ -3,15 +3,15 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_marker_layer.dart';
 
-ExternalDiveSite ext(String id, double lat, double lng) => ExternalDiveSite(
-  externalId: id,
+CatalogueSite ext(String id, double lat, double lng) => CatalogueSite(
+  id: id,
   name: id,
-  latitude: lat,
-  longitude: lng,
-  source: 't',
+  location: GeoPoint(lat, lng),
+  source: 'osm',
 );
 
 Widget _host(Widget layer) => MaterialApp(
@@ -29,12 +29,12 @@ void main() {
   testWidgets('renders a pin per built-in site and reports taps', (
     tester,
   ) async {
-    ExternalDiveSite? tapped;
+    CatalogueSite? tapped;
     await tester.pumpWidget(
       _host(
         BuiltInSiteMarkerLayer(
           sites: [ext('a', 10.0, 20.0)],
-          selectedExternalId: null,
+          selectedCatalogueId: null,
           onTap: (s) => tapped = s,
         ),
       ),
@@ -43,7 +43,7 @@ void main() {
 
     expect(find.byKey(const Key('builtInPin_a')), findsOneWidget);
     await tester.tap(find.byKey(const Key('builtInPin_a')));
-    expect(tapped?.externalId, 'a');
+    expect(tapped?.id, 'a');
   });
 
   testWidgets('exposes a semantics label for each built-in pin', (
@@ -53,7 +53,7 @@ void main() {
       _host(
         BuiltInSiteMarkerLayer(
           sites: [ext('Blue Hole', 10.0, 20.0)],
-          selectedExternalId: null,
+          selectedCatalogueId: null,
           onTap: (_) {},
         ),
       ),
@@ -75,7 +75,7 @@ void main() {
       _host(
         BuiltInSiteMarkerLayer(
           sites: [ext('a', 10.0, 20.0), ext('b', 10.0, 20.0)],
-          selectedExternalId: 'a',
+          selectedCatalogueId: 'a',
           onTap: (_) {},
         ),
       ),
@@ -91,7 +91,7 @@ void main() {
       _host(
         const BuiltInSiteMarkerLayer(
           sites: [],
-          selectedExternalId: null,
+          selectedCatalogueId: null,
           onTap: _noop,
         ),
       ),
@@ -101,4 +101,4 @@ void main() {
   });
 }
 
-void _noop(ExternalDiveSite _) {}
+void _noop(CatalogueSite _) {}
