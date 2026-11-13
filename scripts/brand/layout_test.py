@@ -91,8 +91,19 @@ class LayoutTest(unittest.TestCase):
         self.assertLessEqual(result.icon.bottom, result.name.y + EPS)
         self.assertAlmostEqual(result.icon.center_x, result.block.center_x, places=6)
         self.assertAlmostEqual(result.name.center_x, result.block.center_x, places=6)
-        self.assertAlmostEqual(result.rule.center_x, result.block.center_x, places=6)
         self.assertAlmostEqual(result.slogan.center_x, result.block.center_x, places=6)
+
+    def test_rule_spans_the_rule_span_letters_of_the_name(self):
+        # Regression (#4489): the rule was a fixed width that stopped partway
+        # under the "S". It runs from the "S" to the end of the "b" of "Sub",
+        # in the stacked layout too, where the name itself is centered.
+        for name in ("github-social", "reddit-banner", "lockup-dark", "square"):
+            with self.subTest(preset=name):
+                result = layout_for(presets.find(name))
+                span_w, _ = fake_measure(layout.RULE_SPAN, "name", result.name_px)
+                self.assertEqual(layout.RULE_SPAN, "Sub")
+                self.assertAlmostEqual(result.rule.x, result.name.x, places=6)
+                self.assertAlmostEqual(result.rule.w, span_w, places=6)
 
     def test_wordmark_has_no_rule_or_slogan(self):
         result = layout_for(presets.find("wordmark-dark"))

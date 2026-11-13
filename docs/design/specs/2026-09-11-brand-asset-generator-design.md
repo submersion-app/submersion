@@ -13,8 +13,8 @@ expects.
 
 The approved reference design is a 1280x640 card: the app icon tile on the
 left over the icon's own cyan-to-teal gradient with faint decorative white wave
-bands, and on the right "Submersion" in heavy deep navy (#06303C), a short red
-rule in the dive-flag red (#C80000), and the one-line slogan "Dive safe. Log
+bands, and on the right "Submersion" in heavy deep navy (#06303C), a red rule
+under "Sub" in the dive-flag red (#C80000), and the one-line slogan "Dive safe. Log
 everything." in medium navy (#0B4452), scaled so its width equals the
 wordmark's width.
 
@@ -114,9 +114,11 @@ callable. Output: boxes for the icon, name, rule and slogan.
 
 All dimensions derive from the icon size using the approved card's
 proportions: icon height 0.53 of canvas height, name font 0.34 of the icon
-size, rule 96x8 at the reference scale, and the reference gaps measured
+size, rule 8px tall at the reference scale, and the reference gaps measured
 between ink edges on the approved render (64px icon-to-text, 40px
-name-to-rule, 46px rule-to-slogan at a 340px icon). Text boxes are ink
+name-to-rule, 46px rule-to-slogan at a 340px icon). The rule starts at the
+name's left ink edge and is as wide as the measured ink of "Sub", in both
+layouts, so it underlines exactly those letters (#4489). Text boxes are ink
 bounding boxes, not line boxes, so alignment is exact. The
 slogan font size is solved so the slogan's measured width equals the name's
 measured width. One scale factor is reduced until the whole block fits inside
