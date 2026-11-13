@@ -232,6 +232,12 @@ class PinnedStripPainter extends CustomPainter {
     List<List<StripSeriesPoint>> runs,
   ) sync* {
     for (final run in runs) {
+      // The usual case, a curve that matches the profile, draws the cached
+      // run as it is rather than copying it every frame.
+      if (run.last.index < profile.length) {
+        yield run;
+        continue;
+      }
       final kept = [
         for (final p in run)
           if (p.index < profile.length) p,
@@ -272,12 +278,12 @@ class PinnedStripPainter extends CustomPainter {
     canvas
       ..drawPath(
         fill,
-        Paint()..color = color.withValues(alpha: fillAlpha * opacity),
+        Paint()..color = color.withValues(alpha: color.a * fillAlpha * opacity),
       )
       ..drawPath(
         edge,
         Paint()
-          ..color = color.withValues(alpha: opacity)
+          ..color = color.withValues(alpha: color.a * opacity)
           ..style = PaintingStyle.stroke
           ..strokeWidth = kProfileDepthLineWidth,
       );
@@ -359,7 +365,9 @@ class PinnedStripPainter extends CustomPainter {
       maxDepthLabelOffset(
         dot: dot,
         label: label.size,
-        area: Size(size.width, math.min(size.height, _curveAreaHeight)),
+        // The whole box: mid-condense it is taller than the strip and the
+        // dot rides the chart's mapping, so the label must be free to follow.
+        area: size,
         avoid: avoid,
       ),
     );

@@ -117,6 +117,45 @@ void main() {
       expect(stop.durationSeconds, 180);
     });
 
+    // The strip draws its NDL line from the analysis's NDL curve, which
+    // carries the computer's own NDL where the dive has one; the readout
+    // follows the line (review round 1).
+    test('NDL comes from the NDL curve the strip draws', () {
+      final v = pinnedStripValuesAt(
+        chartProfile: profile,
+        analysis: analysis.copyWith(ndlCurve: [5940, 5940, 2400, 1320, 5940]),
+        cursorIndex: 3,
+      )!;
+      expect((v.deco as NdlSlot).ndlSeconds, 1320);
+    });
+
+    test('the curve in deco while the model is not gives unknown', () {
+      final v = pinnedStripValuesAt(
+        chartProfile: profile,
+        analysis: analysis.copyWith(ndlCurve: [5940, 5940, 2400, -1, 5940]),
+        cursorIndex: 3,
+      )!;
+      expect(v.deco, isA<UnknownDecoSlot>());
+    });
+
+    test('the curve in deco with the model\'s stops gives the stop', () {
+      final v = pinnedStripValuesAt(
+        chartProfile: profile,
+        analysis: analysis.copyWith(
+          ndlCurve: [5940, 5940, -1, -1, 5940],
+          decoStatuses: [
+            for (var i = 0; i < 5; i++)
+              _status(
+                ndl: -1,
+                stops: const [DecoStop(depthMeters: 6, durationSeconds: 180)],
+              ),
+          ],
+        ),
+        cursorIndex: 2,
+      )!;
+      expect((v.deco as StopSlot).depthMeters, 6);
+    });
+
     test('in deco with no stops listed gives unknown', () {
       final inDeco = analysis.copyWith(
         decoStatuses: [for (var i = 0; i < 5; i++) _status(ndl: -1)],
@@ -213,7 +252,7 @@ void main() {
       );
       final rows = pinnedStripTooltipRows(v, metric, l10n);
       expect(labels(rows), ['Time', 'Depth', 'ppO2', 'NDL']);
-      expect(values(rows), ['23:14', '18.2m', '1.12', '14 min']);
+      expect(values(rows), ['23:14', '18.2m', '1.12 bar', '14 min']);
     });
 
     test('rows take the diver\'s chart colours', () {

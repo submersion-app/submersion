@@ -86,13 +86,23 @@ PinnedStripValues? pinnedStripValuesAt({
   );
 }
 
+/// The deco slot at [index]. NDL is read from the analysis's NDL curve, the
+/// one the strip draws its NDL line from (which carries the computer's own
+/// NDL where the dive has one), so the readout follows the line; the stop is
+/// read from the model's status, the only source of a stop's duration.
 DecoSlot _decoSlotAt(ProfileAnalysis? analysis, int index) {
+  final curve = analysis?.ndlCurve;
+  final ndl = curve != null && index < curve.length ? curve[index] : null;
+  if (ndl != null && ndl > 0) return NdlSlot(ndl);
   final statuses = analysis?.decoStatuses;
   if (statuses == null || index >= statuses.length) {
     return const UnknownDecoSlot();
   }
   final status = statuses[index];
-  if (!status.inDeco) return NdlSlot(status.ndlSeconds);
+  if (!status.inDeco) {
+    // The curve says deco where the model does not: no stop to show.
+    return ndl == null ? NdlSlot(status.ndlSeconds) : const UnknownDecoSlot();
+  }
   if (status.decoStops.isEmpty) return const UnknownDecoSlot();
   final stop = status.decoStops.first;
   return StopSlot(
@@ -132,7 +142,10 @@ List<TooltipRow> pinnedStripTooltipRows(
     ),
     TooltipRow(
       label: l10n.diveLog_tooltip_ppO2,
-      value: ppO2 == null ? _missing : ppO2.toStringAsFixed(2),
+      // With its unit, as the full chart's tooltip reads it.
+      value: ppO2 == null
+          ? _missing
+          : '${ppO2.toStringAsFixed(2)} ${l10n.units_pressure_bar}',
       bulletColor: colorOf(ProfileMetric.ppO2),
     ),
     ...switch (values.deco) {

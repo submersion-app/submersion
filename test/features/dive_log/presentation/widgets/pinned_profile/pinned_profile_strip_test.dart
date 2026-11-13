@@ -130,7 +130,7 @@ void main() {
     expect(tooltip(), findsOneWidget);
     expect(find.text('12:30'), findsOneWidget);
     expect(find.text('30.0m'), findsOneWidget);
-    expect(find.text('1.12'), findsOneWidget);
+    expect(find.text('1.12 bar'), findsOneWidget);
     expect(find.text('14 min'), findsOneWidget);
     final strip = tester.getRect(find.byType(PinnedProfileStrip));
     expect(tester.getRect(tooltip()).top, strip.bottom + 4);

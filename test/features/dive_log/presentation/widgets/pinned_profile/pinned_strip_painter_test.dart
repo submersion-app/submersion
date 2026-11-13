@@ -409,6 +409,61 @@ void main() {
     );
   });
 
+  // Mid-condense the box is tall and the dot rides the lerped chart
+  // mapping; the label was clamped to the strip's 44 px and floated away
+  // from it (review round 1).
+  testWidgets('mid-condense the max-depth label stays beside its dot', (
+    tester,
+  ) async {
+    const tall = Size(400, 200);
+    final p = painter(from: chart, morph: 0.5, maxDepthLabel: '24.0m');
+    final dot = p.mappingFor(tall).project(600, 24);
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox.fromSize(
+            size: tall,
+            child: CustomPaint(painter: p),
+          ),
+        ),
+      ),
+    );
+    expect(
+      find.byType(CustomPaint),
+      paints..paragraph(
+        offset: predicate<Offset>(
+          (o) => (o.dy - dot.dy).abs() < 20,
+          'near the dot at y ${dot.dy}',
+        ),
+      ),
+    );
+  });
+
+  testWidgets('band edges keep their colour\'s own alpha', (tester) async {
+    final half = Colors.orange.withValues(alpha: 0.5);
+    await pumpPainter(
+      tester,
+      PinnedStripPainter(
+        profile: profile,
+        selectedSeconds: null,
+        curveColor: Colors.blue,
+        fillColors: const [Colors.blue, Colors.blue],
+        markerColor: Colors.red,
+        morph: 1,
+        ceilingCurve: const [0, 4, 0],
+        ceilingColor: half,
+      ),
+    );
+    expect(
+      find.byType(CustomPaint),
+      paints
+        ..path()
+        ..path()
+        ..path(color: half, style: PaintingStyle.stroke),
+    );
+  });
+
   test('repaints when a curve or the label changes', () {
     final base = painter(morph: 1, ndlCurve: [600, 600, 600]);
     expect(
