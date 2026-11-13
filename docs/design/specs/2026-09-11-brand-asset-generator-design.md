@@ -51,9 +51,12 @@ Horizontal layout: icon left; name, rule and slogan right.
 | `website-hero` | 1920x640 | Website home page hero |
 | `website-hero@2x` | 3840x1280 | Website home page hero, 2x |
 | `square` | 1080x1080 | Square posts; stacked layout (icon above centered text) |
+| `youtube-banner` | 2560x1440 | YouTube channel banner |
 
 `social-header` and `linkedin-banner` carry a larger left safe inset because
 the profile avatar covers the lower-left of the header on those platforms.
+`youtube-banner` keeps its content inside the central 1546x423, the only part
+of the banner YouTube shows on every device (#4489).
 
 ### Transparent PNGs
 
@@ -104,7 +107,8 @@ right, bottom) in pixels. Adding a destination is one new record.
 Default safe inset is 12.5% of the canvas height on every side (80px on the
 640px-high card, matching GitHub's recommended 40pt border). Overrides:
 `social-header` uses a 300px left inset and `linkedin-banner` a 400px left
-inset for the avatar overlap.
+inset for the avatar overlap. A preset may instead give a `safe_size`, a
+centered area that becomes equal insets on each side (`youtube-banner`).
 
 ### layout.py
 

@@ -37,6 +37,18 @@ class Preset:
     # platforms that crop the image differently per device.
     safe_size: tuple[int, int] | None = None
 
+    def __post_init__(self):
+        if self.safe_size is None:
+            return
+        if self.left_inset is not None:
+            raise ValueError(f"{self.name}: set left_inset or safe_size, not both")
+        safe_w, safe_h = self.safe_size
+        if not (0 < safe_w <= self.width and 0 < safe_h <= self.height):
+            raise ValueError(
+                f"{self.name}: safe_size {self.safe_size} must fit the "
+                f"{self.width}x{self.height} canvas"
+            )
+
 
 def _banner(name, width, height, purpose, **kw):
     return Preset(name, width, height, "banner", "horizontal", purpose, **kw)

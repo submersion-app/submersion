@@ -63,10 +63,11 @@ on a white page those parts disappear. On light backgrounds use a
 
 ## Adding a preset
 
-Add one entry to `PRESETS` in `presets.py`. Banners take a size and an
-optional `left_inset` for platforms whose avatar covers the left of the
-image, or a `safe_size` for platforms that crop to a centered area. Then add the size to `test_expected_presets_exist_with_exact_sizes` in
-`layout_test.py` and run both test files:
+Add one entry to `PRESETS` in `presets.py`. Banners take a size and either
+an optional `left_inset` for platforms whose avatar covers the left of the
+image, or a `safe_size` for platforms that crop to a centered area. Then add
+the size to `test_expected_presets_exist_with_exact_sizes` in `layout_test.py`
+and run both test files:
 
 ```bash
 scripts/.venv/bin/python scripts/brand/layout_test.py

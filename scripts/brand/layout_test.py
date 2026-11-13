@@ -177,6 +177,18 @@ class PresetsTest(unittest.TestCase):
             self.assertLessEqual(box.right, left + 1546 + EPS)
             self.assertLessEqual(box.bottom, top + 423 + EPS)
 
+    def test_safe_size_must_fit_the_canvas(self):
+        for size in ((2561, 423), (1546, 1441), (0, 423)):
+            with self.subTest(safe_size=size):
+                with self.assertRaises(ValueError):
+                    presets.Preset("x", 2560, 1440, "banner", "horizontal", "x", safe_size=size)
+
+    def test_safe_size_and_left_inset_are_exclusive(self):
+        with self.assertRaises(ValueError):
+            presets.Preset(
+                "x", 2560, 1440, "banner", "horizontal", "x", left_inset=600, safe_size=(1546, 423)
+            )
+
     def test_default_inset_is_one_eighth_of_height(self):
         ins = presets.safe_insets(presets.find("github-social"))
         self.assertEqual(ins, Insets(80, 80, 80, 80))
