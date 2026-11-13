@@ -84,6 +84,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           divesProvider.overrideWith((ref) async => [stubDive]),
@@ -134,6 +135,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           divesProvider.overrideWith((ref) async => [dive]),
@@ -248,6 +250,7 @@ void main() {
   ) async {
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           divesProvider.overrideWith(
