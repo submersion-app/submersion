@@ -91,14 +91,42 @@ void main() {
       expect(at.dx, 390 - 6 - 30);
     });
 
-    test('label flips left of an NDL point in the way', () {
+    test('label flips left of an NDL line in the way', () {
       final at = maxDepthLabelOffset(
         dot: const Offset(100, 30),
         label: label,
         area: area,
-        avoid: const [Offset(115, 25)],
+        avoid: const [
+          [Offset(110, 25), Offset(120, 25)],
+        ],
       );
       expect(at.dx, 64);
+    });
+
+    // A segment can cross the label with both its ends outside it (review).
+    test('label flips left of an NDL segment crossing it', () {
+      final at = maxDepthLabelOffset(
+        dot: const Offset(100, 30),
+        label: label,
+        area: area,
+        avoid: const [
+          [Offset(100, 10), Offset(150, 40)],
+        ],
+      );
+      expect(at.dx, 64);
+    });
+
+    test('a break between runs is not a segment', () {
+      final at = maxDepthLabelOffset(
+        dot: const Offset(100, 30),
+        label: label,
+        area: area,
+        avoid: const [
+          [Offset(90, 10), Offset(100, 10)],
+          [Offset(150, 40), Offset(160, 40)],
+        ],
+      );
+      expect(at.dx, 106);
     });
 
     test('a dot at the bottom keeps the label inside the strip', () {

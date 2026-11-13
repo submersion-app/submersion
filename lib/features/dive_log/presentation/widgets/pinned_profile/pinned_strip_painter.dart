@@ -267,7 +267,14 @@ class PinnedStripPainter extends CustomPainter {
       final surface = m.project(profile[run.first.index].timestamp, 0).dy;
       fill.moveTo(points.first.dx, surface);
       edge.moveTo(points.first.dx, points.first.dy);
-      for (final o in points) {
+      for (var i = 0; i < points.length; i++) {
+        final o = points[i];
+        // A stop holds until the next sample, then drops square, as the
+        // full chart steps its band (fl_chart's stepDirection 0).
+        if (stepped && i > 0 && points[i - 1].dy != o.dy) {
+          fill.lineTo(o.dx, points[i - 1].dy);
+          edge.lineTo(o.dx, points[i - 1].dy);
+        }
         fill.lineTo(o.dx, o.dy);
         edge.lineTo(o.dx, o.dy);
       }
@@ -289,22 +296,20 @@ class PinnedStripPainter extends CustomPainter {
       );
   }
 
-  /// Draws the NDL line and returns its points, which the max-depth label
-  /// keeps clear of.
-  List<Offset> _paintNdl(
+  /// Draws the NDL line and returns it as one polyline per run, which the
+  /// max-depth label keeps clear of.
+  List<List<Offset>> _paintNdl(
     Canvas canvas,
     PlotMapping m,
     List<int> curve,
     double opacity,
   ) {
-    final all = <Offset>[];
+    final all = <List<Offset>>[];
     final line = Path();
     for (final run in _inProfile(pinnedNdlRuns(curve))) {
-      for (var i = 0; i < run.length; i++) {
-        final o = _ndlPoint(m, run[i].index, run[i].value);
-        i == 0 ? line.moveTo(o.dx, o.dy) : line.lineTo(o.dx, o.dy);
-        all.add(o);
-      }
+      final points = [for (final p in run) _ndlPoint(m, p.index, p.value)];
+      line.addPolygon(points, false);
+      all.add(points);
     }
     if (all.isEmpty) return all;
     canvas.drawPath(
@@ -323,7 +328,7 @@ class PinnedStripPainter extends CustomPainter {
     Canvas canvas,
     Size size,
     PlotMapping m,
-    List<Offset> avoid,
+    List<List<Offset>> avoid,
     double opacity,
   ) {
     final deepest = pinnedStripCurve(profile).deepest;
@@ -432,7 +437,7 @@ class PinnedStripPainter extends CustomPainter {
     final ndl = ndlCurve;
     final ndlPoints = layers > 0 && ndl != null
         ? _paintNdl(canvas, m, ndl, layers)
-        : const <Offset>[];
+        : const <List<Offset>>[];
     if (layers > 0) _paintMaxDepth(canvas, size, m, ndlPoints, layers);
 
     final selected = selectedSeconds;

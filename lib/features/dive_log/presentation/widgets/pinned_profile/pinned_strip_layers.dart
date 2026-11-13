@@ -120,13 +120,14 @@ const double _avoidMargin = 2;
 
 /// Where the max-depth label of [label] size goes beside the dot at [dot],
 /// within a strip of [area] size: right of the dot, or left of it when the
-/// right side would leave the strip or cover one of [avoid] (the NDL line's
-/// points). Always inside the strip.
+/// right side would leave the strip or cross one of [avoid], the NDL line
+/// as polylines (one per run, so a break between runs is not a segment).
+/// Always inside the strip.
 Offset maxDepthLabelOffset({
   required Offset dot,
   required Size label,
   required Size area,
-  List<Offset> avoid = const [],
+  List<List<Offset>> avoid = const [],
 }) {
   final top = dot.dy + _labelDrop - label.height;
   final right = Offset(dot.dx + _labelGap, top);
@@ -135,7 +136,13 @@ Offset maxDepthLabelOffset({
   bool fits(Offset at) => at.dx >= 0 && at.dx + label.width <= area.width;
   bool clear(Offset at) {
     final rect = (at & label).inflate(_avoidMargin);
-    return !avoid.any(rect.contains);
+    for (final line in avoid) {
+      if (line.length == 1 && rect.contains(line.single)) return false;
+      for (var i = 1; i < line.length; i++) {
+        if (_crosses(line[i - 1], line[i], rect)) return false;
+      }
+    }
+    return true;
   }
 
   final Offset chosen;
@@ -150,4 +157,34 @@ Offset maxDepthLabelOffset({
     chosen.dx.clamp(0.0, math.max(0.0, area.width - label.width)),
     chosen.dy.clamp(0.0, math.max(0.0, area.height - label.height)),
   );
+}
+
+/// Whether the segment from [a] to [b] passes through [rect], either end
+/// inside it included (Liang-Barsky clipping): a segment can cross the label
+/// with both its ends outside.
+bool _crosses(Offset a, Offset b, Rect rect) {
+  var enter = 0.0;
+  var leave = 1.0;
+  final dx = b.dx - a.dx;
+  final dy = b.dy - a.dy;
+  for (final (p, q) in [
+    (-dx, a.dx - rect.left),
+    (dx, rect.right - a.dx),
+    (-dy, a.dy - rect.top),
+    (dy, rect.bottom - a.dy),
+  ]) {
+    if (p == 0) {
+      if (q < 0) return false;
+      continue;
+    }
+    final t = q / p;
+    if (p < 0) {
+      if (t > leave) return false;
+      if (t > enter) enter = t;
+    } else {
+      if (t < enter) return false;
+      if (t < leave) leave = t;
+    }
+  }
+  return true;
 }

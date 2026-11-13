@@ -309,6 +309,25 @@ void main() {
       );
     });
 
+    // The full chart steps its stop band (fl_chart stepDirection 0: hold the
+    // last stop until the next sample, then drop); a diagonal between the
+    // two samples either side of a change slanted it (review).
+    testWidgets('the stop band steps square at a change', (tester) async {
+      await pumpPainter(tester, painter(morph: 1, decoStopCurve: [6, 6, 3]));
+      // 1200 s of 60 to 1260 s, at 5 m: inside a held 6 m stop, outside a
+      // diagonal from 6 m at 600 s to 3 m at 1260 s.
+      const held = Offset(380, 4 + 5 / 24 * 36);
+      expect(
+        find.byType(CustomPaint),
+        paints
+          ..path()
+          ..path(
+            color: decoStopBandColor.withValues(alpha: decoStopFillAlpha),
+            includes: const [held],
+          ),
+      );
+    });
+
     testWidgets('no obligation, no band', (tester) async {
       await pumpPainter(
         tester,
