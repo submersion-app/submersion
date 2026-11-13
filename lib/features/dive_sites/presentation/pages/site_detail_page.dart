@@ -334,12 +334,23 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       // Photos from the dives logged here (issue #4502). Decided from a
       // count, so a site without any leaves no gap and no folded header,
       // and the photos themselves load only once the card is laid out.
+      // Selected down to the number, so a media write that reloads the
+      // count without changing it does not rebuild the whole page.
       SiteDetailSectionId.divePhotos: () {
-        final count =
-            ref.watch(mediaCountFromDivesAtSiteProvider(site.id)).value ?? 0;
+        final count = ref.watch(
+          mediaCountFromDivesAtSiteProvider(
+            site.id,
+          ).select((count) => count.value ?? 0),
+        );
+        // Keyed by site: this page is not, so another site picked in the
+        // master list would otherwise inherit the card's Show all state.
         return count == 0
             ? null
-            : (_) => SiteDivePhotosCard(siteId: site.id, count: count);
+            : (_) => SiteDivePhotosCard(
+                key: ValueKey('divePhotos-${site.id}'),
+                siteId: site.id,
+                count: count,
+              );
       },
       SiteDetailSectionId.location: () =>
           watching((context, ref) => _buildLocationSection(context, ref, site)),

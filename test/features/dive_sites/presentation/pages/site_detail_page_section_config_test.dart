@@ -339,6 +339,19 @@ void main() {
       expect(top, lessThan(tester.getTopLeft(find.text('Depth Range')).dy));
     });
 
+    // The embedded page is not keyed by site, so without its own key the
+    // card's State (and its Show all state) would carry over to the next
+    // site picked in the master list.
+    testWidgets('is keyed by its site', (tester) async {
+      divePhotoCount = 1;
+      await pumpPage(tester);
+
+      expect(
+        tester.widget<SiteDivePhotosCard>(find.byType(SiteDivePhotosCard)).key,
+        ValueKey('divePhotos-${site.id}'),
+      );
+    });
+
     testWidgets('is not on the page when the site has no dive photos', (
       tester,
     ) async {
