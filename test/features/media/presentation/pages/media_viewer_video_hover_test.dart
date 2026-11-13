@@ -139,6 +139,31 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a hide clock started before fullscreen does not hide the '
+      'overlay restored on leaving it', (tester) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+
+    await tapVideo(tester);
+    final mouse = await mouseOver(tester);
+    await mouse.moveBy(const Offset(5, 5));
+    await tester.pump(const Duration(seconds: 1));
+    expect(track, findsOneWidget);
+
+    // In and out of fullscreen inside the old clock's 3 s.
+    await tester.tap(find.byTooltip('Full screen'));
+    await tester.pump();
+    await mouse.moveBy(const Offset(5, 5));
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.byTooltip('Exit full screen'));
+    await tester.pump();
+    expect(track, findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 2));
+    expect(track, findsOneWidget, reason: 'the old clock was cancelled');
+    await stopPlayback(tester, platform);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a mouse scrub holds the controls, which go 3 s after the '
       'release', (tester) async {
     final platform = await pumpVideoViewer(tester, prefs);

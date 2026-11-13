@@ -41,6 +41,20 @@ mixin VideoControlsAutoHideMixin<T extends StatefulWidget>
     super.dispose();
   }
 
+  // Fullscreen keeps its own clock, so the normal one stops at the switch
+  // either way: left running, it would hide the overlay restored on leaving.
+  @override
+  void enterFullscreen() {
+    cancelVideoOverlayClock();
+    super.enterFullscreen();
+  }
+
+  @override
+  void exitFullscreen() {
+    cancelVideoOverlayClock();
+    super.exitFullscreen();
+  }
+
   bool get _controlsShown =>
       isFullscreen ? fullscreenControlsVisible : videoOverlayShown;
 
