@@ -138,6 +138,7 @@ class PresetsTest(unittest.TestCase):
             "square": (1080, 1080),
             "reddit-banner": (2144, 256),
             "reddit-mobile-banner": (2160, 256),
+            "youtube-banner": (2560, 1440),
             "mark-256": (256, 256),
             "mark-512": (512, 512),
             "mark-1024": (1024, 1024),
@@ -161,6 +162,20 @@ class PresetsTest(unittest.TestCase):
                     result.icon.h, preset.height - ins.top - ins.bottom, places=6
                 )
                 self.assertIsNotNone(result.slogan)
+
+    def test_youtube_banner_keeps_everything_in_the_all_devices_safe_area(self):
+        # YouTube crops the 2560x1440 channel banner per device; only the
+        # centered 1546x423 area shows on TV, desktop, tablet and phone.
+        preset = presets.find("youtube-banner")
+        left, top = (2560 - 1546) / 2, (1440 - 423) / 2
+        self.assertEqual(presets.safe_insets(preset), Insets(left, top, left, top))
+        result = layout_for(preset)
+        self.assertIsNotNone(result.slogan)
+        for box in boxes(result):
+            self.assertGreaterEqual(box.x, left - EPS)
+            self.assertGreaterEqual(box.y, top - EPS)
+            self.assertLessEqual(box.right, left + 1546 + EPS)
+            self.assertLessEqual(box.bottom, top + 423 + EPS)
 
     def test_default_inset_is_one_eighth_of_height(self):
         ins = presets.safe_insets(presets.find("github-social"))

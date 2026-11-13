@@ -49,6 +49,7 @@ the app (a test enforces this).
 | `square` | 1080x1080 | Square social posts |
 | `reddit-banner` | 2144x256 | Subreddit banner, desktop slot (Reddit shows it at 1072x128) |
 | `reddit-mobile-banner` | 2160x256 | Subreddit banner, mobile app slot (1080x128) |
+| `youtube-banner` | 2560x1440 | YouTube channel banner; the logo stays in the central 1546x423 that every device shows |
 | `mark-256`, `mark-512`, `mark-1024` | square | Logo glyph only, transparent; for dark or colored backgrounds |
 | `lockup-dark`, `lockup-light` | ~2400 wide | Icon, name, rule and slogan on transparency; navy or white text |
 | `wordmark-dark`, `wordmark-light` | ~2400 wide | Icon and name on transparency; navy or white text |
@@ -64,7 +65,7 @@ on a white page those parts disappear. On light backgrounds use a
 
 Add one entry to `PRESETS` in `presets.py`. Banners take a size and an
 optional `left_inset` for platforms whose avatar covers the left of the
-image. Then add the size to `test_expected_presets_exist_with_exact_sizes` in
+image, or a `safe_size` for platforms that crop to a centered area. Then add the size to `test_expected_presets_exist_with_exact_sizes` in
 `layout_test.py` and run both test files:
 
 ```bash
