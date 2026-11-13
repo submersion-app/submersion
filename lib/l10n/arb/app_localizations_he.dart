@@ -52304,7 +52304,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'ייבוא מקובץ';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch => 'ייבוא מהשעון המחובר';
+  String get importWizard_dc_downloadFromWatch => 'הורדה מהשעון';
 
   @override
   String get importWizard_dc_knownComputer => 'מחשב צלילה מוכר';
@@ -52329,7 +52329,21 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'שעוני Garmin שומרים צלילות כקובצי FIT במקום להציע הורדה ישירה. השעון שלך מחובר, כך שאפשר לייבא את הצלילות ישירות ממנו.';
+      'השעון שלך מחובר. Submersion יכול להוריד ממנו את הצלילות ישירות, או שאפשר לייבא קובצי FIT שכבר העתקת.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'הורדת צלילות מ-$name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'חבר את $name כדי להוריד את הצלילות';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'חבר את השעון ב-USB ובחר שוב ב\"הורד צלילות\", או ייבא קובצי FIT שכבר העתקת.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

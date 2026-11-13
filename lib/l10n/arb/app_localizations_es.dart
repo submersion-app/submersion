@@ -53448,8 +53448,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importar desde archivo';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch =>
-      'Importar desde el reloj conectado';
+  String get importWizard_dc_downloadFromWatch => 'Descargar del reloj';
 
   @override
   String get importWizard_dc_knownComputer => 'Ordenador conocido';
@@ -53474,7 +53473,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'Los relojes Garmin guardan las inmersiones como archivos FIT en lugar de ofrecer una descarga directa. Tu reloj está conectado, así que sus inmersiones se pueden importar directamente desde él.';
+      'Tu reloj está conectado. Submersion puede descargar sus inmersiones directamente, o puedes importar archivos FIT que ya hayas copiado.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Descargar inmersiones de $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Conecta $name para descargar sus inmersiones';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Conecta el reloj por USB y vuelve a elegir «Descargar inmersiones», o importa archivos FIT que ya hayas copiado.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

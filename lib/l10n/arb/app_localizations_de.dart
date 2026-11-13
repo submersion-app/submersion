@@ -53282,8 +53282,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Aus Datei importieren';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch =>
-      'Von verbundener Uhr importieren';
+  String get importWizard_dc_downloadFromWatch => 'Von der Uhr herunterladen';
 
   @override
   String get importWizard_dc_knownComputer => 'Bekannter Computer';
@@ -53308,7 +53307,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'Garmin-Uhren speichern Tauchgänge als FIT-Dateien, statt einen direkten Download anzubieten. Deine Uhr ist verbunden, daher können ihre Tauchgänge direkt von ihr importiert werden.';
+      'Deine Uhr ist verbunden. Submersion kann die Tauchgänge direkt von ihr herunterladen, oder du importierst bereits kopierte FIT-Dateien.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Tauchgänge von $name herunterladen';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Verbinde $name, um die Tauchgänge herunterzuladen';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Verbinde die Uhr per USB und wähle erneut „Tauchgänge herunterladen“, oder importiere bereits kopierte FIT-Dateien.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

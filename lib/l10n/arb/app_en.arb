@@ -31048,8 +31048,8 @@
   "diveImport_healthkit_foundDives": "{count, plural, =1{Found 1 dive} other{Found {count} dives}}",
   "diveImport_healthkit_proceedingToReview": "Proceeding to review...",
   "importWizard_dc_importFromFile": "Import from File",
-  "importWizard_dc_importFromConnectedWatch": "Import from Connected Watch",
-  "@importWizard_dc_importFromConnectedWatch": {
+  "importWizard_dc_downloadFromWatch": "Download from Watch",
+  "@importWizard_dc_downloadFromWatch": {
     "description": "Button on a saved Garmin's download screen that imports the dives straight from the connected watch"
   },
   "importWizard_dc_knownComputer": "Known Computer",
@@ -31057,9 +31057,33 @@
   "importWizard_dc_noDirectDownload": "Can't download this computer directly",
   "importWizard_dc_noDirectDownloadBody": "Submersion has no saved connection for {name}. Import its dives from a file, or add it again from Dive Computers to download over Bluetooth or USB.",
   "importWizard_dc_noDirectDownloadGarminBody": "Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.",
-  "importWizard_dc_noDirectDownloadGarminConnectedBody": "Garmin watches store dives as FIT files instead of offering a direct download. Your watch is connected, so its dives can be imported straight from it.",
+  "importWizard_dc_noDirectDownloadGarminConnectedBody": "Your watch is connected. Submersion can download its dives straight from it, or you can import FIT files you've already copied.",
   "@importWizard_dc_noDirectDownloadGarminConnectedBody": {
     "description": "Body of a saved Garmin's download screen when the watch is connected and can be imported directly"
+  },
+  "importWizard_dc_downloadFromGarminTitle": "Download dives from {name}",
+  "@importWizard_dc_downloadFromGarminTitle": {
+    "description": "Title of a saved Garmin's download screen while its watch is connected; name is the computer",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Garmin Descent G2"
+      }
+    }
+  },
+  "importWizard_dc_connectGarminTitle": "Connect {name} to download its dives",
+  "@importWizard_dc_connectGarminTitle": {
+    "description": "Title of a saved Garmin's download screen when no watch is connected, on a platform that reads watches directly (Windows); name is the computer",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "Garmin Descent G2"
+      }
+    }
+  },
+  "importWizard_dc_garminUnpluggedBody": "Connect the watch by USB, then choose Download Dives again, or import FIT files you've already copied.",
+  "@importWizard_dc_garminUnpluggedBody": {
+    "description": "Body of a saved Garmin's download screen when no watch is connected, on a platform that reads watches directly (Windows). Names the Download Dives button (diveComputer_detail_downloadDivesButton)"
   },
   "importWizard_dc_notFoundNearby": "Couldn't find {name}",
   "importWizard_dc_notFoundNearbyBody": "Submersion searched over Bluetooth and found no {name} nearby, or found more than one of the same model. Turn on the computer's Bluetooth, hold it close to this device and try again.",

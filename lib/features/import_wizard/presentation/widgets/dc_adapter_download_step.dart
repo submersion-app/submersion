@@ -465,7 +465,8 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       return DcNoDirectDownloadView(
         computer: computer,
         onImportFromFile: () => context.push('/transfer/import-wizard'),
-        onImportFromConnectedWatch: _connectedGarminImport(computer),
+        readsConnectedWatches: ref.watch(garminMtpSourceProvider) != null,
+        onDownloadFromWatch: _connectedGarminImport(computer),
         onDone: () => context.pop(),
       );
     }

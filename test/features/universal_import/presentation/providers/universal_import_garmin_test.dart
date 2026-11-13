@@ -157,7 +157,7 @@ void main() {
     expect(notifier.state.isBatch, isFalse);
     expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
     expect(notifier.state.fileName, 'dive_0.fit');
-    expect(notifier.state.wasLoadedExternally, isTrue);
+    expect(notifier.state.wasLoadedExternally, isFalse);
     expect(notifier.state.isLoading, isFalse);
   });
 

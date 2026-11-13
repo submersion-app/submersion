@@ -50108,7 +50108,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_dc_importFromFile => '从文件导入';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch => '从已连接的手表导入';
+  String get importWizard_dc_downloadFromWatch => '从手表下载';
 
   @override
   String get importWizard_dc_knownComputer => '已知潜水电脑';
@@ -50132,7 +50132,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'Garmin 手表将潜水记录保存为 FIT 文件，而不提供直接下载。你的手表已连接，因此可以直接从手表导入潜水记录。';
+      '你的手表已连接。Submersion 可以直接从手表下载潜水记录，你也可以导入已复制的 FIT 文件。';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return '从 $name 下载潜水记录';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return '连接 $name 以下载潜水记录';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      '通过 USB 连接手表，然后再次选择“下载潜水记录”，或导入已复制的 FIT 文件。';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

@@ -19,9 +19,12 @@ enum DcNoDirectDownloadReason {
 /// stored Bluetooth address or USB descriptor, so there is nothing to connect
 /// to. Garmin watches are the common case: they are not libdivecomputer
 /// devices at all. Their dives arrive as FIT files, so the view points at the
-/// file import instead of leaving the download spinning (issue #1858). When
-/// the caller can import straight from a connected watch (Windows, issue
-/// #4223), that comes first.
+/// file import instead of leaving the download spinning (issue #1858).
+///
+/// Where Submersion reads Garmin watches itself (Windows, issue #4223), a
+/// Garmin can be downloaded after all, so the view says so: with a watch
+/// connected it offers the download first, and without one it asks for the
+/// watch instead of a manual copy.
 ///
 /// A USB computer saved on a desktop also syncs to iOS, which has no USB
 /// host; there the view says to download it on a desktop (issue #2837).
@@ -32,15 +35,21 @@ class DcNoDirectDownloadView extends StatelessWidget {
     required this.onImportFromFile,
     required this.onDone,
     this.reason = DcNoDirectDownloadReason.noConnection,
-    this.onImportFromConnectedWatch,
+    this.readsConnectedWatches = false,
+    this.onDownloadFromWatch,
   });
 
   final DiveComputer computer;
   final VoidCallback onImportFromFile;
 
-  /// Imports the dives from the Garmin watch that is plugged in. Only for a
-  /// Garmin computer; ignored for any other.
-  final VoidCallback? onImportFromConnectedWatch;
+  /// True where Submersion reads a connected Garmin watch directly
+  /// (Windows). Only changes the wording for a Garmin with no watch
+  /// connected.
+  final bool readsConnectedWatches;
+
+  /// Downloads the dives from the Garmin watch that is plugged in. Only for
+  /// a Garmin computer; ignored for any other.
+  final VoidCallback? onDownloadFromWatch;
   final VoidCallback onDone;
   final DcNoDirectDownloadReason reason;
 
@@ -51,7 +60,22 @@ class DcNoDirectDownloadView extends StatelessWidget {
   bool get _explainsUsb =>
       reason == DcNoDirectDownloadReason.usbUnavailable && !_isGarmin;
 
-  bool get _watchConnected => _isGarmin && onImportFromConnectedWatch != null;
+  bool get _watchConnected => _isGarmin && onDownloadFromWatch != null;
+
+  /// A Garmin that could be downloaded here, once its watch is connected.
+  bool get _awaitsWatch =>
+      _isGarmin && !_watchConnected && readsConnectedWatches;
+
+  String _title(BuildContext context) {
+    final l10n = context.l10n;
+    if (_watchConnected) {
+      return l10n.importWizard_dc_downloadFromGarminTitle(computer.displayName);
+    }
+    if (_awaitsWatch) {
+      return l10n.importWizard_dc_connectGarminTitle(computer.displayName);
+    }
+    return l10n.importWizard_dc_noDirectDownload;
+  }
 
   String _body(BuildContext context) {
     final l10n = context.l10n;
@@ -61,6 +85,7 @@ class DcNoDirectDownloadView extends StatelessWidget {
     if (_watchConnected) {
       return l10n.importWizard_dc_noDirectDownloadGarminConnectedBody;
     }
+    if (_awaitsWatch) return l10n.importWizard_dc_garminUnpluggedBody;
     return _isGarmin
         ? l10n.importWizard_dc_noDirectDownloadGarminBody
         : l10n.importWizard_dc_noDirectDownloadBody(computer.displayName);
@@ -69,15 +94,15 @@ class DcNoDirectDownloadView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final watchImport = _watchConnected ? onImportFromConnectedWatch : null;
-    if (watchImport != null) {
+    final download = _watchConnected ? onDownloadFromWatch : null;
+    if (download != null) {
       return DcMessageLayout(
         icon: Icons.watch,
-        title: l10n.importWizard_dc_noDirectDownload,
+        title: _title(context),
         body: _body(context),
-        actionIcon: Icons.watch,
-        actionLabel: l10n.importWizard_dc_importFromConnectedWatch,
-        onAction: watchImport,
+        actionIcon: Icons.download,
+        actionLabel: l10n.importWizard_dc_downloadFromWatch,
+        onAction: download,
         secondaryActionIcon: Icons.upload_file,
         secondaryActionLabel: l10n.importWizard_dc_importFromFile,
         onSecondaryAction: onImportFromFile,
@@ -85,8 +110,12 @@ class DcNoDirectDownloadView extends StatelessWidget {
       );
     }
     return DcMessageLayout(
-      icon: _explainsUsb ? Icons.usb_off : Icons.file_open_outlined,
-      title: l10n.importWizard_dc_noDirectDownload,
+      icon: _explainsUsb
+          ? Icons.usb_off
+          : _awaitsWatch
+          ? Icons.watch
+          : Icons.file_open_outlined,
+      title: _title(context),
       body: _body(context),
       actionIcon: Icons.upload_file,
       actionLabel: l10n.importWizard_dc_importFromFile,

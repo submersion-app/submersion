@@ -53118,8 +53118,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importálás fájlból';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch =>
-      'Importálás a csatlakoztatott óráról';
+  String get importWizard_dc_downloadFromWatch => 'Letöltés az óráról';
 
   @override
   String get importWizard_dc_knownComputer => 'Ismert búvárszámítógép';
@@ -53144,7 +53143,21 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'A Garmin órák FIT-fájlokként tárolják a merüléseket, közvetlen letöltés helyett. Az órád csatlakoztatva van, így a merülései közvetlenül róla importálhatók.';
+      'Az órád csatlakoztatva van. A Submersion közvetlenül letöltheti róla a merüléseket, vagy importálhatod a már átmásolt FIT-fájlokat.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Merülések letöltése: $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Csatlakoztasd a(z) $name eszközt a merülések letöltéséhez';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Csatlakoztasd az órát USB-n, majd válaszd újra a „Merülések letöltése” lehetőséget, vagy importáld a már átmásolt FIT-fájlokat.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

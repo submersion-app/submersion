@@ -798,7 +798,9 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     } else {
       await _loadBatchFromPaths(divePaths);
     }
-    state = state.copyWith(wasLoadedExternally: true);
+    // Not marked wasLoadedExternally: a Garmin import always runs inside
+    // the wizard, and the mark would make its next opening skip the reset,
+    // showing these dives again without reading the watch.
   }
 
   // -- Step 1: Source Confirmation --

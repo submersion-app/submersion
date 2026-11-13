@@ -53076,8 +53076,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importeren uit bestand';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch =>
-      'Importeren van verbonden horloge';
+  String get importWizard_dc_downloadFromWatch => 'Downloaden van horloge';
 
   @override
   String get importWizard_dc_knownComputer => 'Bekende computer';
@@ -53102,7 +53101,21 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'Garmin-horloges slaan duiken op als FIT-bestanden in plaats van een directe download te bieden. Je horloge is verbonden, dus de duiken kunnen er rechtstreeks van worden geïmporteerd.';
+      'Je horloge is verbonden. Submersion kan de duiken er rechtstreeks van downloaden, of je importeert FIT-bestanden die je al hebt gekopieerd.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Duiken downloaden van $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Verbind $name om de duiken te downloaden';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Verbind het horloge via USB en kies opnieuw \'Duiken downloaden\', of importeer FIT-bestanden die je al hebt gekopieerd.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

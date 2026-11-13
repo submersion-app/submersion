@@ -53527,8 +53527,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importer depuis un fichier';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch =>
-      'Importer depuis la montre connectée';
+  String get importWizard_dc_downloadFromWatch =>
+      'Télécharger depuis la montre';
 
   @override
   String get importWizard_dc_knownComputer => 'Ordinateur connu';
@@ -53553,7 +53553,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'Les montres Garmin enregistrent les plongées sous forme de fichiers FIT au lieu de proposer un téléchargement direct. Votre montre est connectée : ses plongées peuvent être importées directement depuis elle.';
+      'Votre montre est connectée. Submersion peut télécharger ses plongées directement, ou vous pouvez importer des fichiers FIT déjà copiés.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Télécharger les plongées de $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Connectez $name pour télécharger ses plongées';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Connectez la montre en USB, puis choisissez à nouveau « Télécharger les plongées », ou importez des fichiers FIT déjà copiés.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

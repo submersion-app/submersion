@@ -10,9 +10,13 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_steps.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_mtp_source.dart';
+import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/fake_import_adapter_deps.dart';
+import '../../../universal_import/data/services/fake_garmin_mtp_source.dart';
 
 // Issue #1858: a saved computer with no stored connection (a Garmin watch,
 // a cloud or file-imported computer) has nothing to build a download device
@@ -92,9 +96,16 @@ const _usbExplanation =
     'Linux computer, or import them from a file.';
 
 class _Harness {
-  _Harness() : hostApi = _RecordingHostApi() {
+  /// [garminMtpSource] stands for the Windows Garmin reader (issue #4223),
+  /// with [garminWatches] as what it detects. Null by default, so the
+  /// tests do not depend on the platform they run on.
+  _Harness({this.garminMtpSource, this.garminWatches = const []})
+    : hostApi = _RecordingHostApi() {
     service = pigeon.DiveComputerService(hostApi: hostApi);
   }
+
+  final GarminMtpSource? garminMtpSource;
+  final List<GarminDevice> garminWatches;
 
   final _RecordingHostApi hostApi;
   final FakeImportAdapterDeps deps = FakeImportAdapterDeps();
@@ -132,8 +143,13 @@ class _Harness {
         ),
         GoRoute(
           path: '/transfer/import-wizard',
-          builder: (context, state) =>
-              const Scaffold(body: Text('import wizard route')),
+          builder: (context, state) => Scaffold(
+            body: Text(
+              state.uri.query.isEmpty
+                  ? 'import wizard route'
+                  : 'import wizard route ?${state.uri.query}',
+            ),
+          ),
         ),
       ],
     );
@@ -146,6 +162,8 @@ class _Harness {
         diveComputerRepositoryProvider.overrideWithValue(deps.computerRepo),
         deviceDescriptorsProvider.overrideWith((ref) async => []),
         firstSyncCutoffDefaultProvider.overrideWith((ref, _) async => null),
+        garminMtpSourceProvider.overrideWithValue(garminMtpSource),
+        garminDevicesProvider.overrideWith((ref) async => garminWatches),
       ],
       child: MaterialApp.router(
         locale: const Locale('en'),
@@ -255,6 +273,53 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('import wizard route'), findsOneWidget);
+  });
+
+  // Issue #4223: where Submersion reads Garmin watches itself (Windows), a
+  // saved Garmin can be downloaded, so the screen must not say it can't.
+  group('a saved Garmin where watches are read directly', () {
+    final garmin = _computer(
+      manufacturer: 'Garmin',
+      model: 'Descent G2',
+      connectionType: 'usb',
+    );
+
+    testWidgets('with the watch connected, offers the download', (
+      tester,
+    ) async {
+      final harness = _Harness(
+        garminMtpSource: FakeGarminMtpSource(),
+        garminWatches: const [
+          GarminMtpWatch(deviceId: 'watch-1', displayName: 'Descent G2'),
+        ],
+      );
+      await tester.pumpWidget(harness.build(garmin));
+      await _settle(tester);
+
+      expect(find.text('Download dives from Garmin Descent G2'), findsOne);
+      expect(find.text("Can't download this computer directly"), findsNothing);
+
+      await tester.tap(find.text('Download from Watch'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('import wizard route ?source=garmin-device'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('unplugged, asks for the watch', (tester) async {
+      final harness = _Harness(garminMtpSource: FakeGarminMtpSource());
+      await tester.pumpWidget(harness.build(garmin));
+      await _settle(tester);
+
+      expect(
+        find.text('Connect Garmin Descent G2 to download its dives'),
+        findsOne,
+      );
+      expect(find.textContaining('GARMIN/Activity'), findsNothing);
+      expect(find.text('Download from Watch'), findsNothing);
+    });
   });
 
   // Issue #2837: iOS has no USB host. A USB computer saved on a desktop

@@ -54224,8 +54224,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'استيراد من ملف';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch =>
-      'استيراد من الساعة المتصلة';
+  String get importWizard_dc_downloadFromWatch => 'التنزيل من الساعة';
 
   @override
   String get importWizard_dc_knownComputer => 'كمبيوتر غوص معروف';
@@ -54250,7 +54249,21 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'تحفظ ساعات Garmin الغطسات كملفات FIT بدلاً من توفير تنزيل مباشر. ساعتك متصلة، لذا يمكن استيراد غطساتها منها مباشرة.';
+      'ساعتك متصلة. يمكن لـ Submersion تنزيل غطساتها منها مباشرة، أو يمكنك استيراد ملفات FIT التي نسختها بالفعل.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'تنزيل الغطسات من $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'وصّل $name لتنزيل غطساته';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'وصّل الساعة عبر USB ثم اختر \"تنزيل الغطسات\" مرة أخرى، أو استورد ملفات FIT التي نسختها بالفعل.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

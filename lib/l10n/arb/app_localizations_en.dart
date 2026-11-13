@@ -52593,8 +52593,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Import from File';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch =>
-      'Import from Connected Watch';
+  String get importWizard_dc_downloadFromWatch => 'Download from Watch';
 
   @override
   String get importWizard_dc_knownComputer => 'Known Computer';
@@ -52619,7 +52618,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'Garmin watches store dives as FIT files instead of offering a direct download. Your watch is connected, so its dives can be imported straight from it.';
+      'Your watch is connected. Submersion can download its dives straight from it, or you can import FIT files you\'ve already copied.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Download dives from $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Connect $name to download its dives';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Connect the watch by USB, then choose Download Dives again, or import FIT files you\'ve already copied.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

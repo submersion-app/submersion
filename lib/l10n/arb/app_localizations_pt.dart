@@ -53400,8 +53400,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importar de arquivo';
 
   @override
-  String get importWizard_dc_importFromConnectedWatch =>
-      'Importar do relógio conectado';
+  String get importWizard_dc_downloadFromWatch => 'Baixar do relógio';
 
   @override
   String get importWizard_dc_knownComputer => 'Computador Conhecido';
@@ -53426,7 +53425,21 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
-      'Relógios Garmin salvam os mergulhos como arquivos FIT em vez de oferecer download direto. Seu relógio está conectado, então os mergulhos podem ser importados diretamente dele.';
+      'Seu relógio está conectado. O Submersion pode baixar os mergulhos direto dele, ou você pode importar arquivos FIT que já copiou.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Baixar mergulhos do $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Conecte o $name para baixar os mergulhos';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Conecte o relógio por USB e escolha \"Baixar mergulhos\" novamente, ou importe arquivos FIT que você já copiou.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

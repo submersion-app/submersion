@@ -106,7 +106,8 @@ void main() {
         unorderedEquals(['dive_a.fit', 'dive_b.fit']),
       );
       expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
-      expect(notifier.state.wasLoadedExternally, isTrue);
+      // Started inside the wizard, so its next opening resets as usual.
+      expect(notifier.state.wasLoadedExternally, isFalse);
       expect(notifier.state.isLoading, isFalse);
 
       // The files live in one staging folder the wizard now owns.
@@ -171,6 +172,39 @@ void main() {
       'Garmin Descent Mk3',
     });
   });
+
+  test(
+    'the next wizard opening reads the watch again, not the last import',
+    () async {
+      final watch = fakeGarminWatch();
+      final devices = [watch];
+      final (:notifier, progress: _) = await notifierFor(
+        FakeGarminMtpSource(
+          devices: devices,
+          filesByDevice: {
+            watch.id: {'a.fit': diveBytes},
+          },
+        ),
+      );
+      await notifier.importFromGarminDevice();
+      final firstStaging = notifier.state.zipTempDirPaths.single;
+      expect(notifier.state.files, hasLength(1));
+
+      // The wizard keeps a preloaded import instead of resetting; a Garmin
+      // import must not count as one, or the next opening skips the reset and
+      // the read (as an unplugged watch "downloaded" its last dives).
+      expect(notifier.state.wasLoadedExternally, isFalse);
+
+      devices.clear(); // Unplugged.
+      notifier.reset();
+      await notifier.importFromGarminDevice();
+      await notifier.pendingTempCleanup;
+
+      expect(notifier.state.files, isEmpty);
+      expect(notifier.state.error, _en.universalImport_error_garminNotFound);
+      expect(Directory(firstStaging).existsSync(), isFalse);
+    },
+  );
 
   test('deletes the staging folder when the wizard resets', () async {
     final watch = fakeGarminWatch();

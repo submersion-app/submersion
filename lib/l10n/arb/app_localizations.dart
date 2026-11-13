@@ -83977,8 +83977,8 @@ abstract class AppLocalizations {
   /// Button on a saved Garmin's download screen that imports the dives straight from the connected watch
   ///
   /// In en, this message translates to:
-  /// **'Import from Connected Watch'**
-  String get importWizard_dc_importFromConnectedWatch;
+  /// **'Download from Watch'**
+  String get importWizard_dc_downloadFromWatch;
 
   /// No description provided for @importWizard_dc_knownComputer.
   ///
@@ -84013,8 +84013,26 @@ abstract class AppLocalizations {
   /// Body of a saved Garmin's download screen when the watch is connected and can be imported directly
   ///
   /// In en, this message translates to:
-  /// **'Garmin watches store dives as FIT files instead of offering a direct download. Your watch is connected, so its dives can be imported straight from it.'**
+  /// **'Your watch is connected. Submersion can download its dives straight from it, or you can import FIT files you\'ve already copied.'**
   String get importWizard_dc_noDirectDownloadGarminConnectedBody;
+
+  /// Title of a saved Garmin's download screen while its watch is connected; name is the computer
+  ///
+  /// In en, this message translates to:
+  /// **'Download dives from {name}'**
+  String importWizard_dc_downloadFromGarminTitle(String name);
+
+  /// Title of a saved Garmin's download screen when no watch is connected, on a platform that reads watches directly (Windows); name is the computer
+  ///
+  /// In en, this message translates to:
+  /// **'Connect {name} to download its dives'**
+  String importWizard_dc_connectGarminTitle(String name);
+
+  /// Body of a saved Garmin's download screen when no watch is connected, on a platform that reads watches directly (Windows). Names the Download Dives button (diveComputer_detail_downloadDivesButton)
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the watch by USB, then choose Download Dives again, or import FIT files you\'ve already copied.'**
+  String get importWizard_dc_garminUnpluggedBody;
 
   /// Download step title when a saved Bluetooth computer with no address on this device was not found by a scan for its make and model.
   ///

@@ -33,9 +33,9 @@ same import, and the dives flow through the existing FIT import.
   manufacturer, with one entry, "Garmin watch (Descent, Fenix, Epix...)".
   Searching "garmin" or "descent" finds it. Picking it opens the Garmin
   device import instead of the libdivecomputer pair-and-download steps.
-- On Windows, "Download" on a saved Garmin computer offers "Import from
-  connected watch" next to "Import from file" when a watch is connected, and
-  runs the same import.
+- On Windows, "Download" on a saved Garmin computer offers "Download from
+  Watch" next to "Import from File" when a watch is connected, and runs the
+  same import. To the diver it is a download, so the screen calls it one.
 - The import copies the watch's `GARMIN/Activity/*.fit` files to a staging
   folder and hands that folder to the existing dive-FIT filter and batch flow,
   so parsing, computer matching, duplicate matching and review are unchanged.
@@ -46,6 +46,11 @@ same import, and the dives flow through the existing FIT import.
   also shows for a drive-mounted watch.
 - The staging folder is deleted when the wizard finishes or is reset, the same
   way ZIP expansion folders are.
+- Every opening of the wizard reads the watch afresh. A Garmin import is not
+  marked "loaded externally" (the drag-and-drop mark that makes the wizard
+  keep its state on the next opening), since it always runs inside the
+  wizard; with the mark, the next opening showed the last import's dives
+  without reading the watch, even unplugged.
 
 ## Non-goals
 
@@ -191,10 +196,13 @@ opens) resets the import and then starts `importFromGarminDevice()`, once.
    - This is the only branch in the discovery flow that bypasses
      libdivecomputer, and it is decided once, at the tap.
 3. **Saved Garmin, Download** (`dc_no_direct_download_view.dart`): on Windows,
-   when `garminDevicesProvider` finds a watch, "Import from Connected Watch"
-   becomes the main action and "Import from File" moves to a secondary,
-   outlined one (`DcMessageLayout` gains an optional secondary action). The
-   body says the watch is connected and can be imported straight from it.
+   when `garminDevicesProvider` finds a watch, the title becomes "Download
+   dives from {name}", "Download from Watch" becomes the main action and
+   "Import from File" moves to a secondary, outlined one (`DcMessageLayout`
+   gains an optional secondary action). With no watch connected, the title
+   is "Connect {name} to download its dives" and the body asks for the watch
+   by USB rather than a manual copy of GARMIN/Activity. Other platforms keep
+   "Can't download this computer directly".
 
 ### Text
 
@@ -207,8 +215,9 @@ New l10n strings, added to every ARB file:
   {total})...".
 - `universalImport_error_garminBusy`: "The Garmin device is in use by another
   app. Close Garmin Express and try again."
-- The saved-Garmin action: "Import from Connected Watch", and the body
-  shown with it.
+- The saved-Garmin screen: "Download dives from {name}", "Download from
+  Watch" and the body shown with them; "Connect {name} to download its
+  dives" and its body for an unplugged watch.
 
 `universalImport_error_garminNotFound` stays as it is. The Dive Computers help
 note (`diveComputer_list_helpGarminNote`) gets a Windows variant saying Garmin
@@ -228,8 +237,8 @@ watches can be added from Connect New Computer.
   - The Garmin entry appears in the USB list and dropdown on Windows only,
     and is found by "garmin" and "descent".
   - Tapping it starts the Garmin import and never calls `onDeviceSelected`.
-  - The saved-Garmin view shows "Import from connected watch" only when a
-    watch is detected.
+  - The saved-Garmin view shows "Download from Watch" only when a watch is
+    detected, and never says it can't download a Garmin on Windows.
 - Native: Windows CI's `flutter build windows` proves it compiles. Behaviour is
   checked by hand on a real Garmin over MTP on Windows 11 (the maintainer of
   this change has one):
