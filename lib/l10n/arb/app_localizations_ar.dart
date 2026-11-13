@@ -5561,6 +5561,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_gear_removeSet => 'إزالة الطقم من هذه الغطسة';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'إزالة الطقم من هذه الغطسة؟';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'هل تريد إزالة المعدات التي أضافها هذا الطقم أيضًا، أم إبقاء المعدات في الغطسة وفك ارتباط الطقم فقط؟';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'إبقاء المعدات';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'إزالة المعدات';
+
+  @override
   String get diveLog_gear_unknownSet => 'طقم';
 
   @override

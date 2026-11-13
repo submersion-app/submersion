@@ -167,14 +167,50 @@ void main() {
     );
   });
 
-  testWidgets('removing a set band removes every row that came from it', (
+  Future<void> removeSetAnswering(WidgetTester tester, String answer) async {
+    await tapTooltip(tester, 'Remove set from this dive');
+    expect(find.text('Remove set from this dive?'), findsOneWidget);
+    await tester.tap(find.text(answer));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('removing a set with its gear removes every row it brought', (
     tester,
   ) async {
     await open(tester);
-    await tapTooltip(tester, 'Remove set from this dive');
+    await removeSetAnswering(tester, 'Remove gear');
     expect(find.text('Winter kit'), findsNothing);
     expect(find.text('Jets'), findsNothing);
     expect(find.text('Cressi mask'), findsOneWidget);
+  });
+
+  testWidgets('removing a set but keeping its gear only unlinks the set '
+      '(#4500)', (tester) async {
+    await open(tester);
+    await removeSetAnswering(tester, 'Keep gear');
+    expect(find.text('Winter kit'), findsNothing);
+    expect(find.text('Jets'), findsOneWidget);
+    expect(find.text('Cold water reg'), findsOneWidget);
+
+    await save(tester);
+    final saved = await repository.getDiveById('dive-1');
+    expect(
+      saved!.gear.map((g) => g.item.id),
+      unorderedEquals(['mask', 'reg', 'hose', 'fins']),
+    );
+    expect(saved.gear.map((g) => g.viaSetId), everyElement(isNull));
+    // The hose still hangs off the reg it came with.
+    expect(
+      saved.gear.firstWhere((g) => g.item.id == 'hose').viaEquipmentId,
+      'reg',
+    );
+  });
+
+  testWidgets('cancelling the set removal changes nothing', (tester) async {
+    await open(tester);
+    await removeSetAnswering(tester, 'Cancel');
+    expect(find.text('Winter kit'), findsOneWidget);
+    expect(find.text('Jets'), findsOneWidget);
   });
 
   testWidgets('removing one part keeps the assembly and the provenance', (

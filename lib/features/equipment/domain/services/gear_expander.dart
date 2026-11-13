@@ -125,6 +125,17 @@ abstract final class GearExpander {
       if (r.viaSetId != setId) r,
   ];
 
+  /// Keeps every row but forgets that [setId] brought it (issue #4500): the
+  /// gear stays on the dive as gear of its own, its assembly links intact,
+  /// and the dive no longer names the set.
+  static List<GearProvenance> unlinkSet(
+    List<GearProvenance> rows,
+    String setId,
+  ) => [
+    for (final r in rows)
+      r.viaSetId == setId ? r.copyWith(clearViaSetId: true) : r,
+  ];
+
   /// Drops one leaf row (the per-dive deviation). A row that still has
   /// children on the dive is removed as a subtree instead, so no row is
   /// ever left pointing at a parent that is gone.

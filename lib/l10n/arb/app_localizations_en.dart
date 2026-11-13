@@ -5386,6 +5386,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Remove set from this dive';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'Remove set from this dive?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Keep gear';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Remove gear';
+
+  @override
   String get diveLog_gear_unknownSet => 'Set';
 
   @override

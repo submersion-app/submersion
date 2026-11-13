@@ -185,6 +185,22 @@ void main() {
       expect(ids(GearExpander.removeSet(onDive, 'winter')), ['mask']);
     });
 
+    test('unlinkSet keeps every row and only forgets the set (#4500)', () {
+      final rows = GearExpander.unlinkSet([
+        ...onDive,
+        const GearProvenance(equipmentId: 'wing', viaSetId: 'summer'),
+      ], 'winter');
+      expect(ids(rows), ['kit', 'reg', 'hose', 'fins', 'mask', 'wing']);
+      expect(rows.where((r) => r.viaSetId == 'winter'), isEmpty);
+      // The assembly links stay, and another set keeps its own rows.
+      expect(rows[2].viaEquipmentId, 'reg');
+      expect(rows.last.viaSetId, 'summer');
+    });
+
+    test('unlinkSet leaves rows alone when the set is not on them', () {
+      expect(GearExpander.unlinkSet(onDive, 'summer'), onDive);
+    });
+
     test('removePart drops one leaf, and a row with children as a subtree', () {
       expect(ids(GearExpander.removePart(onDive, 'hose')), [
         'kit',

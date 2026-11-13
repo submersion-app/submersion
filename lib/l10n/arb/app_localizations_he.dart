@@ -5350,6 +5350,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_gear_removeSet => 'הסרת הסט מהצלילה הזו';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'להסיר את הסט מהצלילה הזו?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'להסיר גם את הציוד שהסט הוסיף, או להשאיר את הציוד בצלילה ולנתק רק את הסט?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'השארת הציוד';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'הסרת הציוד';
+
+  @override
   String get diveLog_gear_unknownSet => 'סט';
 
   @override

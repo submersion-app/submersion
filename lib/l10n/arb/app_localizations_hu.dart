@@ -5451,6 +5451,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Készlet eltávolítása erről a merülésről';
 
   @override
+  String get diveLog_gear_removeSetTitle =>
+      'Eltávolítod a készletet erről a merülésről?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'A készlet által hozzáadott felszerelést is eltávolítod, vagy a felszerelés a merülésen marad, és csak a készlet kapcsolatát bontod?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Felszerelés megtartása';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Felszerelés eltávolítása';
+
+  @override
   String get diveLog_gear_unknownSet => 'Készlet';
 
   @override

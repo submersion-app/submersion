@@ -8514,6 +8514,30 @@ abstract class AppLocalizations {
   /// **'Remove set from this dive'**
   String get diveLog_gear_removeSet;
 
+  /// Title of the question asked when a set chip is removed from a dive's gear (issue #4500)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove set from this dive?'**
+  String get diveLog_gear_removeSetTitle;
+
+  /// Body of that question: remove the set's gear too, or keep the gear and only unlink the set
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?'**
+  String get diveLog_gear_removeSetBody;
+
+  /// Button that keeps the gear on the dive and only unlinks the set
+  ///
+  /// In en, this message translates to:
+  /// **'Keep gear'**
+  String get diveLog_gear_removeSetKeepGear;
+
+  /// Button that removes the gear the set added from the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove gear'**
+  String get diveLog_gear_removeSetRemoveGear;
+
   /// No description provided for @diveLog_gear_unknownSet.
   ///
   /// In en, this message translates to:

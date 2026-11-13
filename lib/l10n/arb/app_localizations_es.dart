@@ -5472,6 +5472,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Quitar el equipo de esta inmersión';
 
   @override
+  String get diveLog_gear_removeSetTitle =>
+      '¿Quitar el equipo de esta inmersión?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      '¿Quitar también el material que añadió este equipo, o mantener el material en la inmersión y solo desvincular el equipo?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Mantener material';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Quitar material';
+
+  @override
   String get diveLog_gear_unknownSet => 'Equipo';
 
   @override

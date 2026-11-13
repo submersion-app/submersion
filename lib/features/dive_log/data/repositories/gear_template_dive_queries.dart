@@ -32,6 +32,23 @@ class GearTemplateDiveQueries {
     required bool alsoLogged,
   }) => _diveIdsCarrying(_setColumn, setId, alsoLogged: alsoLogged);
 
+  /// Logged dives with a gear row set [setId] put there, the ones a member
+  /// change kept as they were (issue #4500).
+  // stats-scope-exempt: picks the dives that stop naming a changed set; a
+  // dive left out of statistics still carries the gear
+  Future<List<String>> loggedDiveIdsWithSet(String setId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT de.dive_id AS id FROM dive_equipment de '
+          'JOIN dives d ON d.id = de.dive_id '
+          'WHERE de.$_setColumn = ?1 AND d.is_planned = 0',
+          variables: [Variable.withString(setId)],
+          readsFrom: {_db.diveEquipment, _db.dives},
+        )
+        .get();
+    return [for (final r in rows) r.read<String>('id')];
+  }
+
   /// How many [planned] (or logged) dives carry [assemblyId].
   Future<int> countWithAssembly(String assemblyId, {required bool planned}) =>
       _countDivesCarrying(_gearColumn, assemblyId, planned: planned);

@@ -5168,6 +5168,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_gear_removeSet => '从本次潜水移除套装';
 
   @override
+  String get diveLog_gear_removeSetTitle => '从本次潜水移除套装？';
+
+  @override
+  String get diveLog_gear_removeSetBody => '同时移除此套装添加的装备，还是保留潜水中的装备、只解除与套装的关联？';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => '保留装备';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => '移除装备';
+
+  @override
   String get diveLog_gear_unknownSet => '套装';
 
   @override
