@@ -69,6 +69,10 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   /// The running seek loop, if any; completes once no seek is pending.
   Future<void>? _seeking;
 
+  /// The newest seek requested, which the player reaches once [_seeking]
+  /// completes.
+  Duration _seekTarget = Duration.zero;
+
   @override
   void initState() {
     super.initState();
@@ -82,8 +86,14 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
       oldWidget.controller.removeListener(_onVideoUpdate);
       widget.controller.addListener(_onVideoUpdate);
       // A scrub in progress belonged to the old video: drop it rather than
-      // seek or resume the new one with it.
-      if (_scrubFraction != null) widget.onScrubbingChanged?.call(false);
+      // seek or resume the new one with it. The host hears after this frame,
+      // as it may rebuild in answer and this runs during build.
+      final onScrubbingChanged = widget.onScrubbingChanged;
+      if (_scrubFraction != null && onScrubbingChanged != null) {
+        WidgetsBinding.instance.addPostFrameCallback(
+          (_) => onScrubbingChanged(false),
+        );
+      }
       _scrubId++;
       _scrubFraction = null;
       _resumeAfterScrub = false;
@@ -106,6 +116,13 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   String _formatDuration(Duration duration) =>
       formatElapsedMmSs(duration.inSeconds);
 
+  /// Where the video is headed: the newest seek while one is under way,
+  /// else where it is. Steps build on this, so quick steps add up.
+  Duration get _heading =>
+      _seeking != null ? _seekTarget : widget.controller.value.position;
+
+  void _step(Duration delta) => unawaited(_seekTo(_stepped(_heading, delta)));
+
   /// [position] moved by [delta], kept inside the clip.
   Duration _stepped(Duration position, Duration delta) {
     final duration = widget.controller.value.duration;
@@ -126,6 +143,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   /// returned future completes once the player has reached the newest target.
   Future<void> _seekTo(Duration target) {
     _pendingSeek = target;
+    _seekTarget = target;
     return _seeking ??= _drainSeeks();
   }
 
@@ -257,27 +275,17 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
                           )
                         : null,
                     onIncrease: canSeek
-                        ? () => unawaited(
-                            _seekTo(
-                              _stepped(
-                                position,
-                                VideoControlsBar.accessibilityStep,
-                              ),
-                            ),
-                          )
+                        ? () => _step(VideoControlsBar.accessibilityStep)
                         : null,
                     onDecrease: canSeek
-                        ? () => unawaited(
-                            _seekTo(
-                              _stepped(
-                                position,
-                                -VideoControlsBar.accessibilityStep,
-                              ),
-                            ),
-                          )
+                        ? () => _step(-VideoControlsBar.accessibilityStep)
                         : null,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
+                      // The slider above is the bar's whole semantic face.
+                      // The detector's own tap and scroll actions would fake
+                      // a gesture at the bar's centre and jump there.
+                      excludeFromSemantics: true,
                       onTapDown: (details) => _onTapDown(details, width),
                       onHorizontalDragStart: (details) =>
                           _onScrubStart(details, width),

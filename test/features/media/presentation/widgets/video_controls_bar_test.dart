@@ -459,4 +459,75 @@ void main() {
     await tester.runAsync(first.dispose);
     await tester.runAsync(second.dispose);
   });
+  testWidgets('the slider carries no stray tap or scroll actions, and quick '
+      'steps add up', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final platform = _usePlatform();
+    final controller = await _readyController();
+    await controller.seekTo(const Duration(seconds: 10));
+    await tester.pumpWidget(
+      _app(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+
+    final node = find.semantics.byLabel('Seek video position');
+    final data = tester
+        .getSemantics(find.bySemanticsLabel('Seek video position'))
+        .getSemanticsData();
+    // The gesture detector's own actions would fake a drag or tap from the
+    // bar's centre and jump the video there.
+    expect(data.hasAction(SemanticsAction.tap), isFalse);
+    expect(data.hasAction(SemanticsAction.scrollLeft), isFalse);
+    expect(data.hasAction(SemanticsAction.scrollRight), isFalse);
+
+    // Two steps before the first seek settles land two steps on.
+    tester.semantics.performAction(node, SemanticsAction.increase);
+    tester.semantics.performAction(node, SemanticsAction.increase);
+    await tester.pump();
+    expect(platform.seeks.last, const Duration(seconds: 20));
+
+    await _finish(tester, controller);
+    semantics.dispose();
+  });
+
+  testWidgets('a new video mid-scrub tells the host after the frame, so the '
+      'host can rebuild', (tester) async {
+    _usePlatform();
+    final first = await _readyController();
+    final second = await _readyController();
+    var current = first;
+    final reports = <bool>[];
+    late StateSetter setHost;
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (context, setState) {
+            setHost = setState;
+            return VideoControlsBar(
+              controller: current,
+              mediaId: 'm1',
+              // A host that rebuilds on the report, as the media viewer's
+              // fullscreen controls do.
+              onScrubbingChanged: (scrubbing) =>
+                  setState(() => reports.add(scrubbing)),
+            );
+          },
+        ),
+      ),
+    );
+
+    final gesture = await tester.startGesture(_along(tester, 0.2));
+    await gesture.moveTo(_along(tester, 0.6));
+    await tester.pump();
+    setHost(() => current = second);
+    await tester.pump();
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(reports, [true, false]);
+
+    await gesture.up();
+    await tester.pumpWidget(const SizedBox());
+    await tester.runAsync(first.dispose);
+    await tester.runAsync(second.dispose);
+  });
 }
