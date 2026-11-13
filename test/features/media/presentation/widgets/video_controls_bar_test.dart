@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -388,6 +389,74 @@ void main() {
     await gesture.up();
     await tester.pump();
     expect(reports, [false, true, false]);
+    await _finish(tester, controller);
+  });
+
+  testWidgets('the mouse resting on the bar holds the host\'s controls, '
+      'and a tap under it does not let them go', (tester) async {
+    _usePlatform();
+    final controller = await _readyController();
+    final reports = <bool>[];
+    await tester.pumpWidget(
+      _app(
+        VideoControlsBar(
+          controller: controller,
+          mediaId: 'm1',
+          onHoldChanged: reports.add,
+        ),
+      ),
+    );
+
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: Offset.zero);
+    addTearDown(mouse.removePointer);
+    await mouse.moveTo(_along(tester, 0.5));
+    await tester.pump();
+    expect(reports, [true]);
+
+    await mouse.down(_along(tester, 0.5));
+    await mouse.up();
+    await tester.pump();
+    expect(reports, [true, true], reason: 'a tap seeks, the mouse still holds');
+
+    await mouse.moveTo(Offset.zero);
+    await tester.pump();
+    expect(reports, [true, true, false]);
+    await _finish(tester, controller);
+  });
+
+  testWidgets('a bar taken away mid-scrub lets the host\'s controls go '
+      'after the frame', (tester) async {
+    _usePlatform();
+    final controller = await _readyController();
+    final reports = <bool>[];
+    final show = ValueNotifier(true);
+    addTearDown(show.dispose);
+    await tester.pumpWidget(
+      _app(
+        ValueListenableBuilder<bool>(
+          valueListenable: show,
+          builder: (context, visible, _) => visible
+              ? VideoControlsBar(
+                  controller: controller,
+                  mediaId: 'm1',
+                  onHoldChanged: reports.add,
+                )
+              : const SizedBox.shrink(),
+        ),
+      ),
+    );
+
+    final gesture = await tester.startGesture(_along(tester, 0.2));
+    await gesture.moveTo(_along(tester, 0.6));
+    await tester.pump();
+    expect(reports, [true]);
+
+    show.value = false;
+    await tester.pump();
+    await tester.pump();
+    expect(reports, [true, false]);
+    await gesture.up();
     await _finish(tester, controller);
   });
 

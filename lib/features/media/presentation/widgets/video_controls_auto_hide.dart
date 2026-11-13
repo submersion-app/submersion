@@ -92,7 +92,16 @@ mixin VideoControlsAutoHideMixin<T extends StatefulWidget>
     // The bar may report after the page has gone.
     if (!mounted) return;
     _held = held;
-    _showVideoControls(autoHide: !held && video.value.isPlaying);
+    // A player already released (its page swiped away) has nothing left
+    // to show controls for.
+    if (!_playListeners.containsKey(video)) return;
+    if (held) {
+      _showVideoControls(autoHide: false);
+    } else if (_controlsShown) {
+      // A release only restarts the clock: controls hidden meanwhile (Space
+      // mid-drag) stay hidden.
+      _showVideoControls(autoHide: video.value.isPlaying);
+    }
   }
 
   /// Cancels the normal-mode clock, for a page change or a toggle that

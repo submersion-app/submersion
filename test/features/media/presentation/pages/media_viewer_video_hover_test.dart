@@ -235,6 +235,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('leaving the window from the bar hides the controls at once', (
+    tester,
+  ) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+
+    await tapVideo(tester);
+    final mouse = await mouseOver(tester);
+    await mouse.moveBy(const Offset(5, 5));
+    await tester.pump();
+    await mouse.moveTo(tester.getCenter(track));
+    await tester.pump();
+    await mouse.removePointer();
+    await tester.pump();
+    expect(track, findsNothing);
+    await stopPlayback(tester, platform);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('a bar hidden mid-scrub lets the controls go again', (
     tester,
   ) async {
@@ -255,7 +273,8 @@ void main() {
     expect(platform.playing, isTrue);
     expect(track, findsNothing);
     await mouse.up();
-    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(track, findsNothing, reason: 'the hold released, not revealed');
 
     // Away from where the bar was, a move reveals on the usual clock.
     await mouse.moveTo(tester.getCenter(playPause) - const Offset(0, 100));
