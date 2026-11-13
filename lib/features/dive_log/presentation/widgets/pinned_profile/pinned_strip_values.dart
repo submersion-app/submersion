@@ -100,8 +100,10 @@ DecoSlot _decoSlotAt(ProfileAnalysis? analysis, int index) {
   }
   final status = statuses[index];
   if (!status.inDeco) {
-    // The curve says deco where the model does not: no stop to show.
-    return ndl == null ? NdlSlot(status.ndlSeconds) : const UnknownDecoSlot();
+    // Zero is the limit reached, still no deco (inDeco is NDL below zero).
+    // Only a curve in deco where the model is not leaves no stop to show.
+    if (ndl == null) return NdlSlot(status.ndlSeconds);
+    return ndl >= 0 ? NdlSlot(ndl) : const UnknownDecoSlot();
   }
   if (status.decoStops.isEmpty) return const UnknownDecoSlot();
   final stop = status.decoStops.first;

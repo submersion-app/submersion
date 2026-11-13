@@ -129,6 +129,20 @@ void main() {
       expect((v.deco as NdlSlot).ndlSeconds, 1320);
     });
 
+    // inDeco is ndlSeconds < 0: zero is the no-deco limit reached, not an
+    // unknown state (review).
+    test('a zero NDL on the curve reads as 0 minutes', () {
+      final v = pinnedStripValuesAt(
+        chartProfile: profile,
+        analysis: analysis.copyWith(
+          ndlCurve: [5940, 5940, 2400, 0, 5940],
+          decoStatuses: [for (var i = 0; i < 5; i++) _status(ndl: 0)],
+        ),
+        cursorIndex: 3,
+      )!;
+      expect((v.deco as NdlSlot).ndlSeconds, 0);
+    });
+
     test('the curve in deco while the model is not gives unknown', () {
       final v = pinnedStripValuesAt(
         chartProfile: profile,
