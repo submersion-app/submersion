@@ -6312,6 +6312,8 @@
   "plannerSeries_missionUnavailable": "Não é possível planear uma série de mergulhos como missão DPV",
   "plannerSeries_followUnavailableInReplan": "Um replanejamento não pode seguir outro mergulho",
   "plannerCanvas_follow_title": "Seguir um mergulho",
+  "plannerCanvas_pickDive_number": "#{number}",
+  "plannerCanvas_pickDive_numberTitle": "#{number} · {title}",
   "plannerCanvas_gas_minGas": "gás mínimo {pressure}",
   "plannerCanvas_gas_turnAt": "retorno a {pressure}",
   "plannerCanvas_gas_noTurnRule": "sem regra de retorno",

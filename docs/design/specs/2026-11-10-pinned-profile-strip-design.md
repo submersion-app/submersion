@@ -66,8 +66,9 @@ directions. A setting turns the strip off.
   buoyancy chart, and hovering or touching the buoyancy chart moves the cursor
   on both profiles and on every card that follows it.
 - The condense animation matches the looping mockup reviewed in brainstorming:
-  the card loses its inset margins and rounded corners to span the full page
-  width, squashes in height, and rises to sit under the header.
+  the card squashes in height and rises to sit under the header. It keeps the
+  width of the other cards and its rounded bottom corners (#4488); the first
+  version dropped its inset margins to span the full page width.
 - Setting: "Pin profile when scrolling", in Settings > Appearance with the dive
   profile options, on by default, synced like other diver settings. Off means
   the page behaves exactly as today. Buoyancy two-way sync is not gated by the

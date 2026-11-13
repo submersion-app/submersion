@@ -5064,10 +5064,10 @@ class SyncDataSerializer {
   /// An empty `target` means plain `ON CONFLICT DO NOTHING`, which absorbs a
   /// conflict on ANY uniqueness constraint. Dropping the peer's row loses
   /// nothing once [_reconcileJunctionIds] has settled which id the pair keeps:
-  /// the pair is the entire meaning of a junction row, and this table carries
-  /// no other mutable column. Before that index existed, keeping both rows is
-  /// exactly how one dive came to show the same type twice on every device in
-  /// the fleet (issue #1360).
+  /// the pair is the entire meaning of a junction row, apart from the order
+  /// `created_at` carries, which [_applyDiveTypeOrder] writes afterwards.
+  /// Before that index existed, keeping both rows is exactly how one dive came
+  /// to show the same type twice on every device in the fleet (issue #1360).
   Future<void> _applyDiveDiveTypeRecord(DiveDiveType record) async {
     await _reconcileJunctionIds(
       'dive_dive_types',
@@ -5083,7 +5083,30 @@ class SyncDataSerializer {
             target: const [],
           ),
         );
+    await _applyDiveTypeOrder([record]);
   }
+
+  /// Writes the order each of [records] carries onto the row this device
+  /// holds under the same id. A dive's types read back in `created_at` order,
+  /// and a reorder renumbers the rows it keeps in place (issue #4477), so the
+  /// peer's copy hits the primary key and the DO NOTHING insert drops it. A
+  /// pair held under another id is left alone: [_reconcileJunctionIds] kept
+  /// the lower id, and that row's own edits carry its order.
+  Future<void> _applyDiveTypeOrder(List<DiveDiveType> records) => _db.batch((
+    batch,
+  ) {
+    for (final record in records) {
+      batch.update(
+        _db.diveDiveTypes,
+        DiveDiveTypesCompanion(
+          createdAt: Value(record.createdAt),
+          hlc: record.hlc == null ? const Value.absent() : Value(record.hlc),
+        ),
+        where: (t) =>
+            t.id.equals(record.id) & t.createdAt.equals(record.createdAt).not(),
+      );
+    }
+  });
 
   /// Applies one incoming `site_site_types` row (v217, issue #1765). The
   /// table has its (site, type) unique index from the day it exists, so a
@@ -7306,6 +7329,7 @@ class SyncDataSerializer {
             ),
           ),
         );
+        await _applyDiveTypeOrder(diveTypeRows);
         return;
       case 'diveCourses':
         // See the single-row apply in [upsertRecord].

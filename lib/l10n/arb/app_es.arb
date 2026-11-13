@@ -6312,6 +6312,8 @@
   "plannerSeries_missionUnavailable": "Una serie de inmersiones no se puede planificar como misión DPV",
   "plannerSeries_followUnavailableInReplan": "Una replanificación no puede seguir otra inmersión",
   "plannerCanvas_follow_title": "Seguir una inmersión",
+  "plannerCanvas_pickDive_number": "#{number}",
+  "plannerCanvas_pickDive_numberTitle": "#{number} · {title}",
   "plannerCanvas_gas_minGas": "gas mínimo {pressure}",
   "plannerCanvas_gas_turnAt": "retorno a {pressure}",
   "plannerCanvas_gas_noTurnRule": "sin regla de retorno",

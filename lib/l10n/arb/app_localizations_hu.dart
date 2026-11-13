@@ -21948,6 +21948,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get plannerCanvas_follow_title => 'Merülés követése';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number.';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number. · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'min. gáz $pressure';
   }

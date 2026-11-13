@@ -6463,6 +6463,8 @@
   "plannerSeries_missionUnavailable": "潜水系列无法规划为 DPV 任务",
   "plannerSeries_followUnavailableInReplan": "重新规划无法跟随另一次潜水",
   "plannerCanvas_follow_title": "跟随一次潜水",
+  "plannerCanvas_pickDive_number": "#{number}",
+  "plannerCanvas_pickDive_numberTitle": "#{number} · {title}",
   "plannerCanvas_gas_minGas": "最低气量 {pressure}",
   "plannerCanvas_gas_turnAt": "{pressure} 时折返",
   "plannerCanvas_gas_noTurnRule": "未设置折返规则",

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -93,6 +94,73 @@ void main() {
         contains('wreck'),
         reason: 'a peer-published dive-type row must replicate to this device',
       );
+    });
+
+    // A reorder renumbers created_at on the rows it keeps, under their
+    // existing ids (issue #4477), so the peer's copy hits the primary key.
+    // The apply must take the new order rather than drop the row.
+    Future<List<String>> typesInOrder(String diveId) async {
+      final db = DatabaseService.instance.database;
+      final rows =
+          await (db.select(db.diveDiveTypes)
+                ..where((t) => t.diveId.equals(diveId))
+                ..orderBy([
+                  (t) => OrderingTerm(expression: t.createdAt),
+                  (t) => OrderingTerm(expression: t.id),
+                ]))
+              .get();
+      return [for (final r in rows) r.diveTypeId];
+    }
+
+    Future<void> seedTwoTypes(SyncDataSerializer serializer) async {
+      await DiveRepository().createDive(
+        domain.Dive(
+          id: 'dive-1',
+          dateTime: DateTime(2026, 1, 1),
+          diveTypeIds: const ['shore'],
+        ),
+      );
+      final db = DatabaseService.instance.database;
+      await (db.delete(
+        db.diveDiveTypes,
+      )..where((t) => t.diveId.equals('dive-1'))).go();
+      await serializer.upsertRecord('diveDiveTypes', {
+        ...ddtRow('ddt-a', 'dive-1', 'shore'),
+        'createdAt': 1000,
+      });
+      await serializer.upsertRecord('diveDiveTypes', {
+        ...ddtRow('ddt-b', 'dive-1', 'wreck'),
+        'createdAt': 1001,
+      });
+    }
+
+    test('a peer reorder of kept rows applies (#4477)', () async {
+      final serializer = SyncDataSerializer();
+      await seedTwoTypes(serializer);
+      expect(await typesInOrder('dive-1'), ['shore', 'wreck']);
+
+      await serializer.upsertRecord('diveDiveTypes', {
+        ...ddtRow('ddt-b', 'dive-1', 'wreck'),
+        'createdAt': 2000,
+      });
+      await serializer.upsertRecord('diveDiveTypes', {
+        ...ddtRow('ddt-a', 'dive-1', 'shore'),
+        'createdAt': 2001,
+      });
+
+      expect(await typesInOrder('dive-1'), ['wreck', 'shore']);
+    });
+
+    test('a batched peer reorder of kept rows applies (#4477)', () async {
+      final serializer = SyncDataSerializer();
+      await seedTwoTypes(serializer);
+
+      await serializer.upsertRecords('diveDiveTypes', [
+        {...ddtRow('ddt-b', 'dive-1', 'wreck'), 'createdAt': 2000},
+        {...ddtRow('ddt-a', 'dive-1', 'shore'), 'createdAt': 2001},
+      ]);
+
+      expect(await typesInOrder('dive-1'), ['wreck', 'shore']);
     });
 
     test('a peer tombstone removes a dive-type row', () async {
