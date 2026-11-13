@@ -123,7 +123,9 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   }
 
   void _initializeFromClone(EquipmentSet source) {
-    _cloneDiverId = ref.read(validatedCurrentDiverIdProvider).valueOrNull;
+    // The owner the source was authorized for, not a second diver reading.
+    final active = ref.read(validatedCurrentDiverIdProvider).valueOrNull;
+    _cloneDiverId = active == null ? null : source.diverId;
     _initializeFromSet(
       equipmentSetCloneSeed(
         source,
@@ -600,10 +602,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
     );
   }
 
-  /// The form's scroll view. While the figure shows, every row is built so a
-  /// tap on the figure can scroll to any of them (issue #2326); off, the
-  /// form stays the lazily built list it always was, so a long inventory
-  /// builds no faster or slower than before the figure.
+  /// The form's scroll view: every row is built while the figure shows, so a
+  /// figure tap can scroll to any (#2326); off, it stays a lazy list.
   Widget _formScroll({required List<Widget> children}) => _showFigure
       ? SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -614,11 +614,9 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
         )
       : ListView(padding: const EdgeInsets.all(16), children: children);
 
-  /// One row of the picker. [number] is the item's figure number while the
-  /// figure shows; it leads the row as a badge that brings the figure into
-  /// view. While the figure shows, every row leads with a slot [badgeSlot]
-  /// wide (the widest badge at the diver's text size), holding the badge or
-  /// nothing, so every name starts at the same place. Null when it is off.
+  /// One picker row. While the figure shows, every row leads with a slot
+  /// [badgeSlot] wide (the widest badge at the diver's text size) holding the
+  /// [number] badge, which reveals the figure, or nothing. Null when it is off.
   Widget _buildEquipmentCheckbox(
     BuildContext context,
     EquipmentItem item,
@@ -706,11 +704,14 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
       final diverId =
           existingSet?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
-      // A clone saved before the gear list loaded is pruned here instead,
-      // and one whose diver was switched away is not saved.
+      // Pruned here if Save beat the gear list. A diver switched away during
+      // that wait is not saved: addSet would give the copy to the new diver.
       if (widget.isCloning) {
-        if (diverId != _cloneDiverId) return;
         final every = await ref.read(allEquipmentProvider.future);
+        if (await ref.read(validatedCurrentDiverIdProvider.future) !=
+            _cloneDiverId) {
+          return;
+        }
         _pruneDeletedSelections(null, every);
       }
 

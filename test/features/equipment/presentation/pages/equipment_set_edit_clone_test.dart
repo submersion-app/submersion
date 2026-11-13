@@ -289,6 +289,68 @@ void main() {
     expect(await repo.getAllSets(diverId: 'd2'), isEmpty);
   });
 
+  Future<void> addDiverD2() async {
+    final db = DatabaseService.instance.database;
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd2',
+            name: 'd2',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+  }
+
+  testWidgets('a switch while Save checks the gear does not save the clone', (
+    tester,
+  ) async {
+    await addDiverD2();
+    final active = StateProvider<String?>((ref) => 'd1');
+    final everyItem = await EquipmentRepository().getAllEquipment(
+      diverId: 'd1',
+    );
+    final visible = Completer<List<EquipmentItem>>();
+    await openClone(
+      tester,
+      diver: validatedCurrentDiverIdProvider.overrideWith(
+        (ref) async => ref.watch(active),
+      ),
+      extra: [allEquipmentProvider.overrideWith((ref) => visible.future)],
+    );
+
+    await tester.tap(appBarSave());
+    await tester.pump();
+    ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentSetEditPage)),
+    ).read(active.notifier).state = 'd2';
+    await tester.pump();
+    visible.complete(everyItem);
+    await tester.pumpAndSettle();
+
+    expect(await repo.getAllSets(diverId: 'd2'), isEmpty);
+    expect(await repo.getAllSets(diverId: 'd1'), hasLength(1));
+  });
+
+  testWidgets('an unowned set is not cloned while a diver is active', (
+    tester,
+  ) async {
+    // The set list shows only the active diver's sets, so an unowned one
+    // reached by its id must not be copied either.
+    await repo.createSet(
+      EquipmentSet(
+        id: 'loose',
+        name: 'Loose Rig',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+    await openClone(tester, from: 'loose');
+    expect(find.text('Set Not Found'), findsOneWidget);
+  });
+
   testWidgets("another diver's set is not cloned", (tester) async {
     // The id arrives in the route, so it alone must not copy another
     // profile's set, as the equipment clone refuses another's gear (#2046).

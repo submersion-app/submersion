@@ -43,12 +43,13 @@ final cloneSourceProvider = FutureProvider.family<EquipmentItem?, String>((
 /// The set a set clone starts from (issue #2156), or null when it is not the
 /// active diver's. Sets are never shared, and the `cloneFrom` id arrives in
 /// the route, so as with [cloneSourceProvider] a known id alone must not copy
-/// another profile's set. With no active diver every set counts, as above.
+/// another profile's set. An unowned set is not the diver's either: the set
+/// list shows only theirs. With no active diver every set counts, as above.
 final equipmentSetCloneSourceProvider =
     FutureProvider.family<EquipmentSet?, String>((ref, id) async {
       final set = await ref.watch(equipmentSetProvider(id).future);
       if (set == null) return null;
       final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
-      if (diverId == null || set.diverId == null) return set;
+      if (diverId == null) return set;
       return set.diverId == diverId ? set : null;
     });
