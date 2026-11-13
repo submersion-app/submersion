@@ -2766,7 +2766,9 @@ class InsightsRepository with InsightsChartDives {
   ///
   /// [statsScoped] keeps to the dives statistics count ([DiveStatsScope]),
   /// as the deco card does. The `deco` search classifies every dive the
-  /// diver logged, so its cache writer turns it off (#4461).
+  /// diver logged, so its cache writer turns it off (#4461): dives excluded
+  /// from statistics and drafts count then, a plan nobody has dived does
+  /// not ([diveUndivedSql]).
   ///
   /// [onlyDiveIds] narrows the scan to those dives, for a rule run over an
   /// import's few dives that need not scan the whole logbook.
@@ -2780,7 +2782,13 @@ class InsightsRepository with InsightsChartDives {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
       final df = statsScoped
           ? _diveFilter(filter, alias: 'd')
-          : _viewFilterOnly(filter, alias: 'd');
+          : (() {
+              final view = _viewFilterOnly(filter, alias: 'd');
+              return (
+                clause: ' AND NOT ${diveUndivedSql('d')}${view.clause}',
+                params: view.params,
+              );
+            })();
       // One bind for any number of ids, so no variable limit applies.
       final idFilter = onlyDiveIds == null
           ? ''

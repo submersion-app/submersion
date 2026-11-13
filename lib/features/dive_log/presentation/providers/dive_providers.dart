@@ -55,6 +55,13 @@ final diveFilterProvider = StateProvider<DiveFilterState>(
   (ref) => const DiveFilterState(),
 );
 
+/// The tables the dive list's filter reads, compiled once per filter rather
+/// than once by every widget and keeper that asks (the dive list's
+/// counterpart of `insightsFilterTablesProvider`).
+final diveFilterTablesProvider = Provider<Set<String>>(
+  (ref) => diveFilterTablesTouched(ref.watch(diveFilterProvider)),
+);
+
 /// Dive sort state provider
 ///
 /// Comes back as the diver left it (issue #3748): the active diver's saved

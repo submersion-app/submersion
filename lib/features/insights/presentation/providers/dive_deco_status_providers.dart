@@ -101,7 +101,10 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
         // This diver's dives only: another profile's rows, prepared for a
         // query on that profile, are not this pass's to remove.
         diveIds: judged.scanned,
-        computedAt: nextDecoWriteStamp(),
+        // Stamped with when this pass began, not when it writes: a write
+        // ranks by the inputs it judged, so a refresh that began after this
+        // pass (and judged newer inputs) is never blocked by it.
+        computedAt: startedAt,
         // A targeted refresh may have written newer verdicts meanwhile.
         keepWrittenAfter: startedAt,
       );
@@ -306,7 +309,9 @@ Future<void> refreshDiveDecoStatusFor(
         // The scan already kept to [diveIds] and to [diverId]'s dives, so a
         // named dive of another profile keeps its own verdict.
         diveIds: judged.scanned,
-        computedAt: nextDecoWriteStamp(),
+        // When this judgment began, so a pass that began later outranks it
+        // whichever of the two writes first.
+        computedAt: stampAtStart,
         // A pass or refresh that began after this one, and wrote meanwhile,
         // judged newer inputs: its verdicts stand.
         keepWrittenAfter: stampAtStart,

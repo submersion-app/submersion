@@ -120,11 +120,18 @@ class DiveDecoStatusRepository {
         if (!kept.contains(e.key) && existing[e.key] != e.value) e.key: e.value,
     };
     // Every dive this write judged, written or not, as of [computedAt]: an
-    // older pass must not undo it.
-    for (final id in within) {
-      if (!kept.contains(id)) touched[id] = computedAt;
+    // older pass must not undo it. Recorded only once the rows are written,
+    // so a batch that fails (and rolls back) protects nothing it never wrote.
+    void recordJudged() {
+      for (final id in within) {
+        if (!kept.contains(id)) touched[id] = computedAt;
+      }
     }
-    if (stale.isEmpty && changed.isEmpty) return;
+
+    if (stale.isEmpty && changed.isEmpty) {
+      recordJudged();
+      return;
+    }
     await _db.batch((b) {
       for (final chunk in seriesIdChunks(stale)) {
         b.deleteWhere(_db.diveDecoStatus, (t) => t.diveId.isIn(chunk));
@@ -140,6 +147,7 @@ class DiveDecoStatusRepository {
         );
       }
     });
+    recordJudged();
     // A raw statement reports no table, so the readers' tick is raised here.
     if (changed.isNotEmpty) {
       _db.notifyUpdates({

@@ -1,6 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
@@ -8,7 +7,7 @@ import 'package:submersion/features/query/presentation/providers/query_cache_awa
 /// each filter compiled once per change, not once per cache it may name.
 final _liveFilterTablesProvider = Provider<Set<String>>(
   (ref) => {
-    ...diveFilterTablesTouched(ref.watch(diveFilterProvider)),
+    ...ref.watch(diveFilterTablesProvider),
     ...ref.watch(insightsFilterTablesProvider),
   },
 );

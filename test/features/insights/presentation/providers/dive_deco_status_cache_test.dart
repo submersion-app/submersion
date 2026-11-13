@@ -507,6 +507,23 @@ void main() {
     expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
   });
 
+  test('a plan nobody has dived is not analyzed for a search', () async {
+    // The search classifies the dives the diver logged; a saved plan is not
+    // one, and analyzing every plan would lengthen a cold first pass.
+    await insertDive('plan');
+    await (db.update(db.dives)..where((t) => t.id.equals('plan'))).write(
+      const DivesCompanion(isPlanned: Value(true)),
+    );
+    await insertProfile('plan', _square(40, 25));
+
+    final container = await makeContainer();
+    final sub = container.listen(diveDecoStatusCacheProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(diveDecoStatusCacheProvider.future);
+
+    expect(await DiveDecoStatusRepository().verdicts(), isEmpty);
+  });
+
   test('a dive written later is classified on the next pass', () async {
     await insertDive('shallow');
     await insertProfile('shallow', _square(18, 30));

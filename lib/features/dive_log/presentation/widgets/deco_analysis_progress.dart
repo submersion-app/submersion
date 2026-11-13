@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -20,9 +19,7 @@ class DecoAnalysisProgress extends ConsumerWidget {
     // a pass run for another reader (an Insights deco filter) is not what
     // this list is loading.
     final waits = ref.watch(
-      diveFilterProvider.select(
-        (f) => diveFilterTablesTouched(f).contains(kDiveDecoStatusTable),
-      ),
+      diveFilterTablesProvider.select((t) => t.contains(kDiveDecoStatusTable)),
     );
     final progress = waits ? ref.watch(diveDecoStatusProgressProvider) : null;
     if (progress == null) {
