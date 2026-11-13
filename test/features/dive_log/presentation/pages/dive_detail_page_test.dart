@@ -1094,6 +1094,7 @@ void main() {
       );
       return ProfileAnalysis.empty().copyWith(
         decoStatuses: [status],
+        sampleTimestamps: const [0],
         ppO2Curve: const [0.21],
       );
     }
@@ -1315,10 +1316,9 @@ void main() {
       final card = tester.widget<CompactTissueLoadingCard>(
         find.byType(CompactTissueLoadingCard),
       );
-      // The chart's own series, the one the heat map's columns follow.
-      expect(card.profileTimestamps, [
-        for (final p in dive.profile) p.timestamp,
-      ]);
+      // The analysis's own times, the ones its deco statuses were computed
+      // at, so a retained analysis is never paired with a newer profile.
+      expect(card.profileTimestamps, const [0]);
 
       // Moving the cursor rebuilds the panel; the times are not copied again.
       ProviderScope.containerOf(

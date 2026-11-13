@@ -129,11 +129,10 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
   final List<int> timestamps;
 
   /// Whether [timestamps] can label a heat map of [sampleCount] columns: one
-  /// time per sample, and at least two of them. A mismatch happens while the
-  /// dive details page still shows an earlier analysis of a changed profile,
-  /// and a guessed timeline would mislabel it. Only the count is compared: a
-  /// retained analysis with the same count but different times would pass,
-  /// and no profile edit is known to produce one.
+  /// time per sample, and at least two of them. The dive details page passes
+  /// the analysis's own sample times, so they match its statuses by
+  /// construction; this guards an analysis built without them (empty) and
+  /// any caller that pairs the two itself.
   /// [seconds] on the profile chart's clock as the axis reads it: whole
   /// minutes, part minutes dropped, and below zero for a computer that
   /// started logging before the dive's zero point.
