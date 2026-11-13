@@ -96,6 +96,17 @@ void main() {
       });
     }
 
+    testWidgets('labels nothing for a model with no compartments', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(const TissueHeatMapCompartmentAxis(compartmentCount: 0)),
+      );
+
+      expect(find.byType(Text), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('names only the first row of a one-compartment model', (
       tester,
     ) async {
@@ -154,6 +165,26 @@ void main() {
 
       expect(find.text('1 min'), findsOneWidget);
       expect(find.text('52 min'), findsOneWidget);
+    });
+
+    testWidgets('keeps its three labels apart at large text', (tester) async {
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(3)),
+          child: host(
+            const TissueHeatMapTimeAxis(timestamps: [-180, 3720, 7500]),
+            height: 60,
+          ),
+        ),
+      );
+
+      final start = tester.getRect(find.text('-3 min'));
+      final middle = tester.getRect(find.text('62 min'));
+      final end = tester.getRect(find.text('125 min'));
+      expect(start.left, greaterThanOrEqualTo(-0.01));
+      expect(start.right, lessThanOrEqualTo(middle.left));
+      expect(middle.right, lessThanOrEqualTo(end.left));
+      expect(end.right, lessThanOrEqualTo(300.01));
     });
 
     test('fits only a timeline with one time per sample', () {

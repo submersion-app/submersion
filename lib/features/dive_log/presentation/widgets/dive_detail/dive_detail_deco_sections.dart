@@ -71,6 +71,15 @@ class DiveTissueLoadingSection extends ConsumerWidget {
   }
 }
 
+/// Each chart profile's sample times, built once per profile list: the panel
+/// rebuilds on every cursor move, and a long dive has thousands of samples.
+final _profileTimestamps = Expando<List<int>>('profileTimestamps');
+
+List<int> _timestampsOf(List<DiveProfilePoint> profile) =>
+    _profileTimestamps[profile] ??= List.unmodifiable([
+      for (final point in profile) point.timestamp,
+    ]);
+
 String _formatTimestamp(int seconds) {
   final minutes = seconds ~/ 60;
   final secs = seconds % 60;
@@ -192,7 +201,7 @@ _decoPanelCards(
       subtitle: timeSubtitle,
       // The chart's series, which the deco statuses follow index for index;
       // the card drops the time axis if a retained analysis no longer matches.
-      profileTimestamps: [for (final point in chartProfile) point.timestamp],
+      profileTimestamps: _timestampsOf(chartProfile),
       expandVisualization: expand,
       onHeatMapHover: (index) {
         ref.read(profileTrackingIndexProvider(dive.id).notifier).state = index;

@@ -39,6 +39,8 @@ class TissueHeatMapCompartmentAxis extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Nothing to name: the strip paints no rows either.
+    if (compartmentCount <= 0) return const SizedBox(width: width);
     final style = _axisStyle(context);
     final rows = {0, (compartmentCount + 1) ~/ 2 - 1, compartmentCount - 1}
       ..removeWhere((row) => row < 0);
@@ -145,17 +147,22 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
     String at(int index) =>
         l10n.diveLog_deco_minutesValue('${timestamps[index] ~/ 60}');
 
+    // Each label owns a third of the width and shrinks to fit it, so the
+    // three never run into each other at large text.
     return ExcludeSemantics(
-      child: Stack(
+      child: Row(
         children: [
           for (final (alignment, index) in [
             (Alignment.centerLeft, 0),
             (Alignment.center, timestamps.length ~/ 2),
             (Alignment.centerRight, timestamps.length - 1),
           ])
-            Align(
-              alignment: alignment,
-              child: Text(at(index), style: style, maxLines: 1),
+            Expanded(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: alignment,
+                child: Text(at(index), style: style, maxLines: 1),
+              ),
             ),
         ],
       ),

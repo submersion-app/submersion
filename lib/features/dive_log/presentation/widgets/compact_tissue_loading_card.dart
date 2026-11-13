@@ -252,20 +252,43 @@ class _CompactTissueLoadingCardState
       );
     }
 
-    // Left to right whatever the text direction, like the painter: time runs
-    // left to right and compartment 1 sits at the top.
-    Widget withAxes(Widget strip) => Directionality(
-      textDirection: TextDirection.ltr,
-      child: Row(
+    // The strip with its compartment axis beside it and, when the times fit,
+    // the dive time under it. All of it left to right whatever the text
+    // direction, like the painter: time runs left to right and compartment 1
+    // sits at the top.
+    final withTime = TissueHeatMapTimeAxis.fits(timestamps, statuses.length);
+    Widget heatMapWithAxes({required bool expand}) {
+      final strip = Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TissueHeatMapCompartmentAxis(
             compartmentCount: statuses.first.compartments.length,
           ),
-          Expanded(child: strip),
+          Expanded(child: buildStrip(flexible: expand)),
         ],
-      ),
-    );
+      );
+      return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (expand)
+              Expanded(child: strip)
+            else
+              SizedBox(height: 72, child: strip),
+            if (withTime)
+              Padding(
+                // Under the strip, past the compartment axis.
+                padding: const EdgeInsets.only(
+                  left: TissueHeatMapCompartmentAxis.width,
+                  top: 2,
+                ),
+                child: TissueHeatMapTimeAxis(timestamps: timestamps!),
+              ),
+          ],
+        ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,20 +305,9 @@ class _CompactTissueLoadingCardState
         ),
         const SizedBox(height: 4),
         if (expandToFill)
-          Expanded(child: withAxes(buildStrip(flexible: true)))
+          Expanded(child: heatMapWithAxes(expand: true))
         else
-          SizedBox(height: 72, child: withAxes(buildStrip())),
-        if (TissueHeatMapTimeAxis.fits(timestamps, statuses.length))
-          Directionality(
-            textDirection: TextDirection.ltr,
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: TissueHeatMapCompartmentAxis.width,
-                top: 2,
-              ),
-              child: TissueHeatMapTimeAxis(timestamps: timestamps!),
-            ),
-          ),
+          heatMapWithAxes(expand: false),
       ],
     );
   }

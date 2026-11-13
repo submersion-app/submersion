@@ -26,6 +26,7 @@ import 'package:submersion/features/dive_log/presentation/pages/dive_detail_page
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/collapsible_section.dart';
@@ -1270,6 +1271,20 @@ void main() {
       expect(card.profileTimestamps, [
         for (final p in dive.profile) p.timestamp,
       ]);
+
+      // Moving the cursor rebuilds the panel; the times are not copied again.
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      ).read(profileTrackingIndexProvider(dive.id).notifier).state = 2;
+      await tester.pump();
+      final moved = tester.widget<CompactTissueLoadingCard>(
+        find.byType(CompactTissueLoadingCard),
+      );
+      expect(moved.subtitle, isNotNull);
+      expect(
+        identical(moved.profileTimestamps, card.profileTimestamps),
+        isTrue,
+      );
     });
 
     testWidgets(
