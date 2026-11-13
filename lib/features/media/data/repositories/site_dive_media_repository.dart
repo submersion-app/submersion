@@ -83,4 +83,39 @@ class SiteDiveMediaRepository {
       rethrow;
     }
   }
+
+  /// The [limit] newest media items on the dives at [siteId], with their
+  /// enrichment, for the strip on the site's dive photos card (issue #4502).
+  /// Undated items come after dated ones.
+  // stats-scope-exempt: a displayed gallery, which shows the media of
+  // excluded dives like the logbook shows the dives themselves.
+  Future<List<MediaItem>> getRecentMediaFromDivesAtSite(
+    String siteId, {
+    required int limit,
+  }) async {
+    try {
+      final rows = await _db
+          .customSelect(
+            '''
+        SELECT m.*, ${enrichmentSelectColumns(_db)}
+        FROM media m
+        LEFT JOIN media_enrichment e ON e.media_id = m.id
+        WHERE m.dive_id IN (SELECT id FROM dives WHERE site_id = ?)
+        ORDER BY m.taken_at IS NULL, m.taken_at DESC, m.id DESC
+        LIMIT ?
+      ''',
+            variables: [Variable.withString(siteId), Variable.withInt(limit)],
+          )
+          .get();
+
+      return [for (final row in rows) mediaItemFromJoinedRow(_db, row)];
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get recent media from dives at site: $siteId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
 }

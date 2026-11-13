@@ -75,6 +75,32 @@ final flatMediaFromDivesAtSiteProvider = FutureProvider.autoDispose
           .getMediaFromDivesAtSite(siteId);
     });
 
+/// Most photos the strip on the site's dive photos card reads: enough to fill
+/// one row on a wide desktop card. The card shows as many as fit.
+const int kSiteDivePhotoStripLimit = 12;
+
+/// The newest [kSiteDivePhotoStripLimit] media items from the dives logged at
+/// the site, for the strip on the site's dive photos card (issue #4502).
+///
+/// Takes the same ticks as [flatMediaFromDivesAtSiteProvider], for the same
+/// reasons: the viewer it opens shows the enrichment, and which dives belong
+/// to the site is a dives-table read.
+final recentMediaFromDivesAtSiteProvider = FutureProvider.autoDispose
+    .family<List<MediaItem>, String>((ref, siteId) async {
+      ref.invalidateSelfWhen(
+        ref.watch(mediaRepositoryProvider).watchMediaChanges(),
+      );
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDivesChanges(),
+      );
+      return ref
+          .watch(siteDiveMediaRepositoryProvider)
+          .getRecentMediaFromDivesAtSite(
+            siteId,
+            limit: kSiteDivePhotoStripLimit,
+          );
+    });
+
 /// Narrow writers for a site attachment's name, category and size
 /// (issue #1039).
 final siteAttachmentRepositoryProvider = Provider<SiteAttachmentRepository>(

@@ -121,6 +121,62 @@ void main() {
     });
   });
 
+  // The strip on the site's dive photos card (issue #4502).
+  group('getRecentMediaFromDivesAtSite', () {
+    test('returns the newest first, capped at the limit', () async {
+      await dive('d1', 'S');
+      await dive('d2', 'S');
+      for (var i = 1; i <= 5; i++) {
+        await media('p$i', diveId: i.isEven ? 'd2' : 'd1', takenAt: i * 1000);
+      }
+
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 3,
+      );
+      expect(items.map((m) => m.id), ['p5', 'p4', 'p3']);
+    });
+
+    test('undated photos come after dated ones', () async {
+      await dive('d1', 'S');
+      await media('undated', diveId: 'd1', takenAt: null);
+      await media('older', diveId: 'd1', takenAt: 1000);
+      await media('newer', diveId: 'd1', takenAt: 2000);
+
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 10,
+      );
+      expect(items.map((m) => m.id), ['newer', 'older', 'undated']);
+    });
+
+    test('excludes other sites and direct site attachments', () async {
+      await dive('d1', 'S');
+      await dive('elsewhere', 'other');
+      await media('mine', diveId: 'd1', takenAt: 1000);
+      await media('x', diveId: 'elsewhere', takenAt: 5000);
+      await media('direct', siteId: 'S', takenAt: 6000);
+
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 10,
+      );
+      expect(items.map((m) => m.id), ['mine']);
+    });
+
+    test('carries the enrichment of items that have one', () async {
+      await dive('d1', 'S');
+      await media('a', diveId: 'd1', takenAt: 1000);
+      await enrichment('a', 'd1', 12.0);
+
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 10,
+      );
+      expect(items.single.enrichment?.depthMeters, 12.0);
+    });
+  });
+
   // The provider this replaced hydrated every dive at the site, profile and
   // tank-pressure series included, then queried once per dive.
   group('statement budget', () {
