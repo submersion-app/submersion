@@ -394,6 +394,27 @@ void main() {
     expect(surface().elevation, closeTo(1, 1e-6));
   });
 
+  // Card-width under the header, it reads as the card tucked up there: its
+  // bottom corners keep the card's rounding all the way to pinned (#4488).
+  testWidgets('its bottom corners stay round as it condenses', (tester) async {
+    for (final condense in [0.0, 0.5, 1.0]) {
+      await pumpMorphing(tester, condense: condense, background: 1);
+      final surface = tester.widget<Material>(
+        find
+            .descendant(
+              of: find.byType(PinnedProfileStrip),
+              matching: find.byType(Material),
+            )
+            .first,
+      );
+      expect(
+        surface.borderRadius,
+        const BorderRadius.vertical(bottom: Radius.circular(12)),
+        reason: 'condense=$condense',
+      );
+    }
+  });
+
   testWidgets('the strip has a semantics label', (tester) async {
     final handle = tester.ensureSemantics();
     await pump(tester);

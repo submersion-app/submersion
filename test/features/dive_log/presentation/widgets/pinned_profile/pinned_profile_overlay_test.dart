@@ -110,6 +110,7 @@ void main() {
     ValueNotifier<double>? width,
     ValueNotifier<ChartViewport>? chartViewport,
     double footerHeight = footer,
+    double pagePadding = 0,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -162,6 +163,7 @@ void main() {
                     ],
                   ),
                   child: SingleChildScrollView(
+                    padding: EdgeInsets.symmetric(horizontal: pagePadding),
                     child: Column(
                       children: [
                         const SizedBox(height: profileTop),
@@ -572,8 +574,32 @@ void main() {
     expect(copyKey, findsNothing);
     expect(
       tester.getTopLeft(strip),
-      tester.getTopLeft(find.byType(PinnedProfileOverlay)),
+      tester.getTopLeft(find.byType(PinnedProfileOverlay)) + const Offset(4, 0),
     );
+  });
+
+  // It pins over the other cards, so it is only as wide as they are: inside
+  // the profile card's margin from the first frame of the fade to pinned,
+  // never widening out to the page's edges (#4488).
+  testWidgets('the strip keeps the card width while condensing and pinned', (
+    tester,
+  ) async {
+    final profileKey = GlobalKey();
+    await pump(tester, profileKey: profileKey, pagePadding: 16);
+    final card = tester.getRect(find.byKey(profileKey));
+    expect(card.left, closeTo(16, 0.01));
+    for (final t in [fadeEnd / 2, (1 + fadeEnd) / 2, 0.9]) {
+      await condenseTo(tester, t);
+      final box = tester.getRect(strip);
+      expect(box.left, closeTo(card.left + 4, 0.01), reason: 't=$t');
+      expect(box.right, closeTo(card.right - 4, 0.01), reason: 't=$t');
+    }
+    await jump(tester, 800);
+    final pinned = tester.getRect(strip);
+    expect(pinned.left, closeTo(card.left + 4, 0.01));
+    expect(pinned.right, closeTo(card.right - 4, 0.01));
+    expect(pinned.top, closeTo(overlayTop(tester), 0.01));
+    expect(pinned.height, kPinnedStripHeight);
   });
 
   testWidgets('after a resize the strip line still starts on the copy plot', (

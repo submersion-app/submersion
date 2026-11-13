@@ -28,8 +28,8 @@ const double _cardRadius = 12;
 ///
 /// The same widget draws the condense itself, so it never swaps for another
 /// at any point: below [condense] 1 it fills whatever box it is given (the
-/// shrinking footprint of the profile card), its corners rounding like the
-/// card's and its values row fading in. Its depth line starts exactly on the
+/// shrinking footprint of the profile card), its bottom corners rounded like
+/// the card's and its values row fading in. Its depth line starts exactly on the
 /// full chart's ([morphFrom]) and moves continuously into the strip, so only
 /// one depth line is ever seen.
 class PinnedProfileStrip extends ConsumerStatefulWidget {
@@ -133,10 +133,11 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         // Colour and shadow follow the scroll frame by frame already; the
         // surface's own ease would lag a fast scroll and flash.
         animationDuration: Duration.zero,
-        // It starts across the card at the plot's top, so only its bottom
-        // corners round, like the card's own.
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(_cardRadius * (1 - condense)),
+        // It starts across the card at the plot's top and pins flush under
+        // the header at the card's width, so only its bottom corners round,
+        // like the card's own, condensing and pinned alike (#4488).
+        borderRadius: const BorderRadius.vertical(
+          bottom: Radius.circular(_cardRadius),
         ),
         clipBehavior: Clip.antiAlias,
         child: SizedBox(

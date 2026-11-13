@@ -307,7 +307,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
           _lastConstraints = constraints;
           _scheduleMeasure();
         }
-        final drawn = pinned ? _pinned(card, constraints.maxWidth) : null;
+        final drawn = pinned ? _pinned(card) : null;
         return Stack(
           children: [
             NotificationListener<ScrollMetricsNotification>(
@@ -338,7 +338,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
 
   /// What is pinned over the page for [card]: the [box] it all covers, on
   /// the overlay, and the [child] drawn in it.
-  ({Rect box, Widget child}) _pinned(Rect card, double width) {
+  ({Rect box, Widget child}) _pinned(Rect card) {
     // One motion: the squash and the slide share the scroll, finishing
     // together as the plot reaches the top, and the strip starts to fade in
     // before they do, so no step starts or stops on its own.
@@ -386,9 +386,12 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       card.right - margin.right,
       math.max(card.bottom - margin.bottom, 0),
     );
+    // It keeps the card's width throughout, so pinned it is only as wide as
+    // the other cards on the page (#4488): the condense only moves its top
+    // up to the page's and its bottom up to the strip's height.
     final toward = Rect.lerp(
       from,
-      Rect.fromLTWH(0, 0, width, kPinnedStripHeight),
+      Rect.fromLTRB(from.left, 0, from.right, kPinnedStripHeight),
       morph,
     )!;
     // Its bottom never rises above the card's own while any card is left,
