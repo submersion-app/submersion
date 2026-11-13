@@ -15,7 +15,8 @@ SLOGAN = "Dive safe. Log everything."
 # The leading letters of NAME the red rule underlines, ink edge to ink edge.
 RULE_SPAN = "Sub"
 # The rule starts at the name's left ink edge, which is right only for a prefix.
-assert NAME.startswith(RULE_SPAN), "RULE_SPAN must be a leading prefix of NAME"
+if not NAME.startswith(RULE_SPAN):
+    raise ValueError(f"RULE_SPAN {RULE_SPAN!r} must be a leading prefix of NAME {NAME!r}")
 
 # Reference proportions, in pixels, at a 340px icon on the approved card.
 REF_ICON = 340.0
