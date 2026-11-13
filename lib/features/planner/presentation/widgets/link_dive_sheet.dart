@@ -6,17 +6,25 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// How the dive pickers name [dive]: its name, else its number, else its date,
-/// over the date, depth and runtime.
+/// How the dive pickers name [dive]: its number, then its name or else its
+/// site (`#42 · Blue Hole`), or its date when it has none of those, over the
+/// date, depth and runtime.
+///
+/// Most logged dives have no name, so the site is what tells the rows apart
+/// (issue #4485).
 ({String title, String subtitle}) diveRowLabels(
   Dive dive,
   UnitFormatter units,
 ) {
   final date = units.formatDate(dive.entryTime ?? dive.dateTime);
+  final number = dive.diveNumber;
+  final siteName = dive.site?.name.trim();
+  final place =
+      dive.effectiveName ??
+      ((siteName == null || siteName.isEmpty) ? null : siteName);
+  final title = [if (number != null) '#$number', ?place].join(' · ');
   return (
-    title: (dive.name?.isNotEmpty ?? false)
-        ? dive.name!
-        : (dive.diveNumber != null ? '#${dive.diveNumber}' : date),
+    title: title.isEmpty ? date : title,
     subtitle: [
       date,
       if (dive.maxDepth != null) units.formatDepth(dive.maxDepth!),

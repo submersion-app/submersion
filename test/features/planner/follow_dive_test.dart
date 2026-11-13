@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_gas_section.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_series_providers.dart';
@@ -106,9 +107,9 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
     expect(find.byType(FollowDiveSheet), findsOneWidget);
-    expect(find.text('Reef drift'), findsOneWidget);
+    expect(find.text('#42 · Reef drift'), findsOneWidget);
 
-    await tester.tap(find.text('Reef drift'));
+    await tester.tap(find.text('#42 · Reef drift'));
     await tester.pumpAndSettle();
 
     // The series follows the dive; the plan's own source dive is left for
@@ -153,7 +154,7 @@ void main() {
     await tester.tap(find.text('open'));
     await tester.pumpAndSettle();
     await withClock(Clock.fixed(now), () async {
-      await tester.tap(find.text('Reef drift'));
+      await tester.tap(find.text('#42 · Reef drift'));
       await tester.pumpAndSettle();
     });
     return container.read(divePlanNotifierProvider).surfaceInterval;
@@ -238,5 +239,32 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('No logged dives yet'), findsOneWidget);
+  });
+
+  // Issue #4485: most dives have no name, so a row titled by its number
+  // alone left the diver guessing which dive was where.
+  testWidgets('FollowDiveSheet names the site of a dive with no name', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+          divesProvider.overrideWith(
+            (ref) async => [
+              Dive(
+                id: 'dive-1',
+                diveNumber: 12,
+                dateTime: DateTime(2026, 7, 1, 9),
+                site: const DiveSite(id: 'site-1', name: 'Blue Hole'),
+              ),
+            ],
+          ),
+        ],
+        child: const FollowDiveSheet(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('#12 · Blue Hole'), findsOneWidget);
   });
 }
