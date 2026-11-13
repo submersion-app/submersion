@@ -408,7 +408,7 @@ class PinnedStripPainter extends CustomPainter {
 /// mapping and clip so it sits exactly on the curve [strip] draws.
 ///
 /// Apart from the strip's own painter, so moving the cursor repaints only
-/// the cursor, not the depth curve, bands, NDL line and max-depth label.
+/// the cursor, not the depth curve, bands, NDL line and max-depth marker.
 class PinnedStripCursorPainter extends CustomPainter {
   const PinnedStripCursorPainter({
     required this.strip,

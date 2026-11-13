@@ -480,7 +480,7 @@ void main() {
   });
 
   // The cursor has a painter of its own, so moving it repaints only the
-  // cursor, not the curve, bands, NDL line and label (review).
+  // cursor, not the curve, bands, NDL line and marker (review).
   group('cursor', () {
     PinnedStripCursorPainter cursor(int? seconds, {double morph = 1}) =>
         PinnedStripCursorPainter(

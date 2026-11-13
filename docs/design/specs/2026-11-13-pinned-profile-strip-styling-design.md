@@ -101,7 +101,6 @@ in deco and lost the colour link to the lines).
 
 ## Left to the builder
 
-- How the label-placement check against the NDL line is done.
 - Removing the now-unused hint strings from every ARB file and from
   `test/l10n/kept_english_values.dart`.
 
