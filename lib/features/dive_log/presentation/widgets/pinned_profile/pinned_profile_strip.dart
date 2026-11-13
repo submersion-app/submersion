@@ -230,6 +230,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                                     _darkLabelLift,
                                   )!
                                 : maxDepthColor,
+                            maxDepthLabelStyle: theme.textTheme.labelSmall,
                             surfaceColor: colors.surfaceContainerLow,
                             ndlColor: palette.colorOf(ProfileMetric.ndl),
                             ceilingColor: palette.colorOf(

@@ -198,6 +198,28 @@ void main() {
     expect(painter.maxDepthLabel, '30.0m');
   });
 
+  // A raw TextPainter has no theme: without the app's label style the
+  // max-depth label fell back to the engine's default font.
+  testWidgets('labels the max depth in the theme\'s label style', (
+    tester,
+  ) async {
+    await pump(tester);
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.byWidgetPredicate(
+                    (w) => w is CustomPaint && w.painter is PinnedStripPainter,
+                  ),
+                )
+                .painter!
+            as PinnedStripPainter;
+    final labelSmall = Theme.of(
+      tester.element(find.byType(PinnedProfileStrip)),
+    ).textTheme.labelSmall;
+    expect(painter.maxDepthLabelStyle, isNotNull);
+    expect(painter.maxDepthLabelStyle!.fontFamily, labelSmall!.fontFamily);
+  });
+
   testWidgets('a horizontal drag writes the cursor index', (tester) async {
     final c = await pump(tester);
     final gesture = await tester.startGesture(at(tester, 0.1));

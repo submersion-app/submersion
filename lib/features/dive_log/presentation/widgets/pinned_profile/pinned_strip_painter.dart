@@ -107,6 +107,7 @@ class PinnedStripPainter extends CustomPainter {
     this.decoStopCurve,
     this.maxDepthLabel,
     this.maxDepthLabelColor = ProfileMetricColors.maxDepth,
+    this.maxDepthLabelStyle,
     this.surfaceColor = const Color(0x00000000),
     this.ndlColor = ProfileMetricColors.ndl,
     this.ceilingColor = ProfileMetricColors.ceiling,
@@ -138,6 +139,10 @@ class PinnedStripPainter extends CustomPainter {
   /// The max depth, formatted in the diver's units, beside the max-depth dot.
   final String? maxDepthLabel;
   final Color maxDepthLabelColor;
+
+  /// The app's text style the label is set in (the theme's `labelSmall`);
+  /// its size, weight and colour are the label's own.
+  final TextStyle? maxDepthLabelStyle;
 
   /// The strip's background, which rings the max-depth dot.
   final Color surfaceColor;
@@ -338,7 +343,7 @@ class PinnedStripPainter extends CustomPainter {
     final label = TextPainter(
       text: TextSpan(
         text: text,
-        style: TextStyle(
+        style: (maxDepthLabelStyle ?? const TextStyle()).copyWith(
           fontSize: _maxDepthLabelSize,
           fontWeight: FontWeight.w600,
           color: maxDepthLabelColor.withValues(
@@ -457,6 +462,7 @@ class PinnedStripPainter extends CustomPainter {
       old.decoStopCurve != decoStopCurve ||
       old.maxDepthLabel != maxDepthLabel ||
       old.maxDepthLabelColor != maxDepthLabelColor ||
+      old.maxDepthLabelStyle != maxDepthLabelStyle ||
       old.surfaceColor != surfaceColor ||
       old.ndlColor != ndlColor ||
       old.ceilingColor != ceilingColor ||
