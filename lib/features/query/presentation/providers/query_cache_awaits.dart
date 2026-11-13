@@ -4,6 +4,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
+import 'package:submersion/features/equipment/data/services/service_status_overlay.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 
@@ -74,9 +78,9 @@ Future<void> awaitAndFollowQueryCaches(
 /// behalf of [diverId]: a rule run, an agent's query.
 ///
 /// For another profile than the active one, its dives' deco verdicts are
-/// judged under its own settings (#4461). The service-due cache holds the
-/// active profile's verdicts only; the agent's query tool overlays another
-/// profile's itself.
+/// judged under its own settings (#4461), and its service verdicts, which
+/// the service cache does not hold, come back as a CTE overlay for the
+/// caller to run its query with.
 ///
 /// Waits through the container, not a listener on [ref]: the caller is a
 /// long-lived service provider that is usually paused (read, never
@@ -87,20 +91,24 @@ Future<void> awaitAndFollowQueryCaches(
 /// [diveIds], when given, are the only dives whose deco verdicts the query
 /// reads (a rule run over an import's dives, whose conditions read `deco`
 /// on the dive itself): just those are analyzed, rather than the logbook.
-Future<void> prepareQueryCachesFor(
+Future<QueryCte?> prepareQueryCachesFor(
   Ref ref,
   String diverId,
   Set<String> tables, {
   Set<String>? diveIds,
 }) async {
   final readsDeco = tables.contains(kDiveDecoStatusTable);
+  final readsService = tables.contains(serviceStatusTable);
   final active = await ref.read(validatedCurrentDiverIdProvider.future);
   if (diverId != active) {
     if (readsDeco) {
       await refreshDiveDecoStatusFor(ref, diverId, diveIds, isActive: false);
     }
-    return;
+    return readsService ? _serviceOverlayFor(ref, diverId) : null;
   }
+  // The service clocks re-evaluate on undebounced ticks of their ledger and
+  // gear tables, so the writer awaited below has already seen a write made
+  // just before this call (pinned by the rule engine provider tests).
   final targeted = readsDeco && diveIds != null;
   await Future.wait<void>([
     for (final writer in _writersFor(tables.difference({kDiveDecoStatusTable})))
@@ -110,6 +118,27 @@ Future<void> prepareQueryCachesFor(
     else if (readsDeco)
       _awaitCurrentDecoPass(ref.container),
   ]);
+  return null;
+}
+
+/// [diverId]'s service verdicts as a CTE shadowing the service cache, which
+/// holds the active profile's only: evaluated under [diverId]'s own
+/// settings, as the agent's query tool does for a named profile.
+Future<QueryCte> _serviceOverlayFor(Ref ref, String diverId) async {
+  final settings =
+      await ref
+          .read(diverSettingsRepositoryProvider)
+          .getSettingsForDiver(diverId) ??
+      const AppSettings();
+  return serviceStatusOverlay(
+    diverId: diverId,
+    settings: settings,
+    equipment: ref.read(equipmentRepositoryProvider),
+    serviceKinds: ref.read(serviceKindRepositoryProvider),
+    schedules: ref.read(serviceScheduleRepositoryProvider),
+    records: ref.read(serviceRecordRepositoryProvider),
+    now: DateTime.now(),
+  );
 }
 
 /// Waits for a deco writer pass that has seen every write before this call.

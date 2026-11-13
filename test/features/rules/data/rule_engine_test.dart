@@ -349,6 +349,27 @@ void main() {
       prepareCaches: (_, tables, ids) async {
         prepared.add(tables);
         diveIds?.add(ids);
+        return null;
+      },
+    );
+
+    test(
+      'an overlay the caches return is what the rules match against',
+      () async {
+        // A run for another profile gets that profile's verdicts as a CTE
+        // shadowing the cache table, which holds the active profile's only.
+        await rule('Deco', deco, tagCold);
+        final result = await RuleEngine(
+          names: (_) async => NameIndex(const []),
+          deviceLabel: () async => 'Test device',
+          prepareCaches: (_, _, _) async => (
+            sql:
+                'WITH $kDiveDecoStatusTable(dive_id, had_deco) AS '
+                "(SELECT 'd20', 1)",
+            params: const <Object>[],
+          ),
+        ).run(request(trigger: RuleRunTrigger.imported, dives: {'d20', 'd35'}));
+        expect({for (final c in result.changes) c.targetId}, {'d20'});
       },
     );
 

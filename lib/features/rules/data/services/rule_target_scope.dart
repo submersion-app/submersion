@@ -54,18 +54,26 @@ class RuleTargetScope {
   /// The ids among [targetIds] that [condition] matches and the diver may
   /// change, queried in chunks of [kRuleIdChunk]. A null condition matches
   /// every eligible target.
+  ///
+  /// [cte] shadows a cache table with another profile's verdicts, for a run
+  /// on a profile the cache does not hold.
   Future<Set<String>> matches(
     QueryNode? condition,
     RuleSubject s,
     String diverId,
-    Set<String> targetIds,
-  ) async {
+    Set<String> targetIds, {
+    QueryCte? cte,
+  }) async {
     if (targetIds.isEmpty) return {};
     final compiled = _compile(condition, s, diverId);
     final out = <String>{};
     for (final chunk in ruleIdChunks(targetIds.toList())) {
       out.addAll(
-        await _runner.ids(compiled, scope: scopeFor(s, diverId, chunk)),
+        await _runner.ids(
+          compiled,
+          scope: scopeFor(s, diverId, chunk),
+          cte: cte,
+        ),
       );
     }
     return out;

@@ -9,7 +9,7 @@ import 'package:submersion/features/agent_access/data/query_roots.dart';
 import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/agent_access/data/root_scope.dart';
-import 'package:submersion/features/agent_access/data/service_status_overlay.dart';
+import 'package:submersion/features/equipment/data/services/service_status_overlay.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/tool_args.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -149,7 +149,10 @@ class QueryTool implements AgentTool {
         ? await serviceStatusOverlay(
             diverId: ctx.diverId,
             settings: ctx.settings,
-            repositories: _catalog.repositories,
+            equipment: _catalog.repositories.equipment,
+            serviceKinds: _catalog.repositories.serviceKinds,
+            schedules: _catalog.repositories.serviceSchedules,
+            records: _catalog.repositories.serviceRecords,
             now: now,
           )
         : null;
