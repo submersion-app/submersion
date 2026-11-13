@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -30,11 +32,13 @@ void main() {
     List<String>? recentReads,
     List<String>? allReads,
     Object? recentError,
+    Future<List<MediaItem>>? pendingRecent,
   }) => mediaTestApp(
     overrides: [
       recentMediaFromDivesAtSiteProvider('site-1').overrideWith((ref) async {
         recentReads?.add('site-1');
         if (recentError != null) throw recentError;
+        if (pendingRecent != null) return pendingRecent;
         return recent;
       }),
       flatMediaFromDivesAtSiteProvider('site-1').overrideWith((ref) async {
@@ -191,6 +195,45 @@ void main() {
     expect(viewer.siteId, 'site-1');
     expect(viewer.initialMediaId, 'p1');
     expect(viewer.scope, SiteViewerScope.divePhotos);
+  });
+
+  testWidgets('tapping a photo in the expanded grid opens the viewer there', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      await host(
+        count: 9,
+        recent: photos(9),
+        all: photos(9, prefix: 'a'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Show all'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(MediaThumbnailTile).at(6));
+    await tester.pumpAndSettle();
+
+    final viewer = tester.widget<SiteMediaViewerPage>(
+      find.byType(SiteMediaViewerPage),
+    );
+    expect(viewer.initialMediaId, 'a6');
+    expect(viewer.scope, SiteViewerScope.divePhotos);
+  });
+
+  testWidgets('a strip still loading shows a spinner', (tester) async {
+    final pending = Completer<List<MediaItem>>();
+    await tester.pumpWidget(
+      await host(count: 2, pendingRecent: pending.future),
+    );
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(MediaThumbnailTile), findsNothing);
+
+    pending.complete(photos(2));
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byType(MediaThumbnailTile), findsNWidgets(2));
   });
 
   testWidgets('a failed read shows the error text', (tester) async {
