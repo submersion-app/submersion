@@ -189,6 +189,33 @@ void main() {
         expect(await revision(), isNot(before));
       });
 
+      test("moves on its site's water type, which never re-stamps the dive "
+          '(#4461)', () async {
+        // The analysis reads the effective water type (salinity moves the
+        // ambient pressure), so a verdict cached under the old one is stale.
+        await db
+            .into(db.diveSites)
+            .insert(
+              DiveSitesCompanion(
+                id: const Value('reef'),
+                name: const Value('Reef'),
+                waterType: const Value('salt'),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
+        await db.customStatement(
+          "UPDATE dives SET site_id = 'reef' WHERE id = 'bare'",
+        );
+        final before = await revision();
+
+        await db.customStatement(
+          "UPDATE dive_sites SET water_type = 'fresh' WHERE id = 'reef'",
+        );
+
+        expect(await revision(), isNot(before));
+      });
+
       test("moves on the dive's own profile too", () async {
         final before = await revision();
 

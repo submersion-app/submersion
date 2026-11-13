@@ -6,6 +6,22 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
+int _lastDecoWriteStamp = 0;
+
+/// A write stamp for the deco verdict cache's `computed_at`: epoch
+/// microseconds, and always greater than the last one this process took.
+/// A pass records one when it begins and leaves alone rows stamped after it
+/// ([DiveDecoStatusRepository.replaceFor]'s `keepWrittenAfter`), so a stamp
+/// that could tie with the wall clock would let a pass overwrite a verdict a
+/// targeted refresh wrote in the same instant.
+int nextDecoWriteStamp() {
+  final now = DateTime.now().microsecondsSinceEpoch;
+  _lastDecoWriteStamp = now > _lastDecoWriteStamp
+      ? now
+      : _lastDecoWriteStamp + 1;
+  return _lastDecoWriteStamp;
+}
+
 /// The local deco verdict cache (`dive_deco_status`, v362): whether each
 /// dive with no recorded deco signal had a deco obligation, as the dive
 /// analysis last judged it under its own diver's settings (issue #4461). The

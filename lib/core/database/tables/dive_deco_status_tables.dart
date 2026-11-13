@@ -27,7 +27,8 @@ class DiveDecoStatus extends Table {
   /// Whether the analysis found a decompression obligation on the dive.
   BoolColumn get hadDeco => boolean()();
 
-  /// When this verdict was written, epoch ms.
+  /// When this verdict was written: a write stamp, epoch microseconds, that
+  /// never ties within a run (`nextDecoWriteStamp`).
   IntColumn get computedAt => integer()();
 
   @override

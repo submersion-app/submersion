@@ -118,7 +118,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'time_offset_seconds': 'Seconds added to this source\'s own sample times to place them on the dive\'s timeline',
   },
   'dive_deco_status': {
-    'computed_at': 'When this verdict was written, epoch ms',
+    'computed_at': 'When this verdict was written: a write stamp, epoch microseconds, that never ties within a run (`nextDecoWriteStamp`)',
     'had_deco': 'Whether the analysis found a decompression obligation on the dive',
   },
   'dive_derived_metrics': {

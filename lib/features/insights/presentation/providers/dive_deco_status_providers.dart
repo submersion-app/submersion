@@ -7,6 +7,7 @@ import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -32,7 +33,7 @@ final diveDecoStatusRepositoryProvider = Provider<DiveDecoStatusRepository>(
 ///
 /// Re-runs on a diver switch, an analysis settings edit, and any write that
 /// can move a dive's verdict or its revision (the tables of
-/// [diveSourceStampSql], plus the stop events the recorded signal reads). It
+/// [diveSourceStampSql], plus the analysis inputs and the stop events the recorded signal reads). It
 /// runs only on demand: every provider whose query reads the cache awaits it
 /// through `awaitQueryCachesIfRead`, and `queryCachesKeeperProvider`
 /// keeps it alive while a live filter names `deco`, so a diver who never
@@ -63,7 +64,7 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
     ).debounce(QueryIdSetRunner.changeTickDebounce),
   );
   final startedFrom = ref.read(diveDecoInputWritesProvider);
-  final startedAt = DateTime.now().millisecondsSinceEpoch;
+  final startedAt = nextDecoWriteStamp();
 
   // An Insights filter naming deco makes every card wait for this pass
   // (#4461), and a cold library's first pass runs for minutes on a phone
@@ -106,7 +107,7 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
         // This diver's dives only: another profile's rows, prepared for a
         // query on that profile, are not this pass's to remove.
         diveIds: judged.scanned,
-        computedAt: DateTime.now().millisecondsSinceEpoch,
+        computedAt: nextDecoWriteStamp(),
         // A targeted refresh may have written newer verdicts meanwhile.
         keepWrittenAfter: startedAt,
       );
@@ -159,9 +160,14 @@ Future<({Map<String, bool> verdicts, Set<String> scanned})?> _judgeDiverDives(
 final _containerRefProvider = Provider<Ref>((ref) => ref);
 
 /// The tables a dive's deco verdict derives from: those of
-/// [diveSourceStampSql], plus the stop events the recorded signal reads.
+/// [diveSourceStampSql] and [diveAnalysisInputsStampSql] (the site's water,
+/// the gas switches, the primary computer), plus the stop events the
+/// recorded signal reads.
 List<TableUpdateQuery> _verdictInputTables(AppDatabase db) => [
-  for (final table in diveSourceStampTables(db))
+  for (final table in {
+    ...diveSourceStampTables(db),
+    ...diveAnalysisInputsStampTables(db),
+  })
     TableUpdateQuery.onTable(table),
   TableUpdateQuery.onTable(db.diveProfileEvents),
 ];
@@ -259,7 +265,7 @@ Future<void> refreshDiveDecoStatusFor(
         // The scan already kept to [diveIds] and to [diverId]'s dives, so a
         // named dive of another profile keeps its own verdict.
         diveIds: judged.scanned,
-        computedAt: DateTime.now().millisecondsSinceEpoch,
+        computedAt: nextDecoWriteStamp(),
       );
   if (memoized) {
     final passes = ref.read(_profileDecoPassesProvider.notifier);

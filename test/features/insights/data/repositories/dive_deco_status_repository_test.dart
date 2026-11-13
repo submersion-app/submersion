@@ -97,6 +97,16 @@ void main() {
     expect(await repo.verdicts(), {'a': false, 'b': true});
   });
 
+  test('write stamps never tie, however fast they are taken', () {
+    // A pass that begins and a targeted refresh that writes in the same
+    // instant must still be ordered, or the pass would treat the newer row
+    // as one it may replace.
+    final stamps = [for (var i = 0; i < 1000; i++) nextDecoWriteStamp()];
+    for (var i = 1; i < stamps.length; i++) {
+      expect(stamps[i], greaterThan(stamps[i - 1]));
+    }
+  });
+
   test('a verdict for a dive deleted mid-analysis is skipped', () async {
     // The analysis judged 'ghost', then it was deleted before the write:
     // the cache keeps the live dives instead of failing the whole write on

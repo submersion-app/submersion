@@ -32,6 +32,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show DiveProfilePoint;
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
+import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
@@ -2832,7 +2833,8 @@ class InsightsRepository with InsightsChartDives {
           c.dive_id AS dive_id,
           c.classification AS classification,
           CASE WHEN c.classification = 'compute' THEN
-            ${diveSourceStampSql('d')} + ${earlierDivesRevisionSql('d')}
+            ${diveSourceStampSql('d')} + ${diveAnalysisInputsStampSql('d')} +
+            ${earlierDivesRevisionSql('d')}
           END AS revision
         FROM classified c
         JOIN dives d ON d.id = c.dive_id
