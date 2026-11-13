@@ -592,11 +592,15 @@ void main() {
         find.descendant(of: box, matching: find.byType(Stack)).first,
       );
       expect(stack.clipBehavior, Clip.none, reason: '$pixels');
-      expect(
-        find.ancestor(of: strip, matching: find.byType(ClipRect)),
-        findsNothing,
-        reason: '$pixels',
-      );
+      // The only clip over it is the page's own, well below its shadow.
+      final clips = find.ancestor(of: strip, matching: find.byType(ClipRect));
+      for (final clip in clips.evaluate()) {
+        expect(
+          tester.getRect(find.byWidget(clip.widget)),
+          tester.getRect(find.byType(PinnedProfileOverlay)),
+          reason: '$pixels',
+        );
+      }
     }
     // Settled, the strip reaches the bottom of the box, where its shadow
     // falls: any clip there takes all of it.
@@ -604,6 +608,26 @@ void main() {
       tester.getRect(strip).bottom,
       tester.getRect(find.byKey(const ValueKey('pinnedProfileBox'))).bottom,
     );
+  });
+
+  // The copy slides up past the page's top as it pins. With the box around
+  // it unclipped (for the strip's shadow), only a clip on the overlay
+  // itself keeps that part off whatever is above the page, the dive's
+  // header, where it showed the full chart beside the strip (#4488).
+  testWidgets('the sliding copy never draws above the page', (tester) async {
+    await pump(tester, profileKey: GlobalKey());
+    await condenseTo(tester, fadeEnd / 2);
+    expect(
+      tester.getTopLeft(copyKey).dy,
+      lessThan(overlayTop(tester)),
+      reason: 'the copy has slid above the page',
+    );
+    final overlay = tester.getRect(find.byType(PinnedProfileOverlay));
+    final pageClips = find
+        .ancestor(of: copyKey, matching: find.byType(ClipRect))
+        .evaluate()
+        .where((clip) => tester.getRect(find.byWidget(clip.widget)) == overlay);
+    expect(pageClips, isNotEmpty);
   });
 
   // It pins over the other cards, so it is only as wide as they are: inside
