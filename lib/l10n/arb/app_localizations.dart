@@ -98178,7 +98178,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_tissueCompartment_body.
   ///
   /// In en, this message translates to:
-  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.'**
+  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones long and repeat dives; the tissue names are rough examples, not anatomy.'**
   String get info_term_tissueCompartment_body;
 
   /// No description provided for @info_term_leadingCompartment_label.
