@@ -10756,6 +10756,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'אין עדיין אתרי צלילה';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'ליד האתרים של הצלילות האחרות שלך';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'ממוין לפי מרחק';
 
   @override
@@ -12642,6 +12646,32 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'בקרבת מקום';
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'לא ניתן היה להוסיף את האתר';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'פרטי האתר';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'אתרים נוספים ליד $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'אתרים נוספים בקרבת מקום';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'אתרים מובנים';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'הצגת כל ה-$count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'שימוש באתר זה';
 
   @override
   String get diveSites_list_groupBy => 'קיבוץ לפי';

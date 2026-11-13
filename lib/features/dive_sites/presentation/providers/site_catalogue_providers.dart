@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_area_anchor_repository.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
@@ -81,3 +82,14 @@ final catalogueAdoptionServiceProvider = Provider<CatalogueAdoptionService>((
 final siteAreaAnchorRepositoryProvider = Provider<SiteAreaAnchorRepository>(
   (ref) => SiteAreaAnchorRepository(),
 );
+
+/// Adopts a catalogue site for the current diver.
+///
+/// The site picker goes through this, so a widget test can stand in for
+/// the database with one override.
+// no-tick: the value is a function that writes, not data.
+final catalogueSiteAdopterProvider =
+    Provider<Future<DiveSite> Function(CatalogueSite site)>((ref) {
+      return (site) =>
+          ref.read(siteListNotifierProvider.notifier).adoptCatalogueSite(site);
+    });

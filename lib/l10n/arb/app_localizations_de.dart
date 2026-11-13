@@ -10992,6 +10992,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Noch keine Tauchplätze';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'In der Nähe der Tauchplätze anderer Tauchgänge';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Nach Entfernung sortiert';
 
   @override
@@ -12916,6 +12920,33 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'In der Nähe';
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Tauchplatz konnte nicht hinzugefügt werden';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Details zum Tauchplatz';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Weitere Tauchplätze bei $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby =>
+      'Weitere Tauchplätze in der Nähe';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Integrierte Tauchplätze';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Alle $count anzeigen';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Diesen Tauchplatz verwenden';
 
   @override
   String get diveSites_list_groupBy => 'Gruppieren nach';

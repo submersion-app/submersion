@@ -63,6 +63,9 @@ class PlanDiveSiteField extends ConsumerWidget {
       allowClear: true,
       // Planning a dive is no reason to ask where the diver is now.
       useDeviceLocation: false,
+      // A plan is often for a site not dived yet: the built-in catalogue is
+      // offered when the diver searches (with no anchor, only then).
+      showBuiltIn: true,
     );
     // The field may have gone while the picker was open (a layout change).
     if (!context.mounted) return;

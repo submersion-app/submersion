@@ -10438,6 +10438,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sitePicker_noSites => '暂无潜水点';
 
   @override
+  String get diveLog_sitePicker_sortedByArea => '靠近你其他潜水的潜水点';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => '按距离排序';
 
   @override
@@ -12284,6 +12287,31 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => '附近';
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => '无法添加此潜水点';
+
+  @override
+  String get diveSites_picker_builtIn_details => '潜水点详情';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return '$place附近的更多潜水点';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => '附近的更多潜水点';
+
+  @override
+  String get diveSites_picker_builtIn_search => '内置潜水点';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return '显示全部 $count 个';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => '使用此潜水点';
 
   @override
   String get diveSites_list_groupBy => '分组方式';

@@ -10827,6 +10827,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'No dive sites yet';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Near the sites of your other dives';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Sorted by distance';
 
   @override
@@ -12725,6 +12729,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'Nearby';
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => 'Could not add this site';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Site details';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'More sites near $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'More sites nearby';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Built-in sites';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Show all $count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Use this site';
 
   @override
   String get diveSites_list_groupBy => 'Group by';

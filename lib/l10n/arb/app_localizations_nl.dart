@@ -10930,6 +10930,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Nog geen duikstekken';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Bij de stekken van je andere duiken';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Gesorteerd op afstand';
 
   @override
@@ -12841,6 +12845,32 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'In de buurt';
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Stek kon niet worden toegevoegd';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Details van de stek';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Meer stekken bij $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Meer stekken in de buurt';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Ingebouwde stekken';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Alle $count tonen';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Deze stek gebruiken';
 
   @override
   String get diveSites_list_groupBy => 'Groeperen op';

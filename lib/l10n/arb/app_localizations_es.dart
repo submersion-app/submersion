@@ -11002,6 +11002,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Aún no hay puntos de buceo';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Cerca de los sitios de tus otras inmersiones';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Ordenados por distancia';
 
   @override
@@ -12926,6 +12930,32 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'Cerca';
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'No se pudo añadir este sitio';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Detalles del sitio';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Más sitios cerca de $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Más sitios cercanos';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Sitios integrados';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Mostrar los $count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Usar este sitio';
 
   @override
   String get diveSites_list_groupBy => 'Agrupar por';

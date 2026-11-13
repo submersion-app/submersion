@@ -10975,6 +10975,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Még nincsenek merülőhelyek';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'A többi merülésed helyszíneinek közelében';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Távolság szerint rendezve';
 
   @override
@@ -12893,6 +12897,33 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'A közelben';
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'A merülőhely hozzáadása nem sikerült';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Merülőhely részletei';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'További merülőhelyek $place közelében';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby =>
+      'További merülőhelyek a közelben';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Beépített merülőhelyek';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Mind a(z) $count megjelenítése';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Merülőhely használata';
 
   @override
   String get diveSites_list_groupBy => 'Csoportosítás';

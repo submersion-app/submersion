@@ -17386,6 +17386,12 @@ abstract class AppLocalizations {
   /// **'No dive sites yet'**
   String get diveLog_sitePicker_noSites;
 
+  /// No description provided for @diveLog_sitePicker_sortedByArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Near the sites of your other dives'**
+  String get diveLog_sitePicker_sortedByArea;
+
   /// No description provided for @diveLog_sitePicker_sortedByDistance.
   ///
   /// In en, this message translates to:
@@ -20484,6 +20490,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nearby'**
   String get diveSites_picker_nearby;
+
+  /// No description provided for @diveSites_picker_builtIn_adoptError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add this site'**
+  String get diveSites_picker_builtIn_adoptError;
+
+  /// No description provided for @diveSites_picker_builtIn_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Site details'**
+  String get diveSites_picker_builtIn_details;
+
+  /// No description provided for @diveSites_picker_builtIn_nearPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'More sites near {place}'**
+  String diveSites_picker_builtIn_nearPlace(Object place);
+
+  /// No description provided for @diveSites_picker_builtIn_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'More sites nearby'**
+  String get diveSites_picker_builtIn_nearby;
+
+  /// No description provided for @diveSites_picker_builtIn_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in sites'**
+  String get diveSites_picker_builtIn_search;
+
+  /// No description provided for @diveSites_picker_builtIn_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count}'**
+  String diveSites_picker_builtIn_showAll(Object count);
+
+  /// No description provided for @diveSites_picker_builtIn_useSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this site'**
+  String get diveSites_picker_builtIn_useSite;
 
   /// No description provided for @diveSites_list_groupBy.
   ///

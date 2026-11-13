@@ -12,21 +12,19 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
+import 'package:submersion/features/dive_sites/domain/models/site_area_anchor.dart';
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/dive_sites/domain/utils/site_search.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/similar_value_hint.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/grouped_site_list_view.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_built_in.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_site_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/platform/desktop_target_platform.dart';
 
 /// Identifies the picker's scrolling list, for tests.
 const sitePickerListKey = Key('site-picker-list');
-
-/// Sites closer than this to the dive (or the device) are listed under
-/// Nearby, in meters.
-const _nearbyRadiusMeters = 50000.0;
 
 /// What the site picker resolved to. Dismissing the sheet resolves to null.
 sealed class SitePickerResult {
@@ -59,14 +57,22 @@ final class SitePickerCreateRequested extends SitePickerResult {
 /// "All sites" row a filter needs. [useDeviceLocation] lets the sheet ask for
 /// a GPS fix when the caller gave no location; a filter or a media review
 /// passes false so opening it never prompts for location.
+///
+/// [showBuiltIn] also offers sites from the built-in catalogue, near the
+/// dive and when searching. Picking one creates a site of the diver's, so
+/// it is for callers whose pick may create a site, never a filter.
+/// [areaAnchor] is where a dive with no GPS probably was, taken from the
+/// dives around it; "near here" is then measured from it.
 Future<SitePickerResult?> showSitePicker(
   BuildContext context, {
   String? selectedSiteId,
   LocationResult? currentLocation,
   GeoPoint? diveLocation,
+  SiteAreaAnchor? areaAnchor,
   bool allowCreate = false,
   bool allowClear = false,
   bool useDeviceLocation = true,
+  bool showBuiltIn = false,
 }) {
   return showModalBottomSheet<SitePickerResult>(
     context: context,
@@ -82,7 +88,9 @@ Future<SitePickerResult?> showSitePicker(
         selectedSiteId: selectedSiteId,
         currentLocation: currentLocation,
         diveLocation: diveLocation,
+        areaAnchor: areaAnchor,
         useDeviceLocation: useDeviceLocation,
+        showBuiltIn: showBuiltIn,
         onSiteSelected: (site) =>
             Navigator.of(sheetContext).pop(SitePicked(site)),
         onCreateNewSite: allowCreate
@@ -106,13 +114,15 @@ Future<SitePickerResult?> showSitePicker(
 /// dismissed or the new-site form was cancelled.
 ///
 /// With [allowCreate] false the sheet offers no "New Dive Site" button, for
-/// callers that cannot open the new-site form mid-flow.
+/// callers that cannot open the new-site form mid-flow. Built-in catalogue
+/// sites follow the same switch: picking one creates a site too.
 Future<DiveSite?> pickOrCreateSite(
   BuildContext context,
   WidgetRef ref, {
   required String? selectedSiteId,
   LocationResult? currentLocation,
   GeoPoint? diveLocation,
+  SiteAreaAnchor? areaAnchor,
   GeoPoint? newSiteSeedLocation,
   bool allowCreate = true,
 }) async {
@@ -121,7 +131,9 @@ Future<DiveSite?> pickOrCreateSite(
     selectedSiteId: selectedSiteId,
     currentLocation: currentLocation,
     diveLocation: diveLocation,
+    areaAnchor: areaAnchor,
     allowCreate: allowCreate,
+    showBuiltIn: allowCreate,
   );
   switch (result) {
     case SitePicked(:final site):
@@ -158,6 +170,10 @@ class SitePickerSheet extends ConsumerStatefulWidget {
   final String? selectedSiteId;
   final LocationResult? currentLocation;
   final GeoPoint? diveLocation;
+
+  /// Where the dive probably was, inferred from the dives around it. Used
+  /// when the dive has no GPS of its own, ahead of the device's location.
+  final SiteAreaAnchor? areaAnchor;
   final void Function(DiveSite) onSiteSelected;
 
   /// Called by the "New Dive Site" buttons with the search field's trimmed
@@ -171,23 +187,30 @@ class SitePickerSheet extends ConsumerStatefulWidget {
   /// neither a dive nor a device location.
   final bool useDeviceLocation;
 
+  /// Whether sites from the built-in catalogue are offered. Picking one
+  /// creates a site of the diver's, then selects it.
+  final bool showBuiltIn;
+
   const SitePickerSheet({
     super.key,
     required this.scrollController,
     required this.selectedSiteId,
     this.currentLocation,
     this.diveLocation,
+    this.areaAnchor,
     required this.onSiteSelected,
     this.onCreateNewSite,
     this.onClear,
     this.useDeviceLocation = true,
+    this.showBuiltIn = false,
   });
 
   @override
   ConsumerState<SitePickerSheet> createState() => _SitePickerSheetState();
 }
 
-class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
+class _SitePickerSheetState extends ConsumerState<SitePickerSheet>
+    with SitePickerBuiltIn {
   final _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -215,15 +238,20 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     // Callers that already know where the dive is (or where the device is)
     // cost nothing here. The rest (editing an imported dive, bulk edit)
     // would otherwise get no Nearby section at all (#965).
+    // A dive placed by the dives around it needs no fix either: the
+    // device may be at home, far from where the dive was.
     if (widget.useDeviceLocation &&
         widget.diveLocation == null &&
+        widget.areaAnchor == null &&
         widget.currentLocation == null) {
       unawaited(_resolveDeviceLocation());
     }
+    initBuiltIn();
   }
 
   @override
   void dispose() {
+    disposeBuiltIn();
     _searchController.dispose();
     super.dispose();
   }
@@ -243,6 +271,8 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
           );
       if (mounted && location != null) {
         setState(() => _deviceLocation = location);
+        // The anchor just appeared: the built-in sites around it can load.
+        unawaited(loadBuiltInNearby());
       }
     } catch (_) {
       // Proximity sorting is a convenience; the list stays usable without it.
@@ -253,13 +283,37 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     }
   }
 
-  /// The point distances are measured from: the dive's GPS if present, then a
-  /// device location supplied by the caller, then one this sheet resolved.
+  /// The point distances are measured from: the dive's GPS if present, then
+  /// the area inferred from the dives around it, then a device location
+  /// supplied by the caller, then one this sheet resolved.
   GeoPoint? get _anchor {
     if (widget.diveLocation != null) return widget.diveLocation;
+    if (widget.areaAnchor != null) return widget.areaAnchor!.point;
     final cl = widget.currentLocation ?? _deviceLocation;
     return cl == null ? null : GeoPoint(cl.latitude, cl.longitude);
   }
+
+  /// Whether [_anchor] is the inferred area rather than a measured point.
+  /// Lists then go by name, with no distances: distance from a neighbouring
+  /// dive's site says little about this dive.
+  bool get _anchorIsInferred =>
+      widget.diveLocation == null && widget.areaAnchor != null;
+
+  @override
+  GeoPoint? get builtInAnchor => _anchor;
+
+  @override
+  bool get builtInAnchorIsInferred => _anchorIsInferred;
+
+  @override
+  String? get builtInPlaceLabel => widget.areaAnchor?.placeLabel;
+
+  @override
+  String get builtInQuery => _searchQuery.trim();
+
+  @override
+  String formatBuiltInDistance(double meters) =>
+      _formatDistance(context, ref.read(unitFormatterProvider), meters);
 
   /// Distance from the resolved anchor to a site, in meters.
   double? _distanceToSite(DiveSite site) {
@@ -292,10 +346,13 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     return () => onCreateNewSite(_searchQuery.trim());
   }
 
-  void _onQueryChanged(String value) => setState(() {
-    _searchQuery = value;
-    _searchCollapsed = const {};
-  });
+  void _onQueryChanged(String value) {
+    setState(() {
+      _searchQuery = value;
+      _searchCollapsed = const {};
+    });
+    onBuiltInQueryChanged();
+  }
 
   void _toggleCountry(String key, {required bool searching}) {
     setState(() {
@@ -319,15 +376,24 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     // One filter pass and one distance per site per build, shared by the
     // caption, the hint and the list.
     final visible = query.isEmpty ? sites : sites.where(matches).toList();
-    final nearby = [
-      for (final site in visible)
-        if (_distanceToSite(site) case final distance?
-            when distance < _nearbyRadiusMeters)
-          (site: site, distance: distance),
-    ]..sort((a, b) => a.distance.compareTo(b.distance));
-    // Only the Nearby section is ordered by distance, so the caption that
-    // says so shows only when that section has sites in it after the search.
-    final hasNearby = nearby.isNotEmpty;
+    final nearby =
+        [
+          for (final site in visible)
+            if (_distanceToSite(site) case final distance?
+                when distance < sitePickerNearbyRadiusMeters)
+              (site: site, distance: distance),
+        ]..sort(
+          _anchorIsInferred
+              ? (a, b) => a.site.name.toLowerCase().compareTo(
+                  b.site.name.toLowerCase(),
+                )
+              : (a, b) => a.distance.compareTo(b.distance),
+        );
+    // Only the Nearby and built-in sections are ordered around the anchor,
+    // so the caption that says so shows only when one of them has sites in
+    // it after the search.
+    final hasNearby = nearby.isNotEmpty || hasBuiltInNearby(sites);
+    final builtIn = builtInRows(sites);
 
     return Column(
       children: [
@@ -376,7 +442,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
         const Divider(height: 1),
         Expanded(
           child: sitesAsync.when(
-            data: (sites) => sites.isEmpty
+            data: (sites) => sites.isEmpty && builtIn.isEmpty
                 ? Column(
                     children: [
                       // A filter on a since-deleted site must stay
@@ -391,6 +457,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                     sites: sites,
                     visible: visible,
                     nearby: nearby,
+                    builtIn: builtIn,
                     searching: !query.isEmpty,
                     units: units,
                     colorScheme: colorScheme,
@@ -431,6 +498,8 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                       Icon(
                         widget.diveLocation != null
                             ? Icons.place
+                            : _anchorIsInferred
+                            ? Icons.travel_explore
                             : Icons.my_location,
                         size: 14,
                         color: colorScheme.primary,
@@ -442,6 +511,8 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
                               ? context
                                     .l10n
                                     .diveLog_sitePicker_sortedByDiveDistance
+                              : _anchorIsInferred
+                              ? context.l10n.diveLog_sitePicker_sortedByArea
                               : context
                                     .l10n
                                     .diveLog_sitePicker_sortedByDistance,
@@ -533,10 +604,25 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
     required List<DiveSite> sites,
     required List<DiveSite> visible,
     required List<({DiveSite site, double distance})> nearby,
+    required List<Widget Function()> builtIn,
     required bool searching,
     required UnitFormatter units,
     required ColorScheme colorScheme,
   }) {
+    // None of the diver's own sites to show (they have none, or the search
+    // matched none), but the built-in catalogue has some.
+    if (visible.isEmpty && builtIn.isNotEmpty) {
+      final rows = [
+        if (widget.onClear != null) () => _buildClearRow(context, colorScheme),
+        ...builtIn,
+      ];
+      return ListView.builder(
+        key: sitePickerListKey,
+        controller: widget.scrollController,
+        itemCount: rows.length,
+        itemBuilder: (context, i) => rows[i](),
+      );
+    }
     if (visible.isEmpty) {
       return Column(
         children: [
@@ -588,10 +674,13 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet> {
             subtitle: entry.site.locationString.isEmpty
                 ? null
                 : entry.site.locationString,
-            distanceText: _formatDistance(context, units, entry.distance),
+            distanceText: _anchorIsInferred
+                ? null
+                : _formatDistance(context, units, entry.distance),
             onTap: () => widget.onSiteSelected(entry.site),
           ),
       ],
+      ...builtIn,
       for (final row in flattenSiteGroups(groups, expanded: expanded))
         switch (row) {
           OuterHeaderRow(:final group, :final isExpanded) =>

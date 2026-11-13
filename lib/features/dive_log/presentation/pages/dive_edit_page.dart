@@ -50,6 +50,8 @@ import 'package:submersion/features/dive_roles/presentation/widgets/dive_role_se
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/buddy_picker.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/models/site_area_anchor.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -2108,11 +2110,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// dive in the bulk service, so the form's own rows keep what the diver
   /// set (#3657).
   Future<void> _showBulkSitePicker() async {
+    final areaAnchor = await _areaAnchor();
+    if (!mounted) return;
     final site = await pickOrCreateSite(
       context,
       ref,
       selectedSiteId: _selectedSite?.id,
       currentLocation: _currentLocation,
+      areaAnchor: areaAnchor,
     );
     if (site != null && mounted) {
       _markDirty();
@@ -3161,14 +3166,47 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (changed && markDirty) _markDirty();
   }
 
+  /// Where this dive probably was, from the dives logged around it: the
+  /// site of the nearest dive of the same trip, else of one within a few
+  /// days. For a dive with no GPS of its own, so the picker can lead with
+  /// the sites of that area. Null when nothing says; never fails the picker.
+  Future<SiteAreaAnchor?> _areaAnchor() async {
+    try {
+      final repository = ref.read(siteAreaAnchorRepositoryProvider);
+      final diverId =
+          _existingDive?.diverId ??
+          await ref.read(validatedCurrentDiverIdProvider.future);
+      if (widget.isBulk) {
+        return await repository.forDives(widget.bulkDiveIds!, diverId: diverId);
+      }
+      return await repository.forDive(
+        at: _currentEntryTime(),
+        tripId: _selectedTrip?.id,
+        diverId: diverId,
+        excludeDiveIds: [if (widget.diveId != null) widget.diveId!],
+      );
+    } catch (e, stackTrace) {
+      _log.warning(
+        'Could not work out the area of the dive for the site picker',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   Future<void> _showSitePicker() async {
     final anchor = _existingDive?.entryLocation ?? _existingDive?.exitLocation;
+    // A dive with its own GPS needs no inference.
+    final areaAnchor = anchor == null ? await _areaAnchor() : null;
+    if (!mounted) return;
     final site = await pickOrCreateSite(
       context,
       ref,
       selectedSiteId: _selectedSite?.id,
       currentLocation: _currentLocation,
       diveLocation: anchor,
+      areaAnchor: areaAnchor,
       newSiteSeedLocation: anchor,
     );
     if (site != null && mounted) {

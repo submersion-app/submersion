@@ -11152,6 +11152,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'لا توجد مواقع غوص بعد';
 
   @override
+  String get diveLog_sitePicker_sortedByArea => 'بالقرب من مواقع غطساتك الأخرى';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'مرتبة حسب المسافة';
 
   @override
@@ -13113,6 +13116,31 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'قريب';
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => 'تعذّرت إضافة هذا الموقع';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'تفاصيل الموقع';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'مواقع أخرى بالقرب من $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'مواقع أخرى قريبة';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'المواقع المدمجة';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'استخدام هذا الموقع';
 
   @override
   String get diveSites_list_groupBy => 'التجميع حسب';
