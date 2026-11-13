@@ -278,6 +278,26 @@ void main() {
       expect(rates.formatGasUsed([used(30)]), '30 bar');
     });
 
+    test('adds no bar from cylinders that cannot convert', () {
+      final rates = display(volumeFor: (id) => id == 'back' ? 12.0 : null);
+
+      expect(
+        rates.formatGasUsed([
+          used(100, tankId: 'back'),
+          used(20, tankId: 'stage'),
+        ]),
+        '--',
+      );
+      // One cylinder's drops still add up.
+      expect(
+        rates.formatGasUsed([
+          used(10, tankId: 'stage'),
+          used(5, tankId: 'stage'),
+        ]),
+        '15 bar',
+      );
+    });
+
     test('is not scaled by the normalization factor', () {
       // The rate is aligned with the dive's own SAC; what was used is what
       // the pressure readings say.

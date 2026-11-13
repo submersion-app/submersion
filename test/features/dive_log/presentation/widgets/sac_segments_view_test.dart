@@ -283,6 +283,31 @@ void main() {
       expect(find.text('Peak 20.0 L/min at 5-10 min'), findsOneWidget);
     });
 
+    testWidgets('gives depth alone where the stretch held one depth', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(
+        tester,
+        time: const [
+          SacSegment(
+            startTimestamp: 0,
+            endTimestamp: 300,
+            avgDepth: 5,
+            minDepth: 4.8,
+            maxDepth: 5.2,
+            sacRate: 1.0,
+            gasConsumed: 1.0,
+          ),
+        ],
+        selectedTimestamp: 60,
+      );
+
+      expect(
+        find.text('0-5 min · 10.0 L/min · 5m · 10 L used'),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('dragging across the columns scrubs the readout', (
       tester,
     ) async {

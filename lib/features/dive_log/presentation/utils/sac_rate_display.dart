@@ -131,9 +131,15 @@ class SacRateDisplay {
   }
 
   /// [gasUsed] of [segments] with its unit, such as `260 L` or `30 bar`.
+  ///
+  /// Stretches on several cylinders that can't all be read in volume give
+  /// `--`: their pressure drops are on cylinders of different sizes, so no
+  /// sum of them means anything.
   String formatGasUsed(List<SacSegment> segments) {
+    final tankIds = segments.map((s) => s.tankId);
+    if (!canShare(tankIds)) return units.formatPressure(null);
     final value = gasUsed(segments);
-    return segments.map((s) => s.tankId).every(readsInVolume)
+    return tankIds.every(readsInVolume)
         ? units.formatVolume(value)
         : units.formatPressure(value);
   }

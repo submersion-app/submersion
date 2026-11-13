@@ -103,12 +103,22 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
   String _depth(double meters) =>
       widget.rates.units.formatDepth(meters, decimals: 0);
 
-  /// The average depth with the shallowest and deepest, such as `27m (18-30m)`.
+  /// The average depth with the shallowest and deepest, such as `27m (18-30m)`,
+  /// or the average alone where the two read the same.
   String _depthWithRange(SacSegment segment) {
     final units = widget.rates.units;
+    final shallowest = formatFixedForDisplay(
+      units.convertDepth(segment.minDepth),
+      0,
+    );
+    final deepest = formatFixedForDisplay(
+      units.convertDepth(segment.maxDepth),
+      0,
+    );
+    if (shallowest == deepest) return _depth(segment.avgDepth);
     return context.l10n.diveLog_detail_sacSegments_depthWithRange(
       _depth(segment.avgDepth),
-      formatFixedForDisplay(units.convertDepth(segment.minDepth), 0),
+      shallowest,
       _depth(segment.maxDepth),
     );
   }
@@ -158,22 +168,20 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     return mix == null ? null : GasColors.forGasMix(mix);
   }
 
-  double _comparableTime(SacSegment segment) => widget.rates.comparable(
-    segment.sacRate,
-    tankId: segment.tankId,
-    among: widget.timeSegments.map((s) => s.tankId),
-  );
+  /// The time segment with the highest rate, on the scale the chart draws.
+  SacSegment _findPeak() {
+    final tankIds = [for (final s in widget.timeSegments) s.tankId];
+    double comparable(SacSegment s) =>
+        widget.rates.comparable(s.sacRate, tankId: s.tankId, among: tankIds);
+    return widget.timeSegments.reduce(
+      (best, s) => comparable(s) > comparable(best) ? s : best,
+    );
+  }
 
-  /// The time segment with the highest rate.
-  SacSegment get _peak => widget.timeSegments.reduce(
-    (best, s) => _comparableTime(s) > _comparableTime(best) ? s : best,
-  );
-
-  Widget _summary() {
+  Widget _summary(SacSegment peak) {
     final l10n = context.l10n;
     final rates = widget.rates;
     final segments = widget.timeSegments;
-    final peak = _peak;
     return SacSegmentsSummary(
       figures: [
         SacSummaryFigure(
@@ -192,14 +200,14 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     );
   }
 
-  Widget _timeSection(int? activeIndex) {
+  Widget _timeSection(int? activeIndex, SacSegment peak) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final rates = widget.rates;
     final segments = widget.timeSegments;
-    final tankIds = segments.map((s) => s.tankId);
-    final comparable = _comparableTime;
-    final peak = _peak;
+    final tankIds = [for (final s in segments) s.tankId];
+    double comparable(SacSegment s) =>
+        rates.comparable(s.sacRate, tankId: s.tankId, among: tankIds);
     final axis = SacRateAxis.forPeak(
       rates.displayComparable(comparable(peak), among: tankIds),
     );
@@ -293,6 +301,38 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     );
   }
 
+  SacSegmentTableRow _row(
+    SacSegmentGroup group, {
+    required String label,
+    required Color? color,
+    required String rate,
+    required String? share,
+    required bool selected,
+  }) {
+    final rates = widget.rates;
+    final used = rates.formatGasUsed(group.segments);
+    final depth = _depth(group.avgDepth);
+    final duration = _duration(group.durationSeconds);
+    return SacSegmentTableRow(
+      label: label,
+      color: color,
+      rate: rate,
+      used: used,
+      share: share,
+      depth: depth,
+      duration: duration,
+      selected: selected,
+      semanticLabel: [
+        label,
+        rates.formatAverage(group.segments),
+        context.l10n.diveLog_detail_sacSegments_usedAmount(used),
+        ?share,
+        depth,
+        duration,
+      ].join(', '),
+    );
+  }
+
   /// The share bar and the phase and gas table, or null with neither.
   Widget? _tableSection(int? focusTimestamp) {
     final l10n = context.l10n;
@@ -333,25 +373,13 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
           : groups.indexWhere((g) => g.containsTimestamp(focusTimestamp));
       return [
         for (final (index, group) in groups.indexed)
-          SacSegmentTableRow(
+          _row(
+            group,
             label: label(group),
             color: color(group),
             rate: rates.cell(group.segments, headingUnit: headingUnit),
-            used: rates.formatGasUsed(group.segments),
             share: shares == null ? null : _share(shares[index]),
-            depth: _depth(group.avgDepth),
-            duration: _duration(group.durationSeconds),
             selected: index == selected,
-            semanticLabel: [
-              label(group),
-              rates.formatAverage(group.segments),
-              l10n.diveLog_detail_sacSegments_usedAmount(
-                rates.formatGasUsed(group.segments),
-              ),
-              if (shares != null) _share(shares[index]),
-              _depth(group.avgDepth),
-              _duration(group.durationSeconds),
-            ].join(', '),
           ),
       ];
     }
@@ -427,7 +455,8 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
         ? segments[picked].midTimestamp
         : cursor;
     final table = _tableSection(focusTimestamp);
-    final chart = segments.isEmpty ? null : _timeSection(activeIndex);
+    final peak = segments.isEmpty ? null : _findPeak();
+    final chart = peak == null ? null : _timeSection(activeIndex, peak);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -436,10 +465,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (segments.isNotEmpty) ...[
-              _summary(),
-              const SizedBox(height: 12),
-            ],
+            if (peak != null) ...[_summary(peak), const SizedBox(height: 12)],
             if (sideBySide)
               // A missing side keeps its half, so the chart stays half wide.
               Row(
