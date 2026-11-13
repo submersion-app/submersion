@@ -323,8 +323,8 @@ Dive 4 of 12  >  Site
   types, entry, hazards, description, website and the source credit, with one
   action: "Use this site" in the picker, "Add to my sites" on the map.
 - **Search.** With text in the field, the diver's matches show as today. Below
-  them a "Built-in sites" section shows up to 50 catalogue matches from the
-  whole world, those in the current area first. The catalogue query is
+  all of them, nearby or not, a "Built-in sites" section shows up to 50
+  catalogue matches from the whole world, those in the current area first. The catalogue query is
   debounced and needs at least two characters.
 - **Section label.** "More sites near <place>", where the place is the anchor
   site's island, else region, else country. With no place name it reads "More
@@ -343,8 +343,9 @@ sites and the built-in section. In order:
 4. The device's location (today's fallback, including the fix the dive edit
    page already captures).
 
-Steps 2 and 3 exclude the dive being edited and are scoped to the active
-diver. For a new dive not yet saved, the form's date, time and trip are used.
+Steps 2 and 3 exclude the dive being edited, are scoped to the active
+diver, and ignore planned dives: a plan says where the diver means to go, not
+where a logged dive was. For a new dive not yet saved, the form's date, time and trip are used.
 For a bulk edit, the earliest selected dive is used. The planner passes no
 anchor, so there the built-in section appears on search only.
 
@@ -432,7 +433,8 @@ sites" all call it.
   source's credit, and the website when the record has one. It is a caption,
   not a new configurable section.
 - The website is read through the link and not copied onto the diver's site,
-  so no new editable column is needed.
+  so no new editable column is needed. It opens only as an http or https
+  address: the value comes from a source anyone can edit.
 - The OpenStreetMap credit required by ODbL is added where the app lists its
   other data credits: the licence page, reached from the About dialog, as the
   sea area and bathymetry data do. It names the data as ODbL with a link to
@@ -464,6 +466,16 @@ most worth checking:
   page (section 5).
 - The picker waits for the diver's "after create" rules before returning an
   adopted site (section 7).
+
+## Known gaps after the build
+
+- Merging two sites that were both adopted keeps one link (section 8), so
+  the other site's catalogue record is offered again. Closing this needs a
+  place to remember records a diver merged away; proposed for slice 4.
+- Two devices that each adopt the same record before they sync end with two
+  sites carrying the same link.
+- An adopted site carries the catalogue's English country name even when the
+  diver's place-name language is another one.
 
 ## Left to the builder
 
