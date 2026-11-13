@@ -39321,20 +39321,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_invalidWebLink => '请输入网址，例如 shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title => '按潜水服厚度统计';
+  String get insights_progression_divesBySuitType_title => '按潜水服类型统计';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      '您潜水时所穿潜水服的主要厚度';
+  String get insights_progression_divesBySuitType_subtitle =>
+      '您潜水时所穿潜水服的类型、厚度和款式';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty => '没有关联湿衣或干衣的潜水';
+  String get insights_progression_divesBySuitType_empty => '没有关联湿衣或干衣的潜水';
 
   @override
-  String get insights_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
+  String get insights_progression_divesBySuitType_error => '无法加载潜水服类型数据';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => '未知';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return '湿衣 · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return '湿衣 · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return '湿衣 · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => '全身';
+
+  @override
+  String get insights_suitType_style_shorty => '短款';
+
+  @override
+  String get insights_suitType_style_twoPiece => '两件式';
+
+  @override
+  String get insights_suitType_style_semiDry => '半干式';
 
   @override
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
@@ -48171,10 +48198,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return '柱状图。按潜水服厚度统计的潜水次数。$description';
+    return '柱状图。按潜水服类型统计的潜水次数。$description';
   }
 
   @override

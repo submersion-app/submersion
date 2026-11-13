@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/suit_type.dart';
 
 /// Stands in for the database behind a chart's link (#3805): answers with
 /// [ids] and keeps what it was asked for.
@@ -64,12 +65,11 @@ class RecordingInsightsRepository extends InsightsRepository {
   }) => _ask('gasMix:$gasType');
 
   @override
-  Future<List<String>> getSuitThicknessDiveIds({
-    required String bucket,
-    double? mm,
+  Future<List<String>> getSuitTypeDiveIds({
+    required SuitType type,
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
-  }) => _ask('suit:$bucket:$mm');
+  }) => _ask('suit:${type.key}');
 
   @override
   Future<List<String>> getDepthBucketDiveIds({

@@ -25308,11 +25308,17 @@
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
   "equipment_edit_invalidFocalLength": "Use 60 or 15-45",
   "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
-  "insights_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
-  "insights_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
-  "insights_progression_divesBySuitThickness_empty": "No dives with a wetsuit or drysuit linked",
-  "insights_progression_divesBySuitThickness_error": "Could not load suit thickness data",
-  "insights_progression_divesBySuitThickness_unknown": "Unknown",
+  "insights_progression_divesBySuitType_title": "Dives by Suit Type",
+  "insights_progression_divesBySuitType_subtitle": "Exposure suit type, thickness and style across your dives",
+  "insights_progression_divesBySuitType_empty": "No dives with a wetsuit or drysuit linked",
+  "insights_progression_divesBySuitType_error": "Could not load suit type data",
+  "insights_suitType_wetsuitThicknessStyle": "Wetsuit · {thickness} mm {style}",
+  "insights_suitType_wetsuitThickness": "Wetsuit · {thickness} mm",
+  "insights_suitType_wetsuitStyle": "Wetsuit · {style}",
+  "insights_suitType_style_full": "full",
+  "insights_suitType_style_shorty": "shorty",
+  "insights_suitType_style_twoPiece": "two-piece",
+  "insights_suitType_style_semiDry": "semi-dry",
   "diveLog_filter_sectionSuitThickness": "Suit thickness (mm)",
   "diveLog_filter_sectionGearAttributes": "Gear attributes",
   "diveLog_filter_gearCategory": "Gear category",
@@ -29495,7 +29501,7 @@
   "insights_conditions_entryMethod_semanticLabel": "Bar chart. Entry methods. {description}",
   "insights_conditions_visibility_semanticLabel": "Pie chart. Visibility distribution. {description}",
   "insights_conditions_waterType_semanticLabel": "Pie chart. Water type distribution. {description}",
-  "insights_progression_divesBySuitThickness_semanticLabel": "Bar chart. Dives by suit thickness. {description}",
+  "insights_progression_divesBySuitType_semanticLabel": "Bar chart. Dives by suit type. {description}",
   "insights_progression_divesPerYear_countInYear": "{count, plural, =1{1 dive in {year}} other{{count} dives in {year}}}",
   "insights_progression_divesPerYear_semanticLabel": "Bar chart. Dives per year. {description}",
   "insights_records_unavailable": "Records unavailable",
@@ -30019,8 +30025,39 @@
       }
     }
   },
-  "@insights_progression_divesBySuitThickness_semanticLabel": {
-    "description": "Screen-reader summary of the dives-by-suit-thickness bar chart",
+  "@insights_suitType_wetsuitThicknessStyle": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its thickness in mm and its style word",
+    "placeholders": {
+      "thickness": {
+        "type": "String",
+        "example": "5"
+      },
+      "style": {
+        "type": "String",
+        "example": "full"
+      }
+    }
+  },
+  "@insights_suitType_wetsuitThickness": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its thickness in mm and no style",
+    "placeholders": {
+      "thickness": {
+        "type": "String",
+        "example": "5"
+      }
+    }
+  },
+  "@insights_suitType_wetsuitStyle": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its style word and no thickness",
+    "placeholders": {
+      "style": {
+        "type": "String",
+        "example": "shorty"
+      }
+    }
+  },
+  "@insights_progression_divesBySuitType_semanticLabel": {
+    "description": "Screen-reader summary of the dives-by-suit-type bar chart",
     "placeholders": {
       "description": {
         "type": "String",

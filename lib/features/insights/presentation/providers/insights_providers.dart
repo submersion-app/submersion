@@ -18,7 +18,7 @@ import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
-import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
+import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/water_temp_band_metrics.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
@@ -326,17 +326,12 @@ final divesPerYearProvider = FutureProvider<List<({int year, int count})>>((
   return repository.getDivesPerYear(diverId: currentDiverId, filter: filter);
 });
 
-final divesBySuitThicknessProvider = FutureProvider<SuitThicknessStats>((
-  ref,
-) async {
+final divesBySuitTypeProvider = FutureProvider<SuitTypeStats>((ref) async {
   _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  return repository.getDivesBySuitThickness(
-    diverId: currentDiverId,
-    filter: filter,
-  );
+  return repository.getDivesBySuitType(diverId: currentDiverId, filter: filter);
 });
 
 final cumulativeDiveCountProvider = FutureProvider<List<TrendDataPoint>>((

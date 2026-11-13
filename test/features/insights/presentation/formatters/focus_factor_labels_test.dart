@@ -83,4 +83,22 @@ void main() {
       );
     });
   });
+
+  /// Issue #4490: the suit factor names the same suit types as the Suit
+  /// Type chart, thickness and style together.
+  group('suit category labels', () {
+    String suit(String key) =>
+        focusCategoryLabel(FocusFactorId.suit, shareFor(key), en, units);
+
+    test('a wetsuit key reads like its chart bar', () {
+      expect(suit('wetsuit:5:full'), 'Wetsuit · 5 mm full');
+      expect(suit('wetsuit:3:'), 'Wetsuit · 3 mm');
+      expect(suit('wetsuit::shorty'), 'Wetsuit · shorty');
+      expect(suit('wetsuit::'), 'Wetsuit');
+    });
+
+    test('a drysuit key reads Drysuit', () {
+      expect(suit('drysuit'), 'Drysuit');
+    });
+  });
 }

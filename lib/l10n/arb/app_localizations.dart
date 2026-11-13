@@ -65777,35 +65777,74 @@ abstract class AppLocalizations {
   /// **'Enter a web address, e.g. shop.example.com'**
   String get equipment_edit_invalidWebLink;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_title.
+  /// No description provided for @insights_progression_divesBySuitType_title.
   ///
   /// In en, this message translates to:
-  /// **'Dives by Suit Thickness'**
-  String get insights_progression_divesBySuitThickness_title;
+  /// **'Dives by Suit Type'**
+  String get insights_progression_divesBySuitType_title;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_subtitle.
+  /// No description provided for @insights_progression_divesBySuitType_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Exposure suit primary thickness across your dives'**
-  String get insights_progression_divesBySuitThickness_subtitle;
+  /// **'Exposure suit type, thickness and style across your dives'**
+  String get insights_progression_divesBySuitType_subtitle;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_empty.
+  /// No description provided for @insights_progression_divesBySuitType_empty.
   ///
   /// In en, this message translates to:
   /// **'No dives with a wetsuit or drysuit linked'**
-  String get insights_progression_divesBySuitThickness_empty;
+  String get insights_progression_divesBySuitType_empty;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_error.
+  /// No description provided for @insights_progression_divesBySuitType_error.
   ///
   /// In en, this message translates to:
-  /// **'Could not load suit thickness data'**
-  String get insights_progression_divesBySuitThickness_error;
+  /// **'Could not load suit type data'**
+  String get insights_progression_divesBySuitType_error;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_unknown.
+  /// A wetsuit bar on the Insights Suit Type chart with its thickness in mm and its style word
   ///
   /// In en, this message translates to:
-  /// **'Unknown'**
-  String get insights_progression_divesBySuitThickness_unknown;
+  /// **'Wetsuit · {thickness} mm {style}'**
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  );
+
+  /// A wetsuit bar on the Insights Suit Type chart with its thickness in mm and no style
+  ///
+  /// In en, this message translates to:
+  /// **'Wetsuit · {thickness} mm'**
+  String insights_suitType_wetsuitThickness(String thickness);
+
+  /// A wetsuit bar on the Insights Suit Type chart with its style word and no thickness
+  ///
+  /// In en, this message translates to:
+  /// **'Wetsuit · {style}'**
+  String insights_suitType_wetsuitStyle(String style);
+
+  /// No description provided for @insights_suitType_style_full.
+  ///
+  /// In en, this message translates to:
+  /// **'full'**
+  String get insights_suitType_style_full;
+
+  /// No description provided for @insights_suitType_style_shorty.
+  ///
+  /// In en, this message translates to:
+  /// **'shorty'**
+  String get insights_suitType_style_shorty;
+
+  /// No description provided for @insights_suitType_style_twoPiece.
+  ///
+  /// In en, this message translates to:
+  /// **'two-piece'**
+  String get insights_suitType_style_twoPiece;
+
+  /// No description provided for @insights_suitType_style_semiDry.
+  ///
+  /// In en, this message translates to:
+  /// **'semi-dry'**
+  String get insights_suitType_style_semiDry;
 
   /// No description provided for @diveLog_filter_sectionSuitThickness.
   ///
@@ -81076,13 +81115,11 @@ abstract class AppLocalizations {
   /// **'Pie chart. Water type distribution. {description}'**
   String insights_conditions_waterType_semanticLabel(String description);
 
-  /// Screen-reader summary of the dives-by-suit-thickness bar chart
+  /// Screen-reader summary of the dives-by-suit-type bar chart
   ///
   /// In en, this message translates to:
-  /// **'Bar chart. Dives by suit thickness. {description}'**
-  String insights_progression_divesBySuitThickness_semanticLabel(
-    String description,
-  );
+  /// **'Bar chart. Dives by suit type. {description}'**
+  String insights_progression_divesBySuitType_semanticLabel(String description);
 
   /// One entry of the dives-per-year screen-reader summary
   ///

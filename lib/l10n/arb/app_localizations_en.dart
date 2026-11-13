@@ -41100,23 +41100,49 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a web address, e.g. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Dives by Suit Thickness';
+  String get insights_progression_divesBySuitType_title => 'Dives by Suit Type';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Exposure suit primary thickness across your dives';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Exposure suit type, thickness and style across your dives';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'No dives with a wetsuit or drysuit linked';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Could not load suit thickness data';
+  String get insights_progression_divesBySuitType_error =>
+      'Could not load suit type data';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Unknown';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Wetsuit · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Wetsuit · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Wetsuit · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'full';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'two-piece';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semi-dry';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';
@@ -50523,10 +50549,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Bar chart. Dives by suit thickness. $description';
+    return 'Bar chart. Dives by suit type. $description';
   }
 
   @override
