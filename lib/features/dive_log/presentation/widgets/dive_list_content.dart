@@ -8,6 +8,7 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/router/section_navigation.dart';
 import 'package:submersion/core/router/pushed_route.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/deco_analysis_progress.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/search/dive_search_action.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
@@ -1482,7 +1483,9 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                     paginatedState,
                     filter.hasActiveFilters,
                   ),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            // A deco filter waits for the dive analysis, which says how far
+            // it has got (#4461).
+            loading: () => const DecoAnalysisProgress(),
             error: (error, stack) => _buildErrorState(context, error),
           );
           // The search row sits OUTSIDE the loading and empty states, so a
@@ -2101,7 +2104,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     final diveTypeLabelResolver = watchDiveTypeLabelResolver(ref, context.l10n);
 
     return divesAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const DecoAnalysisProgress(),
       error: (e, s) => _buildErrorState(context, e),
       data: (dives) {
         if (dives.isEmpty) {

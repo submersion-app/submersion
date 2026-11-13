@@ -44,7 +44,7 @@ import 'package:submersion/features/cylinder_passports/presentation/services/pas
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
+import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
@@ -191,11 +191,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _hasDivers = (next.value ?? 0) > 0;
       _updateNavigationReady();
     }, fireImmediately: true);
-    // The serviceDue query field reads a cache of the service engine's
-    // verdicts, and any list can reach it through a relation (a dive's
-    // gear.serviceDue). The keeper runs the cache writer while a filter
-    // names it, and leaves the clocks idle otherwise (#2365).
-    ref.listenManual(serviceStatusKeeperProvider, (_, _) {});
+    // The serviceDue and deco query fields read caches of engine verdicts
+    // (the service clocks, the dive analysis), and any list can reach them
+    // through a relation. The keeper runs each cache writer while a filter
+    // names its field, and leaves the engines idle otherwise (#2365, #4461).
+    ref.listenManual(queryCachesKeeperProvider, (_, _) {});
     // Nearby Bluetooth sync (issue #3731): the switch re-decides whether the
     // radio is on.
     ref.listenManual<bool>(

@@ -307,30 +307,36 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
           _lastConstraints = constraints;
           _scheduleMeasure();
         }
-        final drawn = pinned ? _pinned(card, constraints.maxWidth) : null;
-        return Stack(
-          children: [
-            NotificationListener<ScrollMetricsNotification>(
-              onNotification: _onMetrics,
-              child: NotificationListener<ScrollNotification>(
-                onNotification: _onScroll,
-                child: widget.child,
+        final drawn = pinned ? _pinned(card) : null;
+        // Clipped to the page here, not by the stack: a stack clips only for
+        // a child placed past its edges, and the pinned box never is, though
+        // the copy in it slides up past the page's top. Unclipped, that part
+        // drew over the dive's header beside the strip (#4488).
+        return ClipRect(
+          child: Stack(
+            children: [
+              NotificationListener<ScrollMetricsNotification>(
+                onNotification: _onMetrics,
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: _onScroll,
+                  child: widget.child,
+                ),
               ),
-            ),
-            // Always mounted, empty while nothing is pinned: a drag that
-            // unpins the card (dragging the copy back down) keeps scrolling
-            // the page instead of stopping dead as its recognizer goes.
-            Positioned.fromRect(
-              key: const ValueKey('pinnedProfileBox'),
-              rect: drawn?.box ?? Rect.zero,
-              // It lies over the page, not in its scroll view: vertical drags
-              // and wheel scrolls on it go on to the page.
-              child: PageScrollForwarder(
-                position: () => _pagePosition,
-                child: drawn?.child ?? const SizedBox.shrink(),
+              // Always mounted, empty while nothing is pinned: a drag that
+              // unpins the card (dragging the copy back down) keeps scrolling
+              // the page instead of stopping dead as its recognizer goes.
+              Positioned.fromRect(
+                key: const ValueKey('pinnedProfileBox'),
+                rect: drawn?.box ?? Rect.zero,
+                // It lies over the page, not in its scroll view: vertical drags
+                // and wheel scrolls on it go on to the page.
+                child: PageScrollForwarder(
+                  position: () => _pagePosition,
+                  child: drawn?.child ?? const SizedBox.shrink(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -338,7 +344,7 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
 
   /// What is pinned over the page for [card]: the [box] it all covers, on
   /// the overlay, and the [child] drawn in it.
-  ({Rect box, Widget child}) _pinned(Rect card, double width) {
+  ({Rect box, Widget child}) _pinned(Rect card) {
     // One motion: the squash and the slide share the scroll, finishing
     // together as the plot reaches the top, and the strip starts to fade in
     // before they do, so no step starts or stops on its own.
@@ -386,9 +392,12 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
       card.right - margin.right,
       math.max(card.bottom - margin.bottom, 0),
     );
+    // It keeps the card's width throughout, so pinned it is only as wide as
+    // the other cards on the page (#4488): the condense only moves its top
+    // up to the page's and its bottom up to the strip's height.
     final toward = Rect.lerp(
       from,
-      Rect.fromLTWH(0, 0, width, kPinnedStripHeight),
+      Rect.fromLTRB(from.left, 0, from.right, kPinnedStripHeight),
       morph,
     )!;
     // Its bottom never rises above the card's own while any card is left,
@@ -413,6 +422,10 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     return (
       box: box,
       child: Stack(
+        // Settled, the box is the strip's own size, so clipping to it cut
+        // off the strip's whole shadow, which falls below it onto the page
+        // (#4488). The overlay clips everything to the page instead.
+        clipBehavior: Clip.none,
         children: [
           // The live copy: squashed to what is left of the card, then
           // sliding up at its squashed height, header first, as the card

@@ -6,6 +6,8 @@ import 'package:submersion/core/services/device_display_name_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/derived_metrics_repository.dart';
 import 'package:submersion/features/dive_log/query/dive_query_entity.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
+import 'package:submersion/features/query/data/query_id_set_runner.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/data/repositories/rule_run_repository.dart';
 import 'package:submersion/features/rules/data/services/dive_rule_applier.dart';
@@ -38,6 +40,12 @@ class RuleEngine {
     Future<String?> Function()? deviceLabel,
     Future<void> Function(String diverId, Iterable<String> diveIds)?
     ensureDerived,
+    Future<QueryCte?> Function(
+      String diverId,
+      Set<String> tables,
+      Set<String>? diveIds,
+    )?
+    prepareCaches,
     void Function(Iterable<String> diveIds)? afterDiveWrites,
   }) : _rules = rules ?? RuleRepository(),
        _runs = runs ?? RuleRunRepository(),
@@ -48,6 +56,7 @@ class RuleEngine {
        _deviceLabel =
            deviceLabel ?? (() => const DeviceDisplayNameService().resolve()),
        _ensureDerived = ensureDerived ?? ensureDerivedCurrent,
+       _prepareCaches = prepareCaches ?? _noCaches,
        _afterDiveWrites = afterDiveWrites ?? refreshAfterRuleWrites;
 
   final RuleRepository _rules;
@@ -59,7 +68,19 @@ class RuleEngine {
   final Future<String?> Function() _deviceLabel;
   final Future<void> Function(String diverId, Iterable<String> diveIds)
   _ensureDerived;
+  final Future<QueryCte?> Function(
+    String diverId,
+    Set<String> tables,
+    Set<String>? diveIds,
+  )
+  _prepareCaches;
   final void Function(Iterable<String> diveIds) _afterDiveWrites;
+
+  static Future<QueryCte?> _noCaches(
+    String diverId,
+    Set<String> tables,
+    Set<String>? diveIds,
+  ) async => null;
 
   /// Rebuilds the derived fields of those of [diverId]'s [diveIds] whose
   /// stored ones are missing or stale, found in one query over the diver's
@@ -95,9 +116,10 @@ class RuleEngine {
     final names = await _names(request.diverId);
     final rules = await _load(request, names);
     await _prepareDerived(request, rules);
+    final cte = await _prepareQueryCaches(request, rules);
     try {
       return await _db.transaction<RuleRunResult>(() async {
-        throw _RollbackPreview(await _pass(request, rules));
+        throw _RollbackPreview(await _pass(request, rules, cte));
       });
     } on _RollbackPreview catch (p) {
       return p.result;
@@ -116,12 +138,13 @@ class RuleEngine {
     final device = await _device();
     final rules = await _load(request, names);
     await _prepareDerived(request, rules);
+    final cte = await _prepareQueryCaches(request, rules);
     final result = await ChangeLogScope.run(
       _db,
       source: ChangeLogSource.rule,
       label: request.sourceLabel,
       body: () => _db.transaction(() async {
-        final pass = await _pass(request, rules);
+        final pass = await _pass(request, rules, cte);
         if (!pass.changedAnything) return pass;
         final runId = await _runs.insertRun(
           diverId: request.diverId,
@@ -174,6 +197,61 @@ class RuleEngine {
               request.diverId,
               requested,
             ),
+    );
+  }
+
+  /// Some fields read a local cache of a Dart engine's verdicts, mirrored on
+  /// demand: `serviceDue` the service clocks', `deco` the dive analysis's
+  /// (#4461). The tables the runnable rules read go to [_prepareCaches],
+  /// which brings those caches up to date, before the transaction: their
+  /// writers need the connection the transaction would hold.
+  Future<QueryCte?> _prepareQueryCaches(
+    RuleRunRequest request,
+    Map<RuleSubject, List<Rule>> rules,
+  ) async {
+    // The tables each runnable rule reads, by subject: one compile per rule
+    // here, before the pass compiles it again to match (a compile is a walk
+    // of a small tree, cheap beside the queries it feeds).
+    final read = [
+      for (final MapEntry(key: subject, value: list) in rules.entries)
+        for (final r in list)
+          if (r.isRunnable)
+            (
+              subject: subject,
+              rule: r,
+              tables: _scope.tablesTouched(
+                r.condition,
+                subject,
+                request.diverId,
+              ),
+            ),
+    ];
+    final tables = {for (final e in read) ...e.tables};
+    if (tables.isEmpty) return null;
+    // A run on named dives whose rules read deco only on those dives needs
+    // their verdicts alone; any other read (a site rule's dives, a hop to
+    // a trip's) needs the whole logbook's.
+    final diveTargets = request.targets[RuleSubject.dives];
+    // Only a targeted run that reads deco at all needs the per-rule check,
+    // and only a dive rule that reads deco needs the relation walk.
+    final ownDecoOnly =
+        diveTargets != null &&
+        tables.contains(kDiveDecoStatusTable) &&
+        !read.any(
+          (e) =>
+              e.tables.contains(kDiveDecoStatusTable) &&
+              (e.subject != RuleSubject.dives ||
+                  _scope.readsTableThroughRelation(
+                    e.rule.condition,
+                    RuleSubject.dives,
+                    request.diverId,
+                    kDiveDecoStatusTable,
+                  )),
+        );
+    return _prepareCaches(
+      request.diverId,
+      tables,
+      ownDecoOnly ? diveTargets : null,
     );
   }
 
@@ -239,6 +317,7 @@ class RuleEngine {
   Future<RuleRunResult> _pass(
     RuleRunRequest request,
     Map<RuleSubject, List<Rule>> selected,
+    QueryCte? cte,
   ) async {
     final changes = <RuleChange>[];
     final byRule = <String, Set<String>>{};
@@ -265,6 +344,7 @@ class RuleEngine {
           subject,
           request.diverId,
           eligible,
+          cte: cte,
         );
         if (matched.isEmpty) continue;
         final ids = matched.toList()..sort();

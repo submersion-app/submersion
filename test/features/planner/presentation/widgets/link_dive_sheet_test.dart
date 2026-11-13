@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/planner/presentation/widgets/link_dive_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -144,6 +145,20 @@ void main() {
     expect(find.text('#1'), findsOneWidget);
     expect(find.text('No logged dives yet'), findsNothing);
     await tester.pump(const Duration(seconds: 2));
+  });
+
+  // Issue #4485: an unnamed dive is told apart by its site.
+  testWidgets('names the site of a dive with no name', (tester) async {
+    await pump(tester, [
+      Dive(
+        id: 'a',
+        diveNumber: 5,
+        dateTime: DateTime.utc(2026, 1, 1),
+        site: const DiveSite(id: 's1', name: 'Blue Hole'),
+      ),
+    ]);
+
+    expect(shownTitles(tester), ['#5 · Blue Hole']);
   });
 
   testWidgets('says so when there is nothing to link', (tester) async {

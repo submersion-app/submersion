@@ -51,6 +51,8 @@ extension TableBackstopsFromV217 on AppDatabase {
     await _assertDerivedMetricsTable();
     // v348 backstop: its gas-use window columns (local, idempotent).
     await _assertDerivedMetricsGasUseColumns();
+    // v362 backstop: the computed deco verdicts (local, idempotent).
+    await _assertDiveDecoStatusTable();
 
     // v248 backstop: trip_equipment and its item index (idempotent).
     await _assertTripEquipmentSchema();

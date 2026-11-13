@@ -158,6 +158,7 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'change_log_operations': ChangeLogClass.excluded,
   'connected_accounts': ChangeLogClass.excluded,
   'deletion_log': ChangeLogClass.excluded,
+  'dive_deco_status': ChangeLogClass.excluded,
   'dive_derived_metrics': ChangeLogClass.excluded,
   'dive_sensor_summaries': ChangeLogClass.excluded,
   'equipment_condition_reviews': ChangeLogClass.excluded,
@@ -451,14 +452,23 @@ const Map<String, Set<String>> _ignoredStamps = {
   'media_stores': {'last_sweep_at'},
 };
 
+/// Bookkeeping columns that also hold something the diver chose, so an
+/// update to them is recorded and a revert writes them back. A dive's types
+/// read back in `created_at` order, the first being its representative type,
+/// so reordering them rewrites it in place (issue #4477).
+const Map<String, Set<String>> _recordedBookkeeping = {
+  'dive_dive_types': {'created_at'},
+};
+
 /// The columns an update does not record: bookkeeping, credentials, the fact
 /// groups' columns and clocks, device-local columns and device stamps. A
 /// diver's list arrangement is a fact group too: sorting is one of the most
 /// frequent taps in the app, and an entry per sort would bury real edits.
 Set<String> changeLogIgnoredColumns(String table) {
   final entity = columnJsonKey(table);
+  final recorded = _recordedBookkeeping[table] ?? const <String>{};
   return {
-    ...changeLogBookkeepingColumns,
+    ...changeLogBookkeepingColumns.difference(recorded),
     ...changeLogCredentialColumns,
     ...?_ignoredStamps[table],
     for (final group in SyncFactGroups.of(entity)) ...{

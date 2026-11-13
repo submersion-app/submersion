@@ -17058,6 +17058,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => '新建装备套装';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => '复制装备套装';
+
+  @override
   String get equipment_setEdit_descriptionHint => '可选描述...';
 
   @override
@@ -17106,6 +17109,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => '装备套装已创建';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => '装备套装已复制';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20897,6 +20903,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get plannerCanvas_follow_title => '跟随一次潜水';
+
+  @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {

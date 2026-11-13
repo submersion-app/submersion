@@ -17551,6 +17551,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'סט ציוד חדש';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => 'שכפול סט ציוד';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'תיאור אופציונלי...';
 
   @override
@@ -17600,6 +17603,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'סט הציוד נוצר';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'סט הציוד שוכפל';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -21502,6 +21508,16 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
+
+  @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {

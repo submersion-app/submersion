@@ -18207,6 +18207,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'مجموعة معدات جديدة';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => 'استنساخ مجموعة المعدات';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'وصف اختياري...';
 
   @override
@@ -18257,6 +18260,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'تم إنشاء مجموعة المعدات';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'تم استنساخ مجموعة المعدات';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -22345,6 +22351,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get plannerCanvas_follow_title => 'اتباع غطسة';
+
+  @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {

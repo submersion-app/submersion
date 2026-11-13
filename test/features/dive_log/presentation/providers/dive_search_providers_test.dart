@@ -12,6 +12,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_search_
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/data/repositories/dive_deco_status_repository.dart';
+import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -133,6 +135,35 @@ void main() {
     );
     final rows = await jump(c, TextNode(['manta']));
     expect(rows.map((d) => d.id), ['deep', 'shallow']);
+  });
+
+  test('a deco query waits for the computed deco verdicts (#4461)', () async {
+    // 'bare' records no deco data: only the analysis's verdict, which the
+    // writer mirrors, can put it in the jump rows for `deco = true`.
+    await repository.createDive(
+      domain.Dive(id: 'bare', dateTime: DateTime(2026, 1, 1)),
+    );
+    final c = ProviderContainer(
+      overrides: [
+        diveRepositoryProvider.overrideWithValue(repository),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+        safetyReviewDisabledRulesProvider.overrideWithValue(const <String>{}),
+        diveDecoStatusCacheProvider.overrideWith((ref) async {
+          await DiveDecoStatusRepository().replaceFor(
+            {'bare': true},
+            diveIds: {'bare'},
+            computedAt: 0,
+          );
+          return 0;
+        }),
+      ],
+    );
+    addTearDown(c.dispose);
+    final rows = await jump(
+      c,
+      ConditionNode(FieldPath(['deco']), QueryOp.eq, const BoolValue(true)),
+    );
+    expect(rows.map((d) => d.id), ['bare']);
   });
 
   test('jump results are capped', () async {

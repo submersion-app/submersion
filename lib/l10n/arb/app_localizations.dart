@@ -28612,6 +28612,12 @@ abstract class AppLocalizations {
   /// **'New Equipment Set'**
   String get equipment_setEdit_appBar_newTitle;
 
+  /// Title of the equipment set form when it is pre-filled to clone an existing set
+  ///
+  /// In en, this message translates to:
+  /// **'Clone Equipment Set'**
+  String get equipment_setEdit_appBar_cloneTitle;
+
   /// No description provided for @equipment_setEdit_descriptionHint.
   ///
   /// In en, this message translates to:
@@ -28707,6 +28713,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment set created'**
   String get equipment_setEdit_snackbar_created;
+
+  /// Shown after a cloned equipment set is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment set cloned'**
+  String get equipment_setEdit_snackbar_cloned;
 
   /// No description provided for @equipment_setEdit_snackbar_error.
   ///
@@ -34760,6 +34772,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Follow a dive'**
   String get plannerCanvas_follow_title;
+
+  /// A logged dive in the planner's dive pickers when it has no name or site: its dive number
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}'**
+  String plannerCanvas_pickDive_number(int number);
+
+  /// A logged dive in the planner's dive pickers: its dive number, then its name or else its site
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} · {title}'**
+  String plannerCanvas_pickDive_numberTitle(int number, String title);
 
   /// No description provided for @plannerCanvas_gas_minGas.
   ///

@@ -10581,6 +10581,8 @@
   "equipment_setEdit_addEquipmentFirst": "Add equipment first before creating a set.",
   "equipment_setEdit_appBar_editTitle": "Edit Set",
   "equipment_setEdit_appBar_newTitle": "New Equipment Set",
+  "equipment_setEdit_appBar_cloneTitle": "Clone Equipment Set",
+  "@equipment_setEdit_appBar_cloneTitle": {"description": "Title of the equipment set form when it is pre-filled to clone an existing set"},
   "equipment_setEdit_descriptionHint": "Optional description...",
   "equipment_setEdit_descriptionLabel": "Description",
   "equipment_setEdit_errorMessage": "Error: {error}",
@@ -10597,6 +10599,8 @@
   "equipment_setEdit_selectEquipmentSubtitle": "Choose the equipment items to include in this set.",
   "equipment_setEdit_selectEquipmentTitle": "Select Equipment",
   "equipment_setEdit_snackbar_created": "Equipment set created",
+  "equipment_setEdit_snackbar_cloned": "Equipment set cloned",
+  "@equipment_setEdit_snackbar_cloned": {"description": "Shown after a cloned equipment set is saved"},
   "equipment_setEdit_snackbar_error": "Error saving equipment set: {error}",
   "equipment_setEdit_snackbar_updated": "Equipment set updated",
   "equipment_sets_appBar_title": "Equipment Sets",
@@ -13902,6 +13906,10 @@
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",
+  "plannerCanvas_pickDive_number": "#{number}",
+  "@plannerCanvas_pickDive_number": {"description": "A logged dive in the planner's dive pickers when it has no name or site: its dive number", "placeholders": {"number": {"type": "int"}}},
+  "plannerCanvas_pickDive_numberTitle": "#{number} · {title}",
+  "@plannerCanvas_pickDive_numberTitle": {"description": "A logged dive in the planner's dive pickers: its dive number, then its name or else its site", "placeholders": {"number": {"type": "int"}, "title": {"type": "String"}}},
   "plannerCanvas_gas_minGas": "min gas {pressure}",
   "@plannerCanvas_gas_minGas": {
     "placeholders": {

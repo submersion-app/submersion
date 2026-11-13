@@ -17981,6 +17981,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Nouvel ensemble d\'équipement';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Dupliquer l\'ensemble d\'équipement';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Description optionnelle...';
 
   @override
@@ -18036,6 +18040,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get equipment_setEdit_snackbar_created =>
       'Ensemble d\'équipement créé';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned =>
+      'Ensemble d\'équipement dupliqué';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -22044,6 +22052,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannerCanvas_follow_title => 'Suivre une plongée';
+
+  @override
+  String plannerCanvas_pickDive_number(int number) {
+    return 'n°$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return 'n°$number · $title';
+  }
 
   @override
   String plannerCanvas_gas_minGas(String pressure) {

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart' show compute, visibleForTesting;
 
@@ -30,6 +32,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show DiveProfilePoint;
 import 'package:submersion/features/dive_log/domain/services/ccr_cylinder_use.dart';
+import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
@@ -353,14 +356,19 @@ class InsightsRepository with InsightsChartDives {
       gas: gas,
       consumptionRate: consumptionRate,
     );
+    final view = _viewFilterOnly(filter, alias: alias);
+    return (clause: '$scope${view.clause}', params: view.params);
+  }
+
+  /// [_diveFilter] without [DiveStatsScope]: the view filter alone, as an
+  /// ` AND ...` clause (empty when it keeps every dive).
+  ({String clause, List<Object?> params}) _viewFilterOnly(
+    DiveFilterState filter, {
+    required String alias,
+  }) {
     final f = buildFilteredDiveIdSubquery(filter);
-    if (f.subquery.isEmpty) {
-      return (clause: scope, params: const <Object?>[]);
-    }
-    return (
-      clause: '$scope AND $alias.id IN (${f.subquery})',
-      params: f.params,
-    );
+    if (f.subquery.isEmpty) return (clause: '', params: const <Object?>[]);
+    return (clause: ' AND $alias.id IN (${f.subquery})', params: f.params);
   }
 
   /// The ids of the dives [filter] keeps, or null when it keeps them all.
@@ -2747,20 +2755,45 @@ class InsightsRepository with InsightsChartDives {
   ///    evidence there is. It is also what the dive detail page displays.
   /// 5. A dive with no profile is unclassifiable and must not be counted as
   ///    no-deco.
+  ///
+  /// [statsScoped] keeps to the dives statistics count ([DiveStatsScope]),
+  /// as the deco card does. The `deco` search classifies every dive the
+  /// diver logged, so its cache writer turns it off (#4461): dives excluded
+  /// from statistics and drafts count then, a plan nobody has dived does
+  /// not ([diveUndivedSql]).
+  ///
+  /// [onlyDiveIds] narrows the scan to those dives, for a rule run over an
+  /// import's few dives that need not scan the whole logbook.
   Future<DecoSignalScan> scanRecordedDecoSignals({
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
+    bool statsScoped = true,
+    Set<String>? onlyDiveIds,
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = _diveFilter(filter, alias: 'd');
-      final params = diverId != null ? [diverId, ...df.params] : [...df.params];
+      final view = statsScoped ? null : _viewFilterOnly(filter, alias: 'd');
+      final df = view == null
+          ? _diveFilter(filter, alias: 'd')
+          : (
+              clause: ' AND NOT ${diveUndivedSql('d')}${view.clause}',
+              params: view.params,
+            );
+      // One bind for any number of ids, so no variable limit applies.
+      final idFilter = onlyDiveIds == null
+          ? ''
+          : 'AND d.id IN (SELECT value FROM json_each(?))';
+      final params = [
+        ?diverId,
+        ...df.params,
+        if (onlyDiveIds != null) jsonEncode(onlyDiveIds.toList()),
+      ];
 
       final results = await _db.customSelect('''
         WITH scoped AS (
           SELECT d.id AS dive_id
           FROM dives d
-          WHERE 1=1 $diverFilter ${df.clause}
+          WHERE 1=1 $diverFilter ${df.clause} $idFilter
         ),
         signals AS (
           SELECT
@@ -2798,7 +2831,9 @@ class InsightsRepository with InsightsChartDives {
           c.dive_id AS dive_id,
           c.classification AS classification,
           CASE WHEN c.classification = 'compute' THEN
-            ${diveSourceStampSql('d')} + ${earlierDivesRevisionSql('d')}
+            ${diveSourceStampSql('d')} + ${diveAnalysisInputsStampSql('d')} +
+            ${diveProfileEventsStampSql('d')} +
+            ${earlierDivesRevisionSql('d')}
           END AS revision
         FROM classified c
         JOIN dives d ON d.id = c.dive_id
