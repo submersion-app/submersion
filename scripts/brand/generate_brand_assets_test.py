@@ -20,6 +20,7 @@ sys.path.insert(0, HERE)
 from PIL import Image, ImageChops, ImageFilter, ImageStat  # noqa: E402
 
 import generate_brand_assets as gen  # noqa: E402
+import layout  # noqa: E402
 import presets  # noqa: E402
 from generate_icon import build_wave_arrow_mask  # noqa: E402
 from mark import create_mark, render_glyph  # noqa: E402
@@ -207,7 +208,7 @@ class RenderTest(unittest.TestCase):
                     gen.measure,
                     preset.icon_ratio,
                 )
-                img = gen.render(preset).convert("RGB")
+                img = self.images[name].convert("RGB")
                 row = round(lay.rule.center_y)
 
                 def is_red(x):
@@ -215,7 +216,7 @@ class RenderTest(unittest.TestCase):
                     return r > 150 and g < 60 and b < 60
 
                 red = [x for x in range(img.width) if is_red(x)]
-                sub_w, _ = gen.measure("Sub", "name", lay.name_px)
+                sub_w, _ = gen.measure(layout.RULE_SPAN, "name", lay.name_px)
                 self.assertAlmostEqual(min(red), lay.name.x, delta=1.5)
                 self.assertAlmostEqual(max(red) + 1, lay.name.x + sub_w, delta=1.5)
 
