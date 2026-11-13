@@ -81,4 +81,20 @@ void main() {
       ]);
     });
   });
+
+  group('SuitType value semantics', () {
+    test('equal suit types hash alike and collapse in a set', () {
+      const a = SuitType.wetsuit(mm: 5, style: 'full');
+      const b = SuitType.wetsuit(mm: 5, style: 'full');
+      expect(a.hashCode, b.hashCode);
+      expect({a, b, const SuitType.drysuit()}, hasLength(2));
+    });
+
+    test('toString names the key', () {
+      expect(
+        const SuitType.wetsuit(mm: 3, style: 'shorty').toString(),
+        'SuitType(wetsuit:3:shorty)',
+      );
+    });
+  });
 }
