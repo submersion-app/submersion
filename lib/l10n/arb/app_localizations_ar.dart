@@ -13118,6 +13118,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_picker_nearby => 'قريب';
 
   @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'من كتالوج المواقع المدمج. المصدر: $source';
+  }
+
+  @override
   String get diveSites_picker_builtIn_adoptError => 'تعذّرت إضافة هذا الموقع';
 
   @override

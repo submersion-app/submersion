@@ -20491,6 +20491,12 @@ abstract class AppLocalizations {
   /// **'Nearby'**
   String get diveSites_picker_nearby;
 
+  /// No description provided for @diveSites_catalogue_credit.
+  ///
+  /// In en, this message translates to:
+  /// **'From the built-in site catalogue. Source: {source}'**
+  String diveSites_catalogue_credit(Object source);
+
   /// No description provided for @diveSites_picker_builtIn_adoptError.
   ///
   /// In en, this message translates to:

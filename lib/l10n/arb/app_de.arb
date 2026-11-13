@@ -4010,6 +4010,7 @@
   "diveSites_group_noBodyOfWater": "Kein Gewässer",
   "diveSites_group_siteCount": "{count, plural, =1{1 Tauchplatz} other{{count} Tauchplätze}}",
   "diveSites_picker_nearby": "In der Nähe",
+  "diveSites_catalogue_credit": "Aus dem integrierten Tauchplatzkatalog. Quelle: {source}",
   "diveSites_picker_builtIn_adoptError": "Tauchplatz konnte nicht hinzugefügt werden",
   "diveSites_picker_builtIn_details": "Details zum Tauchplatz",
   "diveSites_picker_builtIn_nearPlace": "Weitere Tauchplätze bei {place}",

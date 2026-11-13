@@ -182,9 +182,6 @@ class ShippedDataTest(unittest.TestCase):
         self.assertGreater(len(curated), 0)
         self.assertEqual(curated_sites.validate(curated), [])
 
-    @unittest.skipUnless(
-        os.path.exists(_CATALOGUE), "the catalogue file is not written yet"
-    )
     def test_the_bundled_catalogue_carries_every_curated_site(self):
         with open(_CATALOGUE, encoding="utf-8") as f:
             bundled = {s["id"]: s for s in json.load(f)["sites"]}

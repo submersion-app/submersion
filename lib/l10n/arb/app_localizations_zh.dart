@@ -12289,6 +12289,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_picker_nearby => '附近';
 
   @override
+  String diveSites_catalogue_credit(Object source) {
+    return '来自内置潜水点目录。来源：$source';
+  }
+
+  @override
   String get diveSites_picker_builtIn_adoptError => '无法添加此潜水点';
 
   @override

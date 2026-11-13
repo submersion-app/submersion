@@ -3876,6 +3876,7 @@
   "diveSites_group_noBodyOfWater": "Nincs víztest",
   "diveSites_group_siteCount": "{count, plural, =1{1 merülőhely} other{{count} merülőhely}}",
   "diveSites_picker_nearby": "A közelben",
+  "diveSites_catalogue_credit": "A beépített merülőhely-katalógusból. Forrás: {source}",
   "diveSites_picker_builtIn_adoptError": "A merülőhely hozzáadása nem sikerült",
   "diveSites_picker_builtIn_details": "Merülőhely részletei",
   "diveSites_picker_builtIn_nearPlace": "További merülőhelyek {place} közelében",

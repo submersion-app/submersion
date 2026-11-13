@@ -12922,6 +12922,11 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_picker_nearby => 'In der Nähe';
 
   @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Aus dem integrierten Tauchplatzkatalog. Quelle: $source';
+  }
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'Tauchplatz konnte nicht hinzugefügt werden';
 

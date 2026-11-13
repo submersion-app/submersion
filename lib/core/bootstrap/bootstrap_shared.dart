@@ -15,6 +15,7 @@ import 'package:submersion/features/data_quality/presentation/providers/quality_
 import 'package:submersion/features/demo_mode/data/demo_paths.dart';
 import 'package:submersion/features/media/data/media_cache_settings.dart';
 import 'package:submersion/features/media/data/network_cache_config.dart';
+import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_attribution.dart';
 
 /// The proxy snapshot holder for the life of the process, made by the native
 /// bootstrap before the first request. Null where the bootstrap did not run
@@ -26,10 +27,12 @@ ProxyController? processProxyController;
 ///
 /// The ocean and sea table is CC-BY, so its credit has to reach the license
 /// page whether or not anything ever geocodes a coordinate; likewise the
-/// CC BY bathymetry sources behind the seascape.
+/// CC BY bathymetry sources behind the seascape, and the OpenStreetMap
+/// data (ODbL) behind the built-in dive sites.
 void registerBundledLicenses() {
   SeaAreaService.registerLicense();
   BathymetryAttribution.registerLicense();
+  SiteCatalogueAttribution.registerLicense();
 }
 
 /// Applies the preferences that must be in force before the first frame.

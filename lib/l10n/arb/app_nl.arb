@@ -3976,6 +3976,7 @@
   "diveSites_group_noBodyOfWater": "Geen waterlichaam",
   "diveSites_group_siteCount": "{count, plural, =1{1 stek} other{{count} stekken}}",
   "diveSites_picker_nearby": "In de buurt",
+  "diveSites_catalogue_credit": "Uit de ingebouwde stekkencatalogus. Bron: {source}",
   "diveSites_picker_builtIn_adoptError": "Stek kon niet worden toegevoegd",
   "diveSites_picker_builtIn_details": "Details van de stek",
   "diveSites_picker_builtIn_nearPlace": "Meer stekken bij {place}",

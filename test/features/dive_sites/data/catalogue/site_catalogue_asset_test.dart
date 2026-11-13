@@ -29,7 +29,6 @@ class _FileBundle extends AssetBundle {
 void main() {
   final catalogueFile = File(p.join('assets', 'data', 'site_catalogue.json'));
   final versionFile = File(p.join('assets', 'data', 'site_catalogue.version'));
-  final legacyFile = File(p.join('assets', 'data', 'dive_sites.json'));
 
   late Map<String, dynamic> doc;
   late List<Map<String, dynamic>> sites;
@@ -172,18 +171,4 @@ void main() {
       'OpenStreetMap contributors',
     );
   });
-
-  // Removed with the legacy file once nothing reads it.
-  test('every site of the legacy file is in the catalogue', () {
-    final legacy =
-        (jsonDecode(legacyFile.readAsStringSync())
-                as Map<String, dynamic>)['sites']
-            as List;
-    final ids = sites.map((s) => s['id']).toSet();
-
-    for (final site in legacy.cast<Map<String, dynamic>>()) {
-      expect(ids, contains(site['id']));
-    }
-    expect(sites, hasLength(legacy.length));
-  }, skip: legacyFile.existsSync() ? false : 'the legacy file is gone');
 }

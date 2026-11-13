@@ -4091,6 +4091,7 @@
   "diveSites_group_noBodyOfWater": "无水域",
   "diveSites_group_siteCount": "{count, plural, other{{count} 个潜水点}}",
   "diveSites_picker_nearby": "附近",
+  "diveSites_catalogue_credit": "来自内置潜水点目录。来源：{source}",
   "diveSites_picker_builtIn_adoptError": "无法添加此潜水点",
   "diveSites_picker_builtIn_details": "潜水点详情",
   "diveSites_picker_builtIn_nearPlace": "{place}附近的更多潜水点",

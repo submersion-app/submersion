@@ -3876,6 +3876,7 @@
   "diveSites_group_noBodyOfWater": "ללא גוף מים",
   "diveSites_group_siteCount": "{count, plural, =1{אתר אחד} other{{count} אתרים}}",
   "diveSites_picker_nearby": "בקרבת מקום",
+  "diveSites_catalogue_credit": "מתוך קטלוג האתרים המובנה. מקור: {source}",
   "diveSites_picker_builtIn_adoptError": "לא ניתן היה להוסיף את האתר",
   "diveSites_picker_builtIn_details": "פרטי האתר",
   "diveSites_picker_builtIn_nearPlace": "אתרים נוספים ליד {place}",

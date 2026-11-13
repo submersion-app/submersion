@@ -12932,6 +12932,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_picker_nearby => 'Por perto';
 
   @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Do catálogo integrado de pontos. Fonte: $source';
+  }
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'Não foi possível adicionar este ponto';
 

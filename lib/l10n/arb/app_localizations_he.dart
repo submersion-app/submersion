@@ -12648,6 +12648,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_picker_nearby => 'בקרבת מקום';
 
   @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'מתוך קטלוג האתרים המובנה. מקור: $source';
+  }
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'לא ניתן היה להוסיף את האתר';
 

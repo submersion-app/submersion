@@ -3876,6 +3876,7 @@
   "diveSites_group_noBodyOfWater": "Sans plan d'eau",
   "diveSites_group_siteCount": "{count, plural, =1{{count} site} other{{count} sites}}",
   "diveSites_picker_nearby": "À proximité",
+  "diveSites_catalogue_credit": "Issu du catalogue de sites intégré. Source : {source}",
   "diveSites_picker_builtIn_adoptError": "Impossible d'ajouter ce site",
   "diveSites_picker_builtIn_details": "Détails du site",
   "diveSites_picker_builtIn_nearPlace": "Autres sites près de {place}",

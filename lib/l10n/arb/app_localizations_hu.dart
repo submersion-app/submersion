@@ -12899,6 +12899,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_picker_nearby => 'A közelben';
 
   @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'A beépített merülőhely-katalógusból. Forrás: $source';
+  }
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'A merülőhely hozzáadása nem sikerült';
 

@@ -3876,6 +3876,7 @@
   "diveSites_group_noBodyOfWater": "Nessuno specchio d'acqua",
   "diveSites_group_siteCount": "{count, plural, =1{1 sito} other{{count} siti}}",
   "diveSites_picker_nearby": "Nelle vicinanze",
+  "diveSites_catalogue_credit": "Dal catalogo integrato dei siti. Fonte: {source}",
   "diveSites_picker_builtIn_adoptError": "Impossibile aggiungere questo sito",
   "diveSites_picker_builtIn_details": "Dettagli del sito",
   "diveSites_picker_builtIn_nearPlace": "Altri siti vicino a {place}",

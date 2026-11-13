@@ -12731,6 +12731,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_picker_nearby => 'Nearby';
 
   @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'From the built-in site catalogue. Source: $source';
+  }
+
+  @override
   String get diveSites_picker_builtIn_adoptError => 'Could not add this site';
 
   @override

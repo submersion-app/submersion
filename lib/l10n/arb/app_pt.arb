@@ -3976,6 +3976,7 @@
   "diveSites_group_noBodyOfWater": "Sem massa de água",
   "diveSites_group_siteCount": "{count, plural, =1{{count} ponto} other{{count} pontos}}",
   "diveSites_picker_nearby": "Por perto",
+  "diveSites_catalogue_credit": "Do catálogo integrado de pontos. Fonte: {source}",
   "diveSites_picker_builtIn_adoptError": "Não foi possível adicionar este ponto",
   "diveSites_picker_builtIn_details": "Detalhes do ponto",
   "diveSites_picker_builtIn_nearPlace": "Mais pontos perto de {place}",

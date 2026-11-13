@@ -12847,6 +12847,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_picker_nearby => 'In de buurt';
 
   @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Uit de ingebouwde stekkencatalogus. Bron: $source';
+  }
+
+  @override
   String get diveSites_picker_builtIn_adoptError =>
       'Stek kon niet worden toegevoegd';
 
