@@ -4,6 +4,19 @@ import 'package:submersion/features/settings/data/repositories/diver_settings_re
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
+/// The settings a profile other than the active one is judged under: its
+/// stored row, or the defaults the app would show it with none. Read-only:
+/// it never mints a row, as getOrCreateSettingsForDiver would (one would
+/// sync out as a real edit). Shared by every engine run on another profile
+/// (its dive analysis, its service clocks), so they cannot judge the same
+/// profile under different settings.
+Future<AppSettings> storedSettingsOrDefaults(
+  DiverSettingsRepository settingsRepository,
+  String diverId,
+) async =>
+    await settingsRepository.getSettingsForDiver(diverId) ??
+    const AppSettings();
+
 /// Runs [body] in a throwaway container whose settings are [diverId]'s, so
 /// work keyed on "the diver's settings" (the dive analysis, its gradient
 /// factors and thresholds) runs as it would with that diver active, without
@@ -28,9 +41,10 @@ Future<T> runInDiverContainer<T>(
     logFileService: ref.read(logFileServiceProvider),
   );
   if (diverId != null) {
-    final settings =
-        await settingsRepository.getSettingsForDiver(diverId) ??
-        const AppSettings();
+    final settings = await storedSettingsOrDefaults(
+      settingsRepository,
+      diverId,
+    );
     overrides.add(
       settingsProvider.overrideWith(
         (ref) => SettingsNotifier.preloaded(

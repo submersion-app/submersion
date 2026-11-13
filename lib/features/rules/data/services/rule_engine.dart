@@ -209,7 +209,9 @@ class RuleEngine {
     RuleRunRequest request,
     Map<RuleSubject, List<Rule>> rules,
   ) async {
-    // Each runnable rule compiled once: the tables it reads, by subject.
+    // The tables each runnable rule reads, by subject: one compile per rule
+    // here, before the pass compiles it again to match (a compile is a walk
+    // of a small tree, cheap beside the queries it feeds).
     final read = [
       for (final MapEntry(key: subject, value: list) in rules.entries)
         for (final r in list)

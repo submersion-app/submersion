@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
@@ -237,6 +238,34 @@ void main() {
     expect(container.read(diveDecoStatusProgressProvider), isNull);
   });
 
+  test('a pass released part way through clears its progress', () async {
+    await insertDive('deep');
+    await insertProfile('deep', _square(40, 25));
+    await insertDive('shallow', dayOffset: 1);
+    await insertProfile('shallow', _square(18, 30));
+
+    final container = await makeContainer();
+    final shown = Completer<void>();
+    final cleared = Completer<void>();
+    final progress = container.listen(diveDecoStatusProgressProvider, (
+      _,
+      next,
+    ) {
+      if (next != null && !shown.isCompleted) shown.complete();
+      if (next == null && shown.isCompleted && !cleared.isCompleted) {
+        cleared.complete();
+      }
+    });
+    addTearDown(progress.close);
+    final writer = container.listen(diveDecoStatusCacheProvider, (_, _) {});
+    await shown.future;
+    // The last reader leaves while the analysis is still running: the list
+    // must not keep showing the abandoned pass's count.
+    writer.close();
+    await cleared.future.timeout(const Duration(seconds: 30));
+    expect(container.read(diveDecoStatusProgressProvider), isNull);
+  });
+
   test(
     'a dive excluded from statistics is still classified for a search',
     () async {
@@ -323,6 +352,23 @@ void main() {
       await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
       expect(await DiveDecoStatusRepository().verdicts(), {'mine': false});
 
+      // An edit to that profile's settings (its gradient factors) re-scans.
+      await db.customStatement(
+        "DELETE FROM dive_deco_status WHERE dive_id = 'theirs'",
+      );
+      await db.customStatement(
+        "UPDATE diver_settings SET updated_at = updated_at + 1 "
+        "WHERE diver_id = 'other'",
+      );
+      await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
+      expect(await DiveDecoStatusRepository().verdicts(), {
+        'mine': false,
+        'theirs': true,
+      });
+      await db.customStatement(
+        "DELETE FROM dive_deco_status WHERE dive_id = 'theirs'",
+      );
+
       // A dive write moves the input count, so the next query re-scans.
       await (db.update(db.dives)..where((t) => t.id.equals('theirs'))).write(
         const DivesCompanion(notes: Value('edited')),
@@ -335,6 +381,60 @@ void main() {
       });
     },
   );
+
+  test('a profile with a dive the analysis could not judge is re-scanned by '
+      'the next query on it', () async {
+    for (final id in ['me', 'other']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+    }
+    for (final (id, samples) in [
+      ('deep', _square(40, 25)),
+      ('blip', _square(40, 25)),
+    ]) {
+      await insertDive(id, dayOffset: id == 'deep' ? 0 : 3);
+      await (db.update(db.dives)..where((t) => t.id.equals(id))).write(
+        const DivesCompanion(diverId: Value('other')),
+      );
+      await insertProfile(id, samples);
+    }
+    // A recording that no longer decodes: a profile row the scan sees, and
+    // nothing the analysis can judge.
+    await db.customStatement(
+      "UPDATE dive_profile_series SET samples = x'00' WHERE dive_id = 'blip'",
+    );
+    final container = ProviderContainer(
+      overrides: [
+        ...(await getBaseOverrides()).cast(),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => 'me'),
+        logFileServiceProvider.overrideWithValue(
+          LogFileService(
+            logDirectory: p.join(Directory.systemTemp.path, 'submersion'),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final ref = container.read(Provider((ref) => ref));
+
+    await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
+    expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
+
+    // Nothing written since, but the pass was incomplete: no memo.
+    await db.customStatement(
+      "DELETE FROM dive_deco_status WHERE dive_id = 'deep'",
+    );
+    await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
+    expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
+  });
 
   test('a dive written later is classified on the next pass', () async {
     await insertDive('shallow');

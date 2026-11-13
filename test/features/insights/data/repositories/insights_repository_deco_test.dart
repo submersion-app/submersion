@@ -216,6 +216,31 @@ void main() {
         expect(await revision(), isNot(before));
       });
 
+      test("moves on an earlier dive's analysis inputs, which reach this dive "
+          'through its residual load (#4461)', () async {
+        await db
+            .into(db.diveSites)
+            .insert(
+              DiveSitesCompanion(
+                id: const Value('lake'),
+                name: const Value('Lake'),
+                waterType: const Value('fresh'),
+                createdAt: Value(now),
+                updatedAt: Value(now),
+              ),
+            );
+        await db.customStatement(
+          "UPDATE dives SET site_id = 'lake' WHERE id = 'earlier'",
+        );
+        final before = await revision();
+
+        await db.customStatement(
+          "UPDATE dive_sites SET water_type = 'salt' WHERE id = 'lake'",
+        );
+
+        expect(await revision(), isNot(before));
+      });
+
       test("moves on the dive's own profile too", () async {
         final before = await revision();
 

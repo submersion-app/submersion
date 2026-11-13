@@ -28,6 +28,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_list_snapshot.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_picker_rows.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
+import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/gas_use_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/latest_ended_dive.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.dart';
@@ -7109,7 +7110,10 @@ class DiveRepository {
             '+ ${diveUndivedSql('d')} AS revision '
             'FROM dives d WHERE d.id = ?',
             variables: [Variable<String>(diveId)],
-            readsFrom: diveSourceStampTables(_db),
+            readsFrom: {
+              ...diveSourceStampTables(_db),
+              ...diveAnalysisInputsStampTables(_db),
+            },
           )
           .getSingleOrNull();
       return row?.read<int>('revision') ?? 0;

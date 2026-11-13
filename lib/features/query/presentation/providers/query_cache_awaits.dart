@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/query/equipment_query_entity.dart'
 import 'package:submersion/features/equipment/data/services/service_status_overlay.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/settings/presentation/providers/diver_pinned_container.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
@@ -125,11 +126,10 @@ Future<QueryCte?> prepareQueryCachesFor(
 /// holds the active profile's only: evaluated under [diverId]'s own
 /// settings, as the agent's query tool does for a named profile.
 Future<QueryCte> _serviceOverlayFor(Ref ref, String diverId) async {
-  final settings =
-      await ref
-          .read(diverSettingsRepositoryProvider)
-          .getSettingsForDiver(diverId) ??
-      const AppSettings();
+  final settings = await storedSettingsOrDefaults(
+    ref.read(diverSettingsRepositoryProvider),
+    diverId,
+  );
   return serviceStatusOverlay(
     diverId: diverId,
     settings: settings,
