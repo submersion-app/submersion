@@ -67,13 +67,25 @@ class TissueCompartmentDetail extends StatelessWidget {
         const SizedBox(height: 6),
         Row(
           children: [
-            Text(
-              isLeading
-                  ? l10n.diveLog_deco_compartmentLeading(comp.compartmentNumber)
-                  : l10n.diveLog_deco_compartmentOther(comp.compartmentNumber),
-              style: textTheme.labelSmall?.copyWith(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+            // Shrinks rather than overflowing beside the badge at large text.
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  isLeading
+                      ? l10n.diveLog_deco_compartmentLeading(
+                          comp.compartmentNumber,
+                        )
+                      : l10n.diveLog_deco_compartmentOther(
+                          comp.compartmentNumber,
+                        ),
+                  maxLines: 1,
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
             if (net != null) ...[
@@ -83,12 +95,18 @@ class TissueCompartmentDetail extends StatelessWidget {
           ],
         ),
         // On its own line, so the direction badge keeps its place beside the
-        // number and the card's height does not change from bar to bar
-        // (issue #4503).
+        // number, and always ONE line, shrunk to fit rather than wrapped or
+        // cut short, so the card's height does not change from bar to bar
+        // when one group's label is longer than another's (issue #4503).
         const SizedBox(height: 2),
-        Text(
-          CompartmentGroup.ofNumber(comp.compartmentNumber).label(l10n),
-          style: labelStyle,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            CompartmentGroup.ofNumber(comp.compartmentNumber).label(l10n),
+            maxLines: 1,
+            style: labelStyle,
+          ),
         ),
         const SizedBox(height: 6),
         Row(

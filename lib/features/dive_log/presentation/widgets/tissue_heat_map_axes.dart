@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -32,28 +34,39 @@ class TissueHeatMapCompartmentAxis extends StatelessWidget {
   /// The axis's fixed width beside the strip.
   static const double width = 18;
 
+  /// The largest text scale the axis numbers follow.
+  static const double maxTextScale = 1.3;
+
   @override
   Widget build(BuildContext context) {
     final style = _axisStyle(context);
     final rows = {0, (compartmentCount + 1) ~/ 2 - 1, compartmentCount - 1}
       ..removeWhere((row) => row < 0);
     final ordered = rows.toList()..sort();
-    return ExcludeSemantics(
-      child: SizedBox(
-        width: width,
-        // A Flow places the labels at paint time from the height it is
-        // given, and reports no intrinsic height of its own, so the card
-        // still sizes inside the detail page's IntrinsicHeight pairs.
-        child: Flow(
-          delegate: _RowLabelsDelegate(
-            rows: ordered,
-            compartmentCount: compartmentCount,
+    // Three labels share a strip as short as 72 px, so their text grows only
+    // so far with the diver's text size before they would overlap.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: maxTextScale,
+      child: ExcludeSemantics(
+        child: SizedBox(
+          width: width,
+          // A Flow places the labels at paint time from the height it is
+          // given, and reports no intrinsic height of its own, so the card
+          // still sizes inside the detail page's IntrinsicHeight pairs.
+          child: Flow(
+            delegate: _RowLabelsDelegate(
+              rows: ordered,
+              compartmentCount: compartmentCount,
+            ),
+            clipBehavior: Clip.none,
+            children: [
+              for (final row in ordered)
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('${row + 1}', style: style, maxLines: 1),
+                ),
+            ],
           ),
-          clipBehavior: Clip.none,
-          children: [
-            for (final row in ordered)
-              Text('${row + 1}', style: style, maxLines: 1),
-          ],
         ),
       ),
     );
@@ -61,8 +74,9 @@ class TissueHeatMapCompartmentAxis extends StatelessWidget {
 }
 
 /// Centres each label on its row and right-aligns it beside the strip. A
-/// label is taller than a 72 px strip's rows, so the first and last stand a
-/// few pixels past the strip's edges.
+/// label is taller than a 72 px strip's rows, so each is kept inside the
+/// axis: the first and last sit flush with the strip's edges rather than
+/// standing past them into the legend above or the time axis below.
 class _RowLabelsDelegate extends FlowDelegate {
   const _RowLabelsDelegate({
     required this.rows,
@@ -80,11 +94,12 @@ class _RowLabelsDelegate extends FlowDelegate {
     final rowHeight = size.height / compartmentCount;
     for (var i = 0; i < context.childCount; i++) {
       final child = context.getChildSize(i)!;
+      final centred = (rows[i] + 0.5) * rowHeight - child.height / 2;
       context.paintChild(
         i,
         transform: Matrix4.translationValues(
           size.width - _gap - child.width,
-          (rows[i] + 0.5) * rowHeight - child.height / 2,
+          centred.clamp(0.0, math.max(0.0, size.height - child.height)),
           0,
         ),
       );
@@ -93,7 +108,7 @@ class _RowLabelsDelegate extends FlowDelegate {
 
   @override
   BoxConstraints getConstraintsForChild(int i, BoxConstraints constraints) =>
-      const BoxConstraints();
+      BoxConstraints(maxWidth: math.max(0.0, constraints.maxWidth - _gap));
 
   @override
   bool shouldRepaint(_RowLabelsDelegate oldDelegate) =>
@@ -102,7 +117,8 @@ class _RowLabelsDelegate extends FlowDelegate {
 }
 
 /// Dive time under a heat map whose columns are the samples in [timestamps]
-/// (seconds), at the start, middle and end of the strip.
+/// (seconds on the profile chart's clock), at the start, middle and end of
+/// the strip.
 class TissueHeatMapTimeAxis extends StatelessWidget {
   const TissueHeatMapTimeAxis({super.key, required this.timestamps});
 
@@ -111,7 +127,9 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
   /// Whether [timestamps] can label a heat map of [sampleCount] columns: one
   /// time per sample, and at least two of them. A mismatch happens while the
   /// dive details page still shows an earlier analysis of a changed profile,
-  /// and a guessed timeline would mislabel it.
+  /// and a guessed timeline would mislabel it. Only the count is compared: a
+  /// retained analysis with the same count but different times would pass,
+  /// and no profile edit is known to produce one.
   static bool fits(List<int>? timestamps, int sampleCount) =>
       timestamps != null &&
       sampleCount >= 2 &&
@@ -121,10 +139,11 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final style = _axisStyle(context);
-    String at(int index) {
-      final minutes = ((timestamps[index] - timestamps.first) / 60).round();
-      return l10n.diveLog_deco_minutesValue('$minutes');
-    }
+    // The profile chart's own clock, as the card's cursor time reads it:
+    // whole minutes, part minutes dropped, and below zero for a computer
+    // that started logging before the dive's zero point.
+    String at(int index) =>
+        l10n.diveLog_deco_minutesValue('${timestamps[index] ~/ 60}');
 
     return ExcludeSemantics(
       child: Stack(

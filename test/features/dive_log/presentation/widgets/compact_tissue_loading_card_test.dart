@@ -8,6 +8,7 @@ import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_compartment_detail.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map_axes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
@@ -807,6 +808,59 @@ void main() {
       expect(badge.center.dy, closeTo(number.center.dy, 1));
     });
 
+    testWidgets('keeps one height from bar to bar at large text', (
+      tester,
+    ) async {
+      final sixteen = DecoStatus(
+        compartments: BuhlmannAlgorithm().compartments,
+        ndlSeconds: 600,
+        ceilingMeters: 0.0,
+        ttsSeconds: 0,
+        gfLow: 0.4,
+        gfHigh: 0.85,
+        decoStops: const [],
+        currentDepthMeters: 0.0,
+        ambientPressureBar: 1.0,
+      );
+      Future<double> heightFor(int index) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            // German at twice the text size on a phone: the fast group's
+            // label is the longest and wrapped where the medium one did not.
+            locale: const Locale('de'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+              child: Scaffold(
+                body: Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width: 334,
+                    child: TissueCompartmentDetail(
+                      status: sixteen,
+                      displayIndex: index,
+                      isLeading: false,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        return tester.getSize(find.byType(TissueCompartmentDetail)).height;
+      }
+
+      // Compartments 5 and 6 sit either side of the fast / medium split,
+      // so their group lines differ in length.
+      final fast = await heightFor(4);
+      final medium = await heightFor(5);
+      expect(fast, medium);
+      // Shrunk to one line, never cut short.
+      expect(find.text('Mittel, Muskeln und Haut'), findsOneWidget);
+    });
+
     testWidgets('fits a phone with the badge and the group line', (
       tester,
     ) async {
@@ -886,7 +940,15 @@ void main() {
       await tester.pumpWidget(buildCard(status: sixteen));
       await tester.pumpAndSettle();
 
-      expect(find.bySemanticsLabel(RegExp(r'^16$')), findsNothing);
+      // Drawn, so the check below is not passing on an empty row.
+      expect(inChart(find.text('16')), findsOneWidget);
+      // The card reads as one merged node; a spoken number would be a line
+      // of its own in that label ("...|15|16|Fast...").
+      final spoken = tester
+          .getSemantics(inChart(find.text('16')))
+          .label
+          .split('\n');
+      expect(spoken, isNot(contains('16')));
       semantics.dispose();
     });
   });

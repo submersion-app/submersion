@@ -21,13 +21,17 @@ void main() {
   group('TissueHeatMapCompartmentAxis', () {
     testWidgets('places 1, 8 and 16 on their rows', (tester) async {
       await tester.pumpWidget(
-        host(const TissueHeatMapCompartmentAxis(compartmentCount: 16)),
+        host(
+          const TissueHeatMapCompartmentAxis(compartmentCount: 16),
+          height: 320,
+        ),
       );
 
-      // Each row is 10 px tall; a label sits on its row's centre.
-      expect(tester.getCenter(find.text('1')).dy, closeTo(5, 1));
-      expect(tester.getCenter(find.text('8')).dy, closeTo(75, 1));
-      expect(tester.getCenter(find.text('16')).dy, closeTo(155, 1));
+      // Each row is 20 px tall, taller than a label, so each label sits on
+      // its row's centre.
+      expect(tester.getCenter(find.text('1')).dy, closeTo(10, 1));
+      expect(tester.getCenter(find.text('8')).dy, closeTo(150, 1));
+      expect(tester.getCenter(find.text('16')).dy, closeTo(310, 1));
     });
 
     testWidgets('lays out inside an IntrinsicHeight, as the detail page '
@@ -49,6 +53,48 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('16'), findsOneWidget);
     });
+
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('keeps every label inside a 72 px axis at ${scale}x text, '
+          'clear of the legend above', (tester) async {
+        await tester.pumpWidget(
+          MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(scale)),
+            child: host(
+              const TissueHeatMapCompartmentAxis(compartmentCount: 16),
+              width: TissueHeatMapCompartmentAxis.width,
+              height: 72,
+            ),
+          ),
+        );
+
+        final axis = tester.getRect(find.byType(TissueHeatMapCompartmentAxis));
+        for (final label in ['1', '8', '16']) {
+          final rect = tester.getRect(find.text(label));
+          expect(
+            rect.top,
+            greaterThanOrEqualTo(axis.top - 0.01),
+            reason: label,
+          );
+          expect(
+            rect.bottom,
+            lessThanOrEqualTo(axis.bottom + 0.01),
+            reason: label,
+          );
+          expect(
+            rect.left,
+            greaterThanOrEqualTo(axis.left - 0.01),
+            reason: label,
+          );
+        }
+        // And clear of each other.
+        final one = tester.getRect(find.text('1'));
+        final eight = tester.getRect(find.text('8'));
+        final sixteen = tester.getRect(find.text('16'));
+        expect(one.bottom, lessThanOrEqualTo(eight.top));
+        expect(eight.bottom, lessThanOrEqualTo(sixteen.top));
+      });
+    }
 
     testWidgets('names only the first row of a one-compartment model', (
       tester,
@@ -78,17 +124,36 @@ void main() {
       expect(end.right, closeTo(300, 1));
     });
 
-    testWidgets('counts from the first sample, not from zero', (tester) async {
+    testWidgets('reads the profile chart\'s own clock, before zero too', (
+      tester,
+    ) async {
+      // A secondary computer switched on three minutes before the merged
+      // dive's zero point: the chart and the cursor time read -3:00.
       await tester.pumpWidget(
         host(
-          const TissueHeatMapTimeAxis(timestamps: [30, 90, 150]),
+          const TissueHeatMapTimeAxis(timestamps: [-180, 1500, 3120]),
           height: 20,
         ),
       );
 
-      expect(find.text('0 min'), findsOneWidget);
+      expect(find.text('-3 min'), findsOneWidget);
+      expect(find.text('25 min'), findsOneWidget);
+      expect(find.text('52 min'), findsOneWidget);
+    });
+
+    testWidgets('drops part minutes the way the cursor time does', (
+      tester,
+    ) async {
+      // 52:40 reads "52 min", as hovering it reads "at 52:40".
+      await tester.pumpWidget(
+        host(
+          const TissueHeatMapTimeAxis(timestamps: [0, 90, 3160]),
+          height: 20,
+        ),
+      );
+
       expect(find.text('1 min'), findsOneWidget);
-      expect(find.text('2 min'), findsOneWidget);
+      expect(find.text('52 min'), findsOneWidget);
     });
 
     test('fits only a timeline with one time per sample', () {
