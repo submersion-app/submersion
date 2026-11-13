@@ -88,11 +88,8 @@ void main() {
     VoidCallback? onPhotos,
     VoidCallback? onDoc,
     void Function(MediaItem)? onOpenDocument,
-    List<MediaItem> divePhotos = const [],
+    int divePhotoCount = 0,
     List<String>? divePhotoReads,
-    Future<List<MediaItem>>? pendingDivePhotos,
-    Object? divePhotosError,
-    FutureOr<int> Function(Ref ref)? loadDivePhotoCount,
     List<MediaItem> attachments = const [],
     Future<List<MediaItem>>? pendingAttachments,
     Object? attachmentsError,
@@ -107,16 +104,12 @@ void main() {
           if (attachmentsError != null) throw attachmentsError;
           return attachments;
         }),
-        mediaCountFromDivesAtSiteProvider('site-1').overrideWith(
-          (ref) async => loadDivePhotoCount != null
-              ? loadDivePhotoCount(ref)
-              : divePhotos.length,
-        ),
+        mediaCountFromDivesAtSiteProvider(
+          'site-1',
+        ).overrideWith((ref) async => divePhotoCount),
         flatMediaFromDivesAtSiteProvider('site-1').overrideWith((ref) async {
           divePhotoReads?.add('site-1');
-          if (pendingDivePhotos != null) return pendingDivePhotos;
-          if (divePhotosError != null) throw divePhotosError;
-          return divePhotos;
+          return const <MediaItem>[];
         }),
         ...extraOverrides,
       ],
@@ -184,84 +177,22 @@ void main() {
     expect(find.byIcon(Icons.add_photo_alternate), findsNothing);
   });
 
-  testWidgets('dive photos group hidden when no dives have media', (
-    tester,
-  ) async {
-    await tester.pumpWidget(await host(onPhotos: () {}, onDoc: () {}));
-    await tester.pumpAndSettle();
-    expect(find.byType(ExpansionTile), findsNothing);
-  });
-
-  testWidgets('dive photos group shows collapsed header with count', (
-    tester,
-  ) async {
-    final photo = MediaItem(
-      id: 'm1',
-      diveId: 'dive-1',
-      mediaType: MediaType.photo,
-      takenAt: DateTime(2026, 3, 1),
-      createdAt: DateTime(2026, 3, 1),
-      updatedAt: DateTime(2026, 3, 1),
-    );
-    await tester.pumpWidget(
-      await host(onPhotos: () {}, onDoc: () {}, divePhotos: [photo]),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Photos from dives here (1)'), findsOneWidget);
-    // Collapsed by default: no grid tiles rendered.
-    expect(find.byType(GridView), findsNothing);
-  });
-
-  // Issue #4252: the collapsed header needs only the count, so the site's
-  // dive media is read when the group opens, not when the section builds.
-  testWidgets('collapsed dive photos group does not read the media', (
-    tester,
-  ) async {
+  // Issue #4502: photos from the site's dives moved to their own Site
+  // Details card, so this section shows only what is attached to the site.
+  testWidgets('does not show photos from dives', (tester) async {
     final reads = <String>[];
-    final photo = testMediaItem(
-      id: 'dp-1',
-      diveId: 'dive-1',
-      takenAt: DateTime(2026, 3, 1, 11),
-    );
-    await tester.pumpWidget(
-      await host(divePhotos: [photo], divePhotoReads: reads),
-    );
-    await tester.pumpAndSettle();
-    expect(find.text('Photos from dives here (1)'), findsOneWidget);
-    expect(reads, isEmpty);
-
-    await tester.tap(find.text('Photos from dives here (1)'));
-    await tester.pumpAndSettle();
-    expect(reads, ['site-1']);
-    expect(find.byType(MediaThumbnailTile), findsOneWidget);
-  });
-
-  // Every media or dive write re-reads the count; the header keeps the count
-  // it has meanwhile rather than vanishing for a frame.
-  testWidgets('dive photos header stays up while its count reloads', (
-    tester,
-  ) async {
-    final tick = StateProvider<int>((ref) => 0);
-    final reload = Completer<int>();
     await tester.pumpWidget(
       await host(
-        loadDivePhotoCount: (ref) =>
-            ref.watch(tick) == 0 ? Future.value(2) : reload.future,
+        onPhotos: () {},
+        onDoc: () {},
+        divePhotoCount: 5,
+        divePhotoReads: reads,
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Photos from dives here (2)'), findsOneWidget);
-
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(SiteMediaSection)),
-    );
-    container.read(tick.notifier).state = 1;
-    await tester.pump();
-    expect(find.text('Photos from dives here (2)'), findsOneWidget);
-
-    reload.complete(3);
-    await tester.pumpAndSettle();
-    expect(find.text('Photos from dives here (3)'), findsOneWidget);
+    expect(find.byType(ExpansionTile), findsNothing);
+    expect(find.textContaining('Photos from dives'), findsNothing);
+    expect(reads, isEmpty);
   });
 
   group('attachments grid', () {
@@ -602,88 +533,6 @@ void main() {
       expect(find.text('Error loading media'), findsOneWidget);
       expect(find.byType(MediaThumbnailTile), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsNothing);
-    });
-  });
-
-  group('dive photos group expanded', () {
-    testWidgets('shows a spinner while the opened group loads', (tester) async {
-      final pending = Completer<List<MediaItem>>();
-      await tester.pumpWidget(
-        await host(
-          divePhotos: [testMediaItem(id: 'dp-0', diveId: 'dive-1')],
-          pendingDivePhotos: pending.future,
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Photos from dives here (1)'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 300));
-
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-      expect(find.byType(GridView), findsNothing);
-      pending.complete(const []);
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets('shows the error text when the opened group fails', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        await host(
-          divePhotos: [testMediaItem(id: 'dp-0', diveId: 'dive-1')],
-          divePhotosError: StateError('boom'),
-        ),
-      );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Photos from dives here (1)'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Error loading media'), findsOneWidget);
-      expect(find.byType(GridView), findsNothing);
-    });
-
-    final divePhoto = testMediaItem(
-      id: 'dp-1',
-      diveId: 'dive-1',
-      originalFilename: 'grouper.png',
-      takenAt: DateTime(2026, 3, 1, 11),
-    );
-
-    testWidgets('expanding renders the dive photo tiles', (tester) async {
-      await tester.pumpWidget(await host(divePhotos: [divePhoto]));
-      await tester.pumpAndSettle();
-      expect(find.byType(MediaThumbnailTile), findsNothing);
-
-      await tester.tap(find.text('Photos from dives here (1)'));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(GridView), findsOneWidget);
-      final tile = tester.widget<MediaThumbnailTile>(
-        find.byType(MediaThumbnailTile),
-      );
-      expect(tile.item.id, 'dp-1');
-      // The dive-photo group is read-only: no selection affordances.
-      expect(tile.isSelectionMode, isFalse);
-      expect(tile.semanticsLabel, 'Dive photo');
-    });
-
-    testWidgets('tapping a dive photo opens the viewer in divePhotos scope', (
-      tester,
-    ) async {
-      await tester.pumpWidget(await host(divePhotos: [divePhoto]));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Photos from dives here (1)'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byType(MediaThumbnailTile));
-      await tester.pumpAndSettle();
-
-      final viewer = tester.widget<SiteMediaViewerPage>(
-        find.byType(SiteMediaViewerPage),
-      );
-      expect(viewer.siteId, 'site-1');
-      expect(viewer.initialMediaId, 'dp-1');
-      expect(viewer.scope, SiteViewerScope.divePhotos);
     });
   });
 

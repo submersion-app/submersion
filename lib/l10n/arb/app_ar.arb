@@ -5845,7 +5845,6 @@
   "media_siteAttachment_sizeTile": "مصغّر",
   "media_siteMediaSection_addDocument": "إضافة مستند",
   "media_siteMediaSection_emptyState": "لا توجد خرائط أو صور أو مستندات مرفقة بهذا الموقع",
-  "media_siteMediaSection_divePhotosGroup": "صور من الغوصات هنا ({count})",
   "media_siteMediaSection_divePhotoLabel": "صورة غوص",
   "media_siteDivePhotos_title": "صور من الغوصات",
   "media_siteDivePhotos_titleWithCount": "صور من الغوصات ({count})",

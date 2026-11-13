@@ -20077,11 +20077,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ehhez a merülőhelyhez nincs csatolva térkép, fotó vagy dokumentum';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotók az itteni merülésekről ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'Merülésfotó';
 
   @override

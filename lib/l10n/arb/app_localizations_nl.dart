@@ -20015,11 +20015,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen kaarten, foto\'s of documenten aan deze duikstek gekoppeld';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Foto\'s van duiken hier ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'Duikfoto';
 
   @override

@@ -20199,11 +20199,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune carte, photo ou document attaché à ce site';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Photos des plongées ici ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'Photo de plongée';
 
   @override

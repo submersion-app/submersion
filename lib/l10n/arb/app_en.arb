@@ -12167,7 +12167,6 @@
   "media_siteAttachment_sizeTile": "Tile",
   "media_siteMediaSection_addDocument": "Add document",
   "media_siteMediaSection_emptyState": "No maps, photos, or documents attached to this site",
-  "media_siteMediaSection_divePhotosGroup": "Photos from dives here ({count})",
   "media_siteMediaSection_divePhotoLabel": "Dive photo",
   "media_siteDivePhotos_title": "Photos from dives",
   "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
@@ -12603,13 +12602,6 @@
   },
   "@media_siteDivePhotos_titleWithCount": {
     "description": "Title of the Site Details card that shows photos from the dives logged at the site, with how many there are",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "@media_siteMediaSection_divePhotosGroup": {
     "placeholders": {
       "count": {
         "type": "int"

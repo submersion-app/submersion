@@ -19142,11 +19142,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteMediaSection_emptyState => '此潜水点尚未附加地图、照片或文档';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return '此处潜水的照片（$count）';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => '潜水照片';
 
   @override

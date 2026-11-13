@@ -5744,7 +5744,6 @@
   "media_siteAttachment_sizeTile": "Riquadro",
   "media_siteMediaSection_addDocument": "Aggiungi documento",
   "media_siteMediaSection_emptyState": "Nessuna mappa, foto o documento allegato a questo sito",
-  "media_siteMediaSection_divePhotosGroup": "Foto dalle immersioni qui ({count})",
   "media_siteMediaSection_divePhotoLabel": "Foto dell'immersione",
   "media_siteDivePhotos_title": "Foto dalle immersioni",
   "media_siteDivePhotos_titleWithCount": "Foto dalle immersioni ({count})",

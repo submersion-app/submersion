@@ -5845,7 +5845,6 @@
   "media_siteAttachment_sizeTile": "Tegel",
   "media_siteMediaSection_addDocument": "Document toevoegen",
   "media_siteMediaSection_emptyState": "Geen kaarten, foto's of documenten aan deze duikstek gekoppeld",
-  "media_siteMediaSection_divePhotosGroup": "Foto's van duiken hier ({count})",
   "media_siteMediaSection_divePhotoLabel": "Duikfoto",
   "media_siteDivePhotos_title": "Foto's van duiken",
   "media_siteDivePhotos_titleWithCount": "Foto's van duiken ({count})",

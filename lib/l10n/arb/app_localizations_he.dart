@@ -19701,11 +19701,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין מפות, תמונות או מסמכים המצורפים לאתר זה';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'תמונות מצלילות כאן ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'תמונת צלילה';
 
   @override

@@ -20448,11 +20448,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد خرائط أو صور أو مستندات مرفقة بهذا الموقع';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'صور من الغوصات هنا ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'صورة غوص';
 
   @override

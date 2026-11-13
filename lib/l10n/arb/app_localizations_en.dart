@@ -19842,11 +19842,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'No maps, photos, or documents attached to this site';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Photos from dives here ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'Dive photo';
 
   @override

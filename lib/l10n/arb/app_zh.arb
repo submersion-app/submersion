@@ -5988,7 +5988,6 @@
   "media_siteAttachment_sizeTile": "缩略图",
   "media_siteMediaSection_addDocument": "添加文档",
   "media_siteMediaSection_emptyState": "此潜水点尚未附加地图、照片或文档",
-  "media_siteMediaSection_divePhotosGroup": "此处潜水的照片（{count}）",
   "media_siteMediaSection_divePhotoLabel": "潜水照片",
   "media_siteDivePhotos_title": "潜水照片",
   "media_siteDivePhotos_titleWithCount": "潜水照片（{count}）",

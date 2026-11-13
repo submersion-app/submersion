@@ -20132,11 +20132,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay mapas, fotos ni documentos adjuntos a este punto de buceo';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotos de inmersiones aquí ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'Foto de inmersión';
 
   @override

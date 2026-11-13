@@ -20140,11 +20140,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum mapa, foto ou documento anexado a este ponto de mergulho';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotos de mergulhos aqui ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'Foto de mergulho';
 
   @override

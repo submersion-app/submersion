@@ -32018,12 +32018,6 @@ abstract class AppLocalizations {
   /// **'No maps, photos, or documents attached to this site'**
   String get media_siteMediaSection_emptyState;
 
-  /// No description provided for @media_siteMediaSection_divePhotosGroup.
-  ///
-  /// In en, this message translates to:
-  /// **'Photos from dives here ({count})'**
-  String media_siteMediaSection_divePhotosGroup(int count);
-
   /// No description provided for @media_siteMediaSection_divePhotoLabel.
   ///
   /// In en, this message translates to:

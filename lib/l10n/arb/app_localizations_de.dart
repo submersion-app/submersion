@@ -20116,11 +20116,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Karten, Fotos oder Dokumente an diesem Tauchplatz angehängt';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotos von Tauchgängen hier ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'Tauchgangsfoto';
 
   @override

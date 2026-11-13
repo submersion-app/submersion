@@ -20145,11 +20145,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna mappa, foto o documento allegato a questo sito';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Foto dalle immersioni qui ($count)';
-  }
-
-  @override
   String get media_siteMediaSection_divePhotoLabel => 'Foto dell\'immersione';
 
   @override

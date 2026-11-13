@@ -5744,7 +5744,6 @@
   "media_siteAttachment_sizeTile": "Vignette",
   "media_siteMediaSection_addDocument": "Ajouter un document",
   "media_siteMediaSection_emptyState": "Aucune carte, photo ou document attaché à ce site",
-  "media_siteMediaSection_divePhotosGroup": "Photos des plongées ici ({count})",
   "media_siteMediaSection_divePhotoLabel": "Photo de plongée",
   "media_siteDivePhotos_title": "Photos des plongées",
   "media_siteDivePhotos_titleWithCount": "Photos des plongées ({count})",
