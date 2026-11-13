@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_layers.dart';
 
@@ -18,8 +16,31 @@ void main() {
     });
 
     test('ndl clamps past an hour', () {
-      final runs = pinnedNdlRuns([59940]);
-      expect(runs.single.single.value, 3600);
+      final runs = pinnedNdlRuns([59940, 1800]);
+      expect(runs.single.first.value, 3600);
+    });
+
+    // Held at the top of its scale the line was a bar across most of a
+    // recreational dive; it shows only where it dips below the top, dropping
+    // in from the top edge and climbing back out to it (issue #4509).
+    test('the line shows only where NDL dips below the top', () {
+      final runs = pinnedNdlRuns([5940, 5940, 1800, 1200, 5940, 5940]);
+      expect(_indices(runs), [
+        [1, 2, 3, 4],
+      ]);
+      expect([for (final p in runs.single) p.value], [3600, 1800, 1200, 3600]);
+    });
+
+    test('an NDL that never dips below the top draws no line', () {
+      expect(pinnedNdlRuns([5940, 3600, 5940]), isEmpty);
+    });
+
+    test('a dip that ends in deco does not reach back to the top', () {
+      final runs = pinnedNdlRuns([5940, 1800, 0, -1, 1200, 5940]);
+      expect(_indices(runs), [
+        [0, 1],
+        [4, 5],
+      ]);
     });
 
     test('runs are worked out once per list', () {
@@ -64,88 +85,6 @@ void main() {
       expect(identical(stepped, pinnedDepthRuns(curve, stepped: true)), isTrue);
       expect(identical(smooth, pinnedDepthRuns(curve)), isTrue);
       expect(identical(stepped, smooth), isFalse);
-    });
-  });
-
-  group('maxDepthLabelOffset', () {
-    const label = Size(30, 12);
-    const area = Size(400, 44);
-
-    test('label sits right of the dot', () {
-      expect(
-        maxDepthLabelOffset(
-          dot: const Offset(100, 30),
-          label: label,
-          area: area,
-        ),
-        const Offset(106, 20),
-      );
-    });
-
-    test('label flips left at the right edge', () {
-      final at = maxDepthLabelOffset(
-        dot: const Offset(390, 30),
-        label: label,
-        area: area,
-      );
-      expect(at.dx, 390 - 6 - 30);
-    });
-
-    test('label flips left of an NDL line in the way', () {
-      final at = maxDepthLabelOffset(
-        dot: const Offset(100, 30),
-        label: label,
-        area: area,
-        avoid: const [
-          [Offset(110, 25), Offset(120, 25)],
-        ],
-      );
-      expect(at.dx, 64);
-    });
-
-    // A segment can cross the label with both its ends outside it (review).
-    test('label flips left of an NDL segment crossing it', () {
-      final at = maxDepthLabelOffset(
-        dot: const Offset(100, 30),
-        label: label,
-        area: area,
-        avoid: const [
-          [Offset(100, 10), Offset(150, 40)],
-        ],
-      );
-      expect(at.dx, 64);
-    });
-
-    test('a break between runs is not a segment', () {
-      final at = maxDepthLabelOffset(
-        dot: const Offset(100, 30),
-        label: label,
-        area: area,
-        avoid: const [
-          [Offset(90, 10), Offset(100, 10)],
-          [Offset(150, 40), Offset(160, 40)],
-        ],
-      );
-      expect(at.dx, 106);
-    });
-
-    test('a dot at the bottom keeps the label inside the strip', () {
-      final at = maxDepthLabelOffset(
-        dot: const Offset(100, 44),
-        label: label,
-        area: area,
-      );
-      expect(at.dy + label.height, lessThanOrEqualTo(area.height));
-    });
-
-    test('with no room either side the label stays inside the strip', () {
-      final at = maxDepthLabelOffset(
-        dot: const Offset(15, 30),
-        label: label,
-        area: const Size(40, 44),
-      );
-      expect(at.dx, greaterThanOrEqualTo(0));
-      expect(at.dx + label.width, lessThanOrEqualTo(40));
     });
   });
 }

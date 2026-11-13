@@ -213,27 +213,14 @@ void main() {
     handle.dispose();
   });
 
-  // The chart's dark max-depth colour does not read on a dark surface, so
-  // the label lifts it toward white there and keeps it as is in light.
-  testWidgets('lifts the max-depth label toward white in dark mode', (
-    tester,
-  ) async {
-    PinnedStripPainter painter() =>
-        tester
-                .widget<CustomPaint>(
-                  find.byWidgetPredicate(
-                    (w) => w is CustomPaint && w.painter is PinnedStripPainter,
-                  ),
-                )
-                .painter!
-            as PinnedStripPainter;
-    await pump(tester, theme: ThemeData(brightness: Brightness.dark));
-    expect(
-      painter().maxDepthLabelColor,
-      Color.lerp(ProfileMetricColors.maxDepth, Colors.white, 0.45),
+  // The deepest point keeps its marker but no depth label (issue #4509).
+  testWidgets('marks the deepest point without a depth label', (tester) async {
+    await pump(tester);
+    final strip = find.byWidgetPredicate(
+      (w) => w is CustomPaint && w.painter is PinnedStripPainter,
     );
-    await pump(tester, theme: ThemeData(brightness: Brightness.light));
-    expect(painter().maxDepthLabelColor, ProfileMetricColors.maxDepth);
+    expect(strip, paints..circle(color: ProfileMetricColors.maxDepth));
+    expect(strip, paintsExactlyCountTimes(#drawParagraph, 0));
   });
 
   testWidgets('passes the analysis curves to the painter', (tester) async {
@@ -250,29 +237,6 @@ void main() {
     expect(identical(painter.ndlCurve, analysis.ndlCurve), isTrue);
     expect(identical(painter.ceilingCurve, analysis.ceilingCurve), isTrue);
     expect(identical(painter.decoStopCurve, analysis.decoStopCurve), isTrue);
-    expect(painter.maxDepthLabel, '30.0m');
-  });
-
-  // A raw TextPainter has no theme: without the app's label style the
-  // max-depth label fell back to the engine's default font.
-  testWidgets('labels the max depth in the theme\'s label style', (
-    tester,
-  ) async {
-    await pump(tester);
-    final painter =
-        tester
-                .widget<CustomPaint>(
-                  find.byWidgetPredicate(
-                    (w) => w is CustomPaint && w.painter is PinnedStripPainter,
-                  ),
-                )
-                .painter!
-            as PinnedStripPainter;
-    final labelSmall = Theme.of(
-      tester.element(find.byType(PinnedProfileStrip)),
-    ).textTheme.labelSmall;
-    expect(painter.maxDepthLabelStyle, isNotNull);
-    expect(painter.maxDepthLabelStyle!.fontFamily, labelSmall!.fontFamily);
   });
 
   testWidgets('a horizontal drag writes the cursor index', (tester) async {

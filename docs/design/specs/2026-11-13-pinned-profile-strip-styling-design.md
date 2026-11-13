@@ -41,15 +41,17 @@ glance, and read values the way the full profile chart does.
   bottom of the curve area, 60 minutes at the top, longer limits held flat at
   the top. Drawn only where NDL is above zero; it ends where the diver goes
   into deco and starts again once NDL returns, never bridging the gap.
+  It shows only where NDL dips below the top of that scale: held at the top
+  it was a bar across most of a recreational dive. Each stretch reaches out
+  to the at-the-top sample either side, so it drops in from the top edge and
+  climbs back out to it.
 - **Deco:** where the dive has an obligation, the stop band
   (`decoStopBandColor` at `decoStopFillAlpha`, with its 1 px step edge) and
   the ceiling band (`ProfileMetricColors.ceiling` at `ceilingFillAlpha`, with
   its 1 px line) shade from the surface down, as on the full chart.
 - **Max-depth marker:** a 3.5 px dot in `ProfileMetricColors.maxDepth`, ringed
-  in the surface colour, at the deepest sample, with the depth beside it in
-  the diver's units (10 px, semi-bold; a lighter pink in dark mode for
-  contrast). The label goes on whichever side of the dot is clear of the
-  strip's edge and of the NDL line.
+  in the surface colour, at the deepest sample. No depth label: the tooltip
+  reads the depth wherever the cursor is.
 - All curves come from the analysis the full chart draws
   (`sourceProfileAnalysisProvider`: `ndlCurve`, `ceilingCurve`,
   `decoStopCurve`), index-aligned with the chart profile, so the strip and
@@ -77,9 +79,12 @@ glance, and read values the way the full profile chart does.
 
 ### Condense
 
-The new layers (NDL line, deco bands, max-depth marker) fade in with the
-condense, so the hand-over from the full chart never shows two sets of deco
-bands at full strength.
+Every layer behaves as the depth line does. The NDL line, deco bands and
+max-depth marker travel through the same moving mapping at full strength,
+lying on the full chart's own wherever the chart draws them, and only
+cross-fade in with the strip's surface, as the line does. Fading them with
+the condense as well covered the chart's own bands and then faded them back
+in.
 
 ## Approaches considered
 
@@ -109,10 +114,6 @@ Where the build settled details this design left open or got wrong:
   line and shading, NDL line, ceiling, max-depth marker and tooltip bullets
   come from the same palette, falling back to the defaults named above. The
   stop band keeps `decoStopBandColor`, which the palette does not cover.
-- **Dark-mode max-depth label:** the palette's max-depth colour moved 45%
-  toward white, rather than one fixed pink, so it follows a chosen colour.
-- **Max-depth label** is set in the theme's `labelSmall` font, and may sit
-  anywhere in the strip's box mid-condense so it stays beside its dot.
 - **Tooltip ppO2** reads with its unit (`0.69 bar`), as the full chart's
   tooltip does.
 - **Tooltip NDL** is read from the analysis's NDL curve, the one the NDL line

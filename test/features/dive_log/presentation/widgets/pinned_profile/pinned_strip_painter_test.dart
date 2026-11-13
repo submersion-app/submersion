@@ -29,7 +29,6 @@ void main() {
     List<int>? ndlCurve,
     List<double>? ceilingCurve,
     List<double>? decoStopCurve,
-    String? maxDepthLabel,
   }) => PinnedStripPainter(
     profile: profile,
     curveColor: Colors.blue,
@@ -39,8 +38,6 @@ void main() {
     ndlCurve: ndlCurve,
     ceilingCurve: ceilingCurve,
     decoStopCurve: decoStopCurve,
-    maxDepthLabel: maxDepthLabel,
-    maxDepthLabelColor: ProfileMetricColors.maxDepth,
     surfaceColor: Colors.white,
   );
 
@@ -358,7 +355,7 @@ void main() {
     testWidgets('draws the max-depth dot at the deepest sample', (
       tester,
     ) async {
-      await pumpPainter(tester, painter(morph: 1, maxDepthLabel: '24.0m'));
+      await pumpPainter(tester, painter(morph: 1));
       // 600 s of 60 to 1260 s across 400 px; 24 m is the curve area's
       // bottom, 4 px above the strip's.
       expect(
@@ -385,8 +382,6 @@ void main() {
               curveColor: Colors.blue,
               fillColors: [Colors.blue, Colors.blue],
               morph: 1,
-              maxDepthLabel: '0.0m',
-              maxDepthLabelColor: ProfileMetricColors.maxDepth,
               surfaceColor: Colors.white,
             ),
           ),
@@ -396,18 +391,41 @@ void main() {
     });
   });
 
-  testWidgets('new layers fade with the condense', (tester) async {
+  // Every layer behaves as the depth line does: it travels through the
+  // condense at full strength and only cross-fades with the strip's surface
+  // (an Opacity above the painter). Faded with the condense as well, the
+  // chart's own bands were covered and then faded back in (issue #4509).
+  testWidgets('new layers ride the condense at full strength', (tester) async {
     await pumpPainter(
       tester,
-      painter(morph: 0.5, ndlCurve: [3600, 1800, 600], maxDepthLabel: '24.0m'),
+      painter(
+        morph: 0.5,
+        ndlCurve: [3600, 1800, 600],
+        decoStopCurve: [0, 6, 0],
+      ),
     );
     expect(
       find.byType(CustomPaint),
       paints
         ..path()
+        ..path(color: decoStopBandColor.withValues(alpha: decoStopFillAlpha))
+        ..path(color: decoStopBandColor, style: PaintingStyle.stroke)
         ..path(color: Colors.blue)
-        ..path(color: ProfileMetricColors.ndl.withValues(alpha: 0.5))
-        ..circle(color: ProfileMetricColors.maxDepth.withValues(alpha: 0.5)),
+        ..path(color: ProfileMetricColors.ndl)
+        ..circle(color: ProfileMetricColors.maxDepth),
+    );
+  });
+
+  testWidgets('on the chart line the layers are already drawn', (tester) async {
+    await pumpPainter(
+      tester,
+      painter(from: chart, morph: 0, decoStopCurve: [0, 6, 0]),
+    );
+    expect(
+      find.byType(CustomPaint),
+      paints
+        ..path()
+        ..path(color: decoStopBandColor.withValues(alpha: decoStopFillAlpha)),
     );
   });
 
@@ -422,7 +440,6 @@ void main() {
         morph: 1,
         ndlCurve: [3600, 1800, 600],
         ceilingCurve: [0, 4, 0],
-        maxDepthLabel: '24.0m',
         ndlColor: Colors.green,
         ceilingColor: Colors.orange,
         maxDepthColor: Colors.purple,
@@ -437,37 +454,6 @@ void main() {
         ..path(color: Colors.blue)
         ..path(color: Colors.green)
         ..circle(color: Colors.purple),
-    );
-  });
-
-  // Mid-condense the box is tall and the dot rides the lerped chart
-  // mapping; the label was clamped to the strip's 44 px and floated away
-  // from it (review round 1).
-  testWidgets('mid-condense the max-depth label stays beside its dot', (
-    tester,
-  ) async {
-    const tall = Size(400, 200);
-    final p = painter(from: chart, morph: 0.5, maxDepthLabel: '24.0m');
-    final dot = p.mappingFor(tall).project(600, 24);
-    await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: Center(
-          child: SizedBox.fromSize(
-            size: tall,
-            child: CustomPaint(painter: p),
-          ),
-        ),
-      ),
-    );
-    expect(
-      find.byType(CustomPaint),
-      paints..paragraph(
-        offset: predicate<Offset>(
-          (o) => (o.dy - dot.dy).abs() < 20,
-          'near the dot at y ${dot.dy}',
-        ),
-      ),
     );
   });
 
@@ -555,18 +541,10 @@ void main() {
     });
   });
 
-  test('repaints when a curve or the label changes', () {
+  test('repaints when a curve changes', () {
     final base = painter(morph: 1, ndlCurve: [600, 600, 600]);
     expect(
       painter(morph: 1, ndlCurve: [600, 300, 600]).shouldRepaint(base),
-      isTrue,
-    );
-    expect(
-      painter(
-        morph: 1,
-        ndlCurve: base.ndlCurve,
-        maxDepthLabel: 'x',
-      ).shouldRepaint(base),
       isTrue,
     );
     expect(

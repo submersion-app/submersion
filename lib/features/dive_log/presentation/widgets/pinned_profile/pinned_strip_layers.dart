@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
@@ -29,18 +28,38 @@ final Expando<List<List<StripSeriesPoint>>> _steppedRuns = Expando(
   'pinnedStepped',
 );
 
-/// The stretches of [ndlCurve] (seconds) with no-deco time left, as the
-/// strip draws its NDL line (issue #4509).
+/// The stretches of [ndlCurve] (seconds) the strip draws its NDL line along
+/// (issue #4509): where the limit dips below the top of its scale,
+/// [ProfileMetricBands.ndl]'s hour.
 ///
-/// Once NDL is spent (zero, or negative in deco) the line ends, as on the
-/// full chart, so a run never bridges a deco phase. Readings past
-/// [ProfileMetricBands.ndl]'s hour are held at the hour. Worked out once per
-/// curve: the strip repaints on every scroll frame while it shows.
+/// Held at the top the line was a bar across most of a recreational dive, so
+/// it shows only where it dips: each run reaches out to the at-the-top
+/// sample on either side, so the line drops in from the top edge and climbs
+/// back out to it. Once NDL is spent (zero, or negative in deco) the line
+/// ends, as on the full chart, so a run never bridges a deco phase. Worked
+/// out once per curve: the strip repaints on every scroll frame while it
+/// shows.
 List<List<StripSeriesPoint>> pinnedNdlRuns(List<int> ndlCurve) =>
-    _ndlRuns[ndlCurve] ??= _runs([
-      for (final s in ndlCurve)
-        math.min(s.toDouble(), ProfileMetricBands.ndl.fixedMax),
-    ], stepped: false);
+    _ndlRuns[ndlCurve] ??= _ndlRunsOf(ndlCurve);
+
+List<List<StripSeriesPoint>> _ndlRunsOf(List<int> curve) {
+  final top = ProfileMetricBands.ndl.fixedMax;
+  final held = [for (final s in curve) math.min(s.toDouble(), top)];
+  bool atTop(int i) => i >= 0 && i < curve.length && curve[i] >= top;
+  final runs = <List<StripSeriesPoint>>[];
+  var start = -1;
+  for (var i = 0; i <= curve.length; i++) {
+    final below = i < curve.length && curve[i] > 0 && curve[i] < top;
+    if (below && start < 0) start = i;
+    if (!below && start >= 0) {
+      final from = atTop(start - 1) ? start - 1 : start;
+      final to = atTop(i) ? i + 1 : i;
+      runs.add(_thinned(held, from, to));
+      start = -1;
+    }
+  }
+  return List.unmodifiable(runs);
+}
 
 /// The stretches of [curve] (metres) with an obligation, as the strip draws
 /// its ceiling band ([stepped] false) or its deco stop band ([stepped] true).
@@ -97,84 +116,4 @@ List<StripSeriesPoint> _thinned(List<double> values, int start, int end) {
     ))
       StripSeriesPoint(start + i, run[i]),
   ]);
-}
-
-/// Gap between the max-depth dot and its label.
-const double _labelGap = 6;
-
-/// How far the label's bottom sits below the dot's centre.
-const double _labelDrop = 2;
-
-/// Clearance kept between the label and any point it must not cover.
-const double _avoidMargin = 2;
-
-/// Where the max-depth label of [label] size goes beside the dot at [dot],
-/// within a strip of [area] size: right of the dot, or left of it when the
-/// right side would leave the strip or cross one of [avoid], the NDL line
-/// as polylines (one per run, so a break between runs is not a segment).
-/// Always inside the strip.
-Offset maxDepthLabelOffset({
-  required Offset dot,
-  required Size label,
-  required Size area,
-  List<List<Offset>> avoid = const [],
-}) {
-  final top = dot.dy + _labelDrop - label.height;
-  final right = Offset(dot.dx + _labelGap, top);
-  final left = Offset(dot.dx - _labelGap - label.width, top);
-
-  bool fits(Offset at) => at.dx >= 0 && at.dx + label.width <= area.width;
-  bool clear(Offset at) {
-    final rect = (at & label).inflate(_avoidMargin);
-    for (final line in avoid) {
-      if (line.length == 1 && rect.contains(line.single)) return false;
-      for (var i = 1; i < line.length; i++) {
-        if (_crosses(line[i - 1], line[i], rect)) return false;
-      }
-    }
-    return true;
-  }
-
-  final Offset chosen;
-  if (fits(right) && clear(right)) {
-    chosen = right;
-  } else if (fits(left) && clear(left)) {
-    chosen = left;
-  } else {
-    chosen = fits(right) ? right : left;
-  }
-  return Offset(
-    chosen.dx.clamp(0.0, math.max(0.0, area.width - label.width)),
-    chosen.dy.clamp(0.0, math.max(0.0, area.height - label.height)),
-  );
-}
-
-/// Whether the segment from [a] to [b] passes through [rect], either end
-/// inside it included (Liang-Barsky clipping): a segment can cross the label
-/// with both its ends outside.
-bool _crosses(Offset a, Offset b, Rect rect) {
-  var enter = 0.0;
-  var leave = 1.0;
-  final dx = b.dx - a.dx;
-  final dy = b.dy - a.dy;
-  for (final (p, q) in [
-    (-dx, a.dx - rect.left),
-    (dx, rect.right - a.dx),
-    (-dy, a.dy - rect.top),
-    (dy, rect.bottom - a.dy),
-  ]) {
-    if (p == 0) {
-      if (q < 0) return false;
-      continue;
-    }
-    final t = q / p;
-    if (p < 0) {
-      if (t > leave) return false;
-      if (t > enter) enter = t;
-    } else {
-      if (t < enter) return false;
-      if (t < leave) leave = t;
-    }
-  }
-  return true;
 }

@@ -22,10 +22,6 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Room below the strip the tooltip may take: enough for its five rows.
 const double _tooltipRoom = 240;
 
-/// How far toward white the max-depth label moves on a dark surface, where
-/// the chart's dark max-depth colour would not read.
-const double _darkLabelLift = 0.45;
-
 /// The settled strip's elevation: Material 3's level 2, the lift of an app
 /// bar with content scrolled under it, so the strip reads as pinned over the
 /// page rather than as one more card in it.
@@ -155,7 +151,6 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
       temperatureAuto: colors.tertiary,
     );
     final depthColor = palette.colorOf(ProfileMetric.depth);
-    final maxDepthColor = palette.colorOf(ProfileMetric.maxDepth);
     final values = pinnedStripValuesAt(
       chartProfile: profile,
       analysis: analysis,
@@ -164,7 +159,6 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
     final rows = values == null
         ? const <TooltipRow>[]
         : pinnedStripTooltipRows(values, units, context.l10n, palette: palette);
-    final deepest = pinnedStripCurve(profile).deepest;
     final selectedSeconds =
         cursor != null && cursor >= 0 && cursor < profile.length
         ? profile[cursor].timestamp
@@ -183,15 +177,10 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
       ndlCurve: analysis?.ndlCurve,
       ceilingCurve: analysis?.ceilingCurve,
       decoStopCurve: analysis?.decoStopCurve,
-      maxDepthLabel: deepest == null ? null : units.formatDepth(deepest.depth),
-      maxDepthLabelColor: theme.brightness == Brightness.dark
-          ? Color.lerp(maxDepthColor, Colors.white, _darkLabelLift)!
-          : maxDepthColor,
-      maxDepthLabelStyle: theme.textTheme.labelSmall,
       surfaceColor: card.fill,
       ndlColor: palette.colorOf(ProfileMetric.ndl),
       ceilingColor: palette.colorOf(ProfileMetric.ceiling),
-      maxDepthColor: maxDepthColor,
+      maxDepthColor: palette.colorOf(ProfileMetric.maxDepth),
     );
     return Semantics(
       container: true,

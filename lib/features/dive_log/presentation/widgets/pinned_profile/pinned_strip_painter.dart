@@ -32,9 +32,6 @@ const double _ndlLineWidth = 1.5;
 /// Radius of the max-depth dot.
 const double _maxDepthDotRadius = 3.5;
 
-/// Font size of the max-depth label.
-const double _maxDepthLabelSize = 10;
-
 /// What the strip draws of a profile: its points cut down to
 /// [kPinnedStripPointBudget], keeping the depth envelope and the deepest
 /// point, and the depth its axis runs to.
@@ -90,10 +87,12 @@ PinnedStripCurve _curveOf(List<DiveProfilePoint> profile) {
 /// to 1, from [from] (where the full chart draws its depth line, in this
 /// painter's coordinates) to the strip's own curve area. At 0 the line lies
 /// exactly on the chart's, so the condense never shows two depth lines; every
-/// point then travels continuously into the strip. The layers the strip adds
-/// fade in with [morph], so the hand-over never doubles the chart's own deco
-/// bands at full strength. The cursor is [PinnedStripCursorPainter]'s, so
-/// moving it repaints only the cursor.
+/// point then travels continuously into the strip. Its NDL line, deco bands
+/// and max-depth marker travel the same way at full strength, so like the
+/// line they only cross-fade in with the strip's surface (the strip's
+/// Opacity), lying on the chart's own wherever the chart draws them. The
+/// cursor is [PinnedStripCursorPainter]'s, so moving it repaints only the
+/// cursor.
 class PinnedStripPainter extends CustomPainter {
   const PinnedStripPainter({
     required this.profile,
@@ -104,9 +103,6 @@ class PinnedStripPainter extends CustomPainter {
     this.ndlCurve,
     this.ceilingCurve,
     this.decoStopCurve,
-    this.maxDepthLabel,
-    this.maxDepthLabelColor = ProfileMetricColors.maxDepth,
-    this.maxDepthLabelStyle,
     this.surfaceColor = const Color(0x00000000),
     this.ndlColor = ProfileMetricColors.ndl,
     this.ceilingColor = ProfileMetricColors.ceiling,
@@ -133,14 +129,6 @@ class PinnedStripPainter extends CustomPainter {
   /// Deco stop depth in metres, index-aligned with [profile]; zero with no
   /// obligation.
   final List<double>? decoStopCurve;
-
-  /// The max depth, formatted in the diver's units, beside the max-depth dot.
-  final String? maxDepthLabel;
-  final Color maxDepthLabelColor;
-
-  /// The app's text style the label is set in (the theme's `labelSmall`);
-  /// its size, weight and colour are the label's own.
-  final TextStyle? maxDepthLabelStyle;
 
   /// The strip's background, which rings the max-depth dot.
   final Color surfaceColor;
@@ -252,7 +240,6 @@ class PinnedStripPainter extends CustomPainter {
     required bool stepped,
     required Color color,
     required double fillAlpha,
-    required double opacity,
   }) {
     final runs = _inProfile(pinnedDepthRuns(curve, stepped: stepped)).toList();
     if (runs.isEmpty) return;
@@ -292,98 +279,54 @@ class PinnedStripPainter extends CustomPainter {
     canvas
       ..drawPath(
         fill,
-        Paint()..color = color.withValues(alpha: color.a * fillAlpha * opacity),
+        Paint()..color = color.withValues(alpha: color.a * fillAlpha),
       )
       ..drawPath(
         edge,
         Paint()
-          ..color = color.withValues(alpha: color.a * opacity)
+          ..color = color
           ..style = PaintingStyle.stroke
           ..strokeWidth = kProfileDepthLineWidth,
       );
   }
 
-  /// Draws the NDL line and returns it as one polyline per run, which the
-  /// max-depth label keeps clear of.
-  List<List<Offset>> _paintNdl(
-    Canvas canvas,
-    PlotMapping m,
-    List<int> curve,
-    double opacity,
-  ) {
-    final all = <List<Offset>>[];
+  /// Draws the NDL line, one polyline per run.
+  void _paintNdl(Canvas canvas, PlotMapping m, List<int> curve) {
     final line = Path();
+    var any = false;
     for (final run in _inProfile(pinnedNdlRuns(curve))) {
-      final points = [for (final p in run) _ndlPoint(m, p.index, p.value)];
-      line.addPolygon(points, false);
-      all.add(points);
+      line.addPolygon([
+        for (final p in run) _ndlPoint(m, p.index, p.value),
+      ], false);
+      any = true;
     }
-    if (all.isEmpty) return all;
+    if (!any) return;
     canvas.drawPath(
       line,
       Paint()
-        ..color = ndlColor.withValues(alpha: ndlColor.a * opacity)
+        ..color = ndlColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = _ndlLineWidth
         ..strokeJoin = StrokeJoin.round
         ..strokeCap = StrokeCap.round,
     );
-    return all;
   }
 
-  void _paintMaxDepth(
-    Canvas canvas,
-    Size size,
-    PlotMapping m,
-    List<List<Offset>> avoid,
-    double opacity,
-  ) {
+  /// The deepest point's marker: a dot ringed in the strip's surface colour.
+  void _paintMaxDepth(Canvas canvas, PlotMapping m) {
     final deepest = pinnedStripCurve(profile).deepest;
     if (deepest == null) return;
     final dot = m.project(deepest.timestamp, deepest.depth);
     canvas
+      ..drawCircle(dot, _maxDepthDotRadius, Paint()..color = maxDepthColor)
       ..drawCircle(
         dot,
         _maxDepthDotRadius,
         Paint()
-          ..color = maxDepthColor.withValues(alpha: maxDepthColor.a * opacity),
-      )
-      ..drawCircle(
-        dot,
-        _maxDepthDotRadius,
-        Paint()
-          ..color = surfaceColor.withValues(alpha: surfaceColor.a * opacity)
+          ..color = surfaceColor
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1,
       );
-    final text = maxDepthLabel;
-    if (text == null || text.isEmpty) return;
-    final label = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: (maxDepthLabelStyle ?? const TextStyle()).copyWith(
-          fontSize: _maxDepthLabelSize,
-          fontWeight: FontWeight.w600,
-          color: maxDepthLabelColor.withValues(
-            alpha: maxDepthLabelColor.a * opacity,
-          ),
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-      maxLines: 1,
-    )..layout();
-    label.paint(
-      canvas,
-      maxDepthLabelOffset(
-        dot: dot,
-        label: label.size,
-        // The whole box: mid-condense it is taller than the strip and the
-        // dot rides the chart's mapping, so the label must be free to follow.
-        area: size,
-        avoid: avoid,
-      ),
-    );
-    label.dispose();
   }
 
   @override
@@ -392,7 +335,6 @@ class PinnedStripPainter extends CustomPainter {
     final m = mappingFor(size);
     final clip = clipFor(size);
     if (clip != null) canvas.clipRect(clip);
-    final layers = morph.clamp(0.0, 1.0);
     // The bounded set of points, as the full chart draws; the cursor below
     // still reads its depth from the whole profile.
     final points = pinnedStripCurve(profile).points;
@@ -412,7 +354,7 @@ class PinnedStripPainter extends CustomPainter {
     );
     final stops = decoStopCurve;
     final ceiling = ceilingCurve;
-    if (layers > 0 && stops != null) {
+    if (stops != null) {
       _paintBand(
         canvas,
         m,
@@ -420,10 +362,9 @@ class PinnedStripPainter extends CustomPainter {
         stepped: true,
         color: decoStopBandColor,
         fillAlpha: decoStopFillAlpha,
-        opacity: layers,
       );
     }
-    if (layers > 0 && ceiling != null) {
+    if (ceiling != null) {
       _paintBand(
         canvas,
         m,
@@ -431,7 +372,6 @@ class PinnedStripPainter extends CustomPainter {
         stepped: false,
         color: ceilingColor,
         fillAlpha: ceilingFillAlpha,
-        opacity: layers,
       );
     }
     canvas.drawPath(
@@ -442,10 +382,8 @@ class PinnedStripPainter extends CustomPainter {
         ..strokeWidth = kProfileDepthLineWidth,
     );
     final ndl = ndlCurve;
-    final ndlPoints = layers > 0 && ndl != null
-        ? _paintNdl(canvas, m, ndl, layers)
-        : const <List<Offset>>[];
-    if (layers > 0) _paintMaxDepth(canvas, size, m, ndlPoints, layers);
+    if (ndl != null) _paintNdl(canvas, m, ndl);
+    _paintMaxDepth(canvas, m);
   }
 
   @override
@@ -458,9 +396,6 @@ class PinnedStripPainter extends CustomPainter {
       old.ndlCurve != ndlCurve ||
       old.ceilingCurve != ceilingCurve ||
       old.decoStopCurve != decoStopCurve ||
-      old.maxDepthLabel != maxDepthLabel ||
-      old.maxDepthLabelColor != maxDepthLabelColor ||
-      old.maxDepthLabelStyle != maxDepthLabelStyle ||
       old.surfaceColor != surfaceColor ||
       old.ndlColor != ndlColor ||
       old.ceilingColor != ceilingColor ||
