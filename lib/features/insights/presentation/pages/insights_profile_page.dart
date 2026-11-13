@@ -3,11 +3,10 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/deco_analysis_progress.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
@@ -266,9 +265,8 @@ class InsightsProfilePage extends ConsumerWidget {
             // counts. Only under such a filter: a pass run for the dive
             // list's filter is not what this card is waiting for.
             final waits = ref.watch(
-              insightsFilterProvider.select(
-                (f) =>
-                    diveFilterTablesTouched(f).contains(kDiveDecoStatusTable),
+              insightsFilterTablesProvider.select(
+                (t) => t.contains(kDiveDecoStatusTable),
               ),
             );
             final writer = waits
@@ -314,17 +312,9 @@ class InsightsProfilePage extends ConsumerWidget {
           _buildDecoBreakdown(context, stats),
           const SizedBox(height: 16),
         ],
-        LinearProgressIndicator(value: progress.analyzed / progress.total),
-        const SizedBox(height: 8),
-        Text(
-          context.l10n.insights_profile_deco_analyzing(
-            progress.analyzed,
-            progress.total,
-          ),
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
+        DecoAnalysisProgressBar(
+          analyzed: progress.analyzed,
+          total: progress.total,
         ),
       ],
     );

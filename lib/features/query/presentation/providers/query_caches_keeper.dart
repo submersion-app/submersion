@@ -1,8 +1,17 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
+
+/// The tables the dive list's and Insights' live filters read, together:
+/// each filter compiled once per change, not once per cache it may name.
+final _liveFilterTablesProvider = Provider<Set<String>>(
+  (ref) => {
+    ...diveFilterTablesTouched(ref.watch(diveFilterProvider)),
+    ...ref.watch(insightsFilterTablesProvider),
+  },
+);
 
 /// Whether the dive list's or Insights' live filter reads the cache whose
 /// table is [table]: a query naming `gear.serviceDue` (#2365) or `deco`
@@ -12,11 +21,10 @@ import 'package:submersion/features/query/presentation/providers/query_cache_awa
 /// site, trip and equipment id sets, Connections, the search rows) holds the
 /// writer itself exactly while it is shown, so a filter left on those does
 /// not keep an engine running.
-final queryCacheDemandProvider = Provider.family<bool, String>((ref, table) {
-  bool reads(Set<String> tables) => tables.contains(table);
-  return reads(diveFilterTablesTouched(ref.watch(diveFilterProvider))) ||
-      reads(diveFilterTablesTouched(ref.watch(insightsFilterProvider)));
-});
+final queryCacheDemandProvider = Provider.family<bool, String>(
+  (ref, table) =>
+      ref.watch(_liveFilterTablesProvider.select((t) => t.contains(table))),
+);
 
 /// Keeps the writer of each cache in [queryCacheWriters] running while
 /// [queryCacheDemandProvider] says a live filter reads it, and idle

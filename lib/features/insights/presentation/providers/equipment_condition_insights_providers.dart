@@ -32,6 +32,7 @@ final insightsFilteredDiveIdsProvider = FutureProvider<Set<String>?>((
   // gear to an existing dive changes no dive row, yet changes the set. The
   // tick follows every table the filter reads, so it is the only one needed.
   ref.invalidateSelfWhen(statistics.watchInsightsChanges(filter: filter));
+  await awaitInsightsFilterCaches(ref);
   return statistics.filteredDiveIds(filter);
 });
 

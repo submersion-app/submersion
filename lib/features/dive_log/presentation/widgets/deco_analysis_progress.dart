@@ -28,35 +28,50 @@ class DecoAnalysisProgress extends ConsumerWidget {
     if (progress == null) {
       return const Center(child: CircularProgressIndicator());
     }
-    final theme = Theme.of(context);
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 360),
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              LinearProgressIndicator(
-                value: progress.total == 0
-                    ? null
-                    : progress.analyzed / progress.total,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                context.l10n.insights_profile_deco_analyzing(
-                  progress.analyzed,
-                  progress.total,
-                ),
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
+          child: DecoAnalysisProgressBar(
+            analyzed: progress.analyzed,
+            total: progress.total,
           ),
         ),
       ),
+    );
+  }
+}
+
+/// How far a deco analysis pass has got: a bar and "[analyzed] of [total]",
+/// shared by the dive list's wait and the Insights deco card's.
+class DecoAnalysisProgressBar extends StatelessWidget {
+  const DecoAnalysisProgressBar({
+    super.key,
+    required this.analyzed,
+    required this.total,
+  });
+
+  final int analyzed;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LinearProgressIndicator(value: total == 0 ? null : analyzed / total),
+        const SizedBox(height: 8),
+        Text(
+          context.l10n.insights_profile_deco_analyzing(analyzed, total),
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -100,7 +100,14 @@ Future<QueryCte?> prepareQueryCachesFor(
 }) async {
   final readsDeco = tables.contains(kDiveDecoStatusTable);
   final readsService = tables.contains(serviceStatusTable);
-  final active = await ref.read(validatedCurrentDiverIdProvider.future);
+  // Most rule runs and agent queries read no cache: nothing to resolve.
+  if (!readsDeco && !readsService) return null;
+  // Through the container for the reason the writers below are: [ref] is
+  // usually a paused provider's, whose read of a future invalidated
+  // mid-load (a divers-table tick) would never complete.
+  final active = await ref.container.awaitFuture(
+    validatedCurrentDiverIdProvider.future,
+  );
   if (diverId != active) {
     if (readsDeco) {
       await refreshDiveDecoStatusFor(ref, diverId, diveIds, isActive: false);

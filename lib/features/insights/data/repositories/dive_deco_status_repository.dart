@@ -97,11 +97,16 @@ class DiveDecoStatusRepository {
     final existing = {for (final r in rows) r.diveId: r.hadDeco};
     final touched = _lastWrites[_db] ??= <String, int>{};
     // A row's own stamp, or the stamp of the write that removed it or found
-    // it needed none: a deletion leaves no row to carry the newer stamp.
+    // it needed none: a deletion leaves no row to carry the newer stamp. A
+    // row stamped later than any stamp this process has taken was written
+    // under a clock since set back, not by a newer write: it protects nothing,
+    // or a stale verdict would outlive every pass until the clock caught up.
     final kept = {
       if (keepWrittenAfter != null) ...[
         for (final r in rows)
-          if (r.computedAt > keepWrittenAfter) r.diveId,
+          if (r.computedAt > keepWrittenAfter &&
+              r.computedAt <= _lastDecoWriteStamp)
+            r.diveId,
         for (final id in within)
           if ((touched[id] ?? 0) > keepWrittenAfter) id,
       ],

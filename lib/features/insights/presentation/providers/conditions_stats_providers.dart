@@ -15,6 +15,7 @@ final conditionsRowsProvider = FutureProvider<List<ConditionsRow>>((ref) async {
   final filter = ref.watch(insightsFilterProvider);
   ref.invalidateSelfWhen(repository.watchInsightsChanges(filter: filter));
   final diverId = ref.watch(currentDiverIdProvider);
+  await awaitInsightsFilterCaches(ref);
   return repository.getConditionsRows(diverId: diverId, filter: filter);
 });
 

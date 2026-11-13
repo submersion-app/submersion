@@ -188,9 +188,10 @@ Stream<void> _verdictInputWrites(AppDatabase db) =>
 /// Counts every write to the tables a cached deco verdict derives from.
 /// Settings are not counted: the active diver's pass follows its own
 /// analysis fingerprint, and another profile's memo keys on its settings
-/// row, so a units change re-runs nothing. Undebounced, so the count moves the moment a write lands, while
-/// a pass waits out a burst before it re-runs. A pass records the count it
-/// began from, so a reader can tell whether anything changed since.
+/// row, so a units change re-runs nothing. Undebounced, so the count moves
+/// the moment a write lands, while a pass waits out a burst before it
+/// re-runs. A pass records the count it began from, so a reader can tell
+/// whether anything changed since.
 class DecoInputWritesCounter extends StateNotifier<int> {
   DecoInputWritesCounter(Stream<void> writes) : super(0) {
     _subscription = writes.listen((_) => state++);
@@ -208,12 +209,11 @@ class DecoInputWritesCounter extends StateNotifier<int> {
 /// The [DecoInputWritesCounter] count. Kept alive once first read, so no
 /// write after a pass is missed while nothing else is listening.
 final diveDecoInputWritesProvider =
-    StateNotifierProvider<DecoInputWritesCounter, int>((ref) {
-      final db = DatabaseService.instance.database;
-      return DecoInputWritesCounter(
-        db.tableUpdates(TableUpdateQuery.allOf(_verdictInputTables(db))),
-      );
-    });
+    StateNotifierProvider<DecoInputWritesCounter, int>(
+      (ref) => DecoInputWritesCounter(
+        _verdictInputWrites(DatabaseService.instance.database),
+      ),
+    );
 
 /// For each profile other than the active one, the input-write count and
 /// the settings row stamp its verdicts were last fully prepared from: a

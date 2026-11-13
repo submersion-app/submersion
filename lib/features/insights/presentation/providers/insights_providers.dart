@@ -149,16 +149,21 @@ Future<void> _keepAliveWithExpiry(Ref ref, {bool filtered = true}) async {
   final link = ref.keepAlive();
   final timer = Timer(const Duration(minutes: 5), link.close);
   ref.onDispose(timer.cancel);
-  if (filter != null) {
-    await awaitQueryCachesIfRead(ref, ref.watch(_insightsFilterTablesProvider));
-  }
+  if (filter != null) await awaitInsightsFilterCaches(ref);
 }
 
 /// The tables the Insights filter reads, compiled once per filter rather
-/// than once by every card that waits on them.
-final _insightsFilterTablesProvider = Provider<Set<String>>(
+/// than once by every card, page and keeper that asks.
+final insightsFilterTablesProvider = Provider<Set<String>>(
   (ref) => diveFilterTablesTouched(ref.watch(insightsFilterProvider)),
 );
+
+/// Waits for the caches of engine verdicts the Insights filter reads (a
+/// `deco` or `gear.serviceDue` condition, #2365, #4461), so a provider
+/// filtered by it never queries an empty or stale cache. Every provider
+/// that runs a query under the Insights filter calls this before it.
+Future<void> awaitInsightsFilterCaches(Ref ref) =>
+    awaitQueryCachesIfRead(ref, ref.watch(insightsFilterTablesProvider));
 
 // ============================================================================
 // Gas Statistics Providers
