@@ -6425,6 +6425,8 @@
   "plannerSeries_missionUnavailable": "Eine Tauchgangsserie kann nicht als DPV-Mission geplant werden",
   "plannerSeries_followUnavailableInReplan": "Eine Neuplanung kann keinem anderen Tauchgang folgen",
   "plannerCanvas_follow_title": "Einem Tauchgang folgen",
+  "plannerCanvas_pickDive_number": "#{number}",
+  "plannerCanvas_pickDive_numberTitle": "#{number} · {title}",
   "plannerCanvas_gas_minGas": "Min-Gas {pressure}",
   "plannerCanvas_gas_turnAt": "Umkehr bei {pressure}",
   "plannerCanvas_gas_noTurnRule": "keine Umkehrregel gesetzt",

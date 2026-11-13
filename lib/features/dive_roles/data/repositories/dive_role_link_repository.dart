@@ -187,7 +187,9 @@ class DiveRoleLinkRepository {
   /// Makes [buddyId]'s roles on [diveId] [roleIds] (normalized; empty means
   /// Buddy), setting the pair's `dive_buddies.role` to the primary role. A
   /// link row is marked pending only when that scalar changes.
-  Future<void> writeBuddyRoles(
+  ///
+  /// Returns whether any link or role row was written.
+  Future<bool> writeBuddyRoles(
     String diveId,
     String buddyId,
     Iterable<String> roleIds, {
@@ -198,8 +200,10 @@ class DiveRoleLinkRepository {
     final links = await (_db.select(
       _db.diveBuddies,
     )..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId))).get();
+    var changed = false;
     for (final link in links) {
       if (link.role == wanted.first) continue;
+      changed = true;
       await (_db.update(_db.diveBuddies)..where((t) => t.id.equals(link.id)))
           .write(DiveBuddiesCompanion(role: Value(wanted.first)));
       await _syncRepository.markRecordPending(
@@ -213,6 +217,7 @@ class DiveRoleLinkRepository {
     )..where((t) => t.diveId.equals(diveId) & t.buddyId.equals(buddyId))).get();
     for (final row in existing) {
       if (wanted.contains(row.roleId)) continue;
+      changed = true;
       await (_db.delete(
         _db.diveBuddyRoles,
       )..where((t) => t.id.equals(row.id))).go();
@@ -224,6 +229,7 @@ class DiveRoleLinkRepository {
     final have = {for (final r in existing) r.roleId};
     for (final roleId in wanted) {
       if (have.contains(roleId)) continue;
+      changed = true;
       final id = _uuid.v4();
       await _db
           .into(_db.diveBuddyRoles)
@@ -242,24 +248,26 @@ class DiveRoleLinkRepository {
         localUpdatedAt: at,
       );
     }
+    return changed;
   }
 
   /// Deletes and tombstones every role row of [buddyIds] on [diveId], for a
-  /// buddy leaving the dive.
-  Future<void> deleteBuddyRoles(String diveId, Iterable<String> buddyIds) =>
+  /// buddy leaving the dive. Returns whether any row was deleted.
+  Future<bool> deleteBuddyRoles(String diveId, Iterable<String> buddyIds) =>
       deleteBuddyRolesOnDives([diveId], buddyIds);
 
   /// [deleteBuddyRoles] across [diveIds] in one pass, for bulk removals.
-  Future<void> deleteBuddyRolesOnDives(
+  /// Returns whether any row was deleted.
+  Future<bool> deleteBuddyRolesOnDives(
     List<String> diveIds,
     Iterable<String> buddyIds,
   ) async {
     final ids = buddyIds.toList();
-    if (ids.isEmpty || diveIds.isEmpty) return;
+    if (ids.isEmpty || diveIds.isEmpty) return false;
     final rows = await (_db.select(
       _db.diveBuddyRoles,
     )..where((t) => t.diveId.isIn(diveIds) & t.buddyId.isIn(ids))).get();
-    if (rows.isEmpty) return;
+    if (rows.isEmpty) return false;
     await (_db.delete(
       _db.diveBuddyRoles,
     )..where((t) => t.diveId.isIn(diveIds) & t.buddyId.isIn(ids))).go();
@@ -267,6 +275,7 @@ class DiveRoleLinkRepository {
       entityType: 'diveBuddyRoles',
       recordIds: rows.map((r) => r.id),
     );
+    return true;
   }
 
   /// Makes the junction rows of [diveIds] exactly the captured rows, for

@@ -6198,6 +6198,8 @@
   "plannerSeries_missionUnavailable": "לא ניתן לתכנן סדרת צלילות כמשימת DPV",
   "plannerSeries_followUnavailableInReplan": "תכנון מחדש לא יכול לעקוב אחרי צלילה אחרת",
   "plannerCanvas_follow_title": "עקוב אחרי צלילה",
+  "plannerCanvas_pickDive_number": "#{number}",
+  "plannerCanvas_pickDive_numberTitle": "#{number} · {title}",
   "plannerCanvas_gas_minGas": "גז מינימלי {pressure}",
   "plannerCanvas_gas_turnAt": "פנייה ב-{pressure}",
   "plannerCanvas_gas_noTurnRule": "לא הוגדר כלל לחץ פנייה",
