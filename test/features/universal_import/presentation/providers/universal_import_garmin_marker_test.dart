@@ -103,6 +103,26 @@ void main() {
     expect(pending.paths, {notifier.state.files.single.path});
   });
 
+  test('looks the marker up by the decimal unit ID, not the MTP hex', () async {
+    // Windows reports unit ID 3339091223 as 0000c7067d17. Looked up as hex,
+    // the saved Garmin was never found, so every download read everything.
+    final watch = fakeGarminWatch(serial: '0000c7067d17');
+    final source = FakeGarminMtpSource(
+      devices: [watch],
+      filesByDevice: {
+        watch.id: {november: diveBytes, december: diveBytes},
+      },
+    );
+    final history = FakeGarminDownloadHistory(markerAtNovember);
+    final notifier = await notifierFor(source, history);
+
+    await notifier.importFromGarminDevice();
+
+    expect(history.lookups.single.serialNumber, '3339091223');
+    expect(notifier.state.files.single.name, december);
+    expect(notifier.state.garminPendingMarker?.watchSerial, '3339091223');
+  });
+
   test('nothing new says so, and Download all reads everything', () async {
     final source = watchWith({october: diveBytes, november: diveBytes});
     final history = FakeGarminDownloadHistory(markerAtNovember);

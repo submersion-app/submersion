@@ -123,7 +123,7 @@ class GarminDeviceDetector {
           GarminMtpWatch(
             deviceId: device.id,
             displayName: device.friendlyName,
-            serialNumber: device.serialNumber,
+            serialNumber: unitIdFromMtpSerial(device.serialNumber),
           ),
       ];
     } catch (e) {
@@ -132,6 +132,21 @@ class GarminDeviceDetector {
       return const [];
     }
   }
+
+  /// The unit ID a Garmin's FIT files carry, from the serial Windows
+  /// reports for it over MTP: the same number in hex, zero-padded to 12
+  /// digits (`0000c7067d17` for 3339091223). Any other form is returned as
+  /// it came, trimmed.
+  static String? unitIdFromMtpSerial(String? serial) {
+    final trimmed = serial?.trim();
+    if (trimmed == null || trimmed.isEmpty) return null;
+    if (!_mtpHexSerial.hasMatch(trimmed)) return trimmed;
+    final value = int.parse(trimmed, radix: 16);
+    _log.info('Garmin MTP serial $trimmed is unit ID $value');
+    return '$value';
+  }
+
+  static final _mtpHexSerial = RegExp(r'^[0-9a-fA-F]{12}$');
 
   Future<List<GarminVolume>> _detectVolumes() async {
     final roots = _volumeRootsOverride != null

@@ -173,6 +173,26 @@ void main() {
       expect(mtp.serialNumber, '123');
     });
 
+    test('reads the hex serial MTP reports as the decimal unit ID', () async {
+      // Windows reports a Descent G2 unit ID 3339091223 as 0000c7067d17;
+      // the FIT files and the saved computer hold the decimal form.
+      Future<String?> serialOf(String reported) async {
+        final devices = await detectorFor(
+          const [],
+          mtpSource: FakeGarminMtpSource(
+            devices: [fakeGarminWatch(serial: reported)],
+          ),
+        ).detect();
+        return devices.single.serialNumber;
+      }
+
+      expect(await serialOf('0000c7067d17'), '3339091223');
+      expect(await serialOf('0000C7067D17'), '3339091223');
+      // Anything else is passed on as it came.
+      expect(await serialOf('3339091223'), '3339091223');
+      expect(await serialOf('ABC-123'), 'ABC-123');
+    });
+
     test('lists mounted volumes ahead of MTP watches', () async {
       final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
       final devices = await detectorFor([
