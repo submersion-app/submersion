@@ -1,10 +1,19 @@
+import 'dart:ui';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_color_overrides.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
+    show TooltipRow;
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_values.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
@@ -159,10 +168,41 @@ void main() {
     });
   });
 
-  group('formatPinnedStripValues', () {
+  group('ceiling', () {
+    final withCeiling = analysis.copyWith(
+      ceilingCurve: [0.0, 0.0, 4.2, 5.1, 0.0],
+    );
+
+    test('reads the ceiling at the index', () {
+      final v = pinnedStripValuesAt(
+        chartProfile: profile,
+        analysis: withCeiling,
+        cursorIndex: 3,
+      )!;
+      expect(v.ceilingMeters, 5.1);
+    });
+
+    test('a ceiling curve shorter than the index gives null', () {
+      final v = pinnedStripValuesAt(
+        chartProfile: profile,
+        analysis: analysis.copyWith(ceilingCurve: [0.0]),
+        cursorIndex: 3,
+      )!;
+      expect(v.ceilingMeters, isNull);
+    });
+  });
+
+  group('pinnedStripTooltipRows', () {
     final l10n = AppLocalizationsEn();
     const metric = UnitFormatter(AppSettings());
     const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
+
+    List<String> labels(List<TooltipRow> rows) => [
+      for (final r in rows) r.label,
+    ];
+    List<String> values(List<TooltipRow> rows) => [
+      for (final r in rows) r.value,
+    ];
 
     test('metric format', () {
       const v = PinnedStripValues(
@@ -171,12 +211,40 @@ void main() {
         ppO2Bar: 1.12,
         deco: NdlSlot(840),
       );
-      expect(formatPinnedStripValues(v, metric, l10n), [
-        '23:14',
-        '18.2m',
-        'ppO2 1.12',
-        'NDL 14 min',
-      ]);
+      final rows = pinnedStripTooltipRows(v, metric, l10n);
+      expect(labels(rows), ['Time', 'Depth', 'ppO2', 'NDL']);
+      expect(values(rows), ['23:14', '18.2m', '1.12', '14 min']);
+    });
+
+    test('rows take the diver\'s chart colours', () {
+      final palette = ProfileMetricPalette(
+        overrides: const ProfileMetricColorOverrides().withColor(
+          ProfileMetric.ndl,
+          const Color(0xFF00FF00),
+        ),
+        temperatureAuto: const Color(0xFF000000),
+      );
+      const v = PinnedStripValues(
+        runtimeSeconds: 1394,
+        depthMeters: 18.2,
+        ppO2Bar: 1.12,
+        deco: NdlSlot(840),
+      );
+      final rows = pinnedStripTooltipRows(v, metric, l10n, palette: palette);
+      expect(rows[3].bulletColor, const Color(0xFF00FF00));
+    });
+
+    test('rows carry the colours of the strip\'s lines', () {
+      const v = PinnedStripValues(
+        runtimeSeconds: 1394,
+        depthMeters: 18.2,
+        ppO2Bar: 1.12,
+        deco: NdlSlot(840),
+      );
+      final rows = pinnedStripTooltipRows(v, metric, l10n);
+      expect(rows[1].bulletColor, ProfileMetricColors.depth);
+      expect(rows[2].bulletColor, ProfileMetricColors.ppO2);
+      expect(rows[3].bulletColor, ProfileMetricColors.ndl);
     });
 
     // A second computer placed on the primary's timeline can start before
@@ -188,7 +256,7 @@ void main() {
         ppO2Bar: null,
         deco: UnknownDecoSlot(),
       );
-      expect(formatPinnedStripValues(v, metric, l10n).first, '-1:05');
+      expect(values(pinnedStripTooltipRows(v, metric, l10n)).first, '-1:05');
     });
 
     // At and near the surface the NDL is a 999-minute "unlimited" sentinel,
@@ -200,7 +268,7 @@ void main() {
         ppO2Bar: 0.25,
         deco: NdlSlot(999 * 60),
       );
-      expect(formatPinnedStripValues(v, metric, l10n).last, 'NDL >99 min');
+      expect(values(pinnedStripTooltipRows(v, metric, l10n)).last, '>99 min');
     });
 
     test('an NDL of exactly 99 minutes is shown as it is', () {
@@ -210,7 +278,23 @@ void main() {
         ppO2Bar: 0.25,
         deco: NdlSlot(99 * 60),
       );
-      expect(formatPinnedStripValues(v, metric, l10n).last, 'NDL 99 min');
+      expect(values(pinnedStripTooltipRows(v, metric, l10n)).last, '99 min');
+    });
+
+    test('in deco: Deco stop and Ceiling rows, no NDL row', () {
+      const v = PinnedStripValues(
+        runtimeSeconds: 1860,
+        depthMeters: 6,
+        ppO2Bar: 0.34,
+        deco: StopSlot(depthMeters: 6, durationSeconds: 210),
+        ceilingMeters: 5.1,
+      );
+      final rows = pinnedStripTooltipRows(v, metric, l10n);
+      expect(labels(rows), ['Time', 'Depth', 'ppO2', 'Deco stop', 'Ceiling']);
+      expect(rows[3].value, '6m · 4 min');
+      expect(rows[4].value, '5.1m');
+      expect(rows[3].bulletColor, decoStopBandColor);
+      expect(rows[4].bulletColor, ProfileMetricColors.ceiling);
     });
 
     test('a stop shows its depth and rounded-up minutes', () {
@@ -220,7 +304,7 @@ void main() {
         ppO2Bar: 0.8,
         deco: StopSlot(depthMeters: 6, durationSeconds: 150),
       );
-      expect(formatPinnedStripValues(v, metric, l10n).last, 'Stop 6m · 3 min');
+      expect(values(pinnedStripTooltipRows(v, metric, l10n))[3], '6m · 3 min');
     });
 
     test('imperial depth and stop in feet', () {
@@ -229,10 +313,12 @@ void main() {
         depthMeters: 6,
         ppO2Bar: 0.8,
         deco: StopSlot(depthMeters: 6, durationSeconds: 180),
+        ceilingMeters: 5,
       );
-      final out = formatPinnedStripValues(v, imperial, l10n);
+      final out = values(pinnedStripTooltipRows(v, imperial, l10n));
       expect(out[1], '19.7ft');
-      expect(out.last, 'Stop 20ft · 3 min');
+      expect(out[3], '20ft · 3 min');
+      expect(out[4], '16.4ft');
     });
 
     test('missing values are dashes', () {
@@ -242,12 +328,19 @@ void main() {
         ppO2Bar: null,
         deco: UnknownDecoSlot(),
       );
-      expect(formatPinnedStripValues(v, metric, l10n), [
-        '0:00',
-        '--',
-        'ppO2 --',
-        '--',
-      ]);
+      final rows = pinnedStripTooltipRows(v, metric, l10n);
+      expect(labels(rows), ['Time', 'Depth', 'ppO2', 'NDL']);
+      expect(values(rows), ['0:00', '--', '--', '--']);
+    });
+
+    test('in deco with no ceiling known, the ceiling reads as a dash', () {
+      const v = PinnedStripValues(
+        runtimeSeconds: 61,
+        depthMeters: 6,
+        ppO2Bar: 0.8,
+        deco: StopSlot(depthMeters: 6, durationSeconds: 180),
+      );
+      expect(values(pinnedStripTooltipRows(v, metric, l10n)).last, '--');
     });
   });
 }

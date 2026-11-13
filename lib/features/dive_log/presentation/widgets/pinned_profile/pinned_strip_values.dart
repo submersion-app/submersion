@@ -1,7 +1,15 @@
+import 'dart:ui';
+
 import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric.dart';
+import 'package:submersion/features/dive_log/presentation/profile_colors/profile_metric_palette.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
+    show TooltipRow;
+import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// What the pinned strip's last slot shows at the cursor: the no-deco limit,
@@ -38,12 +46,17 @@ class PinnedStripValues {
     required this.depthMeters,
     required this.ppO2Bar,
     required this.deco,
+    this.ceilingMeters,
   });
 
   final int runtimeSeconds;
   final double? depthMeters;
   final double? ppO2Bar;
   final DecoSlot deco;
+
+  /// The ceiling at the cursor, from the analysis the chart draws; null when
+  /// it is not known there.
+  final double? ceilingMeters;
 }
 
 /// The strip's values at [cursorIndex], or null when there is no cursor.
@@ -69,6 +82,7 @@ PinnedStripValues? pinnedStripValuesAt({
     depthMeters: point.depth,
     ppO2Bar: curveAt(analysis?.ppO2Curve) ?? point.ppO2,
     deco: _decoSlotAt(analysis, i),
+    ceilingMeters: curveAt(analysis?.ceilingCurve),
   );
 }
 
@@ -115,6 +129,77 @@ List<String> formatPinnedStripValues(
           '${(durationSeconds / 60).ceil()}',
         ),
       UnknownDecoSlot() => _missing,
+    },
+  ];
+}
+
+/// The pinned strip's tooltip rows at one cursor position (issue #4509):
+/// Time, Depth and ppO2, then NDL, or the deco stop and ceiling in deco.
+///
+/// Labels are the full chart's tooltip labels, and each bullet is the colour
+/// the strip draws that line in: [palette], the diver's chart colours, or
+/// the defaults without one.
+List<TooltipRow> pinnedStripTooltipRows(
+  PinnedStripValues values,
+  UnitFormatter units,
+  AppLocalizations l10n, {
+  ProfileMetricPalette? palette,
+}) {
+  Color colorOf(ProfileMetric metric) =>
+      palette?.colorOf(metric) ?? metric.defaultColor!;
+  final ppO2 = values.ppO2Bar;
+  final ceiling = values.ceilingMeters;
+  return [
+    TooltipRow(
+      label: l10n.diveLog_tooltip_time,
+      value: formatMinutesSeconds(values.runtimeSeconds),
+      bulletColor: tooltipTextColor.withValues(alpha: 0.5),
+    ),
+    TooltipRow(
+      label: l10n.diveLog_tooltip_depth,
+      value: units.formatDepth(values.depthMeters),
+      bulletColor: colorOf(ProfileMetric.depth),
+    ),
+    TooltipRow(
+      label: l10n.diveLog_tooltip_ppO2,
+      value: ppO2 == null ? _missing : ppO2.toStringAsFixed(2),
+      bulletColor: colorOf(ProfileMetric.ppO2),
+    ),
+    ...switch (values.deco) {
+      NdlSlot(:final ndlSeconds) => [
+        TooltipRow(
+          label: l10n.diveLog_tooltip_ndl,
+          // Past 99 minutes is the analysis's "no limit" range (999 at the
+          // surface), so it reads as more than 99 rather than a literal
+          // figure.
+          value: l10n.diveLog_deco_minutesValue(
+            ndlSeconds > 99 * 60 ? '>99' : '${ndlSeconds ~/ 60}',
+          ),
+          bulletColor: colorOf(ProfileMetric.ndl),
+        ),
+      ],
+      // Rounded up, as the deco status card's stop chips are.
+      StopSlot(:final depthMeters, :final durationSeconds) => [
+        TooltipRow(
+          label: l10n.diveLog_tooltip_decoStop,
+          value:
+              '${units.formatDepth(depthMeters, decimals: 0)} · '
+              '${l10n.diveLog_deco_minutesValue('${(durationSeconds / 60).ceil()}')}',
+          bulletColor: decoStopBandColor,
+        ),
+        TooltipRow(
+          label: l10n.diveLog_tooltip_ceiling,
+          value: ceiling == null ? _missing : units.formatDepth(ceiling),
+          bulletColor: colorOf(ProfileMetric.ceiling),
+        ),
+      ],
+      UnknownDecoSlot() => [
+        TooltipRow(
+          label: l10n.diveLog_tooltip_ndl,
+          value: _missing,
+          bulletColor: colorOf(ProfileMetric.ndl),
+        ),
+      ],
     },
   ];
 }
