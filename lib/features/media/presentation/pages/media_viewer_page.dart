@@ -52,6 +52,7 @@ import 'package:submersion/features/media/presentation/widgets/people_tags/video
 import 'package:submersion/features/media/presentation/widgets/media_viewer_caption.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
+import 'package:submersion/features/media/presentation/widgets/video_controls_auto_hide.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
@@ -118,6 +119,7 @@ class MediaViewerPage extends ConsumerStatefulWidget {
 class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     with
         MediaFullscreenMixin<MediaViewerPage>,
+        VideoControlsAutoHideMixin<MediaViewerPage>,
         ColorAdjustViewerMixin<MediaViewerPage>,
         PeopleTagViewerMixin<MediaViewerPage> {
   /// The pageable subset of [MediaViewerPage.mediaList].
@@ -142,6 +144,12 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   int _navTargetIndex = 0;
 
   bool _showOverlay = true;
+
+  @override
+  bool get videoOverlayShown => _showOverlay;
+
+  @override
+  void setVideoOverlayShown(bool shown) => setState(() => _showOverlay = shown);
 
   /// "Pick white" answered by a tap at [at] on the page: the photo's pixels
   /// (with its correction off for a frame), or a paused video's frame drawn
@@ -213,11 +221,13 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       // while the tree is locked (viewer teardown, page eviction). Drop the
       // dead controller immediately so nothing reads it, but defer the
       // rebuild to the next frame.
-      _videoControllers.remove(mediaId);
+      final released = _videoControllers.remove(mediaId);
+      if (released != null) unwatchVideoPlayState(released);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() {});
       });
     } else {
+      watchVideoPlayState(controller);
       setState(() => _videoControllers[mediaId] = controller);
     }
   }
@@ -334,6 +344,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       revealFullscreenControls(autoHide: !show);
       return;
     }
+    cancelVideoOverlayClock();
     setState(() => _showOverlay = show);
   }
 
@@ -612,6 +623,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         if (isFullscreen && fullscreenControlsVisible) {
                           revealFullscreenControls(autoHide: true);
                         }
+                        // A mouse-move clock left by a video is not the
+                        // next page's to act on.
+                        cancelVideoOverlayClock();
                       },
                       showOverlay: isFullscreen
                           ? fullscreenControlsVisible
@@ -619,6 +633,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       fullscreen: isFullscreen,
                       onFullscreenTap: toggleFullscreenControls,
                       onSetOverlay: _onSetOverlay,
+                      onVideoScrubbingChanged: videoScrubbingChanged,
                       onVideoControllerChanged: _onVideoControllerChanged,
                       currentIndex: currentIndex,
                       people: peopleSession,
@@ -638,9 +653,10 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                               ? null
                               : isFullscreen
                               ? toggleFullscreenControls
-                              : () => setState(
-                                  () => _showOverlay = !_showOverlay,
-                                ),
+                              : () {
+                                  cancelVideoOverlayClock();
+                                  setState(() => _showOverlay = !_showOverlay);
+                                },
                           onTapUp: pickingWhite
                               ? (details) => _pickWhiteAt(
                                   currentItem,
@@ -864,6 +880,17 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
               ),
             );
 
+            // A mouse move brings a video's controls up, and they go again
+            // once it rests or leaves the window while the video plays.
+            final videoOnScreen = currentItem.isVideo
+                ? _videoControllers[currentItem.id]
+                : null;
+            final hoverViewer = MouseRegion(
+              onHover: (_) => videoPointerMoved(videoOnScreen),
+              onExit: (_) => videoPointerLeft(videoOnScreen),
+              child: viewer,
+            );
+
             // Keyboard nav has to wrap the whole viewer to see its key events.
             // Built as a local above rather than nested inline so the tree it
             // wraps stays where it is.
@@ -878,7 +905,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                     !currentItem.isVideo ||
                     _videoControllers[currentItem.id] != null,
                 onPickWhite: () => _startPickingWhite(currentItem),
-                child: viewer,
+                child: hoverViewer,
               ),
             );
           },
@@ -1077,6 +1104,10 @@ class _PhotoGallery extends ConsumerWidget {
   /// its own to report play/pause.
   final VoidCallback onFullscreenTap;
   final ValueChanged<bool> onSetOverlay;
+
+  /// A video's scrub bar began or settled a scrub.
+  final void Function(VideoPlayerController video, bool scrubbing)
+  onVideoScrubbingChanged;
   final void Function(String mediaId, VideoPlayerController? controller)
   onVideoControllerChanged;
   final int currentIndex;
@@ -1092,6 +1123,7 @@ class _PhotoGallery extends ConsumerWidget {
     required this.fullscreen,
     required this.onFullscreenTap,
     required this.onSetOverlay,
+    required this.onVideoScrubbingChanged,
     required this.onVideoControllerChanged,
     required this.currentIndex,
     required this.people,
@@ -1144,6 +1176,7 @@ class _PhotoGallery extends ConsumerWidget {
               showOverlay: showOverlay,
               fullscreen: fullscreen,
               onSetOverlay: onSetOverlay,
+              onScrubbingChanged: onVideoScrubbingChanged,
               onControllerChanged: onVideoControllerChanged,
               people: people,
             ),
@@ -1329,6 +1362,10 @@ class _VideoItem extends ConsumerStatefulWidget {
   final bool fullscreen;
   final ValueChanged<bool> onSetOverlay;
 
+  /// The controls bar began or settled a scrub, which holds the controls up.
+  final void Function(VideoPlayerController video, bool scrubbing)
+  onScrubbingChanged;
+
   /// Reports the live controller (or null on dispose) so the page can drive
   /// page-level overlays from playback position.
   final void Function(String mediaId, VideoPlayerController? controller)
@@ -1343,6 +1380,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     required this.showOverlay,
     this.fullscreen = false,
     required this.onSetOverlay,
+    required this.onScrubbingChanged,
     required this.onControllerChanged,
     required this.people,
   });
@@ -1644,23 +1682,30 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
             showOverlay: widget.showOverlay,
           ),
 
-          // Play/pause button overlay (center) - visual indicator only when paused
-          if (!controller.value.isPlaying &&
-              (!widget.fullscreen || widget.showOverlay))
-            IgnorePointer(
-              child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 48,
-                ),
-              ),
+          // Play/pause button overlay (center) - visual indicator only when
+          // paused. It follows the player itself: the player reports its
+          // state on its own schedule, and nothing else rebuilds this page
+          // when it does, so a read at build time could leave it stuck.
+          if (!widget.fullscreen || widget.showOverlay)
+            ValueListenableBuilder<VideoPlayerValue>(
+              valueListenable: controller,
+              builder: (context, value, _) => value.isPlaying
+                  ? const SizedBox.shrink()
+                  : IgnorePointer(
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 48,
+                        ),
+                      ),
+                    ),
             ),
 
           // Video controls overlay (bottom). Not in tag mode: the video stays
@@ -1677,14 +1722,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               child: VideoControlsBar(
                 controller: controller,
                 mediaId: widget.item.id,
-                // Fullscreen controls hide 3 s after a reveal: hold them up
-                // while scrubbing, so the bar is not pulled from under the
-                // finger, then restart the clock only if the video plays on.
-                onScrubbingChanged: widget.fullscreen
-                    ? (scrubbing) => widget.onSetOverlay(
-                        scrubbing || !controller.value.isPlaying,
-                      )
-                    : null,
+                // The controls hide 3 s after a reveal: hold them up while
+                // scrubbing, so the bar is not pulled from under the finger,
+                // then restart the clock only if the video plays on.
+                onScrubbingChanged: (scrubbing) =>
+                    widget.onScrubbingChanged(controller, scrubbing),
               ),
             ),
         ],
