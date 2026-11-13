@@ -36589,6 +36589,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives =>
+      'Nenhum mergulho novo no relógio desde o último download.';
+
+  @override
+  String get universalImport_action_garminDownloadAll =>
+      'Baixar tudo novamente';
+
+  @override
   String get universalImport_label_duplicate => 'Duplicado';
 
   @override

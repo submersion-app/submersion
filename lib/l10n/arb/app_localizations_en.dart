@@ -36001,6 +36001,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives =>
+      'No new dives on the watch since your last download.';
+
+  @override
+  String get universalImport_action_garminDownloadAll => 'Download All Again';
+
+  @override
   String get universalImport_label_duplicate => 'Duplicate';
 
   @override

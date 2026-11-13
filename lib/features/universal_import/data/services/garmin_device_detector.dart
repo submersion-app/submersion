@@ -20,6 +20,10 @@ sealed class GarminDevice {
 
   /// What to call the device: the volume name or the watch's own name.
   String get displayName;
+
+  /// The watch's unit ID, the serial number its FIT files carry, when the
+  /// device reports one.
+  String? get serialNumber;
 }
 
 /// A Garmin dive computer mounted as a USB mass-storage volume.
@@ -29,6 +33,7 @@ final class GarminVolume extends GarminDevice {
     required this.volumeRootPath,
     required this.activityDirPath,
     required this.fitFileCount,
+    this.serialNumber,
   });
 
   /// Display name of the mounted volume (e.g. "GARMIN").
@@ -42,6 +47,10 @@ final class GarminVolume extends GarminDevice {
 
   /// Number of `.fit` files found directly under [activityDirPath].
   final int fitFileCount;
+
+  /// From `GARMIN/GarminDevice.xml`, which every Garmin writes.
+  @override
+  final String? serialNumber;
 
   @override
   String get displayName => volumeName;
@@ -65,6 +74,7 @@ final class GarminMtpWatch extends GarminDevice {
   @override
   final String displayName;
 
+  @override
   final String? serialNumber;
 }
 
@@ -143,6 +153,7 @@ class GarminDeviceDetector {
             volumeRootPath: root.path,
             activityDirPath: activityDir.path,
             fitFileCount: fitCount,
+            serialNumber: await _unitId(root),
           ),
         );
       } catch (_) {
@@ -151,6 +162,22 @@ class GarminDeviceDetector {
     }
     return devices;
   }
+
+  /// The `<Id>` in `GARMIN/GarminDevice.xml`: the unit ID, which the FIT
+  /// files carry as their serial number. Null when the file is missing or
+  /// has none.
+  Future<String?> _unitId(Directory root) async {
+    try {
+      final file = File(p.join(root.path, 'GARMIN', 'GarminDevice.xml'));
+      if (!await file.exists()) return null;
+      final match = _unitIdPattern.firstMatch(await file.readAsString());
+      return match?.group(1);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static final _unitIdPattern = RegExp(r'<Id>\s*(\d+)\s*</Id>');
 
   /// All `.fit` file paths directly under [activityDirPath], sorted for a
   /// stable order. Callers filter dives from non-dive activities.

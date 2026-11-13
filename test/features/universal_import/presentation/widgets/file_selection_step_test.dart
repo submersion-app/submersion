@@ -9,7 +9,7 @@ import 'package:submersion/features/universal_import/data/models/detection_resul
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
-import 'package:submersion/features/universal_import/presentation/providers/garmin_import_progress.dart';
+import 'package:submersion/features/universal_import/data/models/garmin_import_progress.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -90,6 +90,18 @@ Widget harnessImportingFromGarmin(GarminImportProgress progress) {
       home: Scaffold(body: FileSelectionStep()),
     ),
   );
+}
+
+/// A notifier whose last Garmin download found nothing new (issue #4223).
+class _NothingNewNotifier extends UniversalImportNotifier {
+  _NothingNewNotifier(super.ref) {
+    state = state.copyWith(garminNothingNew: true);
+  }
+
+  var readAllCalls = 0;
+
+  @override
+  Future<void> importAllFromGarminDevice() async => readAllCalls++;
 }
 
 PickedImportFile _file(String name) => PickedImportFile(
@@ -262,6 +274,43 @@ void main() {
       await tester.pumpWidget(harness());
 
       expect(find.byType(LinearProgressIndicator), findsNothing);
+    });
+  });
+
+  group('a Garmin download with nothing new (issue #4223)', () {
+    testWidgets('says so and offers to read every activity', (tester) async {
+      late _NothingNewNotifier notifier;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith(
+              (ref) => notifier = _NothingNewNotifier(ref),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: FileSelectionStep()),
+          ),
+        ),
+      );
+
+      expect(
+        find.text('No new dives on the watch since your last download.'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Download All Again'));
+      await tester.pump();
+
+      expect(notifier.readAllCalls, 1);
+    });
+
+    testWidgets('is not shown otherwise', (tester) async {
+      await tester.pumpWidget(harness());
+
+      expect(find.text('Download All Again'), findsNothing);
     });
   });
 }

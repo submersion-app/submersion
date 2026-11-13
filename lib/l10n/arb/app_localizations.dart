@@ -57376,6 +57376,18 @@ abstract class AppLocalizations {
   /// **'Checking for dives ({checked} of {total})...'**
   String universalImport_label_checkingForDives(int checked, int total);
 
+  /// Shown on the Import page when a Garmin download finds no dives after the ones already downloaded
+  ///
+  /// In en, this message translates to:
+  /// **'No new dives on the watch since your last download.'**
+  String get universalImport_info_garminNoNewDives;
+
+  /// Button next to universalImport_info_garminNoNewDives: reads every activity on the Garmin watch again, including ones already downloaded or skipped
+  ///
+  /// In en, this message translates to:
+  /// **'Download All Again'**
+  String get universalImport_action_garminDownloadAll;
+
   /// Badge label for a probable duplicate entity
   ///
   /// In en, this message translates to:

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/features/universal_import/data/services/garmin_activity_marker.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_mtp_stager.dart';
 
 import 'fake_garmin_mtp_source.dart';
@@ -50,6 +51,57 @@ void main() {
     expect(source.readObjectIds, ['${watch.id}/a.fit', '${watch.id}/b.FIT']);
     expect(staging.copiedCount, 2);
     expect(staging.failedCount, 0);
+  });
+
+  group('after a marker (issue #4223)', () {
+    const marker = GarminActivityMarker(name: '2026-11-01-10-00-00.fit');
+
+    test('copies only the activities after it', () async {
+      final watch = fakeGarminWatch();
+      final source = FakeGarminMtpSource(
+        devices: [watch],
+        filesByDevice: {
+          watch.id: {
+            '2026-10-01-08-00-00.fit': bytes(1),
+            '2026-11-01-10-00-00.fit': bytes(2),
+            '2026-11-02-09-30-00.fit': bytes(3),
+          },
+        },
+      );
+
+      final staging = await stagerFor(source).stage(watch.id, after: marker);
+
+      expect(source.readObjectIds, ['${watch.id}/2026-11-02-09-30-00.fit']);
+      expect(staging.copiedCount, 1);
+      expect(staging.skippedCount, 2);
+      expect(
+        staging.newest,
+        const GarminActivityMarker(name: '2026-11-02-09-30-00.fit'),
+      );
+    });
+
+    test(
+      'copies nothing when nothing is newer, but still names the newest',
+      () async {
+        final watch = fakeGarminWatch();
+        final source = FakeGarminMtpSource(
+          devices: [watch],
+          filesByDevice: {
+            watch.id: {'2026-10-01-08-00-00.fit': bytes(1)},
+          },
+        );
+
+        final staging = await stagerFor(source).stage(watch.id, after: marker);
+
+        expect(source.readObjectIds, isEmpty);
+        expect(staging.copiedCount, 0);
+        expect(staging.skippedCount, 1);
+        expect(
+          staging.newest,
+          const GarminActivityMarker(name: '2026-10-01-08-00-00.fit'),
+        );
+      },
+    );
   });
 
   test('reports progress after each file, starting from zero', () async {

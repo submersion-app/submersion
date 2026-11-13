@@ -10609,6 +10609,8 @@
   "universalImport_label_lookingForWatch": "Procurando o relógio...",
   "universalImport_label_scanningWatchActivity": "Verificando as atividades do {device}...",
   "universalImport_label_checkingForDives": "Procurando mergulhos ({checked} de {total})...",
+  "universalImport_info_garminNoNewDives": "Nenhum mergulho novo no relógio desde o último download.",
+  "universalImport_action_garminDownloadAll": "Baixar tudo novamente",
   "universalImport_label_duplicate": "Duplicado",
   "universalImport_label_importing": "Importando",
   "universalImport_label_importingEllipsis": "Importando...",

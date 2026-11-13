@@ -36421,6 +36421,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives =>
+      'A legutóbbi letöltés óta nincs új merülés az órán.';
+
+  @override
+  String get universalImport_action_garminDownloadAll =>
+      'Összes letöltése újra';
+
+  @override
   String get universalImport_label_duplicate => 'Duplikátum';
 
   @override

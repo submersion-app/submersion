@@ -10609,6 +10609,8 @@
   "universalImport_label_lookingForWatch": "جارٍ البحث عن الساعة...",
   "universalImport_label_scanningWatchActivity": "جارٍ فحص أنشطة {device}...",
   "universalImport_label_checkingForDives": "جارٍ البحث عن الغطسات ({checked} من {total})...",
+  "universalImport_info_garminNoNewDives": "لا توجد غطسات جديدة على الساعة منذ آخر تنزيل.",
+  "universalImport_action_garminDownloadAll": "تنزيل الكل مرة أخرى",
   "universalImport_label_duplicate": "مكرر",
   "universalImport_label_importing": "جارٍ الاستيراد",
   "universalImport_label_importingEllipsis": "جارٍ الاستيراد...",

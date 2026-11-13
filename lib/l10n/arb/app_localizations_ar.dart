@@ -37153,6 +37153,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives =>
+      'لا توجد غطسات جديدة على الساعة منذ آخر تنزيل.';
+
+  @override
+  String get universalImport_action_garminDownloadAll => 'تنزيل الكل مرة أخرى';
+
+  @override
   String get universalImport_label_duplicate => 'مكرر';
 
   @override

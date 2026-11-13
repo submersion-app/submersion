@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:submersion/features/universal_import/presentation/providers/garmin_import_progress.dart';
+import 'package:submersion/features/universal_import/data/models/garmin_import_progress.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Says which stage an import from a Garmin watch is at, with a bar that

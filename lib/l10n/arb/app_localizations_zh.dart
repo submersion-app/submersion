@@ -34427,6 +34427,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives => '自上次下载以来，手表上没有新的潜水记录。';
+
+  @override
+  String get universalImport_action_garminDownloadAll => '全部重新下载';
+
+  @override
   String get universalImport_label_duplicate => '重复';
 
   @override

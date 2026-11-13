@@ -10509,6 +10509,8 @@
   "universalImport_label_lookingForWatch": "Óra keresése...",
   "universalImport_label_scanningWatchActivity": "{device} tevékenységeinek vizsgálata...",
   "universalImport_label_checkingForDives": "Merülések keresése ({checked}/{total})...",
+  "universalImport_info_garminNoNewDives": "A legutóbbi letöltés óta nincs új merülés az órán.",
+  "universalImport_action_garminDownloadAll": "Összes letöltése újra",
   "universalImport_label_duplicate": "Duplikátum",
   "universalImport_label_importing": "Importálás",
   "universalImport_label_importingEllipsis": "Importálás...",

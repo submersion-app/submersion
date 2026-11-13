@@ -36628,6 +36628,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives =>
+      'No hay inmersiones nuevas en el reloj desde tu última descarga.';
+
+  @override
+  String get universalImport_action_garminDownloadAll =>
+      'Descargar todo de nuevo';
+
+  @override
   String get universalImport_label_duplicate => 'Duplicado';
 
   @override

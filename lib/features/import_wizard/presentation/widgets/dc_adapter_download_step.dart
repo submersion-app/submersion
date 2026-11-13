@@ -697,8 +697,13 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     if (ref.watch(garminMtpSourceProvider) == null) return null;
     final watches = ref.watch(garminDevicesProvider).valueOrNull ?? const [];
     if (watches.isEmpty) return null;
-    return () =>
-        context.push(UniversalImportWizardRoute.garminDeviceImportLocation);
+    // Its own marker, or every activity for "Re-import all dives".
+    return () => context.push(
+      UniversalImportWizardRoute.garminDeviceImportLocationFor(
+        computerId: computer.id,
+        readAll: widget.adapter.forceFullDownload,
+      ),
+    );
   }
 }
 

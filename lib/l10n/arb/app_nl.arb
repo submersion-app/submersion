@@ -10609,6 +10609,8 @@
   "universalImport_label_lookingForWatch": "Horloge zoeken...",
   "universalImport_label_scanningWatchActivity": "Activiteiten van {device} scannen...",
   "universalImport_label_checkingForDives": "Zoeken naar duiken ({checked} van {total})...",
+  "universalImport_info_garminNoNewDives": "Geen nieuwe duiken op het horloge sinds je laatste download.",
+  "universalImport_action_garminDownloadAll": "Alles opnieuw downloaden",
   "universalImport_label_duplicate": "Duplicaat",
   "universalImport_label_importing": "Importeren",
   "universalImport_label_importingEllipsis": "Importeren...",

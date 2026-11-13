@@ -10743,6 +10743,8 @@
   "universalImport_label_lookingForWatch": "Uhr wird gesucht...",
   "universalImport_label_scanningWatchActivity": "Aktivitäten auf {device} werden durchsucht...",
   "universalImport_label_checkingForDives": "Tauchgänge werden gesucht ({checked} von {total})...",
+  "universalImport_info_garminNoNewDives": "Seit dem letzten Herunterladen keine neuen Tauchgänge auf der Uhr.",
+  "universalImport_action_garminDownloadAll": "Alle erneut herunterladen",
   "universalImport_label_duplicate": "Duplikat",
   "universalImport_label_importing": "Importieren",
   "universalImport_label_importingEllipsis": "Wird importiert...",

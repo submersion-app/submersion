@@ -28,6 +28,8 @@ import 'package:submersion/features/dive_import/data/services/uddf_entity_import
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_device_importer.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_marker_after_import.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show DiveSite;
@@ -230,23 +232,23 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// route, so an import keeps working after the diver leaves the wizard
   /// (#3554). Nothing here reads through [ref] itself.
   ///
-  /// With [startGarminDeviceImport] the wizard opens straight into the
-  /// Garmin device import, as Connect New Computer's Garmin entry and a
-  /// saved Garmin's download screen want (issue #4223).
+  /// With [garminImport] the wizard opens straight into that Garmin
+  /// download, as Connect New Computer's Garmin entry and a saved Garmin's
+  /// download screen want (issue #4223).
   UniversalAdapter({
     required WidgetRef ref,
     String displayName = 'File Import',
-    bool startGarminDeviceImport = false,
+    GarminImportRequest? garminImport,
   }) : _container = ProviderScope.containerOf(ref.context, listen: false),
        _displayName = displayName,
-       _startGarminDeviceImport = startGarminDeviceImport;
+       _garminImport = garminImport;
 
   final ProviderContainer _container;
   final String _displayName;
 
   /// Cleared once the import has been started, so only the wizard's opening
   /// reset starts it.
-  bool _startGarminDeviceImport;
+  GarminImportRequest? _garminImport;
 
   /// Reads [provider] from the container the wizard's route lives in. The one
   /// way this adapter and its subclasses read providers: a `WidgetRef` dies
@@ -277,9 +279,10 @@ class UniversalAdapter implements ImportSourceAdapter {
     final notifier = readProvider(universalImportNotifierProvider.notifier);
     notifier.reset();
     // After the reset, which would otherwise wipe the import it starts.
-    if (_startGarminDeviceImport) {
-      _startGarminDeviceImport = false;
-      unawaited(notifier.importFromGarminDevice());
+    final garminImport = _garminImport;
+    if (garminImport != null) {
+      _garminImport = null;
+      unawaited(notifier.importFromGarminDevice(garminImport));
     }
   }
 
@@ -1396,6 +1399,19 @@ class UniversalAdapter implements ImportSourceAdapter {
             filePath: f.path,
           ),
       ];
+    }
+
+    // A Garmin download that ran to the end moves the watch's marker on,
+    // so the next one skips every activity offered here (#4223).
+    if (stoppedEarly == null &&
+        unreachedDives.isEmpty &&
+        !(cancelToken?.isCancelled ?? false)) {
+      await saveGarminMarkerAfterImport(
+        pending: notifierState.garminPendingMarker,
+        importedPaths: notifierState.files.map((f) => f.path),
+        dives: payload.entitiesOf(ui.ImportEntityType.dives),
+        history: readProvider(garminDownloadHistoryProvider),
+      );
     }
 
     // Queue a data-quality scan of the imported dives (fire-and-forget).

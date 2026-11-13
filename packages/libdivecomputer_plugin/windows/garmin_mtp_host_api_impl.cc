@@ -85,14 +85,19 @@ void GarminMtpHostApiImpl::ListDevices(
     }
 
     flutter::EncodableList list;
+    std::string described;
     for (const auto& device : devices) {
       const std::string manufacturer = WideToUtf8(device.manufacturer);
       const std::string model = WideToUtf8(device.description);
       const std::string serial = WideToUtf8(device.serial_number);
-      GarminMtpDevice value(WideToUtf8(device.id),
-                            WideToUtf8(device.friendly_name.empty()
-                                           ? device.description
-                                           : device.friendly_name));
+      const std::string name = WideToUtf8(device.friendly_name.empty()
+                                              ? device.description
+                                              : device.friendly_name);
+      // Name and serial in the log, to compare with the serial number the
+      // watch's FIT files carry (shown on its computer page).
+      described += (described.empty() ? ": " : ", ") + name + " (serial " +
+                   (serial.empty() ? std::string("unknown") : serial) + ")";
+      GarminMtpDevice value(WideToUtf8(device.id), name);
       if (!manufacturer.empty()) value.set_manufacturer(manufacturer);
       if (!model.empty()) value.set_model(model);
       if (!serial.empty()) value.set_serial_number(serial);
@@ -100,7 +105,7 @@ void GarminMtpHostApiImpl::ListDevices(
     }
     NativeLogger::Info(kLogCategory, "Garmin MTP: " +
                                          std::to_string(list.size()) +
-                                         " device(s) found");
+                                         " device(s) found" + described);
     post_([result, list = std::move(list)] { result(list); });
   });
 }

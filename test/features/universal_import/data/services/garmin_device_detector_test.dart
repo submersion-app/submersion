@@ -71,6 +71,31 @@ void main() {
     expect(volume.activityDirPath, p.join(vol, 'GARMIN', 'Activity'));
   });
 
+  group('serial number of a mounted volume (issue #4223)', () {
+    test('comes from GARMIN/GarminDevice.xml', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+      await File(p.join(vol, 'GARMIN', 'GarminDevice.xml')).writeAsString(
+        '<?xml version="1.0"?>\n'
+        '<Device xmlns="http://www.garmin.com/xmlschemas/GarminDevice/v2">\n'
+        '  <Model><PartNumber>006-B4518-00</PartNumber></Model>\n'
+        '  <Id> 3456789012 </Id>\n'
+        '</Device>\n',
+      );
+
+      final devices = await detectorFor([vol]).detect();
+
+      expect(devices.single.serialNumber, '3456789012');
+    });
+
+    test('is null without the file', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+
+      final devices = await detectorFor([vol]).detect();
+
+      expect(devices.single.serialNumber, isNull);
+    });
+  });
+
   test('recognises the device regardless of the volume name', () async {
     final vol = await makeVolume('MY_WATCH', fitNames: ['a.fit']);
 

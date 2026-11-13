@@ -32,7 +32,11 @@ import 'package:submersion/features/universal_import/data/models/picked_import_f
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
 import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_device_importer.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_download_history.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_mtp_source.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_mtp_stager.dart';
 import 'package:submersion/features/universal_import/data/services/divemate_schema.dart';
@@ -49,7 +53,6 @@ import 'package:submersion/features/universal_import/data/services/zip_expansion
 import 'package:submersion/features/universal_import/domain/services/bundled_photo_exporter.dart';
 import 'package:submersion/features/universal_import/domain/services/import_media_resolver.dart';
 import 'package:submersion/features/universal_import/presentation/providers/empty_payload_message.dart';
-import 'package:submersion/features/universal_import/presentation/providers/garmin_import_progress.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_state.dart';
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -74,6 +77,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     ZipExpansionService zipExpansionService = const ZipExpansionService(),
     GarminDeviceDetector garminDeviceDetector = const GarminDeviceDetector(),
     GarminMtpStager? garminMtpStager,
+    GarminDownloadHistory? garminDownloadHistory,
     FitParserService fitParserService = const FitParserService(),
     Future<bool> Function(String path) folderWriteProbe = folderAcceptsWrites,
   }) : _folderWriteProbe = folderWriteProbe,
@@ -82,6 +86,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
        _zipExpansion = zipExpansionService,
        _garminDetector = garminDeviceDetector,
        _garminMtpStager = garminMtpStager,
+       _garminHistory = garminDownloadHistory,
        _fitParser = fitParserService,
        super(const UniversalImportState());
 
@@ -134,6 +139,17 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     final source = _garminDetector.mtpSource;
     return source == null ? null : GarminMtpStager(source: source);
   }
+
+  /// Where each Garmin's download marker is kept (issue #4223). Null keeps
+  /// none, so every download reads every activity.
+  final GarminDownloadHistory? _garminHistory;
+
+  GarminDeviceImporter get _garminImporter => GarminDeviceImporter(
+    detector: _garminDetector,
+    mtpStager: _mtpStager,
+    history: _garminHistory,
+    fitParser: _fitParser,
+  );
 
   /// Filters dive FITs from non-dive activities when importing from a Garmin
   /// device (it returns null for runs/rides/corrupt files).
@@ -656,32 +672,63 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   ///
   /// A watch reached over MTP (Windows, issue #4223) has no folder to read,
   /// so its files are copied into a staging folder first, which the wizard
-  /// deletes with its other temp folders.
-  Future<void> importFromGarminDevice() async {
+  /// deletes with its other temp folders. Only activities after the
+  /// watch's download marker are read, unless [request] reads them all.
+  Future<void> importFromGarminDevice([
+    GarminImportRequest request = const GarminImportRequest(),
+  ]) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.cloudImport);
+    _lastGarminRequest = request;
     state = state.copyWith(
       isLoading: true,
       clearError: true,
       currentStep: ImportWizardStep.fileSelection,
-      garminProgress: const GarminImportProgress(
-        GarminImportPhase.lookingForWatch,
-      ),
+      garminNothingNew: false,
+      clearGarminPendingMarker: true,
     );
 
     try {
-      final devices = await _garminDetector.detect();
-      if (devices.isEmpty) {
-        state = state.copyWith(
-          isLoading: false,
-          error: _l10n.universalImport_error_garminNotFound,
-        );
-        return;
-      }
-      switch (devices.first) {
-        case GarminVolume(:final activityDirPath):
-          await _loadDiveFitsFromFolder(activityDirPath);
-        case final GarminMtpWatch watch:
-          await _importFromMtpWatch(watch);
+      final outcome = await _garminImporter.run(
+        request,
+        onProgress: (progress) {
+          if (mounted) state = state.copyWith(garminProgress: progress);
+        },
+        onTempDir: (dirPath) {
+          // Registered before anything can fail, so the folder is always
+          // cleaned up. Also drops an earlier import's leftovers, as a
+          // fresh pick does.
+          if (mounted) {
+            applyExpansionExtras(
+              ArchiveExpansion(filePaths: const [], tempDirPaths: [dirPath]),
+            );
+          }
+        },
+      );
+      if (!mounted) return;
+      switch (outcome) {
+        case GarminNotConnected():
+          state = state.copyWith(
+            isLoading: false,
+            error: _l10n.universalImport_error_garminNotFound,
+          );
+        case GarminNoDives():
+          state = state.copyWith(
+            isLoading: false,
+            error: _l10n.universalImport_error_garminNoDives,
+          );
+        case GarminNothingNew():
+          state = state.copyWith(isLoading: false, garminNothingNew: true);
+        case GarminDivesFound(:final divePaths, :final pendingMarker):
+          // Not marked wasLoadedExternally: a Garmin import always runs
+          // inside the wizard, and the mark would make its next opening
+          // skip the reset, showing these dives again without reading the
+          // watch.
+          state = state.copyWith(garminPendingMarker: pendingMarker);
+          if (divePaths.length == 1) {
+            await _loadSingleFromFilePath(divePaths.first);
+          } else {
+            await _loadBatchFromPaths(divePaths);
+          }
       }
     } on PlatformException catch (e) {
       if (!mounted) return;
@@ -706,102 +753,16 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     }
   }
 
-  /// Copy [watch]'s activity files to a staging folder, hand that folder to
-  /// the wizard's temp-folder cleanup, and import it like a mounted drive.
-  Future<void> _importFromMtpWatch(GarminMtpWatch watch) async {
-    final stager = _mtpStager;
-    if (stager == null) {
-      state = state.copyWith(
-        isLoading: false,
-        error: _l10n.universalImport_error_garminNotFound,
-      );
-      return;
-    }
-    final name = _garminName(watch.displayName);
-    state = state.copyWith(
-      garminProgress: GarminImportProgress(
-        GarminImportPhase.scanning,
-        deviceName: name,
-      ),
-    );
-    final staging = await stager.stage(
-      watch.deviceId,
-      onProgress: (copied, total) {
-        if (!mounted) return;
-        state = state.copyWith(
-          garminProgress: GarminImportProgress(
-            GarminImportPhase.copying,
-            current: copied,
-            total: total,
-            deviceName: name,
-          ),
-        );
-      },
-    );
-    if (!mounted) return;
-    // Registered before anything can fail, so the folder is always cleaned
-    // up. Also drops an earlier import's leftovers, as a fresh pick does.
-    applyExpansionExtras(
-      ArchiveExpansion(filePaths: const [], tempDirPaths: [staging.dirPath]),
-    );
-    await _loadDiveFitsFromFolder(staging.dirPath, deviceName: name);
-  }
+  /// Runs the last Garmin download again, reading every activity on the
+  /// watch, after it found nothing new.
+  Future<void> importAllFromGarminDevice() => importFromGarminDevice(
+    GarminImportRequest(
+      computerId: _lastGarminRequest.computerId,
+      readAll: true,
+    ),
+  );
 
-  /// [name] as the diver knows the watch: Windows calls it "Descent G2".
-  static String _garminName(String name) =>
-      name.toLowerCase().startsWith('garmin') ? name : 'Garmin $name';
-
-  /// Scan [activityDirPath] for FIT files, keep only dive activities, and
-  /// enter the wizard's single/batch flow. Corrupt or non-dive FITs (which
-  /// parse to null) are skipped so triage lists only dives.
-  Future<void> _loadDiveFitsFromFolder(
-    String activityDirPath, {
-    String? deviceName,
-  }) async {
-    final fitPaths = await _garminDetector.listFitFiles(activityDirPath);
-    final divePaths = <String>[];
-    void reportChecked(int checked) {
-      if (!mounted) return;
-      state = state.copyWith(
-        garminProgress: GarminImportProgress(
-          GarminImportPhase.checking,
-          current: checked,
-          total: fitPaths.length,
-          deviceName: deviceName,
-        ),
-      );
-    }
-
-    reportChecked(0);
-    for (var i = 0; i < fitPaths.length; i++) {
-      final path = fitPaths[i];
-      try {
-        final bytes = await File(path).readAsBytes();
-        final dive = await _fitParser.parseFitFile(bytes);
-        if (dive != null) divePaths.add(path);
-      } catch (_) {
-        // Unreadable/corrupt FIT: skip it and keep scanning the rest.
-      }
-      reportChecked(i + 1);
-    }
-
-    if (divePaths.isEmpty) {
-      state = state.copyWith(
-        isLoading: false,
-        error: _l10n.universalImport_error_garminNoDives,
-      );
-      return;
-    }
-
-    if (divePaths.length == 1) {
-      await _loadSingleFromFilePath(divePaths.first);
-    } else {
-      await _loadBatchFromPaths(divePaths);
-    }
-    // Not marked wasLoadedExternally: a Garmin import always runs inside
-    // the wizard, and the mark would make its next opening skip the reset,
-    // showing these dives again without reading the watch.
-  }
+  GarminImportRequest _lastGarminRequest = const GarminImportRequest();
 
   // -- Step 1: Source Confirmation --
 
@@ -1432,6 +1393,7 @@ final universalImportNotifierProvider =
         garminDeviceDetector: GarminDeviceDetector(
           mtpSource: ref.read(garminMtpSourceProvider),
         ),
+        garminDownloadHistory: ref.read(garminDownloadHistoryProvider),
       );
     });
 
@@ -1445,6 +1407,15 @@ final garminDevicesProvider = FutureProvider.autoDispose<List<GarminDevice>>((
   return GarminDeviceDetector(
     mtpSource: ref.watch(garminMtpSourceProvider),
   ).detect();
+});
+
+/// Where each Garmin's download marker is kept: on its saved computer
+/// (issue #4223).
+final garminDownloadHistoryProvider = Provider<GarminDownloadHistory>((ref) {
+  return RepositoryGarminDownloadHistory(
+    ref.watch(diveComputerRepositoryProvider),
+    diverId: () async => (await ref.read(currentDiverProvider.future))?.id,
+  );
 });
 
 /// Reads Garmin watches that connect over MTP. Windows only (issue #4223);

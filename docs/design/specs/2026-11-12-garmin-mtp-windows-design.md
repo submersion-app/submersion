@@ -68,7 +68,6 @@ same import, and the dives flow through the existing FIT import.
 - No per-model Garmin entries. The model comes from the FIT files, so a model
   list would offer a choice that changes nothing.
 - No writing to the watch (no deleting imported activities, no clock sync).
-- No incremental "only new files" cache in this release (see Open questions).
 
 ## Design
 
@@ -204,6 +203,41 @@ opens) resets the import and then starts `importFromGarminDevice()`, once.
    by USB rather than a manual copy of GARMIN/Activity. Other platforms keep
    "Can't download this computer directly".
 
+### Download marker
+
+A download reads only the activities after the last one offered, as a
+libdivecomputer download stops at its stored fingerprint, so dives the diver
+skipped are not offered again.
+
+- `GarminActivityMarker` names the newest activity handled: the newest
+  date-named file (Garmin names each activity after its start time,
+  `YYYY-MM-DD-hh-mm-ss.fit`) and the newest modified time. A file is after
+  the marker by name when it is date-named, else by modified time, and is
+  kept when it cannot be placed, so the marker never hides a new dive.
+- It is stored in the saved Garmin's `lastDiveFingerprint`, prefixed
+  `garmin-fit:`, which a Garmin never otherwise uses. It syncs with the
+  computer, merges with it like a download cursor, and makes "Re-import all
+  dives" appear on the computer's page. No schema change.
+- `GarminDownloadHistory` finds the computer: the one whose Download the
+  diver chose (`?computer=<id>`), unless the connected watch's serial
+  differs; else the saved Garmin with the watch's serial. A mounted watch's
+  serial is the `<Id>` in `GARMIN/GarminDevice.xml`; an MTP watch's is
+  `WPD_DEVICE_SERIAL_NUMBER`, logged with its name so it can be compared
+  with the serial the FIT files carry.
+- `GarminDeviceImporter` reads only the files after the marker; over MTP
+  the others are never copied off the watch. When none of them is a dive,
+  the marker moves on at once and the Import page says "No new dives on the
+  watch since your last download", with "Download All Again".
+- Otherwise the marker is held as pending, with the dive files it covers,
+  and `UniversalAdapter.performImport` saves it once the import runs to the
+  end (not cancelled, every slice reached), whatever the diver imported,
+  skipped or matched. Only an import of exactly those files saves it. When
+  no computer was known (a first download), the imported dives' serials
+  find the computer the import just matched or created. The marker never
+  moves back.
+- "Re-import all dives" on a saved Garmin, and "Download All Again", read
+  every activity (`?all=1`).
+
 ### Text
 
 New l10n strings, added to every ARB file:
@@ -254,8 +288,8 @@ watches can be added from Connect New Computer.
 
 ## Open questions
 
-- **Speed.** If copying the whole Activity folder over MTP turns out slow on a
-  watch with years of activities, a follow-up can keep a per-device cache of
-  already-copied files (keyed by serial number, file name and size) so each
-  import reads only new files. That decision waits for numbers from the real
-  device.
+- **Serial numbers.** Whether a watch's MTP serial is the unit ID its FIT
+  files carry is unconfirmed. If not, a download from the Import page or the
+  USB list finds no marker and reads every activity, while Download on a
+  saved Garmin still uses its own. The fallback is a marker kept on the PC,
+  keyed by the MTP serial.

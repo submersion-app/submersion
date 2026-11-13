@@ -36366,6 +36366,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives =>
+      'Geen nieuwe duiken op het horloge sinds je laatste download.';
+
+  @override
+  String get universalImport_action_garminDownloadAll =>
+      'Alles opnieuw downloaden';
+
+  @override
   String get universalImport_label_duplicate => 'Duplicaat';
 
   @override

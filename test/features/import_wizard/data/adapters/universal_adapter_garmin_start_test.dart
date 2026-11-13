@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_device_importer.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 /// Records what the wizard asks of the import, without touching a device.
@@ -19,9 +20,14 @@ class _RecordingNotifier extends UniversalImportNotifier {
     super.reset();
   }
 
+  final requests = <GarminImportRequest>[];
+
   @override
-  Future<void> importFromGarminDevice() async {
+  Future<void> importFromGarminDevice([
+    GarminImportRequest request = const GarminImportRequest(),
+  ]) async {
     calls.add('garmin');
+    requests.add(request);
   }
 }
 
@@ -49,7 +55,7 @@ void main() {
 
   Future<UniversalAdapter> pumpAdapter(
     WidgetTester tester, {
-    required bool startGarminDeviceImport,
+    GarminImportRequest? garminImport,
   }) async {
     late UniversalAdapter adapter;
     await tester.pumpWidget(
@@ -58,10 +64,7 @@ void main() {
         child: MaterialApp(
           home: Consumer(
             builder: (context, ref, _) {
-              adapter = UniversalAdapter(
-                ref: ref,
-                startGarminDeviceImport: startGarminDeviceImport,
-              );
+              adapter = UniversalAdapter(ref: ref, garminImport: garminImport);
               return const SizedBox.shrink();
             },
           ),
@@ -74,16 +77,18 @@ void main() {
   testWidgets('starts the Garmin import after the first reset only', (
     tester,
   ) async {
-    final adapter = await pumpAdapter(tester, startGarminDeviceImport: true);
+    const request = GarminImportRequest(computerId: 'dc-1', readAll: true);
+    final adapter = await pumpAdapter(tester, garminImport: request);
 
     adapter.resetState();
     adapter.resetState();
 
     expect(notifier.calls, ['reset', 'garmin', 'reset']);
+    expect(notifier.requests, [request]);
   });
 
   testWidgets('a plain file import only resets', (tester) async {
-    final adapter = await pumpAdapter(tester, startGarminDeviceImport: false);
+    final adapter = await pumpAdapter(tester);
 
     adapter.resetState();
 

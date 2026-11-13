@@ -35721,6 +35721,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives =>
+      'אין צלילות חדשות בשעון מאז ההורדה האחרונה.';
+
+  @override
+  String get universalImport_action_garminDownloadAll => 'הורדת הכול מחדש';
+
+  @override
   String get universalImport_label_duplicate => 'כפילות';
 
   @override

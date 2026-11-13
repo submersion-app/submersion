@@ -1307,9 +1307,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 name: 'universalImport',
                 onExit: confirmLeaveRunningImport,
                 builder: (context, state) => UniversalImportWizardRoute(
-                  startGarminDeviceImport:
-                      state.uri.queryParameters['source'] ==
-                      UniversalImportWizardRoute.garminDeviceSource,
+                  garminImport: UniversalImportWizardRoute.garminImportFrom(
+                    state.uri,
+                  ),
                 ),
               ),
               GoRoute(

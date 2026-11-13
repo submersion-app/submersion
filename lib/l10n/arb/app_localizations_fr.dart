@@ -36714,6 +36714,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_info_garminNoNewDives =>
+      'Aucune nouvelle plongée sur la montre depuis votre dernier téléchargement.';
+
+  @override
+  String get universalImport_action_garminDownloadAll => 'Tout retélécharger';
+
+  @override
   String get universalImport_label_duplicate => 'Doublon';
 
   @override

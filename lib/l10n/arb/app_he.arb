@@ -10609,6 +10609,8 @@
   "universalImport_label_lookingForWatch": "מחפש את השעון...",
   "universalImport_label_scanningWatchActivity": "סורק את הפעילויות ב-{device}...",
   "universalImport_label_checkingForDives": "מחפש צלילות ({checked} מתוך {total})...",
+  "universalImport_info_garminNoNewDives": "אין צלילות חדשות בשעון מאז ההורדה האחרונה.",
+  "universalImport_action_garminDownloadAll": "הורדת הכול מחדש",
   "universalImport_label_duplicate": "כפילות",
   "universalImport_label_importing": "מייבא",
   "universalImport_label_importingEllipsis": "מייבא...",

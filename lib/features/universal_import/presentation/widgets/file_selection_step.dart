@@ -7,6 +7,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/garmin_import_progress_panel.dart';
+import 'package:submersion/features/universal_import/presentation/widgets/garmin_nothing_new_card.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/suunto_json_handoff_card.dart';
 import 'package:submersion/core/platform/desktop_target_platform.dart';
 
@@ -115,6 +116,14 @@ class FileSelectionStep extends ConsumerWidget {
           if (garminProgress != null) ...[
             const SizedBox(height: 16),
             GarminImportProgressPanel(progress: garminProgress),
+          ],
+          if (state.garminNothingNew && !state.isLoading) ...[
+            const SizedBox(height: 16),
+            GarminNothingNewCard(
+              onDownloadAll: () => ref
+                  .read(universalImportNotifierProvider.notifier)
+                  .importAllFromGarminDevice(),
+            ),
           ],
           if (state.error != null) ...[
             const SizedBox(height: 16),

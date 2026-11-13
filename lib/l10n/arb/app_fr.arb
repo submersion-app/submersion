@@ -10509,6 +10509,8 @@
   "universalImport_label_lookingForWatch": "Recherche de la montre...",
   "universalImport_label_scanningWatchActivity": "Analyse des activités de {device}...",
   "universalImport_label_checkingForDives": "Recherche des plongées ({checked} sur {total})...",
+  "universalImport_info_garminNoNewDives": "Aucune nouvelle plongée sur la montre depuis votre dernier téléchargement.",
+  "universalImport_action_garminDownloadAll": "Tout retélécharger",
   "universalImport_label_duplicate": "Doublon",
   "universalImport_label_importing": "Import",
   "universalImport_label_importingEllipsis": "Import...",

@@ -10505,6 +10505,8 @@
   "universalImport_label_lookingForWatch": "Ricerca dell'orologio...",
   "universalImport_label_scanningWatchActivity": "Scansione delle attività di {device}...",
   "universalImport_label_checkingForDives": "Ricerca delle immersioni ({checked} di {total})...",
+  "universalImport_info_garminNoNewDives": "Nessuna nuova immersione sull'orologio dall'ultimo download.",
+  "universalImport_action_garminDownloadAll": "Scarica di nuovo tutto",
   "universalImport_label_duplicate": "Duplicato",
   "universalImport_label_importing": "Importazione",
   "universalImport_label_importingEllipsis": "Importazione...",

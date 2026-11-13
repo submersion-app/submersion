@@ -303,7 +303,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('import wizard route ?source=garmin-device'),
+        find.text('import wizard route ?source=garmin-device&computer=dc-1'),
         findsOneWidget,
       );
     });

@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart'
+    show GarminMtpFile;
 import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_activity_marker.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_mtp_source.dart';
 
 /// What [GarminMtpStager.stage] copied.
@@ -11,6 +14,8 @@ class GarminMtpStaging {
     required this.dirPath,
     required this.copiedCount,
     required this.failedCount,
+    this.skippedCount = 0,
+    this.newest,
   });
 
   /// The new folder holding the copied FIT files. The caller owns it and
@@ -21,6 +26,13 @@ class GarminMtpStaging {
   /// Files the watch failed to hand over; skipped, like an unreadable FIT
   /// on a mounted drive.
   final int failedCount;
+
+  /// Files left on the watch because they are not after the marker.
+  final int skippedCount;
+
+  /// Just past every activity on the watch, copied or not: where the next
+  /// download starts once this one is done. Null when no file can be placed.
+  final GarminActivityMarker? newest;
 }
 
 /// Copies a Garmin watch's activity FITs from [GarminMtpSource] into a fresh
@@ -41,21 +53,28 @@ class GarminMtpStager {
 
   /// Copies every `.fit` file under the watch's GARMIN/Activity folder, in
   /// name order, calling [onProgress] with (handled, total) before the
-  /// first file and after each one.
+  /// first file and after each one. With [after], only the files after that
+  /// marker are copied; the rest are never read off the watch.
   ///
   /// Throws what the source throws for the listing, having removed the
   /// folder. A single file that fails to read is skipped and counted.
   Future<GarminMtpStaging> stage(
     String deviceId, {
+    GarminActivityMarker? after,
     void Function(int handled, int total)? onProgress,
   }) async {
     final root = await _tempRoot();
     final dir = await root.createTemp('submersion_garmin_');
     try {
       final listed = await _source.listActivityFiles(deviceId);
-      final files = [
+      final fits = [
         for (final file in listed)
           if (_isFit(file.name)) file,
+      ];
+      final newest = GarminActivityMarker.newest(fits.map(_activity));
+      final files = [
+        for (final file in fits)
+          if (after == null || after.isBefore(_activity(file))) file,
       ]..sort((a, b) => a.name.compareTo(b.name));
 
       onProgress?.call(0, files.length);
@@ -78,6 +97,8 @@ class GarminMtpStager {
         dirPath: dir.path,
         copiedCount: copied,
         failedCount: failed,
+        skippedCount: fits.length - files.length,
+        newest: newest,
       );
     } catch (_) {
       try {
@@ -88,6 +109,9 @@ class GarminMtpStager {
       rethrow;
     }
   }
+
+  static GarminActivityFile _activity(GarminMtpFile file) =>
+      GarminActivityFile(name: file.name, modifiedMillis: file.modifiedMillis);
 
   static bool _isFit(String name) => name.toLowerCase().endsWith('.fit');
 

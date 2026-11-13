@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_mtp_stager.dart';
-import 'package:submersion/features/universal_import/presentation/providers/garmin_import_progress.dart';
+import 'package:submersion/features/universal_import/data/models/garmin_import_progress.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 

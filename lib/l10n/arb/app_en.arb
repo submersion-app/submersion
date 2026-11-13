@@ -21383,6 +21383,14 @@
       }
     }
   },
+  "universalImport_info_garminNoNewDives": "No new dives on the watch since your last download.",
+  "@universalImport_info_garminNoNewDives": {
+    "description": "Shown on the Import page when a Garmin download finds no dives after the ones already downloaded"
+  },
+  "universalImport_action_garminDownloadAll": "Download All Again",
+  "@universalImport_action_garminDownloadAll": {
+    "description": "Button next to universalImport_info_garminNoNewDives: reads every activity on the Garmin watch again, including ones already downloaded or skipped"
+  },
   "universalImport_label_duplicate": "Duplicate",
   "universalImport_label_importAsNew": "Import as New",
   "universalImport_label_importing": "Importing",

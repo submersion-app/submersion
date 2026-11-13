@@ -10773,6 +10773,8 @@
   "universalImport_label_lookingForWatch": "正在查找手表...",
   "universalImport_label_scanningWatchActivity": "正在扫描 {device} 的活动...",
   "universalImport_label_checkingForDives": "正在查找潜水记录（{checked}/{total}）...",
+  "universalImport_info_garminNoNewDives": "自上次下载以来，手表上没有新的潜水记录。",
+  "universalImport_action_garminDownloadAll": "全部重新下载",
   "universalImport_label_duplicate": "重复",
   "universalImport_label_importing": "正在导入",
   "universalImport_label_importingEllipsis": "正在导入...",
