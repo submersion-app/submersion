@@ -18,6 +18,7 @@
 #include "ble_scanner.h"
 #include "bluetooth_classic_io_stream.h"
 #include "dive_computer_api.g.h"
+#include "garmin_mtp_host_api_impl.h"
 #include "serial_io_stream.h"
 #include "serial_scanner.h"
 #include "usbhid_io_stream.h"
@@ -112,6 +113,10 @@ class DiveComputerHostApiImpl : public DiveComputerHostApi,
   std::queue<std::function<void()>> pending_tasks_;
 
   std::unique_ptr<DiveComputerFlutterApi> flutter_api_;
+  // Reads Garmin watches over MTP (issue #4223). Owned here so its replies
+  // go through this object's dispatch window; reset in the destructor
+  // before that window goes.
+  std::unique_ptr<garmin_mtp::GarminMtpHostApiImpl> garmin_mtp_;
   std::unique_ptr<BleScanner> ble_scanner_;
   std::unique_ptr<SerialScanner> serial_scanner_;
   std::unique_ptr<BleIoStream> ble_stream_;

@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/dive_co
 import 'package:submersion/features/dive_computer/presentation/utils/connection_presentation.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/clock_sync_global_switch.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/garmin_watch_usb_entry.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/raw_dive_data_discard.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/dive_computer_merge_sheet.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -399,9 +400,12 @@ class _DeviceListPageState extends ConsumerState<DeviceListPage> {
               const SizedBox(height: 8),
               // Garmin has no libdivecomputer backend: its dives arrive as
               // FIT files or from Garmin Connect, so point there by the same
-              // labels the Transfer screen shows.
+              // labels the Transfer screen shows. On Windows the USB list
+              // offers Garmin too (issue #4223).
               Text(
-                context.l10n.diveComputer_list_helpGarminNote(
+                (GarminWatchUsbEntry.isOffered
+                    ? context.l10n.diveComputer_list_helpGarminNoteWindows
+                    : context.l10n.diveComputer_list_helpGarminNote)(
                   '${context.l10n.nav_transfer} > '
                       '${context.l10n.transfer_section_importTitle}',
                   '${context.l10n.nav_transfer} > '

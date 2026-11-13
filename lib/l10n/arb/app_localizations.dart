@@ -57316,6 +57316,12 @@ abstract class AppLocalizations {
   /// **'No dives were found on the connected Garmin device.'**
   String get universalImport_error_garminNoDives;
 
+  /// Error shown when a Garmin watch connected over MTP is held by another app, such as Garmin Express
+  ///
+  /// In en, this message translates to:
+  /// **'The Garmin device is in use by another app. Close Garmin Express and try again.'**
+  String get universalImport_error_garminBusy;
+
   /// Error shown when the optional additional (profile) file could not be opened
   ///
   /// In en, this message translates to:
@@ -57345,6 +57351,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Detecting...'**
   String get universalImport_label_detecting;
+
+  /// Progress label while activity files are copied off a Garmin watch connected over MTP
+  ///
+  /// In en, this message translates to:
+  /// **'Reading watch files ({copied} of {total})...'**
+  String universalImport_label_readingWatchFiles(int copied, int total);
+
+  /// Progress label while Submersion looks for a connected Garmin watch
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for the watch...'**
+  String get universalImport_label_lookingForWatch;
+
+  /// Progress label while the activity folder of a Garmin watch connected over MTP is scanned; device is the watch's name
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning {device} activity...'**
+  String universalImport_label_scanningWatchActivity(String device);
+
+  /// Progress label while a Garmin watch's activity files are checked to find the dives among them
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for dives ({checked} of {total})...'**
+  String universalImport_label_checkingForDives(int checked, int total);
 
   /// Badge label for a probable duplicate entity
   ///
@@ -58156,6 +58186,12 @@ abstract class AppLocalizations {
   /// **'No devices matching \"{query}\"'**
   String diveComputer_discovery_usbNoResults(String query);
 
+  /// The single Garmin entry in the USB list of Connect New Computer (Windows); picking it imports the watch's FIT files
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watch (Descent, Fenix, Epix...)'**
+  String get diveComputer_discovery_garminWatchEntry;
+
   /// No description provided for @diveComputer_discovery_usbSearchHint.
   ///
   /// In en, this message translates to:
@@ -58494,6 +58530,15 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Garmin watches are not downloaded here. Import their dives from {importPath} or {cloudPath}.'**
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath);
+
+  /// Help note on the Dive Computers page on Windows, where a Garmin watch can be picked from the USB list of Connect New Computer
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watches are not downloaded over Bluetooth. Connect one by cable and choose Garmin in the USB list, or import their dives from {importPath} or {cloudPath}.'**
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  );
 
   /// No description provided for @diveComputer_list_helpTip1.
   ///
@@ -83929,6 +83974,12 @@ abstract class AppLocalizations {
   /// **'Import from File'**
   String get importWizard_dc_importFromFile;
 
+  /// Button on a saved Garmin's download screen that imports the dives straight from the connected watch
+  ///
+  /// In en, this message translates to:
+  /// **'Import from Connected Watch'**
+  String get importWizard_dc_importFromConnectedWatch;
+
   /// No description provided for @importWizard_dc_knownComputer.
   ///
   /// In en, this message translates to:
@@ -83958,6 +84009,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.'**
   String get importWizard_dc_noDirectDownloadGarminBody;
+
+  /// Body of a saved Garmin's download screen when the watch is connected and can be imported directly
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watches store dives as FIT files instead of offering a direct download. Your watch is connected, so its dives can be imported straight from it.'**
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody;
 
   /// Download step title when a saved Bluetooth computer with no address on this device was not found by a scan for its make and model.
   ///

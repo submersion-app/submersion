@@ -80,4 +80,59 @@ void main() {
     expect(imports, 1);
     expect(dones, 1);
   });
+
+  group('a Garmin whose watch is connected (issue #4223)', () {
+    testWidgets('offers the connected watch first, the file second', (
+      tester,
+    ) async {
+      final taps = <String>[];
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: DcNoDirectDownloadView(
+            computer: _computer('Garmin', 'Descent G2'),
+            onImportFromFile: () => taps.add('file'),
+            onImportFromConnectedWatch: () => taps.add('watch'),
+            onDone: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('Your watch is connected'), findsOneWidget);
+      expect(find.textContaining('GARMIN/Activity'), findsNothing);
+      expect(
+        find.widgetWithText(FilledButton, 'Import from Connected Watch'),
+        findsOneWidget,
+      );
+      expect(
+        find.widgetWithText(OutlinedButton, 'Import from File'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Import from Connected Watch'));
+      await tester.tap(find.text('Import from File'));
+      expect(taps, ['watch', 'file']);
+    });
+
+    testWidgets('is ignored for a computer that is not a Garmin', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        localizedMaterialApp(
+          locale: const Locale('en'),
+          home: DcNoDirectDownloadView(
+            computer: _computer('Shearwater', 'Perdix'),
+            onImportFromFile: () {},
+            onImportFromConnectedWatch: () {},
+            onDone: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Import from Connected Watch'), findsNothing);
+      expect(find.widgetWithText(FilledButton, 'Import from File'), findsOne);
+    });
+  });
 }

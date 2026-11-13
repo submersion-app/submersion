@@ -35959,6 +35959,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No dives were found on the connected Garmin device.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'The Garmin device is in use by another app. Close Garmin Express and try again.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'The additional file could not be opened: $details';
   }
@@ -35976,6 +35980,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'Detecting...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'Reading watch files ($copied of $total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch =>
+      'Looking for the watch...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return 'Scanning $device activity...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'Checking for dives ($checked of $total)...';
+  }
 
   @override
   String get universalImport_label_duplicate => 'Duplicate';
@@ -36460,6 +36483,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'Garmin watch (Descent, Fenix, Epix...)';
+
+  @override
   String get diveComputer_discovery_usbSearchHint =>
       'Search by manufacturer or model...';
 
@@ -36679,6 +36706,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'Garmin watches are not downloaded here. Import their dives from $importPath or $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'Garmin watches are not downloaded over Bluetooth. Connect one by cable and choose Garmin in the USB list, or import their dives from $importPath or $cloudPath.';
   }
 
   @override
@@ -52558,6 +52593,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Import from File';
 
   @override
+  String get importWizard_dc_importFromConnectedWatch =>
+      'Import from Connected Watch';
+
+  @override
   String get importWizard_dc_knownComputer => 'Known Computer';
 
   @override
@@ -52577,6 +52616,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'Garmin watches store dives as FIT files instead of offering a direct download. Your watch is connected, so its dives can be imported straight from it.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

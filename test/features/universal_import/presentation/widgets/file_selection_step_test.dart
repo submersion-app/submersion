@@ -9,6 +9,7 @@ import 'package:submersion/features/universal_import/data/models/detection_resul
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
+import 'package:submersion/features/universal_import/presentation/providers/garmin_import_progress.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/file_selection_step.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -67,6 +68,30 @@ Widget harnessWithGarmin(List<GarminDevice> garminDevices) {
   );
 }
 
+/// A notifier caught part way through an import from a Garmin watch.
+class _GarminImportingNotifier extends UniversalImportNotifier {
+  _GarminImportingNotifier(super.ref, GarminImportProgress progress) {
+    state = state.copyWith(isLoading: true, garminProgress: progress);
+  }
+}
+
+/// FileSelectionStep while a Garmin import is at [progress].
+Widget harnessImportingFromGarmin(GarminImportProgress progress) {
+  return ProviderScope(
+    overrides: [
+      universalImportNotifierProvider.overrideWith(
+        (ref) => _GarminImportingNotifier(ref, progress),
+      ),
+    ],
+    child: const MaterialApp(
+      locale: Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: FileSelectionStep()),
+    ),
+  );
+}
+
 PickedImportFile _file(String name) => PickedImportFile(
   name: name,
   path: '/tmp/$name',
@@ -107,7 +132,7 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
     await tester.pumpWidget(
       harnessWithGarmin(const [
-        GarminDevice(
+        GarminVolume(
           volumeName: 'GARMIN',
           volumeRootPath: '/Volumes/GARMIN',
           activityDirPath: '/Volumes/GARMIN/GARMIN/Activity',
@@ -164,5 +189,79 @@ void main() {
 
     expect(tester.takeException(), isNull);
     debugDefaultTargetPlatformOverride = null;
+  });
+
+  group('Garmin import progress', () {
+    const name = 'Garmin Descent G2';
+
+    LinearProgressIndicator bar(WidgetTester tester) =>
+        tester.widget(find.byType(LinearProgressIndicator));
+
+    testWidgets('looking for the watch', (tester) async {
+      await tester.pumpWidget(
+        harnessImportingFromGarmin(
+          const GarminImportProgress(GarminImportPhase.lookingForWatch),
+        ),
+      );
+
+      expect(find.text('Looking for the watch...'), findsOneWidget);
+      expect(bar(tester).value, isNull);
+      expect(find.text('Detecting...'), findsNothing);
+    });
+
+    testWidgets('scanning the activity folder has no count', (tester) async {
+      await tester.pumpWidget(
+        harnessImportingFromGarmin(
+          const GarminImportProgress(
+            GarminImportPhase.scanning,
+            deviceName: name,
+          ),
+        ),
+      );
+
+      expect(
+        find.text('Scanning Garmin Descent G2 activity...'),
+        findsOneWidget,
+      );
+      expect(bar(tester).value, isNull);
+    });
+
+    testWidgets('copying shows files read so far', (tester) async {
+      await tester.pumpWidget(
+        harnessImportingFromGarmin(
+          const GarminImportProgress(
+            GarminImportPhase.copying,
+            current: 3,
+            total: 10,
+            deviceName: name,
+          ),
+        ),
+      );
+
+      expect(find.text('Reading watch files (3 of 10)...'), findsOneWidget);
+      expect(bar(tester).value, closeTo(0.3, 1e-9));
+    });
+
+    testWidgets('checking shows files checked so far', (tester) async {
+      await tester.pumpWidget(
+        harnessImportingFromGarmin(
+          const GarminImportProgress(
+            GarminImportPhase.checking,
+            current: 50,
+            total: 200,
+            deviceName: name,
+          ),
+        ),
+      );
+
+      expect(find.text('Checking for dives (50 of 200)...'), findsOneWidget);
+      expect(bar(tester).value, closeTo(0.25, 1e-9));
+    });
+
+    testWidgets('no progress panel when no Garmin import runs', (tester) async {
+      await tester.pumpWidget(harness());
+
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+    });
   });
 }

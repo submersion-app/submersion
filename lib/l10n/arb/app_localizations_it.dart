@@ -36576,6 +36576,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna immersione trovata sul dispositivo Garmin collegato.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'Il dispositivo Garmin è in uso da un\'altra app. Chiudi Garmin Express e riprova.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'Impossibile aprire il file aggiuntivo: $details';
   }
@@ -36593,6 +36597,25 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'Rilevamento...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'Lettura dei file dell\'orologio ($copied di $total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch =>
+      'Ricerca dell\'orologio...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return 'Scansione delle attività di $device...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'Ricerca delle immersioni ($checked di $total)...';
+  }
 
   @override
   String get universalImport_label_duplicate => 'Duplicato';
@@ -37089,6 +37112,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'Orologio Garmin (Descent, Fenix, Epix...)';
+
+  @override
   String get diveComputer_discovery_usbSearchHint =>
       'Cerca per produttore o modello...';
 
@@ -37313,6 +37340,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'Gli orologi Garmin non si scaricano qui. Importa le loro immersioni da $importPath o $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'Gli orologi Garmin non si scaricano via Bluetooth. Collegane uno via cavo e scegli Garmin nell\'elenco USB, oppure importa le loro immersioni da $importPath o $cloudPath.';
   }
 
   @override
@@ -53380,6 +53415,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importa da file';
 
   @override
+  String get importWizard_dc_importFromConnectedWatch =>
+      'Importa dall\'orologio collegato';
+
+  @override
   String get importWizard_dc_knownComputer => 'Computer conosciuto';
 
   @override
@@ -53399,6 +53438,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Gli orologi Garmin salvano le immersioni come file FIT invece di offrire un download diretto. Collega l\'orologio via USB, copia i file dalla sua cartella GARMIN/Activity, quindi importali.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'Gli orologi Garmin salvano le immersioni come file FIT invece di offrire un download diretto. Il tuo orologio è collegato, quindi le sue immersioni possono essere importate direttamente.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

@@ -1306,7 +1306,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'import-wizard',
                 name: 'universalImport',
                 onExit: confirmLeaveRunningImport,
-                builder: (context, state) => const UniversalImportWizardRoute(),
+                builder: (context, state) => UniversalImportWizardRoute(
+                  startGarminDeviceImport:
+                      state.uri.queryParameters['source'] ==
+                      UniversalImportWizardRoute.garminDeviceSource,
+                ),
               ),
               GoRoute(
                 path: 'import-cloud/suunto',

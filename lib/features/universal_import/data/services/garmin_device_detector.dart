@@ -5,14 +5,26 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/platform/desktop_target_platform.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_mtp_source.dart';
 
-/// A Garmin dive computer mounted as a USB mass-storage volume.
+/// A Garmin dive computer connected by cable: mounted as a drive
+/// ([GarminVolume]) or, for newer watches on Windows, reachable over MTP
+/// ([GarminMtpWatch], issue #4223).
 ///
 /// Garmin watches (Descent, etc.) do not use a libdivecomputer download
-/// protocol -- when connected by cable they appear as a plain drive whose
-/// activities live as FIT files under `GARMIN/Activity`.
-class GarminDevice {
-  const GarminDevice({
+/// protocol; either way their activities are FIT files under
+/// `GARMIN/Activity`.
+sealed class GarminDevice {
+  const GarminDevice();
+
+  /// What to call the device: the volume name or the watch's own name.
+  String get displayName;
+}
+
+/// A Garmin dive computer mounted as a USB mass-storage volume.
+final class GarminVolume extends GarminDevice {
+  const GarminVolume({
     required this.volumeName,
     required this.volumeRootPath,
     required this.activityDirPath,
@@ -30,21 +42,54 @@ class GarminDevice {
 
   /// Number of `.fit` files found directly under [activityDirPath].
   final int fitFileCount;
+
+  @override
+  String get displayName => volumeName;
 }
 
-/// Detects Garmin dive computers attached as USB mass-storage volumes.
+/// A Garmin watch reachable over MTP, which Windows lists as a device with
+/// no drive letter (the Descent G2, Mk3 and others).
+///
+/// Its files are not counted at detection: listing them over MTP is slow,
+/// and detection runs every time the import page opens.
+final class GarminMtpWatch extends GarminDevice {
+  const GarminMtpWatch({
+    required this.deviceId,
+    required this.displayName,
+    this.serialNumber,
+  });
+
+  /// The id [GarminMtpSource] calls take.
+  final String deviceId;
+
+  @override
+  final String displayName;
+
+  final String? serialNumber;
+}
+
+/// Detects Garmin dive computers attached by cable.
 ///
 /// This is desktop-only: mobile platforms cannot mount a watch as a drive.
-/// Detection is purely filesystem-based (no vendor API, credentials, or
-/// network) -- it looks for the `GARMIN/Activity` folder that every Garmin
-/// device exposes, regardless of the volume's name.
+/// Volume detection is purely filesystem-based (no vendor API, credentials,
+/// or network) -- it looks for the `GARMIN/Activity` folder that every Garmin
+/// device exposes, regardless of the volume's name. With an [mtpSource]
+/// (Windows), watches that connect over MTP are listed too.
 class GarminDeviceDetector {
   /// [volumeRoots] overrides the platform mount-point scan; used by tests to
   /// point detection at a temporary directory tree.
-  const GarminDeviceDetector({List<Directory> Function()? volumeRoots})
-    : _volumeRootsOverride = volumeRoots;
+  const GarminDeviceDetector({
+    List<Directory> Function()? volumeRoots,
+    this.mtpSource,
+  }) : _volumeRootsOverride = volumeRoots;
+
+  static const _log = LoggerService('GarminDeviceDetector');
 
   final List<Directory> Function()? _volumeRootsOverride;
+
+  /// Reads watches that connect over MTP; null where there is none (every
+  /// platform but Windows).
+  final GarminMtpSource? mtpSource;
 
   /// Whether the current platform can mount a Garmin device as a drive.
   static bool get isSupportedPlatform {
@@ -52,14 +97,38 @@ class GarminDeviceDetector {
     return isDesktopTargetPlatform(defaultTargetPlatform);
   }
 
-  /// Scan mounted volumes and return every one that looks like a Garmin
-  /// device (i.e. contains a non-empty `GARMIN/Activity` folder).
+  /// Every connected Garmin: mounted volumes that look like one (a
+  /// non-empty `GARMIN/Activity` folder) first, then MTP watches.
   Future<List<GarminDevice>> detect() async {
+    return [...await _detectVolumes(), ...await _detectMtpWatches()];
+  }
+
+  Future<List<GarminMtpWatch>> _detectMtpWatches() async {
+    final source = mtpSource;
+    if (source == null) return const [];
+    try {
+      final devices = await source.listDevices();
+      return [
+        for (final device in devices)
+          GarminMtpWatch(
+            deviceId: device.id,
+            displayName: device.friendlyName,
+            serialNumber: device.serialNumber,
+          ),
+      ];
+    } catch (e) {
+      // An MTP failure must not hide a watch mounted as a drive.
+      _log.warning('Listing Garmin MTP devices failed: $e');
+      return const [];
+    }
+  }
+
+  Future<List<GarminVolume>> _detectVolumes() async {
     final roots = _volumeRootsOverride != null
         ? _volumeRootsOverride()
         : _defaultVolumeRoots();
 
-    final devices = <GarminDevice>[];
+    final devices = <GarminVolume>[];
     for (final root in roots) {
       try {
         final activityDir = Directory(p.join(root.path, 'GARMIN', 'Activity'));
@@ -67,7 +136,7 @@ class GarminDeviceDetector {
         final fitCount = await _countFitFiles(activityDir);
         if (fitCount == 0) continue;
         devices.add(
-          GarminDevice(
+          GarminVolume(
             volumeName: p.basename(root.path).isEmpty
                 ? root.path
                 : p.basename(root.path),

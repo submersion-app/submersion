@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -228,12 +229,24 @@ class UniversalAdapter implements ImportSourceAdapter {
   /// adapter reads every provider through that container, which outlives the
   /// route, so an import keeps working after the diver leaves the wizard
   /// (#3554). Nothing here reads through [ref] itself.
-  UniversalAdapter({required WidgetRef ref, String displayName = 'File Import'})
-    : _container = ProviderScope.containerOf(ref.context, listen: false),
-      _displayName = displayName;
+  ///
+  /// With [startGarminDeviceImport] the wizard opens straight into the
+  /// Garmin device import, as Connect New Computer's Garmin entry and a
+  /// saved Garmin's download screen want (issue #4223).
+  UniversalAdapter({
+    required WidgetRef ref,
+    String displayName = 'File Import',
+    bool startGarminDeviceImport = false,
+  }) : _container = ProviderScope.containerOf(ref.context, listen: false),
+       _displayName = displayName,
+       _startGarminDeviceImport = startGarminDeviceImport;
 
   final ProviderContainer _container;
   final String _displayName;
+
+  /// Cleared once the import has been started, so only the wizard's opening
+  /// reset starts it.
+  bool _startGarminDeviceImport;
 
   /// Reads [provider] from the container the wizard's route lives in. The one
   /// way this adapter and its subclasses read providers: a `WidgetRef` dies
@@ -261,7 +274,13 @@ class UniversalAdapter implements ImportSourceAdapter {
 
   @override
   void resetState() {
-    readProvider(universalImportNotifierProvider.notifier).reset();
+    final notifier = readProvider(universalImportNotifierProvider.notifier);
+    notifier.reset();
+    // After the reset, which would otherwise wipe the import it starts.
+    if (_startGarminDeviceImport) {
+      _startGarminDeviceImport = false;
+      unawaited(notifier.importFromGarminDevice());
+    }
   }
 
   // ---------------------------------------------------------------------------

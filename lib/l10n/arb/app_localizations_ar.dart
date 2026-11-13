@@ -37112,6 +37112,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يتم العثور على غطسات في جهاز Garmin المتصل.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'جهاز Garmin قيد الاستخدام من تطبيق آخر. أغلق Garmin Express وحاول مرة أخرى.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'تعذّر فتح الملف الإضافي: $details';
   }
@@ -37129,6 +37133,24 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'جارٍ الكشف...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'جارٍ قراءة ملفات الساعة ($copied من $total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch => 'جارٍ البحث عن الساعة...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return 'جارٍ فحص أنشطة $device...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'جارٍ البحث عن الغطسات ($checked من $total)...';
+  }
 
   @override
   String get universalImport_label_duplicate => 'مكرر';
@@ -37613,6 +37635,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'ساعة Garmin (Descent وFenix وEpix...)';
+
+  @override
   String get diveComputer_discovery_usbSearchHint =>
       'البحث حسب الشركة المصنعة أو الطراز...';
 
@@ -37836,6 +37862,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'لا يتم تنزيل ساعات Garmin من هنا. استورد غطساتها من $importPath أو $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'لا يتم تنزيل ساعات Garmin عبر Bluetooth. وصّل ساعة بالكابل واختر Garmin في قائمة USB، أو استورد غطساتها من $importPath أو $cloudPath.';
   }
 
   @override
@@ -54190,6 +54224,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'استيراد من ملف';
 
   @override
+  String get importWizard_dc_importFromConnectedWatch =>
+      'استيراد من الساعة المتصلة';
+
+  @override
   String get importWizard_dc_knownComputer => 'كمبيوتر غوص معروف';
 
   @override
@@ -54209,6 +54247,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'تخزّن ساعات Garmin الغوصات كملفات FIT بدلاً من توفير تنزيل مباشر. وصّل الساعة عبر USB، وانسخ الملفات من مجلد GARMIN/Activity فيها، ثم استوردها.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'تحفظ ساعات Garmin الغطسات كملفات FIT بدلاً من توفير تنزيل مباشر. ساعتك متصلة، لذا يمكن استيراد غطساتها منها مباشرة.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

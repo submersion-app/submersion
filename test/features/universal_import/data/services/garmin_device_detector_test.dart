@@ -1,12 +1,16 @@
 // Verifies Garmin USB detection against a temporary directory tree that
 // mimics one or more mounted volumes: a device is recognised by a non-empty
-// GARMIN/Activity folder, regardless of the volume's name.
+// GARMIN/Activity folder, regardless of the volume's name. A fake MTP source
+// stands in for watches that connect over MTP instead (issue #4223).
 
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/services.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
+
+import 'fake_garmin_mtp_source.dart';
 
 void main() {
   late Directory tmp;
@@ -37,11 +41,18 @@ void main() {
     return p.join(tmp.path, volume);
   }
 
-  GarminDeviceDetector detectorFor(List<String> volumeRoots) {
+  GarminDeviceDetector detectorFor(
+    List<String> volumeRoots, {
+    FakeGarminMtpSource? mtpSource,
+  }) {
     return GarminDeviceDetector(
       volumeRoots: () => [for (final r in volumeRoots) Directory(r)],
+      mtpSource: mtpSource,
     );
   }
+
+  Iterable<GarminVolume> volumesIn(List<GarminDevice> devices) =>
+      devices.whereType<GarminVolume>();
 
   test('detects a volume with a non-empty GARMIN/Activity folder', () async {
     final vol = await makeVolume(
@@ -53,9 +64,11 @@ void main() {
     final devices = await detectorFor([vol]).detect();
 
     expect(devices, hasLength(1));
-    expect(devices.single.volumeName, 'GARMIN');
-    expect(devices.single.fitFileCount, 2);
-    expect(devices.single.activityDirPath, p.join(vol, 'GARMIN', 'Activity'));
+    final volume = devices.single as GarminVolume;
+    expect(volume.volumeName, 'GARMIN');
+    expect(volume.displayName, 'GARMIN');
+    expect(volume.fitFileCount, 2);
+    expect(volume.activityDirPath, p.join(vol, 'GARMIN', 'Activity'));
   });
 
   test('recognises the device regardless of the volume name', () async {
@@ -64,7 +77,7 @@ void main() {
     final devices = await detectorFor([vol]).detect();
 
     expect(devices, hasLength(1));
-    expect(devices.single.volumeName, 'MY_WATCH');
+    expect((devices.single as GarminVolume).volumeName, 'MY_WATCH');
   });
 
   test('ignores a volume without a GARMIN/Activity folder', () async {
@@ -93,7 +106,10 @@ void main() {
 
     final devices = await detectorFor([a, b, plain.path]).detect();
 
-    expect(devices.map((d) => d.volumeName), containsAll(['A', 'B']));
+    expect(
+      volumesIn(devices).map((d) => d.volumeName),
+      containsAll(['A', 'B']),
+    );
     expect(devices, hasLength(2));
   });
 
@@ -115,5 +131,48 @@ void main() {
       p.join(tmp.path, 'does', 'not', 'exist'),
     );
     expect(files, isEmpty);
+  });
+
+  group('MTP watches', () {
+    test('lists a Garmin watch the MTP source reports', () async {
+      final watch = fakeGarminWatch(name: 'Descent G2', serial: '123');
+      final devices = await detectorFor(
+        const [],
+        mtpSource: FakeGarminMtpSource(devices: [watch]),
+      ).detect();
+
+      expect(devices, hasLength(1));
+      final mtp = devices.single as GarminMtpWatch;
+      expect(mtp.deviceId, watch.id);
+      expect(mtp.displayName, 'Descent G2');
+      expect(mtp.serialNumber, '123');
+    });
+
+    test('lists mounted volumes ahead of MTP watches', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+      final devices = await detectorFor([
+        vol,
+      ], mtpSource: FakeGarminMtpSource(devices: [fakeGarminWatch()])).detect();
+
+      expect(devices.map((d) => d.runtimeType), [GarminVolume, GarminMtpWatch]);
+    });
+
+    test('a failing MTP source still lists the mounted volumes', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+      final devices = await detectorFor(
+        [vol],
+        mtpSource: FakeGarminMtpSource(
+          listError: PlatformException(code: 'ioError'),
+        ),
+      ).detect();
+
+      expect(devices, hasLength(1));
+      expect(devices.single, isA<GarminVolume>());
+    });
+
+    test('without an MTP source only volumes are scanned', () async {
+      final devices = await detectorFor(const []).detect();
+      expect(devices, isEmpty);
+    });
   });
 }
