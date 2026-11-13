@@ -406,8 +406,29 @@ void main() {
       expect(find.text('10.0 L/min'), findsOneWidget);
       expect(find.text('Peak'), findsOneWidget);
       expect(find.text('20.0 L/min'), findsOneWidget);
+      // Back gas and EAN50 drew 10 L each.
       expect(find.text('Gas used'), findsOneWidget);
+      expect(find.text('20 L'), findsOneWidget);
+    });
+
+    testWidgets('totals the time chart on a dive on one cylinder', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester, gases: const []);
+
       expect(find.text('40 L'), findsOneWidget);
+    });
+
+    testWidgets('leaves out gas used that cannot be added up', (tester) async {
+      // Bar from two cylinders of unknown size.
+      await pumpSacSegmentsView(
+        tester,
+        phases: const [],
+        rates: sacRates(volumeFor: (id) => id == 'stage' ? null : 10.0),
+      );
+
+      expect(find.text('Average'), findsOneWidget);
+      expect(find.text('Gas used'), findsNothing);
     });
   });
 

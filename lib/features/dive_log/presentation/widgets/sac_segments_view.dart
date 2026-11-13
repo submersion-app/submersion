@@ -178,10 +178,26 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     );
   }
 
+  /// The gas the whole dive used, or null where its cylinders' gas can't be
+  /// added up.
+  ///
+  /// The time segments follow the reference cylinder's pressure alone, so a
+  /// dive on several cylinders totals its per-cylinder stretches instead.
+  String? _totalGasUsed() {
+    final rates = widget.rates;
+    final cylinders = gasSectionRows(widget.gasSegments);
+    if (cylinders.isEmpty) return rates.formatGasUsed(widget.timeSegments);
+    final stretches = [for (final g in cylinders) ...g.segments];
+    return rates.canShare(stretches.map((s) => s.tankId))
+        ? rates.formatGasUsed(stretches)
+        : null;
+  }
+
   Widget _summary(SacSegment peak) {
     final l10n = context.l10n;
     final rates = widget.rates;
     final segments = widget.timeSegments;
+    final used = _totalGasUsed();
     return SacSegmentsSummary(
       figures: [
         SacSummaryFigure(
@@ -192,10 +208,11 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
           label: l10n.diveLog_detail_sacSegments_summaryPeak,
           value: rates.format(peak.sacRate, tankId: peak.tankId),
         ),
-        SacSummaryFigure(
-          label: l10n.diveLog_detail_sacSegments_summaryUsed,
-          value: rates.formatGasUsed(segments),
-        ),
+        if (used != null)
+          SacSummaryFigure(
+            label: l10n.diveLog_detail_sacSegments_summaryUsed,
+            value: used,
+          ),
       ],
     );
   }
