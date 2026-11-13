@@ -1,14 +1,18 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certification_agencies/data/repositories/custom_certification_repository.dart';
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -164,6 +168,30 @@ void main() {
         globalSearchBuddiesProvider(buddyId),
         (c) => c.read(globalSearchBuddiesProvider(buddyId).future),
         levelInCounted,
+      );
+    });
+
+    // The dive's buddies feed the dive detail exports, and the UDDF writer
+    // writes each buddy's certification level.
+    test('buddiesForDiveProvider', () async {
+      final database = DatabaseService.instance.database;
+      final now = DateTime(2024).millisecondsSinceEpoch;
+      await database
+          .into(database.dives)
+          .insert(
+            db.DivesCompanion(
+              id: const Value('dive-1'),
+              diveDateTime: Value(now),
+              createdAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          );
+      await buddyRepo.addBuddyToDive('dive-1', buddyId, DiveRole.buddyId);
+
+      await expectFollowsCertChange(
+        buddiesForDiveProvider('dive-1'),
+        (c) => c.read(buddiesForDiveProvider('dive-1').future),
+        (buddies) => buddies.single.buddy.certificationLevel,
       );
     });
 
