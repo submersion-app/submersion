@@ -1232,6 +1232,54 @@ void main() {
       expect(find.byType(CompactO2ToxicityPanel), findsOneWidget);
     });
 
+    testWidgets('reads a cursor time before the dive\'s zero point with its '
+        'own seconds', (tester) async {
+      // A computer that started 2:50 before the dive's zero point.
+      final dive = createTestDiveWithBottomTime().copyWith(
+        profile: const [
+          DiveProfilePoint(timestamp: -170, depth: 0),
+          DiveProfilePoint(timestamp: 60, depth: 10),
+        ],
+      );
+      final base = await getBaseOverrides();
+      final originalOnError = FlutterError.onError;
+      addTearDown(() => FlutterError.onError = originalOnError);
+      FlutterError.onError = (d) {
+        if (d.toString().contains('overflowed')) return;
+        originalOnError?.call(d);
+      };
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            ...panelOverrides(
+              dive,
+              profileAnalysisProvider(
+                dive.id,
+              ).overrideWith((ref) async => analysisWithDeco()),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(diveId: dive.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pump();
+      ProviderScope.containerOf(
+        tester.element(find.byType(DiveDetailPage)),
+      ).read(profileTrackingIndexProvider(dive.id).notifier).state = 0;
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      final card = tester.widget<CompactTissueLoadingCard>(
+        find.byType(CompactTissueLoadingCard),
+      );
+      expect(card.subtitle, contains('-2:50'));
+    });
+
     testWidgets('hands the tissue card the profile times for its heat map '
         '(issue #4503)', (tester) async {
       final dive = diveWithProfile();
