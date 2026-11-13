@@ -1715,12 +1715,21 @@ jobs:
       # per stored item. An Apple-issued certificate maps to the stable
       # `teamid:` partition, so "Always Allow" lasts across builds.
       # The certificate lives only in this step's environment, away from the
-      # build tooling above. Fork PRs get no secrets and keep ad-hoc signing.
+      # build tooling above. Fork PRs get no secrets and keep ad-hoc signing,
+      # and so do Dependabot PRs (they only see Dependabot secrets).
+      # Third-party build code ran in earlier steps and can write to
+      # $GITHUB_PATH and $GITHUB_ENV, which shape every later step. So this
+      # step starts an absolute /bin/bash, ignores BASH_ENV, and resets PATH
+      # to system directories before running anything, so a tool planted
+      # earlier never runs with the certificate in its environment.
       - name: Sign macOS app
+        shell: /bin/bash --noprofile --norc -e -o pipefail {0}
         env:
+          BASH_ENV: ''
           APPLE_DEVELOPMENT_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64 }}
           APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD }}
         run: |
+          export PATH=/usr/bin:/bin:/usr/sbin:/sbin
           APP=build/macos/Build/Products/Release/submersion.app
           IDENTITY=-
           if [ -n "$APPLE_DEVELOPMENT_CERTIFICATE_BASE64" ]; then
