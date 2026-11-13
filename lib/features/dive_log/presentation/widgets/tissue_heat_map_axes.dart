@@ -147,22 +147,31 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
     String at(int index) =>
         l10n.diveLog_deco_minutesValue('${timestamps[index] ~/ 60}');
 
+    final start = at(0);
+    final middle = at(timestamps.length ~/ 2);
+    final end = at(timestamps.length - 1);
+    // Each time is named once: a short timeline's middle or end can round to
+    // the same minute as its neighbour, and a repeat reads as a stuck clock.
+    final labels = [
+      (Alignment.centerLeft, start),
+      (Alignment.center, middle == start || middle == end ? null : middle),
+      (Alignment.centerRight, end == start ? null : end),
+    ];
+
     // Each label owns a third of the width and shrinks to fit it, so the
     // three never run into each other at large text.
     return ExcludeSemantics(
       child: Row(
         children: [
-          for (final (alignment, index) in [
-            (Alignment.centerLeft, 0),
-            (Alignment.center, timestamps.length ~/ 2),
-            (Alignment.centerRight, timestamps.length - 1),
-          ])
+          for (final (alignment, text) in labels)
             Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: alignment,
-                child: Text(at(index), style: style, maxLines: 1),
-              ),
+              child: text == null
+                  ? const SizedBox.shrink()
+                  : FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: alignment,
+                      child: Text(text, style: style, maxLines: 1),
+                    ),
             ),
         ],
       ),

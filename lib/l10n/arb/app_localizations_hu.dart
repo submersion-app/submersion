@@ -62200,7 +62200,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt: az 1-5 közötti gyors (mint a jól vérellátott szövet, például az agy), a 6-10 közötti közepes (mint az izom és a bőr), a 11-16 közötti lassú (mint a zsír és a csont). A gyorsak a rövid, mély merüléseket, a lassúak a hosszú és ismételt merüléseket korlátozzák; a szövetnevek csak durva példák, nem anatómia.';
+      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt: az 1-5-ösek gyorsak (mint a jól vérellátott szövet, például az agy), a 6-10-esek közepesek (mint az izom és a bőr), a 11-16-osak lassúak (mint a zsír és a csont). A gyorsak a rövid, mély merüléseket, a lassúak a hosszú és ismételt merüléseket korlátozzák; a szövetnevek csak durva példák, nem anatómia.';
 
   @override
   String get info_term_leadingCompartment_label => 'Vezető kompartment';

@@ -18328,7 +18328,7 @@
   "info_term_surfaceInterval_label": "Felszíni idő",
   "info_term_surfaceInterval_body": "Két merülés között a felszínen töltött idő. A szövetek közben tovább adják le a gázt, így hosszabb szünet kevesebbet visz át a következő merülésre.",
   "info_term_tissueCompartment_label": "Szövetkompartmentek",
-  "info_term_tissueCompartment_body": "A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt: az 1-5 közötti gyors (mint a jól vérellátott szövet, például az agy), a 6-10 közötti közepes (mint az izom és a bőr), a 11-16 közötti lassú (mint a zsír és a csont). A gyorsak a rövid, mély merüléseket, a lassúak a hosszú és ismételt merüléseket korlátozzák; a szövetnevek csak durva példák, nem anatómia.",
+  "info_term_tissueCompartment_body": "A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt: az 1-5-ösek gyorsak (mint a jól vérellátott szövet, például az agy), a 6-10-esek közepesek (mint az izom és a bőr), a 11-16-osak lassúak (mint a zsír és a csont). A gyorsak a rövid, mély merüléseket, a lassúak a hosszú és ismételt merüléseket korlátozzák; a szövetnevek csak durva példák, nem anatómia.",
   "info_term_leadingCompartment_label": "Vezető kompartment",
   "info_term_leadingCompartment_body": "Az a kompartment, amely éppen a legközelebb van a határához. Ez határozza meg a plafont, és merülés közben változik.",
   "info_term_tissueLoad_label": "Terhelés",

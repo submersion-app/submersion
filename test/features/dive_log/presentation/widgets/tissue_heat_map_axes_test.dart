@@ -187,6 +187,24 @@ void main() {
       expect(end.right, lessThanOrEqualTo(300.01));
     });
 
+    for (final (name, stamps, expected) in [
+      ('a two-sample profile', [0, 60], ['0 min', '1 min']),
+      ('a dive under a minute', [0, 20, 40], ['0 min']),
+      ('a two-minute dive', [0, 60, 90], ['0 min', '1 min']),
+    ]) {
+      testWidgets('names each time once on $name', (tester) async {
+        await tester.pumpWidget(
+          host(TissueHeatMapTimeAxis(timestamps: stamps), height: 20),
+        );
+
+        final shown = tester
+            .widgetList<Text>(find.byType(Text))
+            .map((t) => t.data)
+            .toList();
+        expect(shown, expected);
+      });
+    }
+
     test('fits only a timeline with one time per sample', () {
       expect(TissueHeatMapTimeAxis.fits(null, 3), isFalse);
       expect(TissueHeatMapTimeAxis.fits(const [0, 10], 3), isFalse);
