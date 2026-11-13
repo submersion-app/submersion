@@ -32,9 +32,23 @@ TERRITORY_NAMES: dict[str, str] = {
     "BQ": "Caribbean Netherlands",
 }
 
+# Countries the geocoder names but files under another state's code, with
+# no subdivision code to tell them apart: the constituent countries of the
+# Kingdom of the Netherlands all come back as `nl`. Keyed by the geocoder's
+# name, casefolded.
+NAMED_TERRITORIES: dict[str, tuple[str, str]] = {
+    "aruba": ("AW", "Aruba"),
+    "curacao": ("CW", "Curaçao"),
+    "curaçao": ("CW", "Curaçao"),
+    "sint maarten": ("SX", "Sint Maarten"),
+}
+
 # Countries whose geocoder name the app does not resolve to their code, as
 # code -> the English name it does resolve. Applied last.
-NAME_OVERRIDES: dict[str, str] = {}
+NAME_OVERRIDES: dict[str, str] = {
+    # The geocoder says "Federated States of Micronesia".
+    "FM": "Micronesia",
+}
 
 _SUBDIVISION_PREFIX = "ISO3166-2-lvl"
 
@@ -56,7 +70,22 @@ def resolve_country(address: dict) -> tuple[str | None, str | None]:
             code, name = prefix, TERRITORY_NAMES[prefix]
             break
 
-    return code, NAME_OVERRIDES.get(code, name)
+    return settle_country(code, name)
+
+
+def settle_country(
+    code: str | None, name: str | None
+) -> tuple[str | None, str | None]:
+    """A (code, name) pair with the name-based rules applied.
+
+    Separate from `resolve_country` so an answer cached before a rule
+    existed is corrected when it is read back.
+    """
+    if name and name.casefold() in NAMED_TERRITORIES:
+        code, name = NAMED_TERRITORIES[name.casefold()]
+    if code:
+        name = NAME_OVERRIDES.get(code, name)
+    return code, name
 
 
 class _UrllibResponse:
@@ -101,7 +130,7 @@ class CountryResolver:
         key = f"{round(latitude, 2)},{round(longitude, 2)}"
         if key in self._cache:
             code, name = self._cache[key]
-            return code, name
+            return settle_country(code, name)
 
         elapsed = time.monotonic() - self._last_request
         if elapsed < NOMINATIM_MIN_INTERVAL:

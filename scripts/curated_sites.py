@@ -27,6 +27,17 @@ CURATED_FILE = Path(__file__).parent / "dive_sites_curated.json"
 # A harvested site of the same name this close is the same site.
 SAME_SITE_KM = 1.0
 
+# The ISO code of each country a curated entry names. A wreck far offshore
+# is beyond what the geocoder can place, so its own country stands, and
+# needs its code from here.
+CURATED_COUNTRY_CODES = {
+    "Belize": "BZ",
+    "Cayman Islands": "KY",
+    "Honduras": "HN",
+    "Turks and Caicos Islands": "TC",
+    "United States": "US",
+}
+
 
 def load_curated(path: Path = CURATED_FILE) -> list[dict]:
     """The curated entries, as written in the curated file."""
@@ -64,12 +75,16 @@ def curated_record(
         "entry_type": kind if is_entry else None,
         "features": [kind] if kind and not is_entry else [],
     }
+    if country_code is None:
+        # Not placed by the geocoder: the entry's own country, with its code.
+        country = entry.get("country")
+        country_code = CURATED_COUNTRY_CODES.get(country)
     return to_catalogue_record(
         working,
         source="curated",
         source_ref=entry.get("source"),
         country_code=country_code,
-        country=country or entry.get("country"),
+        country=country,
     )
 
 
@@ -118,6 +133,9 @@ def validate(curated: list[dict]) -> list[str]:
         for field in ("name", "description", "country", "source"):
             if not entry.get(field):
                 problems.append(f"{site_id}: missing {field}")
+        country = entry.get("country")
+        if country and country not in CURATED_COUNTRY_CODES:
+            problems.append(f"{site_id}: no code for country {country!r}")
         latitude, longitude = entry.get("latitude"), entry.get("longitude")
         if not isinstance(latitude, (int, float)) or not -90 <= latitude <= 90:
             problems.append(f"{site_id}: latitude out of range")

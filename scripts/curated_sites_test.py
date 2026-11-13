@@ -98,6 +98,14 @@ class MergeTest(unittest.TestCase):
         self.assertNotIn("types", merged[0])
         self.assertEqual(merged[0]["features"], ["drift"])
 
+    def test_a_site_too_far_offshore_to_geocode_keeps_its_own_country(self):
+        merged = curated_sites.merge_curated(
+            [], [_curated()], lambda latitude, longitude: (None, None)
+        )
+
+        self.assertEqual(merged[0]["country_code"], "US")
+        self.assertEqual(merged[0]["country"], "United States")
+
     def test_a_shore_kind_is_the_entry_not_a_type(self):
         merged = curated_sites.merge_curated(
             [], [_curated(kind="shore")], _in_the_states
@@ -142,6 +150,11 @@ class MergeTest(unittest.TestCase):
 class ValidateTest(unittest.TestCase):
     def test_a_good_entry_passes(self):
         self.assertEqual(curated_sites.validate([_curated()]), [])
+
+    def test_a_country_without_a_known_code_is_a_problem(self):
+        problems = curated_sites.validate([_curated(country="Atlantis")])
+
+        self.assertIn("no code for country 'Atlantis'", "\n".join(problems))
 
     def test_each_problem_is_named(self):
         problems = curated_sites.validate(

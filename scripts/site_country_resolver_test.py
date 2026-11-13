@@ -61,6 +61,30 @@ class ResolveCountryTest(unittest.TestCase):
             ("BQ", "Caribbean Netherlands"),
         )
 
+    def test_a_country_of_the_kingdom_takes_its_own_code(self):
+        # Curaçao, Aruba and Sint Maarten are named as countries but filed
+        # under the Netherlands' code, with no subdivision code to go by.
+        self.assertEqual(
+            res.resolve_country({"country": "Curacao", "country_code": "nl"}),
+            ("CW", "Curaçao"),
+        )
+        self.assertEqual(
+            res.resolve_country({"country": "Aruba", "country_code": "nl"}),
+            ("AW", "Aruba"),
+        )
+        self.assertEqual(
+            res.resolve_country(
+                {"country": "Sint Maarten", "country_code": "nl"}
+            ),
+            ("SX", "Sint Maarten"),
+        )
+        self.assertEqual(
+            res.resolve_country(
+                {"country": "Netherlands", "country_code": "nl"}
+            ),
+            ("NL", "Netherlands"),
+        )
+
     def test_an_unknown_territory_prefix_is_an_error(self):
         with self.assertRaises(KeyError):
             res.resolve_country(
@@ -73,6 +97,17 @@ class ResolveCountryTest(unittest.TestCase):
 
     def test_no_address_gives_nothing(self):
         self.assertEqual(res.resolve_country({}), (None, None))
+
+    def test_micronesia_goes_by_the_name_the_app_knows(self):
+        self.assertEqual(
+            res.resolve_country(
+                {
+                    "country": "Federated States of Micronesia",
+                    "country_code": "fm",
+                }
+            ),
+            ("FM", "Micronesia"),
+        )
 
     def test_a_name_override_replaces_the_geocoders_name(self):
         res.NAME_OVERRIDES["XA"] = "Exampleland"
@@ -108,6 +143,20 @@ class CountryResolverTest(unittest.TestCase):
             resolver.lookup(12.0811, -68.2793),
             ("BQ", "Caribbean Netherlands"),
         )
+
+    def test_an_answer_cached_before_a_rule_existed_is_corrected(self):
+        # A cache written by an earlier run holds the geocoder's own pairing.
+        self.cache_path.write_text(
+            json.dumps({"12.1,-68.9": ["NL", "Curacao"]}),
+            encoding="utf-8",
+        )
+        resolver = res.CountryResolver(
+            self.cache_path,
+            http_get=lambda *a, **k: self.fail("cached"),
+            sleep=lambda _: None,
+        )
+
+        self.assertEqual(resolver.lookup(12.1, -68.9), ("CW", "Curaçao"))
 
     def test_lookup_asks_once_and_remembers(self):
         calls = []

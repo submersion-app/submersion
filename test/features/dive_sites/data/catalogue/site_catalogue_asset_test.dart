@@ -1,0 +1,189 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
+import 'package:drift/native.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/database/app_sql_functions.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/database/site_type_seed.dart';
+import 'package:submersion/core/geography/country_code.dart';
+import 'package:submersion/core/geography/country_names.generated.dart';
+import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
+import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
+import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+/// The shipped catalogue file itself: what the scripts wrote is what the
+/// app can read, credit and place.
+/// Serves the catalogue assets straight from the repository's files.
+class _FileBundle extends AssetBundle {
+  @override
+  Future<ByteData> load(String key) async =>
+      ByteData.sublistView(File(p.joinAll(key.split('/'))).readAsBytesSync());
+}
+
+void main() {
+  final catalogueFile = File(p.join('assets', 'data', 'site_catalogue.json'));
+  final versionFile = File(p.join('assets', 'data', 'site_catalogue.version'));
+  final legacyFile = File(p.join('assets', 'data', 'dive_sites.json'));
+
+  late Map<String, dynamic> doc;
+  late List<Map<String, dynamic>> sites;
+
+  setUpAll(() {
+    doc = jsonDecode(catalogueFile.readAsStringSync()) as Map<String, dynamic>;
+    sites = (doc['sites'] as List).cast<Map<String, dynamic>>();
+  });
+
+  test('the metadata names the format, the notice and the sources', () {
+    final metadata = doc['metadata'] as Map<String, dynamic>;
+
+    expect(metadata['format'], 2);
+    expect(metadata['notice'], contains('Open Database License'));
+    expect(
+      metadata['notice'],
+      contains('https://www.openstreetmap.org/copyright'),
+    );
+    expect(metadata['total_count'], sites.length);
+    final sources = metadata['sources'] as Map<String, dynamic>;
+    expect(sources.keys, containsAll(['osm', 'curated']));
+    for (final source in sources.values.cast<Map<String, dynamic>>()) {
+      expect(source['name'], isNotEmpty);
+      expect(source['licence'], isNotEmpty);
+      expect(source['credit'], isNotEmpty);
+    }
+  });
+
+  test('every record is complete, unique and from a declared source', () {
+    final sources = (doc['metadata'] as Map<String, dynamic>)['sources'] as Map;
+    final ids = <String>{};
+
+    expect(sites, hasLength(3667));
+    for (final site in sites) {
+      final id = site['id'] as String;
+      expect(ids.add(id), isTrue, reason: 'duplicate id $id');
+      expect(site['name'], isNotEmpty, reason: id);
+      expect(sources.containsKey(site['source']), isTrue, reason: id);
+      expect(site['trust'], 'verified', reason: id);
+      expect(site.containsKey('lat'), site.containsKey('lon'), reason: id);
+      // Empty values are left out, never written as null.
+      expect(site.values, everyElement(isNotNull), reason: id);
+    }
+  });
+
+  test('every country is one the app knows by that code', () {
+    for (final site in sites) {
+      final id = site['id'] as String;
+      final code = site['country_code'] as String?;
+      final country = site['country'] as String?;
+      expect(code == null, country == null, reason: id);
+      if (code == null) continue;
+      expect(assignedAlpha2Codes, contains(code), reason: id);
+      // The name must read back as the same country, or the site's flag
+      // and its country text would disagree once it is adopted.
+      expect(countryCodeFor(country), code, reason: '$id: $country');
+    }
+  });
+
+  test('a Bonaire site is in the Caribbean Netherlands, not the '
+      'Netherlands', () {
+    final saltPier = sites.singleWhere((s) => s['id'] == 'osm_node_663869401');
+
+    expect(saltPier['name'], 'Salt Pier');
+    expect(saltPier['country_code'], 'BQ');
+    expect(saltPier['country'], 'Caribbean Netherlands');
+  });
+
+  test('depths are a maximum, or a range that reads the right way', () {
+    for (final site in sites) {
+      final min = site['min_depth_m'] as num?;
+      final max = site['max_depth_m'] as num?;
+      if (min == null) continue;
+      expect(max, isNotNull, reason: '${site['id']}: a lone depth is a max');
+      expect(min, lessThan(max!), reason: site['id'] as String);
+    }
+  });
+
+  test('every type and entry is a name the app has', () {
+    final entryNames = EntryMethod.values.map((m) => m.name).toSet();
+    for (final site in sites) {
+      for (final type in (site['types'] as List?) ?? const []) {
+        expect(kBuiltInSiteTypeIds, contains(type), reason: site['id']);
+      }
+      for (final entry in (site['entry'] as List?) ?? const []) {
+        expect(entryNames, contains(entry), reason: site['id']);
+      }
+    }
+  });
+
+  test('every OpenStreetMap record points at its object', () {
+    for (final site in sites.where((s) => s['source'] == 'osm')) {
+      expect(
+        site['source_ref'],
+        startsWith('https://www.openstreetmap.org/'),
+        reason: site['id'] as String,
+      );
+    }
+  });
+
+  test('the app reads every record of the file', () {
+    final parsed = parseSiteCatalogue(catalogueFile.readAsStringSync());
+
+    expect(parsed.format, 2);
+    expect(parsed.sites, hasLength(sites.length));
+    expect(parsed.sources.map((s) => s.key), containsAll(['osm', 'curated']));
+  });
+
+  test('the version sidecar is the hash of the file', () {
+    final hash = sha256.convert(catalogueFile.readAsBytesSync()).toString();
+
+    expect(versionFile.readAsStringSync(), hash);
+  });
+
+  test('the shipped file imports whole and answers a real query', () async {
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+
+    final outcome = await SiteCatalogueImporter(
+      database: db,
+      bundle: _FileBundle(),
+    ).importIfChanged();
+
+    expect(outcome, SiteCatalogueImportOutcome.imported);
+    final catalogue = LocalSiteCatalogue(database: db);
+    expect(await catalogue.allWithCoordinates(), hasLength(3311));
+    // Salt Pier, by name and by place.
+    final found = await catalogue.search('salt pier');
+    expect(found.map((s) => s.id), contains('osm_node_663869401'));
+    final nearSaltPier = await catalogue.near(
+      const GeoPoint(12.0836, -68.2820),
+      radiusMeters: 50000,
+    );
+    expect(nearSaltPier.first.id, 'osm_node_663869401');
+    expect(nearSaltPier.length, greaterThan(20));
+    expect(
+      (await catalogue.source('osm'))!.credit,
+      'OpenStreetMap contributors',
+    );
+  });
+
+  // Removed with the legacy file once nothing reads it.
+  test('every site of the legacy file is in the catalogue', () {
+    final legacy =
+        (jsonDecode(legacyFile.readAsStringSync())
+                as Map<String, dynamic>)['sites']
+            as List;
+    final ids = sites.map((s) => s['id']).toSet();
+
+    for (final site in legacy.cast<Map<String, dynamic>>()) {
+      expect(ids, contains(site['id']));
+    }
+    expect(sites, hasLength(legacy.length));
+  }, skip: legacyFile.existsSync() ? false : 'the legacy file is gone');
+}
