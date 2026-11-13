@@ -92,6 +92,7 @@ void main() {
     WidgetTester tester, {
     String from = 'src',
     List<Override> extra = const [],
+    Override? diver,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 2400);
@@ -99,7 +100,8 @@ void main() {
     popped = 'none';
     final overrides = await getBaseOverrides();
     overrides.add(
-      validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
+      diver ??
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
     );
     overrides.addAll(extra);
     final router = GoRouter(
@@ -251,6 +253,40 @@ void main() {
       diverId: 'd1',
     )).singleWhere((s) => s.id != 'src');
     expect(await repo.getEquipmentIdsInSet(clone.id), ['bcd']);
+  });
+
+  testWidgets('a profile switch before Save drops the clone', (tester) async {
+    // The clone was seeded for d1: saving it after a switch to d2 would give
+    // d2 a copy of d1's set.
+    final db = DatabaseService.instance.database;
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd2',
+            name: 'd2',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    final active = StateProvider<String?>((ref) => 'd1');
+    await openClone(
+      tester,
+      diver: validatedCurrentDiverIdProvider.overrideWith(
+        (ref) async => ref.watch(active),
+      ),
+    );
+    expect(find.text('Cold Water (copy)'), findsOneWidget);
+
+    ProviderScope.containerOf(
+      tester.element(find.byType(EquipmentSetEditPage)),
+    ).read(active.notifier).state = 'd2';
+    await tester.pumpAndSettle();
+
+    expect(find.text('Set Not Found'), findsOneWidget);
+    expect(appBarSave(), findsNothing);
+    expect(await repo.getAllSets(diverId: 'd2'), isEmpty);
   });
 
   testWidgets("another diver's set is not cloned", (tester) async {

@@ -89,6 +89,9 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   /// True while the form is being filled in, so that is not taken for typing.
   bool _seeding = false;
 
+  /// The diver a clone was seeded for: after a profile switch it is not theirs.
+  String? _cloneDiverId;
+
   EquipmentSetFormValues get _values => EquipmentSetFormValues(
     name: _nameController.text,
     description: _descriptionController.text,
@@ -120,6 +123,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   }
 
   void _initializeFromClone(EquipmentSet source) {
+    _cloneDiverId = ref.read(validatedCurrentDiverIdProvider).valueOrNull;
     _initializeFromSet(
       equipmentSetCloneSeed(
         source,
@@ -147,17 +151,10 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
 
   /// Drops selections whose equipment has been deleted since the form opened.
   ///
-  /// [_initializeFromSet] seeds the selection once. If a gear item is deleted
-  /// while this page is on screen -- by a sync, or from the equipment tab --
-  /// its checkbox disappears but the id stays selected, so it can be neither
-  /// seen nor un-checked, and the save would re-insert a dangling foreign key
-  /// (issue #819). The repository prunes such ids as well, but only at write
-  /// time; doing it here keeps the rendered membership honest.
-  ///
-  /// An id is kept when the freshly loaded [set] still lists it. Retired gear
-  /// renders no checkbox yet is legitimately a member, and a set may reference
-  /// gear that [allEquipmentProvider] (diver-scoped) does not return -- neither
-  /// may be silently dropped.
+  /// Gear deleted while the page is open (a sync, the equipment tab) would
+  /// stay selected with no checkbox, and the save would re-insert a dangling
+  /// key (#819). An id the fresh [set] still lists is kept: retired gear and
+  /// gear [allEquipmentProvider] does not return are still members.
   ///
   /// A clone ([set] null) keeps only gear the diver can see, so no member
   /// whose share was removed (#2046) is a row they cannot see or untick.
@@ -187,9 +184,12 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
       return _buildForm(context, allEquipmentAsync, existing);
     }
 
-    // A seeded clone no longer needs its source, so it stops watching it: a
-    // source deleted meanwhile must not discard the clone.
-    if (widget.isCloning && _isInitialized) return form(null);
+    // A seeded clone stops watching its source (deleting it must not discard
+    // the clone), but it stays the diver's it was seeded for.
+    if (widget.isCloning && _isInitialized) {
+      final diverId = ref.watch(validatedCurrentDiverIdProvider).valueOrNull;
+      return diverId == _cloneDiverId ? form(null) : _notFound(context);
+    }
 
     final loadId = widget.setId ?? widget.cloneFromId;
     if (loadId != null) {
@@ -200,16 +200,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
       );
       return setAsync.when(
         data: (set) {
-          if (set == null) {
-            return Scaffold(
-              appBar: AppBar(
-                title: Text(context.l10n.equipment_setEdit_notFoundTitle),
-              ),
-              body: Center(
-                child: Text(context.l10n.equipment_setEdit_notFoundMessage),
-              ),
-            );
-          }
+          if (set == null) return _notFound(context);
           if (widget.isCloning) {
             _initializeFromClone(set);
             return form(null);
@@ -236,6 +227,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
 
     return _buildForm(context, allEquipmentAsync, null);
   }
+
+  Widget _notFound(BuildContext context) => Scaffold(
+    appBar: AppBar(title: Text(context.l10n.equipment_setEdit_notFoundTitle)),
+    body: Center(child: Text(context.l10n.equipment_setEdit_notFoundMessage)),
+  );
 
   Widget _buildForm(
     BuildContext context,
@@ -710,8 +706,10 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
       final diverId =
           existingSet?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
-      // A clone saved before the gear list loaded is pruned here instead.
+      // A clone saved before the gear list loaded is pruned here instead,
+      // and one whose diver was switched away is not saved.
       if (widget.isCloning) {
+        if (diverId != _cloneDiverId) return;
         final every = await ref.read(allEquipmentProvider.future);
         _pruneDeletedSelections(null, every);
       }
