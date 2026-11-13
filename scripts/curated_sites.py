@@ -5,10 +5,12 @@ OpenStreetMap, the catalogue's source, has gaps: it holds no New Jersey ocean
 sites at all. `dive_sites_curated.json` fills them with researched sites, and
 `dive_site_harvester.py` merges it into every harvest so they survive.
 
-Each curated entry carries the catalogue's fields plus `source` (where its
-position came from), `depthM` and `kind`, which stay in the curated file for
-review and never reach the app. Descriptions are our own words; positions
-come from public sources.
+Each curated entry carries a site's name, description and position plus
+`source` (where its position came from), `depthM` and `kind`. All of them
+reach the catalogue: the source as the record's `source_ref`, the depth as
+its maximum depth, and the kind as a site type (wreck, wall, reef) or an
+entry (shore). Descriptions are our own words; positions come from public
+sources.
 
 A curated site steps aside once OpenStreetMap gains a site of the same name
 nearby, so a harvest never lists one site twice.
@@ -18,19 +20,9 @@ import json
 import math
 from pathlib import Path
 
-CURATED_FILE = Path(__file__).parent / "dive_sites_curated.json"
+from site_catalogue_format import map_entry, to_catalogue_record
 
-# The fields a site carries in assets/data/dive_sites.json.
-CATALOGUE_FIELDS = (
-    "id",
-    "name",
-    "description",
-    "latitude",
-    "longitude",
-    "country",
-    "region",
-    "website",
-)
+CURATED_FILE = Path(__file__).parent / "dive_sites_curated.json"
 
 # A harvested site of the same name this close is the same site.
 SAME_SITE_KM = 1.0
@@ -42,10 +34,11 @@ def load_curated(path: Path = CURATED_FILE) -> list[dict]:
         return json.load(f)
 
 
-def _km(a: dict, b: dict) -> float:
-    p1, p2 = math.radians(a["latitude"]), math.radians(b["latitude"])
+def _km(site: dict, entry: dict) -> float:
+    """Kilometres between a catalogue record and a curated entry."""
+    p1, p2 = math.radians(site["lat"]), math.radians(entry["latitude"])
     dp = p2 - p1
-    dl = math.radians(b["longitude"] - a["longitude"])
+    dl = math.radians(entry["longitude"] - site["lon"])
     h = (
         math.sin(dp / 2) ** 2
         + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
@@ -53,9 +46,39 @@ def _km(a: dict, b: dict) -> float:
     return 2 * 6371 * math.asin(math.sqrt(h))
 
 
-def merge_curated(sites: list[dict], curated: list[dict]) -> list[dict]:
-    """[sites] followed by each curated entry not already among them, reduced
-    to the catalogue's fields.
+def curated_record(
+    entry: dict, *, country_code: str | None, country: str | None
+) -> dict:
+    """The catalogue record for a curated entry."""
+    kind = entry.get("kind")
+    is_entry = bool(map_entry(kind))
+    working = {
+        "id": entry["id"],
+        "name": entry["name"],
+        "description": entry.get("description"),
+        "latitude": entry.get("latitude"),
+        "longitude": entry.get("longitude"),
+        "region": entry.get("region"),
+        "website": entry.get("website"),
+        "max_depth": entry.get("depthM"),
+        "entry_type": kind if is_entry else None,
+        "features": [kind] if kind and not is_entry else [],
+    }
+    return to_catalogue_record(
+        working,
+        source="curated",
+        source_ref=entry.get("source"),
+        country_code=country_code,
+        country=country or entry.get("country"),
+    )
+
+
+def merge_curated(sites: list[dict], curated: list[dict], country_of) -> list[dict]:
+    """[sites] followed by a catalogue record for each curated entry not
+    already among them.
+
+    [sites] are catalogue records. `country_of(latitude, longitude)` answers
+    (ISO code, English name) for a curated entry's position.
 
     A curated entry is left out when its id is already present, or when a
     site of the same name (ignoring case) lies within SAME_SITE_KM.
@@ -68,13 +91,14 @@ def merge_curated(sites: list[dict], curated: list[dict]) -> list[dict]:
         name = entry["name"].casefold()
         if any(
             (s.get("name") or "").casefold() == name
-            and s.get("latitude") is not None
-            and s.get("longitude") is not None
+            and s.get("lat") is not None
+            and s.get("lon") is not None
             and _km(s, entry) <= SAME_SITE_KM
             for s in sites
         ):
             continue
-        merged.append({field: entry.get(field) for field in CATALOGUE_FIELDS})
+        code, country = country_of(entry["latitude"], entry["longitude"])
+        merged.append(curated_record(entry, country_code=code, country=country))
         ids.add(entry["id"])
     return merged
 

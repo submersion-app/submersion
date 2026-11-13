@@ -59,6 +59,107 @@ class UtcTimestampTest(unittest.TestCase):
         self.assertLessEqual(parsed, after)
 
 
+class _FixedCountry:
+    """Stands in for the country resolver, which would ask the network."""
+
+    def __init__(self, answer):
+        self.answer = answer
+        self.asked = []
+
+    def lookup(self, latitude, longitude):
+        self.asked.append((latitude, longitude))
+        return self.answer
+
+
+@unittest.skipUnless(_HAS_DEPS, "the harvester's dependencies are not installed")
+class TransformTest(unittest.TestCase):
+    def _with_country(self, answer):
+        resolver = _FixedCountry(answer)
+        original = dive_site_harvester.country_resolver
+        dive_site_harvester.country_resolver = resolver
+        self.addCleanup(
+            setattr, dive_site_harvester, "country_resolver", original
+        )
+        return resolver
+
+    def test_an_osm_site_becomes_a_catalogue_record(self):
+        resolver = self._with_country(("BQ", "Caribbean Netherlands"))
+
+        record = dive_site_harvester.transform_to_catalogue_record(
+            {
+                "osm_id": 663869401,
+                "osm_type": "node",
+                "tags": {"name": "Salt Pier", "description": "Pillars."},
+                "geometry": {"type": "Point", "coordinates": [-68.28, 12.08]},
+                "address": {"country": "Nederland", "state": "Bonaire"},
+                "contact": {"website": "https://example.org"},
+                "dive_attributes": {
+                    "depth": "15 m",
+                    "entry_type": "shore",
+                    "hazards": "boat traffic",
+                    "site_types": ["reef", "sharks"],
+                    "drift_diving": True,
+                },
+            }
+        )
+
+        self.assertEqual(resolver.asked, [(12.08, -68.28)])
+        self.assertEqual(
+            record,
+            {
+                "id": "osm_node_663869401",
+                "name": "Salt Pier",
+                "lat": 12.08,
+                "lon": -68.28,
+                "country_code": "BQ",
+                "country": "Caribbean Netherlands",
+                "region": "Bonaire",
+                "max_depth_m": 15.0,
+                "types": ["reef"],
+                "entry": ["shore"],
+                "features": ["sharks", "drift"],
+                "hazards": "boat traffic",
+                "description": "Pillars.",
+                "website": "https://example.org",
+                "source": "osm",
+                "source_ref": "https://www.openstreetmap.org/node/663869401",
+                "trust": "verified",
+            },
+        )
+
+    def test_a_site_without_coordinates_keeps_a_two_letter_country_code(self):
+        resolver = self._with_country(("XX", "Never asked"))
+
+        record = dive_site_harvester.transform_to_catalogue_record(
+            {
+                "osm_id": 7,
+                "osm_type": "way",
+                "tags": {"name": "Somewhere"},
+                "address": {"country": "cw"},
+            }
+        )
+
+        self.assertEqual(resolver.asked, [])
+        self.assertEqual(record["country_code"], "CW")
+        self.assertNotIn("country", record)
+        self.assertNotIn("lat", record)
+
+    def test_a_site_without_coordinates_drops_a_country_name(self):
+        self._with_country(("XX", "Never asked"))
+
+        record = dive_site_harvester.transform_to_catalogue_record(
+            {
+                "osm_id": 8,
+                "osm_type": "way",
+                "tags": {"name": "Somewhere"},
+                "address": {"country": "Deutschland"},
+            }
+        )
+
+        self.assertNotIn("country_code", record)
+        self.assertNotIn("country", record)
+
+
 class GeneratedAtCallSiteTest(unittest.TestCase):
     """The helper is only worth having if every call site reaches for it.
 
@@ -94,7 +195,61 @@ class GeneratedAtCallSiteTest(unittest.TestCase):
             if isinstance(key, ast.Constant) and key.value == "generated_at"
         ]
 
-        self.assertEqual(stamps, ["utc_timestamp()"] * 3)
+        # The centres file and the raw dump; the site catalogue is stamped
+        # through write_catalogue, checked below.
+        self.assertEqual(stamps, ["utc_timestamp()"] * 2)
+
+    def test_the_site_catalogue_is_stamped_by_the_helper(self):
+        stamps = [
+            ast.unparse(node.args[2])
+            for node in ast.walk(self.tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "write_catalogue"
+        ]
+
+        self.assertEqual(stamps, ["utc_timestamp()"])
+
+
+class CatalogueOutputTest(unittest.TestCase):
+    """Sites leave the harvester in the catalogue format, and only there.
+
+    A source scan for the same reason as above: the write happens after a
+    full Overpass harvest.
+    """
+
+    def setUp(self):
+        with open(_SOURCE, encoding="utf-8") as f:
+            self.tree = ast.parse(f.read())
+
+    def test_the_legacy_site_file_is_no_longer_written(self):
+        names = [
+            node.value
+            for node in ast.walk(self.tree)
+            if isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and node.value.startswith("dive_sites")
+            and node.value.endswith(".json")
+            and "raw" not in node.value
+        ]
+
+        self.assertEqual(names, [])
+
+    def test_sites_take_their_country_from_the_resolver(self):
+        transform = next(
+            node
+            for node in ast.walk(self.tree)
+            if isinstance(node, ast.FunctionDef)
+            and node.name == "transform_to_catalogue_record"
+        )
+        calls = [
+            ast.unparse(node.func)
+            for node in ast.walk(transform)
+            if isinstance(node, ast.Call)
+        ]
+
+        self.assertIn("country_resolver.lookup", calls)
+        self.assertIn("to_catalogue_record", calls)
 
 
 if __name__ == "__main__":
