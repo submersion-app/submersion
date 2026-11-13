@@ -168,10 +168,17 @@ extension RungsFromV340 on AppDatabase {
     if (from < 361) await _backfillSiteCountryCodes();
     if (from < 361) await reportProgress();
 
-    // v362: dive_sites.catalogue_id, the built-in catalogue record a site
+    // v362: dive_deco_status, the computed deco verdicts the query
+    // language's deco field reads (issue #4461). Table-only rung, no
+    // backfill: the app fills it on demand. Re-asserted in beforeOpen.
+    if (from < 362) await _assertDiveDecoStatusTable();
+    if (from < 362) await reportProgress();
+
+    // v363: dive_sites.catalogue_id, the built-in catalogue record a site
     // was adopted from. Nullable and offline, with nothing to backfill, so
     // the floor does not move. The column is re-asserted in beforeOpen.
-    if (from < 362) await _assertSiteCatalogueIdColumn();
-    if (from < 362) await reportProgress();
+    // Renumbered from 362, which main took for #4461.
+    if (from < 363) await _assertSiteCatalogueIdColumn();
+    if (from < 363) await reportProgress();
   }
 }

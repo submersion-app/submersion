@@ -25,6 +25,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:submersion/features/planner/data/services/stored_series_results.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_follow_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -294,6 +295,11 @@ class AgentAccessController {
         sql: _sqlRunner,
         followOf: followOf,
         planCaveat: () => strings().planning_disclaimer_dialog_body,
+        // `deco` answers from the app's analysis where the computer recorded
+        // no deco data (#4461), so a query waits for those verdicts as the
+        // dive list does.
+        prepareQueryCaches: (diverId, tables) =>
+            prepareQueryCachesFor(_ref, diverId, tables),
         writes: AgentWriteServices(
           records: records,
           plans: _ref.read(agentWritePlanStoreProvider),

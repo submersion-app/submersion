@@ -84,17 +84,20 @@ Future<void> pumpSacSegmentsView(
       home: MediaQuery(
         data: MediaQueryData(textScaler: textScaler),
         child: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: width,
-              child: SacSegmentsView(
-                timeSegments: time ?? sacTimeSegments,
-                phaseSegments: phases ?? sacPhaseSegments,
-                gasSegments: gases ?? sacGasSegments,
-                rates: rates ?? sacRates(),
-                selectedTimestamp: selectedTimestamp,
-                onCursorSeconds: onCursorSeconds,
-                laneSelector: laneSelector,
+          // The page scrolls, as the dive detail page does.
+          body: SingleChildScrollView(
+            child: Center(
+              child: SizedBox(
+                width: width,
+                child: SacSegmentsView(
+                  timeSegments: time ?? sacTimeSegments,
+                  phaseSegments: phases ?? sacPhaseSegments,
+                  gasSegments: gases ?? sacGasSegments,
+                  rates: rates ?? sacRates(),
+                  selectedTimestamp: selectedTimestamp,
+                  onCursorSeconds: onCursorSeconds,
+                  laneSelector: laneSelector,
+                ),
               ),
             ),
           ),

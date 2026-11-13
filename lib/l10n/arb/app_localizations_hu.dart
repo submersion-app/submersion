@@ -17907,6 +17907,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Új felszerelés csoport';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Felszerelés csoport duplikálása';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Opcionális leírás...';
 
   @override
@@ -17962,6 +17966,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get equipment_setEdit_snackbar_created =>
       'Felszerelés csoport létrehozva';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned =>
+      'Felszerelés csoport duplikálva';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20113,12 +20121,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ehhez a merülőhelyhez nincs csatolva térkép, fotó vagy dokumentum';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotók az itteni merülésekről ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Merülésfotó';
+
+  @override
+  String get media_siteDivePhotos_title => 'Fotók a merülésekről';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotók a merülésekről ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Merülésfotó';
+  String get media_siteDivePhotos_showAll => 'Összes megjelenítése';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Kevesebb megjelenítése';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -23043,7 +23060,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'A merülőhely fotói, videói és dokumentumai';
+      'A merülőhelyhez csatolt fotók, videók és dokumentumok';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Az ezen a merülőhelyen naplózott merülések fotói';
 
   @override
   String get siteDetailSection_tags_description => 'A merülőhely címkéi';
@@ -40898,6 +40919,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Palack felhasználása';
 
   @override
+  String get attrLabel_worn_as => 'Viselés módja';
+
+  @override
   String get attrLabel_tank_identifier => 'Azonosító';
 
   @override
@@ -41059,6 +41083,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Szín';
+
+  @override
+  String get attrLabel_figure_position => 'Hely a búváralakon';
 
   @override
   String get attrLabel_sleeve_length => 'Ujjak';
@@ -41263,6 +41290,84 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Ruhatöltő palack';
+
+  @override
+  String get attrChoice_worn_as_back => 'Háti rögzítés';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount bal';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount jobb';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stage';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Száj';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Mellkas (oktopusz)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Mellkas, bal';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Mellkas, jobb';
+
+  @override
+  String get attrChoice_figure_position_console => 'Konzol';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Bal csukló';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Jobb csukló';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Bal kéz';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Jobb kéz';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Bal csípő';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Jobb csípő';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Bal comb';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Jobb comb';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Bal vádli';
+
+  @override
+  String get attrChoice_figure_position_back => 'Hát';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Trimmzseb, bal';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Trimmzseb, jobb';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'Hátsó D-gyűrű';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, bal';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, jobb';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, bal';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, jobb';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41607,6 +41712,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attr_flagNo => 'Nem';
 
   @override
+  String get attr_figurePosition_automatic => 'Automatikus';
+
+  @override
   String get equipment_edit_invalidThickness => 'Formátum: 5, 5/4 vagy 7/5/3';
 
   @override
@@ -41853,6 +41961,41 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Átlag $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Átlag';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Csúcs';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Felhasznált gáz';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Felhasznált';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'Felhasznált gáz fázisonként';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount felhasználva';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override

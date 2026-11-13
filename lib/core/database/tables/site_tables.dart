@@ -39,7 +39,7 @@ class DiveSites extends Table {
   TextColumn get countryCode => text().nullable()();
 
   /// The id of the built-in catalogue record this site was adopted from
-  /// (v362). Null for a site the diver made by hand.
+  /// (v363). Null for a site the diver made by hand.
   TextColumn get catalogueId => text().nullable()();
   TextColumn get region => text().nullable()();
   RealColumn get rating => real().nullable()();

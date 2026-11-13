@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_number_badge.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/trips/presentation/providers/side_trip_providers.dart';
@@ -48,22 +49,7 @@ class TripDivesTab extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 child: Row(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '#${dive.diveNumber ?? '-'}',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
+                    DiveNumberBadge(diveNumber: dive.diveNumber),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

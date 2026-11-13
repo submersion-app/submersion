@@ -403,7 +403,8 @@ sites" all call it.
 
 ### 8. The link
 
-- New nullable text column `dive_sites.catalogue_id` (main schema 361 to 362),
+- New nullable text column `dive_sites.catalogue_id` (main schema 363; planned
+  as 362 and renumbered when main took that number),
   on the `DiveSite` entity with `copyWith` and in the row mapper.
 - The repository writes it when a site is created and when a merge or its
   undo rewrites a site. The ordinary update path leaves the column alone, as

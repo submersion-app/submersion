@@ -93,8 +93,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(_order(notifier.state).take(3), [
+      SiteDetailSectionId.divePhotos,
       SiteDetailSectionId.depth,
-      SiteDetailSectionId.difficulty,
       SiteDetailSectionId.description,
     ]);
   });

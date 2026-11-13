@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v362: dive_sites.catalogue_id, the built-in catalogue record a
+/// Schema v363: dive_sites.catalogue_id, the built-in catalogue record a
 /// site was adopted from. Nullable and never backfilled: a site made before
 /// this column has no link.
 void main() {
@@ -27,16 +27,16 @@ void main() {
           .map((row) => row.read<String>('name'))
           .toList();
 
-  test('v362 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(362));
-    expect(AppDatabase.migrationVersions, contains(362));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(362));
+  test('v363 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(363));
+    expect(AppDatabase.migrationVersions, contains(363));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(363));
   });
 
   test(
     'upgrading adds the column and leaves existing sites unlinked',
     () async {
-      final db = AppDatabase(dbAt(361, withColumn: false));
+      final db = AppDatabase(dbAt(362, withColumn: false));
       addTearDown(db.close);
 
       expect(await columns(db), contains('catalogue_id'));
@@ -51,7 +51,7 @@ void main() {
     final db = AppDatabase(
       NativeDatabase.memory(
         setup: (rawDb) {
-          rawDb.execute('PRAGMA user_version = 361');
+          rawDb.execute('PRAGMA user_version = 362');
           rawDb.execute(
             'CREATE TABLE dive_sites (id TEXT NOT NULL PRIMARY KEY, '
             'name TEXT NOT NULL, country TEXT, country_code TEXT, '
@@ -85,7 +85,7 @@ void main() {
   test('a database without dive_sites upgrades without failing', () async {
     final db = AppDatabase(
       NativeDatabase.memory(
-        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 361'),
+        setup: (rawDb) => rawDb.execute('PRAGMA user_version = 362'),
       ),
     );
     addTearDown(db.close);

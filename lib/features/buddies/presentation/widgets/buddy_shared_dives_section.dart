@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_log/presentation/navigation/open_dive_list.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_number_badge.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Card listing the newest dives shared with a buddy, capped at five, with a
@@ -74,14 +75,28 @@ class BuddySharedDivesSection extends ConsumerWidget {
                     ),
                   );
                 }
-                // Show first 5 dives with same format as trip detail page
-                final displayDives = dives.take(5).toList();
+                // The newest dives in the trip Dives tab's row format.
+                final displayDives = dives
+                    .take(buddySharedDivePreviewLimit)
+                    .toList();
                 return Column(
                   children: displayDives.map((dive) {
+                    final siteName =
+                        dive.site?.name ??
+                        context.l10n.diveLog_listPage_unknownSite;
+                    // Its own node: a lone row would otherwise merge into
+                    // the card's, reading the heading as part of the button.
                     return Semantics(
+                      container: true,
                       button: true,
-                      label:
-                          'View dive ${dive.diveNumber ?? ''} at ${dive.site?.name ?? 'Unknown Site'}',
+                      label: switch (dive.diveNumber) {
+                        final number? =>
+                          context.l10n.diveLog_listPage_semanticsDiveAtSite(
+                            number,
+                            siteName,
+                          ),
+                        null => siteName,
+                      },
                       child: InkWell(
                         onTap: () => context.push('/dives/${dive.id}'),
                         borderRadius: BorderRadius.circular(8),
@@ -92,21 +107,11 @@ class BuddySharedDivesSection extends ConsumerWidget {
                           ),
                           child: Row(
                             children: [
-                              // Dive number badge
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primaryContainer,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '#${dive.diveNumber ?? '-'}',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                              // The row's label already names the number
+                              // and site, so neither is read twice.
+                              ExcludeSemantics(
+                                child: DiveNumberBadge(
+                                  diveNumber: dive.diveNumber,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -115,14 +120,16 @@ class BuddySharedDivesSection extends ConsumerWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      dive.site?.name ?? 'Unknown Site',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                    ExcludeSemantics(
+                                      child: Text(
+                                        siteName,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
@@ -149,9 +156,14 @@ class BuddySharedDivesSection extends ConsumerWidget {
                                             fontWeight: FontWeight.w500,
                                           ),
                                     ),
-                                  if (dive.bottomTime != null)
+                                  // Measured runtime, as the trip Dives tab
+                                  // shows it (bottom time is derived and
+                                  // never stands in for runtime).
+                                  if (dive.measuredRuntime case final runtime?)
                                     Text(
-                                      '${dive.bottomTime!.inMinutes}min',
+                                      context.l10n.diveLog_sources_minutes(
+                                        runtime.inMinutes,
+                                      ),
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: theme

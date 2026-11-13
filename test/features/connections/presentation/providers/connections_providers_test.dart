@@ -17,6 +17,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -169,6 +170,43 @@ void main() {
       isTrue,
     );
     expect(where.edges, isEmpty, reason: 'no dive has a site');
+  });
+
+  test('a Deco filter waits for the computed deco verdicts (#4461)', () async {
+    // d1 records no deco data: only the analysis's verdict, which the
+    // writer mirrors, can put it in a deco-filtered graph.
+    final sp = await SharedPreferences.getInstance();
+    final dc = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(sp),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier()..setCurrentDiver('me').ignore(),
+        ),
+        diveDecoStatusCacheProvider.overrideWith((ref) async {
+          await d
+              .into(d.diveDecoStatus)
+              .insertOnConflictUpdate(
+                db.DiveDecoStatusCompanion.insert(
+                  diveId: 'd1',
+                  hadDeco: true,
+                  computedAt: 0,
+                ),
+              );
+          return 0;
+        }),
+      ],
+    );
+    addTearDown(dc.dispose);
+    await dc
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('circle')!));
+    dc.read(connectionsFilterProvider.notifier).state = const DiveFilterState(
+      decoOnly: true,
+    );
+    final sub = dc.listen(connectionGraphProvider(80), (_, _) {});
+    addTearDown(sub.close);
+    final g = await dc.read(connectionGraphProvider(80).future);
+    expect(g.nodes.length, 2);
   });
 
   test('a focus switches to the ego graph', () async {

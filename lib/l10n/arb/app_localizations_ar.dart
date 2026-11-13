@@ -18240,6 +18240,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'مجموعة معدات جديدة';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => 'استنساخ مجموعة المعدات';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'وصف اختياري...';
 
   @override
@@ -18290,6 +18293,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'تم إنشاء مجموعة المعدات';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'تم استنساخ مجموعة المعدات';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20481,12 +20487,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد خرائط أو صور أو مستندات مرفقة بهذا الموقع';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'صور من الغوصات هنا ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'صورة غوص';
+
+  @override
+  String get media_siteDivePhotos_title => 'صور من الغوصات';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'صور من الغوصات ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'صورة غوص';
+  String get media_siteDivePhotos_showAll => 'إظهار الكل';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'إظهار أقل';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -23484,7 +23499,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'صور ومقاطع فيديو ومستندات الموقع';
+      'صور ومقاطع فيديو ومستندات مرفقة بالموقع';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'صور من الغوصات المسجلة في هذا الموقع';
 
   @override
   String get siteDetailSection_tags_description => 'وسوم هذا الموقع';
@@ -41687,6 +41706,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_cylinder_use => 'استخدام الأسطوانة';
 
   @override
+  String get attrLabel_worn_as => 'يُحمل كـ';
+
+  @override
   String get attrLabel_tank_identifier => 'المعرف';
 
   @override
@@ -41847,6 +41869,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'اللون';
+
+  @override
+  String get attrLabel_figure_position => 'الموضع على مجسم الغواص';
 
   @override
   String get attrLabel_sleeve_length => 'الأكمام';
@@ -42051,6 +42076,84 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'نفخ البدلة';
+
+  @override
+  String get attrChoice_worn_as_back => 'تثبيت خلفي';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'تعليق جانبي أيسر';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'تعليق جانبي أيمن';
+
+  @override
+  String get attrChoice_worn_as_stage => 'أسطوانة مرحلية';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'الفم';
+
+  @override
+  String get attrChoice_figure_position_octo => 'الصدر (أوكتوبوس)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'الصدر، يسار';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'الصدر، يمين';
+
+  @override
+  String get attrChoice_figure_position_console => 'كونسول';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'المعصم الأيسر';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'المعصم الأيمن';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'اليد اليسرى';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'اليد اليمنى';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'الورك الأيسر';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'الورك الأيمن';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'الفخذ الأيسر';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'الفخذ الأيمن';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'ربلة الساق اليسرى';
+
+  @override
+  String get attrChoice_figure_position_back => 'الظهر';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'جيب الموازنة، يسار';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'جيب الموازنة، يمين';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'حلقة D الخلفية';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'تعليق جانبي، يسار';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'تعليق جانبي، يمين';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'أسطوانة مرحلية، يسار';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'أسطوانة مرحلية، يمين';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -42393,6 +42496,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attr_flagNo => 'لا';
 
   @override
+  String get attr_figurePosition_automatic => 'تلقائي';
+
+  @override
   String get equipment_edit_invalidThickness => 'استخدم 5 أو 5/4 أو 7/5/3';
 
   @override
@@ -42636,6 +42742,41 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'المتوسط $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'المتوسط';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'الذروة';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'الغاز المستهلك';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'المستهلك';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'الغاز المستهلك حسب المرحلة';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount مستهلكة';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override

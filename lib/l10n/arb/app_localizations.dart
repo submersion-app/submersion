@@ -28666,6 +28666,12 @@ abstract class AppLocalizations {
   /// **'New Equipment Set'**
   String get equipment_setEdit_appBar_newTitle;
 
+  /// Title of the equipment set form when it is pre-filled to clone an existing set
+  ///
+  /// In en, this message translates to:
+  /// **'Clone Equipment Set'**
+  String get equipment_setEdit_appBar_cloneTitle;
+
   /// No description provided for @equipment_setEdit_descriptionHint.
   ///
   /// In en, this message translates to:
@@ -28761,6 +28767,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment set created'**
   String get equipment_setEdit_snackbar_created;
+
+  /// Shown after a cloned equipment set is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment set cloned'**
+  String get equipment_setEdit_snackbar_cloned;
 
   /// No description provided for @equipment_setEdit_snackbar_error.
   ///
@@ -32072,17 +32084,35 @@ abstract class AppLocalizations {
   /// **'No maps, photos, or documents attached to this site'**
   String get media_siteMediaSection_emptyState;
 
-  /// No description provided for @media_siteMediaSection_divePhotosGroup.
-  ///
-  /// In en, this message translates to:
-  /// **'Photos from dives here ({count})'**
-  String media_siteMediaSection_divePhotosGroup(int count);
-
   /// No description provided for @media_siteMediaSection_divePhotoLabel.
   ///
   /// In en, this message translates to:
   /// **'Dive photo'**
   String get media_siteMediaSection_divePhotoLabel;
+
+  /// No description provided for @media_siteDivePhotos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from dives'**
+  String get media_siteDivePhotos_title;
+
+  /// Title of the Site Details card that shows photos from the dives logged at the site, with how many there are
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from dives ({count})'**
+  String media_siteDivePhotos_titleWithCount(int count);
+
+  /// No description provided for @media_siteDivePhotos_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get media_siteDivePhotos_showAll;
+
+  /// No description provided for @media_siteDivePhotos_showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get media_siteDivePhotos_showLess;
 
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///
@@ -36549,8 +36579,14 @@ abstract class AppLocalizations {
   /// No description provided for @siteDetailSection_media_description.
   ///
   /// In en, this message translates to:
-  /// **'Photos, videos and documents for the site'**
+  /// **'Photos, videos and documents attached to the site'**
   String get siteDetailSection_media_description;
+
+  /// No description provided for @siteDetailSection_divePhotos_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from the dives logged at this site'**
+  String get siteDetailSection_divePhotos_description;
 
   /// No description provided for @siteDetailSection_tags_description.
   ///
@@ -64421,6 +64457,12 @@ abstract class AppLocalizations {
   /// **'Cylinder use'**
   String get attrLabel_cylinder_use;
 
+  /// No description provided for @attrLabel_worn_as.
+  ///
+  /// In en, this message translates to:
+  /// **'Worn as'**
+  String get attrLabel_worn_as;
+
   /// No description provided for @attrLabel_tank_identifier.
   ///
   /// In en, this message translates to:
@@ -64744,6 +64786,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get attrLabel_color;
+
+  /// No description provided for @attrLabel_figure_position.
+  ///
+  /// In en, this message translates to:
+  /// **'Position on figure'**
+  String get attrLabel_figure_position;
 
   /// No description provided for @attrLabel_sleeve_length.
   ///
@@ -65152,6 +65200,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Suit inflation'**
   String get attrChoice_cylinder_use_suit_inflation;
+
+  /// No description provided for @attrChoice_worn_as_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back mount'**
+  String get attrChoice_worn_as_back;
+
+  /// No description provided for @attrChoice_worn_as_sidemount_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, left'**
+  String get attrChoice_worn_as_sidemount_left;
+
+  /// No description provided for @attrChoice_worn_as_sidemount_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, right'**
+  String get attrChoice_worn_as_sidemount_right;
+
+  /// No description provided for @attrChoice_worn_as_stage.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage'**
+  String get attrChoice_worn_as_stage;
+
+  /// No description provided for @attrChoice_figure_position_mouth.
+  ///
+  /// In en, this message translates to:
+  /// **'Mouth'**
+  String get attrChoice_figure_position_mouth;
+
+  /// No description provided for @attrChoice_figure_position_octo.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest (octo)'**
+  String get attrChoice_figure_position_octo;
+
+  /// No description provided for @attrChoice_figure_position_chest_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest, left'**
+  String get attrChoice_figure_position_chest_left;
+
+  /// No description provided for @attrChoice_figure_position_chest_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest, right'**
+  String get attrChoice_figure_position_chest_right;
+
+  /// No description provided for @attrChoice_figure_position_console.
+  ///
+  /// In en, this message translates to:
+  /// **'Console'**
+  String get attrChoice_figure_position_console;
+
+  /// No description provided for @attrChoice_figure_position_wrist_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left wrist'**
+  String get attrChoice_figure_position_wrist_left;
+
+  /// No description provided for @attrChoice_figure_position_wrist_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right wrist'**
+  String get attrChoice_figure_position_wrist_right;
+
+  /// No description provided for @attrChoice_figure_position_hand_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left hand'**
+  String get attrChoice_figure_position_hand_left;
+
+  /// No description provided for @attrChoice_figure_position_hand_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right hand'**
+  String get attrChoice_figure_position_hand_right;
+
+  /// No description provided for @attrChoice_figure_position_hip_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left hip'**
+  String get attrChoice_figure_position_hip_left;
+
+  /// No description provided for @attrChoice_figure_position_hip_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right hip'**
+  String get attrChoice_figure_position_hip_right;
+
+  /// No description provided for @attrChoice_figure_position_thigh_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left thigh'**
+  String get attrChoice_figure_position_thigh_left;
+
+  /// No description provided for @attrChoice_figure_position_thigh_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right thigh'**
+  String get attrChoice_figure_position_thigh_right;
+
+  /// No description provided for @attrChoice_figure_position_calf_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left calf'**
+  String get attrChoice_figure_position_calf_left;
+
+  /// No description provided for @attrChoice_figure_position_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get attrChoice_figure_position_back;
+
+  /// No description provided for @attrChoice_figure_position_trim_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim pocket, left'**
+  String get attrChoice_figure_position_trim_left;
+
+  /// No description provided for @attrChoice_figure_position_trim_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim pocket, right'**
+  String get attrChoice_figure_position_trim_right;
+
+  /// No description provided for @attrChoice_figure_position_butt_d_ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Butt D-ring'**
+  String get attrChoice_figure_position_butt_d_ring;
+
+  /// No description provided for @attrChoice_figure_position_sidemount_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, left'**
+  String get attrChoice_figure_position_sidemount_left;
+
+  /// No description provided for @attrChoice_figure_position_sidemount_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, right'**
+  String get attrChoice_figure_position_sidemount_right;
+
+  /// No description provided for @attrChoice_figure_position_stage_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage, left'**
+  String get attrChoice_figure_position_stage_left;
+
+  /// No description provided for @attrChoice_figure_position_stage_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage, right'**
+  String get attrChoice_figure_position_stage_right;
 
   /// No description provided for @attrChoice_connection_din.
   ///
@@ -65831,6 +66035,12 @@ abstract class AppLocalizations {
   /// **'No'**
   String get attr_flagNo;
 
+  /// No description provided for @attr_figurePosition_automatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get attr_figurePosition_automatic;
+
   /// No description provided for @equipment_edit_invalidThickness.
   ///
   /// In en, this message translates to:
@@ -66220,6 +66430,58 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average {rate}'**
   String diveLog_detail_sacSegments_average(String rate);
+
+  /// Label over the dive average rate in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get diveLog_detail_sacSegments_summaryAverage;
+
+  /// Label over the highest segment rate in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Peak'**
+  String get diveLog_detail_sacSegments_summaryPeak;
+
+  /// Label over the total gas used in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used'**
+  String get diveLog_detail_sacSegments_summaryUsed;
+
+  /// Heading of the gas used column in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get diveLog_detail_sacSegments_used;
+
+  /// Heading of the bar showing each phase's share of the gas used
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used by phase'**
+  String get diveLog_detail_sacSegments_shareByPhase;
+
+  /// Gas used in a stretch of the dive, such as 228 L used
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} used'**
+  String diveLog_detail_sacSegments_usedAmount(String amount);
+
+  /// A row's share of the gas used, such as 59%
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String diveLog_detail_sacSegments_share(String percent);
+
+  /// Average depth of a stretch of the dive with its shallowest and deepest, such as 27m (18-30m)
+  ///
+  /// In en, this message translates to:
+  /// **'{average} ({shallowest}-{deepest})'**
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  );
 
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///

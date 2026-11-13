@@ -78,6 +78,20 @@ class DatabaseService {
   /// During migration, database access should be avoided
   bool get isMigrating => _isMigrating;
 
+  int _generation = 0;
+  final _generationChanges = StreamController<int>.broadcast(sync: true);
+
+  /// Moves each time a new database instance is installed: at startup, on
+  /// a reopen in place (a storage-location move), a restore, or a test's
+  /// injected database. A listener on one instance's table ticks rebuilds
+  /// on a change, or it keeps following a closed connection.
+  int get generation => _generation;
+
+  /// The new [generation], each time it moves.
+  Stream<int> get generationChanges => _generationChanges.stream;
+
+  void _installed() => _generationChanges.add(++_generation);
+
   AppDatabase get database {
     if (_isMigrating) {
       throw StateError('Database migration in progress. Please wait.');
@@ -129,6 +143,7 @@ class DatabaseService {
   @visibleForTesting
   void setTestDatabase(AppDatabase db) {
     _database = db;
+    _installed();
   }
 
   /// Test seam for the sqlcipher export used by portable backup/restore.
@@ -226,6 +241,7 @@ class DatabaseService {
       compaction: compaction,
       onCompacting: onCompacting,
     );
+    _installed();
 
     // No cipher in a browser: encryption at rest is not offered there.
     if (!HostPlatform.isWeb) await _assertCipherAvailable(_database!);
@@ -681,6 +697,7 @@ class DatabaseService {
       newPath,
       onMigrationProgress: onMigrationProgress,
     );
+    _installed();
 
     // Verify the database is ready by running a simple query
     // This ensures the connection is fully established before returning

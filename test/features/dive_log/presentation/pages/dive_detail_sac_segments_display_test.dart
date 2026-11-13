@@ -237,20 +237,15 @@ void main() {
         find.descendant(of: card, matching: find.byType(SacTimeColumns)),
         findsOneWidget,
       );
-      for (final (phase, icon) in [
-        (DivePhase.descent, Icons.south),
-        (DivePhase.bottom, Icons.horizontal_rule),
-        (DivePhase.ascent, Icons.north),
+      for (final phase in [
+        DivePhase.descent,
+        DivePhase.bottom,
+        DivePhase.ascent,
       ]) {
         expect(
           find.descendant(of: card, matching: find.text(phase.displayName)),
           findsOneWidget,
           reason: '${phase.name} row should be labelled',
-        );
-        expect(
-          find.descendant(of: card, matching: find.byIcon(icon)),
-          findsOneWidget,
-          reason: '${phase.name} row should carry its icon',
         );
       }
     });

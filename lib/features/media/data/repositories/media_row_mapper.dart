@@ -184,14 +184,20 @@ const List<String> kSignatureFileTypes = [
   'buddy_signature',
 ];
 
-/// Every file_type spelling that is not a photo, for SQL that has to count
-/// photos without hydrating rows. [parseMediaType] reads anything else as a
-/// photo, so filtering on 'photo' alone would miss rows it accepts.
-const List<String> kNonPhotoFileTypes = [
-  'video',
+/// Every file_type spelling that is neither a photo nor a video: the rows a
+/// diver does not browse as media (documents, signatures). For SQL that has
+/// to leave them out without hydrating rows; excluding them keeps every
+/// legacy photo spelling [parseMediaType] accepts, which `IN ('photo', ...)`
+/// would miss.
+const List<String> kNonBrowsableFileTypes = [
   'document',
   ...kSignatureFileTypes,
 ];
+
+/// Every file_type spelling that is not a photo, for SQL that has to count
+/// photos without hydrating rows. [parseMediaType] reads anything else as a
+/// photo, so filtering on 'photo' alone would miss rows it accepts.
+const List<String> kNonPhotoFileTypes = ['video', ...kNonBrowsableFileTypes];
 
 /// Parses database file_type string to MediaType enum.
 /// Handles both snake_case (database format) and camelCase (legacy) for

@@ -16,7 +16,7 @@
 - Never run the whole Flutter suite locally. Run the tests each task names, plus `flutter test test/architecture test/shared` after adding any file under `lib/`.
 - Python: `python3.14`, tests are `unittest` files run directly (`python3.14 scripts/<name>_test.py`).
 - Tests first in every task. `dart format .` before each commit. `flutter analyze` must be clean for the whole repo (infos fail CI).
-- Local cache database: schema 20 to 21. Main database: schema 361 to 362. If main has taken either number when you merge, renumber everywhere (rung, constant, `migrationVersions`, test file name, comments).
+- Local cache database: schema 20 to 21. Main database: schema 361 to 362 (landed as 363: main took 362 while this was in review, so every `362` below reads `363` in the code). If main has taken either number when you merge, renumber everywhere (rung, constant, `migrationVersions`, test file name, comments).
 - Tables go in `lib/core/database/tables/` or `local_cache_database.dart`; main rungs in `lib/core/database/migrations/ladder/rungs_v340_onward.dart`; helpers as part files. Nothing new in `database.dart` except the version constant and the `migrationVersions` entry. `before_open.dart` is at its 800-line limit: do not add to it.
 - Depths and distances shown to a diver go through `UnitFormatter` (`formatDepth`, `formatGeoDistance`).
 - Every new string goes in all 11 ARB files under `lib/l10n/arb/` in alphabetical position, with real translations (a value identical to English fails `test/l10n/untranslated_english_values_test.dart`), then `flutter gen-l10n` from the repo root, and the generated files are committed.

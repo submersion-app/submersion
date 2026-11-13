@@ -855,6 +855,10 @@ void main() {
       read: (c) => c.read(flatMediaFromDivesAtSiteProvider(_id).future),
     ),
     (
+      name: 'recentMediaFromDivesAtSiteProvider',
+      read: (c) => c.read(recentMediaFromDivesAtSiteProvider(_id).future),
+    ),
+    (
       name: 'mediaStoreStatusHintProvider',
       read: (c) => c.read(mediaStoreStatusHintProvider.future),
     ),

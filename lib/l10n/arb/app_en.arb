@@ -10590,6 +10590,8 @@
   "equipment_setEdit_addEquipmentFirst": "Add equipment first before creating a set.",
   "equipment_setEdit_appBar_editTitle": "Edit Set",
   "equipment_setEdit_appBar_newTitle": "New Equipment Set",
+  "equipment_setEdit_appBar_cloneTitle": "Clone Equipment Set",
+  "@equipment_setEdit_appBar_cloneTitle": {"description": "Title of the equipment set form when it is pre-filled to clone an existing set"},
   "equipment_setEdit_descriptionHint": "Optional description...",
   "equipment_setEdit_descriptionLabel": "Description",
   "equipment_setEdit_errorMessage": "Error: {error}",
@@ -10606,6 +10608,8 @@
   "equipment_setEdit_selectEquipmentSubtitle": "Choose the equipment items to include in this set.",
   "equipment_setEdit_selectEquipmentTitle": "Select Equipment",
   "equipment_setEdit_snackbar_created": "Equipment set created",
+  "equipment_setEdit_snackbar_cloned": "Equipment set cloned",
+  "@equipment_setEdit_snackbar_cloned": {"description": "Shown after a cloned equipment set is saved"},
   "equipment_setEdit_snackbar_error": "Error saving equipment set: {error}",
   "equipment_setEdit_snackbar_updated": "Equipment set updated",
   "equipment_sets_appBar_title": "Equipment Sets",
@@ -12176,8 +12180,11 @@
   "media_siteAttachment_sizeTile": "Tile",
   "media_siteMediaSection_addDocument": "Add document",
   "media_siteMediaSection_emptyState": "No maps, photos, or documents attached to this site",
-  "media_siteMediaSection_divePhotosGroup": "Photos from dives here ({count})",
   "media_siteMediaSection_divePhotoLabel": "Dive photo",
+  "media_siteDivePhotos_title": "Photos from dives",
+  "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
+  "media_siteDivePhotos_showAll": "Show all",
+  "media_siteDivePhotos_showLess": "Show less",
   "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
   "media_siteMediaSection_unlinkSelectedContent": "Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.",
   "@media_siteMediaSection_unlinkSelectedContent": {
@@ -12606,7 +12613,8 @@
       }
     }
   },
-  "@media_siteMediaSection_divePhotosGroup": {
+  "@media_siteDivePhotos_titleWithCount": {
+    "description": "Title of the Site Details card that shows photos from the dives logged at the site, with how many there are",
     "placeholders": {
       "count": {
         "type": "int"
@@ -14575,7 +14583,8 @@
   "siteDetailSection_tide_description": "Tide cycle graph and timing",
   "siteDetailSection_reefHealth_description": "Satellite water conditions at the site",
   "siteDetailSection_marineLife_description": "Species seen at this site",
-  "siteDetailSection_media_description": "Photos, videos and documents for the site",
+  "siteDetailSection_media_description": "Photos, videos and documents attached to the site",
+  "siteDetailSection_divePhotos_description": "Photos from the dives logged at this site",
   "siteDetailSection_tags_description": "Tags on this site",
   "siteDetailSection_difficulty_description": "Difficulty level of the site",
   "siteDetailSection_rating_description": "Your rating of the site",
@@ -25084,6 +25093,7 @@
   "attrLabel_tank_material": "Material",
   "attrLabel_valve_type": "Valve",
   "attrLabel_cylinder_use": "Cylinder use",
+  "attrLabel_worn_as": "Worn as",
   "attrLabel_tank_identifier": "Identifier",
   "attrLabel_last_visual_inspection": "Last visual inspection",
   "attrLabel_last_hydro_test": "Last hydrostatic test",
@@ -25138,6 +25148,7 @@
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
   "attrLabel_color": "Color",
+  "attrLabel_figure_position": "Position on figure",
   "attrLabel_sleeve_length": "Sleeves",
   "attrLabel_upf_rating": "UPF rating",
   "attrLabel_hooded": "Hooded",
@@ -25206,6 +25217,32 @@
   "attrChoice_valve_type_convertible": "Convertible",
   "attrChoice_cylinder_use_breathing_gas": "Breathing gas",
   "attrChoice_cylinder_use_suit_inflation": "Suit inflation",
+  "attrChoice_worn_as_back": "Back mount",
+  "attrChoice_worn_as_sidemount_left": "Sidemount, left",
+  "attrChoice_worn_as_sidemount_right": "Sidemount, right",
+  "attrChoice_worn_as_stage": "Stage",
+  "attrChoice_figure_position_mouth": "Mouth",
+  "attrChoice_figure_position_octo": "Chest (octo)",
+  "attrChoice_figure_position_chest_left": "Chest, left",
+  "attrChoice_figure_position_chest_right": "Chest, right",
+  "attrChoice_figure_position_console": "Console",
+  "attrChoice_figure_position_wrist_left": "Left wrist",
+  "attrChoice_figure_position_wrist_right": "Right wrist",
+  "attrChoice_figure_position_hand_left": "Left hand",
+  "attrChoice_figure_position_hand_right": "Right hand",
+  "attrChoice_figure_position_hip_left": "Left hip",
+  "attrChoice_figure_position_hip_right": "Right hip",
+  "attrChoice_figure_position_thigh_left": "Left thigh",
+  "attrChoice_figure_position_thigh_right": "Right thigh",
+  "attrChoice_figure_position_calf_left": "Left calf",
+  "attrChoice_figure_position_back": "Back",
+  "attrChoice_figure_position_trim_left": "Trim pocket, left",
+  "attrChoice_figure_position_trim_right": "Trim pocket, right",
+  "attrChoice_figure_position_butt_d_ring": "Butt D-ring",
+  "attrChoice_figure_position_sidemount_left": "Sidemount, left",
+  "attrChoice_figure_position_sidemount_right": "Sidemount, right",
+  "attrChoice_figure_position_stage_left": "Stage, left",
+  "attrChoice_figure_position_stage_right": "Stage, right",
   "attrChoice_connection_din": "DIN",
   "attrChoice_connection_yoke": "Yoke (INT)",
   "attrChoice_hose_type_lp": "LP (low pressure)",
@@ -25319,6 +25356,7 @@
   "equipment_edit_addCustomField": "Add custom field",
   "attr_flagYes": "Yes",
   "attr_flagNo": "No",
+  "attr_figurePosition_automatic": "Automatic",
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
   "equipment_edit_invalidFocalLength": "Use 60 or 15-45",
   "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
@@ -25536,6 +25574,59 @@
     "description": "Collapsed subtitle of the gas consumption by segment card",
     "placeholders": {
       "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_summaryAverage": "Average",
+  "@diveLog_detail_sacSegments_summaryAverage": {
+    "description": "Label over the dive average rate in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_summaryPeak": "Peak",
+  "@diveLog_detail_sacSegments_summaryPeak": {
+    "description": "Label over the highest segment rate in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_summaryUsed": "Gas used",
+  "@diveLog_detail_sacSegments_summaryUsed": {
+    "description": "Label over the total gas used in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_used": "Used",
+  "@diveLog_detail_sacSegments_used": {
+    "description": "Heading of the gas used column in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_shareByPhase": "Gas used by phase",
+  "@diveLog_detail_sacSegments_shareByPhase": {
+    "description": "Heading of the bar showing each phase's share of the gas used"
+  },
+  "diveLog_detail_sacSegments_usedAmount": "{amount} used",
+  "@diveLog_detail_sacSegments_usedAmount": {
+    "description": "Gas used in a stretch of the dive, such as 228 L used",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_share": "{percent}%",
+  "@diveLog_detail_sacSegments_share": {
+    "description": "A row's share of the gas used, such as 59%",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_depthWithRange": "{average} ({shallowest}-{deepest})",
+  "@diveLog_detail_sacSegments_depthWithRange": {
+    "description": "Average depth of a stretch of the dive with its shallowest and deepest, such as 27m (18-30m)",
+    "placeholders": {
+      "average": {
+        "type": "String"
+      },
+      "shallowest": {
+        "type": "String"
+      },
+      "deepest": {
         "type": "String"
       }
     }

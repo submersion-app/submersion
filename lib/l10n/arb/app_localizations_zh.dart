@@ -17091,6 +17091,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => '新建装备套装';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => '复制装备套装';
+
+  @override
   String get equipment_setEdit_descriptionHint => '可选描述...';
 
   @override
@@ -17139,6 +17142,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => '装备套装已创建';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => '装备套装已复制';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -19175,12 +19181,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteMediaSection_emptyState => '此潜水点尚未附加地图、照片或文档';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return '此处潜水的照片（$count）';
+  String get media_siteMediaSection_divePhotoLabel => '潜水照片';
+
+  @override
+  String get media_siteDivePhotos_title => '潜水照片';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return '潜水照片（$count）';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => '潜水照片';
+  String get media_siteDivePhotos_showAll => '显示全部';
+
+  @override
+  String get media_siteDivePhotos_showLess => '收起';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -21951,7 +21966,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteDetailSection_marineLife_description => '在此潜水点见到的物种';
 
   @override
-  String get siteDetailSection_media_description => '潜水点的照片、视频和文档';
+  String get siteDetailSection_media_description => '附加到潜水点的照片、视频和文档';
+
+  @override
+  String get siteDetailSection_divePhotos_description => '在此潜水点记录的潜水中拍摄的照片';
 
   @override
   String get siteDetailSection_tags_description => '此潜水点的标签';
@@ -38653,6 +38671,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_cylinder_use => '气瓶用途';
 
   @override
+  String get attrLabel_worn_as => '佩戴方式';
+
+  @override
   String get attrLabel_tank_identifier => '标识';
 
   @override
@@ -38813,6 +38834,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_color => '颜色';
+
+  @override
+  String get attrLabel_figure_position => '在潜水员图示上的位置';
 
   @override
   String get attrLabel_sleeve_length => '袖长';
@@ -39017,6 +39041,84 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => '干衣充气';
+
+  @override
+  String get attrChoice_worn_as_back => '背挂式';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => '左侧挂';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => '右侧挂';
+
+  @override
+  String get attrChoice_worn_as_stage => '阶段气瓶';
+
+  @override
+  String get attrChoice_figure_position_mouth => '嘴部';
+
+  @override
+  String get attrChoice_figure_position_octo => '胸前（备用二级头）';
+
+  @override
+  String get attrChoice_figure_position_chest_left => '胸前左侧';
+
+  @override
+  String get attrChoice_figure_position_chest_right => '胸前右侧';
+
+  @override
+  String get attrChoice_figure_position_console => '仪表组';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => '左手腕';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => '右手腕';
+
+  @override
+  String get attrChoice_figure_position_hand_left => '左手';
+
+  @override
+  String get attrChoice_figure_position_hand_right => '右手';
+
+  @override
+  String get attrChoice_figure_position_hip_left => '左髋';
+
+  @override
+  String get attrChoice_figure_position_hip_right => '右髋';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => '左大腿';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => '右大腿';
+
+  @override
+  String get attrChoice_figure_position_calf_left => '左小腿';
+
+  @override
+  String get attrChoice_figure_position_back => '背部';
+
+  @override
+  String get attrChoice_figure_position_trim_left => '配平袋（左）';
+
+  @override
+  String get attrChoice_figure_position_trim_right => '配平袋（右）';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => '臀部D环';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => '侧挂（左）';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => '侧挂（右）';
+
+  @override
+  String get attrChoice_figure_position_stage_left => '阶段气瓶（左）';
+
+  @override
+  String get attrChoice_figure_position_stage_right => '阶段气瓶（右）';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -39358,6 +39460,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attr_flagNo => '否';
 
   @override
+  String get attr_figurePosition_automatic => '自动';
+
+  @override
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
 
   @override
@@ -39591,6 +39696,40 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return '平均 $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => '平均';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => '峰值';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => '用气量';
+
+  @override
+  String get diveLog_detail_sacSegments_used => '已用';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => '各阶段用气量';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '已用 $amount';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override

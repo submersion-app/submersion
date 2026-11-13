@@ -1,10 +1,9 @@
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/providers/root_overrides.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_sweep.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
-import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/diver_pinned_container.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// One sweep pass: the dives owned by [diverId], graded with that diver's
@@ -125,55 +124,20 @@ class PostRestoreSafetyReview {
     DiverSettingsRepository settingsRepo, {
     required void Function(int done, int total) onProgress,
     bool Function()? isCancelled,
-  }) async {
-    final overrides = rootProviderOverrides(
-      prefs: _ref.read(sharedPreferencesProvider),
-      logFileService: _ref.read(logFileServiceProvider),
-    );
-
-    final diverId = pass.diverId;
-    if (diverId != null) {
-      // Read-only on purpose: getOrCreateSettingsForDiver WRITES a defaults row
-      // when none exists, and a restore must not mint rows (they would sync out
-      // as real edits). A diver with no settings row falls back to the same
-      // defaults the app itself would show them.
-      final settings =
-          await settingsRepo.getSettingsForDiver(diverId) ??
-          const AppSettings();
-      overrides.add(
-        settingsProvider.overrideWith(
-          (ref) => SettingsNotifier.preloaded(
-            settingsRepo,
-            ref,
-            settings: settings,
-            diverId: diverId,
-          ),
-        ),
+  }) =>
+      // Graded under the owning diver's own settings, not the active one's.
+      runInDiverContainer(
+        _ref,
+        diverId: pass.diverId,
+        settingsRepository: settingsRepo,
+        body: (container) => container
+            .read(safetyReviewSweepProvider)
+            .run(
+              diveIds: pass.diveIds,
+              onProgress: onProgress,
+              isCancelled: isCancelled,
+            ),
       );
-    }
-
-    final container = ProviderContainer(overrides: overrides.cast());
-    try {
-      // For an owner-less pass this awaits the real async load of the active
-      // diver's settings (state starts at the AppSettings DEFAULTS until it
-      // completes). For a pinned pass it is already complete. A failed load is
-      // not fatal -- the sweep then runs on the defaults, as everywhere else.
-      try {
-        await container.read(settingsProvider.notifier).initialLoad;
-      } catch (_) {
-        // Intentionally ignored; see above.
-      }
-      return await container
-          .read(safetyReviewSweepProvider)
-          .run(
-            diveIds: pass.diveIds,
-            onProgress: onProgress,
-            isCancelled: isCancelled,
-          );
-    } finally {
-      container.dispose();
-    }
-  }
 }
 
 final postRestoreSafetyReviewProvider = Provider<PostRestoreSafetyReview>(

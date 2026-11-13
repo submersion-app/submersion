@@ -35,6 +35,16 @@ Map<String, TankRole> tankRolesByItem(List<DiveTank> tanks) {
   return roles;
 }
 
+/// Whether any of a dive's tanks is carried at the diver's side, linked to
+/// a cylinder or not. A diver who sets Sidemount left and right on the
+/// dive's tanks without linking them still dived a sidemount rig, so the
+/// figure draws the dive's cylinders at the sides (issue #4493).
+bool sidemountRigFromTanks(List<DiveTank> tanks) => tanks.any(
+  (tank) =>
+      tank.role == TankRole.sidemountLeft ||
+      tank.role == TankRole.sidemountRight,
+);
+
 /// Composer inputs for a dive's [topLevel] rows, in that order. Every row is
 /// numbered, even one the tree promoted from an orphaned part, so each row's
 /// badge has a label; a tank carries its dive role from [tankRoles].

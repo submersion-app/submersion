@@ -32,7 +32,8 @@ import 'package:submersion/features/backup/presentation/pages/restore_complete_p
 import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
-import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
+import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_gc_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -285,6 +286,10 @@ void main() {
   /// evaluate real service clocks.
   var serviceCacheBuilds = 0;
 
+  /// Builds of the computed deco cache writer; stubbed so the app tests
+  /// never run a library-wide dive analysis.
+  var decoCacheBuilds = 0;
+
   /// Pumps [SubmersionApp] with the providers its build/launch path reads
   /// stubbed out, leaving [sync] as the driver for the app-root listener.
   Future<void> pumpApp(
@@ -319,6 +324,10 @@ void main() {
           equipmentServiceStatusCacheProvider.overrideWith((ref) async {
             serviceCacheBuilds++;
           }),
+          diveDecoStatusCacheProvider.overrideWith((ref) async {
+            decoCacheBuilds++;
+            return 0;
+          }),
           ...extraOverrides,
         ],
         child: const SubmersionApp(),
@@ -339,7 +348,21 @@ void main() {
     final container = ProviderScope.containerOf(
       tester.element(find.byType(SubmersionApp)),
     );
-    expect(container.exists(serviceStatusKeeperProvider), isTrue);
+    expect(container.exists(queryCachesKeeperProvider), isTrue);
+  });
+
+  testWidgets('runs the deco cache writer only on demand (#4461)', (
+    tester,
+  ) async {
+    // As with serviceDue: the app root keeps the keeper alive, and with no
+    // filter naming deco, launching the app analyzes no dives.
+    decoCacheBuilds = 0;
+    await pumpApp(tester, _DrivableSyncNotifier(const SyncState()));
+    expect(decoCacheBuilds, 0);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(SubmersionApp)),
+    );
+    expect(container.exists(queryCachesKeeperProvider), isTrue);
   });
 
   testWidgets('shows the post-restore syncing notice when sync begins', (

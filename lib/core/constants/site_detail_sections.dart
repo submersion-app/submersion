@@ -24,6 +24,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// paired layout renders.
 enum SiteDetailSectionId {
   description,
+
+  /// Photos from the dives logged at the site (issue #4502), right after the
+  /// description so a diver sees the site before planning it.
+  divePhotos,
   depth,
   difficulty,
   rating,
@@ -52,6 +56,7 @@ enum SiteDetailSectionId {
     return switch (this) {
       diveStatistics => Icons.scuba_diving,
       description => Icons.description_outlined,
+      divePhotos => Icons.collections_outlined,
       location => Icons.public,
       seascape => Icons.view_in_ar,
       depth => Icons.vertical_align_bottom,
@@ -76,6 +81,7 @@ enum SiteDetailSectionId {
     return switch (this) {
       diveStatistics => l10n.diveSites_detail_section_divesAtSite,
       description => l10n.diveSites_detail_section_description,
+      divePhotos => l10n.media_siteDivePhotos_title,
       location => l10n.diveSites_detail_section_location,
       seascape => l10n.dive3d_seascape_siteTitle,
       depth => l10n.diveSites_detail_section_depthRange,
@@ -100,6 +106,7 @@ enum SiteDetailSectionId {
     return switch (this) {
       diveStatistics => l10n.siteDetailSection_diveStatistics_description,
       description => l10n.siteDetailSection_description_description,
+      divePhotos => l10n.siteDetailSection_divePhotos_description,
       location => l10n.siteDetailSection_location_description,
       seascape => l10n.siteDetailSection_seascape_description,
       depth => l10n.siteDetailSection_depth_description,
@@ -175,6 +182,7 @@ class SiteDetailSectionConfig {
 
   static const List<SiteDetailSectionConfig> defaultSections = [
     SiteDetailSectionConfig(id: SiteDetailSectionId.description, visible: true),
+    SiteDetailSectionConfig(id: SiteDetailSectionId.divePhotos, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.depth, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.difficulty, visible: true),
     SiteDetailSectionConfig(id: SiteDetailSectionId.rating, visible: true),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -7,11 +9,13 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/query/names/name_index.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
+import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/rules/data/repositories/rule_repository.dart';
 import 'package:submersion/features/rules/domain/entities/rule.dart';
 import 'package:submersion/features/rules/domain/entities/rule_action.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/pages/rule_edit_page.dart';
+import 'package:submersion/features/rules/presentation/providers/rule_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
@@ -39,6 +43,7 @@ void main() {
     String? ruleId,
     MockSettingsNotifier? settings,
     NameIndex? names,
+    List<dynamic> extra = const [],
   }) async {
     await tester.runAsync(
       () => pumpRulesApp(
@@ -47,6 +52,7 @@ void main() {
         home: (_) => RuleEditPage(ruleId: ruleId),
         settings: settings,
         names: names == null ? null : (_) async => names,
+        extra: extra,
       ),
     );
     await tester.pumpAndSettle();
@@ -282,6 +288,49 @@ void main() {
     await tester.enterText(field, 'depth > 40');
     await tester.pumpAndSettle();
     expect(save().onPressed, isNotNull);
+  });
+
+  group('while a deco count waits on the dive analysis (#4461)', () {
+    // A count over deco waits for the analysis, which on a library nothing
+    // has analyzed runs for minutes: the editor says how far it has got.
+    Future<void> pumpWaiting(WidgetTester tester, QueryNode condition) async {
+      late String id;
+      await tester.runAsync(() async {
+        id = await repo.create(
+          diverId: 'me',
+          subject: RuleSubject.dives,
+          name: 'Rule',
+          triggers: const {RuleTrigger.afterImport},
+          condition: condition,
+          actions: const [AppendDiveNotesAction('x')],
+        );
+      });
+      await pumpEditor(
+        tester,
+        ruleId: id,
+        extra: [
+          ruleMatchCountProvider.overrideWith(
+            (ref, key) => Completer<int?>().future,
+          ),
+          diveDecoStatusProgressProvider.overrideWith(
+            (ref) => (analyzed: 3, total: 10),
+          ),
+        ],
+      );
+    }
+
+    testWidgets('a deco condition shows the progress', (tester) async {
+      await pumpWaiting(
+        tester,
+        ConditionNode(FieldPath(['deco']), QueryOp.eq, const BoolValue(true)),
+      );
+      expect(find.text('Analyzing dives: 3 of 10'), findsOneWidget);
+    });
+
+    testWidgets('a condition that does not read deco does not', (tester) async {
+      await pumpWaiting(tester, depthOver(30) as QueryNode);
+      expect(find.text('Analyzing dives: 3 of 10'), findsNothing);
+    });
   });
 
   testWidgets('switching subject clears a half-typed condition\'s block', (

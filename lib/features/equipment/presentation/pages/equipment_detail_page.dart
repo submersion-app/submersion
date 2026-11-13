@@ -6,6 +6,7 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/widgets/open_in_connections.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_ownership.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_position_label.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_avatar.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_delete_dialog.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_history_card.dart';
@@ -701,6 +702,18 @@ class _EquipmentDetailContent extends ConsumerWidget {
                     )
                     case final code?)
                   _buildColorRow(context, code),
+              // Where the diver moved it on the figure (issue #4493), while
+              // the item still has artwork for that spot.
+              if (figurePositionLabelOf(context.l10n, equipment)
+                  case final shown?)
+                _buildDetailRow(
+                  context,
+                  attributeLabel(
+                    context.l10n,
+                    EquipmentAttrKeys.figurePosition,
+                  ),
+                  shown,
+                ),
               for (final attr
                   in keepStrayColorAsCustom(
                       equipment.type,

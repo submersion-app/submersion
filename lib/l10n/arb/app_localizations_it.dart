@@ -17973,6 +17973,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Nuovo set di attrezzatura';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Duplica set di attrezzatura';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Descrizione opzionale...';
 
   @override
@@ -18026,6 +18030,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Set di attrezzatura creato';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned =>
+      'Set di attrezzatura duplicato';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20180,12 +20188,21 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessuna mappa, foto o documento allegato a questo sito';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Foto dalle immersioni qui ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Foto dell\'immersione';
+
+  @override
+  String get media_siteDivePhotos_title => 'Foto dalle immersioni';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Foto dalle immersioni ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Foto dell\'immersione';
+  String get media_siteDivePhotos_showAll => 'Mostra tutto';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Mostra meno';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -23115,7 +23132,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Foto, video e documenti del sito';
+      'Foto, video e documenti allegati al sito';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Foto delle immersioni registrate in questo sito';
 
   @override
   String get siteDetailSection_tags_description => 'Tag di questo sito';
@@ -41132,6 +41153,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Uso della bombola';
 
   @override
+  String get attrLabel_worn_as => 'Portata come';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificativo';
 
   @override
@@ -41293,6 +41317,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Colore';
+
+  @override
+  String get attrLabel_figure_position => 'Posizione sulla figura';
 
   @override
   String get attrLabel_sleeve_length => 'Maniche';
@@ -41499,6 +41526,84 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Gonfiaggio muta';
+
+  @override
+  String get attrChoice_worn_as_back => 'Montaggio dorsale';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount sinistra';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount destra';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stage';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Bocca';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Petto (octopus)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Petto, sinistra';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Petto, destra';
+
+  @override
+  String get attrChoice_figure_position_console => 'Consolle';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Polso sinistro';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Polso destro';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Mano sinistra';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Mano destra';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Fianco sinistro';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Fianco destro';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Coscia sinistra';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Coscia destra';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Polpaccio sinistro';
+
+  @override
+  String get attrChoice_figure_position_back => 'Schiena';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Tasca di trim, sinistra';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Tasca di trim, destra';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'Anello a D posteriore';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, sinistra';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, destra';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, sinistra';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, destra';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41841,6 +41946,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attr_flagNo => 'No';
 
   @override
+  String get attr_figurePosition_automatic => 'Automatica';
+
+  @override
   String get equipment_edit_invalidThickness => 'Usa 5, 5/4 o 7/5/3';
 
   @override
@@ -42087,6 +42195,40 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Media $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Media';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Picco';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gas usato';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Usato';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'Gas usato per fase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount usati';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override

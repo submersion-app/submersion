@@ -17943,6 +17943,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Neues Ausrüstungsset';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Ausrüstungsset duplizieren';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Optionale Beschreibung...';
 
   @override
@@ -17996,6 +18000,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Ausrüstungsset erstellt';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'Ausrüstungsset dupliziert';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20152,12 +20159,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Karten, Fotos oder Dokumente an diesem Tauchplatz angehängt';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotos von Tauchgängen hier ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Tauchgangsfoto';
+
+  @override
+  String get media_siteDivePhotos_title => 'Fotos von Tauchgängen';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotos von Tauchgängen ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Tauchgangsfoto';
+  String get media_siteDivePhotos_showAll => 'Alle anzeigen';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Weniger anzeigen';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -23086,7 +23102,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Fotos, Videos und Dokumente zum Tauchplatz';
+      'Fotos, Videos und Dokumente, die dem Tauchplatz angehängt sind';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Fotos der an diesem Tauchplatz geloggten Tauchgänge';
 
   @override
   String get siteDetailSection_tags_description => 'Tags dieses Tauchplatzes';
@@ -41041,6 +41061,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Flaschenverwendung';
 
   @override
+  String get attrLabel_worn_as => 'Getragen als';
+
+  @override
   String get attrLabel_tank_identifier => 'Kennung';
 
   @override
@@ -41203,6 +41226,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Farbe';
+
+  @override
+  String get attrLabel_figure_position => 'Position an der Taucherfigur';
 
   @override
   String get attrLabel_sleeve_length => 'Ärmel';
@@ -41409,6 +41435,84 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Anzugflasche';
+
+  @override
+  String get attrChoice_worn_as_back => 'Rückenmontage';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount links';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount rechts';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stageflasche';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Mund';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Brust (Oktopus)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Brust, links';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Brust, rechts';
+
+  @override
+  String get attrChoice_figure_position_console => 'Konsole';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Linkes Handgelenk';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Rechtes Handgelenk';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Linke Hand';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Rechte Hand';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Linke Hüfte';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Rechte Hüfte';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Linker Oberschenkel';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Rechter Oberschenkel';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Linke Wade';
+
+  @override
+  String get attrChoice_figure_position_back => 'Rücken';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Trimmtasche, links';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Trimmtasche, rechts';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'D-Ring am Gesäß';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, links';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, rechts';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, links';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, rechts';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41752,6 +41856,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attr_flagNo => 'Nein';
 
   @override
+  String get attr_figurePosition_automatic => 'Automatisch';
+
+  @override
   String get equipment_edit_invalidThickness => 'Format: 5, 5/4 oder 7/5/3';
 
   @override
@@ -41997,6 +42104,41 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Durchschnitt $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Durchschnitt';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Spitze';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gasverbrauch';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Verbraucht';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'Gasverbrauch nach Phase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount verbraucht';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent %';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override

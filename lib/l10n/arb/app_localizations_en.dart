@@ -17704,6 +17704,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'New Equipment Set';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => 'Clone Equipment Set';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Optional description...';
 
   @override
@@ -17754,6 +17757,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Equipment set created';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'Equipment set cloned';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -19876,12 +19882,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'No maps, photos, or documents attached to this site';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Photos from dives here ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Dive photo';
+
+  @override
+  String get media_siteDivePhotos_title => 'Photos from dives';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Photos from dives ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Dive photo';
+  String get media_siteDivePhotos_showAll => 'Show all';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Show less';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -22775,7 +22790,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Photos, videos and documents for the site';
+      'Photos, videos and documents attached to the site';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Photos from the dives logged at this site';
 
   @override
   String get siteDetailSection_tags_description => 'Tags on this site';
@@ -40430,6 +40449,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Cylinder use';
 
   @override
+  String get attrLabel_worn_as => 'Worn as';
+
+  @override
   String get attrLabel_tank_identifier => 'Identifier';
 
   @override
@@ -40591,6 +40613,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Color';
+
+  @override
+  String get attrLabel_figure_position => 'Position on figure';
 
   @override
   String get attrLabel_sleeve_length => 'Sleeves';
@@ -40795,6 +40820,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Suit inflation';
+
+  @override
+  String get attrChoice_worn_as_back => 'Back mount';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount, left';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount, right';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stage';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Mouth';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Chest (octo)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Chest, left';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Chest, right';
+
+  @override
+  String get attrChoice_figure_position_console => 'Console';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Left wrist';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Right wrist';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Left hand';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Right hand';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Left hip';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Right hip';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Left thigh';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Right thigh';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Left calf';
+
+  @override
+  String get attrChoice_figure_position_back => 'Back';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Trim pocket, left';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Trim pocket, right';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'Butt D-ring';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, left';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, right';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, left';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, right';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41137,6 +41240,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attr_flagNo => 'No';
 
   @override
+  String get attr_figurePosition_automatic => 'Automatic';
+
+  @override
   String get equipment_edit_invalidThickness => 'Use 5, 5/4 or 7/5/3';
 
   @override
@@ -41379,6 +41485,40 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Average $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Average';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Peak';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gas used';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Used';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'Gas used by phase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount used';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override
