@@ -56,7 +56,7 @@ Horizontal layout: icon left; name, rule and slogan right.
 `social-header` and `linkedin-banner` carry a larger left safe inset because
 the profile avatar covers the lower-left of the header on those platforms.
 `youtube-banner` keeps its content inside the central 1546x423, the only part
-of the banner YouTube shows on every device (#4489).
+of the banner YouTube shows on every device.
 
 ### Transparent PNGs
 
