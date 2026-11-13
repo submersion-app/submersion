@@ -1,5 +1,10 @@
 import 'package:drift/drift.dart';
 
+import 'package:submersion/core/database/local_cache_site_catalogue_tables.dart';
+
+export 'package:submersion/core/database/local_cache_site_catalogue_tables.dart'
+    show SiteCatalogueEntries, SiteCatalogueMeta;
+
 part 'local_cache_database.g.dart';
 
 /// Local-only table for caching resolved asset IDs per device.
@@ -338,13 +343,15 @@ class RecentQueries extends Table {
     WatchedFolderIndex,
     DecoClassificationCache,
     RecentQueries,
+    SiteCatalogueEntries,
+    SiteCatalogueMeta,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -530,6 +537,13 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       if (from < 20) {
         await _addGridBlobColumns();
       }
+      // v21: the built-in site catalogue. Table-only rung: the importer
+      // fills the tables from the bundled file after the first frame.
+      if (from < 21) {
+        await m.createTable(siteCatalogueEntries);
+        await m.createTable(siteCatalogueMeta);
+        await _createSiteCatalogueIndex();
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -688,8 +702,17 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
       }
       // v20 mirror, for a database a colliding branch stamped at v20 first.
       await _addGridBlobColumns();
+      // v21 mirror, for a database a colliding branch stamped at v21 first.
+      await customStatement(kCreateSiteCatalogueTableSql);
+      await customStatement(kCreateSiteCatalogueMetaTableSql);
+      await _createSiteCatalogueIndex();
     },
   );
+
+  /// Idempotent, so the v21 rung and the open backstop (which also covers
+  /// a fresh create) share it.
+  Future<void> _createSiteCatalogueIndex() =>
+      customStatement(kCreateSiteCatalogueIndexSql);
 
   /// The v20 columns, added wherever a table lacks them. Idempotent, so the
   /// rung and the open backstop share it. Legacy rows are not backfilled:
