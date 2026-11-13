@@ -10,6 +10,8 @@
 
 **Spec:** [docs/design/specs/2026-11-13-pinned-profile-strip-styling-design.md](../specs/2026-11-13-pinned-profile-strip-styling-design.md)
 
+**As built:** the spec's "As built" section records where the build departed from this plan (palette colours, the dark label colour, ppO2 with its unit, NDL read from the NDL curve, tooltip semantics).
+
 ## Global Constraints
 
 - Depth line and fill unchanged: 1 px (`kProfileDepthLineWidth`), `GasColors.gradientColors(ProfileMetricColors.depth)`.

@@ -183,6 +183,18 @@ void main() {
     handle.dispose();
   });
 
+  // The strip's semantics value already reads the rows; the tooltip's own
+  // text must not be announced a second time (review round 2).
+  testWidgets('the tooltip text is not in the semantics tree', (tester) async {
+    final handle = tester.ensureSemantics();
+    final c = await pump(tester);
+    await setCursor(c, tester, 75);
+    expect(tooltip(), findsOneWidget);
+    expect(find.bySemanticsLabel('12:30'), findsNothing);
+    expect(find.bySemanticsLabel('Depth'), findsNothing);
+    handle.dispose();
+  });
+
   testWidgets('passes the analysis curves to the painter', (tester) async {
     await pump(tester);
     final painter =

@@ -345,10 +345,14 @@ class _FloatingTooltip extends StatelessWidget {
       child: SizedBox(
         width: stripWidth,
         height: _tooltipRoom,
-        child: IgnorePointer(
-          child: CustomSingleChildLayout(
-            delegate: _BesideCursor(cursorX),
-            child: PinnedStripTooltip(rows: rows),
+        // The strip's semantics value already reads these rows, so they are
+        // not announced a second time from here.
+        child: ExcludeSemantics(
+          child: IgnorePointer(
+            child: CustomSingleChildLayout(
+              delegate: _BesideCursor(cursorX),
+              child: PinnedStripTooltip(rows: rows),
+            ),
           ),
         ),
       ),

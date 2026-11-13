@@ -99,3 +99,27 @@ in deco and lost the colour link to the lines).
 - How the label-placement check against the NDL line is done.
 - Removing the now-unused hint strings from every ARB file and from
   `test/l10n/kept_english_values.dart`.
+
+## As built
+
+Where the build settled details this design left open or got wrong:
+
+- **Colours follow the diver's chart colours.** The full chart draws its
+  series in `ProfileMetricPalette` (Settings > Appearance); the strip's depth
+  line and shading, NDL line, ceiling, max-depth marker and tooltip bullets
+  come from the same palette, falling back to the defaults named above. The
+  stop band keeps `decoStopBandColor`, which the palette does not cover.
+- **Dark-mode max-depth label:** the palette's max-depth colour moved 45%
+  toward white, rather than one fixed pink, so it follows a chosen colour.
+- **Max-depth label** is set in the theme's `labelSmall` font, and may sit
+  anywhere in the strip's box mid-condense so it stays beside its dot.
+- **Tooltip ppO2** reads with its unit (`0.69 bar`), as the full chart's
+  tooltip does.
+- **Tooltip NDL** is read from the analysis's NDL curve, the one the NDL line
+  is drawn from (the computer's NDL where the dive has one), so the readout
+  agrees with the line. The stop and its duration still come from the
+  calculated deco status, the only source of a duration, so they agree with
+  the deco status card; where the curve says deco and the model does not,
+  the NDL row reads `--`.
+- **Screen readers** read the rows once, as the strip's semantics value; the
+  floating tooltip itself is excluded from semantics.
