@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -301,6 +303,7 @@ void main() {
     WidgetTester tester, {
     required double condense,
     required double background,
+    ThemeData? theme,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -314,6 +317,7 @@ void main() {
           )).overrideWith((ref) async => analysis),
         ],
         child: MaterialApp(
+          theme: theme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -391,7 +395,138 @@ void main() {
     await pumpMorphing(tester, condense: 0, background: 1);
     expect(surface().elevation, 0);
     await pumpMorphing(tester, condense: 0.5, background: 1);
-    expect(surface().elevation, closeTo(1, 1e-6));
+    expect(surface().elevation, closeTo(1.5, 1e-6));
+    // Settled, it lifts off the page like an app bar with content scrolled
+    // under it (Material 3's level 2, elevation 3).
+    await pumpMorphing(tester, condense: 1, background: 1);
+    expect(surface().elevation, 3);
+  });
+
+  RoundedRectangleBorder surfaceShape(WidgetTester tester) =>
+      tester
+              .widget<Material>(
+                find
+                    .descendant(
+                      of: find.byType(PinnedProfileStrip),
+                      matching: find.byType(Material),
+                    )
+                    .first,
+              )
+              .shape!
+          as RoundedRectangleBorder;
+
+  PinnedStripOutlinePainter outline(WidgetTester tester) =>
+      tester
+              .widget<CustomPaint>(
+                find.byWidgetPredicate(
+                  (w) =>
+                      w is CustomPaint &&
+                      w.foregroundPainter is PinnedStripOutlinePainter,
+                ),
+              )
+              .foregroundPainter!
+          as PinnedStripOutlinePainter;
+
+  // The outline is open at the top: a stroke down both sides, round the
+  // bottom corners and along the bottom.
+  test('the outline is drawn on the sides and bottom only', () async {
+    const side = BorderSide(color: Color(0xFF000000), width: 2);
+    const corners = BorderRadius.only(
+      bottomLeft: Radius.circular(12),
+      bottomRight: Radius.circular(12),
+    );
+    final recorder = ui.PictureRecorder();
+    const PinnedStripOutlinePainter(
+      side: side,
+      corners: corners,
+    ).paint(Canvas(recorder), const Size(200, 56));
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(200, 56);
+    final bytes = (await image.toByteData())!;
+    int alphaAt(int x, int y) => bytes.getUint8((y * 200 + x) * 4 + 3);
+    expect(alphaAt(1, 28), greaterThan(0), reason: 'left side');
+    expect(alphaAt(198, 28), greaterThan(0), reason: 'right side');
+    expect(alphaAt(100, 55), greaterThan(0), reason: 'bottom');
+    expect(alphaAt(100, 1), 0, reason: 'no top edge');
+    // The bottom corners round: the very corner pixel is left clear.
+    expect(alphaAt(0, 55), 0, reason: 'rounded corner');
+    image.dispose();
+    picture.dispose();
+    expect(
+      const PinnedStripOutlinePainter(
+        side: side,
+        corners: corners,
+      ).shouldRepaint(
+        const PinnedStripOutlinePainter(side: side, corners: BorderRadius.zero),
+      ),
+      isTrue,
+    );
+  });
+
+  // Card-width under the header, it reads as the card tucked up there: its
+  // bottom corners keep the card's rounding all the way to pinned (#4488).
+  testWidgets('its bottom corners stay round as it condenses', (tester) async {
+    for (final condense in [0.0, 0.5, 1.0]) {
+      await pumpMorphing(tester, condense: condense, background: 1);
+      expect(
+        surfaceShape(tester).borderRadius,
+        const BorderRadius.only(
+          bottomLeft: Radius.circular(12),
+          bottomRight: Radius.circular(12),
+        ),
+        reason: 'condense=$condense',
+      );
+    }
+  });
+
+  // Pinned among the other cards, it matches them in every theme preset:
+  // their corners, outline and fill, a translucent fill made opaque over
+  // the page as the cards are, so content scrolling beneath never shows.
+  testWidgets('it takes its corners, outline and fill from the card theme', (
+    tester,
+  ) async {
+    const side = BorderSide(color: Color(0xFF336699), width: 1.5);
+    final base = ThemeData(useMaterial3: true);
+    final theme = base.copyWith(
+      cardTheme: CardThemeData(
+        color: const Color(0x80FF0000),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: side,
+        ),
+      ),
+    );
+    await pumpMorphing(tester, condense: 1, background: 1, theme: theme);
+    final shape = surfaceShape(tester);
+    expect(
+      shape.borderRadius,
+      const BorderRadius.only(
+        bottomLeft: Radius.circular(20),
+        bottomRight: Radius.circular(20),
+      ),
+    );
+    // The outline runs down its sides and along its bottom, never across
+    // its top, where it meets the card's header or the page's.
+    expect(shape.side, BorderSide.none);
+    expect(outline(tester).side, side);
+    expect(outline(tester).corners, shape.borderRadius);
+    final material = tester.widget<Material>(
+      find
+          .descendant(
+            of: find.byType(PinnedProfileStrip),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    expect(
+      material.color,
+      Color.alphaBlend(const Color(0x80FF0000), base.colorScheme.surface),
+    );
+    expect(material.color!.a, 1);
+
+    // While the surface fades in, so does the outline.
+    await pumpMorphing(tester, condense: 0, background: 0.5, theme: theme);
+    expect(outline(tester).side.color.a, closeTo(0.5, 1e-6));
   });
 
   testWidgets('the strip has a semantics label', (tester) async {
