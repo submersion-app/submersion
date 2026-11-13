@@ -10,7 +10,7 @@
 
 **Spec:** [docs/design/specs/2026-11-13-pinned-profile-strip-styling-design.md](../specs/2026-11-13-pinned-profile-strip-styling-design.md)
 
-**As built:** the spec's "As built" section records where the build departed from this plan (palette colours, the dark label colour, ppO2 with its unit, NDL read from the NDL curve, tooltip semantics).
+**As built:** the spec's "As built" section records where the build departed from this plan (palette colours, ppO2 with its unit, NDL read from the NDL curve, tooltip semantics), and its design sections now carry the later changes: the NDL line only where it dips below the top, no max-depth label, and every layer condensing at full strength like the depth line.
 
 ## Global Constraints
 

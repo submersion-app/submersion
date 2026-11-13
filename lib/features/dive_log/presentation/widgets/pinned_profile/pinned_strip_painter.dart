@@ -119,7 +119,8 @@ class PinnedStripPainter extends CustomPainter {
   final double morph;
 
   /// NDL in seconds, index-aligned with [profile]: zero once the limit is
-  /// reached, negative in deco. The line runs only where it is above zero.
+  /// reached, negative in deco. The line shows only where NDL dips below the
+  /// top of its hour scale and is above zero ([pinnedNdlRuns]).
   final List<int>? ndlCurve;
 
   /// Ceiling depth in metres, index-aligned with [profile]; zero with no
