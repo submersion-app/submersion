@@ -34761,6 +34761,18 @@ abstract class AppLocalizations {
   /// **'Follow a dive'**
   String get plannerCanvas_follow_title;
 
+  /// A logged dive in the planner's dive pickers when it has no name or site: its dive number
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}'**
+  String plannerCanvas_pickDive_number(int number);
+
+  /// A logged dive in the planner's dive pickers: its dive number, then its name or else its site
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} · {title}'**
+  String plannerCanvas_pickDive_numberTitle(int number, String title);
+
   /// No description provided for @plannerCanvas_gas_minGas.
   ///
   /// In en, this message translates to:
