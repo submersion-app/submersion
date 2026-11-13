@@ -8613,11 +8613,15 @@ class DiveRepository {
   /// dives that changed.
   Future<List<String>> unlinkSetFromLoggedDives(String setId) async {
     final diveIds = await _gearTemplates.loggedDiveIdsWithSet(setId);
-    return _rewriteGearOn(
+    final touched = await _rewriteGearOn(
       diveIds,
-      notify: true,
+      notify: false,
       (rows, _) => GearExpander.unlinkSet(rows, setId),
     );
+    // Sync carries the untagged rows, but no rescan is queued: the same
+    // gear is on each dive, so no quality finding can change.
+    if (touched.isNotEmpty) SyncEventBus.notifyLocalChange();
+    return touched;
   }
 
   /// Writes [change] of each of [diveIds]' gear rows in one transaction,
