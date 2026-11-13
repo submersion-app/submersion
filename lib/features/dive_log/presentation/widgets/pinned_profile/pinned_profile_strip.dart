@@ -15,6 +15,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dar
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Height of the values row, until the tooltip replaces it.
+const double _valuesRowHeight = 16;
+
 /// Corner radius of the profile card the strip condenses out of.
 const double _cardRadius = 12;
 
@@ -194,7 +197,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
                           left: 0,
                           right: 0,
                           bottom: 0,
-                          height: kPinnedStripRowHeight,
+                          height: _valuesRowHeight,
                           child: Opacity(
                             opacity: condense,
                             child: values == null

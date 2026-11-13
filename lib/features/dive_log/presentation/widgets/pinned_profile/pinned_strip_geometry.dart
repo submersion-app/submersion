@@ -1,7 +1,8 @@
 import 'dart:ui';
 
-/// Height of the pinned profile strip: a 40 px curve over a 16 px values row.
-const double kPinnedStripHeight = 56;
+/// Height of the pinned profile strip, all curve: its values float in a
+/// tooltip below it while it is scrubbed (issue #4509).
+const double kPinnedStripHeight = 44;
 
 /// The shortest the squashed chart's plot gets, about the strip's own curve,
 /// so it is still a readable chart when the strip takes over from it.
