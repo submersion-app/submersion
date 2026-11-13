@@ -73,7 +73,10 @@ class _SiteDivePhotosCardState extends ConsumerState<SiteDivePhotosCard> {
               1,
               (width + _kTileGap) ~/ (_kStripTileMinSize + _kTileGap),
             );
-            final hasMore = widget.count > fit;
+            // The strip shows at most the query's cap however wide the card,
+            // so anything past either limit needs Show all to be reached.
+            final hasMore =
+                widget.count > math.min(fit, kSiteDivePhotoStripLimit);
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

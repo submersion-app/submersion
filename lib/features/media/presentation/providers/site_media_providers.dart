@@ -37,10 +37,10 @@ final siteDiveMediaRepositoryProvider = Provider<SiteDiveMediaRepository>(
   (ref) => SiteDiveMediaRepository(),
 );
 
-/// How many media items the dives logged at the site hold: all the collapsed
-/// "Photos from dives" group needs to decide whether to show and to title
-/// itself, so a site with hundreds of dives and no photos costs one count
-/// (issue #4252).
+/// How many media items the dives logged at the site hold: all Site Details
+/// needs to decide whether to show the dive photos card and to title it, so
+/// a site with hundreds of dives and no photos costs one count (issues #4252
+/// and #4502).
 ///
 /// Which dives belong to the site is a dives-table read, so a merge, a bulk
 /// delete, or a sync pull changes this without the media table being written
@@ -56,8 +56,9 @@ final mediaCountFromDivesAtSiteProvider = FutureProvider.family<int, String>((
 });
 
 /// Every media item from the dives logged at the site, chronological, for
-/// the expanded group and the site viewer. Read in one statement and only
-/// while one of them is open; the collapsed group reads
+/// the dive photos card's Show all grid and the site viewer. Read in one
+/// statement and only while one of them is open; the card's strip reads
+/// [recentMediaFromDivesAtSiteProvider] and the page
 /// [mediaCountFromDivesAtSiteProvider] instead.
 ///
 /// Takes the whole media tick, enrichment included, because the viewer shows

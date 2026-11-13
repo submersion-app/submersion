@@ -26,8 +26,8 @@ class SiteDiveMediaRepository {
       .tableUpdates(TableUpdateQuery.onTable(_db.media))
       .debounce(MediaRepository.changeTickDebounce);
 
-  /// How many media items the dives at [siteId] hold. What the collapsed
-  /// group needs to decide whether to show and what to put in its title,
+  /// How many media items the dives at [siteId] hold. What Site Details
+  /// needs to decide whether to show the dive photos card and how to title it,
   /// answered from `idx_dives_site_id` and `idx_media_dive_taken` alone.
   // stats-scope-exempt: counts a displayed gallery, which shows the media of
   // excluded dives like the logbook shows the dives themselves.
@@ -55,7 +55,8 @@ class SiteDiveMediaRepository {
   }
 
   /// Every media item on the dives at [siteId] with its enrichment, in
-  /// chronological order, for the expanded group and the site viewer.
+  /// chronological order, for the dive photos card's Show all grid and the
+  /// site viewer.
   // stats-scope-exempt: a displayed gallery, which shows the media of
   // excluded dives like the logbook shows the dives themselves.
   Future<List<MediaItem>> getMediaFromDivesAtSite(String siteId) async {

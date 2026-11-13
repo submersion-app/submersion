@@ -119,6 +119,25 @@ void main() {
     );
   });
 
+  testWidgets('Show all is offered when the cap, not the width, limits', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(1700, 900);
+    addTearDown(tester.view.reset);
+    // 1560 of strip fits 16 tiles, but the strip reads at most 12 of 14.
+    await tester.pumpWidget(
+      await host(
+        count: 14,
+        recent: photos(kSiteDivePhotoStripLimit),
+        width: 1600,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(shownIds(tester), hasLength(kSiteDivePhotoStripLimit));
+    expect(find.text('Show all'), findsOneWidget);
+  });
+
   testWidgets('Show all is hidden when everything fits', (tester) async {
     await tester.pumpWidget(await host(count: 3, recent: photos(3)));
     await tester.pumpAndSettle();
