@@ -111,4 +111,36 @@ class SacRateDisplay {
     averageRate(segments),
     among: segments.map((s) => s.tankId),
   );
+
+  /// The gas [segments] drew, on a scale shared with every entry on [among],
+  /// which defaults to their own cylinders: liters if all of them read in
+  /// volume, else bar. Each stretch converts with its own cylinder.
+  ///
+  /// It is what the pressure readings say was used, so the normalization
+  /// factor, which aligns rates with the dive's own SAC, leaves it alone.
+  double gasUsed(List<SacSegment> segments, {Iterable<String?>? among}) {
+    final inVolume = (among ?? segments.map((s) => s.tankId)).every(
+      readsInVolume,
+    );
+    return segments.fold(
+      0.0,
+      (sum, s) =>
+          sum +
+          (inVolume ? s.gasConsumed * volumeFor(s.tankId)! : s.gasConsumed),
+    );
+  }
+
+  /// [gasUsed] of [segments] with its unit, such as `260 L` or `30 bar`.
+  String formatGasUsed(List<SacSegment> segments) {
+    final value = gasUsed(segments);
+    return segments.map((s) => s.tankId).every(readsInVolume)
+        ? units.formatVolume(value)
+        : units.formatPressure(value);
+  }
+
+  /// Whether the gas used by entries on [among] adds up to a whole that each
+  /// can be a share of: in volume, or in pressure from one cylinder, since bar
+  /// from two cylinders of unknown size can't be added.
+  bool canShare(Iterable<String?> among) =>
+      among.every(readsInVolume) || among.toSet().length <= 1;
 }

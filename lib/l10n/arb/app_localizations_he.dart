@@ -41012,6 +41012,40 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'ממוצע';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'שיא';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'גז שנוצל';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'נוצל';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'גז שנוצל לפי שלב';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount נוצלו';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'הוסף נפח בלון כדי להציג RMV ב-$unit';
   }

@@ -3,17 +3,20 @@ import 'package:flutter/material.dart';
 /// One line of a [SacSegmentTable].
 class SacSegmentTableRow {
   final String label;
-  final IconData? icon;
 
-  /// Length of the bar under the label as a share of the widest, 0 to 1.
-  final double barFactor;
-
-  /// What this row is drawn in elsewhere, as a key to the chart. Null gives a
-  /// plain bar and no swatch.
+  /// What this row is drawn in elsewhere, as a key to the chart and the share
+  /// bar. Null gives no dot.
   final Color? color;
 
   /// The rate as shown, with no unit when it matches the column heading.
   final String rate;
+
+  /// The gas used, with its unit.
+  final String used;
+
+  /// The row's share of the gas its section used, such as `59%`, or null
+  /// where the section's gas can't be added up.
+  final String? share;
   final String depth;
   final String duration;
 
@@ -25,10 +28,10 @@ class SacSegmentTableRow {
 
   const SacSegmentTableRow({
     required this.label,
-    this.icon,
-    required this.barFactor,
     this.color,
     required this.rate,
+    required this.used,
+    this.share,
     required this.depth,
     required this.duration,
     required this.selected,
@@ -44,18 +47,20 @@ class SacSegmentTableSection {
   const SacSegmentTableSection({required this.title, required this.rows});
 }
 
-/// The phase and gas breakdowns of the Gas consumption by segment card.
+/// The phase and gas breakdowns of the Gas consumption by segment card: for
+/// each row its rate, the gas it used and its share, its depth and its time.
 ///
 /// Sections share one set of columns, headed once by the first section, so
 /// rates line up down the card and the unit is not repeated on each line. The
 /// number columns take their content's width, so a long unit, a translated
 /// heading or larger text squeezes the label rather than the figures.
 class SacSegmentTable extends StatelessWidget {
-  static const double _minRowHeight = 26;
+  static const double _minRowHeight = 28;
   static const double _columnGap = 10;
   static const double _labelInset = 4;
 
   final String rateHeading;
+  final String usedHeading;
   final String depthHeading;
   final String durationHeading;
   final List<SacSegmentTableSection> sections;
@@ -63,6 +68,7 @@ class SacSegmentTable extends StatelessWidget {
   const SacSegmentTable({
     super.key,
     required this.rateHeading,
+    required this.usedHeading,
     required this.depthHeading,
     required this.durationHeading,
     required this.sections,
@@ -100,6 +106,7 @@ class SacSegmentTable extends StatelessWidget {
             child: Text(section.title, style: headingStyle),
           ),
           number(first ? rateHeading : '', headingStyle),
+          number(first ? usedHeading : '', headingStyle),
           number(first ? depthHeading : '', headingStyle),
           number(first ? durationHeading : '', headingStyle),
         ],
@@ -121,6 +128,16 @@ class SacSegmentTable extends StatelessWidget {
         children: [
           _LabelCell(row: row, minHeight: _minRowHeight, inset: _labelInset),
           number(row.rate, style?.copyWith(fontWeight: FontWeight.w600)),
+          _UsedCell(
+            used: row.used,
+            share: row.share,
+            style: style,
+            shareStyle: secondary,
+            padding: const EdgeInsetsDirectional.only(
+              start: _columnGap,
+              end: _labelInset,
+            ),
+          ),
           number(row.depth, secondary),
           number(row.duration, secondary),
         ],
@@ -134,6 +151,7 @@ class SacSegmentTable extends StatelessWidget {
         1: IntrinsicColumnWidth(),
         2: IntrinsicColumnWidth(),
         3: IntrinsicColumnWidth(),
+        4: IntrinsicColumnWidth(),
       },
       children: [
         for (final (index, section) in sections.indexed) ...[
@@ -145,11 +163,46 @@ class SacSegmentTable extends StatelessWidget {
   }
 }
 
+class _UsedCell extends StatelessWidget {
+  final String used;
+  final String? share;
+  final TextStyle? style;
+  final TextStyle? shareStyle;
+  final EdgeInsetsGeometry padding;
+
+  const _UsedCell({
+    required this.used,
+    required this.share,
+    required this.style,
+    required this.shareStyle,
+    required this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: Padding(
+        padding: padding,
+        // One text, so on the narrowest card the share wraps under the
+        // amount rather than overflowing.
+        child: Text.rich(
+          TextSpan(
+            text: used,
+            style: style,
+            children: [
+              if (share != null) TextSpan(text: ' $share', style: shareStyle),
+            ],
+          ),
+          textAlign: TextAlign.end,
+        ),
+      ),
+    );
+  }
+}
+
 class _LabelCell extends StatelessWidget {
-  /// The bar runs under the label rather than behind it, so it can wear its
-  /// full color and the label still reads on every theme.
-  static const double _barHeight = 4;
-  static const double _barInset = 2;
+  static const double _dotSize = 8;
+  static const double _dotGap = 6;
 
   final SacSegmentTableRow row;
   final double minHeight;
@@ -172,63 +225,38 @@ class _LabelCell extends StatelessWidget {
       selected: row.selected,
       child: ConstrainedBox(
         constraints: BoxConstraints(minHeight: minHeight),
-        child: Stack(
-          alignment: AlignmentDirectional.centerStart,
-          children: [
-            PositionedDirectional(
-              start: 0,
-              end: 0,
-              bottom: _barInset,
-              height: _barHeight,
-              child: FractionallySizedBox(
-                alignment: AlignmentDirectional.centerStart,
-                widthFactor: row.barFactor.clamp(0.0, 1.0),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: color ?? theme.colorScheme.primary,
-                    borderRadius: BorderRadius.circular(2),
+        child: Padding(
+          padding: EdgeInsetsDirectional.only(start: inset),
+          // A stack rather than a row, so a column squeezed narrower than
+          // the dot clips the label instead of overflowing.
+          child: Stack(
+            alignment: AlignmentDirectional.centerStart,
+            children: [
+              if (color != null)
+                SizedBox.square(
+                  dimension: _dotSize,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsetsDirectional.only(
-                start: inset,
-                bottom: _barInset + _barHeight + 1,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (color != null) ...[
-                    SizedBox.square(
-                      dimension: 8,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                  ],
-                  if (row.icon != null) ...[
-                    Icon(row.icon, size: 14),
-                    const SizedBox(width: 4),
-                  ],
-                  Flexible(
-                    child: Text(
-                      row.label,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: row.selected ? FontWeight.bold : null,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+              Padding(
+                padding: EdgeInsetsDirectional.only(
+                  start: color == null ? 0 : _dotSize + _dotGap,
+                ),
+                child: Text(
+                  row.label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: row.selected ? FontWeight.bold : null,
                   ),
-                ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

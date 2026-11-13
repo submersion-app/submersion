@@ -42156,6 +42156,41 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Moyenne';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Pic';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gaz consommé';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Consommé';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'Gaz consommé par phase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount consommés';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent %';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Ajoutez le volume du bloc pour afficher le RMV en $unit';
   }

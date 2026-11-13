@@ -39548,6 +39548,40 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => '平均';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => '峰值';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => '用气量';
+
+  @override
+  String get diveLog_detail_sacSegments_used => '已用';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => '各阶段用气量';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '已用 $amount';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return '添加气瓶容积以按 $unit 显示 RMV';
   }

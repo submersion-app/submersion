@@ -41950,6 +41950,41 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Durchschnitt';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Spitze';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gasverbrauch';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Verbraucht';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'Gasverbrauch nach Phase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount verbraucht';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent %';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Flaschenvolumen eintragen, um den AMV in $unit anzuzeigen';
   }
