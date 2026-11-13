@@ -339,17 +339,17 @@ void main() {
 
     testWidgets('no profile depth, no marker', (tester) async {
       await tester.pumpWidget(
-        Directionality(
+        const Directionality(
           textDirection: TextDirection.ltr,
           child: CustomPaint(
             painter: PinnedStripPainter(
-              profile: const [
+              profile: [
                 DiveProfilePoint(timestamp: 0, depth: 0),
                 DiveProfilePoint(timestamp: 60, depth: 0),
               ],
               selectedSeconds: null,
               curveColor: Colors.blue,
-              fillColors: const [Colors.blue, Colors.blue],
+              fillColors: [Colors.blue, Colors.blue],
               markerColor: Colors.red,
               morph: 1,
               maxDepthLabel: '0.0m',
@@ -382,15 +382,15 @@ void main() {
   testWidgets('draws its layers in the colours it is given', (tester) async {
     await pumpPainter(
       tester,
-      PinnedStripPainter(
+      const PinnedStripPainter(
         profile: profile,
         selectedSeconds: null,
         curveColor: Colors.blue,
-        fillColors: const [Colors.blue, Colors.blue],
+        fillColors: [Colors.blue, Colors.blue],
         markerColor: Colors.red,
         morph: 1,
-        ndlCurve: const [3600, 1800, 600],
-        ceilingCurve: const [0, 4, 0],
+        ndlCurve: [3600, 1800, 600],
+        ceilingCurve: [0, 4, 0],
         maxDepthLabel: '24.0m',
         ndlColor: Colors.green,
         ceilingColor: Colors.orange,
