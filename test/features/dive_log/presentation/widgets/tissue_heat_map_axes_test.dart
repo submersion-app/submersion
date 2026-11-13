@@ -212,4 +212,32 @@ void main() {
       expect(TissueHeatMapTimeAxis.fits(const [0, 10, 20], 3), isTrue);
     });
   });
+
+  group('tissueHeatMapSemantics', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    test('names the time span the strip covers', () {
+      expect(
+        tissueHeatMapSemantics(
+          l10n,
+          compartmentCount: 16,
+          timestamps: const [0, 960, 1920],
+        ),
+        'Heat map of compartments 1 to 16, fast at the top and slow at the '
+        'bottom, from 0 min to 32 min of the dive',
+      );
+    });
+
+    test('says no span when the dive starts and ends in the same minute', () {
+      expect(
+        tissueHeatMapSemantics(
+          l10n,
+          compartmentCount: 16,
+          timestamps: const [0, 25, 50],
+        ),
+        'Heat map of compartments 1 to 16, fast at the top and slow at the '
+        'bottom',
+      );
+    });
+  });
 }

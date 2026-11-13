@@ -192,13 +192,21 @@ String tissueHeatMapSemantics(
   List<int>? timestamps,
 }) {
   final stamps = timestamps;
-  if (stamps == null || stamps.length < 2) {
+  final start = stamps == null || stamps.isEmpty
+      ? null
+      : TissueHeatMapTimeAxis.timeLabel(l10n, stamps.first);
+  final end = stamps == null || stamps.isEmpty
+      ? null
+      : TissueHeatMapTimeAxis.timeLabel(l10n, stamps.last);
+  // A span that starts and ends in the same minute says nothing, as the axis
+  // shows that time once.
+  if (start == null || end == null || start == end) {
     return l10n.diveLog_deco_heatMapSemantics(1, compartmentCount);
   }
   return l10n.diveLog_deco_heatMapTimedSemantics(
     1,
     compartmentCount,
-    TissueHeatMapTimeAxis.timeLabel(l10n, stamps.first),
-    TissueHeatMapTimeAxis.timeLabel(l10n, stamps.last),
+    start,
+    end,
   );
 }
