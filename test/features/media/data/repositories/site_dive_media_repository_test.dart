@@ -121,6 +121,53 @@ void main() {
     });
   });
 
+  // Documents and signatures attached to a dive are not things a diver
+  // browses as photos (PR #4505 review): every read of the site's dive
+  // photos leaves them out, so the card, its count and the viewer agree.
+  group('documents and signatures', () {
+    setUp(() async {
+      await dive('d1', 'S');
+      await media('photo', diveId: 'd1', takenAt: 1000);
+      await media('clip', diveId: 'd1', takenAt: 2000, fileType: 'video');
+      await media('pdf', diveId: 'd1', takenAt: 3000, fileType: 'document');
+      await media(
+        'sig-i',
+        diveId: 'd1',
+        takenAt: 4000,
+        fileType: 'instructor_signature',
+      );
+      await media(
+        'sig-legacy',
+        diveId: 'd1',
+        takenAt: 5000,
+        fileType: 'instructorSignature',
+      );
+      await media(
+        'sig-b',
+        diveId: 'd1',
+        takenAt: 6000,
+        fileType: 'buddy_signature',
+      );
+    });
+
+    test('are not counted', () async {
+      expect(await repository.countMediaFromDivesAtSite('S'), 2);
+    });
+
+    test('are not in the full list', () async {
+      final items = await repository.getMediaFromDivesAtSite('S');
+      expect(items.map((m) => m.id), ['photo', 'clip']);
+    });
+
+    test('are not in the strip', () async {
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 10,
+      );
+      expect(items.map((m) => m.id), ['clip', 'photo']);
+    });
+  });
+
   // The strip on the site's dive photos card (issue #4502).
   group('getRecentMediaFromDivesAtSite', () {
     test('returns the newest first, capped at the limit', () async {

@@ -19,6 +19,17 @@ class SiteDiveMediaRepository {
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(SiteDiveMediaRepository);
 
+  /// Every read here leaves out documents and signatures attached to a dive:
+  /// they are not photos a diver browses (PR #4505 review), and the count,
+  /// the strip and the viewer's list must agree on what they hold.
+  static final String _nonBrowsablePlaceholders = List.filled(
+    kNonBrowsableFileTypes.length,
+    '?',
+  ).join(', ');
+  static final List<Variable<String>> _nonBrowsableVariables = [
+    for (final type in kNonBrowsableFileTypes) Variable.withString(type),
+  ];
+
   /// Writes to the one table [countMediaFromDivesAtSite] reads. Narrower
   /// than [MediaRepository.watchMediaChanges] on purpose: opening a photo
   /// backfills its enrichment, which changes no count.
@@ -39,8 +50,9 @@ class SiteDiveMediaRepository {
         SELECT COUNT(*) AS media_count
         FROM media
         WHERE dive_id IN (SELECT id FROM dives WHERE site_id = ?)
+          AND file_type NOT IN ($_nonBrowsablePlaceholders)
       ''',
-            variables: [Variable.withString(siteId)],
+            variables: [Variable.withString(siteId), ..._nonBrowsableVariables],
           )
           .getSingle();
       return row.read<int>('media_count');
@@ -68,9 +80,10 @@ class SiteDiveMediaRepository {
         FROM media m
         LEFT JOIN media_enrichment e ON e.media_id = m.id
         WHERE m.dive_id IN (SELECT id FROM dives WHERE site_id = ?)
+          AND m.file_type NOT IN ($_nonBrowsablePlaceholders)
         ORDER BY m.taken_at IS NULL, m.taken_at, m.id
       ''',
-            variables: [Variable.withString(siteId)],
+            variables: [Variable.withString(siteId), ..._nonBrowsableVariables],
           )
           .get();
 
@@ -102,10 +115,15 @@ class SiteDiveMediaRepository {
         FROM media m
         LEFT JOIN media_enrichment e ON e.media_id = m.id
         WHERE m.dive_id IN (SELECT id FROM dives WHERE site_id = ?)
+          AND m.file_type NOT IN ($_nonBrowsablePlaceholders)
         ORDER BY m.taken_at IS NULL, m.taken_at DESC, m.id DESC
         LIMIT ?
       ''',
-            variables: [Variable.withString(siteId), Variable.withInt(limit)],
+            variables: [
+              Variable.withString(siteId),
+              ..._nonBrowsableVariables,
+              Variable.withInt(limit),
+            ],
           )
           .get();
 
