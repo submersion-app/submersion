@@ -771,6 +771,50 @@ void main() {
     });
   });
 
+  group('CompactTissueLoadingCard compartment group (issue #4503)', () {
+    // Loaded above air's inspired nitrogen, so the compartment off-gasses and
+    // the direction badge shows beside the number.
+    final withBadge = DecoStatus(
+      compartments: [_comp.copyWith(currentPN2: 1.5)],
+      ndlSeconds: 600,
+      ceilingMeters: 0.0,
+      ttsSeconds: 0,
+      gfLow: 0.4,
+      gfHigh: 0.85,
+      decoStops: const [],
+      currentDepthMeters: 0.0,
+      ambientPressureBar: 1.0,
+      inspiredN2Bar: 0.74,
+      inspiredHeBar: 0.0,
+    );
+
+    testWidgets('names the group on its own line under the number', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildCard(status: withBadge));
+      await tester.pumpAndSettle();
+
+      final number = tester.getRect(find.text('Leading: #1'));
+      final group = tester.getRect(find.text('Fast, blood-rich tissue'));
+      final badge = tester.getRect(find.text('Offgassing'));
+      expect(group.top, greaterThanOrEqualTo(number.bottom));
+      // The badge keeps its place beside the number.
+      expect(badge.center.dy, closeTo(number.center.dy, 1));
+    });
+
+    testWidgets('fits a phone with the badge and the group line', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(334, 900));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(buildCard(status: withBadge, scrollable: true));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Fast, blood-rich tissue'), findsOneWidget);
+    });
+  });
+
   group('CompactTissueLoadingCard info icon (issue #4377)', () {
     testWidgets('replaces the values footer with a header info icon', (
       tester,

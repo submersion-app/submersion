@@ -7559,6 +7559,15 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+
+  @override
   String get diveLog_deco_metricLoad => 'Load';
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compartment_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_exchange_style.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/loading_severity_color.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -80,6 +81,14 @@ class TissueCompartmentDetail extends StatelessWidget {
               _ExchangeBadge(exchange: net),
             ],
           ],
+        ),
+        // On its own line, so the direction badge keeps its place beside the
+        // number and the card's height does not change from bar to bar
+        // (issue #4503).
+        const SizedBox(height: 2),
+        Text(
+          CompartmentGroup.ofNumber(comp.compartmentNumber).label(l10n),
+          style: labelStyle,
         ),
         const SizedBox(height: 6),
         Row(

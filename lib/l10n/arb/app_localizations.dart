@@ -12037,6 +12037,24 @@ abstract class AppLocalizations {
   /// **'Compartment: #{number}'**
   String diveLog_deco_compartmentOther(int number);
 
+  /// Speed group of tissue compartments 1-5, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Fast, blood-rich tissue'**
+  String get diveLog_deco_groupFast;
+
+  /// Speed group of tissue compartments 6-10, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Medium, muscle and skin'**
+  String get diveLog_deco_groupMedium;
+
+  /// Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Slow, fat and bone'**
+  String get diveLog_deco_groupSlow;
+
   /// No description provided for @diveLog_deco_metricLoad.
   ///
   /// In en, this message translates to:

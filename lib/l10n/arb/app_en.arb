@@ -4601,6 +4601,18 @@
       }
     }
   },
+  "diveLog_deco_groupFast": "Fast, blood-rich tissue",
+  "@diveLog_deco_groupFast": {
+    "description": "Speed group of tissue compartments 1-5, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_groupMedium": "Medium, muscle and skin",
+  "@diveLog_deco_groupMedium": {
+    "description": "Speed group of tissue compartments 6-10, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_groupSlow": "Slow, fat and bone",
+  "@diveLog_deco_groupSlow": {
+    "description": "Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for"
+  },
   "diveLog_deco_metricLoad": "Load",
   "diveLog_deco_gasOngassing": "Ongassing",
   "diveLog_deco_gasOffgassing": "Offgassing",
