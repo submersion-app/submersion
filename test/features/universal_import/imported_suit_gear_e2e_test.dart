@@ -29,6 +29,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_set_re
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
@@ -116,19 +117,12 @@ void _expectNoThickness(EquipmentItem item) {
   );
 }
 
-/// The Suit Thickness chart's numbers for the imported diver. Compared field
-/// by field: a record holding a List compares by identity.
-Future<void> _expectSuitStats({
-  required List<({double mm, int count})> byThickness,
-  required int unknownThickness,
-  required int drysuit,
-}) async {
-  final stats = await InsightsRepository().getDivesBySuitThickness(
-    diverId: _diverId,
+/// The Suit Type chart's bars for the imported diver.
+Future<void> _expectSuitStats(SuitTypeStats expected) async {
+  expect(
+    await InsightsRepository().getDivesBySuitType(diverId: _diverId),
+    expected,
   );
-  expect(stats.byThickness, byThickness);
-  expect(stats.unknownThicknessCount, unknownThickness);
-  expect(stats.drysuitCount, drysuit);
 }
 
 void main() {
@@ -190,11 +184,11 @@ void main() {
 
     // One dive in each of the chart's three kinds of bucket; the "Full suit"
     // dive reaches none, because Other gear is not a wetsuit or a drysuit.
-    await _expectSuitStats(
-      byThickness: [(mm: 3.0, count: 1)],
-      unknownThickness: 1,
-      drysuit: 1,
-    );
+    await _expectSuitStats(const [
+      (type: SuitType.wetsuit(mm: 3), count: 1),
+      (type: SuitType.wetsuit(), count: 1),
+      (type: SuitType.drysuit(), count: 1),
+    ]);
   });
 
   test('a CSV suit column becomes typed gear on each dive', () async {
@@ -231,10 +225,9 @@ void main() {
     expect(gearByDive[3], isEmpty);
 
     // Two dives share the 5/4 suit, whose primary panel is 5 mm.
-    await _expectSuitStats(
-      byThickness: [(mm: 5.0, count: 2)],
-      unknownThickness: 0,
-      drysuit: 1,
-    );
+    await _expectSuitStats(const [
+      (type: SuitType.wetsuit(mm: 5), count: 2),
+      (type: SuitType.drysuit(), count: 1),
+    ]);
   });
 }

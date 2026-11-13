@@ -42473,23 +42473,50 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل عنوان ويب، مثل shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'الغطسات حسب سماكة البدلة';
+  String get insights_progression_divesBySuitType_title =>
+      'الغطسات حسب نوع البدلة';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'السماكة الأساسية لبدلة الغطس عبر غطساتك';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'نوع بدلة الغطس وسماكتها وطرازها عبر غطساتك';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'لا توجد غطسات مرتبطة ببدلة غوص أو بدلة جافة';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'تعذر تحميل بيانات سماكة البدلة';
+  String get insights_progression_divesBySuitType_error =>
+      'تعذر تحميل بيانات نوع البدلة';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'غير معروف';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'بدلة غوص · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'بدلة غوص · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'بدلة غوص · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'كاملة';
+
+  @override
+  String get insights_suitType_style_shorty => 'شورتي';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'قطعتان';
+
+  @override
+  String get insights_suitType_style_semiDry => 'شبه جافة';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
@@ -52155,10 +52182,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'مخطط أعمدة. الغوصات حسب سماكة البدلة. $description';
+    return 'مخطط أعمدة. الغوصات حسب نوع البدلة. $description';
   }
 
   @override

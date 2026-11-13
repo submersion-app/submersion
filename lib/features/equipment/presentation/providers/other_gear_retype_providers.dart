@@ -28,11 +28,11 @@ final otherGearRetypeCandidatesProvider =
 
 /// Refreshes what a retype or its undo changes that does not follow the
 /// equipment ticks on its own: the equipment list notifier, and the Suit
-/// Thickness statistic, which counts dives by their suits' type and is kept
+/// Type statistic, which counts dives by their suits' type and is kept
 /// alive without watching `equipment`. Takes the [ProviderContainer], not a
 /// `WidgetRef`, because Undo can run after the page is gone.
 void refreshAfterOtherGearRetype(ProviderContainer container) {
-  container.invalidate(divesBySuitThicknessProvider);
+  container.invalidate(divesBySuitTypeProvider);
   if (container.exists(equipmentListNotifierProvider)) {
     unawaited(container.read(equipmentListNotifierProvider.notifier).refresh());
   }

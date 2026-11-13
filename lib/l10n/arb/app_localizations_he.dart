@@ -40894,23 +40894,50 @@ class AppLocalizationsHe extends AppLocalizations {
       'הזן כתובת אינטרנט, למשל shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'צלילות לפי עובי חליפה';
+  String get insights_progression_divesBySuitType_title =>
+      'צלילות לפי סוג חליפה';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'העובי העיקרי של חליפת הצלילה על פני הצלילות';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'סוג, עובי וגזרה של חליפת הצלילה על פני הצלילות';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'לא ניתן לטעון נתוני עובי חליפה';
+  String get insights_progression_divesBySuitType_error =>
+      'לא ניתן לטעון נתוני סוג חליפה';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'לא ידוע';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'חליפת צלילה · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'חליפת צלילה · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'חליפת צלילה · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'מלאה';
+
+  @override
+  String get insights_suitType_style_shorty => 'שורטי';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'שני חלקים';
+
+  @override
+  String get insights_suitType_style_semiDry => 'חצי יבשה';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
@@ -50337,10 +50364,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'תרשים עמודות. צלילות לפי עובי חליפה. $description';
+    return 'תרשים עמודות. צלילות לפי סוג חליפה. $description';
   }
 
   @override

@@ -41920,23 +41920,50 @@ class AppLocalizationsIt extends AppLocalizations {
       'Inserisci un indirizzo web, es. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Immersioni per spessore della muta';
+  String get insights_progression_divesBySuitType_title =>
+      'Immersioni per tipo di muta';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Spessore principale della muta nelle tue immersioni';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Tipo, spessore e modello della muta nelle tue immersioni';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Nessuna immersione collegata a una muta umida o stagna';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Impossibile caricare i dati sullo spessore';
+  String get insights_progression_divesBySuitType_error =>
+      'Impossibile caricare i dati sul tipo di muta';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Sconosciuto';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Muta · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Muta · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Muta · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'intera';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'due pezzi';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semistagna';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Spessore della muta (mm)';
@@ -51454,10 +51481,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Grafico a barre. Immersioni per spessore della muta. $description';
+    return 'Grafico a barre. Immersioni per tipo di muta. $description';
   }
 
   @override

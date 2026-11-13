@@ -41946,23 +41946,50 @@ class AppLocalizationsEs extends AppLocalizations {
       'Introduce una dirección web, p. ej. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Inmersiones por grosor del traje';
+  String get insights_progression_divesBySuitType_title =>
+      'Inmersiones por tipo de traje';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Grosor principal del traje en tus inmersiones';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Tipo, grosor y corte del traje en tus inmersiones';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'No hay inmersiones con un traje de neopreno o traje seco vinculado';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'No se pudieron cargar los datos de grosor del traje';
+  String get insights_progression_divesBySuitType_error =>
+      'No se pudieron cargar los datos del tipo de traje';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Desconocido';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Traje de neopreno · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Traje de neopreno · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Traje de neopreno · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'completo';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'de dos piezas';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semiseco';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Grosor del traje (mm)';
@@ -51475,10 +51502,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Gráfico de barras. Inmersiones por grosor del traje. $description';
+    return 'Gráfico de barras. Inmersiones por tipo de traje. $description';
   }
 
   @override

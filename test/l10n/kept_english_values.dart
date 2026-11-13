@@ -185,6 +185,8 @@ const Map<String, String> keptEnglishValues = {
   'insights_gas_tankConfig_stages@fr': _loanword,
   'insights_gas_tankConfig_stages@pt': _loanword,
   'insights_profile_deco_noDeco@it': _loanword,
+  'insights_suitType_wetsuitThickness@nl': _loanword,
+  'insights_suitType_wetsuitThicknessStyle@nl': _loanword,
   'maps3d_section_swissBathy': _brand,
   'maps_offline_regionInfo@pt': _loanword,
   'media_map_placeItemCount@nl': _dutchItem,

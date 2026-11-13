@@ -41829,23 +41829,50 @@ class AppLocalizationsDe extends AppLocalizations {
       'Webadresse eingeben, z.B. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Tauchgänge nach Anzugdicke';
+  String get insights_progression_divesBySuitType_title =>
+      'Tauchgänge nach Anzugtyp';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Primäre Anzugdicke über deine Tauchgänge';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Anzugtyp, -dicke und -schnitt über deine Tauchgänge';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Keine Tauchgänge mit verknüpftem Neopren- oder Trockentauchanzug';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Anzugdicken-Daten konnten nicht geladen werden';
+  String get insights_progression_divesBySuitType_error =>
+      'Anzugtyp-Daten konnten nicht geladen werden';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Unbekannt';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Neoprenanzug · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Neoprenanzug · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Neoprenanzug · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'lang';
+
+  @override
+  String get insights_suitType_style_shorty => 'Shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'zweiteilig';
+
+  @override
+  String get insights_suitType_style_semiDry => 'halbtrocken';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Anzugdicke (mm)';
@@ -51332,10 +51359,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Balkendiagramm. Tauchgänge nach Anzugdicke. $description';
+    return 'Balkendiagramm. Tauchgänge nach Anzugtyp. $description';
   }
 
   @override

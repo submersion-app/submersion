@@ -41640,23 +41640,49 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voer een webadres in, bijv. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Duiken per pakdikte';
+  String get insights_progression_divesBySuitType_title => 'Duiken per paktype';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Primaire pakdikte over je duiken';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Type, dikte en model van je pak over je duiken';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Geen duiken met een gekoppeld wetsuit of droogpak';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Kan pakdiktegegevens niet laden';
+  String get insights_progression_divesBySuitType_error =>
+      'Kan paktypegegevens niet laden';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Onbekend';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Wetsuit · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Wetsuit · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Wetsuit · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'volledig';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'tweedelig';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semi-droog';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Pakdikte (mm)';
@@ -51116,10 +51142,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Staafdiagram. Duiken per pakdikte. $description';
+    return 'Staafdiagram. Duiken per paktype. $description';
   }
 
   @override

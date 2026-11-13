@@ -41685,23 +41685,50 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adjon meg egy webcímet, pl. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Merülések ruhavastagság szerint';
+  String get insights_progression_divesBySuitType_title =>
+      'Merülések ruhatípus szerint';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'A ruha fő vastagsága a merüléseid során';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'A ruha típusa, vastagsága és fazonja a merüléseid során';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Nincs neoprén- vagy szárazruhához kapcsolt merülés';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Nem sikerült betölteni a vastagsági adatokat';
+  String get insights_progression_divesBySuitType_error =>
+      'Nem sikerült betölteni a ruhatípus adatait';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Ismeretlen';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Neoprén ruha · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Neoprén ruha · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Neoprén ruha · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'egész';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'kétrészes';
+
+  @override
+  String get insights_suitType_style_semiDry => 'félszáraz';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
@@ -51172,10 +51199,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Oszlopdiagram. Merülések ruhavastagság szerint. $description';
+    return 'Oszlopdiagram. Merülések ruhatípus szerint. $description';
   }
 
   @override

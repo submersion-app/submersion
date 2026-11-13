@@ -42035,23 +42035,50 @@ class AppLocalizationsFr extends AppLocalizations {
       'Saisissez une adresse web, par ex. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Plongées par épaisseur de combinaison';
+  String get insights_progression_divesBySuitType_title =>
+      'Plongées par type de combinaison';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Épaisseur principale de la combinaison sur vos plongées';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Type, épaisseur et coupe de la combinaison sur vos plongées';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Aucune plongée liée à une combinaison humide ou étanche';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Impossible de charger les données d\'épaisseur';
+  String get insights_progression_divesBySuitType_error =>
+      'Impossible de charger les données de type de combinaison';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Inconnue';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Combinaison · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Combinaison · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Combinaison · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'intégrale';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'deux pièces';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semi-étanche';
 
   @override
   String get diveLog_filter_sectionSuitThickness =>
@@ -51561,10 +51588,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Diagramme en barres. Plongées par épaisseur de combinaison. $description';
+    return 'Diagramme en barres. Plongées par type de combinaison. $description';
   }
 
   @override

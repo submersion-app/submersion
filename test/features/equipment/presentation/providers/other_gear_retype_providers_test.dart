@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/other_gear_retype_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -103,27 +104,23 @@ void main() {
   });
 
   group('refreshAfterOtherGearRetype', () {
-    test('rebuilds the Suit Thickness statistic', () async {
+    test('rebuilds the Suit Type statistic', () async {
       var builds = 0;
       final container = containerFor(
         'd1',
         extra: [
-          divesBySuitThicknessProvider.overrideWith((ref) async {
+          divesBySuitTypeProvider.overrideWith((ref) async {
             builds++;
-            return (
-              byThickness: const <({double mm, int count})>[],
-              unknownThicknessCount: 0,
-              drysuitCount: 0,
-            );
+            return const <({SuitType type, int count})>[];
           }),
         ],
       );
-      final sub = container.listen(divesBySuitThicknessProvider, (_, _) {});
+      final sub = container.listen(divesBySuitTypeProvider, (_, _) {});
       addTearDown(sub.close);
-      await container.read(divesBySuitThicknessProvider.future);
+      await container.read(divesBySuitTypeProvider.future);
 
       refreshAfterOtherGearRetype(container);
-      await container.read(divesBySuitThicknessProvider.future);
+      await container.read(divesBySuitTypeProvider.future);
 
       expect(builds, 2);
     });
