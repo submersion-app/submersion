@@ -7676,13 +7676,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+  String get diveLog_deco_groupFast => 'Schnell, gut durchblutetes Gewebe';
 
   @override
-  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+  String get diveLog_deco_groupMedium => 'Mittel, Muskeln und Haut';
 
   @override
-  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+  String get diveLog_deco_groupSlow => 'Langsam, Fett und Knochen';
 
   @override
   String get diveLog_deco_metricLoad => 'Belastung';
@@ -7695,10 +7695,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Gleichgewicht';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Zeilen: schnell (oben) bis langsam (unten)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Oberflächenniveau';
@@ -62422,7 +62418,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Die 16 gedachten Gewebe des Modells, die Gas jeweils in eigenem Tempo aufnehmen und abgeben. Schnelle stehen für gut durchblutetes Gewebe, langsame für Fett und Knochen.';
+      'Die 16 gedachten Gewebe des Modells, die Gas jeweils in eigenem Tempo aufnehmen und abgeben: 1-5 sind schnell (etwa gut durchblutetes Gewebe wie das Gehirn), 6-10 mittel (etwa Muskeln und Haut) und 11-16 langsam (etwa Fett und Knochen). Schnelle begrenzen kurze, tiefe Tauchgänge, langsame lange und Wiederholungstauchgänge; die Gewebenamen sind grobe Beispiele, keine Anatomie.';
 
   @override
   String get info_term_leadingCompartment_label => 'Führendes Kompartiment';

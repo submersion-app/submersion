@@ -7657,13 +7657,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+  String get diveLog_deco_groupFast => 'Gyors, jól vérellátott szövet';
 
   @override
-  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+  String get diveLog_deco_groupMedium => 'Közepes, izom és bőr';
 
   @override
-  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+  String get diveLog_deco_groupSlow => 'Lassú, zsír és csont';
 
   @override
   String get diveLog_deco_metricLoad => 'Terhelés';
@@ -7676,10 +7676,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Egyensúly';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Sorok: gyors (fent) és lassú (lent) között';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Felszíni szint';
@@ -62204,7 +62200,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt. A gyorsak a jól vérellátott szöveteket, a lassúak a zsírt és a csontot jelképezik.';
+      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt: az 1-5 közötti gyors (mint a jól vérellátott szövet, például az agy), a 6-10 közötti közepes (mint az izom és a bőr), a 11-16 közötti lassú (mint a zsír és a csont). A gyorsak a rövid, mély merüléseket, a lassúak a hosszú és ismételt merüléseket korlátozzák; a szövetnevek csak durva példák, nem anatómia.';
 
   @override
   String get info_term_leadingCompartment_label => 'Vezető kompartment';

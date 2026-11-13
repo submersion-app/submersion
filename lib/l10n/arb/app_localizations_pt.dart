@@ -7676,13 +7676,13 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+  String get diveLog_deco_groupFast => 'Rápido, tecido muito irrigado';
 
   @override
-  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+  String get diveLog_deco_groupMedium => 'Médio, músculo e pele';
 
   @override
-  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+  String get diveLog_deco_groupSlow => 'Lento, gordura e osso';
 
   @override
   String get diveLog_deco_metricLoad => 'Carga';
@@ -7695,9 +7695,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Equilíbrio';
-
-  @override
-  String get diveLog_deco_heatMapRows => 'Linhas: rápido (topo) a lento (base)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Nível de superfície';
@@ -62531,7 +62528,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Os 16 tecidos imaginários do modelo, que absorvem e libertam gás cada um ao seu ritmo. Os rápidos representam tecido muito irrigado e os lentos gordura e osso.';
+      'Os 16 tecidos imaginários do modelo, que absorvem e libertam gás cada um ao seu ritmo: 1-5 são rápidos (como o tecido muito irrigado, por exemplo o cérebro), 6-10 médios (como músculo e pele) e 11-16 lentos (como gordura e osso). Os rápidos limitam os mergulhos curtos e profundos e os lentos os longos e sucessivos; os nomes dos tecidos são exemplos aproximados, não anatomia.';
 
   @override
   String get info_term_leadingCompartment_label => 'Compartimento dominante';

@@ -7675,13 +7675,13 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+  String get diveLog_deco_groupFast => 'Veloce, tessuti molto irrorati';
 
   @override
-  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+  String get diveLog_deco_groupMedium => 'Medio, muscoli e pelle';
 
   @override
-  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+  String get diveLog_deco_groupSlow => 'Lento, grasso e ossa';
 
   @override
   String get diveLog_deco_metricLoad => 'Carico';
@@ -7694,10 +7694,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Equilibrio';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Righe: veloce (in alto) a lento (in basso)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Livello in superficie';
@@ -62554,7 +62550,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'I 16 tessuti immaginari del modello, che assorbono e rilasciano gas ciascuno con la propria velocità. Quelli veloci rappresentano i tessuti molto irrorati, quelli lenti grasso e ossa.';
+      'I 16 tessuti immaginari del modello, che assorbono e rilasciano gas ciascuno con la propria velocità: 1-5 sono veloci (come i tessuti molto irrorati, per esempio il cervello), 6-10 medi (come muscoli e pelle) e 11-16 lenti (come grasso e ossa). Quelli veloci limitano le immersioni brevi e profonde, quelli lenti le immersioni lunghe e ripetitive; i nomi dei tessuti sono esempi indicativi, non anatomia.';
 
   @override
   String get info_term_leadingCompartment_label => 'Compartimento guida';

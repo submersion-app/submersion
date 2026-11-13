@@ -7626,13 +7626,13 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+  String get diveLog_deco_groupFast => 'Snel, goed doorbloed weefsel';
 
   @override
-  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+  String get diveLog_deco_groupMedium => 'Gemiddeld, spier en huid';
 
   @override
-  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+  String get diveLog_deco_groupSlow => 'Langzaam, vet en bot';
 
   @override
   String get diveLog_deco_metricLoad => 'Belading';
@@ -7645,10 +7645,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Evenwicht';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Rijen: snel (boven) tot langzaam (onder)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Oppervlakteniveau';
@@ -62169,7 +62165,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'De 16 denkbeeldige weefsels van het model, die elk in hun eigen tempo gas opnemen en afgeven. Snelle staan voor goed doorbloed weefsel, trage voor vet en bot.';
+      'De 16 denkbeeldige weefsels van het model, die elk in hun eigen tempo gas opnemen en afgeven: 1-5 zijn snel (zoals goed doorbloed weefsel, bijvoorbeeld de hersenen), 6-10 gemiddeld (zoals spier en huid) en 11-16 langzaam (zoals vet en bot). Snelle begrenzen korte, diepe duiken en trage lange en herhalingsduiken; de weefselnamen zijn ruwe voorbeelden, geen anatomie.';
 
   @override
   String get info_term_leadingCompartment_label => 'Leidend compartiment';

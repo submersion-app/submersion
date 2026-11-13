@@ -12079,12 +12079,6 @@ abstract class AppLocalizations {
   /// **'Equilibrium'**
   String get diveLog_deco_gasEquilibrium;
 
-  /// No description provided for @diveLog_deco_heatMapRows.
-  ///
-  /// In en, this message translates to:
-  /// **'Rows: fast (top) to slow (bottom)'**
-  String get diveLog_deco_heatMapRows;
-
   /// No description provided for @diveLog_deco_surfaceLevel.
   ///
   /// In en, this message translates to:

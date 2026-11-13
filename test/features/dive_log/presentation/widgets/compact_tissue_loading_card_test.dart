@@ -409,7 +409,7 @@ void main() {
       expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
       expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
       // The compartment axis names the rows now (#4503).
-      expect(find.text(l10n.diveLog_deco_heatMapRows), findsNothing);
+      expect(find.byType(TissueHeatMapCompartmentAxis), findsOneWidget);
       // The heat map colors against AMBIENT pressure, so its legend names
       // the two halves undersaturated / supersaturated instead of borrowing
       // the badges' "Ongassing"/"Offgassing", which are measured against the
@@ -482,7 +482,7 @@ void main() {
         final l10n = AppLocalizations.of(context);
         expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
         expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
-        expect(find.text(l10n.diveLog_deco_heatMapRows), findsNothing);
+        expect(find.byType(TissueHeatMapCompartmentAxis), findsOneWidget);
       },
     );
   });

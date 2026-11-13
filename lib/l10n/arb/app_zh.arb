@@ -2609,11 +2609,13 @@
       }
     }
   },
+  "diveLog_deco_groupFast": "快速，血流丰富的组织",
+  "diveLog_deco_groupMedium": "中速，肌肉和皮肤",
+  "diveLog_deco_groupSlow": "慢速，脂肪和骨骼",
   "diveLog_deco_metricLoad": "负荷",
   "diveLog_deco_gasOngassing": "吸收",
   "diveLog_deco_gasOffgassing": "释放",
   "diveLog_deco_gasEquilibrium": "平衡",
-  "diveLog_deco_heatMapRows": "行：快速（上）到慢速（下）",
   "diveLog_deco_surfaceLevel": "水面水平",
   "diveLog_deco_mValue": "M 值",
   "diveLog_deco_tooltipCompartment": "隔间 {number}",
@@ -18326,7 +18328,7 @@
   "info_term_surfaceInterval_label": "水面休息时间",
   "info_term_surfaceInterval_body": "两次潜水之间在水面的时间。期间组织持续释放气体，因此间隔越长，带入下一潜的残余越少。",
   "info_term_tissueCompartment_label": "组织舱室",
-  "info_term_tissueCompartment_body": "模型中的 16 个假想组织，各自以不同速度吸收和释放气体。快组织代表血流丰富的组织，慢组织代表脂肪和骨骼。",
+  "info_term_tissueCompartment_body": "模型中的 16 个假想组织，各自以不同速度吸收和释放气体：1-5 为快速（如血流丰富的组织，例如大脑），6-10 为中速（如肌肉和皮肤），11-16 为慢速（如脂肪和骨骼）。快组织限制短而深的潜水，慢组织限制长时间和重复潜水；这些组织名称只是粗略示例，并非解剖对应。",
   "info_term_leadingCompartment_label": "主导舱室",
   "info_term_leadingCompartment_body": "此刻最接近其极限的舱室。它决定上限深度，并会在潜水中变化。",
   "info_term_tissueLoad_label": "负荷",

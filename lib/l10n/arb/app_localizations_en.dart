@@ -7580,9 +7580,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_deco_gasEquilibrium => 'Equilibrium';
 
   @override
-  String get diveLog_deco_heatMapRows => 'Rows: fast (top) to slow (bottom)';
-
-  @override
   String get diveLog_deco_surfaceLevel => 'Surface level';
 
   @override

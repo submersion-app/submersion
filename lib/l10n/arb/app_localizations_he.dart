@@ -7513,13 +7513,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+  String get diveLog_deco_groupFast => 'מהירה, רקמה עשירה בדם';
 
   @override
-  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+  String get diveLog_deco_groupMedium => 'בינונית, שריר ועור';
 
   @override
-  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+  String get diveLog_deco_groupSlow => 'איטית, שומן ועצם';
 
   @override
   String get diveLog_deco_metricLoad => 'עומס';
@@ -7532,10 +7532,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'שיווי משקל';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'שורות: מהירים (למעלה) עד איטיים (למטה)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'רמת פני המים';
@@ -61251,7 +61247,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      '16 הרקמות הדמיוניות של המודל, שכל אחת סופגת ומשחררת גז בקצב משלה. המהירות מייצגות רקמה עשירה בדם והאיטיות שומן ועצם.';
+      '16 הרקמות הדמיוניות של המודל, שכל אחת סופגת ומשחררת גז בקצב משלה: 1-5 מהירות (כמו רקמה עשירה בדם, למשל המוח), 6-10 בינוניות (כמו שריר ועור) ו-11-16 איטיות (כמו שומן ועצם). המהירות מגבילות צלילות קצרות ועמוקות והאיטיות צלילות ארוכות וחוזרות; שמות הרקמות הם דוגמאות גסות, לא אנטומיה.';
 
   @override
   String get info_term_leadingCompartment_label => 'התא המוביל';
