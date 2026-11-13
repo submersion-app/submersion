@@ -122,6 +122,8 @@ Widget _app(Widget child, {TextDirection? direction}) {
   return ProviderScope(
     overrides: [mediaPeopleChipsProvider('m1').overrideWith((ref) async => [])],
     child: MaterialApp(
+      // The tests read English labels, so the host's locale must not decide.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(backgroundColor: Colors.black, body: body),
