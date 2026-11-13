@@ -15,6 +15,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dar
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// The settled strip's elevation: Material 3's level 2, the lift of an app
+/// bar with content scrolled under it, so the strip reads as pinned over the
+/// page rather than as one more card in it.
+const double kPinnedStripElevation = 3;
+
 /// Corner radius of the profile card the strip condenses out of when the
 /// theme's card shape gives none: Material 3's default card radius.
 const double _defaultCardRadius = 12;
@@ -159,7 +164,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         // No shadow while the surface is see-through (it would show through
         // and grey the card), then one that grows with the condense, so it
         // never switches on or off in a single frame either way.
-        elevation: background >= 1 ? 2 * condense : 0,
+        elevation: background >= 1 ? kPinnedStripElevation * condense : 0,
         // Colour and shadow follow the scroll frame by frame already; the
         // surface's own ease would lag a fast scroll and flash.
         animationDuration: Duration.zero,

@@ -395,7 +395,11 @@ void main() {
     await pumpMorphing(tester, condense: 0, background: 1);
     expect(surface().elevation, 0);
     await pumpMorphing(tester, condense: 0.5, background: 1);
-    expect(surface().elevation, closeTo(1, 1e-6));
+    expect(surface().elevation, closeTo(1.5, 1e-6));
+    // Settled, it lifts off the page like an app bar with content scrolled
+    // under it (Material 3's level 2, elevation 3).
+    await pumpMorphing(tester, condense: 1, background: 1);
+    expect(surface().elevation, 3);
   });
 
   RoundedRectangleBorder surfaceShape(WidgetTester tester) =>

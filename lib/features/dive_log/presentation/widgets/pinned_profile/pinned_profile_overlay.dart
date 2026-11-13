@@ -416,6 +416,10 @@ class _PinnedProfileOverlayState extends State<PinnedProfileOverlay> {
     return (
       box: box,
       child: Stack(
+        // Settled, the box is the strip's own size, so clipping to it cut
+        // off the strip's whole shadow, which falls below it onto the page
+        // (#4488). The overlay's own stack still clips to the page.
+        clipBehavior: Clip.none,
         children: [
           // The live copy: squashed to what is left of the card, then
           // sliding up at its squashed height, header first, as the card

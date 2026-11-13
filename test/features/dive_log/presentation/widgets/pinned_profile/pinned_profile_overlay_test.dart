@@ -578,6 +578,34 @@ void main() {
     );
   });
 
+  // The box around what is pinned is the strip's own size once settled, so
+  // clipping to it cut off the strip's whole shadow, which falls below it
+  // onto the page (#4488).
+  testWidgets('the pinned strip casts its shadow onto the page', (
+    tester,
+  ) async {
+    await pump(tester, profileKey: GlobalKey());
+    for (final pixels in [profileTop + start + handOver * 0.9, 800.0]) {
+      await jump(tester, pixels);
+      final box = find.byKey(const ValueKey('pinnedProfileBox'));
+      final stack = tester.widget<Stack>(
+        find.descendant(of: box, matching: find.byType(Stack)).first,
+      );
+      expect(stack.clipBehavior, Clip.none, reason: '$pixels');
+      expect(
+        find.ancestor(of: strip, matching: find.byType(ClipRect)),
+        findsNothing,
+        reason: '$pixels',
+      );
+    }
+    // Settled, the strip reaches the bottom of the box, where its shadow
+    // falls: any clip there takes all of it.
+    expect(
+      tester.getRect(strip).bottom,
+      tester.getRect(find.byKey(const ValueKey('pinnedProfileBox'))).bottom,
+    );
+  });
+
   // It pins over the other cards, so it is only as wide as they are: inside
   // the profile card's margin from the first frame of the fade to pinned,
   // never widening out to the page's edges (#4488).
