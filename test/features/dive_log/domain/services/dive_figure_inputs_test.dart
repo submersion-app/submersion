@@ -97,4 +97,31 @@ void main() {
     final model = composeFigure(figureInputsForDive(const [orphan], const {}));
     expect(model.itemCount, 1);
   });
+
+  test('sidemount roles on unlinked dive tanks make the rig sidemount', () {
+    // The diver set Sidemount left/right on the dive's tanks without
+    // linking them to the cylinders in the gear list (issue #4493).
+    const tanks = [
+      DiveTank(id: 'a', order: 0, role: TankRole.sidemountLeft),
+      DiveTank(id: 'b', order: 1, role: TankRole.sidemountRight),
+    ];
+    expect(sidemountRigFromTanks(tanks), isTrue);
+    final model = composeFigure(
+      figureInputsForDive([left, stage], tankRolesByItem(tanks)),
+      sidemountRig: sidemountRigFromTanks(tanks),
+    );
+    expect(model.byId('left')!.zone, FigureZone.sidemountLeft);
+    expect(model.byId('stage')!.zone, FigureZone.sidemountRight);
+  });
+
+  test('back gas and stage roles do not make the rig sidemount', () {
+    expect(
+      sidemountRigFromTanks(const [
+        DiveTank(id: 'a', order: 0),
+        DiveTank(id: 'b', order: 1, role: TankRole.stage),
+      ]),
+      isFalse,
+    );
+    expect(sidemountRigFromTanks(const []), isFalse);
+  });
 }

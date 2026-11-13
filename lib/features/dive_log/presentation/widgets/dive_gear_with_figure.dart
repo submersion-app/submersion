@@ -64,6 +64,7 @@ class _DiveGearWithFigureState extends ConsumerState<DiveGearWithFigure>
                 ))
                   ...group.items,
               ], tankRolesByItem(dive.tanks)),
+              sidemountRig: sidemountRigFromTanks(dive.tanks),
             ),
           )
         : null;
