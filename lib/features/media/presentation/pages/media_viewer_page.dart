@@ -633,7 +633,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       fullscreen: isFullscreen,
                       onFullscreenTap: toggleFullscreenControls,
                       onSetOverlay: _onSetOverlay,
-                      onVideoScrubbingChanged: videoScrubbingChanged,
+                      onVideoHoldChanged: videoHoldChanged,
                       onVideoControllerChanged: _onVideoControllerChanged,
                       currentIndex: currentIndex,
                       people: peopleSession,
@@ -1105,9 +1105,10 @@ class _PhotoGallery extends ConsumerWidget {
   final VoidCallback onFullscreenTap;
   final ValueChanged<bool> onSetOverlay;
 
-  /// A video's scrub bar began or settled a scrub.
-  final void Function(VideoPlayerController video, bool scrubbing)
-  onVideoScrubbingChanged;
+  /// A video's controls bar asks for its controls to be held up, or lets
+  /// them go.
+  final void Function(VideoPlayerController video, bool held)
+  onVideoHoldChanged;
   final void Function(String mediaId, VideoPlayerController? controller)
   onVideoControllerChanged;
   final int currentIndex;
@@ -1123,7 +1124,7 @@ class _PhotoGallery extends ConsumerWidget {
     required this.fullscreen,
     required this.onFullscreenTap,
     required this.onSetOverlay,
-    required this.onVideoScrubbingChanged,
+    required this.onVideoHoldChanged,
     required this.onVideoControllerChanged,
     required this.currentIndex,
     required this.people,
@@ -1176,7 +1177,7 @@ class _PhotoGallery extends ConsumerWidget {
               showOverlay: showOverlay,
               fullscreen: fullscreen,
               onSetOverlay: onSetOverlay,
-              onScrubbingChanged: onVideoScrubbingChanged,
+              onHoldChanged: onVideoHoldChanged,
               onControllerChanged: onVideoControllerChanged,
               people: people,
             ),
@@ -1362,9 +1363,9 @@ class _VideoItem extends ConsumerStatefulWidget {
   final bool fullscreen;
   final ValueChanged<bool> onSetOverlay;
 
-  /// The controls bar began or settled a scrub, which holds the controls up.
-  final void Function(VideoPlayerController video, bool scrubbing)
-  onScrubbingChanged;
+  /// The controls bar asks for the controls to be held up (a scrub, or the
+  /// mouse on it), or lets them go.
+  final void Function(VideoPlayerController video, bool held) onHoldChanged;
 
   /// Reports the live controller (or null on dispose) so the page can drive
   /// page-level overlays from playback position.
@@ -1380,7 +1381,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     required this.showOverlay,
     this.fullscreen = false,
     required this.onSetOverlay,
-    required this.onScrubbingChanged,
+    required this.onHoldChanged,
     required this.onControllerChanged,
     required this.people,
   });
@@ -1723,10 +1724,10 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
                 controller: controller,
                 mediaId: widget.item.id,
                 // The controls hide 3 s after a reveal: hold them up while
-                // scrubbing, so the bar is not pulled from under the finger,
-                // then restart the clock only if the video plays on.
-                onScrubbingChanged: (scrubbing) =>
-                    widget.onScrubbingChanged(controller, scrubbing),
+                // scrubbing or under the mouse, so the bar is not pulled from
+                // under the pointer, then restart the clock only if the video
+                // plays on.
+                onHoldChanged: (held) => widget.onHoldChanged(controller, held),
               ),
             ),
         ],

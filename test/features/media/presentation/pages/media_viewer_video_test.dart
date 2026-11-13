@@ -245,41 +245,7 @@ void main() {
 
   testWidgets('in fullscreen a tap plays, reveals the controls, and they '
       'stay while paused', (tester) async {
-    final platform = FakeVideoPlatform();
-    useVideoPlatform(platform);
-
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            mediaSourceResolverRegistryProvider.overrideWithValue(
-              MediaSourceResolverRegistry({
-                MediaSourceType.localFile: UnavailableVideoResolver(),
-              }),
-            ),
-            resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => tempVideoPath('v1'),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: MediaViewerPage(
-              mediaList: [video('v1')],
-              initialMediaId: 'v1',
-            ),
-          ),
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      platform.completeInitialization();
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      await tester.pump();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      await tester.pump();
-    });
+    final platform = await pumpVideoViewer(tester, prefs);
 
     // Matched on the Semantics widgets the player wraps its controls in,
     // which does not depend on how the semantics tree merges them.
@@ -331,41 +297,7 @@ void main() {
 
   testWidgets('in fullscreen the controls stay up while scrubbing, and hide '
       'again after (#4487)', (tester) async {
-    final platform = FakeVideoPlatform();
-    useVideoPlatform(platform);
-
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            mediaSourceResolverRegistryProvider.overrideWithValue(
-              MediaSourceResolverRegistry({
-                MediaSourceType.localFile: UnavailableVideoResolver(),
-              }),
-            ),
-            resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => tempVideoPath('v1'),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: MediaViewerPage(
-              mediaList: [video('v1')],
-              initialMediaId: 'v1',
-            ),
-          ),
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      platform.completeInitialization();
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      await tester.pump();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      await tester.pump();
-    });
+    final platform = await pumpVideoViewer(tester, prefs);
 
     final track = find.byKey(VideoControlsBar.trackKey);
     final playPause = find.byWidgetPredicate(
@@ -407,41 +339,7 @@ void main() {
 
   testWidgets('in fullscreen a tap on the bar restarts the controls\' '
       'clock, so they do not vanish right after it (#4487)', (tester) async {
-    final platform = FakeVideoPlatform();
-    useVideoPlatform(platform);
-
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            mediaSourceResolverRegistryProvider.overrideWithValue(
-              MediaSourceResolverRegistry({
-                MediaSourceType.localFile: UnavailableVideoResolver(),
-              }),
-            ),
-            resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => tempVideoPath('v1'),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: MediaViewerPage(
-              mediaList: [video('v1')],
-              initialMediaId: 'v1',
-            ),
-          ),
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      platform.completeInitialization();
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      await tester.pump();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      await tester.pump();
-    });
+    final platform = await pumpVideoViewer(tester, prefs);
 
     final track = find.byKey(VideoControlsBar.trackKey);
     final playPause = find.byWidgetPredicate(

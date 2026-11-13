@@ -370,7 +370,7 @@ void main() {
         VideoControlsBar(
           controller: controller,
           mediaId: 'm1',
-          onScrubbingChanged: reports.add,
+          onHoldChanged: reports.add,
         ),
       ),
     );
@@ -438,7 +438,7 @@ void main() {
       VideoControlsBar(
         controller: c,
         mediaId: 'm1',
-        onScrubbingChanged: reports.add,
+        onHoldChanged: reports.add,
       ),
     );
     await first.play();
@@ -514,7 +514,7 @@ void main() {
               mediaId: 'm1',
               // A host that rebuilds on the report, as the media viewer's
               // fullscreen controls do.
-              onScrubbingChanged: (scrubbing) =>
+              onHoldChanged: (scrubbing) =>
                   setState(() => reports.add(scrubbing)),
             );
           },
@@ -621,7 +621,7 @@ void main() {
         VideoControlsBar(
           controller: controller,
           mediaId: 'm1',
-          onScrubbingChanged: reports.add,
+          onHoldChanged: reports.add,
         ),
       ),
     );

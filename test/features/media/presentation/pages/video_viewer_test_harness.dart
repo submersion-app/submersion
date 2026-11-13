@@ -4,11 +4,19 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -151,3 +159,43 @@ MediaItem video(String id) => MediaItem(
   createdAt: DateTime.utc(2026, 7, 1),
   updatedAt: DateTime.utc(2026, 7, 1),
 );
+
+/// Opens the viewer on one clip ('v1') played by a fresh [FakeVideoPlatform],
+/// initialized and ready, and returns the platform.
+Future<FakeVideoPlatform> pumpVideoViewer(
+  WidgetTester tester,
+  SharedPreferences prefs,
+) async {
+  final platform = FakeVideoPlatform();
+  useVideoPlatform(platform);
+  await tester.runAsync(() async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          mediaSourceResolverRegistryProvider.overrideWithValue(
+            MediaSourceResolverRegistry({
+              MediaSourceType.localFile: UnavailableVideoResolver(),
+            }),
+          ),
+          resolvedFilePathProvider.overrideWith(
+            (ref, MediaItem arg) async => tempVideoPath('v1'),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: MediaViewerPage(mediaList: [video('v1')], initialMediaId: 'v1'),
+        ),
+      ),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    platform.completeInitialization();
+    await Future<void>.delayed(const Duration(milliseconds: 150));
+    await tester.pump();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    await tester.pump();
+  });
+  return platform;
+}

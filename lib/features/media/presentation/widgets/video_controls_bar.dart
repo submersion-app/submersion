@@ -25,11 +25,12 @@ class VideoControlsBar extends StatefulWidget {
   /// The video, whose tagged moments are marked on the bar (issue #1745).
   final String mediaId;
 
-  /// Told true when a drag scrub begins and false once it has settled, so a
-  /// host that hides its controls on a timer can hold them up meanwhile. A
-  /// tap or a screen-reader step is a seek that settles at once, so it
-  /// reports false alone, letting the host restart its clock.
-  final ValueChanged<bool>? onScrubbingChanged;
+  /// Whether a host that hides its controls on a timer should hold them up:
+  /// true while a drag scrub is under way or the mouse rests on the bar,
+  /// false once both are over. A tap or a screen-reader step is a seek that
+  /// settles at once, so it reports false alone (unless the mouse is on the
+  /// bar), letting the host restart its clock.
+  final ValueChanged<bool>? onHoldChanged;
 
   /// The bar's touch area, for tests that tap or drag along it.
   @visibleForTesting
@@ -42,7 +43,7 @@ class VideoControlsBar extends StatefulWidget {
     super.key,
     required this.controller,
     required this.mediaId,
-    this.onScrubbingChanged,
+    this.onHoldChanged,
   });
 
   @override
@@ -56,6 +57,9 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   /// its width; null when not scrubbing. The thumb and elapsed time follow
   /// this rather than the player, so they never lag behind a pending seek.
   double? _scrubFraction;
+
+  /// Whether the mouse rests on the bar, which holds the host's controls.
+  bool _hovered = false;
 
   /// Whether the video was playing when the current scrub began.
   bool _resumeAfterScrub = false;
@@ -94,10 +98,10 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
       // A scrub in progress belonged to the old video: drop it rather than
       // seek or resume the new one with it. The host hears after this frame,
       // as it may rebuild in answer and this runs during build.
-      final onScrubbingChanged = widget.onScrubbingChanged;
-      if (_scrubFraction != null && onScrubbingChanged != null) {
+      final onHoldChanged = widget.onHoldChanged;
+      if (_scrubFraction != null && onHoldChanged != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) onScrubbingChanged(false);
+          if (mounted) onHoldChanged(_hovered);
         });
       }
       _scrubId++;
@@ -112,7 +116,24 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   @override
   void dispose() {
     widget.controller.removeListener(_onVideoUpdate);
+    // Gone mid-scrub or under the mouse (Space can hide the overlay during
+    // a drag): release the host's hold, or its controls never hide again.
+    // After this frame, since the host may rebuild in answer.
+    final onHoldChanged = widget.onHoldChanged;
+    if ((_scrubFraction != null || _hovered) && onHoldChanged != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => onHoldChanged(false));
+    }
     super.dispose();
+  }
+
+  /// Tells the host whether to hold its controls: while [scrubbing], or
+  /// while the mouse rests on the bar.
+  void _reportHold({required bool scrubbing}) =>
+      widget.onHoldChanged?.call(scrubbing || _hovered);
+
+  void _onPointerOver(bool hovered) {
+    _hovered = hovered;
+    _reportHold(scrubbing: _scrubFraction != null);
   }
 
   void _onVideoUpdate() {
@@ -133,7 +154,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     unawaited(_seekTo(_stepped(_heading, delta)));
     // Rebuild so the slider announces where the video is now headed.
     setState(() {});
-    widget.onScrubbingChanged?.call(false);
+    _reportHold(scrubbing: false);
   }
 
   /// [position] moved by [delta], kept inside the clip.
@@ -191,7 +212,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     unawaited(
       _seekTo(_positionAt(_fractionAt(details.localPosition.dx, width))),
     );
-    widget.onScrubbingChanged?.call(false);
+    _reportHold(scrubbing: false);
   }
 
   void _onScrubStart(DragStartDetails details, double width) {
@@ -203,7 +224,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     _resumeAfterScrub = settling || controller.value.isPlaying;
     if (controller.value.isPlaying) unawaited(controller.pause());
     _scrubTo(details.localPosition.dx, width);
-    widget.onScrubbingChanged?.call(true);
+    _reportHold(scrubbing: true);
   }
 
   void _onScrubUpdate(DragUpdateDetails details, double width) {
@@ -232,7 +253,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     if (resume && value.position < value.duration) {
       unawaited(widget.controller.play());
     }
-    widget.onScrubbingChanged?.call(false);
+    _reportHold(scrubbing: false);
   }
 
   @override
@@ -258,139 +279,143 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
 
     return Directionality(
       textDirection: TextDirection.ltr,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            // Current time
-            SizedBox(
-              width: 48,
-              child: Text(
-                _formatDuration(position),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontFeatures: [FontFeature.tabularFigures()],
+      child: MouseRegion(
+        onEnter: (_) => _onPointerOver(true),
+        onExit: (_) => _onPointerOver(false),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            children: [
+              // Current time
+              SizedBox(
+                width: 48,
+                child: Text(
+                  _formatDuration(position),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontFeatures: [FontFeature.tabularFigures()],
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
-            // Scrub bar: tap to jump, drag to scrub.
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  // A slider to assistive tech, stepping by a few seconds,
-                  // since a screen reader cannot tap a point or drag.
-                  return Semantics(
-                    label: context.l10n.media_photoViewer_seekVideoLabel,
-                    slider: true,
-                    value: _formatDuration(announced),
-                    increasedValue: canSeek
-                        ? _formatDuration(
-                            _stepped(
-                              announced,
-                              VideoControlsBar.accessibilityStep,
-                            ),
-                          )
-                        : null,
-                    decreasedValue: canSeek
-                        ? _formatDuration(
-                            _stepped(
-                              announced,
-                              -VideoControlsBar.accessibilityStep,
-                            ),
-                          )
-                        : null,
-                    onIncrease: canSeek
-                        ? () => _step(VideoControlsBar.accessibilityStep)
-                        : null,
-                    onDecrease: canSeek
-                        ? () => _step(-VideoControlsBar.accessibilityStep)
-                        : null,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      // The slider above is the bar's whole semantic face.
-                      // The detector's own tap and scroll actions would fake
-                      // a gesture at the bar's centre and jump there.
-                      excludeFromSemantics: true,
-                      onTapDown: (details) => _onTapDown(details, width),
-                      onHorizontalDragStart: (details) =>
-                          _onScrubStart(details, width),
-                      onHorizontalDragUpdate: (details) =>
-                          _onScrubUpdate(details, width),
-                      onHorizontalDragEnd: (_) => unawaited(_onScrubEnd()),
-                      onHorizontalDragCancel: () => unawaited(_onScrubEnd()),
-                      child: SizedBox(
-                        key: VideoControlsBar.trackKey,
-                        height: 40, // Larger touch target
-                        child: Center(
-                          child: Stack(
-                            // The thumb and tag marks overhang the 4 px
-                            // track; clipping drew the thumb as a sliver.
-                            clipBehavior: Clip.none,
-                            children: [
-                              // Background track
-                              Container(
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.3),
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
+              // Scrub bar: tap to jump, drag to scrub.
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final width = constraints.maxWidth;
+                    // A slider to assistive tech, stepping by a few seconds,
+                    // since a screen reader cannot tap a point or drag.
+                    return Semantics(
+                      label: context.l10n.media_photoViewer_seekVideoLabel,
+                      slider: true,
+                      value: _formatDuration(announced),
+                      increasedValue: canSeek
+                          ? _formatDuration(
+                              _stepped(
+                                announced,
+                                VideoControlsBar.accessibilityStep,
                               ),
-                              // Progress track
-                              FractionallySizedBox(
-                                widthFactor: progress,
-                                child: Container(
+                            )
+                          : null,
+                      decreasedValue: canSeek
+                          ? _formatDuration(
+                              _stepped(
+                                announced,
+                                -VideoControlsBar.accessibilityStep,
+                              ),
+                            )
+                          : null,
+                      onIncrease: canSeek
+                          ? () => _step(VideoControlsBar.accessibilityStep)
+                          : null,
+                      onDecrease: canSeek
+                          ? () => _step(-VideoControlsBar.accessibilityStep)
+                          : null,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        // The slider above is the bar's whole semantic face.
+                        // The detector's own tap and scroll actions would fake
+                        // a gesture at the bar's centre and jump there.
+                        excludeFromSemantics: true,
+                        onTapDown: (details) => _onTapDown(details, width),
+                        onHorizontalDragStart: (details) =>
+                            _onScrubStart(details, width),
+                        onHorizontalDragUpdate: (details) =>
+                            _onScrubUpdate(details, width),
+                        onHorizontalDragEnd: (_) => unawaited(_onScrubEnd()),
+                        onHorizontalDragCancel: () => unawaited(_onScrubEnd()),
+                        child: SizedBox(
+                          key: VideoControlsBar.trackKey,
+                          height: 40, // Larger touch target
+                          child: Center(
+                            child: Stack(
+                              // The thumb and tag marks overhang the 4 px
+                              // track; clipping drew the thumb as a sliver.
+                              clipBehavior: Clip.none,
+                              children: [
+                                // Background track
+                                Container(
                                   height: 4,
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: Colors.white.withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(2),
                                   ),
                                 ),
-                              ),
-                              // Tagged moments (issue #1745)
-                              VideoTagMarks(
-                                mediaId: widget.mediaId,
-                                duration: duration,
-                                width: width,
-                              ),
-                              // Thumb indicator
-                              Positioned(
-                                left: (width * progress) - 8,
-                                top: -6,
-                                child: Container(
-                                  width: 16,
-                                  height: 16,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
+                                // Progress track
+                                FractionallySizedBox(
+                                  widthFactor: progress,
+                                  child: Container(
+                                    height: 4,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
+                                // Tagged moments (issue #1745)
+                                VideoTagMarks(
+                                  mediaId: widget.mediaId,
+                                  duration: duration,
+                                  width: width,
+                                ),
+                                // Thumb indicator
+                                Positioned(
+                                  left: (width * progress) - 8,
+                                  top: -6,
+                                  child: Container(
+                                    width: 16,
+                                    height: 16,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Total time
-            SizedBox(
-              width: 48,
-              child: Text(
-                _formatDuration(duration),
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 12,
-                  fontFeatures: [const FontFeature.tabularFigures()],
+                    );
+                  },
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
-          ],
+              // Total time
+              SizedBox(
+                width: 48,
+                child: Text(
+                  _formatDuration(duration),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 12,
+                    fontFeatures: [const FontFeature.tabularFigures()],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

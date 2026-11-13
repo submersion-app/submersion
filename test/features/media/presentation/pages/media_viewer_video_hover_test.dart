@@ -1,17 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
-import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/media/domain/entities/media_source_type.dart';
-import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
-import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
-import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/test_database.dart';
 import 'video_viewer_test_harness.dart';
@@ -29,44 +21,6 @@ void main() {
   });
 
   tearDown(tearDownTestDatabase);
-
-  Future<FakeVideoPlatform> pumpViewer(WidgetTester tester) async {
-    final platform = FakeVideoPlatform();
-    useVideoPlatform(platform);
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            mediaSourceResolverRegistryProvider.overrideWithValue(
-              MediaSourceResolverRegistry({
-                MediaSourceType.localFile: UnavailableVideoResolver(),
-              }),
-            ),
-            resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => tempVideoPath('v1'),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: MediaViewerPage(
-              mediaList: [video('v1')],
-              initialMediaId: 'v1',
-            ),
-          ),
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      platform.completeInitialization();
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      await tester.pump();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      await tester.pump();
-    });
-    return platform;
-  }
 
   final track = find.byKey(VideoControlsBar.trackKey);
   final playPause = find.byWidgetPredicate(
@@ -112,7 +66,7 @@ void main() {
 
   testWidgets('a mouse move brings a playing video\'s controls back, and '
       'they go once it rests', (tester) async {
-    final platform = await pumpViewer(tester);
+    final platform = await pumpVideoViewer(tester, prefs);
 
     await tapVideo(tester);
     expect(platform.playing, isTrue);
@@ -137,7 +91,7 @@ void main() {
 
   testWidgets('leaving the window hides a playing video\'s controls at '
       'once; a paused video keeps them', (tester) async {
-    final platform = await pumpViewer(tester);
+    final platform = await pumpVideoViewer(tester, prefs);
 
     await tapVideo(tester);
     var mouse = await mouseOver(tester);
@@ -163,7 +117,7 @@ void main() {
 
   testWidgets('in fullscreen a mouse move reveals the exit button and the '
       'bar, and they go once it rests', (tester) async {
-    final platform = await pumpViewer(tester);
+    final platform = await pumpVideoViewer(tester, prefs);
     final exitButton = find.byTooltip('Exit full screen');
 
     await tester.tap(find.byTooltip('Full screen'));
@@ -187,7 +141,7 @@ void main() {
 
   testWidgets('a mouse scrub holds the controls, which go 3 s after the '
       'release', (tester) async {
-    final platform = await pumpViewer(tester);
+    final platform = await pumpVideoViewer(tester, prefs);
 
     await tapVideo(tester);
     final mouse = await mouseOver(tester);
@@ -208,6 +162,10 @@ void main() {
     await tester.pump();
     expect(platform.playing, isTrue);
     expect(track, findsOneWidget);
+    // Still on the bar, the mouse holds them; off it, the clock runs.
+    await tester.pump(const Duration(seconds: 4));
+    expect(track, findsOneWidget);
+    await mouse.moveTo(tester.getCenter(playPause));
     await tester.pump(const Duration(seconds: 3));
     expect(track, findsNothing);
     await stopPlayback(tester, platform);
@@ -218,7 +176,7 @@ void main() {
       'late one neither strands the play icon nor the controls', (
     tester,
   ) async {
-    final platform = await pumpViewer(tester);
+    final platform = await pumpVideoViewer(tester, prefs);
     final playIcon = find.byIcon(Icons.play_arrow);
 
     await tester.tap(find.byTooltip('Full screen'));
@@ -253,6 +211,59 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     expect(track, findsOneWidget);
     expect(playIcon, findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the controls stay up while the mouse rests on the bar, and '
+      'go 3 s after it moves off', (tester) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+
+    await tapVideo(tester);
+    final mouse = await mouseOver(tester);
+    await mouse.moveBy(const Offset(5, 5));
+    await tester.pump();
+    await mouse.moveTo(tester.getCenter(track));
+    await tester.pump(const Duration(seconds: 5));
+    expect(track, findsOneWidget, reason: 'held under the mouse');
+
+    await mouse.moveTo(tester.getCenter(playPause));
+    await tester.pump(const Duration(seconds: 2));
+    expect(track, findsOneWidget);
+    await tester.pump(const Duration(seconds: 1));
+    expect(track, findsNothing);
+    await stopPlayback(tester, platform);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a bar hidden mid-scrub lets the controls go again', (
+    tester,
+  ) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+
+    await tapVideo(tester);
+    final mouse = await mouseOver(tester);
+    await mouse.moveBy(const Offset(5, 5));
+    await tester.pump();
+    await mouse.down(tester.getCenter(track));
+    await mouse.moveBy(const Offset(40, 0));
+    await tester.pump();
+    expect(platform.playing, isFalse, reason: 'paused while scrubbing');
+
+    // Space plays the video mid-drag, which hides the overlay and the bar.
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await tester.pump();
+    expect(platform.playing, isTrue);
+    expect(track, findsNothing);
+    await mouse.up();
+    await tester.pump();
+
+    // Away from where the bar was, a move reveals on the usual clock.
+    await mouse.moveTo(tester.getCenter(playPause) - const Offset(0, 100));
+    await tester.pump();
+    expect(track, findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
+    expect(track, findsNothing);
+    await stopPlayback(tester, platform);
     expect(tester.takeException(), isNull);
   });
 }
