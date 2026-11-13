@@ -40383,6 +40383,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Cylinder use';
 
   @override
+  String get attrLabel_worn_as => 'Worn as';
+
+  @override
   String get attrLabel_tank_identifier => 'Identifier';
 
   @override
@@ -40544,6 +40547,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Color';
+
+  @override
+  String get attrLabel_figure_position => 'Position on figure';
 
   @override
   String get attrLabel_sleeve_length => 'Sleeves';
@@ -40748,6 +40754,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Suit inflation';
+
+  @override
+  String get attrChoice_worn_as_back => 'Back mount';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount, left';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount, right';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stage';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Mouth';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Chest (octo)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Chest, left';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Chest, right';
+
+  @override
+  String get attrChoice_figure_position_console => 'Console';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Left wrist';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Right wrist';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Left hand';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Right hand';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Left hip';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Right hip';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Left thigh';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Right thigh';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Left calf';
+
+  @override
+  String get attrChoice_figure_position_back => 'Back';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Trim pocket, left';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Trim pocket, right';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'Butt D-ring';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, left';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, right';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, left';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, right';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41088,6 +41172,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attr_flagNo => 'No';
+
+  @override
+  String get attr_figurePosition_automatic => 'Automatic';
 
   @override
   String get equipment_edit_invalidThickness => 'Use 5, 5/4 or 7/5/3';

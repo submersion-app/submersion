@@ -40063,6 +40063,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_cylinder_use => 'שימוש בבלון';
 
   @override
+  String get attrLabel_worn_as => 'נישא כ־';
+
+  @override
   String get attrLabel_tank_identifier => 'מזהה';
 
   @override
@@ -40223,6 +40226,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'צבע';
+
+  @override
+  String get attrLabel_figure_position => 'מיקום על דמות הצולל';
 
   @override
   String get attrLabel_sleeve_length => 'שרוולים';
@@ -40427,6 +40433,84 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'ניפוח חליפה';
+
+  @override
+  String get attrChoice_worn_as_back => 'הרכבה על הגב';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'סיידמאונט שמאל';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'סיידמאונט ימין';
+
+  @override
+  String get attrChoice_worn_as_stage => 'סטייג\'';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'פה';
+
+  @override
+  String get attrChoice_figure_position_octo => 'חזה (אוקטופוס)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'חזה, שמאל';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'חזה, ימין';
+
+  @override
+  String get attrChoice_figure_position_console => 'קונסולה';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'פרק יד שמאל';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'פרק יד ימין';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'יד שמאל';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'יד ימין';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'מותן שמאל';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'מותן ימין';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'ירך שמאל';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'ירך ימין';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'שוק שמאל';
+
+  @override
+  String get attrChoice_figure_position_back => 'גב';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'כיס טרים, שמאל';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'כיס טרים, ימין';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'טבעת D אחורית';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'סיידמאונט, שמאל';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'סיידמאונט, ימין';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'סטייג\', שמאל';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'סטייג\', ימין';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -40766,6 +40850,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attr_flagNo => 'לא';
+
+  @override
+  String get attr_figurePosition_automatic => 'אוטומטי';
 
   @override
   String get equipment_edit_invalidThickness => 'השתמשו ב-5, 5/4 או 7/5/3';

@@ -38607,6 +38607,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_cylinder_use => '气瓶用途';
 
   @override
+  String get attrLabel_worn_as => '佩戴方式';
+
+  @override
   String get attrLabel_tank_identifier => '标识';
 
   @override
@@ -38767,6 +38770,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_color => '颜色';
+
+  @override
+  String get attrLabel_figure_position => '在潜水员图示上的位置';
 
   @override
   String get attrLabel_sleeve_length => '袖长';
@@ -38971,6 +38977,84 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => '干衣充气';
+
+  @override
+  String get attrChoice_worn_as_back => '背挂式';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => '左侧挂';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => '右侧挂';
+
+  @override
+  String get attrChoice_worn_as_stage => '阶段气瓶';
+
+  @override
+  String get attrChoice_figure_position_mouth => '嘴部';
+
+  @override
+  String get attrChoice_figure_position_octo => '胸前（备用二级头）';
+
+  @override
+  String get attrChoice_figure_position_chest_left => '胸前左侧';
+
+  @override
+  String get attrChoice_figure_position_chest_right => '胸前右侧';
+
+  @override
+  String get attrChoice_figure_position_console => '仪表组';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => '左手腕';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => '右手腕';
+
+  @override
+  String get attrChoice_figure_position_hand_left => '左手';
+
+  @override
+  String get attrChoice_figure_position_hand_right => '右手';
+
+  @override
+  String get attrChoice_figure_position_hip_left => '左髋';
+
+  @override
+  String get attrChoice_figure_position_hip_right => '右髋';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => '左大腿';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => '右大腿';
+
+  @override
+  String get attrChoice_figure_position_calf_left => '左小腿';
+
+  @override
+  String get attrChoice_figure_position_back => '背部';
+
+  @override
+  String get attrChoice_figure_position_trim_left => '配平袋（左）';
+
+  @override
+  String get attrChoice_figure_position_trim_right => '配平袋（右）';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => '臀部D环';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => '侧挂（左）';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => '侧挂（右）';
+
+  @override
+  String get attrChoice_figure_position_stage_left => '阶段气瓶（左）';
+
+  @override
+  String get attrChoice_figure_position_stage_right => '阶段气瓶（右）';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -39310,6 +39394,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attr_flagNo => '否';
+
+  @override
+  String get attr_figurePosition_automatic => '自动';
 
   @override
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';

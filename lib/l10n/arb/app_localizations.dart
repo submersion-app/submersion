@@ -64349,6 +64349,12 @@ abstract class AppLocalizations {
   /// **'Cylinder use'**
   String get attrLabel_cylinder_use;
 
+  /// No description provided for @attrLabel_worn_as.
+  ///
+  /// In en, this message translates to:
+  /// **'Worn as'**
+  String get attrLabel_worn_as;
+
   /// No description provided for @attrLabel_tank_identifier.
   ///
   /// In en, this message translates to:
@@ -64672,6 +64678,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get attrLabel_color;
+
+  /// No description provided for @attrLabel_figure_position.
+  ///
+  /// In en, this message translates to:
+  /// **'Position on figure'**
+  String get attrLabel_figure_position;
 
   /// No description provided for @attrLabel_sleeve_length.
   ///
@@ -65080,6 +65092,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Suit inflation'**
   String get attrChoice_cylinder_use_suit_inflation;
+
+  /// No description provided for @attrChoice_worn_as_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back mount'**
+  String get attrChoice_worn_as_back;
+
+  /// No description provided for @attrChoice_worn_as_sidemount_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, left'**
+  String get attrChoice_worn_as_sidemount_left;
+
+  /// No description provided for @attrChoice_worn_as_sidemount_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, right'**
+  String get attrChoice_worn_as_sidemount_right;
+
+  /// No description provided for @attrChoice_worn_as_stage.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage'**
+  String get attrChoice_worn_as_stage;
+
+  /// No description provided for @attrChoice_figure_position_mouth.
+  ///
+  /// In en, this message translates to:
+  /// **'Mouth'**
+  String get attrChoice_figure_position_mouth;
+
+  /// No description provided for @attrChoice_figure_position_octo.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest (octo)'**
+  String get attrChoice_figure_position_octo;
+
+  /// No description provided for @attrChoice_figure_position_chest_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest, left'**
+  String get attrChoice_figure_position_chest_left;
+
+  /// No description provided for @attrChoice_figure_position_chest_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest, right'**
+  String get attrChoice_figure_position_chest_right;
+
+  /// No description provided for @attrChoice_figure_position_console.
+  ///
+  /// In en, this message translates to:
+  /// **'Console'**
+  String get attrChoice_figure_position_console;
+
+  /// No description provided for @attrChoice_figure_position_wrist_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left wrist'**
+  String get attrChoice_figure_position_wrist_left;
+
+  /// No description provided for @attrChoice_figure_position_wrist_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right wrist'**
+  String get attrChoice_figure_position_wrist_right;
+
+  /// No description provided for @attrChoice_figure_position_hand_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left hand'**
+  String get attrChoice_figure_position_hand_left;
+
+  /// No description provided for @attrChoice_figure_position_hand_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right hand'**
+  String get attrChoice_figure_position_hand_right;
+
+  /// No description provided for @attrChoice_figure_position_hip_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left hip'**
+  String get attrChoice_figure_position_hip_left;
+
+  /// No description provided for @attrChoice_figure_position_hip_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right hip'**
+  String get attrChoice_figure_position_hip_right;
+
+  /// No description provided for @attrChoice_figure_position_thigh_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left thigh'**
+  String get attrChoice_figure_position_thigh_left;
+
+  /// No description provided for @attrChoice_figure_position_thigh_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right thigh'**
+  String get attrChoice_figure_position_thigh_right;
+
+  /// No description provided for @attrChoice_figure_position_calf_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left calf'**
+  String get attrChoice_figure_position_calf_left;
+
+  /// No description provided for @attrChoice_figure_position_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get attrChoice_figure_position_back;
+
+  /// No description provided for @attrChoice_figure_position_trim_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim pocket, left'**
+  String get attrChoice_figure_position_trim_left;
+
+  /// No description provided for @attrChoice_figure_position_trim_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim pocket, right'**
+  String get attrChoice_figure_position_trim_right;
+
+  /// No description provided for @attrChoice_figure_position_butt_d_ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Butt D-ring'**
+  String get attrChoice_figure_position_butt_d_ring;
+
+  /// No description provided for @attrChoice_figure_position_sidemount_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, left'**
+  String get attrChoice_figure_position_sidemount_left;
+
+  /// No description provided for @attrChoice_figure_position_sidemount_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, right'**
+  String get attrChoice_figure_position_sidemount_right;
+
+  /// No description provided for @attrChoice_figure_position_stage_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage, left'**
+  String get attrChoice_figure_position_stage_left;
+
+  /// No description provided for @attrChoice_figure_position_stage_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage, right'**
+  String get attrChoice_figure_position_stage_right;
 
   /// No description provided for @attrChoice_connection_din.
   ///
@@ -65758,6 +65926,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get attr_flagNo;
+
+  /// No description provided for @attr_figurePosition_automatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get attr_figurePosition_automatic;
 
   /// No description provided for @equipment_edit_invalidThickness.
   ///
