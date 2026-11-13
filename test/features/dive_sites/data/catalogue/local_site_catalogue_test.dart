@@ -221,6 +221,154 @@ void main() {
       expect(idsOf(await catalogue.search('salt germany')), ['nowhere']);
     });
 
+    test('lists matches by name, ignoring case and accents', () async {
+      // SQLite compares text byte by byte: left to the raw name, every
+      // lowercase and accented name would come after "Zenobia".
+      final named = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      addTearDown(named.close);
+      await SiteCatalogueImporter(
+        database: named,
+        bundle: _Bundle(
+          jsonEncode({
+            'metadata': {'format': 2, 'sources': <String, Object?>{}},
+            'sites': [
+              _site('z', 'Zenobia', country: 'Testland'),
+              _site('l', 'little shark', country: 'Testland'),
+              _site('e', 'Épave du Donator', country: 'Testland'),
+              _site('bd', 'Blue Hole Dahab', country: 'Testland'),
+              _site('b', 'Blue Hole', country: 'Testland'),
+            ],
+          }),
+        ),
+      ).importIfChanged();
+
+      final found = await LocalSiteCatalogue(
+        database: named,
+      ).search('testland');
+
+      expect(found.map((s) => s.name), [
+        'Blue Hole',
+        'Blue Hole Dahab',
+        'Épave du Donator',
+        'little shark',
+        'Zenobia',
+      ]);
+    });
+
+    group('order', () {
+      // A sea holds hundreds of sites, and its name is made of common
+      // words: "sea", "north", "red". A site matched by its own name must
+      // not be buried under every site of such a sea.
+      Map<String, Object?> at(
+        String id,
+        String name, {
+        required double lat,
+        required double lon,
+        String? sea,
+        String? country,
+      }) => {
+        ..._site(id, name, lat: lat, lon: lon, country: country),
+        'body_of_water': ?sea,
+      };
+
+      Future<LocalSiteCatalogue> catalogueOf(List<Object?> sites) async {
+        final db = LocalCacheDatabase(
+          NativeDatabase.memory(setup: registerAppSqlFunctions),
+        );
+        addTearDown(db.close);
+        await SiteCatalogueImporter(
+          database: db,
+          bundle: _Bundle(
+            jsonEncode({
+              'metadata': {'format': 2, 'sources': <String, Object?>{}},
+              'sites': sites,
+            }),
+          ),
+        ).importIfChanged();
+        return LocalSiteCatalogue(database: db);
+      }
+
+      test(
+        'a site matched by name comes before one matched by place',
+        () async {
+          final seas = await catalogueOf([
+            at('abu', 'Abu Dabab', lat: 25.3, lon: 34.7, sea: 'Red Sea'),
+            at('elph', 'Elphinstone', lat: 25.3, lon: 34.9, sea: 'Red Sea'),
+            at('tiger', 'Sea Tiger', lat: 21.3, lon: -157.9),
+            at('zulu', 'Zulu Sea Mount', lat: 1, lon: 1),
+          ]);
+
+          expect(idsOf(await seas.search('sea')), [
+            'tiger',
+            'zulu',
+            'abu',
+            'elph',
+          ]);
+        },
+      );
+
+      test(
+        'every word has to be in the name to count as a name match',
+        () async {
+          final seas = await catalogueOf([
+            at('hole', 'Blue Hole', lat: 28.5, lon: 34.5, country: 'Egypt'),
+            at('reef', 'Blue Egypt Reef', lat: 1, lon: 1),
+            at('azure', 'Azure Blue', lat: 2, lon: 2, country: 'Egypt'),
+          ]);
+
+          expect(idsOf(await seas.search('blue egypt')), [
+            'reef',
+            'azure',
+            'hole',
+          ]);
+        },
+      );
+
+      test(
+        'the limit keeps the name match, not the first by alphabet',
+        () async {
+          final seas = await catalogueOf([
+            for (var i = 0; i < 60; i++)
+              at(
+                'in_$i',
+                'Alpha ${i.toString().padLeft(2, '0')}',
+                lat: 25.0 + i / 1000,
+                lon: 34.7,
+                sea: 'Red Sea',
+              ),
+            at('tiger', 'Sea Tiger', lat: 21.3, lon: -157.9),
+          ]);
+
+          final found = await seas.search('sea', limit: 50);
+
+          expect(found, hasLength(50));
+          expect(found.first.id, 'tiger');
+        },
+      );
+
+      test('names first, the area leading within each', () async {
+        // The dive is in the Red Sea, off Marsa Alam.
+        const marsaAlam = GeoPoint(25.3, 34.7);
+        final seas = await catalogueOf([
+          at('abu', 'Abu Dabab', lat: 25.3, lon: 34.7, sea: 'Red Sea'),
+          at('local', 'Sea Horse Bay', lat: 25.31, lon: 34.71, sea: 'Red Sea'),
+          at('tiger', 'Sea Tiger', lat: 21.3, lon: -157.9),
+          at('yanbu', 'Yanbu Wall', lat: 24.0, lon: 38.0, sea: 'Red Sea'),
+        ]);
+
+        expect(idsOf(await seas.search('sea', areaFirst: marsaAlam)), [
+          // Named "Sea ...": the one in the dive's area, then elsewhere.
+          'local',
+          'tiger',
+          // In a sea of that name only: the dive's area, then elsewhere.
+          'abu',
+          'yanbu',
+        ]);
+      });
+    });
+
     test('finds a site by the sea it is in', () async {
       expect(idsOf(await catalogue.search('caribbean sea')), ['full']);
     });

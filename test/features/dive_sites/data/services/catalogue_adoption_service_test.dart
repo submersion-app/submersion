@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/services/geocoding/sea_area_index.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
@@ -51,10 +52,112 @@ void main() {
 
   CatalogueAdoptionService service({
     Future<double?> Function(GeoPoint point)? fetchElevation,
+    Future<SeaAreaIndex?> Function()? loadSeas,
+    String Function()? placeNameLanguage,
   }) => CatalogueAdoptionService(
     siteRepository: sites,
     fetchElevation: fetchElevation,
+    loadSeas: loadSeas,
+    placeNameLanguage: placeNameLanguage,
   );
+
+  group('the sea of an adopted site', () {
+    // One sea: the square from the equator and the prime meridian to 10
+    // degrees north and east, with a German name.
+    final seas = SeaAreaIndex.fromJson(<String, dynamic>{
+      'areas': <dynamic>[
+        <String, dynamic>{
+          'name': 'Test Sea',
+          'bbox': <dynamic>[0, 0, 10, 10],
+          'area': 100.0,
+          'polygons': <dynamic>[
+            <String, dynamic>{
+              'outer': <dynamic>[0, 0, 10, 0, 10, 10, 0, 10, 0, 0],
+            },
+          ],
+          'names': <String, dynamic>{'de': 'Testmeer'},
+        },
+      ],
+    });
+    const inTheSea = CatalogueSite(
+      id: 'osm_node_9',
+      name: 'Shark Reef',
+      location: GeoPoint(5, 5),
+      bodyOfWater: 'Test Sea',
+      source: 'osm',
+    );
+
+    Future<String?> adoptedSea(
+      CatalogueSite site, {
+      Future<SeaAreaIndex?> Function()? loadSeas,
+      String language = 'de',
+    }) async {
+      final adoption = await service(
+        loadSeas: loadSeas,
+        placeNameLanguage: () => language,
+      ).adopt(site, diverId: null);
+      return (await sites.getSiteById(adoption.site.id))!.bodyOfWater;
+    }
+
+    test("is named in the diver's place-name language", () async {
+      // As every other route that names a site's sea does: one column must
+      // not hold "Red Sea" on one site and "Rotes Meer" on the next.
+      expect(
+        await adoptedSea(inTheSea, loadSeas: () async => seas),
+        'Testmeer',
+      );
+    });
+
+    test(
+      'stays as the catalogue has it for a language the table lacks',
+      () async {
+        expect(
+          await adoptedSea(
+            inTheSea,
+            loadSeas: () async => seas,
+            language: 'fr',
+          ),
+          'Test Sea',
+        );
+      },
+    );
+
+    test('is kept when the sea table did not give it', () async {
+      // A record that came with its own body of water is not renamed.
+      const lagoon = CatalogueSite(
+        id: 'osm_node_10',
+        name: 'Lagoon Wall',
+        location: GeoPoint(5, 5),
+        bodyOfWater: 'Blue Lagoon',
+        source: 'osm',
+      );
+
+      expect(
+        await adoptedSea(lagoon, loadSeas: () async => seas),
+        'Blue Lagoon',
+      );
+    });
+
+    test('is kept when the sea table cannot be read', () async {
+      expect(
+        await adoptedSea(inTheSea, loadSeas: () async => null),
+        'Test Sea',
+      );
+      expect(
+        await adoptedSea(
+          const CatalogueSite(
+            id: 'osm_node_11',
+            name: 'Other Reef',
+            location: GeoPoint(5, 5),
+            bodyOfWater: 'Test Sea',
+            source: 'osm',
+          ),
+          loadSeas: () async => throw StateError('no asset'),
+        ),
+        'Test Sea',
+      );
+    });
+  });
 
   test('adopting creates the site with its details, types and link', () async {
     final adoption = await service().adopt(_saltPier, diverId: null);

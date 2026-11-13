@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
@@ -8,6 +9,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
+import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -64,40 +66,56 @@ class LocalSiteCatalogue implements SiteCatalogue {
         )
         .reduce((a, b) => a & b);
 
-    final inArea = <CatalogueSite>[];
+    // The dive's area: every match in it, read whole so the box's corners
+    // can be cut by a real distance.
+    final inArea = <SiteCatalogueRow>[];
     if (areaFirst != null) {
       final rows =
           await (db.select(db.siteCatalogueEntries)
                 ..where(
                   (t) => matches(t) & _inBox(t, areaFirst, areaRadiusMeters),
                 )
-                ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+                ..orderBy(_byName))
               .get();
-      // The box has corners the circle does not: cut them here.
       inArea.addAll(
-        rows
-            .map(catalogueSiteFromRow)
-            .where(
-              (site) =>
-                  distanceMeters(areaFirst, site.location!) <= areaRadiusMeters,
-            ),
+        rows.where(
+          (row) =>
+              distanceMeters(
+                areaFirst,
+                GeoPoint(row.latitude!, row.longitude!),
+              ) <=
+              areaRadiusMeters,
+        ),
       );
     }
 
-    final areaIds = {for (final site in inArea) site.id};
-    final elsewhere =
+    // Everywhere: name matches first, so the limit keeps "Sea Tiger" and
+    // not the first fifty of the 1,600 sites that merely lie in a sea.
+    final areaIds = {for (final row in inArea) row.id};
+    final everywhere =
         await (db.select(db.siteCatalogueEntries)
               ..where(matches)
-              ..orderBy([(t) => OrderingTerm.asc(t.name)])
+              ..orderBy([
+                (t) => OrderingTerm.desc(_inName(t, words)),
+                ..._byName,
+              ])
               // Enough to fill the page even if every area match repeats.
               ..limit(limit + areaIds.length))
             .get();
+    final elsewhere = [
+      for (final row in everywhere)
+        if (!areaIds.contains(row.id)) row,
+    ];
 
+    // Sites the diver named come before sites that are only in a place or
+    // a sea of that name; within each, the dive's area leads.
+    bool byName(SiteCatalogueRow row) => _nameMatches(row.searchText, words);
     return [
-      ...inArea,
-      for (final row in elsewhere)
-        if (!areaIds.contains(row.id)) catalogueSiteFromRow(row),
-    ].take(limit).toList();
+      ...inArea.where(byName),
+      ...elsewhere.where(byName),
+      ...inArea.whereNot(byName),
+      ...elsewhere.whereNot(byName),
+    ].take(limit).map(catalogueSiteFromRow).toList();
   });
 
   @override
@@ -154,6 +172,43 @@ class LocalSiteCatalogue implements SiteCatalogue {
     }
   }
 }
+
+/// Whether every word of a search is in the site's own name, not only in
+/// its place or its sea: the search text holds the folded name up to
+/// [kCatalogueNameEnd], and a word never contains that mark, so a word is
+/// in the name exactly when it first appears before the mark.
+Expression<bool> _inName($SiteCatalogueEntriesTable t, List<String> words) {
+  Expression<int> at(String text) => FunctionCallExpression<int>('instr', [
+    t.searchText,
+    Variable.withString(text),
+  ]);
+  final nameEnd = at(kCatalogueNameEnd);
+  return words
+      .map<Expression<bool>>(
+        (word) =>
+            at(word).isBiggerThanValue(0) & at(word).isSmallerThan(nameEnd),
+      )
+      .reduce((a, b) => a & b);
+}
+
+/// [_inName] for a row already read. The two must agree: the query's order
+/// decides which rows survive its limit, this decides where they are shown.
+bool _nameMatches(String searchText, List<String> words) {
+  final nameEnd = searchText.indexOf(kCatalogueNameEnd);
+  if (nameEnd < 0) return false;
+  final name = searchText.substring(0, nameEnd);
+  return words.every(name.contains);
+}
+
+/// By name as a reader expects it: the search text begins with the folded
+/// name, so "little shark" and "Épave" sort among the L and E names. SQLite
+/// compares the raw name byte by byte, which would put both after "Zenobia".
+/// The raw name and the id only settle ties.
+final List<OrderingTerm Function($SiteCatalogueEntriesTable)> _byName = [
+  (t) => OrderingTerm.asc(t.searchText),
+  (t) => OrderingTerm.asc(t.name),
+  (t) => OrderingTerm.asc(t.id),
+];
 
 /// Rows whose coordinates fall in the box around the circle of
 /// [radiusMeters] about [center]. The box is what the index can answer;

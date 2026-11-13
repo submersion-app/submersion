@@ -8,6 +8,7 @@ import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -391,9 +392,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet>
               (site: site, distance: distance),
         ]..sort(
           _anchorIsInferred
-              ? (a, b) => a.site.name.toLowerCase().compareTo(
-                  b.site.name.toLowerCase(),
-                )
+              ? (a, b) => compareTextForSort(a.site.name, b.site.name)
               : (a, b) => a.distance.compareTo(b.distance),
         );
     // Only the Nearby and built-in sections are ordered around the anchor,

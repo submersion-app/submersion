@@ -61,7 +61,7 @@ def _harvested(**overrides):
 
 
 def _in_the_states(latitude, longitude):
-    return ("US", "United States")
+    return ("US", "United States", None)
 
 
 class MergeTest(unittest.TestCase):
@@ -100,11 +100,34 @@ class MergeTest(unittest.TestCase):
 
     def test_a_site_too_far_offshore_to_geocode_keeps_its_own_country(self):
         merged = curated_sites.merge_curated(
-            [], [_curated()], lambda latitude, longitude: (None, None)
+            [], [_curated()], lambda latitude, longitude: (None, None, None)
         )
 
         self.assertEqual(merged[0]["country_code"], "US")
         self.assertEqual(merged[0]["country"], "United States")
+
+    def test_a_site_on_an_island_territory_carries_the_island(self):
+        # As a harvested site there does: a search for "Bonaire" must find
+        # the curated sites of Bonaire too.
+        merged = curated_sites.merge_curated(
+            [],
+            [_curated()],
+            lambda latitude, longitude: (
+                "BQ",
+                "Caribbean Netherlands",
+                "Bonaire",
+            ),
+        )
+
+        self.assertEqual(merged[0]["country_code"], "BQ")
+        self.assertEqual(merged[0]["island"], "Bonaire")
+
+    def test_a_site_in_a_plain_country_has_no_island(self):
+        merged = curated_sites.merge_curated(
+            [], [_curated()], _in_the_states
+        )
+
+        self.assertNotIn("island", merged[0])
 
     def test_a_shore_kind_is_the_entry_not_a_type(self):
         merged = curated_sites.merge_curated(

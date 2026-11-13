@@ -1,4 +1,5 @@
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -6,6 +7,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_area_ancho
 import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 
 /// The built-in site catalogue. Tests override this with a fake.
@@ -73,6 +75,10 @@ final catalogueAdoptionServiceProvider = Provider<CatalogueAdoptionService>((
     fetchElevation: (point) => ref
         .read(elevationServiceProvider)
         .fetchElevation(latitude: point.latitude, longitude: point.longitude),
+    // An adopted site's sea in the diver's place-name language, as the
+    // geocoder names it for their other sites.
+    loadSeas: SeaAreaService.load,
+    placeNameLanguage: () => ref.read(placeNameLanguageProvider),
   );
 });
 

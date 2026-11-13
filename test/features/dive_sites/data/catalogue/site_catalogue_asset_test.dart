@@ -12,6 +12,7 @@ import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/geography/country_names.generated.dart';
+import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
@@ -197,6 +198,14 @@ void main() {
     expect(
       (await catalogue.search('caribbean', limit: 1000)).length,
       greaterThan(150),
+    );
+    // "sea" is in the name of most seas, so it matches over a thousand
+    // sites by place. The sites named with it still lead the list.
+    final sea = await catalogue.search('sea');
+    expect(sea, hasLength(50));
+    expect(
+      sea.take(20).map((s) => normalize(s.name)),
+      everyElement(contains('sea')),
     );
     // A cenote a few hundred metres from the Caribbean is still not in it.
     final cenotes = await catalogue.search('cenote', limit: 1000);

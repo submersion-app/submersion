@@ -59,6 +59,22 @@ class _GatedCatalogue extends FakeSiteCatalogue {
   }
 }
 
+/// A repository whose read of every site waits until the test lets it go.
+class _HeldSites extends SiteRepository {
+  _HeldSites(this.held);
+
+  final Completer<void> held;
+
+  @override
+  Future<List<DiveSite>> getAllSites({
+    String? diverId,
+    List<String>? ids,
+  }) async {
+    await held.future;
+    return super.getAllSites(diverId: diverId, ids: ids);
+  }
+}
+
 /// The import page's search: the diver's own sites and the built-in
 /// catalogue, with the catalogue sites they already adopted marked.
 void main() {
@@ -66,24 +82,29 @@ void main() {
   late SiteRepository sites;
   late _GatedCatalogue catalogue;
 
+  late SharedPreferences prefs;
+
+  ProviderContainer containerFor(SiteRepository repository) =>
+      ProviderContainer(
+        overrides: [
+          siteRepositoryProvider.overrideWithValue(repository),
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+          siteCatalogueProvider.overrideWithValue(catalogue),
+          // No elevation lookups from a test.
+          catalogueAdoptionServiceProvider.overrideWithValue(
+            CatalogueAdoptionService(siteRepository: repository),
+          ),
+        ],
+      );
+
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     await setUpTestDatabase();
     sites = SiteRepository();
     catalogue = _GatedCatalogue([_blueHole, _blueCorner]);
-    container = ProviderContainer(
-      overrides: [
-        siteRepositoryProvider.overrideWithValue(sites),
-        sharedPreferencesProvider.overrideWithValue(prefs),
-        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
-        siteCatalogueProvider.overrideWithValue(catalogue),
-        // No elevation lookups from a test.
-        catalogueAdoptionServiceProvider.overrideWithValue(
-          CatalogueAdoptionService(siteRepository: sites),
-        ),
-      ],
-    );
+    container = containerFor(sites);
   });
 
   tearDown(() async {
@@ -191,6 +212,26 @@ void main() {
     // The second import made nothing: the page runs no rules for it.
     expect(second.created, isFalse);
     expect(await sites.getAllSites(), hasLength(1));
+  });
+
+  test("the catalogue is searched while the diver's sites are read", () async {
+    // Three independent reads: none should wait for another.
+    final held = Completer<void>();
+    final slow = containerFor(_HeldSites(held));
+    addTearDown(slow.dispose);
+
+    final searching = slow
+        .read(externalSiteSearchProvider.notifier)
+        .search('blue');
+    await pumpEventQueue();
+
+    expect(catalogue.searchCalls, 1);
+    held.complete();
+    await searching;
+    expect(slow.read(externalSiteSearchProvider).sites.map((s) => s.id), [
+      'osm_node_2',
+      'osm_node_1',
+    ]);
   });
 
   test('a search that finishes late does not replace a newer one', () async {

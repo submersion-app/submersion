@@ -26,8 +26,8 @@ const kSiteCatalogueMetaVersion = 'version';
 /// the file itself did not change.
 ///
 /// 2: each site's sea is named from the sea table and joins its search
-/// text.
-const kSiteCatalogueImportRevision = 2;
+/// text. 3: the search text marks where the name ends.
+const kSiteCatalogueImportRevision = 3;
 
 /// The meta row holding the catalogue's sources, as JSON.
 const kSiteCatalogueMetaSources = 'sources';
@@ -127,6 +127,11 @@ class SiteCatalogueImporter {
         catalogue: json,
         seaAreas: seaAreas,
       ));
+      if (seaAreas != null && !built.seaTableRead) {
+        _log.warning(
+          'The sea table could not be parsed; built-in sites get no sea name',
+        );
+      }
       final rows = built.rows;
       if (rows.isEmpty) {
         // A file that parses but holds no usable site. Emptying the

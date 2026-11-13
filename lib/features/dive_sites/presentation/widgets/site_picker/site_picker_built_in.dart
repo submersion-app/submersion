@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -151,8 +152,7 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
     );
     if (builtInAnchorIsInferred) {
       // [_nearby] arrives nearest first; an inferred area goes by name.
-      return [...offered]
-        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      return [...offered]..sort((a, b) => compareTextForSort(a.name, b.name));
     }
     return offered;
   }

@@ -209,8 +209,15 @@ backstop):
 - `site_catalogue`: one row per record, keyed by `id`. List fields are stored
   as text. A `search_text` column holds the folded text search runs against
   (name, country, region, locality, island, body of water), produced with
-  the same folding the picker uses for the diver's sites. Indexed for
-  bounding-box lookups on latitude and longitude.
+  the same folding the picker uses for the diver's sites. The folded name
+  comes first and ends at a mark, so the column also gives the order of a
+  list by name and tells a match in the name from a match in a place.
+  Indexed for bounding-box lookups on latitude and longitude.
+- Search order: sites whose own name holds every typed word come first,
+  then sites matched only by a place or a sea; within each, sites in the
+  dive's area lead, then by name. Added after the second review: a sea's
+  name is made of common words ("sea", "north", "red") and holds hundreds
+  of sites, which buried the sites actually named with those words.
 - The body of water is filled at import, not in the file: a located record
   that names none takes the sea at its position from the bundled sea table
   (`assets/data/sea_areas.json`, the one the geocoder uses for the diver's
@@ -482,9 +489,16 @@ most worth checking:
   place to remember records a diver merged away; proposed for slice 4.
 - Two devices that each adopt the same record before they sync end with two
   sites carrying the same link.
-- An adopted site carries the catalogue's English country name, and the
-  English name of its sea, even when the diver's place-name language is
-  another one.
+- An adopted site carries the catalogue's English country name even when the
+  diver's place-name language is another one. Its sea is named in that
+  language when it is adopted, as the geocoder names it for the diver's
+  other sites; searching the catalogue by sea still takes the English name.
+- A fresh-water site whose record carries no water type and no site type,
+  and which lies within the sea table's 4 km shore allowance of tidal
+  water, is given that sea: at least seven lakes beside the Elbe, the Weser
+  and the Scheldt read "North Sea", roughly 10 to 30 of the 2,297 sites
+  that get a sea. The app's geocoder names a diver's own site there the
+  same way. Water types from the data clean-up (slice 2) close it.
 - "Red Sea" finds the sites the sea table files under that name. The Gulf
   of Aqaba and the Gulf of Suez are seas of their own there, so Dahab and
   Eilat are found by "Aqaba", not by "Red Sea".

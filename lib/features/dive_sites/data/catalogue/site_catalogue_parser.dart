@@ -71,23 +71,24 @@ ParsedSiteCatalogue parseSiteCatalogue(String json, {SeaNamer? seaAt}) {
   );
 }
 
+/// Ends the folded name in a site's search text. A unit separator: it
+/// sorts before a space and before every letter, so ordering by the search
+/// text is ordering by folded name ("Blue Hole" before "Blue Hole Dahab",
+/// whatever places follow), and nothing a diver types contains it.
+const kCatalogueNameEnd = '\u001f';
+
 /// What a search can match of [site], folded the way the site picker folds
-/// the diver's own sites (`normalizedSiteSearchText`): its name and where
-/// it is, down to the sea.
-String catalogueSearchText(CatalogueSite site) => normalize(
-  [
-        site.name,
-        site.country,
-        site.region,
-        site.locality,
-        site.island,
-        site.bodyOfWater,
-      ]
-      .whereType<String>()
-      .map((part) => part.trim())
-      .where((part) => part.isNotEmpty)
-      .join(' '),
-);
+/// the diver's own sites (`normalizedSiteSearchText`): its name, then
+/// [kCatalogueNameEnd], then where it is, down to the sea.
+String catalogueSearchText(CatalogueSite site) {
+  final places =
+      [site.country, site.region, site.locality, site.island, site.bodyOfWater]
+          .whereType<String>()
+          .map((part) => part.trim())
+          .where((part) => part.isNotEmpty)
+          .join(' ');
+  return '${normalize(site.name)}$kCatalogueNameEnd${normalize(places)}';
+}
 
 CatalogueSite? _site(Map<String, dynamic> raw, SeaNamer? seaAt) {
   final id = _text(raw['id']);

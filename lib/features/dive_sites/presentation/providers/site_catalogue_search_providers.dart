@@ -104,17 +104,23 @@ class ExternalSiteSearchNotifier
       final validatedDiverId = await _ref.read(
         validatedCurrentDiverIdProvider.future,
       );
-      final localResults = await _siteRepository.searchSites(
+      // Three independent reads, started together so none waits for
+      // another. Future.wait observes all three and rethrows the first
+      // error as it was thrown (a record's .wait would wrap it in a
+      // ParallelWaitError, and the page shows the error's own text).
+      final localFuture = _siteRepository.searchSites(
         query,
         diverId: validatedDiverId,
       );
       // Every site of the diver's, not only the matches: a site they
       // adopted and then renamed still marks its catalogue record.
-      final ownSites = await _siteRepository.getAllSites(
-        diverId: validatedDiverId,
-      );
+      final ownFuture = _siteRepository.getAllSites(diverId: validatedDiverId);
       // One more than the page lists: the extra one says there are more.
-      final matches = await _catalogue.search(query, limit: _searchLimit + 1);
+      final matchesFuture = _catalogue.search(query, limit: _searchLimit + 1);
+      await Future.wait<Object>([localFuture, ownFuture, matchesFuture]);
+      final localResults = await localFuture;
+      final ownSites = await ownFuture;
+      final matches = await matchesFuture;
       if (generation != _generation) return;
 
       state = state.copyWith(

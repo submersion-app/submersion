@@ -361,10 +361,35 @@ void main() {
 
       expect(
         catalogueSearchText(site),
-        normalize(
-          'Cancún México Quintana Roo Puerto Juárez Isla Mujeres '
-          'Caribbean Sea',
-        ),
+        '${normalize('Cancún')}$kCatalogueNameEnd'
+        '${normalize('México Quintana Roo Puerto Juárez Isla Mujeres '
+        'Caribbean Sea')}',
+      );
+    });
+
+    test('the name ends at a mark that sorts before any letter or space', () {
+      // Ordering by this text is ordering by folded name: "Blue Hole" comes
+      // before "Blue Hole Dahab" whatever places follow either name.
+      const short = CatalogueSite(
+        id: 'a',
+        name: 'Blue Hole',
+        country: 'Egypt',
+        source: 'osm',
+      );
+      const long = CatalogueSite(
+        id: 'b',
+        name: 'Blue Hole Dahab',
+        country: 'Belize',
+        source: 'osm',
+      );
+
+      expect(
+        catalogueSearchText(short).compareTo(catalogueSearchText(long)),
+        isNegative,
+      );
+      expect(
+        catalogueSearchText(short),
+        startsWith('blue hole$kCatalogueNameEnd'),
       );
     });
 
@@ -377,7 +402,7 @@ void main() {
         source: 'osm',
       );
 
-      expect(catalogueSearchText(site), normalize('Blue Hole Dahab'));
+      expect(catalogueSearchText(site), 'blue hole${kCatalogueNameEnd}dahab');
     });
   });
 }

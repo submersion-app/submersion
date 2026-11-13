@@ -303,6 +303,26 @@ void main() {
       expect(find.text('Near the sites of your other dives'), findsOneWidget);
     });
 
+    testWidgets('the by-name list ignores case and accents', (tester) async {
+      await _pump(
+        tester,
+        areaAnchor: _inferred,
+        catalogueSites: [
+          _cat('z', 'Zenobia', north: 100),
+          _cat('l', 'little shark', north: 200),
+          _cat('e', 'Épave du Donator', north: 300),
+          _cat('a', 'Angel City', north: 400),
+        ],
+      );
+
+      expect(_builtInTitles(tester), [
+        'Angel City',
+        'Épave du Donator',
+        'little shark',
+        'Zenobia',
+      ]);
+    });
+
     testWidgets('an inferred area without a place name says nearby', (
       tester,
     ) async {

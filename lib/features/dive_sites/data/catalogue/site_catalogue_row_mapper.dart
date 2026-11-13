@@ -11,12 +11,20 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
 /// A catalogue file as the rows the local cache stores.
 class SiteCatalogueRows {
-  const SiteCatalogueRows({required this.rows, required this.sources});
+  const SiteCatalogueRows({
+    required this.rows,
+    required this.sources,
+    required this.seaTableRead,
+  });
 
   final List<SiteCatalogueEntriesCompanion> rows;
 
   /// The file's sources, already encoded for the meta table.
   final String sources;
+
+  /// Whether a sea table was given and could be parsed. False leaves every
+  /// site without a sea name; the importer says so in the log.
+  final bool seaTableRead;
 }
 
 /// What [buildSiteCatalogueRows] reads: the catalogue file and, when it
@@ -28,18 +36,19 @@ typedef SiteCatalogueRowsInput = ({String catalogue, String? seaAreas});
 /// through `compute`, keeping the parse, the sea lookups, the search-text
 /// folding and the list encoding of every record off the UI isolate.
 SiteCatalogueRows buildSiteCatalogueRows(SiteCatalogueRowsInput input) {
-  final parsed = parseSiteCatalogue(
-    input.catalogue,
-    seaAt: _seaIndex(input.seaAreas)?.nameAt,
-  );
+  final seas = _seaIndex(input.seaAreas);
+  final parsed = parseSiteCatalogue(input.catalogue, seaAt: seas?.nameAt);
   return SiteCatalogueRows(
     rows: [for (final site in parsed.sites) catalogueSiteToRow(site)],
     sources: encodeCatalogueSources(parsed.sources),
+    seaTableRead: seas != null,
   );
 }
 
 /// The sea table, or null when it is missing or unreadable. Sea names are
-/// an extra: the catalogue then loads without them.
+/// an extra: the catalogue then loads without them, and
+/// [SiteCatalogueRows.seaTableRead] carries the fact back to the importer,
+/// which can log where this isolate cannot.
 SeaAreaIndex? _seaIndex(String? seaAreas) {
   if (seaAreas == null) return null;
   try {

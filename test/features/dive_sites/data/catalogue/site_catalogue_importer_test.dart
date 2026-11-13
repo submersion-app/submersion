@@ -10,6 +10,7 @@ import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
+import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
 
 /// Serves the catalogue assets, and the sea table when a test gives one,
 /// from memory, and counts each read.
@@ -134,7 +135,8 @@ void main() {
         .getSingle();
     final parsed = parseSiteCatalogue(_three).sites.first;
     expect(row.read<String>('search_text'), catalogueSearchText(parsed));
-    expect(row.read<String>('search_text'), 'cancun mexico');
+    // The folded name, the mark that ends it, then the folded places.
+    expect(row.read<String>('search_text'), 'cancun${kCatalogueNameEnd}mexico');
     expect(jsonDecode(row.read<String>('type_ids')), ['reef']);
     expect(jsonDecode(row.read<String>('entry_methods')), ['boat']);
     expect(row.read<double>('latitude'), 21.1);
@@ -382,5 +384,43 @@ void main() {
 
     expect(outcome, SiteCatalogueImportOutcome.imported);
     expect(await ids(), ['osm_node_1']);
+  });
+
+  group('buildSiteCatalogueRows', () {
+    final catalogue = _catalogue([
+      _site('osm_node_1', 'Shark Reef', {'lat': 5, 'lon': 5}),
+    ]);
+
+    test('says the sea table was read', () {
+      final built = buildSiteCatalogueRows((
+        catalogue: catalogue,
+        seaAreas: _testSea,
+      ));
+
+      expect(built.seaTableRead, isTrue);
+      expect(built.rows.single.bodyOfWater.value, 'Test Sea');
+    });
+
+    test('says so when the sea table cannot be parsed', () {
+      // The importer logs this: a catalogue with no sea names must not
+      // look like a normal import.
+      final built = buildSiteCatalogueRows((
+        catalogue: catalogue,
+        seaAreas: 'not a sea table',
+      ));
+
+      expect(built.seaTableRead, isFalse);
+      expect(built.rows.single.bodyOfWater.value, isNull);
+    });
+
+    test('a sea table that was never read is not a parse failure', () {
+      final built = buildSiteCatalogueRows((
+        catalogue: catalogue,
+        seaAreas: null,
+      ));
+
+      expect(built.seaTableRead, isFalse);
+      expect(built.rows, hasLength(1));
+    });
   });
 }

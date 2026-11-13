@@ -160,7 +160,7 @@ Wherever you choose a site (on a dive, a planned dive, or a trip day), the same 
 When you choose a site for a dive, the sheet also offers sites from the built-in catalogue, so a site you have not logged before rarely needs typing in:
 
 - **More sites nearby** lists built-in sites within 50 km (31 mi) of the dive. It shows the first five, with **Show all** for the rest.
-- Typing two or more characters adds a **Built-in sites** section with matches from the whole catalogue, those in the dive's area first. The search matches a site's name, its country, region or island, and its sea ("Red Sea").
+- Typing two or more characters adds a **Built-in sites** section with matches from the whole catalogue. The search matches a site's name, its country, region or island, and its sea ("Red Sea"). Sites whose own name matches come first, then sites matched by place or sea; within each, those in the dive's area lead.
 
 Tap a built-in site to add it to your sites and select it in one step. It arrives with the catalogue's details, and the dive takes the site's entry method and water type as it does for any site. Tap the **Site details** button on a row to read about a site before you pick it.
 

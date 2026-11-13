@@ -61,14 +61,24 @@ class FakeSiteCatalogue implements SiteCatalogue {
     final matches = [
       for (final site in sites)
         if (words.every(catalogueSearchText(site).contains)) site,
-    ]..sort((a, b) => a.name.compareTo(b.name));
+    ]..sort(_byName);
     bool inArea(CatalogueSite site) =>
         areaFirst != null &&
         site.location != null &&
         distanceMeters(areaFirst, site.location!) <= areaRadiusMeters;
+    // Sites matched by their own name first, then those matched only by a
+    // place or a sea; the area leads within each.
+    bool byName(CatalogueSite site) {
+      final text = catalogueSearchText(site);
+      final name = text.substring(0, text.indexOf(kCatalogueNameEnd));
+      return words.every(name.contains);
+    }
+
     return [
-      ...matches.where(inArea),
-      ...matches.where((site) => !inArea(site)),
+      ...matches.where((site) => byName(site) && inArea(site)),
+      ...matches.where((site) => byName(site) && !inArea(site)),
+      ...matches.where((site) => !byName(site) && inArea(site)),
+      ...matches.where((site) => !byName(site) && !inArea(site)),
     ].take(limit).toList();
   }
 
@@ -86,4 +96,13 @@ class FakeSiteCatalogue implements SiteCatalogue {
 
   @override
   Future<CatalogueSource?> source(String key) async => sources[key];
+}
+
+/// The real catalogue's order: folded name first (the search text begins
+/// with it), the raw name and the id to settle ties.
+int _byName(CatalogueSite a, CatalogueSite b) {
+  final byText = catalogueSearchText(a).compareTo(catalogueSearchText(b));
+  if (byText != 0) return byText;
+  final byName = a.name.compareTo(b.name);
+  return byName != 0 ? byName : a.id.compareTo(b.id);
 }

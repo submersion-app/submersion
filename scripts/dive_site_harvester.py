@@ -847,7 +847,7 @@ class DiveSiteHarvester:
         ]
         # Curated sites fill OpenStreetMap's gaps, and survive every harvest.
         named_sites = merge_curated(
-            named_sites, load_curated(), country_resolver.lookup
+            named_sites, load_curated(), country_resolver.lookup_place
         )
 
         # Transform dive centers

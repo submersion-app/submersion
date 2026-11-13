@@ -58,9 +58,17 @@ def _km(site: dict, entry: dict) -> float:
 
 
 def curated_record(
-    entry: dict, *, country_code: str | None, country: str | None
+    entry: dict,
+    *,
+    country_code: str | None,
+    country: str | None,
+    island: str | None = None,
 ) -> dict:
-    """The catalogue record for a curated entry."""
+    """The catalogue record for a curated entry.
+
+    [island] is the island the geocoder placed it on, where its territory
+    is several islands (Bonaire in the Caribbean Netherlands).
+    """
     kind = entry.get("kind")
     is_entry = bool(map_entry(kind))
     working = {
@@ -70,6 +78,7 @@ def curated_record(
         "latitude": entry.get("latitude"),
         "longitude": entry.get("longitude"),
         "region": entry.get("region"),
+        "island": island,
         "website": entry.get("website"),
         "max_depth": entry.get("depthM"),
         "entry_type": kind if is_entry else None,
@@ -88,12 +97,14 @@ def curated_record(
     )
 
 
-def merge_curated(sites: list[dict], curated: list[dict], country_of) -> list[dict]:
+def merge_curated(sites: list[dict], curated: list[dict], place_of) -> list[dict]:
     """[sites] followed by a catalogue record for each curated entry not
     already among them.
 
-    [sites] are catalogue records. `country_of(latitude, longitude)` answers
-    (ISO code, English name) for a curated entry's position.
+    [sites] are catalogue records. `place_of(latitude, longitude)` answers
+    (ISO code, English name, island) for a curated entry's position, as
+    `CountryResolver.lookup_place` does, so a curated site is placed exactly
+    as a harvested one.
 
     A curated entry is left out when its id is already present, or when a
     site of the same name (ignoring case) lies within SAME_SITE_KM.
@@ -112,8 +123,12 @@ def merge_curated(sites: list[dict], curated: list[dict], country_of) -> list[di
             for s in sites
         ):
             continue
-        code, country = country_of(entry["latitude"], entry["longitude"])
-        merged.append(curated_record(entry, country_code=code, country=country))
+        code, country, island = place_of(entry["latitude"], entry["longitude"])
+        merged.append(
+            curated_record(
+                entry, country_code=code, country=country, island=island
+            )
+        )
         ids.add(entry["id"])
     return merged
 
