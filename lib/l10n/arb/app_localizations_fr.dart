@@ -20207,12 +20207,21 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune carte, photo ou document attaché à ce site';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Photos des plongées ici ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Photo de plongée';
+
+  @override
+  String get media_siteDivePhotos_title => 'Photos des plongées';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Photos des plongées ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Photo de plongée';
+  String get media_siteDivePhotos_showAll => 'Tout afficher';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Afficher moins';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -23153,7 +23162,11 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Photos, vidéos et documents du site';
+      'Photos, vidéos et documents joints au site';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Photos des plongées enregistrées sur ce site';
 
   @override
   String get siteDetailSection_tags_description => 'Tags de ce site';

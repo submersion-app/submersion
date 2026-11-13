@@ -20021,12 +20021,21 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen kaarten, foto\'s of documenten aan deze duikstek gekoppeld';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Foto\'s van duiken hier ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Duikfoto';
+
+  @override
+  String get media_siteDivePhotos_title => 'Foto\'s van duiken';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Foto\'s van duiken ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Duikfoto';
+  String get media_siteDivePhotos_showAll => 'Alles tonen';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Minder tonen';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -22943,7 +22952,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Foto\'s, video\'s en documenten van de duikstek';
+      'Foto\'s, video\'s en documenten gekoppeld aan de duikstek';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Foto\'s van de duiken die op deze duikstek zijn gelogd';
 
   @override
   String get siteDetailSection_tags_description => 'Tags van deze duikstek';

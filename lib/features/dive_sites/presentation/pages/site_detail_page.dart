@@ -56,6 +56,8 @@ import 'package:submersion/features/marine_life/presentation/widgets/site_marine
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/media/presentation/helpers/document_open_helper.dart';
 import 'package:submersion/features/media/presentation/helpers/site_media_import_helper.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/site_dive_photos_card.dart';
 import 'package:submersion/features/media/presentation/widgets/site_media_section.dart';
 import 'package:submersion/features/reef/presentation/widgets/reef_section.dart';
 import 'package:submersion/features/tides/presentation/widgets/tide_section.dart';
@@ -329,6 +331,27 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       ),
       SiteDetailSectionId.description: () =>
           (context) => _buildDescriptionSection(context, site),
+      // Photos from the dives logged here (issue #4502). Decided from a
+      // count, so a site without any leaves no gap and no folded header,
+      // and the photos themselves load only once the card is laid out.
+      // Selected down to the number, so a media write that reloads the
+      // count without changing it does not rebuild the whole page.
+      SiteDetailSectionId.divePhotos: () {
+        final count = ref.watch(
+          mediaCountFromDivesAtSiteProvider(
+            site.id,
+          ).select((count) => count.value ?? 0),
+        );
+        // Keyed by site: this page is not, so another site picked in the
+        // master list would otherwise inherit the card's Show all state.
+        return count == 0
+            ? null
+            : (_) => SiteDivePhotosCard(
+                key: ValueKey('divePhotos-${site.id}'),
+                siteId: site.id,
+                count: count,
+              );
+      },
       SiteDetailSectionId.location: () =>
           watching((context, ref) => _buildLocationSection(context, ref, site)),
       // The terrain needs coordinates to look up. A site whose bathymetry

@@ -20140,12 +20140,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay mapas, fotos ni documentos adjuntos a este punto de buceo';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotos de inmersiones aquí ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Foto de inmersión';
+
+  @override
+  String get media_siteDivePhotos_title => 'Fotos de inmersiones';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotos de inmersiones ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Foto de inmersión';
+  String get media_siteDivePhotos_showAll => 'Mostrar todo';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Mostrar menos';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -23082,7 +23091,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Fotos, vídeos y documentos del sitio';
+      'Fotos, vídeos y documentos adjuntos al sitio';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Fotos de las inmersiones registradas en este sitio';
 
   @override
   String get siteDetailSection_tags_description => 'Etiquetas de este sitio';

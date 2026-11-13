@@ -32030,17 +32030,35 @@ abstract class AppLocalizations {
   /// **'No maps, photos, or documents attached to this site'**
   String get media_siteMediaSection_emptyState;
 
-  /// No description provided for @media_siteMediaSection_divePhotosGroup.
-  ///
-  /// In en, this message translates to:
-  /// **'Photos from dives here ({count})'**
-  String media_siteMediaSection_divePhotosGroup(int count);
-
   /// No description provided for @media_siteMediaSection_divePhotoLabel.
   ///
   /// In en, this message translates to:
   /// **'Dive photo'**
   String get media_siteMediaSection_divePhotoLabel;
+
+  /// No description provided for @media_siteDivePhotos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from dives'**
+  String get media_siteDivePhotos_title;
+
+  /// Title of the Site Details card that shows photos from the dives logged at the site, with how many there are
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from dives ({count})'**
+  String media_siteDivePhotos_titleWithCount(int count);
+
+  /// No description provided for @media_siteDivePhotos_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get media_siteDivePhotos_showAll;
+
+  /// No description provided for @media_siteDivePhotos_showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get media_siteDivePhotos_showLess;
 
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///
@@ -36507,8 +36525,14 @@ abstract class AppLocalizations {
   /// No description provided for @siteDetailSection_media_description.
   ///
   /// In en, this message translates to:
-  /// **'Photos, videos and documents for the site'**
+  /// **'Photos, videos and documents attached to the site'**
   String get siteDetailSection_media_description;
+
+  /// No description provided for @siteDetailSection_divePhotos_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from the dives logged at this site'**
+  String get siteDetailSection_divePhotos_description;
 
   /// No description provided for @siteDetailSection_tags_description.
   ///

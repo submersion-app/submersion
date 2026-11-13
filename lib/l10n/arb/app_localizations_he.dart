@@ -19707,12 +19707,21 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין מפות, תמונות או מסמכים המצורפים לאתר זה';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'תמונות מצלילות כאן ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'תמונת צלילה';
+
+  @override
+  String get media_siteDivePhotos_title => 'תמונות מצלילות';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'תמונות מצלילות ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'תמונת צלילה';
+  String get media_siteDivePhotos_showAll => 'הצג הכול';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'הצג פחות';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -22582,7 +22591,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'תמונות, סרטונים ומסמכים של האתר';
+      'תמונות, סרטונים ומסמכים המצורפים לאתר';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'תמונות מהצלילות שנרשמו באתר זה';
 
   @override
   String get siteDetailSection_tags_description => 'תגיות של אתר זה';

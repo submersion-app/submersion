@@ -20085,12 +20085,21 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ehhez a merülőhelyhez nincs csatolva térkép, fotó vagy dokumentum';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotók az itteni merülésekről ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Merülésfotó';
+
+  @override
+  String get media_siteDivePhotos_title => 'Fotók a merülésekről';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotók a merülésekről ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Merülésfotó';
+  String get media_siteDivePhotos_showAll => 'Összes megjelenítése';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Kevesebb megjelenítése';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -23015,7 +23024,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'A merülőhely fotói, videói és dokumentumai';
+      'A merülőhelyhez csatolt fotók, videók és dokumentumok';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Az ezen a merülőhelyen naplózott merülések fotói';
 
   @override
   String get siteDetailSection_tags_description => 'A merülőhely címkéi';

@@ -117,4 +117,30 @@ void main() {
     await moveDive('there', 'S');
     await eventually(ids, ['m-here', 'm-there']);
   });
+
+  test('the strip refreshes on a link and on a site move', () async {
+    await media('m-there', 'there');
+    final provider = recentMediaFromDivesAtSiteProvider('S');
+    container.listen(provider, (_, _) {});
+    Future<List<String>> ids() async =>
+        (await container.read(provider.future)).map((m) => m.id).toList();
+    expect(await ids(), isEmpty);
+
+    await media('m-here', 'here');
+    await eventually(ids, ['m-here']);
+
+    // Same taken_at: the id breaks the tie, newest-first means id descending.
+    await moveDive('there', 'S');
+    await eventually(ids, ['m-there', 'm-here']);
+  });
+
+  test('the strip reads at most kSiteDivePhotoStripLimit items', () async {
+    for (var i = 0; i <= kSiteDivePhotoStripLimit; i++) {
+      await media('m$i', 'here');
+    }
+    final items = await container.read(
+      recentMediaFromDivesAtSiteProvider('S').future,
+    );
+    expect(items, hasLength(kSiteDivePhotoStripLimit));
+  });
 }

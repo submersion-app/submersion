@@ -7,13 +7,17 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// for #211/#627: gen-l10n falls back to English silently, so a locale that
 /// never got the keys would ship looking fine in CI and wrong to the user.
 void main() {
-  /// The 14 strings this feature introduced, resolved for [locale].
+  /// The strings the site media surfaces use, resolved for [locale].
   List<String> siteMediaStrings(AppLocalizations l10n) => <String>[
     l10n.media_siteMediaSection_title,
     l10n.media_siteMediaSection_addPhotos,
     l10n.media_siteMediaSection_addDocument,
     l10n.media_siteMediaSection_emptyState,
-    l10n.media_siteMediaSection_divePhotosGroup(3),
+    // The dive photos card that replaced the Site Media group (#4502).
+    l10n.media_siteDivePhotos_title,
+    l10n.media_siteDivePhotos_titleWithCount(3),
+    l10n.media_siteDivePhotos_showAll,
+    l10n.media_siteDivePhotos_showLess,
     l10n.media_siteMediaSection_divePhotoLabel,
     l10n.media_siteMediaSection_unlinkSelectedTitle(2),
     l10n.media_siteMediaSection_unlinkSelectedContent(2),
@@ -32,6 +36,21 @@ void main() {
       for (final value in siteMediaStrings(lookupAppLocalizations(locale))) {
         expect(value, isNotEmpty, reason: 'locale $locale');
       }
+    }
+  });
+
+  test('no locale shipped the dive photos card title in English', () {
+    final english = lookupAppLocalizations(
+      const Locale('en'),
+    ).media_siteDivePhotos_title;
+
+    for (final locale in AppLocalizations.supportedLocales) {
+      if (locale.languageCode == 'en') continue;
+      expect(
+        lookupAppLocalizations(locale).media_siteDivePhotos_title,
+        isNot(english),
+        reason: 'locale $locale is still carrying the English string',
+      );
     }
   });
 
@@ -56,7 +75,7 @@ void main() {
     for (final locale in AppLocalizations.supportedLocales) {
       final l10n = lookupAppLocalizations(locale);
       expect(
-        l10n.media_siteMediaSection_divePhotosGroup(7),
+        l10n.media_siteDivePhotos_titleWithCount(7),
         contains('7'),
         reason: 'locale $locale',
       );
@@ -82,10 +101,7 @@ void main() {
     final en = lookupAppLocalizations(const Locale('en'));
     expect(en.media_siteMediaSection_title, 'Site Media');
     expect(en.media_siteMediaSection_addDocument, 'Add document');
-    expect(
-      en.media_siteMediaSection_divePhotosGroup(4),
-      'Photos from dives here (4)',
-    );
+    expect(en.media_siteDivePhotos_titleWithCount(4), 'Photos from dives (4)');
     expect(en.media_documentViewer_title, 'Document');
   });
 

@@ -12171,8 +12171,11 @@
   "media_siteAttachment_sizeTile": "Tile",
   "media_siteMediaSection_addDocument": "Add document",
   "media_siteMediaSection_emptyState": "No maps, photos, or documents attached to this site",
-  "media_siteMediaSection_divePhotosGroup": "Photos from dives here ({count})",
   "media_siteMediaSection_divePhotoLabel": "Dive photo",
+  "media_siteDivePhotos_title": "Photos from dives",
+  "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
+  "media_siteDivePhotos_showAll": "Show all",
+  "media_siteDivePhotos_showLess": "Show less",
   "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
   "media_siteMediaSection_unlinkSelectedContent": "Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.",
   "@media_siteMediaSection_unlinkSelectedContent": {
@@ -12601,7 +12604,8 @@
       }
     }
   },
-  "@media_siteMediaSection_divePhotosGroup": {
+  "@media_siteDivePhotos_titleWithCount": {
+    "description": "Title of the Site Details card that shows photos from the dives logged at the site, with how many there are",
     "placeholders": {
       "count": {
         "type": "int"
@@ -14570,7 +14574,8 @@
   "siteDetailSection_tide_description": "Tide cycle graph and timing",
   "siteDetailSection_reefHealth_description": "Satellite water conditions at the site",
   "siteDetailSection_marineLife_description": "Species seen at this site",
-  "siteDetailSection_media_description": "Photos, videos and documents for the site",
+  "siteDetailSection_media_description": "Photos, videos and documents attached to the site",
+  "siteDetailSection_divePhotos_description": "Photos from the dives logged at this site",
   "siteDetailSection_tags_description": "Tags on this site",
   "siteDetailSection_difficulty_description": "Difficulty level of the site",
   "siteDetailSection_rating_description": "Your rating of the site",

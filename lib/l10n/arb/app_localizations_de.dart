@@ -20123,12 +20123,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Karten, Fotos oder Dokumente an diesem Tauchplatz angehängt';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotos von Tauchgängen hier ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Tauchgangsfoto';
+
+  @override
+  String get media_siteDivePhotos_title => 'Fotos von Tauchgängen';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotos von Tauchgängen ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Tauchgangsfoto';
+  String get media_siteDivePhotos_showAll => 'Alle anzeigen';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Weniger anzeigen';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -23057,7 +23066,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Fotos, Videos und Dokumente zum Tauchplatz';
+      'Fotos, Videos und Dokumente, die dem Tauchplatz angehängt sind';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Fotos der an diesem Tauchplatz geloggten Tauchgänge';
 
   @override
   String get siteDetailSection_tags_description => 'Tags dieses Tauchplatzes';

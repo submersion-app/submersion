@@ -19,9 +19,9 @@ import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 
-/// Section widget displaying a site's media: direct attachments (maps,
-/// entry-point photos, documents) plus a collapsed group of photos from
-/// dives logged at the site.
+/// Section widget displaying a site's direct attachments: maps, entry-point
+/// photos and documents. Photos from the dives logged at the site have their
+/// own card, `SiteDivePhotosCard` (issue #4502).
 ///
 /// Add actions and document opening are injected by the page so this widget
 /// stays free of picker/viewer wiring, mirroring [DiveMediaSection].
@@ -386,99 +386,7 @@ class _SiteMediaSectionState extends ConsumerState<SiteMediaSection> {
                 style: textTheme.bodyMedium?.copyWith(color: colorScheme.error),
               ),
             ),
-            // Photos from dives at this site, collapsed by default so site
-            // reference material (maps, documents) stays prominent.
-            _DivePhotosGroup(siteId: widget.siteId, settings: settings),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Collapsed, read-only group of photos aggregated from the site's dives.
-///
-/// The header reads only a count, so a site with many dives and no photos
-/// stays a single cheap query. The media itself is read by [_DivePhotosGrid],
-/// which [ExpansionTile] mounts only while the group is open (issue #4252).
-class _DivePhotosGroup extends ConsumerWidget {
-  final String siteId;
-  final UnitFormatterSettings settings;
-
-  const _DivePhotosGroup({required this.siteId, required this.settings});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final count = ref.watch(mediaCountFromDivesAtSiteProvider(siteId)).value;
-    if (count == null || count == 0) {
-      return const SizedBox.shrink();
-    }
-
-    return ExpansionTile(
-      tilePadding: EdgeInsets.zero,
-      initiallyExpanded: false,
-      title: Text(
-        context.l10n.media_siteMediaSection_divePhotosGroup(count),
-        style: Theme.of(context).textTheme.titleSmall,
-      ),
-      children: [_DivePhotosGrid(siteId: siteId, settings: settings)],
-    );
-  }
-}
-
-/// The open group's grid of every dive photo at the site, chronological.
-class _DivePhotosGrid extends ConsumerWidget {
-  final String siteId;
-  final UnitFormatterSettings settings;
-
-  const _DivePhotosGrid({required this.siteId, required this.settings});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final flatAsync = ref.watch(flatMediaFromDivesAtSiteProvider(siteId));
-    final flat = flatAsync.value;
-    if (flat == null) {
-      if (flatAsync.hasError) {
-        final colorScheme = Theme.of(context).colorScheme;
-        return Text(
-          context.l10n.media_diveMediaSection_errorLoading,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
-        );
-      }
-      return const SizedBox(
-        height: 100,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
-    }
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-      ),
-      itemCount: flat.length,
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (_) => SiteMediaViewerPage(
-              siteId: siteId,
-              initialMediaId: flat[index].id,
-              scope: SiteViewerScope.divePhotos,
-            ),
-          ),
-        ),
-        child: MediaThumbnailTile(
-          item: flat[index],
-          settings: settings,
-          isSelectionMode: false,
-          isSelected: false,
-          semanticsLabel: context.l10n.media_siteMediaSection_divePhotoLabel,
         ),
       ),
     );
