@@ -47,6 +47,7 @@ class Destination {
     required this.key,
     required this.label,
     required this.country,
+    required this.siteCountryCode,
     required this.region,
     required this.waterTempC,
     required this.freshwater,
@@ -66,7 +67,15 @@ class Destination {
 
   final String key;
   final String label;
+
+  /// The country as the dive centre list writes it, in the local language
+  /// ("Nederland", "مصر"): what a destination's dive centres are matched on.
   final String country;
+
+  /// The ISO 3166-1 code of the destination's dive sites in the site
+  /// catalogue, which names countries in English and gives a territory its
+  /// own code (Bonaire is BQ, not NL).
+  final String siteCountryCode;
 
   /// The catalogue's region, or null to take sites from any region of
   /// [country] (narrowed by [area]).
