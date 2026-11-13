@@ -81,7 +81,7 @@ void main() {
     testWidgets('counts from the first sample, not from zero', (tester) async {
       await tester.pumpWidget(
         host(
-          TissueHeatMapTimeAxis(timestamps: const [30, 90, 150]),
+          const TissueHeatMapTimeAxis(timestamps: [30, 90, 150]),
           height: 20,
         ),
       );
