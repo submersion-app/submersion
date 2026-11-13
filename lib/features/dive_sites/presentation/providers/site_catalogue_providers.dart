@@ -2,7 +2,10 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 
 /// The built-in site catalogue. Tests override this with a fake.
 final siteCatalogueProvider = Provider<SiteCatalogue>(
@@ -58,3 +61,16 @@ final catalogueSourceProvider = FutureProvider.family<CatalogueSource?, String>(
     return ref.watch(siteCatalogueProvider).source(key);
   },
 );
+
+/// The one path that makes a diver's site from a catalogue record.
+// no-tick: a service that writes; it holds no data.
+final catalogueAdoptionServiceProvider = Provider<CatalogueAdoptionService>((
+  ref,
+) {
+  return CatalogueAdoptionService(
+    siteRepository: ref.watch(siteRepositoryProvider),
+    fetchElevation: (point) => ref
+        .read(elevationServiceProvider)
+        .fetchElevation(latitude: point.latitude, longitude: point.longitude),
+  );
+});

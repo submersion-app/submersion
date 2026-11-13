@@ -24,11 +24,13 @@ import 'package:submersion/features/site_types/domain/entities/site_type_entity.
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/domain/models/entry_exit_suggestion.dart';
 import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/query/site_filter_query.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -601,6 +603,17 @@ class SiteListNotifier
     );
     await _loadSites();
     return newSite;
+  }
+
+  /// Makes the current diver's site from the built-in catalogue [site], or
+  /// returns the one they already adopted from it.
+  Future<domain.DiveSite> adoptCatalogueSite(CatalogueSite site) async {
+    final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
+    final adopted = await _ref
+        .read(catalogueAdoptionServiceProvider)
+        .adopt(site, diverId: validatedId);
+    await _loadSites();
+    return adopted;
   }
 
   /// Updates [site]. Its types and tags change only when a [classification]
