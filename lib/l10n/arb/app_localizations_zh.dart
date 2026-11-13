@@ -1378,7 +1378,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
 
   @override
-  String get equipment_setEdit_historyAsk => '也将这些更改应用到这些潜水，还是仅从现在起？';
+  String get equipment_setEdit_historyAsk =>
+      '也将这些更改应用到这些潜水，还是仅从现在起？ “从现在起”会保留其装备，并解除它们与套装的关联。';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5166,6 +5167,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_gear_removeSet => '从本次潜水移除套装';
+
+  @override
+  String get diveLog_gear_removeSetTitle => '从本次潜水移除套装？';
+
+  @override
+  String get diveLog_gear_removeSetBody => '同时移除此套装添加的装备，还是保留潜水中的装备、只解除与套装的关联？';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => '保留装备';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => '移除装备';
 
   @override
   String get diveLog_gear_unknownSet => '套装';

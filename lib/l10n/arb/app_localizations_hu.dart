@@ -1441,7 +1441,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól?';
+      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól? A „Mostantól” megtartja a felszerelésüket, és megszünteti a kapcsolatukat a készlettel.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5449,6 +5449,20 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_gear_removeSet =>
       'Készlet eltávolítása erről a merülésről';
+
+  @override
+  String get diveLog_gear_removeSetTitle =>
+      'Eltávolítod a készletet erről a merülésről?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'A készlet által hozzáadott felszerelést is eltávolítod, vagy a felszerelés a merülésen marad, és csak a készlet kapcsolatát bontod?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Felszerelés megtartása';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Felszerelés eltávolítása';
 
   @override
   String get diveLog_gear_unknownSet => 'Készlet';

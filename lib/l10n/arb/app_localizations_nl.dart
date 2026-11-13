@@ -1433,7 +1433,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?';
+      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu? ‘Vanaf nu’ behoudt hun uitrusting en verbreekt de koppeling met de set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5435,6 +5435,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_gear_removeSet => 'Set van deze duik verwijderen';
+
+  @override
+  String get diveLog_gear_removeSetTitle => 'Set van deze duik verwijderen?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Ook de uitrusting verwijderen die deze set heeft toegevoegd, of de uitrusting bij de duik houden en alleen de koppeling met de set verbreken?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Uitrusting behouden';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Uitrusting verwijderen';
 
   @override
   String get diveLog_gear_unknownSet => 'Set';

@@ -1483,7 +1483,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+      'تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟ خيار «من الآن فصاعدًا» يُبقي معداتها ويفك ارتباط الطقم بها.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5559,6 +5559,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_gear_removeSet => 'إزالة الطقم من هذه الغطسة';
+
+  @override
+  String get diveLog_gear_removeSetTitle => 'إزالة الطقم من هذه الغطسة؟';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'هل تريد إزالة المعدات التي أضافها هذا الطقم أيضًا، أم إبقاء المعدات في الغطسة وفك ارتباط الطقم فقط؟';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'إبقاء المعدات';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'إزالة المعدات';
 
   @override
   String get diveLog_gear_unknownSet => 'طقم';

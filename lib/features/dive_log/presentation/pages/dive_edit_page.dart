@@ -67,6 +67,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/geofence_suggestion_banner.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/remove_set_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_input.dart';
@@ -4521,8 +4522,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                   // The diver is choosing gear right now, so today's
                   // service state is exactly what they need to see.
                   showServiceStatus: true,
-                  onRemoveSet: (setId) =>
-                      _setGear(GearExpander.removeSet(_gearRows, setId)),
+                  onRemoveSet: _removeSet,
                   onRemoveSubtree: (id) =>
                       _setGear(GearExpander.removeSubtree(_gearRows, id)),
                   onRemovePart: (id) =>
@@ -4660,6 +4660,17 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (markDirty) _markDirty();
       _selectedEquipment = [...merged, ...expansion.newItems];
       _gearProvenance = expansion.provenance;
+    });
+  }
+
+  /// Takes set [setId] off the dive, asking first whether its gear goes
+  /// with it or stays as gear of the dive's own (issue #4500).
+  Future<void> _removeSet(String setId) async {
+    final choice = await showRemoveSetDialog(context);
+    if (choice == null || !mounted) return;
+    _setGear(switch (choice) {
+      RemoveSetChoice.keepGear => GearExpander.unlinkSet(_gearRows, setId),
+      RemoveSetChoice.removeGear => GearExpander.removeSet(_gearRows, setId),
     });
   }
 

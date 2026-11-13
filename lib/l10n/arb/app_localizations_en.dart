@@ -1428,7 +1428,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Apply the changes to those dives as well, or only from now on?';
+      'Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5384,6 +5384,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_gear_removeSet => 'Remove set from this dive';
+
+  @override
+  String get diveLog_gear_removeSetTitle => 'Remove set from this dive?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Keep gear';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Remove gear';
 
   @override
   String get diveLog_gear_unknownSet => 'Set';

@@ -1440,7 +1440,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Aplicar as alterações também a esses mergulhos, ou só a partir de agora?';
+      'Aplicar as alterações também a esses mergulhos, ou só a partir de agora? «A partir de agora» mantém o equipamento e desvincula o conjunto desses mergulhos.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5470,6 +5470,20 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_gear_removeSet => 'Remover o conjunto deste mergulho';
+
+  @override
+  String get diveLog_gear_removeSetTitle =>
+      'Remover o conjunto deste mergulho?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Remover também o equipamento que este conjunto adicionou, ou manter o equipamento no mergulho e apenas desvincular o conjunto?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Manter equipamento';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Remover equipamento';
 
   @override
   String get diveLog_gear_unknownSet => 'Conjunto';

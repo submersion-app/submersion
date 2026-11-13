@@ -1420,7 +1420,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו?';
+      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו? „מעכשיו“ משאיר את הציוד שלהן ומנתק מהן את הסט.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5348,6 +5348,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_gear_removeSet => 'הסרת הסט מהצלילה הזו';
+
+  @override
+  String get diveLog_gear_removeSetTitle => 'להסיר את הסט מהצלילה הזו?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'להסיר גם את הציוד שהסט הוסיף, או להשאיר את הציוד בצלילה ולנתק רק את הסט?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'השארת הציוד';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'הסרת הציוד';
 
   @override
   String get diveLog_gear_unknownSet => 'סט';

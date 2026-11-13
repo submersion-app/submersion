@@ -1442,7 +1442,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ?';
+      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ? « À partir de maintenant » garde leur équipement et les dissocie de l\'ensemble.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5482,6 +5482,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_gear_removeSet => 'Retirer l\'ensemble de cette plongée';
+
+  @override
+  String get diveLog_gear_removeSetTitle =>
+      'Retirer l\'ensemble de cette plongée ?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Retirer aussi l\'équipement ajouté par cet ensemble, ou garder l\'équipement sur la plongée et seulement dissocier l\'ensemble ?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Garder l\'équipement';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Retirer l\'équipement';
 
   @override
   String get diveLog_gear_unknownSet => 'Ensemble';

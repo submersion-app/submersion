@@ -8610,6 +8610,25 @@ class DiveRepository {
     });
   }
 
+  /// Untags set [setId] from every logged dive that carries it, keeping the
+  /// gear (issue #4500). The set editor runs it when the diver changes the
+  /// set's members and keeps past dives as they were: those dives no longer
+  /// match the set, so they stop naming it and keep the gear as their own.
+  /// Planned dives follow the set instead ([rewriteSetOnDives]). Returns the
+  /// dives that changed.
+  Future<List<String>> unlinkSetFromLoggedDives(String setId) async {
+    final diveIds = await _gearTemplates.loggedDiveIdsWithSet(setId);
+    final touched = await _rewriteGearOn(
+      diveIds,
+      notify: false,
+      (rows, _) => GearExpander.unlinkSet(rows, setId),
+    );
+    // Sync carries the untagged rows, but no rescan is queued: the same
+    // gear is on each dive, so no quality finding can change.
+    if (touched.isNotEmpty) SyncEventBus.notifyLocalChange();
+    return touched;
+  }
+
   /// Writes [change] of each of [diveIds]' gear rows in one transaction,
   /// skipping the dives it leaves as they were. Returns the dives that
   /// changed. With [notify] false, sync and the rescan are the caller's.

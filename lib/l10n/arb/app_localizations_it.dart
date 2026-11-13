@@ -1444,7 +1444,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi?';
+      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi? «Da ora in poi» mantiene la loro attrezzatura e le scollega dal set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5467,6 +5467,20 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_gear_removeSet => 'Rimuovi il set da questa immersione';
+
+  @override
+  String get diveLog_gear_removeSetTitle =>
+      'Rimuovere il set da questa immersione?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Rimuovere anche l\'attrezzatura aggiunta da questo set, o mantenere l\'attrezzatura nell\'immersione e scollegare solo il set?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Mantieni attrezzatura';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Rimuovi attrezzatura';
 
   @override
   String get diveLog_gear_unknownSet => 'Set';

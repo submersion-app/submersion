@@ -798,7 +798,7 @@
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
   "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver",
   "equipment_setEdit_figureSwitch_title": "Show diver figure",
-  "equipment_setEdit_historyAsk": "Apply the changes to those dives as well, or only from now on?",
+  "equipment_setEdit_historyAsk": "Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.",
   "equipment_setEdit_historyOnDives": "{count, plural, =1{This set is on 1 logged dive.} other{This set is on {count} logged dives.}}",
   "equipment_color_red": "Red",
   "equipment_color_orange": "Orange",
@@ -3336,6 +3336,22 @@
     }
   },
   "diveLog_gear_removeSet": "Remove set from this dive",
+  "diveLog_gear_removeSetTitle": "Remove set from this dive?",
+  "@diveLog_gear_removeSetTitle": {
+    "description": "Title of the question asked when a set chip is removed from a dive's gear (issue #4500)"
+  },
+  "diveLog_gear_removeSetBody": "Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?",
+  "@diveLog_gear_removeSetBody": {
+    "description": "Body of that question: remove the set's gear too, or keep the gear and only unlink the set"
+  },
+  "diveLog_gear_removeSetKeepGear": "Keep gear",
+  "@diveLog_gear_removeSetKeepGear": {
+    "description": "Button that keeps the gear on the dive and only unlinks the set"
+  },
+  "diveLog_gear_removeSetRemoveGear": "Remove gear",
+  "@diveLog_gear_removeSetRemoveGear": {
+    "description": "Button that removes the gear the set added from the dive"
+  },
   "diveLog_gear_unknownSet": "Set",
   "diveLog_health_after15": "After 15 min",
   "diveLog_health_after5": "After 5 min",
