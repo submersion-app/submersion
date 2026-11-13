@@ -7805,6 +7805,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'سريعة، أنسجة غنية بالدم';
+
+  @override
+  String get diveLog_deco_groupMedium => 'متوسطة، العضلات والجلد';
+
+  @override
+  String get diveLog_deco_groupSlow => 'بطيئة، الدهون والعظام';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'الخريطة الحرارية للحجرات من $first إلى $last، السريعة في الأعلى والبطيئة في الأسفل';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'الخريطة الحرارية للحجرات من $first إلى $last، السريعة في الأعلى والبطيئة في الأسفل، من $start إلى $end من الغوصة';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'الحمل';
 
   @override
@@ -7815,10 +7839,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'توازن';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'الصفوف: من السريعة (أعلى) إلى البطيئة (أسفل)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'مستوى السطح';
@@ -63659,7 +63679,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'الأنسجة الستة عشر الافتراضية في النموذج، يمتص كل منها الغاز ويطلقه بسرعته الخاصة. تمثل السريعة الأنسجة الغنية بالدم والبطيئة الدهون والعظام.';
+      'الأنسجة الستة عشر الافتراضية في النموذج، يمتص كل منها الغاز ويطلقه بسرعته الخاصة: 1-5 سريعة (مثل الأنسجة الغنية بالدم كالدماغ)، و6-10 متوسطة (مثل العضلات والجلد)، و11-16 بطيئة (مثل الدهون والعظام). تحدّ السريعة من الغوصات القصيرة العميقة والبطيئة من الغوصات الطويلة والمتكررة؛ أسماء الأنسجة أمثلة تقريبية وليست تشريحًا.';
 
   @override
   String get info_term_leadingCompartment_label => 'الحجيرة القائدة';

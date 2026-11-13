@@ -4617,11 +4617,40 @@
       }
     }
   },
+  "diveLog_deco_groupFast": "Fast, blood-rich tissue",
+  "@diveLog_deco_groupFast": {
+    "description": "Speed group of tissue compartments 1-5, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_groupMedium": "Medium, muscle and skin",
+  "@diveLog_deco_groupMedium": {
+    "description": "Speed group of tissue compartments 6-10, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_groupSlow": "Slow, fat and bone",
+  "@diveLog_deco_groupSlow": {
+    "description": "Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_heatMapSemantics": "Heat map of compartments {first} to {last}, fast at the top and slow at the bottom",
+  "@diveLog_deco_heatMapSemantics": {
+    "description": "Screen reader description of the tissue heat map rows",
+    "placeholders": {
+      "first": {"type": "int"},
+      "last": {"type": "int"}
+    }
+  },
+  "diveLog_deco_heatMapTimedSemantics": "Heat map of compartments {first} to {last}, fast at the top and slow at the bottom, from {start} to {end} of the dive",
+  "@diveLog_deco_heatMapTimedSemantics": {
+    "description": "Screen reader description of the tissue heat map rows and the dive time it covers; start and end read like \"0 min\"",
+    "placeholders": {
+      "first": {"type": "int"},
+      "last": {"type": "int"},
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
   "diveLog_deco_metricLoad": "Load",
   "diveLog_deco_gasOngassing": "Ongassing",
   "diveLog_deco_gasOffgassing": "Offgassing",
   "diveLog_deco_gasEquilibrium": "Equilibrium",
-  "diveLog_deco_heatMapRows": "Rows: fast (top) to slow (bottom)",
   "diveLog_deco_surfaceLevel": "Surface level",
   "diveLog_deco_mValue": "M-value",
   "diveLog_deco_tooltipCompartment": "Compartment {number}",
@@ -36787,7 +36816,7 @@
   "info_term_surfaceInterval_label": "Surface interval",
   "info_term_surfaceInterval_body": "Time on the surface between two dives. Tissues keep releasing gas during it, so a longer interval carries less into the next dive.",
   "info_term_tissueCompartment_label": "Tissue compartments",
-  "info_term_tissueCompartment_body": "The model's 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.",
+  "info_term_tissueCompartment_body": "The model's 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones limit long and repeat dives; the tissue names are rough examples, not anatomy.",
   "info_term_leadingCompartment_label": "Leading compartment",
   "info_term_leadingCompartment_body": "The compartment closest to its limit right now. It sets the ceiling and changes during the dive.",
   "info_term_tissueLoad_label": "Load",

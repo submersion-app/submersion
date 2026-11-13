@@ -7297,6 +7297,30 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => '快速，血流丰富的组织';
+
+  @override
+  String get diveLog_deco_groupMedium => '中速，肌肉和皮肤';
+
+  @override
+  String get diveLog_deco_groupSlow => '慢速，脂肪和骨骼';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return '隔间 $first 至 $last 的热力图，快速在上，慢速在下';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return '隔间 $first 至 $last 的热力图，快速在上，慢速在下，覆盖潜水的 $start 至 $end';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => '负荷';
 
   @override
@@ -7307,9 +7331,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => '平衡';
-
-  @override
-  String get diveLog_deco_heatMapRows => '行：快速（上）到慢速（下）';
 
   @override
   String get diveLog_deco_surfaceLevel => '水面水平';
@@ -58888,7 +58909,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      '模型中的 16 个假想组织，各自以不同速度吸收和释放气体。快组织代表血流丰富的组织，慢组织代表脂肪和骨骼。';
+      '模型中的 16 个假想组织，各自以不同速度吸收和释放气体：1-5 为快速（如血流丰富的组织，例如大脑），6-10 为中速（如肌肉和皮肤），11-16 为慢速（如脂肪和骨骼）。快组织限制短而深的潜水，慢组织限制长时间和重复潜水；这些组织名称只是粗略示例，并非解剖对应。';
 
   @override
   String get info_term_leadingCompartment_label => '主导舱室';

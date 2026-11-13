@@ -12061,6 +12061,41 @@ abstract class AppLocalizations {
   /// **'Compartment: #{number}'**
   String diveLog_deco_compartmentOther(int number);
 
+  /// Speed group of tissue compartments 1-5, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Fast, blood-rich tissue'**
+  String get diveLog_deco_groupFast;
+
+  /// Speed group of tissue compartments 6-10, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Medium, muscle and skin'**
+  String get diveLog_deco_groupMedium;
+
+  /// Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Slow, fat and bone'**
+  String get diveLog_deco_groupSlow;
+
+  /// Screen reader description of the tissue heat map rows
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map of compartments {first} to {last}, fast at the top and slow at the bottom'**
+  String diveLog_deco_heatMapSemantics(int first, int last);
+
+  /// Screen reader description of the tissue heat map rows and the dive time it covers; start and end read like "0 min"
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map of compartments {first} to {last}, fast at the top and slow at the bottom, from {start} to {end} of the dive'**
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  );
+
   /// No description provided for @diveLog_deco_metricLoad.
   ///
   /// In en, this message translates to:
@@ -12084,12 +12119,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equilibrium'**
   String get diveLog_deco_gasEquilibrium;
-
-  /// No description provided for @diveLog_deco_heatMapRows.
-  ///
-  /// In en, this message translates to:
-  /// **'Rows: fast (top) to slow (bottom)'**
-  String get diveLog_deco_heatMapRows;
 
   /// No description provided for @diveLog_deco_surfaceLevel.
   ///
@@ -98495,7 +98524,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_tissueCompartment_body.
   ///
   /// In en, this message translates to:
-  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.'**
+  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones limit long and repeat dives; the tissue names are rough examples, not anatomy.'**
   String get info_term_tissueCompartment_body;
 
   /// No description provided for @info_term_leadingCompartment_label.

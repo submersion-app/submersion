@@ -7671,6 +7671,30 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Gyors, jól vérellátott szövet';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Közepes, izom és bőr';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Lassú, zsír és csont';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'A(z) $first-$last. kamra hőtérképe, a gyorsak felül, a lassúak alul';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'A(z) $first-$last. kamra hőtérképe, a gyorsak felül, a lassúak alul, a merülés $start és $end közötti szakaszán';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Terhelés';
 
   @override
@@ -7681,10 +7705,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Egyensúly';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Sorok: gyors (fent) és lassú (lent) között';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Felszíni szint';
@@ -62389,7 +62409,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt. A gyorsak a jól vérellátott szöveteket, a lassúak a zsírt és a csontot jelképezik.';
+      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt: az 1-5-ösek gyorsak (mint a jól vérellátott szövet, például az agy), a 6-10-esek közepesek (mint az izom és a bőr), a 11-16-osak lassúak (mint a zsír és a csont). A gyorsak a rövid, mély merüléseket, a lassúak a hosszú és ismételt merüléseket korlátozzák; a szövetnevek csak durva példák, nem anatómia.';
 
   @override
   String get info_term_leadingCompartment_label => 'Vezető kompartment';

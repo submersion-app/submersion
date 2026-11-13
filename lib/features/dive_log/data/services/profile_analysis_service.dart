@@ -229,6 +229,14 @@ class ProfileAnalysis {
   /// Decompression status at each point
   final List<DecoStatus> decoStatuses;
 
+  /// Seconds from the dive's zero point of each sample this analysis was
+  /// computed from, one per point of its per-sample curves ([decoStatuses]
+  /// among them). A view that puts those curves on a clock reads these, so a
+  /// retained analysis is never paired with the times of a profile that has
+  /// changed since (issue #4503). Empty for an analysis built outside
+  /// [ProfileAnalysisService.analyze].
+  final List<int> sampleTimestamps;
+
   /// Oxygen toxicity exposure
   final O2Exposure o2Exposure;
 
@@ -360,6 +368,7 @@ class ProfileAnalysis {
     this.decoStopWindows = const [],
     required this.ceilingCurve,
     this.decoStopCurve = const [],
+    this.sampleTimestamps = const [],
     required this.ndlCurve,
     required this.decoStatuses,
     required this.o2Exposure,
@@ -466,6 +475,7 @@ class ProfileAnalysis {
     List<double>? decoStopCurve,
     List<int>? ndlCurve,
     List<DecoStatus>? decoStatuses,
+    List<int>? sampleTimestamps,
     O2Exposure? o2Exposure,
     List<double>? ppO2Curve,
     List<List<double?>>? o2SensorCurves,
@@ -506,6 +516,7 @@ class ProfileAnalysis {
       decoStopCurve: decoStopCurve ?? this.decoStopCurve,
       ndlCurve: ndlCurve ?? this.ndlCurve,
       decoStatuses: decoStatuses ?? this.decoStatuses,
+      sampleTimestamps: sampleTimestamps ?? this.sampleTimestamps,
       o2Exposure: o2Exposure ?? this.o2Exposure,
       ppO2Curve: ppO2Curve ?? this.ppO2Curve,
       o2SensorCurves: o2SensorCurves ?? this.o2SensorCurves,
@@ -745,6 +756,7 @@ class ProfileAnalysisService {
         ceilingCurve: const [],
         ndlCurve: const [],
         decoStatuses: const [],
+        sampleTimestamps: timestamps,
         o2Exposure: const O2Exposure(),
         ppO2Curve: const [],
         meanDepthCurve: meanDepthCurve,
@@ -1113,6 +1125,7 @@ class ProfileAnalysisService {
       ceilingCurve: ceilingCurve,
       decoStopCurve: decoStopCurve,
       ndlCurve: ndlCurve,
+      sampleTimestamps: timestamps,
       decoStatuses: decoStatuses,
       o2Exposure: o2Exposure,
       ppO2Curve: ppO2Curve,

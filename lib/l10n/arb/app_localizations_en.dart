@@ -7572,6 +7572,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Heat map of compartments $first to $last, fast at the top and slow at the bottom';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Heat map of compartments $first to $last, fast at the top and slow at the bottom, from $start to $end of the dive';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Load';
 
   @override
@@ -7582,9 +7606,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Equilibrium';
-
-  @override
-  String get diveLog_deco_heatMapRows => 'Rows: fast (top) to slow (bottom)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Surface level';
@@ -61754,7 +61775,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.';
+      'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones limit long and repeat dives; the tissue names are rough examples, not anatomy.';
 
   @override
   String get info_term_leadingCompartment_label => 'Leading compartment';

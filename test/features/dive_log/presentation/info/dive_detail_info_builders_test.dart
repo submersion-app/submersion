@@ -171,6 +171,28 @@ void main() {
       expect(labels(stacked), contains(label(DiveTerm.stackedArea)));
       expect(labels(none), isNot(contains(label(DiveTerm.heatMap))));
     });
+
+    test(
+      'the compartments entry names the three speed groups (issue #4503)',
+      () {
+        final content = tissueLoadingInfo(
+          l10n,
+          units,
+          view: TissueVizMode.heatMap,
+          hasHelium: false,
+        );
+        final body = content.terms
+            .firstWhere((t) => t.term == label(DiveTerm.tissueCompartment))
+            .body;
+        expect(body, contains('1-5'));
+        expect(body, contains('6-10'));
+        expect(body, contains('11-16'));
+        // The tissues are examples, never presented as anatomy.
+        expect(body, contains('rough examples, not anatomy'));
+        // Each group's clause says what it limits.
+        expect(body, contains('slow ones limit long and repeat dives'));
+      },
+    );
   });
 
   test('safety review lists only the rules it found', () {

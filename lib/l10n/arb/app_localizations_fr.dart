@@ -7710,6 +7710,30 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Rapide, tissus très irrigués';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Moyen, muscles et peau';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Lent, graisse et os';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Carte de chaleur des compartiments $first à $last, les rapides en haut et les lents en bas';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Carte de chaleur des compartiments $first à $last, les rapides en haut et les lents en bas, de $start à $end de la plongée';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Charge';
 
   @override
@@ -7720,9 +7744,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Équilibre';
-
-  @override
-  String get diveLog_deco_heatMapRows => 'Lignes : rapide (haut) à lent (bas)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Niveau de surface';
@@ -62879,7 +62900,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Les 16 tissus fictifs du modèle, qui absorbent et libèrent le gaz chacun à son rythme. Les rapides représentent les tissus très irrigués, les lents la graisse et les os.';
+      'Les 16 tissus fictifs du modèle, qui absorbent et libèrent le gaz chacun à son rythme : 1-5 sont rapides (comme les tissus très irrigués, par exemple le cerveau), 6-10 moyens (comme les muscles et la peau) et 11-16 lents (comme la graisse et les os). Les rapides limitent les plongées courtes et profondes, les lents les plongées longues et successives ; les noms de tissus sont des exemples approximatifs, pas de l\'anatomie.';
 
   @override
   String get info_term_leadingCompartment_label => 'Compartiment directeur';
