@@ -103,36 +103,6 @@ DecoSlot _decoSlotAt(ProfileAnalysis? analysis, int index) {
 
 const _missing = '--';
 
-/// The four slot strings, in order: time, depth, ppO2, NDL or stop.
-List<String> formatPinnedStripValues(
-  PinnedStripValues values,
-  UnitFormatter units,
-  AppLocalizations l10n,
-) {
-  final ppO2 = values.ppO2Bar;
-  return [
-    formatMinutesSeconds(values.runtimeSeconds),
-    units.formatDepth(values.depthMeters),
-    l10n.diveLog_pinnedStrip_ppO2(
-      ppO2 == null ? _missing : ppO2.toStringAsFixed(2),
-    ),
-    switch (values.deco) {
-      // Past 99 minutes is the analysis's "no limit" range (999 at the
-      // surface), so it reads as more than 99 rather than a literal figure.
-      NdlSlot(:final ndlSeconds) => l10n.diveLog_pinnedStrip_ndl(
-        ndlSeconds > 99 * 60 ? '>99' : '${ndlSeconds ~/ 60}',
-      ),
-      // Rounded up, as the deco status card's stop chips are.
-      StopSlot(:final depthMeters, :final durationSeconds) =>
-        l10n.diveLog_pinnedStrip_stop(
-          units.formatDepth(depthMeters, decimals: 0),
-          '${(durationSeconds / 60).ceil()}',
-        ),
-      UnknownDecoSlot() => _missing,
-    },
-  ];
-}
-
 /// The pinned strip's tooltip rows at one cursor position (issue #4509):
 /// Time, Depth and ppO2, then NDL, or the deco stop and ceiling in deco.
 ///

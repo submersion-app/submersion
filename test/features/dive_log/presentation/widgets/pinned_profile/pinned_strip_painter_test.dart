@@ -378,6 +378,37 @@ void main() {
     );
   });
 
+  // The diver's chart colours (Settings > Appearance), as the full chart.
+  testWidgets('draws its layers in the colours it is given', (tester) async {
+    await pumpPainter(
+      tester,
+      PinnedStripPainter(
+        profile: profile,
+        selectedSeconds: null,
+        curveColor: Colors.blue,
+        fillColors: const [Colors.blue, Colors.blue],
+        markerColor: Colors.red,
+        morph: 1,
+        ndlCurve: const [3600, 1800, 600],
+        ceilingCurve: const [0, 4, 0],
+        maxDepthLabel: '24.0m',
+        ndlColor: Colors.green,
+        ceilingColor: Colors.orange,
+        maxDepthColor: Colors.purple,
+      ),
+    );
+    expect(
+      find.byType(CustomPaint),
+      paints
+        ..path()
+        ..path(color: Colors.orange.withValues(alpha: ceilingFillAlpha))
+        ..path(color: Colors.orange, style: PaintingStyle.stroke)
+        ..path(color: Colors.blue)
+        ..path(color: Colors.green)
+        ..circle(color: Colors.purple),
+    );
+  });
+
   test('repaints when a curve or the label changes', () {
     final base = painter(morph: 1, ndlCurve: [600, 600, 600]);
     expect(

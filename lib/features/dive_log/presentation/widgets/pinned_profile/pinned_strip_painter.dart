@@ -108,6 +108,9 @@ class PinnedStripPainter extends CustomPainter {
     this.maxDepthLabel,
     this.maxDepthLabelColor = ProfileMetricColors.maxDepth,
     this.surfaceColor = const Color(0x00000000),
+    this.ndlColor = ProfileMetricColors.ndl,
+    this.ceilingColor = ProfileMetricColors.ceiling,
+    this.maxDepthColor = ProfileMetricColors.maxDepth,
   });
 
   final List<DiveProfilePoint> profile;
@@ -138,6 +141,12 @@ class PinnedStripPainter extends CustomPainter {
 
   /// The strip's background, which rings the max-depth dot.
   final Color surfaceColor;
+
+  /// The colours of the NDL line, the ceiling and the max-depth dot: the
+  /// diver's chart colours, as the full chart draws them.
+  final Color ndlColor;
+  final Color ceilingColor;
+  final Color maxDepthColor;
 
   /// The strip's own mapping: the whole dive across the pinned strip's curve
   /// area, surface to deepest point down.
@@ -290,7 +299,7 @@ class PinnedStripPainter extends CustomPainter {
     canvas.drawPath(
       line,
       Paint()
-        ..color = ProfileMetricColors.ndl.withValues(alpha: opacity)
+        ..color = ndlColor.withValues(alpha: ndlColor.a * opacity)
         ..style = PaintingStyle.stroke
         ..strokeWidth = _ndlLineWidth
         ..strokeJoin = StrokeJoin.round
@@ -314,7 +323,7 @@ class PinnedStripPainter extends CustomPainter {
         dot,
         _maxDepthDotRadius,
         Paint()
-          ..color = ProfileMetricColors.maxDepth.withValues(alpha: opacity),
+          ..color = maxDepthColor.withValues(alpha: maxDepthColor.a * opacity),
       )
       ..drawCircle(
         dot,
@@ -395,7 +404,7 @@ class PinnedStripPainter extends CustomPainter {
         m,
         ceiling,
         stepped: false,
-        color: ProfileMetricColors.ceiling,
+        color: ceilingColor,
         fillAlpha: ceilingFillAlpha,
         opacity: layers,
       );
@@ -448,5 +457,8 @@ class PinnedStripPainter extends CustomPainter {
       old.decoStopCurve != decoStopCurve ||
       old.maxDepthLabel != maxDepthLabel ||
       old.maxDepthLabelColor != maxDepthLabelColor ||
-      old.surfaceColor != surfaceColor;
+      old.surfaceColor != surfaceColor ||
+      old.ndlColor != ndlColor ||
+      old.ceilingColor != ceilingColor ||
+      old.maxDepthColor != maxDepthColor;
 }
