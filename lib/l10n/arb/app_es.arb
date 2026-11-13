@@ -7425,6 +7425,7 @@
   "settings_conflict_field_cardColorGradientEnd": "Final del degradado de tarjetas",
   "settings_conflict_field_cardColorGradientPreset": "Degradado de tarjetas",
   "settings_conflict_field_cardColorGradientStart": "Inicio del degradado de tarjetas",
+  "settings_conflict_field_catalogueId": "Enlace al catálogo integrado",
   "settings_conflict_field_ccrDiluentModPpO2": "ppO2 de MOD del diluyente CCR",
   "settings_conflict_field_ccrSetpointHigh": "Setpoint alto CCR",
   "settings_conflict_field_ccrSetpointLow": "Setpoint bajo CCR",

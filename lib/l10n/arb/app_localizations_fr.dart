@@ -25167,6 +25167,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Début du dégradé des cartes';
 
   @override
+  String get settings_conflict_field_catalogueId =>
+      'Lien vers le catalogue intégré';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 MOD du diluant CCR';
 

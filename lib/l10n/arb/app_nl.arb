@@ -7425,6 +7425,7 @@
   "settings_conflict_field_cardColorGradientEnd": "Einde van het kaartkleurverloop",
   "settings_conflict_field_cardColorGradientPreset": "Kaartkleurverloop",
   "settings_conflict_field_cardColorGradientStart": "Begin van het kaartkleurverloop",
+  "settings_conflict_field_catalogueId": "Koppeling met ingebouwde catalogus",
   "settings_conflict_field_ccrDiluentModPpO2": "ppO2 voor de MOD van het CCR-diluent",
   "settings_conflict_field_ccrSetpointHigh": "Hoog CCR-setpoint",
   "settings_conflict_field_ccrSetpointLow": "Laag CCR-setpoint",

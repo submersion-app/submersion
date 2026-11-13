@@ -25103,6 +25103,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Inizio della sfumatura delle schede';
 
   @override
+  String get settings_conflict_field_catalogueId =>
+      'Collegamento al catalogo integrato';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 della MOD del diluente CCR';
 

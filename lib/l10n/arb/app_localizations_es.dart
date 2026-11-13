@@ -25101,6 +25101,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Inicio del degradado de tarjetas';
 
   @override
+  String get settings_conflict_field_catalogueId =>
+      'Enlace al catálogo integrado';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 de MOD del diluyente CCR';
 

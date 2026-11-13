@@ -24719,6 +24719,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Card color gradient start';
 
   @override
+  String get settings_conflict_field_catalogueId => 'Built-in catalogue link';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'CCR diluent MOD ppO2';
 

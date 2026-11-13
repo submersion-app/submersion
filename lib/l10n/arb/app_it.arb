@@ -7325,6 +7325,7 @@
   "settings_conflict_field_cardColorGradientEnd": "Fine della sfumatura delle schede",
   "settings_conflict_field_cardColorGradientPreset": "Sfumatura delle schede",
   "settings_conflict_field_cardColorGradientStart": "Inizio della sfumatura delle schede",
+  "settings_conflict_field_catalogueId": "Collegamento al catalogo integrato",
   "settings_conflict_field_ccrDiluentModPpO2": "ppO2 della MOD del diluente CCR",
   "settings_conflict_field_ccrSetpointHigh": "Setpoint alto CCR",
   "settings_conflict_field_ccrSetpointLow": "Setpoint basso CCR",

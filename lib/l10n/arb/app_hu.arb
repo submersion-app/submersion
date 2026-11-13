@@ -7325,6 +7325,7 @@
   "settings_conflict_field_cardColorGradientEnd": "Kártyaszínátmenet vége",
   "settings_conflict_field_cardColorGradientPreset": "Kártyaszínátmenet",
   "settings_conflict_field_cardColorGradientStart": "Kártyaszínátmenet eleje",
+  "settings_conflict_field_catalogueId": "Beépített katalógus hivatkozása",
   "settings_conflict_field_ccrDiluentModPpO2": "CCR-diluens MOD ppO2-je",
   "settings_conflict_field_ccrSetpointHigh": "Magas CCR-setpoint",
   "settings_conflict_field_ccrSetpointLow": "Alacsony CCR-setpoint",

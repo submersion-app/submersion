@@ -167,5 +167,11 @@ extension RungsFromV340 on AppDatabase {
     if (from < 361) await _assertSiteCountryCodeColumn();
     if (from < 361) await _backfillSiteCountryCodes();
     if (from < 361) await reportProgress();
+
+    // v362: dive_sites.catalogue_id, the built-in catalogue record a site
+    // was adopted from. Nullable and offline, with nothing to backfill, so
+    // the floor does not move. The column is re-asserted in beforeOpen.
+    if (from < 362) await _assertSiteCatalogueIdColumn();
+    if (from < 362) await reportProgress();
   }
 }

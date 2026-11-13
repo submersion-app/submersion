@@ -7325,6 +7325,7 @@
   "settings_conflict_field_cardColorGradientEnd": "Fin du dégradé des cartes",
   "settings_conflict_field_cardColorGradientPreset": "Dégradé des cartes",
   "settings_conflict_field_cardColorGradientStart": "Début du dégradé des cartes",
+  "settings_conflict_field_catalogueId": "Lien vers le catalogue intégré",
   "settings_conflict_field_ccrDiluentModPpO2": "ppO2 MOD du diluant CCR",
   "settings_conflict_field_ccrSetpointHigh": "Point de consigne CCR haut",
   "settings_conflict_field_ccrSetpointLow": "Point de consigne CCR bas",

@@ -25469,6 +25469,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'بداية تدرج ألوان البطاقات';
 
   @override
+  String get settings_conflict_field_catalogueId => 'رابط الكتالوج المدمج';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 لأقصى عمق تشغيل لمخفف CCR';
 

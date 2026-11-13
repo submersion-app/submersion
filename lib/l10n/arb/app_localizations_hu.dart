@@ -25020,6 +25020,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Kártyaszínátmenet eleje';
 
   @override
+  String get settings_conflict_field_catalogueId =>
+      'Beépített katalógus hivatkozása';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'CCR-diluens MOD ppO2-je';
 

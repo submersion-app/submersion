@@ -252,6 +252,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
   'dive_sites': {
     'access_notes': 'How to get there, entry points',
     'altitude': 'Altitude above sea level in meters (for altitude diving)',
+    'catalogue_id': 'The id of the built-in catalogue record this site was adopted from',
     'city': 'Location hierarchy',
     'country_code': 'The country\'s ISO 3166-1 alpha-2 code: from the geocoder when the location is geocoded, else read from country',
     'difficulty': 'Beginner, Intermediate, Advanced, Technical',

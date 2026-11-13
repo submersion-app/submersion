@@ -319,7 +319,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 361;
+  static const int currentSchemaVersion = 362;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1668,6 +1668,10 @@ class AppDatabase extends _$AppDatabase {
     // #4426), backfilled offline from each site's country text. Nullable,
     // so the floor does not move. Renumbered from 360.
     361,
+    // v362: dive_sites.catalogue_id, the built-in catalogue record a site
+    // was adopted from. Nullable, nothing to backfill, so the floor does
+    // not move.
+    362,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

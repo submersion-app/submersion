@@ -7429,6 +7429,7 @@
   "settings_conflict_field_cardColorGradientEnd": "סוף מעבר הצבעים של הכרטיסים",
   "settings_conflict_field_cardColorGradientPreset": "מעבר הצבעים של הכרטיסים",
   "settings_conflict_field_cardColorGradientStart": "תחילת מעבר הצבעים של הכרטיסים",
+  "settings_conflict_field_catalogueId": "קישור לקטלוג המובנה",
   "settings_conflict_field_ccrDiluentModPpO2": "ppO2 של MOD המדלל ב-CCR",
   "settings_conflict_field_ccrSetpointHigh": "נקודת כיוון גבוהה ב-CCR",
   "settings_conflict_field_ccrSetpointLow": "נקודת כיוון נמוכה ב-CCR",

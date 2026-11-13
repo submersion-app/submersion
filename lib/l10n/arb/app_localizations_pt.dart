@@ -25094,6 +25094,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Início do degradê dos cartões';
 
   @override
+  String get settings_conflict_field_catalogueId =>
+      'Ligação ao catálogo integrado';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 da MOD do diluente CCR';
 

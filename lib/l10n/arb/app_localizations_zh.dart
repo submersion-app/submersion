@@ -23783,6 +23783,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_field_cardColorGradientStart => '卡片渐变起点';
 
   @override
+  String get settings_conflict_field_catalogueId => '内置目录链接';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 => 'CCR 稀释气 MOD 的 ppO2';
 
   @override

@@ -7425,6 +7425,7 @@
   "settings_conflict_field_cardColorGradientEnd": "Fim do degradê dos cartões",
   "settings_conflict_field_cardColorGradientPreset": "Degradê dos cartões",
   "settings_conflict_field_cardColorGradientStart": "Início do degradê dos cartões",
+  "settings_conflict_field_catalogueId": "Ligação ao catálogo integrado",
   "settings_conflict_field_ccrDiluentModPpO2": "ppO2 da MOD do diluente CCR",
   "settings_conflict_field_ccrSetpointHigh": "Setpoint alto do CCR",
   "settings_conflict_field_ccrSetpointLow": "Setpoint baixo do CCR",

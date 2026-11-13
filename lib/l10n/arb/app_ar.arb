@@ -7425,6 +7425,7 @@
   "settings_conflict_field_cardColorGradientEnd": "نهاية تدرج ألوان البطاقات",
   "settings_conflict_field_cardColorGradientPreset": "تدرج ألوان البطاقات",
   "settings_conflict_field_cardColorGradientStart": "بداية تدرج ألوان البطاقات",
+  "settings_conflict_field_catalogueId": "رابط الكتالوج المدمج",
   "settings_conflict_field_ccrDiluentModPpO2": "ppO2 لأقصى عمق تشغيل لمخفف CCR",
   "settings_conflict_field_ccrSetpointHigh": "نقطة ضبط CCR العليا",
   "settings_conflict_field_ccrSetpointLow": "نقطة ضبط CCR الدنيا",

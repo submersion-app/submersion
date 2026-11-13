@@ -24526,6 +24526,9 @@ class AppLocalizationsHe extends AppLocalizations {
       'תחילת מעבר הצבעים של הכרטיסים';
 
   @override
+  String get settings_conflict_field_catalogueId => 'קישור לקטלוג המובנה';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'ppO2 של MOD המדלל ב-CCR';
 

@@ -39591,6 +39591,12 @@ abstract class AppLocalizations {
   /// **'Card color gradient start'**
   String get settings_conflict_field_cardColorGradientStart;
 
+  /// No description provided for @settings_conflict_field_catalogueId.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in catalogue link'**
+  String get settings_conflict_field_catalogueId;
+
   /// No description provided for @settings_conflict_field_ccrDiluentModPpO2.
   ///
   /// In en, this message translates to:

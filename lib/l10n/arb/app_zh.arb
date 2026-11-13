@@ -7577,6 +7577,7 @@
   "settings_conflict_field_cardColorGradientEnd": "卡片渐变终点",
   "settings_conflict_field_cardColorGradientPreset": "卡片渐变",
   "settings_conflict_field_cardColorGradientStart": "卡片渐变起点",
+  "settings_conflict_field_catalogueId": "内置目录链接",
   "settings_conflict_field_ccrDiluentModPpO2": "CCR 稀释气 MOD 的 ppO2",
   "settings_conflict_field_ccrSetpointHigh": "CCR 高设定点",
   "settings_conflict_field_ccrSetpointLow": "CCR 低设定点",

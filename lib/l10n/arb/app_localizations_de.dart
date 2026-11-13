@@ -25067,6 +25067,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Anfang des Kartenfarbverlaufs';
 
   @override
+  String get settings_conflict_field_catalogueId =>
+      'Verknüpfung mit integriertem Katalog';
+
+  @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
       'CCR-Diluent-MOD-ppO2';
 
