@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,10 +9,13 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_edit_page.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
@@ -83,7 +88,11 @@ void main() {
   /// What the clone form popped with, or 'none' until it pops.
   late Object? popped;
 
-  Future<void> openClone(WidgetTester tester, {String from = 'src'}) async {
+  Future<void> openClone(
+    WidgetTester tester, {
+    String from = 'src',
+    List<Override> extra = const [],
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(800, 2400);
     addTearDown(tester.view.reset);
@@ -92,6 +101,7 @@ void main() {
     overrides.add(
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
     );
+    overrides.addAll(extra);
     final router = GoRouter(
       initialLocation: '/home',
       routes: [
@@ -213,6 +223,64 @@ void main() {
     expect(find.text('OPEN_CLONE'), findsOneWidget);
     expect(popped, isNull, reason: 'a discarded clone hands back nothing');
     expect(await repo.getAllSets(diverId: 'd1'), hasLength(1));
+  });
+
+  testWidgets('a quick save keeps only the gear the diver can see', (
+    tester,
+  ) async {
+    // Save tapped before the visible gear has loaded must not copy a member
+    // whose share was removed (#2046): 'mask' is no longer visible.
+    final everyItem = await EquipmentRepository().getAllEquipment(
+      diverId: 'd1',
+    );
+    final visible = Completer<List<EquipmentItem>>();
+    await openClone(
+      tester,
+      extra: [allEquipmentProvider.overrideWith((ref) => visible.future)],
+    );
+
+    await tester.tap(appBarSave());
+    await tester.pump();
+    visible.complete([
+      for (final item in everyItem)
+        if (item.id == 'bcd') item,
+    ]);
+    await tester.pumpAndSettle();
+
+    final clone = (await repo.getAllSets(
+      diverId: 'd1',
+    )).singleWhere((s) => s.id != 'src');
+    expect(await repo.getEquipmentIdsInSet(clone.id), ['bcd']);
+  });
+
+  testWidgets("another diver's set is not cloned", (tester) async {
+    // The id arrives in the route, so it alone must not copy another
+    // profile's set, as the equipment clone refuses another's gear (#2046).
+    final db = DatabaseService.instance.database;
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'd2',
+            name: 'd2',
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await repo.createSet(
+      EquipmentSet(
+        id: 'theirs',
+        diverId: 'd2',
+        name: 'Their Rig',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    await openClone(tester, from: 'theirs');
+    expect(find.text('Set Not Found'), findsOneWidget);
+    expect(find.text('Their Rig (copy)'), findsNothing);
   });
 
   testWidgets('a missing source says so', (tester) async {

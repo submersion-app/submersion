@@ -33,6 +33,7 @@ import 'package:submersion/features/transmitters/presentation/providers/transmit
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_custom_fields_section.dart';
+import 'package:submersion/features/equipment/presentation/widgets/unsaved_changes_scope.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
@@ -727,7 +728,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
         canPop: !_hasChanges,
         onPopInvokedWithResult: (didPop, result) async {
           if (!didPop && _hasChanges) {
-            final shouldPop = await _showDiscardDialog();
+            final shouldPop = await showDiscardChangesDialog(context);
             if (shouldPop == true && mounted) {
               _handleCancel();
             }
@@ -746,7 +747,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
       canPop: !_hasChanges,
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop && _hasChanges) {
-          final shouldPop = await _showDiscardDialog();
+          final shouldPop = await showDiscardChangesDialog(context);
           if (shouldPop == true && context.mounted) {
             Navigator.of(context).pop();
           }
@@ -825,7 +826,7 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             TextButton(
               onPressed: () async {
                 if (_hasChanges) {
-                  final discard = await _showDiscardDialog();
+                  final discard = await showDiscardChangesDialog(context);
                   if (discard == true && mounted) {
                     _handleCancel();
                   }
@@ -859,26 +860,6 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Future<bool?> _showDiscardDialog() {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n.equipment_edit_discardDialog_title),
-        content: Text(context.l10n.equipment_edit_discardDialog_content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.l10n.equipment_edit_discardDialog_keepEditing),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.l10n.equipment_edit_discardDialog_discard),
-          ),
-        ],
       ),
     );
   }

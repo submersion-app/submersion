@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -92,6 +93,25 @@ void main() {
 
   Finder defaultSwitch() => find.widgetWithText(SwitchListTile, 'Default set');
 
+  /// Adds gear 'fin' to the database and to set s1.
+  Future<void> addFinToSet() async {
+    final db = DatabaseService.instance.database;
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'fin',
+            name: 'fin',
+            type: 'bcd',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value('d1'),
+          ),
+        );
+    await EquipmentSetRepository().addItemToSet('s1', 'fin');
+  }
+
   group('new set', () {
     testWidgets('Back with nothing entered leaves without asking', (
       tester,
@@ -155,6 +175,38 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
       expect(find.text('Discard Changes?'), findsOneWidget);
+    });
+
+    testWidgets('a member deleted meanwhile is not taken for a change', (
+      tester,
+    ) async {
+      await createSet();
+      await addFinToSet();
+      await openForm(tester, setId: 's1');
+
+      // Deleted from another tab or by a sync: its membership cascades away
+      // and the form drops it, which the diver did not do.
+      await tester.runAsync(() async {
+        final db = DatabaseService.instance.database;
+        await (db.delete(db.equipment)..where((e) => e.id.equals('fin'))).go();
+      });
+      // The set and gear reloads are real queries: let each finish.
+      for (var i = 0; i < 3; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pumpAndSettle();
+      }
+      expect(
+        tester.widget<PopScope<Object?>>(find.byType(PopScope<Object?>)).canPop,
+        isTrue,
+        reason: 'the form has dropped the deleted member by now',
+      );
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('Discard Changes?'), findsNothing);
+      expect(find.text('OPEN_FORM'), findsOneWidget);
     });
 
     testWidgets('a change put back as it was is no change', (tester) async {

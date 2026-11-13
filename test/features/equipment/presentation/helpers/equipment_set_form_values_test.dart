@@ -100,6 +100,14 @@ void main() {
     );
   });
 
+  test('retainingEquipment drops only the members it rejects', () {
+    final opened = values(isDefault: true, geofences: [fence()]);
+    expect(
+      opened.retainingEquipment((id) => id != 'b'),
+      values(ids: const {'a'}, isDefault: true, geofences: [fence()]),
+    );
+  });
+
   test('blank matches a new form', () {
     expect(EquipmentSetFormValues.blank, values(name: '', ids: const {}));
   });

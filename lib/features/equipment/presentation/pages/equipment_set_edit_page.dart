@@ -28,6 +28,7 @@ import 'package:submersion/features/equipment/presentation/helpers/equipment_set
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_clone_seed.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_set_form_values.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/set_geofences_editor.dart';
 import 'package:submersion/features/equipment/presentation/widgets/unsaved_changes_scope.dart';
@@ -119,7 +120,6 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   }
 
   void _initializeFromClone(EquipmentSet source) {
-    if (_isInitialized) return;
     _initializeFromSet(
       equipmentSetCloneSeed(
         source,
@@ -159,9 +159,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   /// gear that [allEquipmentProvider] (diver-scoped) does not return -- neither
   /// may be silently dropped.
   ///
-  /// A clone ([set] null) keeps only the gear the diver can see: the copy is
-  /// theirs, and a member whose share was removed (issue #2046) would be a
-  /// row they can neither see nor untick.
+  /// A clone ([set] null) keeps only gear the diver can see, so no member
+  /// whose share was removed (#2046) is a row they cannot see or untick.
   void _pruneDeletedSelections(
     EquipmentSet? set,
     List<EquipmentItem>? everyEquipment,
@@ -169,6 +168,8 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
     if (everyEquipment == null) return;
     final known = {...everyEquipment.map((e) => e.id), ...?set?.equipmentIds};
     _selectedEquipmentIds.retainWhere(known.contains);
+    // The diver did not drop these, so Back must not ask about them.
+    _opened = _opened?.retainingEquipment(known.contains);
   }
 
   @override
@@ -179,16 +180,24 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
     // gets no checkbox.
     final everyEquipment = ref.watch(allEquipmentProvider).valueOrNull;
 
+    // The form over [existing] (null for a new set or a clone), with gear
+    // deleted meanwhile dropped from the selection.
+    Widget form(EquipmentSet? existing) {
+      _pruneDeletedSelections(existing, everyEquipment);
+      return _buildForm(context, allEquipmentAsync, existing);
+    }
+
     // A seeded clone no longer needs its source, so it stops watching it: a
     // source deleted meanwhile must not discard the clone.
-    if (widget.isCloning && _isInitialized) {
-      _pruneDeletedSelections(null, everyEquipment);
-      return _buildForm(context, allEquipmentAsync, null);
-    }
+    if (widget.isCloning && _isInitialized) return form(null);
 
     final loadId = widget.setId ?? widget.cloneFromId;
     if (loadId != null) {
-      final setAsync = ref.watch(equipmentSetProvider(loadId));
+      final setAsync = ref.watch(
+        widget.isCloning
+            ? equipmentSetCloneSourceProvider(loadId)
+            : equipmentSetProvider(loadId),
+      );
       return setAsync.when(
         data: (set) {
           if (set == null) {
@@ -203,12 +212,10 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
           }
           if (widget.isCloning) {
             _initializeFromClone(set);
-            _pruneDeletedSelections(null, everyEquipment);
-            return _buildForm(context, allEquipmentAsync, null);
+            return form(null);
           }
           _initializeFromSet(set);
-          _pruneDeletedSelections(set, everyEquipment);
-          return _buildForm(context, allEquipmentAsync, set);
+          return form(set);
         },
         loading: () => Scaffold(
           appBar: AppBar(
@@ -703,6 +710,11 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
       final diverId =
           existingSet?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
+      // A clone saved before the gear list loaded is pruned here instead.
+      if (widget.isCloning) {
+        final every = await ref.read(allEquipmentProvider.future);
+        _pruneDeletedSelections(null, every);
+      }
 
       final set = EquipmentSet(
         id: widget.setId ?? '',
