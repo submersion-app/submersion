@@ -22,10 +22,12 @@ int? parseFigureColor(String? hex) {
 /// Numbers follow the order of [items]; placement walks the canonical type
 /// order so the outcome does not depend on the diver's sort setting.
 ///
-/// An item the diver has put somewhere (its position on the figure, a dive
-/// tank's role, a cylinder's Worn as) takes that spot first, ahead of every
-/// item the set rule places, so an earlier type cannot take it (issue
-/// #4493). [sidemountRig] says the rig is sidemount when the items alone do
+/// An item the diver moved on the figure takes that spot first, ahead of
+/// every item the set rule places, so an earlier type cannot take it (issue
+/// #4493). A tank's dive role or Worn as is tried first in its own turn,
+/// and within the tanks those come before the ones with no place of their
+/// own; an earlier type keeps its zone, so a rebreather is never pushed off
+/// the body by a cylinder. [sidemountRig] says the rig is sidemount when the items alone do
 /// not, as on a dive whose tanks carry sidemount roles but are not linked
 /// to the cylinders.
 FigureModel composeFigure(
@@ -61,6 +63,10 @@ FigureModel composeFigure(
       FigurePlacement.contributesSidemountRig(item.type, item.attributes)
       ? 0
       : 1;
+  // Within a type, a tank with a role or Worn as goes before one with none,
+  // so a plain tank listed first cannot take the side the other names.
+  int placedFirst(FigureItemInput item) =>
+      preferences[item.id]!.tankZones.isEmpty ? 1 : 0;
   final ordered = [...topLevel]
     ..sort((a, b) {
       final byType = equipmentTypeRank(
@@ -69,8 +75,10 @@ FigureModel composeFigure(
       ).compareTo(equipmentTypeRank(b.type, kCanonicalTypeOrder));
       if (byType != 0) return byType;
       final byRig = rigFirst(a).compareTo(rigFirst(b));
-      return byRig != 0
-          ? byRig
+      if (byRig != 0) return byRig;
+      final byPlace = placedFirst(a).compareTo(placedFirst(b));
+      return byPlace != 0
+          ? byPlace
           : numberById[a.id]!.compareTo(numberById[b.id]!);
     });
   final specs = [
@@ -96,10 +104,11 @@ FigureModel composeFigure(
     }
   }
 
-  // The diver's own choices first, then the set rule for everything else,
-  // including a chosen spot that was already full.
+  // Spots the diver moved items to first, then everything else in order,
+  // including an item whose chosen spot was already full.
   for (var i = 0; i < ordered.length; i++) {
-    claim(i, preferences[ordered[i].id]!.claimFirst);
+    final position = preferences[ordered[i].id]!.position;
+    if (position != null) claim(i, [position]);
   }
   for (var i = 0; i < ordered.length; i++) {
     if (zones[i] != null) continue;
@@ -149,16 +158,6 @@ class _Preferences {
   final FigureZone? position;
   final List<FigureZone> tankZones;
   final bool isTank;
-
-  /// What the item claims ahead of the set rule. A role or Worn as naming
-  /// the back is left to the set rule's own walk, where it is tried first:
-  /// the back is where a tank goes anyway, and claiming it early would push
-  /// a back-mounted rebreather, which needs the whole back, into the tray.
-  List<FigureZone> get claimFirst => [
-    ?position,
-    for (final zone in tankZones)
-      if (zone != FigureZone.backTank) zone,
-  ];
 
   /// Whether this is a cylinder put at the diver's side, which makes the
   /// whole rig sidemount: a further cylinder with no place of its own is

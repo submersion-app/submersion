@@ -234,6 +234,21 @@ void main() {
       expect(model.byId('dil')!.zone, FigureZone.stageLeft);
     });
 
+    test('keeps its one side beside a sidemount-left bailout', () {
+      final model = composeFigure([
+        item(
+          'ccr',
+          EquipmentType.rebreather,
+          attributes: {'mount_configuration': 'sidemount'},
+        ),
+        item('bo', EquipmentType.tank, tankRole: TankRole.sidemountLeft),
+        tank('bo2', wornAs: 'sidemount_left'),
+      ]);
+      expect(model.byId('ccr')!.zone, FigureZone.sidemountLeft);
+      expect(model.byId('bo')!.zone, FigureZone.sidemountRight);
+      expect(model.byId('bo2')!.zone, FigureZone.stageLeft);
+    });
+
     test('keeps the back beside a back-mount cylinder', () {
       final model = composeFigure([
         item('ccr', EquipmentType.rebreather),
