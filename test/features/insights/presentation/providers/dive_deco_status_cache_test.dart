@@ -84,6 +84,14 @@ class _ScanHook extends InsightsRepository {
   }
 }
 
+/// A settings notifier whose latest load failed (see the deco obligation
+/// provider test of the same name).
+class _FailedLoadSettingsNotifier extends MockSettingsNotifier {
+  @override
+  Future<void> get settingsLoaded async =>
+      throw StateError('settings read failed');
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -522,6 +530,177 @@ void main() {
     await container.read(diveDecoStatusCacheProvider.future);
 
     expect(await DiveDecoStatusRepository().verdicts(), isEmpty);
+  });
+
+  test('a refresh whose service was rebuilt mid-analysis raises rather '
+      'than leave the caller unprepared', () async {
+    await insertDive('deep');
+    await insertProfile('deep', _square(40, 25));
+    var builds = 0;
+    final service = Provider((ref) {
+      builds++;
+      return ref;
+    });
+    final container = await makeContainer();
+    final sub = container.listen(service, (_, _) {});
+    addTearDown(sub.close);
+    final ref = container.read(service);
+
+    // The rule engine provider rebuilds part way through the analysis.
+    final refresh = refreshDiveDecoStatusFor(ref, 'me', {
+      'deep',
+    }, isActive: true);
+    container.invalidate(service);
+    container.read(service);
+
+    await expectLater(refresh, throwsA(isA<StateError>()));
+    expect(builds, 2);
+  });
+
+  test(
+    'an edit no verdict can depend on does not re-scan the logbook',
+    () async {
+      // With a Deco filter on, a rating or a note must not cost a whole-
+      // logbook scan; a gradient factor must.
+      await insertDive('deep');
+      await insertProfile('deep', _square(40, 25));
+      var scans = 0;
+      final container = ProviderContainer(
+        overrides: [
+          ...(await getBaseOverrides()).cast(),
+          insightsRepositoryProvider.overrideWith(
+            (ref) => _ScanHook(() => scans++),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(diveDecoStatusCacheProvider, (_, _) {});
+      addTearDown(sub.close);
+      await container.read(diveDecoStatusCacheProvider.future);
+      expect(scans, 1);
+
+      await (db.update(db.dives)..where((t) => t.id.equals('deep'))).write(
+        const DivesCompanion(rating: Value(4), notes: Value('lovely')),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await container.read(diveDecoStatusCacheProvider.future);
+      expect(scans, 1);
+
+      await (db.update(db.dives)..where((t) => t.id.equals('deep'))).write(
+        const DivesCompanion(gradientFactorLow: Value(30)),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await container.read(diveDecoStatusCacheProvider.future);
+      expect(scans, 2);
+    },
+  );
+
+  test('verdicts judged on fallback settings after a failed load are not '
+      'mirrored', () async {
+    // The classification answers on the defaults when the diver's settings
+    // fail to load, and keeps none of it; the search must not either.
+    await insertDive('deep');
+    await insertProfile('deep', _square(40, 25));
+    final container = ProviderContainer(
+      overrides: (await getBaseOverrides(
+        settingsNotifier: _FailedLoadSettingsNotifier(),
+      )).cast(),
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(diveDecoStatusCacheProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(diveDecoStatusCacheProvider.future);
+
+    expect(await DiveDecoStatusRepository().verdicts(), isEmpty);
+  });
+
+  test('a targeted refresh judges again when the settings change while it '
+      'analyzes', () async {
+    // A gradient factor edit is not an input write; the refresh must still
+    // not hand a rule run verdicts judged on the old settings.
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'me',
+            name: 'me',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await DiverSettingsRepository().createSettingsForDiver('me');
+    await insertDive('deep');
+    await (db.update(db.dives)..where((t) => t.id.equals('deep'))).write(
+      const DivesCompanion(diverId: Value('me')),
+    );
+    await insertProfile('deep', _square(40, 25));
+    var scans = 0;
+    final container = ProviderContainer(
+      overrides: [
+        ...(await getBaseOverrides()).cast(),
+        insightsRepositoryProvider.overrideWith(
+          (ref) => _ScanHook(() {
+            if (scans++ == 0) {
+              db.customStatement(
+                "UPDATE diver_settings SET updated_at = updated_at + 1 "
+                "WHERE diver_id = 'me'",
+              );
+            }
+          }),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final ref = container.read(Provider((ref) => ref));
+
+    await refreshDiveDecoStatusFor(ref, 'me', {'deep'}, isActive: true);
+
+    expect(scans, 2);
+  });
+
+  test('a dive whose analysis fails keeps its last verdict', () async {
+    // A transient failure must not drop a verdict the search relied on.
+    await insertDive('deep');
+    await insertProfile('deep', _square(40, 25));
+    final container = await makeContainer();
+    final sub = container.listen(diveDecoStatusCacheProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(diveDecoStatusCacheProvider.future);
+    expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
+
+    // The recording no longer decodes, and its stamp moved, so the
+    // classification cache cannot answer for it either.
+    await db.customStatement(
+      "UPDATE dive_profile_series SET samples = x'00', "
+      "updated_at = updated_at + 1 WHERE dive_id = 'deep'",
+    );
+    // A fresh container: no analysis held in memory from the first pass.
+    final next = await makeContainer();
+    final nextSub = next.listen(diveDecoStatusCacheProvider, (_, _) {});
+    addTearDown(nextSub.close);
+    await next.read(diveDecoStatusCacheProvider.future);
+
+    expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
+  });
+
+  test('the write counter follows a database reopened in place', () async {
+    // A storage-location move installs a new database without a restart:
+    // a counter still on the old connection would stop counting, and a
+    // pass from before would read as current.
+    final container = await makeContainer();
+    final sub = container.listen(diveDecoInputWritesProvider, (_, _) {});
+    addTearDown(sub.close);
+    final before = container.read(diveDecoInputWritesProvider);
+
+    final reopened = await setUpTestDatabase();
+    db = reopened;
+    await pumpEventQueue();
+    final afterReopen = container.read(diveDecoInputWritesProvider);
+    expect(afterReopen, isNot(before));
+
+    await insertDive('fresh');
+    await pumpEventQueue();
+    expect(container.read(diveDecoInputWritesProvider), isNot(afterReopen));
   });
 
   test('a dive written later is classified on the next pass', () async {

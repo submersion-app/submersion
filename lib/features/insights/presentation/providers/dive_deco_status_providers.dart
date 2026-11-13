@@ -55,10 +55,28 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   // Any analysis setting can move a verdict; the classification keys its
   // cache by this same fingerprint.
   ref.watch(diverAnalysisSettingsProvider.select((s) => s.fingerprint));
+  final db = DatabaseService.instance.database;
+  // Every input table but `dives` re-runs the pass outright.
   ref.invalidateSelfWhen(
-    _verdictInputWrites(
-      DatabaseService.instance.database,
-    ).debounce(QueryIdSetRunner.changeTickDebounce),
+    db
+        .tableUpdates(
+          TableUpdateQuery.allOf([
+            for (final q in _verdictInputTables(db))
+              if (q != _divesQuery(db)) q,
+          ]),
+        )
+        .debounce(QueryIdSetRunner.changeTickDebounce),
+  );
+  // A `dives` write re-runs it only when a column a verdict can depend on
+  // moved: with a Deco filter on, a rating or a note must not cost a scan
+  // of the whole logbook.
+  final columns = await _decoDiveColumnsSignature(db, diverId);
+  ref.invalidateSelfWhen(
+    db
+        .tableUpdates(_divesQuery(db))
+        .debounce(QueryIdSetRunner.changeTickDebounce)
+        .asyncMap((_) => _decoDiveColumnsSignature(db, diverId))
+        .where((now) => now != columns),
   );
   final startedFrom = ref.read(diveDecoInputWritesProvider);
   final startedAt = nextDecoWriteStamp();
@@ -72,8 +90,7 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
     if (ref.mounted) progressState.state = shown = progress;
   }
 
-  final ({Map<String, bool> verdicts, Set<String> scanned, bool complete})?
-  judged;
+  final _Judgment? judged;
   try {
     judged = await _judgeDiverDives(
       ref,
@@ -94,6 +111,11 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   // A rebuild replaced this pass part way through: its verdicts are
   // incomplete, and the pass that replaced it writes the whole set.
   if (judged == null) return startedFrom;
+  // The diver's settings failed to load, so these verdicts were judged on
+  // the fallback ones. The classification keeps none of them, and neither
+  // does the mirror: the last verdicts stand until the settings load, which
+  // moves the fingerprint this pass watches and runs it again.
+  if (!judged.settingsLoaded) return startedFrom;
   await ref
       .read(diveDecoStatusRepositoryProvider)
       .replaceFor(
@@ -111,13 +133,24 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   return startedFrom;
 });
 
+/// What [_judgeDiverDives] found: the verdicts, the dives they answer for,
+/// whether every dive needing the analysis got one, and whether the
+/// diver's settings had loaded (verdicts on fallback settings are not
+/// mirrored).
+typedef _Judgment = ({
+  Map<String, bool> verdicts,
+  Set<String> scanned,
+  bool complete,
+  bool settingsLoaded,
+});
+
 /// Classifies [diverId]'s dives (or [onlyDiveIds] of them) as the Insights
-/// deco card does, under the settings [ref]'s container holds: the dives the
-/// scan covered, the verdict of each the analysis could judge, and whether
+/// deco card does, under the settings [ref]'s container holds: the dives it
+/// answers for (those it scanned, less any the analysis could not judge),
+/// the verdict of each the analysis could judge, and whether
 /// it could judge every one that needed it. Null when
 /// [ref] was rebuilt part way through, whose verdicts are incomplete.
-Future<({Map<String, bool> verdicts, Set<String> scanned, bool complete})?>
-_judgeDiverDives(
+Future<_Judgment?> _judgeDiverDives(
   Ref ref,
   String? diverId, {
   Set<String>? onlyDiveIds,
@@ -125,6 +158,11 @@ _judgeDiverDives(
 }) async {
   // Every dive the diver logged, not only those statistics count: a dive
   // excluded from the card's rate is still one a deco search should find.
+  // A caller rebuilt before the judgment began has nothing to judge with.
+  if (!ref.mounted) return null;
+  // Already awaited by the classification below, which still answers on the
+  // fallback settings when the load failed; this pass must not mirror those.
+  final settingsLoaded = await awaitCurrentDiverSettings(ref);
   final scan = await ref
       .read(insightsRepositoryProvider)
       .scanRecordedDecoSignals(
@@ -148,10 +186,16 @@ _judgeDiverDives(
     // Every dive needing the analysis got a verdict: none failed or was
     // dropped, so nothing is left to retry.
     complete: verdicts.length == total,
+    settingsLoaded: settingsLoaded,
+    // The dives whose rows this judgment answers for. A dive the analysis
+    // could not judge (a transient failure, a recording that no longer
+    // reads) is left out, so its last verdict stands rather than being
+    // removed.
     scanned: {
       ...scan.recordedDeco,
       ...scan.recordedNoDeco,
-      ...scan.needsCompute.keys,
+      for (final id in scan.needsCompute.keys)
+        if (verdicts.containsKey(id)) id,
       ...scan.noProfile,
     },
   );
@@ -184,6 +228,71 @@ List<TableUpdateQuery> _verdictInputTables(AppDatabase db) => [
   TableUpdateQuery.onTable(db.diveProfileEvents),
 ];
 
+TableUpdateQuery _divesQuery(AppDatabase db) =>
+    TableUpdateQuery.onTable(db.dives);
+
+/// The `dives` columns a deco verdict can depend on: the dive's identity and
+/// timing (its own and its residual lookback), its site and environment,
+/// its gradient factors and algorithm, its mode and rebreather settings,
+/// the computer's starting loads and tissues, and whether it is a plan or a
+/// draft. Everything else on the row (a rating, notes, people, weather) is
+/// read by no analysis.
+const _decoDiveColumns = [
+  'id',
+  'diver_id',
+  'dive_date_time',
+  'entry_time',
+  'exit_time',
+  'bottom_time',
+  'runtime',
+  'max_depth',
+  'avg_depth',
+  'site_id',
+  'water_type',
+  'altitude',
+  'surface_pressure',
+  'surface_interval_seconds',
+  'gradient_factor_low',
+  'gradient_factor_high',
+  'deco_algorithm',
+  'deco_conservatism',
+  'computer_tissue_json',
+  'gas_switches_edited',
+  'dive_mode',
+  'cns_start',
+  'cns_end',
+  'otu',
+  'setpoint_low',
+  'setpoint_high',
+  'setpoint_deco',
+  'scr_type',
+  'scr_injection_rate',
+  'scr_addition_ratio',
+  'scr_orifice_size',
+  'diluent_he',
+  'loop_volume',
+  'is_planned',
+  'is_draft',
+  'outing_id',
+  'computer_id',
+];
+
+/// A hash of [_decoDiveColumns] over [diverId]'s dives (every diver's with
+/// none), so a `dives` write that moved none of them can be told apart from
+/// one that did. One read of one table, far cheaper than the scan it saves.
+Future<int> _decoDiveColumnsSignature(AppDatabase db, String? diverId) async {
+  final rows = await db
+      .customSelect(
+        'SELECT ${_decoDiveColumns.join(', ')} FROM dives '
+        'WHERE diver_id IS ? ORDER BY id',
+        variables: [Variable<String>(diverId)],
+      )
+      .get();
+  return Object.hashAll([
+    for (final row in rows) Object.hashAll(row.data.values),
+  ]);
+}
+
 /// Writes to [_verdictInputTables].
 Stream<void> _verdictInputWrites(AppDatabase db) =>
     db.tableUpdates(TableUpdateQuery.allOf(_verdictInputTables(db)));
@@ -196,7 +305,7 @@ Stream<void> _verdictInputWrites(AppDatabase db) =>
 /// re-runs. A pass records the count it began from, so a reader can tell
 /// whether anything changed since.
 class DecoInputWritesCounter extends StateNotifier<int> {
-  DecoInputWritesCounter(Stream<void> writes) : super(0) {
+  DecoInputWritesCounter(Stream<void> writes, {int start = 0}) : super(start) {
     _subscription = writes.listen((_) => state++);
   }
 
@@ -211,12 +320,28 @@ class DecoInputWritesCounter extends StateNotifier<int> {
 
 /// The [DecoInputWritesCounter] count. Kept alive once first read, so no
 /// write after a pass is missed while nothing else is listening.
+///
+/// Rebuilt on a new database instance (a storage-location move reopens one
+/// in place), so it never follows a closed connection. Each instance counts
+/// from its own range, so a pass that began under the old one never reads
+/// as current under the new.
 final diveDecoInputWritesProvider =
-    StateNotifierProvider<DecoInputWritesCounter, int>(
-      (ref) => DecoInputWritesCounter(
-        _verdictInputWrites(DatabaseService.instance.database),
-      ),
-    );
+    StateNotifierProvider<DecoInputWritesCounter, int>((ref) {
+      final service = DatabaseService.instance;
+      final generation = service.generation;
+      final reopened = service.generationChanges.listen((_) {
+        ref.invalidateSelf();
+      });
+      ref.onDispose(reopened.cancel);
+      return DecoInputWritesCounter(
+        _verdictInputWrites(service.database),
+        start: generation * _countsPerGeneration,
+      );
+    });
+
+/// Room for any number of writes one database instance will ever see, kept
+/// well inside the integers a browser's numbers hold exactly (2^53).
+const _countsPerGeneration = 1000000000000;
 
 /// For each profile other than the active one, the input-write count and
 /// the settings row stamp its verdicts were last fully prepared from: a
@@ -267,8 +392,7 @@ Future<void> refreshDiveDecoStatusFor(
       ref.read(_profileDecoPassesProvider)[diverId] == startedFrom) {
     return;
   }
-  Future<({Map<String, bool> verdicts, Set<String> scanned, bool complete})?>
-  judge() => isActive
+  Future<_Judgment?> judge() => isActive
       ? _judgeDiverDives(ref, diverId, onlyDiveIds: diveIds)
       : runInDiverContainer(
           ref,
@@ -285,23 +409,38 @@ Future<void> refreshDiveDecoStatusFor(
   // a verdict it judged from the older inputs, and nothing re-runs this
   // path afterwards: judge again, a bounded number of times, so the caller
   // does not act on a verdict from before its own write.
+  // A settings edit (the gradient factors) is not an input write, so the
+  // profile's settings row is checked too.
   var writesAtStart = startedFrom.writes;
+  var settingsAtStart = startedFrom.settings ?? await _settingsStamp(diverId);
   var stampAtStart = nextDecoWriteStamp();
   var judged = await judge();
   for (
     var retry = 0;
     judged != null &&
         retry < 3 &&
-        ref.read(diveDecoInputWritesProvider) != writesAtStart;
+        (ref.read(diveDecoInputWritesProvider) != writesAtStart ||
+            await _settingsStamp(diverId) != settingsAtStart);
     retry++
   ) {
     writesAtStart = ref.read(diveDecoInputWritesProvider);
+    settingsAtStart = await _settingsStamp(diverId);
     stampAtStart = nextDecoWriteStamp();
     judged = await judge();
   }
-  // A rebuild stopped the analysis part way through: writing its partial
-  // verdicts would delete the rows of the dives it skipped.
-  if (judged == null) return;
+  // A rebuild of the caller's service stopped the analysis part way through:
+  // writing its partial verdicts would delete the rows of the dives it
+  // skipped, and returning quietly would let a rule run or an agent query
+  // match against verdicts that were never prepared.
+  if (judged == null) {
+    throw StateError(
+      'The deco verdicts for $diverId were not prepared: the analysis was '
+      'stopped by a rebuild of its caller.',
+    );
+  }
+  // Judged on fallback settings after a failed load: keep the last verdicts
+  // rather than mirror ones the classification itself refused to keep.
+  if (!judged.settingsLoaded) return;
   await ref
       .read(diveDecoStatusRepositoryProvider)
       .replaceFor(
@@ -322,7 +461,7 @@ Future<void> refreshDiveDecoStatusFor(
     final passes = ref.read(_profileDecoPassesProvider.notifier);
     passes.state = {
       ...passes.state,
-      diverId: (writes: writesAtStart, settings: startedFrom.settings),
+      diverId: (writes: writesAtStart, settings: settingsAtStart),
     };
   }
 }
