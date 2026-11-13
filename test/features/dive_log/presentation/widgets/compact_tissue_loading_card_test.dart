@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map_axes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -99,10 +100,12 @@ Widget buildCard({
   ThemeData? theme,
   TextDirection? textDirection,
   String? subtitle,
+  List<int>? profileTimestamps,
 }) {
   final card = CompactTissueLoadingCard(
     status: status,
     decoStatuses: decoStatuses,
+    profileTimestamps: profileTimestamps,
     expandVisualization: expandVisualization,
     onOpen3dView: onOpen3dView,
     subtitle: subtitle,
@@ -405,7 +408,8 @@ void main() {
       // Only the bar chart axis: the heat map no longer repeats them.
       expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
       expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
-      expect(find.text(l10n.diveLog_deco_heatMapRows), findsOneWidget);
+      // The compartment axis names the rows now (#4503).
+      expect(find.text(l10n.diveLog_deco_heatMapRows), findsNothing);
       // The heat map colors against AMBIENT pressure, so its legend names
       // the two halves undersaturated / supersaturated instead of borrowing
       // the badges' "Ongassing"/"Offgassing", which are measured against the
@@ -478,7 +482,7 @@ void main() {
         final l10n = AppLocalizations.of(context);
         expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
         expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
-        expect(find.text(l10n.diveLog_deco_heatMapRows), findsOneWidget);
+        expect(find.text(l10n.diveLog_deco_heatMapRows), findsNothing);
       },
     );
   });
@@ -884,6 +888,127 @@ void main() {
 
       expect(find.bySemanticsLabel(RegExp(r'^16$')), findsNothing);
       semantics.dispose();
+    });
+  });
+
+  group('CompactTissueLoadingCard heat map axes (issue #4503)', () {
+    final sixteen = DecoStatus(
+      compartments: BuhlmannAlgorithm().compartments,
+      ndlSeconds: 600,
+      ceilingMeters: 0.0,
+      ttsSeconds: 0,
+      gfLow: 0.4,
+      gfHigh: 0.85,
+      decoStops: const [],
+      currentDepthMeters: 0.0,
+      ambientPressureBar: 1.0,
+    );
+    final timeline = List.filled(33, sixteen);
+    final timestamps = [for (var t = 0; t <= 1920; t += 60) t];
+    Finder inAxis<T>(String text) =>
+        find.descendant(of: find.byType(T), matching: find.text(text));
+
+    testWidgets('labels the heat map with compartments and dive time', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildCard(
+          status: sixteen,
+          decoStatuses: timeline,
+          profileTimestamps: timestamps,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final strip = tester.getRect(find.byType(TissueHeatMapStrip));
+      final time = tester.getRect(find.byType(TissueHeatMapTimeAxis));
+      final rows = tester.getRect(find.byType(TissueHeatMapCompartmentAxis));
+      expect(time.left, closeTo(strip.left, 0.5));
+      expect(time.right, closeTo(strip.right, 0.5));
+      expect(time.top, greaterThanOrEqualTo(strip.bottom));
+      expect(rows.right, lessThanOrEqualTo(strip.left));
+      expect(rows.top, closeTo(strip.top, 0.5));
+      expect(rows.bottom, closeTo(strip.bottom, 0.5));
+      expect(inAxis<TissueHeatMapCompartmentAxis>('16'), findsOneWidget);
+      expect(inAxis<TissueHeatMapTimeAxis>('32 min'), findsOneWidget);
+    });
+
+    for (final (name, stamps) in [
+      ('no timestamps', null),
+      ('a mismatched timeline', [0, 60]),
+    ]) {
+      testWidgets('leaves the time axis out with $name', (tester) async {
+        await tester.pumpWidget(
+          buildCard(
+            status: sixteen,
+            decoStatuses: timeline,
+            profileTimestamps: stamps,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(tester.takeException(), isNull);
+        expect(find.byType(TissueHeatMapCompartmentAxis), findsOneWidget);
+        expect(find.byType(TissueHeatMapTimeAxis), findsNothing);
+      });
+    }
+
+    testWidgets('keeps both axes left to right in a right-to-left locale', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildCard(
+          status: sixteen,
+          decoStatuses: timeline,
+          profileTimestamps: timestamps,
+          textDirection: TextDirection.rtl,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // The painter always runs time left to right, so the labels must too.
+      final strip = tester.getRect(find.byType(TissueHeatMapStrip));
+      final rows = tester.getRect(find.byType(TissueHeatMapCompartmentAxis));
+      expect(rows.right, lessThanOrEqualTo(strip.left));
+      expect(
+        tester.getCenter(inAxis<TissueHeatMapTimeAxis>('0 min')).dx,
+        lessThan(tester.getCenter(inAxis<TissueHeatMapTimeAxis>('32 min')).dx),
+      );
+    });
+
+    testWidgets('stretches the compartment axis with an expanded card', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ProviderScope(
+            overrides: [
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            ],
+            child: Scaffold(
+              body: SizedBox(
+                height: 900,
+                child: CompactTissueLoadingCard(
+                  status: sixteen,
+                  decoStatuses: timeline,
+                  profileTimestamps: timestamps,
+                  expandVisualization: true,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      final strip = tester.getRect(find.byType(TissueHeatMapStrip));
+      final last = tester.getCenter(inAxis<TissueHeatMapCompartmentAxis>('16'));
+      // The last row's centre: half a row above the strip's bottom.
+      expect(last.dy, closeTo(strip.bottom - strip.height / 32, 1));
     });
   });
 

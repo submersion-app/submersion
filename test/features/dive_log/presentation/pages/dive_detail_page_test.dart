@@ -1231,6 +1231,47 @@ void main() {
       expect(find.byType(CompactO2ToxicityPanel), findsOneWidget);
     });
 
+    testWidgets('hands the tissue card the profile times for its heat map '
+        '(issue #4503)', (tester) async {
+      final dive = diveWithProfile();
+      final base = await getBaseOverrides();
+      final originalOnError = FlutterError.onError;
+      addTearDown(() => FlutterError.onError = originalOnError);
+      FlutterError.onError = (d) {
+        if (d.toString().contains('overflowed')) return;
+        originalOnError?.call(d);
+      };
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...base,
+            ...panelOverrides(
+              dive,
+              profileAnalysisProvider(
+                dive.id,
+              ).overrideWith((ref) async => analysisWithDeco()),
+            ),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: DiveDetailPage(diveId: dive.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      final card = tester.widget<CompactTissueLoadingCard>(
+        find.byType(CompactTissueLoadingCard),
+      );
+      // The chart's own series, the one the heat map's columns follow.
+      expect(card.profileTimestamps, [
+        for (final p in dive.profile) p.timestamp,
+      ]);
+    });
+
     testWidgets(
       'says why tissue loading is missing on a loop it could not model',
       (tester) async {

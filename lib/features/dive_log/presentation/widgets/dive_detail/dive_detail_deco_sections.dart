@@ -190,6 +190,9 @@ _decoPanelCards(
       decoStatuses: analysis.decoStatuses,
       selectedIndex: selectedPointIndex,
       subtitle: timeSubtitle,
+      // The chart's series, which the deco statuses follow index for index;
+      // the card drops the time axis if a retained analysis no longer matches.
+      profileTimestamps: [for (final point in chartProfile) point.timestamp],
       expandVisualization: expand,
       onHeatMapHover: (index) {
         ref.read(profileTrackingIndexProvider(dive.id).notifier).state = index;
