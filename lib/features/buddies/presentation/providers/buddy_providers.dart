@@ -246,16 +246,16 @@ final buddyByIdProvider = FutureProvider.family<Buddy?, String>((
 
 /// Buddies for a dive provider.
 ///
-/// Follows the buddies and certification tables as well as the dive detail:
-/// each buddy carries its derived primary certification, which the dive
-/// detail exports write out (issue #4496).
+/// Follows the certification tables as well as the dive detail (which
+/// already covers `buddies`): each buddy carries its derived primary
+/// certification, which the dive detail exports write out (issue #4496).
 final buddiesForDiveProvider =
     FutureProvider.family<List<BuddyWithRole>, String>((ref, diveId) async {
       final repository = ref.watch(buddyRepositoryProvider);
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchDiveDetailChanges(),
       );
-      ref.invalidateSelfWhen(repository.watchHydratedBuddiesChanges());
+      ref.invalidateSelfWhen(repository.watchPrimaryCertificationChanges());
       return repository.getBuddiesForDive(diveId);
     });
 

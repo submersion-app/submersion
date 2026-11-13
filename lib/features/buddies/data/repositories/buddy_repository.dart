@@ -116,11 +116,22 @@ class BuddyRepository {
   Stream<void> watchHydratedBuddiesChanges() => _db.tableUpdates(
     TableUpdateQuery.allOf([
       TableUpdateQuery.onTable(_db.buddies),
-      TableUpdateQuery.onTable(_db.certifications),
-      TableUpdateQuery.onTable(_db.customCertificationAgencies),
-      TableUpdateQuery.onTable(_db.customCertificationLevels),
+      ..._primaryCertificationTables,
     ]),
   );
+
+  /// [watchHydratedBuddiesChanges] without the `buddies` table, for a reader
+  /// that already follows `buddies` through another stream (a debounced one,
+  /// which an undebounced `buddies` tick here would defeat).
+  Stream<void> watchPrimaryCertificationChanges() =>
+      _db.tableUpdates(TableUpdateQuery.allOf(_primaryCertificationTables));
+
+  /// The tables [_withPrimaryCerts] derives a buddy's primary cert from.
+  List<TableUpdateQuery> get _primaryCertificationTables => [
+    TableUpdateQuery.onTable(_db.certifications),
+    TableUpdateQuery.onTable(_db.customCertificationAgencies),
+    TableUpdateQuery.onTable(_db.customCertificationLevels),
+  ];
 
   /// Get all buddies ordered by name
   Future<List<domain.Buddy>> getAllBuddies({String? diverId}) async {
