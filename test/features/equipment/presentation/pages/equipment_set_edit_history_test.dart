@@ -213,6 +213,11 @@ void main() {
       find.textContaining('This set is on 1 logged dive.'),
       findsOneWidget,
     );
+    // The question says what From now on does to those dives (#4500).
+    expect(
+      find.textContaining('keeps their gear and unlinks the set'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Also update 1 dive'));
     await tester.pumpAndSettle();
 

@@ -1428,7 +1428,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Apply the changes to those dives as well, or only from now on?';
+      'Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {

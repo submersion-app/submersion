@@ -1420,7 +1420,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו?';
+      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו? „מעכשיו“ משאיר את הציוד שלהן ומנתק מהן את הסט.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {

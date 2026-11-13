@@ -1378,7 +1378,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
 
   @override
-  String get equipment_setEdit_historyAsk => '也将这些更改应用到这些潜水，还是仅从现在起？';
+  String get equipment_setEdit_historyAsk =>
+      '也将这些更改应用到这些潜水，还是仅从现在起？ “从现在起”会保留其装备，并解除它们与套装的关联。';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {

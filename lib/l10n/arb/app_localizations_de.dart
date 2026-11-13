@@ -1441,7 +1441,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Die Änderungen auch dort übernehmen oder nur ab jetzt?';
+      'Die Änderungen auch dort übernehmen oder nur ab jetzt? „Ab jetzt“ behält ihre Ausrüstung und löst die Verknüpfung mit dem Set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {

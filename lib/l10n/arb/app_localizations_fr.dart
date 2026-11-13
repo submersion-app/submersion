@@ -1442,7 +1442,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ?';
+      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ? « À partir de maintenant » garde leur équipement et les dissocie de l\'ensemble.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {

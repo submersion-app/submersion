@@ -1441,7 +1441,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól?';
+      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól? A „Mostantól” megtartja a felszerelésüket, és megszünteti a kapcsolatukat a készlettel.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {

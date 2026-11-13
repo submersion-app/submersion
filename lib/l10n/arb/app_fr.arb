@@ -270,7 +270,7 @@
   "equipment_setDetail_showFigure": "Afficher la silhouette du plongeur",
   "equipment_setDetail_hideFigure": "Masquer la silhouette du plongeur",
   "equipment_setEdit_figureSwitch_title": "Afficher la silhouette du plongeur",
-  "equipment_setEdit_historyAsk": "Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ?",
+  "equipment_setEdit_historyAsk": "Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ? « À partir de maintenant » garde leur équipement et les dissocie de l'ensemble.",
   "equipment_setEdit_historyOnDives": "{count, plural, =1{Cet ensemble d'équipement figure sur {count} plongée enregistrée.} other{Cet ensemble d'équipement figure sur {count} plongées enregistrées.}}",
   "equipment_color_red": "Rouge",
   "equipment_color_orange": "Orange",

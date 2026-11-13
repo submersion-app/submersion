@@ -1444,7 +1444,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi?';
+      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi? «Da ora in poi» mantiene la loro attrezzatura e le scollega dal set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {

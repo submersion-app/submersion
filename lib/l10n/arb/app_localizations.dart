@@ -2219,7 +2219,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_setEdit_historyAsk.
   ///
   /// In en, this message translates to:
-  /// **'Apply the changes to those dives as well, or only from now on?'**
+  /// **'Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.'**
   String get equipment_setEdit_historyAsk;
 
   /// No description provided for @equipment_setEdit_historyOnDives.

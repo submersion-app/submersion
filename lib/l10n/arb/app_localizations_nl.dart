@@ -1433,7 +1433,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?';
+      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu? ‘Vanaf nu’ behoudt hun uitrusting en verbreekt de koppeling met de set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {

@@ -270,7 +270,7 @@
   "equipment_setDetail_showFigure": "Búvárfigura megjelenítése",
   "equipment_setDetail_hideFigure": "Búvárfigura elrejtése",
   "equipment_setEdit_figureSwitch_title": "Búvárfigura megjelenítése",
-  "equipment_setEdit_historyAsk": "A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól?",
+  "equipment_setEdit_historyAsk": "A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól? A „Mostantól” megtartja a felszerelésüket, és megszünteti a kapcsolatukat a készlettel.",
   "equipment_setEdit_historyOnDives": "{count, plural, =1{Ez a csoport 1 naplózott merülésen szerepel.} other{Ez a csoport {count} naplózott merülésen szerepel.}}",
   "equipment_color_red": "Piros",
   "equipment_color_orange": "Narancs",

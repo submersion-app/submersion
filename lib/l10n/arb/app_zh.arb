@@ -270,7 +270,7 @@
   "equipment_setDetail_showFigure": "显示潜水员图示",
   "equipment_setDetail_hideFigure": "隐藏潜水员图示",
   "equipment_setEdit_figureSwitch_title": "显示潜水员图示",
-  "equipment_setEdit_historyAsk": "也将这些更改应用到这些潜水，还是仅从现在起？",
+  "equipment_setEdit_historyAsk": "也将这些更改应用到这些潜水，还是仅从现在起？ “从现在起”会保留其装备，并解除它们与套装的关联。",
   "equipment_setEdit_historyOnDives": "{count, plural, =1{此套装出现在 1 次已记录的潜水中。} other{此套装出现在 {count} 次已记录的潜水中。}}",
   "equipment_color_red": "红色",
   "equipment_color_orange": "橙色",
