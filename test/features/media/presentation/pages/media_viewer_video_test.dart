@@ -538,6 +538,69 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('in fullscreen a tap on the bar restarts the controls\' '
+      'clock, so they do not vanish right after it (#4487)', (tester) async {
+    final platform = _FakeVideoPlatform();
+    _usePlatform(platform);
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.localFile: _UnavailableResolver(),
+              }),
+            ),
+            resolvedFilePathProvider.overrideWith(
+              (ref, MediaItem arg) async => _tempVideoPath('v1'),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaViewerPage(
+              mediaList: [video('v1')],
+              initialMediaId: 'v1',
+            ),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      platform.completeInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    final track = find.byKey(VideoControlsBar.trackKey);
+    final playPause = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Play or pause video',
+    );
+
+    await tester.tap(find.byTooltip('Full screen'));
+    await tester.pump();
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isTrue);
+
+    // Just before the clock runs out, a tap on the bar to jump.
+    await tester.pump(const Duration(milliseconds: 2300));
+    await tester.tapAt(tester.getCenter(track));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(track, findsOneWidget, reason: 'the tap restarted the clock');
+    await tester.pump(const Duration(seconds: 2));
+    expect(track, findsNothing);
+
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('controls left up on a paused video hide on the next photo', (
     tester,
   ) async {

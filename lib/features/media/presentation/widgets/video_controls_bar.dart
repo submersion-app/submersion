@@ -26,7 +26,9 @@ class VideoControlsBar extends StatefulWidget {
   final String mediaId;
 
   /// Told true when a drag scrub begins and false once it has settled, so a
-  /// host that hides its controls on a timer can hold them up meanwhile.
+  /// host that hides its controls on a timer can hold them up meanwhile. A
+  /// tap or a screen-reader step is a seek that settles at once, so it
+  /// reports false alone, letting the host restart its clock.
   final ValueChanged<bool>? onScrubbingChanged;
 
   /// The bar's touch area, for tests that tap or drag along it.
@@ -127,7 +129,12 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   Duration get _heading =>
       _seeking != null ? _seekTarget : widget.controller.value.position;
 
-  void _step(Duration delta) => unawaited(_seekTo(_stepped(_heading, delta)));
+  void _step(Duration delta) {
+    unawaited(_seekTo(_stepped(_heading, delta)));
+    // Rebuild so the slider announces where the video is now headed.
+    setState(() {});
+    widget.onScrubbingChanged?.call(false);
+  }
 
   /// [position] moved by [delta], kept inside the clip.
   Duration _stepped(Duration position, Duration delta) {
@@ -159,6 +166,8 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     VideoPlayerController controller,
     int generation,
   ) async {
+    // Read now: after a controller swap the widget names another video.
+    final mediaId = widget.mediaId;
     bool current() => generation == _seekGeneration;
     try {
       while (current() && _pendingSeek != null) {
@@ -169,7 +178,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     } catch (e, stackTrace) {
       if (current()) _pendingSeek = null;
       _log.error(
-        'Failed to seek video ${widget.mediaId}',
+        'Failed to seek video $mediaId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -182,6 +191,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     unawaited(
       _seekTo(_positionAt(_fractionAt(details.localPosition.dx, width))),
     );
+    widget.onScrubbingChanged?.call(false);
   }
 
   void _onScrubStart(DragStartDetails details, double width) {
@@ -234,6 +244,9 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     final position = scrubFraction != null
         ? _positionAt(scrubFraction)
         : value.position;
+    // What a screen reader hears: where the video is headed, so quick steps
+    // announce their sum rather than the frame still on screen.
+    final announced = scrubFraction != null ? position : _heading;
     final progress =
         scrubFraction ??
         (duration.inMilliseconds > 0
@@ -272,11 +285,11 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
                   return Semantics(
                     label: context.l10n.media_photoViewer_seekVideoLabel,
                     slider: true,
-                    value: _formatDuration(position),
+                    value: _formatDuration(announced),
                     increasedValue: canSeek
                         ? _formatDuration(
                             _stepped(
-                              position,
+                              announced,
                               VideoControlsBar.accessibilityStep,
                             ),
                           )
@@ -284,7 +297,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
                     decreasedValue: canSeek
                         ? _formatDuration(
                             _stepped(
-                              position,
+                              announced,
                               -VideoControlsBar.accessibilityStep,
                             ),
                           )

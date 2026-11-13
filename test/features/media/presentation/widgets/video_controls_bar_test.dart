@@ -359,7 +359,7 @@ void main() {
     expect(stack.clipBehavior, Clip.none);
     await _finish(tester, controller);
   });
-  testWidgets('reports a scrub starting and settling, but not a tap', (
+  testWidgets('reports a scrub starting and settling, and a tap as settled', (
     tester,
   ) async {
     _usePlatform();
@@ -375,18 +375,19 @@ void main() {
       ),
     );
 
+    // A tap is a seek that settles at once: the host may restart its clock.
     await tester.tapAt(_along(tester, 0.5));
     await tester.pump();
-    expect(reports, isEmpty);
+    expect(reports, [false]);
 
     final gesture = await tester.startGesture(_along(tester, 0.2));
     await gesture.moveTo(_along(tester, 0.6));
     await tester.pump();
-    expect(reports, [true]);
+    expect(reports, [false, true]);
 
     await gesture.up();
     await tester.pump();
-    expect(reports, [true, false]);
+    expect(reports, [false, true, false]);
     await _finish(tester, controller);
   });
 
@@ -607,5 +608,46 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.runAsync(first.dispose);
     await tester.runAsync(second.dispose);
+  });
+  testWidgets('quick screen-reader steps announce where the video is headed, '
+      'and report as settled', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final platform = _usePlatform();
+    final controller = await _readyController();
+    await controller.seekTo(const Duration(seconds: 10));
+    final reports = <bool>[];
+    await tester.pumpWidget(
+      _app(
+        VideoControlsBar(
+          controller: controller,
+          mediaId: 'm1',
+          onScrubbingChanged: reports.add,
+        ),
+      ),
+    );
+
+    // The player is slow: neither step has landed when the slider is read.
+    platform.seekGate = Completer<void>();
+    final node = find.semantics.byLabel('Seek video position');
+    tester.semantics.performAction(node, SemanticsAction.increase);
+    tester.semantics.performAction(node, SemanticsAction.increase);
+    await tester.pump();
+
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Seek video position')),
+      isSemantics(
+        value: '0:20',
+        increasedValue: '0:25',
+        decreasedValue: '0:15',
+      ),
+    );
+    expect(reports, [false, false]);
+
+    platform.seekGate!.complete();
+    platform.seekGate = null;
+    await tester.pump();
+    expect(controller.value.position, const Duration(seconds: 20));
+    await _finish(tester, controller);
+    semantics.dispose();
   });
 }
