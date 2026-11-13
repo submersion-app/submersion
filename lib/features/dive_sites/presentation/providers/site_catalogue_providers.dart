@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/local_site_catalogue.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_area_anchor_repository.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -74,3 +75,9 @@ final catalogueAdoptionServiceProvider = Provider<CatalogueAdoptionService>((
         .fetchElevation(latitude: point.latitude, longitude: point.longitude),
   );
 });
+
+/// Finds a dive's area from the dives logged around it.
+// no-tick: a repository; callers ask it once, when the site picker opens.
+final siteAreaAnchorRepositoryProvider = Provider<SiteAreaAnchorRepository>(
+  (ref) => SiteAreaAnchorRepository(),
+);
