@@ -84,10 +84,13 @@ void main() {
 
   group('SuitType value semantics', () {
     test('equal suit types hash alike and collapse in a set', () {
+      // Two separate instances: const values would be one canonical object.
       const a = SuitType.wetsuit(mm: 5, style: 'full');
-      const b = SuitType.wetsuit(mm: 5, style: 'full');
-      expect(a.hashCode, b.hashCode);
-      expect({a, b, const SuitType.drysuit()}, hasLength(2));
+      final b = SuitType.fromKey('wetsuit:5.0:full')!;
+      expect(identical(a, b), isFalse);
+      expect(b, a);
+      expect(b.hashCode, a.hashCode);
+      expect(<SuitType>{a, b, const SuitType.drysuit()}, hasLength(2));
     });
 
     test('toString names the key', () {
