@@ -303,6 +303,20 @@ void main() {
       expect(await rows('dive_buddies'), hasLength(1));
     });
 
+    test('a buddy listed twice takes their first entry', () async {
+      await buddies.setBuddiesForDive('dive', [
+        withRole(samBuddy, DiveRole.instructorId),
+        withRole(samBuddy, DiveRole.safetyDiverId),
+      ]);
+
+      expect(
+        (await rows('dive_buddies')).single['role'],
+        DiveRole.instructorId,
+      );
+      final loaded = await buddies.getBuddiesForDive('dive');
+      expect(loaded.single.roleIds, [DiveRole.instructorId]);
+    });
+
     group('a change to secondary roles only', () {
       // The primary role, held on the link row, stays the same; only the
       // dive_buddy_roles rows change.

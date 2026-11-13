@@ -633,11 +633,12 @@ class BuddyRepository {
   }
 
   /// Makes [buddies] the buddies of [diveId], writing only what changed
-  /// (issue #4477): a buddy who stays keeps their link row, with its primary
-  /// role updated in place; a dropped buddy's links are deleted; an added
-  /// buddy gets a link under a fresh id. Rewriting every link left a revert
-  /// restoring old rows beside their replacements. A buddy linked twice
-  /// (#3895) is left with one link, as the full rewrite left them.
+  /// (issue #4477): a buddy who stays keeps their link row; a dropped buddy's
+  /// links are deleted; an added buddy gets a link under a fresh id. Rewriting
+  /// every link left a revert restoring old rows beside their replacements.
+  /// A buddy linked twice (#3895) is left with one link, as the full rewrite
+  /// left them, and a buddy listed twice in [buddies] takes their first entry.
+  /// A kept link's primary role is brought in line by [_writeRoleSets].
   ///
   /// Returns whether any link or role row changed, so the caller bumps the
   /// dive.
@@ -649,45 +650,36 @@ class BuddyRepository {
     final existing = await (_db.select(
       _db.diveBuddies,
     )..where((t) => t.diveId.equals(diveId))).get();
-    final wanted = <String, domain.BuddyWithRole>{
-      for (final bwr in buddies.reversed) bwr.buddy.id: bwr,
-    };
+    final wanted = <String, domain.BuddyWithRole>{};
+    for (final bwr in buddies) {
+      wanted.putIfAbsent(bwr.buddy.id, () => bwr);
+    }
 
     final kept = <String>{};
     var changed = false;
     for (final row in existing) {
-      final bwr = wanted[row.buddyId];
-      if (bwr == null || !kept.add(row.buddyId)) {
-        await (_db.delete(
-          _db.diveBuddies,
-        )..where((t) => t.id.equals(row.id))).go();
-        await _syncRepository.logDeletion(
-          entityType: 'diveBuddies',
-          recordId: row.id,
-        );
-        changed = true;
-        continue;
-      }
-      final role = DiveRoleSet.normalizeBuddy(bwr.roleIds).first;
-      if (row.role == role) continue;
-      await (_db.update(_db.diveBuddies)..where((t) => t.id.equals(row.id)))
-          .write(DiveBuddiesCompanion(role: Value(role)));
-      await _syncRepository.markRecordPending(
+      if (wanted.containsKey(row.buddyId) && kept.add(row.buddyId)) continue;
+      await (_db.delete(
+        _db.diveBuddies,
+      )..where((t) => t.id.equals(row.id))).go();
+      await _syncRepository.logDeletion(
         entityType: 'diveBuddies',
         recordId: row.id,
-        localUpdatedAt: now,
       );
       changed = true;
     }
 
     final added = [
-      for (final bwr in buddies)
-        if (!kept.contains(bwr.buddy.id) &&
-            identical(wanted[bwr.buddy.id], bwr))
-          bwr,
+      for (final bwr in wanted.values)
+        if (!kept.contains(bwr.buddy.id)) bwr,
     ];
     await _insertLinks(diveId, added, now);
-    final rolesChanged = await _writeRoleSets(diveId, existing, buddies, now);
+    final rolesChanged = await _writeRoleSets(
+      diveId,
+      existing,
+      wanted.values.toList(),
+      now,
+    );
     return changed || added.isNotEmpty || rolesChanged;
   }
 
@@ -719,9 +711,10 @@ class BuddyRepository {
     }
   }
 
-  /// After a dive's links were replaced: drops the role rows of everyone in
-  /// [previous] who is not in [buddies], and writes each entry's set.
-  /// Returns whether any row was written.
+  /// Once a dive's links are in place: drops the role rows of everyone in
+  /// [previous] who is not in [buddies], and writes each entry's set, which
+  /// also sets a kept link's primary role. Returns whether any row was
+  /// written.
   Future<bool> _writeRoleSets(
     String diveId,
     List<DiveBuddy> previous,

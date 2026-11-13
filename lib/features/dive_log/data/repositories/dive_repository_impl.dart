@@ -1,4 +1,5 @@
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart' show ListEquality;
 import 'package:drift/drift.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
@@ -7932,7 +7933,10 @@ class DiveRepository {
   /// unique index on (dive, type) since v178, so a repeated id here would
   /// throw rather than duplicate -- and a caller passing one is asking for a
   /// set it already believes it has (issue #1360).
-  Future<void> _replaceDiveTypeRows(
+  ///
+  /// Returns whether anything was written, so a bulk edit bumps only the dives
+  /// it changed.
+  Future<bool> _replaceDiveTypeRows(
     String diveId,
     List<String> typeIds,
     int now,
@@ -7952,20 +7956,20 @@ class DiveRepository {
                 (t) => OrderingTerm(expression: t.id),
               ]))
             .get();
-    if (!_sameOrder([for (final r in existing) r.diveTypeId], types)) {
+    final rowsChanged = !_listEquals.equals([
+      for (final r in existing) r.diveTypeId,
+    ], types);
+    if (rowsChanged) {
       await _writeDiveTypeChanges(diveId, existing, types, now);
     }
-    // Keep the denormalized representative column in lockstep with the set.
-    final dive =
-        await (_db.selectOnly(_db.dives)
-              ..addColumns([_db.dives.diveType])
-              ..where(_db.dives.id.equals(diveId)))
-            .getSingleOrNull();
-    if (dive != null && dive.read(_db.dives.diveType) != types.first) {
-      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-        DivesCompanion(diveType: Value(types.first)),
-      );
-    }
+    // Keep the denormalized representative column in lockstep with the set,
+    // writing it only when it differs.
+    final repWritten =
+        await (_db.update(_db.dives)..where(
+              (t) => t.id.equals(diveId) & t.diveType.equals(types.first).not(),
+            ))
+            .write(DivesCompanion(diveType: Value(types.first)));
+    return rowsChanged || repWritten > 0;
   }
 
   /// Turns [existing], [diveId]'s rows in read-back order, into [types]. Each
@@ -7993,7 +7997,7 @@ class DiveRepository {
     }
     // Kept rows that already lead in the wanted order stay as they are, and
     // the added types follow them; otherwise every row takes its place anew.
-    final inPlace = _sameOrder(
+    final inPlace = _listEquals.equals(
       kept.keys.toList(),
       types.take(kept.length).toList(),
     );
@@ -8028,13 +8032,7 @@ class DiveRepository {
     }
   }
 
-  static bool _sameOrder(List<String> a, List<String> b) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
-  }
+  static const _listEquals = ListEquality<String>();
 
   /// Replace each dive's tag membership with exactly [tagIds]. No notify/txn.
   ///
@@ -8168,10 +8166,11 @@ class DiveRepository {
   ) async {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    for (final diveId in diveIds) {
-      await _replaceDiveTypeRows(diveId, typeIds, now);
-    }
-    await _bumpDives(diveIds, now);
+    final changed = <String>[
+      for (final diveId in diveIds)
+        if (await _replaceDiveTypeRows(diveId, typeIds, now)) diveId,
+    ];
+    if (changed.isNotEmpty) await _bumpDives(changed, now);
   }
 
   /// Add [typeIds] to each dive's set (union, deduped). No notify/txn.
@@ -8183,6 +8182,7 @@ class DiveRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     final current = await _diveTypesForDives(diveIds);
     final reps = await _representativeDiveTypeColumn(diveIds);
+    final changed = <String>[];
     for (final diveId in diveIds) {
       // Seed from the representative column for legacy dives with no junction
       // rows, so adding a type does not drop the existing representative.
@@ -8192,9 +8192,9 @@ class DiveRepository {
       for (final t in typeIds) {
         if (!merged.contains(t)) merged.add(t);
       }
-      await _replaceDiveTypeRows(diveId, merged, now);
+      if (await _replaceDiveTypeRows(diveId, merged, now)) changed.add(diveId);
     }
-    await _bumpDives(diveIds, now);
+    if (changed.isNotEmpty) await _bumpDives(changed, now);
   }
 
   /// Adds [siteTypeIds], the dive types a site's types stand for, to [dive]'s
@@ -8223,18 +8223,20 @@ class DiveRepository {
     final now = DateTime.now().millisecondsSinceEpoch;
     final current = await _diveTypesForDives(diveIds);
     final reps = await _representativeDiveTypeColumn(diveIds);
+    final changed = <String>[];
     for (final diveId in diveIds) {
       // Seed from the representative column for legacy dives with no junction
       // rows, so a remove does not silently reset the type to recreational.
       final existing = current[diveId] ?? [reps[diveId] ?? 'recreational'];
       final remaining = existing.where((t) => !typeIds.contains(t)).toList();
-      await _replaceDiveTypeRows(
+      final wrote = await _replaceDiveTypeRows(
         diveId,
         remaining.isEmpty ? const ['recreational'] : remaining,
         now,
       );
+      if (wrote) changed.add(diveId);
     }
-    await _bumpDives(diveIds, now);
+    if (changed.isNotEmpty) await _bumpDives(changed, now);
   }
 
   Future<List<GearProvenance>> _provenanceOf(String diveId) async {

@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show OrderingTerm;
+import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -155,6 +155,51 @@ void main() {
         'shore',
       ]);
       expect((await db.select(db.dives).getSingle()).diveType, 'cave');
+    });
+  });
+
+  group('bulk type edits bump only the dives they change (#4477)', () {
+    Future<int> updatedAt(String id) async => (await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(id))).getSingle()).updatedAt;
+
+    setUp(() async {
+      for (final (id, types) in [
+        ('has', const ['shore', 'wreck']),
+        ('lacks', const ['shore']),
+      ]) {
+        await repository.createDive(
+          domain.Dive(
+            id: id,
+            dateTime: DateTime(2026, 1, 1),
+            diveTypeIds: types,
+          ),
+        );
+        await (db.update(db.dives)..where((t) => t.id.equals(id))).write(
+          const DivesCompanion(updatedAt: Value(1)),
+        );
+      }
+    });
+
+    test('adding a type one dive already has leaves that dive alone', () async {
+      await repository.bulkAddDiveTypes(['has', 'lacks'], ['wreck']);
+
+      expect(await updatedAt('has'), 1);
+      expect(await updatedAt('lacks'), greaterThan(1));
+    });
+
+    test('removing a type one dive lacks leaves that dive alone', () async {
+      await repository.bulkRemoveDiveTypes(['has', 'lacks'], ['wreck']);
+
+      expect(await updatedAt('has'), greaterThan(1));
+      expect(await updatedAt('lacks'), 1);
+    });
+
+    test('replacing with the set a dive has leaves that dive alone', () async {
+      await repository.bulkReplaceDiveTypes(['has', 'lacks'], ['shore']);
+
+      expect(await updatedAt('has'), greaterThan(1));
+      expect(await updatedAt('lacks'), 1);
     });
   });
 
