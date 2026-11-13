@@ -75,14 +75,19 @@ class BuddySharedDivesSection extends ConsumerWidget {
                     ),
                   );
                 }
-                // Show the first 5 dives in the trip Dives tab's row format.
-                final displayDives = dives.take(5).toList();
+                // The newest dives in the trip Dives tab's row format.
+                final displayDives = dives
+                    .take(buddySharedDivePreviewLimit)
+                    .toList();
                 return Column(
                   children: displayDives.map((dive) {
                     final siteName =
                         dive.site?.name ??
                         context.l10n.diveLog_listPage_unknownSite;
+                    // Its own node: a lone row would otherwise merge into
+                    // the card's, reading the heading as part of the button.
                     return Semantics(
+                      container: true,
                       button: true,
                       label: switch (dive.diveNumber) {
                         final number? =>

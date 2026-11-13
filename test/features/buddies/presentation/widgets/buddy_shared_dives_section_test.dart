@@ -68,6 +68,26 @@ void main() {
     handle.dispose();
   });
 
+  // A row is its own screen reader button. Without a container, a lone row
+  // merged into the card's node, so the "Shared Dives" heading read as part
+  // of the button that opens the dive.
+  testWidgets('a lone row is its own button, apart from the card heading', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await _pumpSection(tester, [
+      Dive(id: 'a', diveNumber: 3, dateTime: DateTime(2026, 3, 8, 9)),
+    ]);
+
+    final node = tester.getSemantics(
+      find.bySemanticsLabel(RegExp(r'(^|\n)Dive 3 at Unknown Site')),
+    );
+    expect(node.label, startsWith('Dive 3 at Unknown Site'));
+    expect(node.label, isNot(contains('Shared Dives')));
+    expect(node.flagsCollection.isButton, isTrue);
+    handle.dispose();
+  });
+
   // #4497: the badge was a fixed 40 point box, so a four digit dive number
   // wrapped onto two lines in the shared dives card.
   testWidgets('dive numbers past 999 stay on one line in their badges', (
