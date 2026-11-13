@@ -509,7 +509,11 @@ mixin _DiveDetailPageExports on ConsumerState<DiveDetailPage> {
         );
       }
     }
-    return _valueOrNull(ref.read(allCertificationsProvider.future));
+    // Held with a listener too: it watches the active diver, so a change
+    // mid-read would otherwise leave this future pending for good (#3807).
+    return _valueOrNull(
+      ref.container.awaitFuture(allCertificationsProvider.future),
+    );
   }
 
   /// [shareAnchor] is the overflow button this sheet was opened from.
