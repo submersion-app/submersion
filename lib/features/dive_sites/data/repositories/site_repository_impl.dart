@@ -367,6 +367,13 @@ class SiteRepository {
             bodyOfWater: metadataPatch.bodyOfWater,
           );
         }
+        // The one way an update sets the catalogue link: an import that
+        // carries it, for a site that had none.
+        if (metadataPatch.catalogueId.present) {
+          companion = companion.copyWith(
+            catalogueId: metadataPatch.catalogueId,
+          );
+        }
       }
       // Only the owner changes sharing (issue #2594): another profile's save
       // keeps the stored flag, whatever its page state says.
