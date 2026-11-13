@@ -22,6 +22,9 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
   Duration _position = Duration.zero;
   bool playing = false;
 
+  /// When set, seeks wait for it, as a slow decoder's would.
+  Completer<void>? seekGate;
+
   @override
   Future<void> init() async {}
 
@@ -75,6 +78,7 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
 
   @override
   Future<void> seekTo(int playerId, Duration position) async {
+    await seekGate?.future;
     seeks.add(position);
     _position = position;
   }
@@ -529,5 +533,35 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.runAsync(first.dispose);
     await tester.runAsync(second.dispose);
+  });
+  testWidgets('a second drag begun before the first settles still resumes '
+      'a playing video', (tester) async {
+    final platform = _usePlatform();
+    final controller = await _readyController();
+    await controller.play();
+    await tester.pumpWidget(
+      _app(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+
+    platform.seekGate = Completer<void>();
+    final first = await tester.startGesture(_along(tester, 0.2));
+    await first.moveTo(_along(tester, 0.4));
+    await tester.pump();
+    await first.up();
+    await tester.pump();
+    // The release is still waiting on its seek when the next drag begins.
+    final second = await tester.startGesture(_along(tester, 0.5));
+    await second.moveTo(_along(tester, 0.7));
+    await tester.pump();
+    platform.seekGate!.complete();
+    platform.seekGate = null;
+    await tester.pump();
+    await second.up();
+    await tester.pump();
+
+    expect(platform.playing, isTrue);
+    expect(controller.value.position, _closeToMs(21000));
+    await controller.pause();
+    await _finish(tester, controller);
   });
 }

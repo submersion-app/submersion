@@ -90,9 +90,9 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
       // as it may rebuild in answer and this runs during build.
       final onScrubbingChanged = widget.onScrubbingChanged;
       if (_scrubFraction != null && onScrubbingChanged != null) {
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => onScrubbingChanged(false),
-        );
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) onScrubbingChanged(false);
+        });
       }
       _scrubId++;
       _scrubFraction = null;
@@ -176,8 +176,10 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     final controller = widget.controller;
     if (!controller.value.isInitialized) return;
     _scrubId++;
-    _resumeAfterScrub = controller.value.isPlaying;
-    if (_resumeAfterScrub) unawaited(controller.pause());
+    // A release still settling has not resumed yet: this scrub inherits it.
+    final settling = _scrubFraction != null && _resumeAfterScrub;
+    _resumeAfterScrub = settling || controller.value.isPlaying;
+    if (controller.value.isPlaying) unawaited(controller.pause());
     _scrubTo(details.localPosition.dx, width);
     widget.onScrubbingChanged?.call(true);
   }
@@ -197,10 +199,11 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     final fraction = _scrubFraction;
     if (fraction == null) return;
     final scrub = _scrubId;
+    await _seekTo(_positionAt(fraction));
+    // Superseded by a newer scrub, which took over the resume.
+    if (!mounted || scrub != _scrubId) return;
     final resume = _resumeAfterScrub;
     _resumeAfterScrub = false;
-    await _seekTo(_positionAt(fraction));
-    if (!mounted || scrub != _scrubId) return;
     setState(() => _scrubFraction = null);
     final value = widget.controller.value;
     // Released at the very end: play() would restart the clip from zero.
