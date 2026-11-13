@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -409,6 +411,54 @@ void main() {
               .shape!
           as RoundedRectangleBorder;
 
+  PinnedStripOutlinePainter outline(WidgetTester tester) =>
+      tester
+              .widget<CustomPaint>(
+                find.byWidgetPredicate(
+                  (w) =>
+                      w is CustomPaint &&
+                      w.foregroundPainter is PinnedStripOutlinePainter,
+                ),
+              )
+              .foregroundPainter!
+          as PinnedStripOutlinePainter;
+
+  // The outline is open at the top: a stroke down both sides, round the
+  // bottom corners and along the bottom.
+  test('the outline is drawn on the sides and bottom only', () async {
+    const side = BorderSide(color: Color(0xFF000000), width: 2);
+    const corners = BorderRadius.only(
+      bottomLeft: Radius.circular(12),
+      bottomRight: Radius.circular(12),
+    );
+    final recorder = ui.PictureRecorder();
+    const PinnedStripOutlinePainter(
+      side: side,
+      corners: corners,
+    ).paint(Canvas(recorder), const Size(200, 56));
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(200, 56);
+    final bytes = (await image.toByteData())!;
+    int alphaAt(int x, int y) => bytes.getUint8((y * 200 + x) * 4 + 3);
+    expect(alphaAt(1, 28), greaterThan(0), reason: 'left side');
+    expect(alphaAt(198, 28), greaterThan(0), reason: 'right side');
+    expect(alphaAt(100, 55), greaterThan(0), reason: 'bottom');
+    expect(alphaAt(100, 1), 0, reason: 'no top edge');
+    // The bottom corners round: the very corner pixel is left clear.
+    expect(alphaAt(0, 55), 0, reason: 'rounded corner');
+    image.dispose();
+    picture.dispose();
+    expect(
+      const PinnedStripOutlinePainter(
+        side: side,
+        corners: corners,
+      ).shouldRepaint(
+        const PinnedStripOutlinePainter(side: side, corners: BorderRadius.zero),
+      ),
+      isTrue,
+    );
+  });
+
   // Card-width under the header, it reads as the card tucked up there: its
   // bottom corners keep the card's rounding all the way to pinned (#4488).
   testWidgets('its bottom corners stay round as it condenses', (tester) async {
@@ -451,7 +501,11 @@ void main() {
         bottomRight: Radius.circular(20),
       ),
     );
-    expect(shape.side, side);
+    // The outline runs down its sides and along its bottom, never across
+    // its top, where it meets the card's header or the page's.
+    expect(shape.side, BorderSide.none);
+    expect(outline(tester).side, side);
+    expect(outline(tester).corners, shape.borderRadius);
     final material = tester.widget<Material>(
       find
           .descendant(
@@ -468,7 +522,7 @@ void main() {
 
     // While the surface fades in, so does the outline.
     await pumpMorphing(tester, condense: 0, background: 0.5, theme: theme);
-    expect(surfaceShape(tester).side.color.a, closeTo(0.5, 1e-6));
+    expect(outline(tester).side.color.a, closeTo(0.5, 1e-6));
   });
 
   testWidgets('the strip has a semantics label', (tester) async {

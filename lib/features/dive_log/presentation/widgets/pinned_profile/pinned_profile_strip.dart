@@ -166,86 +166,91 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         // It starts across the card at the plot's top and pins flush under
         // the header at the card's width, so only its bottom corners round,
         // like the card's own, condensing and pinned alike (#4488).
-        // Its outline, where the theme's cards have one, fades in with
-        // the surface.
-        shape: RoundedRectangleBorder(
-          borderRadius: card.corners,
-          side: card.side.copyWith(
-            color: card.side.color.withValues(
-              alpha: card.side.color.a * background,
-            ),
-          ),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: card.corners),
         clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          height: condense >= 1 ? kPinnedStripHeight : null,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
-              return Listener(
-                onPointerDown: (e) => _noteKind(e.kind),
-                onPointerHover: (e) => _noteKind(e.kind),
-                child: MouseRegion(
-                  onHover: (e) => _scrubTo(e.localPosition.dx, width, profile),
-                  onExit: (_) => _write(null),
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTapDown: (d) =>
-                        _scrubTo(d.localPosition.dx, width, profile),
-                    // A mouse still hovers where it clicked, so the cursor
-                    // stays until it moves or leaves; a lifted finger clears.
-                    onTapUp: (d) {
-                      if (d.kind != PointerDeviceKind.mouse) _write(null);
-                    },
-                    onTapCancel: () => _write(null),
-                    onHorizontalDragStart: (d) =>
-                        _scrubTo(d.localPosition.dx, width, profile),
-                    onHorizontalDragUpdate: (d) =>
-                        _scrubTo(d.localPosition.dx, width, profile),
-                    onHorizontalDragEnd: (_) => _write(null),
-                    onHorizontalDragCancel: () => _write(null),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          // Cross-fades with the surface: drawn on the chart's
-                          // own line and shading, so at full strength the two
-                          // shadings would stack into a darker blue.
-                          child: Opacity(
-                            opacity: background,
-                            child: CustomPaint(
-                              painter: PinnedStripPainter(
-                                profile: profile,
-                                selectedSeconds: selectedSeconds,
-                                curveColor: ProfileMetricColors.depth,
-                                // The full chart's depth shading.
-                                fillColors: GasColors.gradientColors(
-                                  ProfileMetricColors.depth,
+        child: CustomPaint(
+          // Its outline, where the theme's cards have one, on the sides and
+          // bottom only: its top crosses the card at the plot's top and pins
+          // flush under the header. It fades in with the surface.
+          foregroundPainter: PinnedStripOutlinePainter(
+            side: card.side.copyWith(
+              color: card.side.color.withValues(
+                alpha: card.side.color.a * background,
+              ),
+            ),
+            corners: card.corners,
+          ),
+          child: SizedBox(
+            height: condense >= 1 ? kPinnedStripHeight : null,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                return Listener(
+                  onPointerDown: (e) => _noteKind(e.kind),
+                  onPointerHover: (e) => _noteKind(e.kind),
+                  child: MouseRegion(
+                    onHover: (e) =>
+                        _scrubTo(e.localPosition.dx, width, profile),
+                    onExit: (_) => _write(null),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTapDown: (d) =>
+                          _scrubTo(d.localPosition.dx, width, profile),
+                      // A mouse still hovers where it clicked, so the cursor
+                      // stays until it moves or leaves; a lifted finger clears.
+                      onTapUp: (d) {
+                        if (d.kind != PointerDeviceKind.mouse) _write(null);
+                      },
+                      onTapCancel: () => _write(null),
+                      onHorizontalDragStart: (d) =>
+                          _scrubTo(d.localPosition.dx, width, profile),
+                      onHorizontalDragUpdate: (d) =>
+                          _scrubTo(d.localPosition.dx, width, profile),
+                      onHorizontalDragEnd: (_) => _write(null),
+                      onHorizontalDragCancel: () => _write(null),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            // Cross-fades with the surface: drawn on the chart's
+                            // own line and shading, so at full strength the two
+                            // shadings would stack into a darker blue.
+                            child: Opacity(
+                              opacity: background,
+                              child: CustomPaint(
+                                painter: PinnedStripPainter(
+                                  profile: profile,
+                                  selectedSeconds: selectedSeconds,
+                                  curveColor: ProfileMetricColors.depth,
+                                  // The full chart's depth shading.
+                                  fillColors: GasColors.gradientColors(
+                                    ProfileMetricColors.depth,
+                                  ),
+                                  markerColor: colors.primary,
+                                  from: widget.morphFrom,
+                                  morph: condense,
                                 ),
-                                markerColor: colors.primary,
-                                from: widget.morphFrom,
-                                morph: condense,
                               ),
                             ),
                           ),
-                        ),
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          height: kPinnedStripRowHeight,
-                          child: Opacity(
-                            opacity: condense,
-                            child: values == null
-                                ? _Hint(touch: _touch)
-                                : _ValuesRow(values: values, units: units),
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            height: kPinnedStripRowHeight,
+                            child: Opacity(
+                              opacity: condense,
+                              child: values == null
+                                  ? _Hint(touch: _touch)
+                                  : _ValuesRow(values: values, units: units),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -300,4 +305,51 @@ class _ValuesRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Draws the strip's outline, where the theme's cards have one, along its
+/// sides and bottom, rounding its bottom [corners] as the card does. It has
+/// no top edge: while condensing the strip's top crosses the card at the
+/// plot's top, where a line would split the card in two, and pinned it sits
+/// flush under the header.
+class PinnedStripOutlinePainter extends CustomPainter {
+  const PinnedStripOutlinePainter({required this.side, required this.corners});
+
+  final BorderSide side;
+  final BorderRadius corners;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (side.style == BorderStyle.none || side.width <= 0) return;
+    // Stroked on its centre line, inset by half its width, so it lies inside
+    // the surface's clip like the card's own outline.
+    final half = side.width / 2;
+    final rect = (Offset.zero & size).deflate(half);
+    Radius inset(Radius r) => Radius.elliptical(
+      (r.x - half).clamp(0.0, rect.width / 2),
+      (r.y - half).clamp(0.0, rect.height),
+    );
+    final left = inset(corners.bottomLeft);
+    final right = inset(corners.bottomRight);
+    final path = Path()
+      ..moveTo(rect.left, rect.top)
+      ..lineTo(rect.left, rect.bottom - left.y)
+      ..arcToPoint(
+        Offset(rect.left + left.x, rect.bottom),
+        radius: left,
+        clockwise: false,
+      )
+      ..lineTo(rect.right - right.x, rect.bottom)
+      ..arcToPoint(
+        Offset(rect.right, rect.bottom - right.y),
+        radius: right,
+        clockwise: false,
+      )
+      ..lineTo(rect.right, rect.top);
+    canvas.drawPath(path, side.toPaint());
+  }
+
+  @override
+  bool shouldRepaint(PinnedStripOutlinePainter oldDelegate) =>
+      side != oldDelegate.side || corners != oldDelegate.corners;
 }
