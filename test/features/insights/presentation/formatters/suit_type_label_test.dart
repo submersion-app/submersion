@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/features/insights/presentation/formatters/suit_type_label.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -41,6 +42,21 @@ void main() {
         'Wetsuit · shorty',
       );
       expect(suitTypeLabel(const SuitType.wetsuit(), en), 'Wetsuit');
+    });
+
+    test('a fractional thickness uses the locale decimal separator', () {
+      // Intl.defaultLocale is process-wide; put it back for the next file.
+      final previous = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previous);
+      Intl.defaultLocale = 'de';
+
+      expect(
+        suitTypeLabel(
+          const SuitType.wetsuit(mm: 6.5),
+          lookupAppLocalizations(const Locale('de')),
+        ),
+        'Neoprenanzug · 6,5 mm',
+      );
     });
 
     test('a style outside the catalog shows as stored', () {

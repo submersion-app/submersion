@@ -67,7 +67,7 @@ extension InsightsRepositoryFocus on InsightsRepository {
           (SELECT CASE
               WHEN e.type = 'drysuit' THEN 'drysuit'
               ELSE 'wetsuit:' || COALESCE(ea.value_num, '') || ':'
-                || COALESCE(es.value_text, '')
+                || COALESCE(TRIM(es.value_text), '')
             END
             FROM dive_equipment de
             JOIN equipment e ON e.id = de.equipment_id
@@ -78,7 +78,7 @@ extension InsightsRepositoryFocus on InsightsRepository {
             -- preferring one that records its style.
             ORDER BY e.type = 'drysuit' DESC,
               ea.value_num IS NULL, ea.value_num DESC,
-              es.value_text IS NULL, es.value_text
+              es.value_text IS NULL, TRIM(es.value_text)
             LIMIT 1) AS suit_key,
           EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)
             AS has_linked_buddy,

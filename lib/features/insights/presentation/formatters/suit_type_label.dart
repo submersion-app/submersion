@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -8,7 +9,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// thickness or style left out ("Wetsuit · shorty", "Wetsuit").
 String suitTypeLabel(SuitType type, AppLocalizations l10n) {
   if (type.isDrysuit) return EquipmentType.drysuit.localizedName(l10n);
-  final thickness = type.thicknessText;
+  final text = type.thicknessText;
+  final thickness = text == null ? null : localiseDecimalText(text);
   final style = switch (type.style) {
     null => null,
     final key => _styleWord(key, l10n),

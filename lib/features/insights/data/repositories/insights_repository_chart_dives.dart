@@ -12,7 +12,9 @@ const _gasTypeSql = '''
 /// A dive's exposure suits with their curated thickness (`ea`) and style
 /// (`es`), for the Suit Type chart and the Focus "Suit" factor (#4490). Both
 /// attribute joins are LEFT JOINs limited to wetsuits, so a suit missing
-/// either still reaches a bucket and a drysuit reads neither.
+/// either still reaches a bucket and a drysuit reads neither. Read the style
+/// as `TRIM(es.value_text)`, so a padded value from a sync or an import
+/// lands in the same bucket as the catalog key.
 const _suitJoinsSql =
     '''
   JOIN dive_equipment de ON de.dive_id = d.id
@@ -179,7 +181,7 @@ mixin InsightsChartDives {
       $_suitJoinsSql
       WHERE (e.type = 'drysuit') = ?
         AND ea.value_num IS ?
-        AND es.value_text IS ?
+        AND TRIM(es.value_text) IS ?
         ${_diverClause(diverId)} ${df.clause}
       ''',
       [type.isDrysuit ? 1 : 0, type.mm, type.style, ?diverId, ...df.params],

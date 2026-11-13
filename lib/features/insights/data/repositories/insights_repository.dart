@@ -1024,12 +1024,12 @@ class InsightsRepository with InsightsChartDives {
         SELECT
           e.type = 'drysuit' AS is_drysuit,
           ea.value_num AS mm,
-          es.value_text AS style,
+          TRIM(es.value_text) AS style,
           COUNT(DISTINCT d.id) AS count
         FROM dives d
         $_suitJoinsSql
         WHERE 1=1 $diverFilter ${df.clause}
-        GROUP BY is_drysuit, ea.value_num, es.value_text
+        GROUP BY is_drysuit, ea.value_num, TRIM(es.value_text)
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
       final stats = [

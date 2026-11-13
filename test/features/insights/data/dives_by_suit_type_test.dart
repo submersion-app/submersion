@@ -204,6 +204,33 @@ void main() {
     ]);
   });
 
+  test('a padded style shares the bucket of its catalog key', () async {
+    // A sync pull or an import can write the value with stray spaces.
+    final padded = await wetsuit('padded', mm: 3);
+    await db
+        .into(db.equipmentAttributes)
+        .insert(
+          const EquipmentAttributesCompanion(
+            id: Value('padded-style'),
+            equipmentId: Value('padded'),
+            attrKey: Value('suit_style'),
+            valueText: Value(' shorty '),
+            createdAt: Value(1),
+            updatedAt: Value(1),
+          ),
+        );
+    final shorty = await wetsuit('shorty', mm: 3, style: 'shorty');
+    await dive('d1', 1, [padded]);
+    await dive('d2', 2, [shorty]);
+
+    const type = SuitType.wetsuit(mm: 3, style: 'shorty');
+    expect(await stats.getDivesBySuitType(), [(type: type, count: 2)]);
+    expect(
+      await stats.getSuitTypeDiveIds(type: type),
+      unorderedEquals(['d1', 'd2']),
+    );
+  });
+
   test('dives excluded from stats leave every bucket', () async {
     final full5 = await wetsuit('f5', mm: 5, style: 'full');
     final drysuit = await gear('dry', EquipmentType.drysuit);
