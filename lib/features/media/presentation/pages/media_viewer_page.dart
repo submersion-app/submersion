@@ -49,10 +49,10 @@ import 'package:submersion/features/media/presentation/widgets/people_tags/media
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_editor.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_people_layer.dart';
-import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_caption.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
+import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
@@ -1674,176 +1674,11 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               bottom: widget.fullscreen
                   ? MediaQuery.paddingOf(context).bottom + 24
                   : 160,
-              child: _VideoControlsOverlay(
+              child: VideoControlsBar(
                 controller: controller,
                 mediaId: widget.item.id,
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Video playback controls with tap-to-seek progress bar and time display.
-///
-/// Uses tap-to-seek instead of drag-to-seek to avoid gesture conflicts
-/// with the PageView's horizontal swipe navigation.
-class _VideoControlsOverlay extends StatefulWidget {
-  final VideoPlayerController controller;
-
-  /// The video, whose tagged moments are marked on the bar (issue #1745).
-  final String mediaId;
-
-  const _VideoControlsOverlay({
-    required this.controller,
-    required this.mediaId,
-  });
-
-  @override
-  State<_VideoControlsOverlay> createState() => _VideoControlsOverlayState();
-}
-
-class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_onVideoUpdate);
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onVideoUpdate);
-    super.dispose();
-  }
-
-  void _onVideoUpdate() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  }
-
-  void _seekToPosition(double tapX, double totalWidth) {
-    if (totalWidth <= 0) return;
-
-    final progress = (tapX / totalWidth).clamp(0.0, 1.0);
-    final duration = widget.controller.value.duration;
-    final newPosition = Duration(
-      milliseconds: (progress * duration.inMilliseconds).toInt(),
-    );
-    widget.controller.seekTo(newPosition);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final position = widget.controller.value.position;
-    final duration = widget.controller.value.duration;
-    final progress = duration.inMilliseconds > 0
-        ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
-        : 0.0;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          // Current time
-          SizedBox(
-            width: 48,
-            child: Text(
-              _formatDuration(position),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          // Tap-to-seek progress bar
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Semantics(
-                  label: context.l10n.media_photoViewer_seekVideoLabel,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTapDown: (details) {
-                      _seekToPosition(
-                        details.localPosition.dx,
-                        constraints.maxWidth,
-                      );
-                    },
-                    child: SizedBox(
-                      height: 40, // Larger touch target
-                      child: Center(
-                        child: Stack(
-                          children: [
-                            // Background track
-                            Container(
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            // Progress track
-                            FractionallySizedBox(
-                              widthFactor: progress,
-                              child: Container(
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
-                            // Tagged moments (issue #1745)
-                            VideoTagMarks(
-                              mediaId: widget.mediaId,
-                              duration: duration,
-                              width: constraints.maxWidth,
-                            ),
-                            // Thumb indicator
-                            Positioned(
-                              left: (constraints.maxWidth * progress) - 8,
-                              top: -6,
-                              child: Container(
-                                width: 16,
-                                height: 16,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          // Total time
-          SizedBox(
-            width: 48,
-            child: Text(
-              _formatDuration(duration),
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12,
-                fontFeatures: [const FontFeature.tabularFigures()],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
         ],
       ),
     );
