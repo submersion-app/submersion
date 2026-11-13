@@ -85,6 +85,10 @@ void main() {
     expect(node.label, startsWith('Dive 3 at Unknown Site'));
     expect(node.label, isNot(contains('Shared Dives')));
     expect(node.flagsCollection.isButton, isTrue);
+    // The label already names the number and site; the badge and title are
+    // not read a second time.
+    expect(node.label, isNot(contains('#3')));
+    expect('Unknown Site'.allMatches(node.label), hasLength(1));
     handle.dispose();
   });
 

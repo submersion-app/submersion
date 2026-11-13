@@ -107,21 +107,29 @@ class BuddySharedDivesSection extends ConsumerWidget {
                           ),
                           child: Row(
                             children: [
-                              DiveNumberBadge(diveNumber: dive.diveNumber),
+                              // The row's label already names the number
+                              // and site, so neither is read twice.
+                              ExcludeSemantics(
+                                child: DiveNumberBadge(
+                                  diveNumber: dive.diveNumber,
+                                ),
+                              ),
                               const SizedBox(width: 12),
                               // Dive details
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      siteName,
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                    ExcludeSemantics(
+                                      child: Text(
+                                        siteName,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
