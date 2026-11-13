@@ -15,9 +15,6 @@ import 'package:submersion/features/dive_sites/domain/repositories/site_catalogu
 
 const _log = LoggerService('LocalSiteCatalogue');
 
-/// Meters in one degree of latitude.
-const _metersPerDegree = 111320.0;
-
 /// The escape character for LIKE patterns built from typed text.
 const _likeEscape = r'\';
 
@@ -162,6 +159,11 @@ class LocalSiteCatalogue implements SiteCatalogue {
 /// [radiusMeters] about [center]. The box is what the index can answer;
 /// callers cut its corners with a real distance afterwards.
 ///
+/// So the box must hold the whole circle, and errs on the large side: a
+/// degree of latitude is taken at its shortest, and the longitude span at
+/// the edge of the box nearer the pole, where a degree of longitude is
+/// shortest. A box that is a little small loses the sites at the rim.
+///
 /// A box that crosses the antimeridian becomes two longitude ranges: a
 /// diver at 179.9 E is a few kilometres from a site at 179.9 W.
 Expression<bool> _inBox(
@@ -169,8 +171,9 @@ Expression<bool> _inBox(
   GeoPoint center,
   double radiusMeters,
 ) {
-  final latDelta = radiusMeters / _metersPerDegree;
-  final cosLat = math.cos(center.latitude * math.pi / 180).abs();
+  final latDelta = radiusMeters / metersPerDegreeLatitude;
+  final polewardLatitude = math.min(center.latitude.abs() + latDelta, 90.0);
+  final cosLat = math.cos(polewardLatitude * math.pi / 180).abs();
   // Near a pole a degree of longitude shrinks to nothing: take them all.
   final lonDelta = cosLat < 0.01 ? 180.0 : latDelta / cosLat;
 

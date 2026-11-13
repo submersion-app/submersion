@@ -5,6 +5,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
 import 'package:submersion/features/dive_sites/domain/models/site_area_anchor.dart';
+import 'package:submersion/features/dive_sites/domain/utils/area_place_name.dart';
 
 /// Finds the area of a dive that has no GPS, from the dives around it.
 ///
@@ -47,8 +48,10 @@ class SiteAreaAnchorRepository {
     final gap = (when - Variable<int>(target)).abs();
     final inWindow = gap.isSmallerOrEqualValue(window.inMilliseconds);
     // Null when the dive has no trip: a constant here would read, in an
-    // ORDER BY, as a column number.
-    final sameTrip = tripId == null ? null : dives.tripId.equals(tripId);
+    // ORDER BY, as a column number. `IS`, not `=`: for a dive with no trip
+    // `=` answers NULL, which sorts after false, so every dive of another
+    // trip would rank ahead of every dive with none.
+    final sameTrip = tripId == null ? null : dives.tripId.isValue(tripId);
 
     final query =
         _db.selectOnly(dives).join([
@@ -85,11 +88,11 @@ class SiteAreaAnchorRepository {
     if (row == null) return null;
     return SiteAreaAnchor(
       point: GeoPoint(row.read(sites.latitude)!, row.read(sites.longitude)!),
-      placeLabel: _firstNonBlank([
-        row.read(sites.island),
-        row.read(sites.region),
-        row.read(sites.country),
-      ]),
+      placeLabel: areaPlaceName(
+        island: row.read(sites.island),
+        region: row.read(sites.region),
+        country: row.read(sites.country),
+      ),
     );
   }
 
@@ -124,12 +127,4 @@ class SiteAreaAnchorRepository {
       excludeDiveIds: diveIds,
     );
   }
-}
-
-String? _firstNonBlank(List<String?> values) {
-  for (final value in values) {
-    final trimmed = value?.trim() ?? '';
-    if (trimmed.isNotEmpty) return trimmed;
-  }
-  return null;
 }

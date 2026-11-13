@@ -591,7 +591,11 @@ def transform_to_catalogue_record(osm_site: dict) -> dict:
     country_code = None
     country = None
     if latitude is not None and longitude is not None:
-        country_code, country = country_resolver.lookup(latitude, longitude)
+        country_code, country, island = country_resolver.lookup_place(
+            latitude, longitude
+        )
+        if island:
+            site["island"] = island
         if not region and not address.get("country"):
             geo_result = geocoder.lookup(latitude, longitude)
             region = geo_result.get("region") or geo_result.get("locality")

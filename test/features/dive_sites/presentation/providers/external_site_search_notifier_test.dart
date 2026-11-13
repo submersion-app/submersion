@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -33,19 +35,43 @@ const _blueCorner = CatalogueSite(
   source: 'osm',
 );
 
+/// A catalogue whose search for a given text waits until the test lets it
+/// go, so a test can finish two searches in the order it chooses.
+class _GatedCatalogue extends FakeSiteCatalogue {
+  _GatedCatalogue(super.sites);
+
+  final Map<String, Completer<void>> gates = {};
+
+  @override
+  Future<List<CatalogueSite>> search(
+    String query, {
+    GeoPoint? areaFirst,
+    double areaRadiusMeters = 50000,
+    int limit = 50,
+  }) async {
+    await gates[query]?.future;
+    return super.search(
+      query,
+      areaFirst: areaFirst,
+      areaRadiusMeters: areaRadiusMeters,
+      limit: limit,
+    );
+  }
+}
+
 /// The import page's search: the diver's own sites and the built-in
 /// catalogue, with the catalogue sites they already adopted marked.
 void main() {
   late ProviderContainer container;
   late SiteRepository sites;
-  late FakeSiteCatalogue catalogue;
+  late _GatedCatalogue catalogue;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await setUpTestDatabase();
     sites = SiteRepository();
-    catalogue = FakeSiteCatalogue([_blueHole, _blueCorner]);
+    catalogue = _GatedCatalogue([_blueHole, _blueCorner]);
     container = ProviderContainer(
       overrides: [
         siteRepositoryProvider.overrideWithValue(sites),
@@ -167,10 +193,56 @@ void main() {
     expect(await sites.getAllSites(), hasLength(1));
   });
 
-  test('a quick search by country goes through the same search', () async {
-    await notifier().searchByCountry('Palau');
+  test('a search that finishes late does not replace a newer one', () async {
+    final hole = Completer<void>();
+    catalogue.gates['hole'] = hole;
 
-    expect(state().query, 'Palau');
+    final slow = notifier().search('hole');
+    await notifier().search('corner');
+    hole.complete();
+    await slow;
+
+    expect(state().query, 'corner');
     expect(state().sites.map((s) => s.id), ['osm_node_2']);
+    expect(state().isLoading, isFalse);
+  });
+
+  test('a search still out when the page is cleared shows nothing', () async {
+    final hole = Completer<void>();
+    catalogue.gates['hole'] = hole;
+
+    final slow = notifier().search('hole');
+    await pumpEventQueue();
+    notifier().clear();
+    hole.complete();
+    await slow;
+
+    expect(state().query, isEmpty);
+    expect(state().sites, isEmpty);
+    expect(state().isLoading, isFalse);
+  });
+
+  test('says when the catalogue has more matches than it lists', () async {
+    catalogue.sites = [
+      for (var i = 0; i < 201; i++)
+        CatalogueSite(
+          id: 'reef_$i',
+          name: 'Reef ${i.toString().padLeft(3, '0')}',
+          source: 'osm',
+        ),
+    ];
+
+    await notifier().search('reef');
+
+    expect(state().sites, hasLength(200));
+    expect(state().sites.last.name, 'Reef 199');
+    expect(state().isTruncated, isTrue);
+  });
+
+  test('a list that holds every match is not marked as cut short', () async {
+    await notifier().search('blue');
+
+    expect(state().sites, hasLength(2));
+    expect(state().isTruncated, isFalse);
   });
 }

@@ -12790,6 +12790,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'تُعرض أول $count مواقع. ابحث بعبارة أدق لرؤية البقية.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'عرض تفاصيل $name';
   }

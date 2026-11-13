@@ -399,8 +399,9 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet>
     // Only the Nearby and built-in sections are ordered around the anchor,
     // so the caption that says so shows only when one of them has sites in
     // it after the search.
-    final hasNearby = nearby.isNotEmpty || hasBuiltInNearby(sites);
-    final builtIn = builtInRows(sites);
+    final offered = offeredBuiltIn(sites);
+    final hasNearby = nearby.isNotEmpty || showsBuiltInNearby(offered);
+    final builtIn = builtInRows(offered);
 
     return Column(
       children: [

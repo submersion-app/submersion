@@ -7548,6 +7548,7 @@
   "diveSites_import_search_hint": "Search dive sites (e.g., \"Blue Hole\", \"Thailand\")",
   "diveSites_import_section_importFromDatabase": "Import from Database ({count})",
   "diveSites_import_section_mySites": "My Sites ({count})",
+  "diveSites_import_section_truncated": "Showing the first {count} sites. Search for something more specific to see the rest.",
   "diveSites_import_semantics_viewDetails": "View details for {name}",
   "diveSites_import_semantics_viewSavedSite": "View saved site {name}",
   "diveSites_import_snackbar_failed": "Failed to import site",

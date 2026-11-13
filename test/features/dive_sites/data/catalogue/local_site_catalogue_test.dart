@@ -134,6 +134,43 @@ void main() {
       expect(idsOf(sites), ['full', 'near', 'mid']);
     });
 
+    test('a site just inside the radius is not lost to the box', () async {
+      // The index answers a box and the distance check cuts its corners,
+      // so the box has to hold the whole circle. Both sites are 49,990 m
+      // from their centre: one due north, one due east at 60 degrees
+      // north, where a degree of longitude is half as long.
+      final edges = LocalCacheDatabase(
+        NativeDatabase.memory(setup: registerAppSqlFunctions),
+      );
+      addTearDown(edges.close);
+      await SiteCatalogueImporter(
+        database: edges,
+        bundle: _Bundle(
+          jsonEncode({
+            'metadata': {'format': 2, 'sources': <String, Object?>{}},
+            'sites': [
+              _site('north', 'North Edge', lat: 0.449571, lon: 0),
+              _site('east', 'East Edge', lat: 60, lon: 10.89915),
+            ],
+          }),
+        ),
+      ).importIfChanged();
+      final edgeCatalogue = LocalSiteCatalogue(database: edges);
+
+      expect(
+        idsOf(
+          await edgeCatalogue.near(const GeoPoint(0, 0), radiusMeters: 50000),
+        ),
+        ['north'],
+      );
+      expect(
+        idsOf(
+          await edgeCatalogue.near(const GeoPoint(60, 10), radiusMeters: 50000),
+        ),
+        ['east'],
+      );
+    });
+
     test('a smaller radius cuts the list', () async {
       final sites = await catalogue.near(_saltPier, radiusMeters: 5000);
 
@@ -182,6 +219,10 @@ void main() {
 
     test('finds a site without coordinates', () async {
       expect(idsOf(await catalogue.search('salt germany')), ['nowhere']);
+    });
+
+    test('finds a site by the sea it is in', () async {
+      expect(idsOf(await catalogue.search('caribbean sea')), ['full']);
     });
 
     test('puts the area first, then by name', () async {

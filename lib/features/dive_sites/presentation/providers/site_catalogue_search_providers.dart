@@ -23,6 +23,10 @@ class ExternalSiteSearchState {
   /// list; [linkedCatalogueIds] says which those are.
   final List<CatalogueSite> sites;
 
+  /// Whether the catalogue has more matches than [sites] lists, so the
+  /// page can say the list is cut short.
+  final bool isTruncated;
+
   /// The catalogue records the diver's sites were adopted from.
   final Set<String> linkedCatalogueIds;
   final String? errorMessage;
@@ -32,6 +36,7 @@ class ExternalSiteSearchState {
     this.query = '',
     this.isLoading = false,
     this.sites = const [],
+    this.isTruncated = false,
     this.linkedCatalogueIds = const {},
     this.errorMessage,
     this.localSites = const [],
@@ -41,6 +46,7 @@ class ExternalSiteSearchState {
     String? query,
     bool? isLoading,
     List<CatalogueSite>? sites,
+    bool? isTruncated,
     Set<String>? linkedCatalogueIds,
     String? errorMessage,
     bool clearError = false,
@@ -50,6 +56,7 @@ class ExternalSiteSearchState {
       query: query ?? this.query,
       isLoading: isLoading ?? this.isLoading,
       sites: sites ?? this.sites,
+      isTruncated: isTruncated ?? this.isTruncated,
       linkedCatalogueIds: linkedCatalogueIds ?? this.linkedCatalogueIds,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       localSites: localSites ?? this.localSites,
@@ -78,8 +85,14 @@ class ExternalSiteSearchNotifier
     this._ref,
   ) : super(const ExternalSiteSearchState());
 
+  /// Goes up with every search and every clear. A search that finds a
+  /// newer number when it comes back was overtaken, and drops its answer:
+  /// the page would otherwise show one search's sites under another's text.
+  int _generation = 0;
+
   /// Search for dive sites by query.
   Future<void> search(String query) async {
+    final generation = ++_generation;
     if (query.trim().isEmpty) {
       state = const ExternalSiteSearchState();
       return;
@@ -100,24 +113,25 @@ class ExternalSiteSearchNotifier
       final ownSites = await _siteRepository.getAllSites(
         diverId: validatedDiverId,
       );
-      final matches = await _catalogue.search(query, limit: _searchLimit);
+      // One more than the page lists: the extra one says there are more.
+      final matches = await _catalogue.search(query, limit: _searchLimit + 1);
+      if (generation != _generation) return;
 
       state = state.copyWith(
         isLoading: false,
-        sites: matches,
+        sites: matches.take(_searchLimit).toList(),
+        isTruncated: matches.length > _searchLimit,
         linkedCatalogueIds: linkedCatalogueIds(ownSites),
         localSites: localResults,
       );
     } catch (e) {
+      if (generation != _generation) return;
       state = state.copyWith(
         isLoading: false,
         errorMessage: 'Search error: $e',
       );
     }
   }
-
-  /// The quick-search chips: a search for a country or region name.
-  Future<void> searchByCountry(String country) => search(country);
 
   /// Adopts [site] as one of the diver's sites, or finds the one they
   /// already adopted from it. Null, with an error in the state, on failure.
@@ -134,8 +148,9 @@ class ExternalSiteSearchNotifier
     }
   }
 
-  /// Clear search results.
+  /// Clear search results, and drop the answer of a search still out.
   void clear() {
+    _generation++;
     state = const ExternalSiteSearchState();
   }
 }

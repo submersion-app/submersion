@@ -3932,6 +3932,7 @@
   "diveSites_import_search_hint": "Zoek duikstekken (bijv. \"Blue Hole\", \"Thailand\")",
   "diveSites_import_section_importFromDatabase": "Importeren uit database ({count})",
   "diveSites_import_section_mySites": "Mijn stekken ({count})",
+  "diveSites_import_section_truncated": "De eerste {count} stekken worden getoond. Zoek specifieker om de rest te zien.",
   "diveSites_import_semantics_viewDetails": "Details bekijken voor {name}",
   "diveSites_import_semantics_viewSavedSite": "Opgeslagen stek {name} bekijken",
   "diveSites_import_snackbar_failed": "Importeren van stek mislukt",

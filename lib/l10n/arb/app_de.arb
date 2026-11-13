@@ -3966,6 +3966,7 @@
   "diveSites_import_search_hint": "Tauchplätze suchen (z. B. \"Blue Hole\", \"Thailand\")",
   "diveSites_import_section_importFromDatabase": "Aus Datenbank importieren ({count})",
   "diveSites_import_section_mySites": "Meine Tauchplätze ({count})",
+  "diveSites_import_section_truncated": "Die ersten {count} Tauchplätze werden angezeigt. Suche genauer, um die übrigen zu sehen.",
   "diveSites_import_semantics_viewDetails": "Details für {name} anzeigen",
   "diveSites_import_semantics_viewSavedSite": "Gespeicherten Tauchplatz {name} anzeigen",
   "diveSites_import_snackbar_failed": "Import des Tauchplatzes fehlgeschlagen",

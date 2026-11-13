@@ -3932,6 +3932,7 @@
   "diveSites_import_search_hint": "البحث عن مواقع الغوص (مثال: \"الحفرة الزرقاء\"، \"تايلاند\")",
   "diveSites_import_section_importFromDatabase": "استيراد من قاعدة البيانات ({count})",
   "diveSites_import_section_mySites": "مواقعي ({count})",
+  "diveSites_import_section_truncated": "تُعرض أول {count} مواقع. ابحث بعبارة أدق لرؤية البقية.",
   "diveSites_import_semantics_viewDetails": "عرض تفاصيل {name}",
   "diveSites_import_semantics_viewSavedSite": "عرض الموقع المحفوظ {name}",
   "diveSites_import_snackbar_failed": "فشل استيراد الموقع",

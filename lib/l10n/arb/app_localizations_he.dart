@@ -12357,6 +12357,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'מוצגים $count האתרים הראשונים. חפש משהו מדויק יותר כדי לראות את השאר.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'צפה בפרטים עבור $name';
   }

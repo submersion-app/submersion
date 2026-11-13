@@ -12550,6 +12550,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'De eerste $count stekken worden getoond. Zoek specifieker om de rest te zien.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Details bekijken voor $name';
   }

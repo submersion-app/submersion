@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
@@ -23,7 +24,10 @@ const kSiteCatalogueMetaVersion = 'version';
 /// change to how a record is parsed, or to how its search text is folded.
 /// Stored with the file's hash, so such a build imports again even though
 /// the file itself did not change.
-const kSiteCatalogueImportRevision = 1;
+///
+/// 2: each site's sea is named from the sea table and joins its search
+/// text.
+const kSiteCatalogueImportRevision = 2;
 
 /// The meta row holding the catalogue's sources, as JSON.
 const kSiteCatalogueMetaSources = 'sources';
@@ -76,6 +80,22 @@ class SiteCatalogueImporter {
   Future<SiteCatalogueImportOutcome> importIfChanged() =>
       _running ??= _run().whenComplete(() => _running = null);
 
+  /// The bundled sea table as text, or null when it cannot be read. Sea
+  /// names are an extra: the catalogue loads without them.
+  Future<String?> _loadSeaAreas() async {
+    try {
+      // Not cached by the bundle, like the catalogue: read once per update.
+      return await _bundle.loadString(SeaAreaService.assetPath, cache: false);
+    } catch (error, stackTrace) {
+      _log.warning(
+        'The sea table could not be read; built-in sites get no sea name',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   Future<SiteCatalogueImportOutcome> _run() async {
     try {
       final db = _db;
@@ -99,10 +119,14 @@ class SiteCatalogueImporter {
 
       // Not cached by the bundle: this is megabytes read once per update.
       final json = await _bundle.loadString(kSiteCatalogueAsset, cache: false);
-      // Parsing, folding each site's search text and encoding its lists
-      // all happen off the UI isolate: at tens of thousands of sites that
-      // is too much work for a frame.
-      final built = await compute(buildSiteCatalogueRows, json);
+      final seaAreas = await _loadSeaAreas();
+      // Parsing, naming each site's sea, folding its search text and
+      // encoding its lists all happen off the UI isolate: at tens of
+      // thousands of sites that is too much work for a frame.
+      final built = await compute(buildSiteCatalogueRows, (
+        catalogue: json,
+        seaAreas: seaAreas,
+      ));
       final rows = built.rows;
       if (rows.isEmpty) {
         // A file that parses but holds no usable site. Emptying the

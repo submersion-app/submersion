@@ -3831,6 +3831,7 @@
   "diveSites_import_search_hint": "חפש אתרי צלילה (לדוגמה, \"Blue Hole\", \"תאילנד\")",
   "diveSites_import_section_importFromDatabase": "ייבא ממאגר נתונים ({count})",
   "diveSites_import_section_mySites": "האתרים שלי ({count})",
+  "diveSites_import_section_truncated": "מוצגים {count} האתרים הראשונים. חפש משהו מדויק יותר כדי לראות את השאר.",
   "diveSites_import_semantics_viewDetails": "צפה בפרטים עבור {name}",
   "diveSites_import_semantics_viewSavedSite": "צפה באתר שמור {name}",
   "diveSites_import_snackbar_failed": "ייבוא האתר נכשל",

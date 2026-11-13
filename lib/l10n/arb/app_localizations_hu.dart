@@ -12607,6 +12607,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Az első $count merülőhely látható. Pontosítsa a keresést a többi megjelenítéséhez.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return '$name részleteinek megtekintése';
   }

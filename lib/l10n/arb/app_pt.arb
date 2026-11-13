@@ -3932,6 +3932,7 @@
   "diveSites_import_search_hint": "Buscar pontos de mergulho (ex., \"Blue Hole\", \"Tailândia\")",
   "diveSites_import_section_importFromDatabase": "Importar do Banco de Dados ({count})",
   "diveSites_import_section_mySites": "Meus Pontos ({count})",
+  "diveSites_import_section_truncated": "Mostrando os primeiros {count} pontos. Refine a busca para ver os demais.",
   "diveSites_import_semantics_viewDetails": "Ver detalhes de {name}",
   "diveSites_import_semantics_viewSavedSite": "Ver ponto salvo {name}",
   "diveSites_import_snackbar_failed": "Falha ao importar ponto",

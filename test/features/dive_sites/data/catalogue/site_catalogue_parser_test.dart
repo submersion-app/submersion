@@ -253,8 +253,101 @@ void main() {
     });
   });
 
+  group('naming the sea', () {
+    test('a located record with no body of water takes the sea there', () {
+      final asked = <(double, double)>[];
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({'lat': 27.2, 'lon': 33.8}),
+        ]),
+        seaAt: (latitude, longitude) {
+          asked.add((latitude, longitude));
+          return 'Red Sea';
+        },
+      );
+
+      expect(parsed.sites.single.bodyOfWater, 'Red Sea');
+      expect(asked, [(27.2, 33.8)]);
+    });
+
+    test('a record keeps the body of water it came with', () {
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({'lat': 28.5, 'lon': 34.5, 'body_of_water': 'Gulf of Aqaba'}),
+        ]),
+        seaAt: (_, _) => 'Red Sea',
+      );
+
+      expect(parsed.sites.single.bodyOfWater, 'Gulf of Aqaba');
+    });
+
+    test('a record with no position is not asked about', () {
+      var asked = 0;
+      final parsed = parseSiteCatalogue(
+        _file([_site()]),
+        seaAt: (_, _) {
+          asked++;
+          return 'Red Sea';
+        },
+      );
+
+      expect(parsed.sites.single.bodyOfWater, isNull);
+      expect(asked, 0);
+    });
+
+    test('fresh water near a coast is never given a sea', () {
+      // The sea table reaches a few kilometres inland, to catch sites
+      // recorded from a beach. A cenote or a lake that close to the coast
+      // is still not in the sea.
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({
+            'id': 'cenote',
+            'lat': 20.2,
+            'lon': -87.4,
+            'types': ['cenote'],
+          }),
+          _site({
+            'id': 'lake',
+            'lat': 54.3,
+            'lon': 10.2,
+            'types': ['wreck', 'lake'],
+          }),
+          _site({
+            'id': 'fresh',
+            'lat': 54.3,
+            'lon': 10.2,
+            'water_type': 'fresh',
+          }),
+          _site({
+            'id': 'reef',
+            'lat': 20.2,
+            'lon': -87.4,
+            'types': ['reef'],
+          }),
+        ]),
+        seaAt: (_, _) => 'Caribbean Sea',
+      );
+
+      expect(
+        {for (final site in parsed.sites) site.id: site.bodyOfWater},
+        {'cenote': null, 'lake': null, 'fresh': null, 'reef': 'Caribbean Sea'},
+      );
+    });
+
+    test('with no sea table nothing is named', () {
+      final parsed = parseSiteCatalogue(
+        _file([
+          _site({'lat': 27.2, 'lon': 33.8}),
+        ]),
+      );
+
+      expect(parsed.sites.single.bodyOfWater, isNull);
+    });
+  });
+
   group('catalogueSearchText', () {
-    test('folds name, country, region, locality and island', () {
+    test('folds name, country, region, locality, island and sea', () {
       const site = CatalogueSite(
         id: 'a',
         name: 'Cancún',
@@ -262,12 +355,16 @@ void main() {
         region: 'Quintana Roo',
         locality: 'Puerto Juárez',
         island: 'Isla Mujeres',
+        bodyOfWater: 'Caribbean Sea',
         source: 'osm',
       );
 
       expect(
         catalogueSearchText(site),
-        normalize('Cancún México Quintana Roo Puerto Juárez Isla Mujeres'),
+        normalize(
+          'Cancún México Quintana Roo Puerto Juárez Isla Mujeres '
+          'Caribbean Sea',
+        ),
       );
     });
 

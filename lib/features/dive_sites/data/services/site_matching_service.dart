@@ -1,4 +1,3 @@
-import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/geo_math.dart';
@@ -19,11 +18,6 @@ import 'package:submersion/features/media/domain/services/photo_gps_point_select
 
 enum ProposalStatus { clear, review, none }
 
-/// The built-in site types' names, by id.
-final Map<String, String> _builtInTypeNames = {
-  for (final type in kBuiltInSiteTypes) type.id: type.name,
-};
-
 /// A display candidate for the review screen + map (resolved from a user site
 /// or a bundled site; fields are null when the source lacks them).
 class MatchCandidateView {
@@ -41,7 +35,10 @@ class MatchCandidateView {
   final String? region;
   final double? rating;
   final String? difficulty; // SiteDifficulty.displayName
-  final List<String> features; // bundled: wreck/reef/shore...
+  /// A built-in candidate's site types, as built-in type ids. The review
+  /// card translates them: this service has no language to name them in.
+  final List<String> typeIds;
+  final List<String> features; // bundled: the source's tags (drift, sharks)
   final String? description;
 
   const MatchCandidateView({
@@ -57,6 +54,7 @@ class MatchCandidateView {
     this.region,
     this.rating,
     this.difficulty,
+    this.typeIds = const [],
     this.features = const [],
     this.description,
   });
@@ -361,12 +359,10 @@ class SiteMatchingService {
       region: b.region,
       // As an existing site's card shows it.
       difficulty: b.difficulty?.displayName,
-      // What the review card lists: the site's types by name, then the
-      // source's other tags (drift, sharks).
-      features: [
-        for (final id in b.typeIds) _builtInTypeNames[id] ?? id,
-        ...b.features,
-      ],
+      // What the review card lists: the site's types, which it names in
+      // the diver's language, then the source's other tags (drift, sharks).
+      typeIds: b.typeIds,
+      features: b.features,
       description: b.description,
     );
   }

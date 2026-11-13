@@ -20127,6 +20127,12 @@ abstract class AppLocalizations {
   /// **'My Sites ({count})'**
   String diveSites_import_section_mySites(Object count);
 
+  /// No description provided for @diveSites_import_section_truncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {count} sites. Search for something more specific to see the rest.'**
+  String diveSites_import_section_truncated(Object count);
+
   /// No description provided for @diveSites_import_semantics_viewDetails.
   ///
   /// In en, this message translates to:

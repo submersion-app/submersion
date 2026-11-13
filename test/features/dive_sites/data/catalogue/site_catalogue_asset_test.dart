@@ -171,4 +171,40 @@ void main() {
       'OpenStreetMap contributors',
     );
   });
+
+  test('the shipped catalogue is found by island and by sea', () async {
+    // What a diver types, and what the import page's Red Sea and Caribbean
+    // chips search for. Before the island and the sea names these found
+    // 0, 1 and 64 sites (the 64 only because Bonaire's country reads
+    // "Caribbean Netherlands").
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    await SiteCatalogueImporter(
+      database: db,
+      bundle: _FileBundle(),
+    ).importIfChanged();
+    final catalogue = LocalSiteCatalogue(database: db);
+
+    final bonaire = await catalogue.search('bonaire', limit: 1000);
+    expect(bonaire.length, greaterThan(50));
+    expect(bonaire.map((s) => s.island).toSet(), {'Bonaire'});
+    expect(
+      (await catalogue.search('red sea', limit: 1000)).length,
+      greaterThan(150),
+    );
+    expect(
+      (await catalogue.search('caribbean', limit: 1000)).length,
+      greaterThan(150),
+    );
+    // A cenote a few hundred metres from the Caribbean is still not in it.
+    final cenotes = await catalogue.search('cenote', limit: 1000);
+    expect(
+      cenotes
+          .where((s) => s.typeIds.contains('cenote'))
+          .map((s) => s.bodyOfWater),
+      everyElement(isNull),
+    );
+  });
 }

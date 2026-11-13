@@ -7,7 +7,8 @@ parent state: every Bonaire site said "Nederland". So the catalogue asks a
 geocoder where each site is, in English, and reads the ISO 3166-2
 subdivision code as well as the country code: a subdivision that begins with
 another ISO 3166-1 code (Bonaire is `BQ-BO` inside `nl`) names a territory
-with a code of its own, and that code wins.
+with a code of its own, and that code wins. Where such a territory is
+several islands, the subdivision also names the island the site is on.
 
 Answers are cached on disk after every request, so a stopped run resumes.
 """
@@ -32,6 +33,16 @@ TERRITORY_NAMES: dict[str, str] = {
     "BQ": "Caribbean Netherlands",
 }
 
+# The island a territory's subdivision names, where the territory is
+# islands far apart: the Caribbean Netherlands is Bonaire off Venezuela and
+# two islands 800 km north-east of it. It becomes the record's `island`, so
+# a search for "Bonaire" finds Bonaire's sites and their rows say Bonaire.
+SUBDIVISION_ISLANDS: dict[str, str] = {
+    "BQ-BO": "Bonaire",
+    "BQ-SA": "Saba",
+    "BQ-SE": "Sint Eustatius",
+}
+
 # Countries the geocoder names but files under another state's code, with
 # no subdivision code to tell them apart: the constituent countries of the
 # Kingdom of the Netherlands all come back as `nl`. Keyed by the geocoder's
@@ -53,24 +64,37 @@ NAME_OVERRIDES: dict[str, str] = {
 _SUBDIVISION_PREFIX = "ISO3166-2-lvl"
 
 
-def resolve_country(address: dict) -> tuple[str | None, str | None]:
-    """(ISO 3166-1 alpha-2 code, English name) for a geocoder address."""
+def resolve_place(
+    address: dict,
+) -> tuple[str | None, str | None, str | None]:
+    """(ISO 3166-1 alpha-2 code, English name, island) for a geocoder
+    address. The island is None except in a territory whose subdivision
+    names one (see SUBDIVISION_ISLANDS)."""
     raw_code = address.get("country_code")
     if not raw_code:
-        return None, None
+        return None, None, None
     code = raw_code.upper()
     name = address.get("country")
+    island = None
 
     for key, value in address.items():
         if not key.startswith(_SUBDIVISION_PREFIX) or not value:
             continue
-        prefix = str(value).split("-")[0].upper()
+        subdivision = str(value).upper()
+        prefix = subdivision.split("-")[0]
         if prefix != code:
             # KeyError on purpose: an unlisted territory must be named.
             code, name = prefix, TERRITORY_NAMES[prefix]
+            island = SUBDIVISION_ISLANDS.get(subdivision)
             break
 
-    return settle_country(code, name)
+    return (*settle_country(code, name), island)
+
+
+def resolve_country(address: dict) -> tuple[str | None, str | None]:
+    """(ISO 3166-1 alpha-2 code, English name) for a geocoder address."""
+    code, name, _ = resolve_place(address)
+    return code, name
 
 
 def settle_country(
@@ -127,13 +151,26 @@ class CountryResolver:
         self, latitude: float, longitude: float
     ) -> tuple[str | None, str | None]:
         """(code, English name) for a position, or (None, None) at sea."""
+        code, name, _ = self.lookup_place(latitude, longitude)
+        return code, name
+
+    def lookup_place(
+        self, latitude: float, longitude: float
+    ) -> tuple[str | None, str | None, str | None]:
+        """(code, English name, island) for a position; all None at sea."""
         # About 11 m: fine enough that a site never answers for its
         # neighbour across a border (Eilat and Taba share a hundredth of a
         # degree), coarse enough that a re-harvested site keeps its answer.
         key = f"{round(latitude, 4)},{round(longitude, 4)}"
-        if key in self._cache:
-            code, name = self._cache[key]
-            return settle_country(code, name)
+        cached = self._cache.get(key)
+        # An answer from before islands were kept has two parts. For a
+        # territory that is half an answer, so it is asked again; for any
+        # other place the island is simply None.
+        if cached is not None and not (
+            len(cached) < 3 and cached[0] in TERRITORY_NAMES
+        ):
+            code, name = settle_country(cached[0], cached[1])
+            return code, name, cached[2] if len(cached) > 2 else None
 
         elapsed = time.monotonic() - self._last_request
         if elapsed < NOMINATIM_MIN_INTERVAL:
@@ -159,9 +196,11 @@ class CountryResolver:
 
         # Open sea comes back as {"error": "Unable to geocode"}: a real
         # answer, remembered as no country.
-        code, name = resolve_country(response.json().get("address") or {})
-        self._cache[key] = [code, name]
+        code, name, island = resolve_place(
+            response.json().get("address") or {}
+        )
+        self._cache[key] = [code, name, island]
         self._cache_path.write_text(
             json.dumps(self._cache, ensure_ascii=False), encoding="utf-8"
         )
-        return code, name
+        return code, name, island

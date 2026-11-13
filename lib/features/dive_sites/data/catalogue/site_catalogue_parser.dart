@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/features/dive_sites/data/catalogue/catalogue_enum_names.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -19,6 +20,14 @@ class ParsedSiteCatalogue {
   });
 }
 
+/// Names the sea at a position, or null when it is inland or unknown.
+typedef SeaNamer = String? Function(double latitude, double longitude);
+
+/// Site types that are fresh water wherever they are. The sea table
+/// reaches a few kilometres inland, to catch sites recorded from a beach,
+/// and one of these that close to a coast is still not in the sea.
+const _inlandTypeIds = {'lake', 'quarry', 'river', 'spring', 'cenote', 'pool'};
+
 /// Reads the text of `assets/data/site_catalogue.json`.
 ///
 /// Forgiving by record: a record without an id, a name or a source is
@@ -27,8 +36,13 @@ class ParsedSiteCatalogue {
 /// kept. Only a file that is not a catalogue at all throws
 /// [FormatException].
 ///
+/// With [seaAt], a located record that names no body of water takes the
+/// sea at its position, so a search for "Red Sea" finds the sites in it
+/// and an adopted site starts with its water named. The file itself
+/// carries no sea names: OpenStreetMap, its source, has none.
+///
 /// Top-level so it can run through `compute`.
-ParsedSiteCatalogue parseSiteCatalogue(String json) {
+ParsedSiteCatalogue parseSiteCatalogue(String json, {SeaNamer? seaAt}) {
   final Object? decoded = jsonDecode(json);
   if (decoded is! Map<String, dynamic>) {
     throw const FormatException('The site catalogue is not a JSON object');
@@ -46,7 +60,7 @@ ParsedSiteCatalogue parseSiteCatalogue(String json) {
     format: _int(meta['format']) ?? 0,
     sites: [
       for (final raw in rawSites)
-        if (raw is Map<String, dynamic>) ?_site(raw),
+        if (raw is Map<String, dynamic>) ?_site(raw, seaAt),
     ],
     sources: [
       if (meta['sources'] case final Map<String, dynamic> sources)
@@ -59,53 +73,79 @@ ParsedSiteCatalogue parseSiteCatalogue(String json) {
 
 /// What a search can match of [site], folded the way the site picker folds
 /// the diver's own sites (`normalizedSiteSearchText`): its name and where
-/// it is.
+/// it is, down to the sea.
 String catalogueSearchText(CatalogueSite site) => normalize(
-  [site.name, site.country, site.region, site.locality, site.island]
+  [
+        site.name,
+        site.country,
+        site.region,
+        site.locality,
+        site.island,
+        site.bodyOfWater,
+      ]
       .whereType<String>()
       .map((part) => part.trim())
       .where((part) => part.isNotEmpty)
       .join(' '),
 );
 
-CatalogueSite? _site(Map<String, dynamic> raw) {
+CatalogueSite? _site(Map<String, dynamic> raw, SeaNamer? seaAt) {
   final id = _text(raw['id']);
   final name = _text(raw['name']);
   final source = _text(raw['source']);
   if (id == null || name == null || source == null) return null;
 
+  final location = _location(raw['lat'], raw['lon']);
+  final waterType = waterTypesByName[raw['water_type']];
+  final typeIds = [
+    for (final type in _strings(raw['types']))
+      if (kBuiltInSiteTypeIds.contains(type)) type,
+  ];
+
   return CatalogueSite(
     id: id,
     name: name,
-    location: _location(raw['lat'], raw['lon']),
+    location: location,
     countryCode: _text(raw['country_code']),
     country: _text(raw['country']),
     region: _text(raw['region']),
     locality: _text(raw['locality']),
     island: _text(raw['island']),
-    bodyOfWater: _text(raw['body_of_water']),
-    waterType: WaterType.values.asNameMap()[raw['water_type']],
+    bodyOfWater:
+        _text(raw['body_of_water']) ??
+        _sea(location, waterType, typeIds, seaAt),
+    waterType: waterType,
     minDepth: _double(raw['min_depth_m']),
     maxDepth: _double(raw['max_depth_m']),
-    typeIds: [
-      for (final type in _strings(raw['types']))
-        if (kBuiltInSiteTypeIds.contains(type)) type,
-    ],
+    typeIds: typeIds,
     entryMethods: [
-      for (final entry in _strings(raw['entry']))
-        ?EntryMethod.values.asNameMap()[entry],
+      for (final entry in _strings(raw['entry'])) ?entryMethodsByName[entry],
     ],
     features: _strings(raw['features']),
-    difficulty: SiteDifficulty.values.asNameMap()[raw['difficulty']],
+    difficulty: siteDifficultiesByName[raw['difficulty']],
     hazards: _text(raw['hazards']),
     description: _text(raw['description']),
     website: _text(raw['website']),
     source: source,
     sourceRef: _text(raw['source_ref']),
-    trust:
-        CatalogueTrust.values.asNameMap()[raw['trust']] ??
-        CatalogueTrust.verified,
+    trust: catalogueTrustByName[raw['trust']] ?? CatalogueTrust.verified,
   );
+}
+
+/// The sea a record with no body of water of its own lies in, or null:
+/// for a record with no position, and for one the catalogue says is fresh
+/// water.
+String? _sea(
+  GeoPoint? location,
+  WaterType? waterType,
+  List<String> typeIds,
+  SeaNamer? seaAt,
+) {
+  if (location == null || seaAt == null) return null;
+  if (waterType == WaterType.fresh || typeIds.any(_inlandTypeIds.contains)) {
+    return null;
+  }
+  return seaAt(location.latitude, location.longitude);
 }
 
 CatalogueSource? _source(String key, Map<String, dynamic> raw) {

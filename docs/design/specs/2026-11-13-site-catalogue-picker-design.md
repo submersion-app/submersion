@@ -141,7 +141,7 @@ Each record:
 | `lat`, `lon` | Optional. A record without them is found by search only. |
 | `country_code` | ISO 3166-1 alpha-2. |
 | `country` | English name. |
-| `region`, `locality`, `island`, `body_of_water` | Optional. |
+| `region`, `locality`, `island`, `body_of_water` | Optional. `island` is written for a territory made of islands far apart (the Caribbean Netherlands: Bonaire, Saba, Sint Eustatius), from the geocoder's subdivision code. The file carries no `body_of_water`: the app names each site's sea when it imports the file (section on storage). |
 | `water_type` | Optional; a `WaterType` name. |
 | `min_depth_m`, `max_depth_m` | Optional, metres. |
 | `types` | Built-in site type ids (`wreck`, `wall`, `reef`, `lake`, `cave`, `cavern`). |
@@ -208,9 +208,16 @@ backstop):
 
 - `site_catalogue`: one row per record, keyed by `id`. List fields are stored
   as text. A `search_text` column holds the folded text search runs against
-  (name, country, region, locality, island), produced with the same folding
-  the picker uses for the diver's sites. Indexed for bounding-box lookups on
-  latitude and longitude.
+  (name, country, region, locality, island, body of water), produced with
+  the same folding the picker uses for the diver's sites. Indexed for
+  bounding-box lookups on latitude and longitude.
+- The body of water is filled at import, not in the file: a located record
+  that names none takes the sea at its position from the bundled sea table
+  (`assets/data/sea_areas.json`, the one the geocoder uses for the diver's
+  own sites). A record the catalogue says is fresh water (its water type,
+  or a lake, quarry, river, spring, cenote or pool type) is left without
+  one, because the sea table reaches a few kilometres inland. Added after
+  the review: without it a search for "Red Sea" found one site.
 - A small meta record holding the imported version and format.
 
 Import:
@@ -475,8 +482,12 @@ most worth checking:
   place to remember records a diver merged away; proposed for slice 4.
 - Two devices that each adopt the same record before they sync end with two
   sites carrying the same link.
-- An adopted site carries the catalogue's English country name even when the
-  diver's place-name language is another one.
+- An adopted site carries the catalogue's English country name, and the
+  English name of its sea, even when the diver's place-name language is
+  another one.
+- "Red Sea" finds the sites the sea table files under that name. The Gulf
+  of Aqaba and the Gulf of Suez are seas of their own there, so Dahab and
+  Eilat are found by "Aqaba", not by "Red Sea".
 
 ## Left to the builder
 

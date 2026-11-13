@@ -3932,6 +3932,7 @@
   "diveSites_import_search_hint": "Buscar puntos de buceo (p. ej., \"Blue Hole\", \"Tailandia\")",
   "diveSites_import_section_importFromDatabase": "Importar de la base de datos ({count})",
   "diveSites_import_section_mySites": "Mis sitios ({count})",
+  "diveSites_import_section_truncated": "Se muestran los primeros {count} sitios. Haz una búsqueda más específica para ver el resto.",
   "diveSites_import_semantics_viewDetails": "Ver detalles de {name}",
   "diveSites_import_semantics_viewSavedSite": "Ver sitio guardado {name}",
   "diveSites_import_snackbar_failed": "Error al importar el sitio",

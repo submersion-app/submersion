@@ -12620,6 +12620,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Die ersten $count Tauchplätze werden angezeigt. Suche genauer, um die übrigen zu sehen.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Details für $name anzeigen';
   }

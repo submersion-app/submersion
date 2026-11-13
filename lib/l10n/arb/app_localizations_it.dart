@@ -12636,6 +12636,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Vengono mostrati i primi $count siti. Restringi la ricerca per vedere gli altri.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Visualizza dettagli per $name';
   }

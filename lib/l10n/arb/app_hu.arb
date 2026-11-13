@@ -3831,6 +3831,7 @@
   "diveSites_import_search_hint": "Merülőhelyek keresése (pl. \"Blue Hole\", \"Thaiföld\")",
   "diveSites_import_section_importFromDatabase": "Importálás adatbázisból ({count})",
   "diveSites_import_section_mySites": "Helyszíneim ({count})",
+  "diveSites_import_section_truncated": "Az első {count} merülőhely látható. Pontosítsa a keresést a többi megjelenítéséhez.",
   "diveSites_import_semantics_viewDetails": "{name} részleteinek megtekintése",
   "diveSites_import_semantics_viewSavedSite": "Mentett helyszín megtekintése: {name}",
   "diveSites_import_snackbar_failed": "Nem sikerült a helyszín importálása",

@@ -2,8 +2,9 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/geocoding/sea_area_index.dart';
+import 'package:submersion/features/dive_sites/data/catalogue/catalogue_enum_names.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -18,23 +19,35 @@ class SiteCatalogueRows {
   final String sources;
 }
 
+/// What [buildSiteCatalogueRows] reads: the catalogue file and, when it
+/// could be read, the sea table (`assets/data/sea_areas.json`) that names
+/// each site's sea.
+typedef SiteCatalogueRowsInput = ({String catalogue, String? seaAreas});
+
 /// Reads a catalogue file into rows. Top-level so the importer can run it
-/// through `compute`, keeping the parse, the search-text folding and the
-/// list encoding of every record off the UI isolate.
-SiteCatalogueRows buildSiteCatalogueRows(String json) {
-  final parsed = parseSiteCatalogue(json);
+/// through `compute`, keeping the parse, the sea lookups, the search-text
+/// folding and the list encoding of every record off the UI isolate.
+SiteCatalogueRows buildSiteCatalogueRows(SiteCatalogueRowsInput input) {
+  final parsed = parseSiteCatalogue(
+    input.catalogue,
+    seaAt: _seaIndex(input.seaAreas)?.nameAt,
+  );
   return SiteCatalogueRows(
     rows: [for (final site in parsed.sites) catalogueSiteToRow(site)],
     sources: encodeCatalogueSources(parsed.sources),
   );
 }
 
-// Built once: `asNameMap` makes a new map on every call, and a read maps
-// every row.
-final _waterTypes = WaterType.values.asNameMap();
-final _entryMethodsByName = EntryMethod.values.asNameMap();
-final _difficulties = SiteDifficulty.values.asNameMap();
-final _trustLevels = CatalogueTrust.values.asNameMap();
+/// The sea table, or null when it is missing or unreadable. Sea names are
+/// an extra: the catalogue then loads without them.
+SeaAreaIndex? _seaIndex(String? seaAreas) {
+  if (seaAreas == null) return null;
+  try {
+    return SeaAreaIndex.fromJson(jsonDecode(seaAreas) as Map<String, dynamic>);
+  } catch (_) {
+    return null;
+  }
+}
 
 /// The local cache row for [site], with its search text folded once here so
 /// a search never folds a row.
@@ -81,21 +94,21 @@ CatalogueSite catalogueSiteFromRow(SiteCatalogueRow row) => CatalogueSite(
   locality: row.locality,
   island: row.island,
   bodyOfWater: row.bodyOfWater,
-  waterType: _waterTypes[row.waterType],
+  waterType: waterTypesByName[row.waterType],
   minDepth: row.minDepth,
   maxDepth: row.maxDepth,
   typeIds: _strings(row.typeIds),
   entryMethods: [
-    for (final name in _strings(row.entryMethods)) ?_entryMethodsByName[name],
+    for (final name in _strings(row.entryMethods)) ?entryMethodsByName[name],
   ],
   features: _strings(row.features),
-  difficulty: _difficulties[row.difficulty],
+  difficulty: siteDifficultiesByName[row.difficulty],
   hazards: row.hazards,
   description: row.description,
   website: row.website,
   source: row.source,
   sourceRef: row.sourceRef,
-  trust: _trustLevels[row.trust] ?? CatalogueTrust.verified,
+  trust: catalogueTrustByName[row.trust] ?? CatalogueTrust.verified,
 );
 
 /// The stored form of the catalogue's sources.

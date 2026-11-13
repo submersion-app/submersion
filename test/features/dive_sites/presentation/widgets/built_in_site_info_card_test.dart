@@ -82,6 +82,30 @@ void main() {
     expect(find.text('Add to my sites'), findsOneWidget);
   });
 
+  testWidgets('a long translated action label wraps instead of overflowing', (
+    tester,
+  ) async {
+    // The German label beside a Website button is wider than a phone's
+    // card. A layout that cannot shrink reports an overflow here.
+    await _pump(
+      tester,
+      Center(
+        child: SizedBox(
+          width: 328,
+          child: BuiltInSiteInfoCard(
+            site: _full,
+            actionLabel: 'Zu meinen Tauchplätzen hinzufügen',
+            onAction: () async {},
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Website'), findsOneWidget);
+    expect(find.text('Zu meinen Tauchplätzen hinzufügen'), findsOneWidget);
+  });
+
   testWidgets('shows depths in the diver\'s unit', (tester) async {
     await _pump(
       tester,

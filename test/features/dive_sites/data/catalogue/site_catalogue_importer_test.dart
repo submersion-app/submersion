@@ -6,16 +6,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/geocoding/sea_area_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 
-/// Serves the two catalogue assets from memory and counts each read.
+/// Serves the catalogue assets, and the sea table when a test gives one,
+/// from memory, and counts each read.
 class _Bundle extends AssetBundle {
-  _Bundle({this.catalogue, this.version});
+  _Bundle({this.catalogue, this.version, this.seaAreas});
 
   String? catalogue;
   String? version;
+  String? seaAreas;
   final Map<String, int> reads = {};
 
   @override
@@ -24,6 +27,7 @@ class _Bundle extends AssetBundle {
     final text = switch (key) {
       kSiteCatalogueAsset => catalogue,
       kSiteCatalogueVersionAsset => version,
+      SeaAreaService.assetPath => seaAreas,
       _ => null,
     };
     if (text == null) throw StateError('Unable to load asset: "$key"');
@@ -50,6 +54,23 @@ String _catalogue(List<Object?> sites) => jsonEncode({
     },
   },
   'sites': sites,
+});
+
+/// A sea table with one sea: the square from the equator and the prime
+/// meridian to 10 degrees north and east.
+final _testSea = jsonEncode({
+  'areas': [
+    {
+      'name': 'Test Sea',
+      'bbox': [0, 0, 10, 10],
+      'area': 100.0,
+      'polygons': [
+        {
+          'outer': [0, 0, 10, 0, 10, 10, 0, 10, 0, 0],
+        },
+      ],
+    },
+  ],
 });
 
 final _three = _catalogue([
@@ -315,5 +336,51 @@ void main() {
     ).importIfChanged();
 
     expect(outcome, SiteCatalogueImportOutcome.failed);
+  });
+
+  test('names each site\'s sea from the bundled sea table', () async {
+    final bundle = _Bundle(
+      catalogue: _catalogue([
+        _site('osm_node_1', 'Shark Reef', {'lat': 5, 'lon': 5}),
+        _site('osm_node_2', 'Inland Quarry', {'lat': 50, 'lon': 50}),
+      ]),
+      version: 'v1',
+      seaAreas: _testSea,
+    );
+
+    final outcome = await SiteCatalogueImporter(
+      database: db,
+      bundle: bundle,
+    ).importIfChanged();
+
+    expect(outcome, SiteCatalogueImportOutcome.imported);
+    final rows = await db
+        .customSelect(
+          'SELECT id, body_of_water, search_text FROM site_catalogue '
+          'ORDER BY id',
+        )
+        .get();
+    expect(rows[0].read<String?>('body_of_water'), 'Test Sea');
+    // A search for the sea finds the site.
+    expect(rows[0].read<String>('search_text'), contains('test sea'));
+    expect(rows[1].read<String?>('body_of_water'), isNull);
+  });
+
+  test('an unreadable sea table does not stop the import', () async {
+    final bundle = _Bundle(
+      catalogue: _catalogue([
+        _site('osm_node_1', 'Shark Reef', {'lat': 5, 'lon': 5}),
+      ]),
+      version: 'v1',
+      seaAreas: 'not a sea table',
+    );
+
+    final outcome = await SiteCatalogueImporter(
+      database: db,
+      bundle: bundle,
+    ).importIfChanged();
+
+    expect(outcome, SiteCatalogueImportOutcome.imported);
+    expect(await ids(), ['osm_node_1']);
   });
 }

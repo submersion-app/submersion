@@ -120,6 +120,56 @@ class ResolveCountryTest(unittest.TestCase):
         )
 
 
+class ResolvePlaceTest(unittest.TestCase):
+    """The island a territory's subdivision names, kept beside its country.
+
+    The Caribbean Netherlands is three islands hundreds of kilometres
+    apart: without the island, no Bonaire site can be found by "Bonaire".
+    """
+
+    def _territory(self, subdivision):
+        return res.resolve_place(
+            {
+                "ISO3166-2-lvl8": subdivision,
+                "country": "Netherlands",
+                "country_code": "nl",
+            }
+        )
+
+    def test_a_territory_subdivision_names_the_island(self):
+        self.assertEqual(
+            self._territory("BQ-BO"),
+            ("BQ", "Caribbean Netherlands", "Bonaire"),
+        )
+        self.assertEqual(
+            self._territory("BQ-SA"), ("BQ", "Caribbean Netherlands", "Saba")
+        )
+        self.assertEqual(
+            self._territory("BQ-SE"),
+            ("BQ", "Caribbean Netherlands", "Sint Eustatius"),
+        )
+
+    def test_a_territory_subdivision_with_no_island_listed_has_none(self):
+        self.assertEqual(
+            self._territory("BQ-XX"), ("BQ", "Caribbean Netherlands", None)
+        )
+
+    def test_a_plain_country_has_no_island(self):
+        self.assertEqual(
+            res.resolve_place(
+                {
+                    "country": "Egypt",
+                    "country_code": "eg",
+                    "ISO3166-2-lvl4": "EG-BA",
+                }
+            ),
+            ("EG", "Egypt", None),
+        )
+
+    def test_no_address_gives_nothing(self):
+        self.assertEqual(res.resolve_place({}), (None, None, None))
+
+
 class CountryResolverTest(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
@@ -128,7 +178,15 @@ class CountryResolverTest(unittest.TestCase):
 
     def test_lookup_reads_the_cache_before_the_network(self):
         self.cache_path.write_text(
-            json.dumps({"12.0811,-68.2793": ["BQ", "Caribbean Netherlands"]}),
+            json.dumps(
+                {
+                    "12.0811,-68.2793": [
+                        "BQ",
+                        "Caribbean Netherlands",
+                        "Bonaire",
+                    ]
+                }
+            ),
             encoding="utf-8",
         )
 
@@ -142,6 +200,66 @@ class CountryResolverTest(unittest.TestCase):
         self.assertEqual(
             resolver.lookup(12.0811, -68.2793),
             ("BQ", "Caribbean Netherlands"),
+        )
+        self.assertEqual(
+            resolver.lookup_place(12.0811, -68.2793),
+            ("BQ", "Caribbean Netherlands", "Bonaire"),
+        )
+
+    def test_a_territory_cached_before_islands_were_kept_is_asked_again(self):
+        # An earlier run remembered only the code and the name. For a
+        # territory made of islands that is half an answer: ask once more.
+        self.cache_path.write_text(
+            json.dumps({"12.0811,-68.2793": ["BQ", "Caribbean Netherlands"]}),
+            encoding="utf-8",
+        )
+        calls = []
+
+        def fake_get(url, params=None, headers=None, timeout=None):
+            calls.append(url)
+            return _Response(
+                {
+                    "address": {
+                        "ISO3166-2-lvl8": "BQ-BO",
+                        "country": "Netherlands",
+                        "country_code": "nl",
+                    }
+                }
+            )
+
+        resolver = res.CountryResolver(
+            self.cache_path, http_get=fake_get, sleep=lambda _: None
+        )
+
+        self.assertEqual(
+            resolver.lookup_place(12.0811, -68.2793),
+            ("BQ", "Caribbean Netherlands", "Bonaire"),
+        )
+        self.assertEqual(
+            resolver.lookup_place(12.0811, -68.2793),
+            ("BQ", "Caribbean Netherlands", "Bonaire"),
+        )
+        self.assertEqual(len(calls), 1)
+        stored = json.loads(self.cache_path.read_text(encoding="utf-8"))
+        self.assertEqual(
+            stored["12.0811,-68.2793"],
+            ["BQ", "Caribbean Netherlands", "Bonaire"],
+        )
+
+    def test_a_country_cached_before_islands_were_kept_is_not_asked_again(
+        self,
+    ):
+        self.cache_path.write_text(
+            json.dumps({"27.2,33.8": ["EG", "Egypt"]}), encoding="utf-8"
+        )
+        resolver = res.CountryResolver(
+            self.cache_path,
+            http_get=lambda *a, **k: self.fail("cached"),
+            sleep=lambda _: None,
+        )
+
+        self.assertEqual(
+            resolver.lookup_place(27.2, 33.8), ("EG", "Egypt", None)
         )
 
     def test_an_answer_cached_before_a_rule_existed_is_corrected(self):
@@ -181,7 +299,7 @@ class CountryResolverTest(unittest.TestCase):
         self.assertIn("User-Agent", headers)
         # The answer is on disk, so a stopped run resumes from it.
         stored = json.loads(self.cache_path.read_text(encoding="utf-8"))
-        self.assertEqual(stored["27.2,33.8"], ["EG", "Egypt"])
+        self.assertEqual(stored["27.2,33.8"], ["EG", "Egypt", None])
 
     def test_two_sites_a_few_hundred_metres_apart_are_asked_separately(self):
         # Eilat and Taba sit either side of a border, well inside one

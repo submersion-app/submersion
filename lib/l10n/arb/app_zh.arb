@@ -4047,6 +4047,7 @@
   "diveSites_import_search_hint": "搜索潜水点（例如 \"Blue Hole\"、\"Thailand\"）",
   "diveSites_import_section_importFromDatabase": "从数据库导入 ({count})",
   "diveSites_import_section_mySites": "我的潜水点 ({count})",
+  "diveSites_import_section_truncated": "仅显示前 {count} 个潜水点。请缩小搜索范围以查看其余结果。",
   "diveSites_import_semantics_viewDetails": "查看 {name} 的详情",
   "diveSites_import_semantics_viewSavedSite": "查看已保存的潜水点 {name}",
   "diveSites_import_snackbar_failed": "导入潜水点失败",

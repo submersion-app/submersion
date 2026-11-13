@@ -3831,6 +3831,7 @@
   "diveSites_import_search_hint": "Rechercher des sites de plongée (ex. \"Blue Hole\", \"Thaïlande\")",
   "diveSites_import_section_importFromDatabase": "Importer depuis la base de données ({count})",
   "diveSites_import_section_mySites": "Mes sites ({count})",
+  "diveSites_import_section_truncated": "Les {count} premiers sites sont affichés. Précise ta recherche pour voir les autres.",
   "diveSites_import_semantics_viewDetails": "Voir les détails de {name}",
   "diveSites_import_semantics_viewSavedSite": "Voir le site enregistré {name}",
   "diveSites_import_snackbar_failed": "Échec de l'importation du site",

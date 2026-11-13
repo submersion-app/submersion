@@ -66,9 +66,10 @@ class _FixedCountry:
         self.answer = answer
         self.asked = []
 
-    def lookup(self, latitude, longitude):
+    def lookup_place(self, latitude, longitude):
         self.asked.append((latitude, longitude))
-        return self.answer
+        # A two-part answer is a country with no island.
+        return (*self.answer, None)[:3]
 
 
 @unittest.skipUnless(_HAS_DEPS, "the harvester's dependencies are not installed")
@@ -126,6 +127,22 @@ class TransformTest(unittest.TestCase):
                 "trust": "verified",
             },
         )
+
+    def test_a_site_on_an_island_territory_carries_the_island(self):
+        self._with_country(("BQ", "Caribbean Netherlands", "Bonaire"))
+
+        record = dive_site_harvester.transform_to_catalogue_record(
+            {
+                "osm_id": 313862678,
+                "osm_type": "node",
+                "tags": {"name": "Bari Reef"},
+                "geometry": {"type": "Point", "coordinates": [-68.29, 12.17]},
+                "address": {},
+            }
+        )
+
+        self.assertEqual(record["country_code"], "BQ")
+        self.assertEqual(record["island"], "Bonaire")
 
     def test_a_site_without_coordinates_keeps_a_two_letter_country_code(self):
         resolver = self._with_country(("XX", "Never asked"))
@@ -248,7 +265,7 @@ class CatalogueOutputTest(unittest.TestCase):
             if isinstance(node, ast.Call)
         ]
 
-        self.assertIn("country_resolver.lookup", calls)
+        self.assertIn("country_resolver.lookup_place", calls)
         self.assertIn("to_catalogue_record", calls)
 
 

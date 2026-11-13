@@ -150,11 +150,18 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
                     icon: const Icon(Icons.open_in_new, size: 16),
                     label: Text(l10n.diveCenters_label_website),
                   ),
-                const Spacer(),
-                FilledButton.icon(
-                  icon: const Icon(Icons.add_location_alt, size: 18),
-                  label: Text(widget.actionLabel),
-                  onPressed: _running ? null : _run,
+                // Takes the rest of the row, so a long translated label
+                // ("Zu meinen Tauchplätzen hinzufügen") wraps inside the
+                // button instead of pushing the row past the card's edge.
+                Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: FilledButton.icon(
+                      icon: const Icon(Icons.add_location_alt, size: 18),
+                      label: Text(widget.actionLabel),
+                      onPressed: _running ? null : _run,
+                    ),
+                  ),
                 ),
               ],
             ),

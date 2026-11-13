@@ -1,6 +1,7 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/utils/area_place_name.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -22,8 +23,11 @@ String? catalogueDepthRange(CatalogueSite site, UnitFormatter units) {
 
 /// The one place name that best says where the site is: its island, else
 /// its region, else its country.
-String? cataloguePlace(CatalogueSite site) =>
-    _firstNonBlank([site.island, site.region, site.country]);
+String? cataloguePlace(CatalogueSite site) => areaPlaceName(
+  island: site.island,
+  region: site.region,
+  country: site.country,
+);
 
 /// Every place part the site has, most local first, each once.
 String catalogueLocationLine(CatalogueSite site) {
@@ -69,12 +73,4 @@ Uri? catalogueWebsiteUri(String? raw) {
   if (uri == null || uri.host.isEmpty) return null;
   if (uri.scheme != 'https' && uri.scheme != 'http') return null;
   return uri;
-}
-
-String? _firstNonBlank(List<String?> values) {
-  for (final value in values) {
-    final trimmed = value?.trim() ?? '';
-    if (trimmed.isNotEmpty) return trimmed;
-  }
-  return null;
 }

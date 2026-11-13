@@ -122,6 +122,34 @@ void main() {
       },
     );
 
+    test(
+      'outside the trip, a dive with no trip ranks with one of another trip',
+      () async {
+        // `trip_id = ?` is NULL for a dive with no trip, and NULL sorts
+        // after 0: ordered on that alone, every dive of another trip would
+        // come before every dive with no trip, however near in time.
+        await trip('bonaire');
+        await trip('belgium');
+        final near = await site('near', island: 'Bonaire');
+        final far = await site('far', location: const GeoPoint(50, 4));
+        await dive(
+          'no-trip',
+          when: at.subtract(const Duration(hours: 1)),
+          at: near,
+        );
+        await dive(
+          'other-trip',
+          when: at.subtract(const Duration(days: 2)),
+          at: far,
+          tripId: 'belgium',
+        );
+
+        final anchor = await anchors.forDive(at: at, tripId: 'bonaire');
+
+        expect(anchor!.point, const GeoPoint(12.08, -68.28));
+      },
+    );
+
     test('within a trip the nearest in time wins', () async {
       await trip('bonaire');
       final far = await site('far', location: const GeoPoint(12.2, -68.3));

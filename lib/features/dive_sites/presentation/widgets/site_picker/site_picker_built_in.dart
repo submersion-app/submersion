@@ -159,8 +159,10 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
 
   /// The built-in section as list rows: its label, its sites, and "Show
   /// all" when there are more than fit. Empty when nothing is offered.
-  List<Widget Function()> builtInRows(List<DiveSite> userSites) {
-    final offered = offeredBuiltIn(userSites);
+  ///
+  /// [offered] is [offeredBuiltIn]'s answer, worked out once per build and
+  /// shared with [showsBuiltInNearby].
+  List<Widget Function()> builtInRows(List<CatalogueSite> offered) {
     final l10n = context.l10n;
     if (offered.isEmpty) {
       // A failure is still said when the site it was about is gone from
@@ -230,9 +232,10 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
   bool get isAdoptingBuiltIn => _adopting;
 
   /// Whether the built-in section shows sites around an anchor now, so the
-  /// header can say what the list is sorted by.
-  bool hasBuiltInNearby(List<DiveSite> userSites) =>
-      builtInQuery.isEmpty && offeredBuiltIn(userSites).isNotEmpty;
+  /// header can say what the list is sorted by. [offered] is
+  /// [offeredBuiltIn]'s answer.
+  bool showsBuiltInNearby(List<CatalogueSite> offered) =>
+      builtInQuery.isEmpty && offered.isNotEmpty;
 
   /// Adopts [site] and hands the diver's new site to the picker's caller,
   /// exactly as tapping one of their own sites does.

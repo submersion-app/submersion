@@ -12010,6 +12010,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return '仅显示前 $count 个潜水点。请缩小搜索范围以查看其余结果。';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return '查看 $name 的详情';
   }

@@ -158,27 +158,33 @@ void main() {
       expect(proposals.single.candidates.map((c) => c.id), ['s-adopted']);
     });
 
-    test('a card reads in words, not ids', () async {
-      catalogue.sites = const [
-        CatalogueSite(
-          id: 'osm_4',
-          name: 'The Tugs',
-          location: GeoPoint(0, 0),
-          typeIds: ['artificial_reef', 'wreck'],
-          features: ['sharks'],
-          difficulty: SiteDifficulty.beginner,
-          source: 'osm',
-        ),
-      ];
+    test(
+      'a card carries its site types as ids for the page to translate',
+      () async {
+        catalogue.sites = const [
+          CatalogueSite(
+            id: 'osm_4',
+            name: 'The Tugs',
+            location: GeoPoint(0, 0),
+            typeIds: ['artificial_reef', 'wreck'],
+            features: ['sharks'],
+            difficulty: SiteDifficulty.beginner,
+            source: 'osm',
+          ),
+        ];
 
-      final proposals = await service().computeProposals([
-        _diveAt('d1', _eastMeters(22)),
-      ]);
+        final proposals = await service().computeProposals([
+          _diveAt('d1', _eastMeters(22)),
+        ]);
 
-      final card = proposals.single.candidates.single;
-      expect(card.difficulty, 'Beginner');
-      expect(card.features, ['Artificial reef', 'Wreck', 'sharks']);
-    });
+        final card = proposals.single.candidates.single;
+        expect(card.difficulty, 'Beginner');
+        // The seed table's names are English: put on screen as they are,
+        // a German diver would read "Wreck" here and "Wrack" everywhere else.
+        expect(card.typeIds, ['artificial_reef', 'wreck']);
+        expect(card.features, ['sharks']);
+      },
+    );
   });
 
   group('applyConfirmed', () {
