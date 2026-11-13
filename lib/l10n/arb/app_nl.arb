@@ -6303,6 +6303,8 @@
   "plannerSeries_missionUnavailable": "Een reeks duiken kan niet als DPV-missie worden gepland",
   "plannerSeries_followUnavailableInReplan": "Een herplanning kan geen andere duik volgen",
   "plannerCanvas_follow_title": "Volg een duik",
+  "plannerCanvas_pickDive_number": "#{number}",
+  "plannerCanvas_pickDive_numberTitle": "#{number} · {title}",
   "plannerCanvas_gas_minGas": "min. gas {pressure}",
   "plannerCanvas_gas_turnAt": "keer om bij {pressure}",
   "plannerCanvas_gas_noTurnRule": "geen keerdruk-regel ingesteld",

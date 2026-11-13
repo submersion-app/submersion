@@ -20899,6 +20899,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_follow_title => '跟随一次潜水';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return '最低气量 $pressure';
   }

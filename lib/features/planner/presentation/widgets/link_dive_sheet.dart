@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// How the dive pickers name [dive]: its number, then its name or else its
@@ -15,6 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ({String title, String subtitle}) diveRowLabels(
   Dive dive,
   UnitFormatter units,
+  AppLocalizations l10n,
 ) {
   final date = units.formatDate(dive.entryTime ?? dive.dateTime);
   final number = dive.diveNumber;
@@ -22,9 +24,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
   final place =
       dive.effectiveName ??
       ((siteName == null || siteName.isEmpty) ? null : siteName);
-  final title = [if (number != null) '#$number', ?place].join(' · ');
   return (
-    title: title.isEmpty ? date : title,
+    title: switch ((number, place)) {
+      (final int n, final String p) => l10n.plannerCanvas_pickDive_numberTitle(
+        n,
+        p,
+      ),
+      (final int n, null) => l10n.plannerCanvas_pickDive_number(n),
+      (null, final String p) => p,
+      (null, null) => date,
+    },
     subtitle: [
       date,
       if (dive.maxDepth != null) units.formatDepth(dive.maxDepth!),
@@ -140,7 +149,7 @@ class LinkDiveSheet extends ConsumerWidget {
   }
 
   Widget _diveTile(BuildContext context, Dive dive, UnitFormatter units) {
-    final labels = diveRowLabels(dive, units);
+    final labels = diveRowLabels(dive, units, context.l10n);
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(labels.title),

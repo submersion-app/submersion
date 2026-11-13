@@ -22046,6 +22046,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannerCanvas_follow_title => 'Suivre une plongée';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return 'n°$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return 'n°$number · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'gaz mini $pressure';
   }
