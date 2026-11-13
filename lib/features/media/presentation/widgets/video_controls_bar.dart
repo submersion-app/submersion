@@ -69,6 +69,10 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   /// The running seek loop, if any; completes once no seek is pending.
   Future<void>? _seeking;
 
+  /// Bumped when the controller is replaced, retiring any seek loop still
+  /// running on the old one so it cannot hold up or clear the new one's.
+  int _seekGeneration = 0;
+
   /// The newest seek requested, which the player reaches once [_seeking]
   /// completes.
   Duration _seekTarget = Duration.zero;
@@ -98,6 +102,8 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
       _scrubFraction = null;
       _resumeAfterScrub = false;
       _pendingSeek = null;
+      _seekGeneration++;
+      _seeking = null;
     }
   }
 
@@ -144,25 +150,31 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   Future<void> _seekTo(Duration target) {
     _pendingSeek = target;
     _seekTarget = target;
-    return _seeking ??= _drainSeeks();
+    return _seeking ??= _drainSeeks(widget.controller, _seekGeneration);
   }
 
-  Future<void> _drainSeeks() async {
+  /// Sends pending seeks to [controller] one at a time until none is left,
+  /// or until a controller swap retires [generation].
+  Future<void> _drainSeeks(
+    VideoPlayerController controller,
+    int generation,
+  ) async {
+    bool current() => generation == _seekGeneration;
     try {
-      while (_pendingSeek != null) {
+      while (current() && _pendingSeek != null) {
         final target = _pendingSeek!;
         _pendingSeek = null;
-        await widget.controller.seekTo(target);
+        await controller.seekTo(target);
       }
     } catch (e, stackTrace) {
-      _pendingSeek = null;
+      if (current()) _pendingSeek = null;
       _log.error(
         'Failed to seek video ${widget.mediaId}',
         error: e,
         stackTrace: stackTrace,
       );
     } finally {
-      _seeking = null;
+      if (current()) _seeking = null;
     }
   }
 

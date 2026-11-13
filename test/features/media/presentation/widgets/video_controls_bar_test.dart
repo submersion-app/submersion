@@ -22,8 +22,10 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
   Duration _position = Duration.zero;
   bool playing = false;
 
-  /// When set, seeks wait for it, as a slow decoder's would.
+  /// When set, seeks wait for it, as a slow decoder's would; only on
+  /// [gatedPlayer] when that is set.
   Completer<void>? seekGate;
+  int? gatedPlayer;
 
   @override
   Future<void> init() async {}
@@ -78,7 +80,7 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
 
   @override
   Future<void> seekTo(int playerId, Duration position) async {
-    await seekGate?.future;
+    if (gatedPlayer == null || gatedPlayer == playerId) await seekGate?.future;
     seeks.add(position);
     _position = position;
   }
@@ -563,5 +565,47 @@ void main() {
     expect(controller.value.position, _closeToMs(21000));
     await controller.pause();
     await _finish(tester, controller);
+  });
+  testWidgets('a seek still running on the old video neither delays nor '
+      'drops seeks on the new one', (tester) async {
+    final platform = _usePlatform();
+    final first = await _readyController();
+    final second = await _readyController();
+    var current = first;
+    late StateSetter setHost;
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (context, setState) {
+            setHost = setState;
+            return VideoControlsBar(controller: current, mediaId: 'm1');
+          },
+        ),
+      ),
+    );
+
+    // The old video's seek hangs, then the video is replaced.
+    platform
+      ..gatedPlayer = first.playerId
+      ..seekGate = Completer<void>();
+    await tester.tapAt(_along(tester, 0.2));
+    await tester.pump();
+    setHost(() => current = second);
+    await tester.pump();
+
+    await tester.tapAt(_along(tester, 0.5));
+    await tester.pump();
+    expect(second.value.position, _closeToMs(15000));
+
+    // The old seek failing late does not touch the new video's seeks.
+    platform.seekGate!.completeError(StateError('decoder gone'));
+    await tester.pump();
+    await tester.tapAt(_along(tester, 0.8));
+    await tester.pump();
+    expect(second.value.position, _closeToMs(24000));
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.runAsync(first.dispose);
+    await tester.runAsync(second.dispose);
   });
 }
