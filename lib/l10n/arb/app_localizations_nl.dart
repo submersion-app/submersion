@@ -7635,6 +7635,21 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_deco_groupSlow => 'Langzaam, vet en bot';
 
   @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Heatmap van compartimenten $first tot $last, snelle bovenaan en trage onderaan';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Heatmap van compartimenten $first tot $last, snelle bovenaan en trage onderaan, van $start tot $end van de duik';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Belading';
 
   @override

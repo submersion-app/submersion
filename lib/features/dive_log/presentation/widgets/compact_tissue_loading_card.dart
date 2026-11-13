@@ -267,25 +267,32 @@ class _CompactTissueLoadingCardState
           Expanded(child: buildStrip(flexible: expand)),
         ],
       );
-      return Directionality(
-        textDirection: TextDirection.ltr,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (expand)
-              Expanded(child: strip)
-            else
-              SizedBox(height: 72, child: strip),
-            if (withTime)
-              Padding(
-                // Under the strip, past the compartment axis.
-                padding: const EdgeInsets.only(
-                  left: TissueHeatMapCompartmentAxis.width,
-                  top: 2,
+      return Semantics(
+        label: tissueHeatMapSemantics(
+          context.l10n,
+          compartmentCount: statuses.first.compartments.length,
+          timestamps: withTime ? timestamps : null,
+        ),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (expand)
+                Expanded(child: strip)
+              else
+                SizedBox(height: 72, child: strip),
+              if (withTime)
+                Padding(
+                  // Under the strip, past the compartment axis.
+                  padding: const EdgeInsets.only(
+                    left: TissueHeatMapCompartmentAxis.width,
+                    top: 2,
+                  ),
+                  child: TissueHeatMapTimeAxis(timestamps: timestamps!),
                 ),
-                child: TissueHeatMapTimeAxis(timestamps: timestamps!),
-              ),
-          ],
+            ],
+          ),
         ),
       );
     }

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The axes around the Tissue Loading card's heat map (issue #4503): which
@@ -10,7 +11,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 ///
 /// The heat map's painter always runs time left to right and compartment 1 at
 /// the top, whatever the text direction, so the card lays these out left to
-/// right too. Both are left out of semantics: the strip speaks for itself.
+/// right too. Both are left out of semantics: the card describes the heat map
+/// to a screen reader in one label instead (see [tissueHeatMapSemantics]).
 
 TextStyle? _axisStyle(BuildContext context) {
   final theme = Theme.of(context);
@@ -132,6 +134,12 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
   /// and a guessed timeline would mislabel it. Only the count is compared: a
   /// retained analysis with the same count but different times would pass,
   /// and no profile edit is known to produce one.
+  /// [seconds] on the profile chart's clock as the axis reads it: whole
+  /// minutes, part minutes dropped, and below zero for a computer that
+  /// started logging before the dive's zero point.
+  static String timeLabel(AppLocalizations l10n, int seconds) =>
+      l10n.diveLog_deco_minutesValue('${seconds ~/ 60}');
+
   static bool fits(List<int>? timestamps, int sampleCount) =>
       timestamps != null &&
       sampleCount >= 2 &&
@@ -141,11 +149,7 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final style = _axisStyle(context);
-    // The profile chart's own clock, as the card's cursor time reads it:
-    // whole minutes, part minutes dropped, and below zero for a computer
-    // that started logging before the dive's zero point.
-    String at(int index) =>
-        l10n.diveLog_deco_minutesValue('${timestamps[index] ~/ 60}');
+    String at(int index) => timeLabel(l10n, timestamps[index]);
 
     final start = at(0);
     final middle = at(timestamps.length ~/ 2);
@@ -177,4 +181,24 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
       ),
     );
   }
+}
+
+/// What the heat map shows, for a screen reader: its rows and, when [timestamps]
+/// label it, the dive time it covers. The strip and both axes are left out of
+/// semantics, so this label is the heat map's only description.
+String tissueHeatMapSemantics(
+  AppLocalizations l10n, {
+  required int compartmentCount,
+  List<int>? timestamps,
+}) {
+  final stamps = timestamps;
+  if (stamps == null || stamps.length < 2) {
+    return l10n.diveLog_deco_heatMapSemantics(1, compartmentCount);
+  }
+  return l10n.diveLog_deco_heatMapTimedSemantics(
+    1,
+    compartmentCount,
+    TissueHeatMapTimeAxis.timeLabel(l10n, stamps.first),
+    TissueHeatMapTimeAxis.timeLabel(l10n, stamps.last),
+  );
 }

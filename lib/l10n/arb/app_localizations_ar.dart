@@ -7801,6 +7801,21 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_deco_groupSlow => 'بطيئة، الدهون والعظام';
 
   @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'الخريطة الحرارية للحجرات من $first إلى $last، السريعة في الأعلى والبطيئة في الأسفل';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'الخريطة الحرارية للحجرات من $first إلى $last، السريعة في الأعلى والبطيئة في الأسفل، من $start إلى $end من الغوصة';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'الحمل';
 
   @override

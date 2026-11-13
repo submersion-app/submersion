@@ -2612,6 +2612,8 @@
   "diveLog_deco_groupFast": "快速，血流丰富的组织",
   "diveLog_deco_groupMedium": "中速，肌肉和皮肤",
   "diveLog_deco_groupSlow": "慢速，脂肪和骨骼",
+  "diveLog_deco_heatMapSemantics": "隔间 {first} 至 {last} 的热力图，快速在上，慢速在下",
+  "diveLog_deco_heatMapTimedSemantics": "隔间 {first} 至 {last} 的热力图，快速在上，慢速在下，覆盖潜水的 {start} 至 {end}",
   "diveLog_deco_metricLoad": "负荷",
   "diveLog_deco_gasOngassing": "吸收",
   "diveLog_deco_gasOffgassing": "释放",

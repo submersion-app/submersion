@@ -7293,6 +7293,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_deco_groupSlow => '慢速，脂肪和骨骼';
 
   @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return '隔间 $first 至 $last 的热力图，快速在上，慢速在下';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return '隔间 $first 至 $last 的热力图，快速在上，慢速在下，覆盖潜水的 $start 至 $end';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => '负荷';
 
   @override

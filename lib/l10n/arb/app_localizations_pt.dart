@@ -7685,6 +7685,21 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_deco_groupSlow => 'Lento, gordura e osso';
 
   @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Mapa de calor dos compartimentos $first a $last, os rápidos em cima e os lentos em baixo';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Mapa de calor dos compartimentos $first a $last, os rápidos em cima e os lentos em baixo, de $start a $end do mergulho';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Carga';
 
   @override

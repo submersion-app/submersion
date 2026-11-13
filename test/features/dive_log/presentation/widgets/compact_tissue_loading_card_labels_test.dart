@@ -179,6 +179,43 @@ void main() {
     Finder inAxis<T>(String text) =>
         find.descendant(of: find.byType(T), matching: find.text(text));
 
+    for (final (name, stamps, spoken) in [
+      (
+        'with the dive time',
+        timestamps,
+        'Heat map of compartments 1 to 16, fast at the top and slow at the '
+            'bottom, from 0 min to 32 min of the dive',
+      ),
+      (
+        'without times',
+        null,
+        'Heat map of compartments 1 to 16, fast at the top and slow at the '
+            'bottom',
+      ),
+    ]) {
+      testWidgets('tells a screen reader what the heat map shows $name', (
+        tester,
+      ) async {
+        final semantics = tester.ensureSemantics();
+        await tester.pumpWidget(
+          buildCard(
+            status: sixteen,
+            decoStatuses: timeline,
+            profileTimestamps: stamps,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // The card reads as one merged node; the heat map is a line of it.
+        final lines = tester
+            .getSemantics(find.byType(TissueHeatMapStrip))
+            .label
+            .split('\n');
+        expect(lines, contains(spoken));
+        semantics.dispose();
+      });
+    }
+
     testWidgets('labels the heat map with compartments and dive time', (
       tester,
     ) async {

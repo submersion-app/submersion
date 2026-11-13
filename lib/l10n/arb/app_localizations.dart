@@ -12055,6 +12055,23 @@ abstract class AppLocalizations {
   /// **'Slow, fat and bone'**
   String get diveLog_deco_groupSlow;
 
+  /// Screen reader description of the tissue heat map rows
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map of compartments {first} to {last}, fast at the top and slow at the bottom'**
+  String diveLog_deco_heatMapSemantics(int first, int last);
+
+  /// Screen reader description of the tissue heat map rows and the dive time it covers; start and end read like "0 min"
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map of compartments {first} to {last}, fast at the top and slow at the bottom, from {start} to {end} of the dive'**
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  );
+
   /// No description provided for @diveLog_deco_metricLoad.
   ///
   /// In en, this message translates to:

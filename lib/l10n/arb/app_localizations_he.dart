@@ -7522,6 +7522,21 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_deco_groupSlow => 'איטית, שומן ועצם';
 
   @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'מפת חום של התאים $first עד $last, המהירים למעלה והאיטיים למטה';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'מפת חום של התאים $first עד $last, המהירים למעלה והאיטיים למטה, מ-$start עד $end של הצלילה';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'עומס';
 
   @override

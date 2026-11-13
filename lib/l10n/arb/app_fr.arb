@@ -2421,6 +2421,8 @@
   "diveLog_deco_groupFast": "Rapide, tissus très irrigués",
   "diveLog_deco_groupMedium": "Moyen, muscles et peau",
   "diveLog_deco_groupSlow": "Lent, graisse et os",
+  "diveLog_deco_heatMapSemantics": "Carte de chaleur des compartiments {first} à {last}, les rapides en haut et les lents en bas",
+  "diveLog_deco_heatMapTimedSemantics": "Carte de chaleur des compartiments {first} à {last}, les rapides en haut et les lents en bas, de {start} à {end} de la plongée",
   "diveLog_deco_metricLoad": "Charge",
   "diveLog_deco_gasOngassing": "Absorption",
   "diveLog_deco_gasOffgassing": "Élimination",

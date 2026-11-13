@@ -2521,6 +2521,8 @@
   "diveLog_deco_groupFast": "Rápido, tejido muy irrigado",
   "diveLog_deco_groupMedium": "Medio, músculo y piel",
   "diveLog_deco_groupSlow": "Lento, grasa y hueso",
+  "diveLog_deco_heatMapSemantics": "Mapa de calor de los compartimentos {first} a {last}, los rápidos arriba y los lentos abajo",
+  "diveLog_deco_heatMapTimedSemantics": "Mapa de calor de los compartimentos {first} a {last}, los rápidos arriba y los lentos abajo, de {start} a {end} de la inmersión",
   "diveLog_deco_metricLoad": "Carga",
   "diveLog_deco_gasOngassing": "Absorción",
   "diveLog_deco_gasOffgassing": "Liberación",

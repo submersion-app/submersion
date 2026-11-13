@@ -2421,6 +2421,8 @@
   "diveLog_deco_groupFast": "Gyors, jól vérellátott szövet",
   "diveLog_deco_groupMedium": "Közepes, izom és bőr",
   "diveLog_deco_groupSlow": "Lassú, zsír és csont",
+  "diveLog_deco_heatMapSemantics": "A(z) {first}-{last}. kamra hőtérképe, a gyorsak felül, a lassúak alul",
+  "diveLog_deco_heatMapTimedSemantics": "A(z) {first}-{last}. kamra hőtérképe, a gyorsak felül, a lassúak alul, a merülés {start} és {end} közötti szakaszán",
   "diveLog_deco_metricLoad": "Terhelés",
   "diveLog_deco_gasOngassing": "Feltöltődés",
   "diveLog_deco_gasOffgassing": "Leürülés",

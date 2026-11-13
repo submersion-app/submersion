@@ -4613,6 +4613,24 @@
   "@diveLog_deco_groupSlow": {
     "description": "Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for"
   },
+  "diveLog_deco_heatMapSemantics": "Heat map of compartments {first} to {last}, fast at the top and slow at the bottom",
+  "@diveLog_deco_heatMapSemantics": {
+    "description": "Screen reader description of the tissue heat map rows",
+    "placeholders": {
+      "first": {"type": "int"},
+      "last": {"type": "int"}
+    }
+  },
+  "diveLog_deco_heatMapTimedSemantics": "Heat map of compartments {first} to {last}, fast at the top and slow at the bottom, from {start} to {end} of the dive",
+  "@diveLog_deco_heatMapTimedSemantics": {
+    "description": "Screen reader description of the tissue heat map rows and the dive time it covers; start and end read like \"0 min\"",
+    "placeholders": {
+      "first": {"type": "int"},
+      "last": {"type": "int"},
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
   "diveLog_deco_metricLoad": "Load",
   "diveLog_deco_gasOngassing": "Ongassing",
   "diveLog_deco_gasOffgassing": "Offgassing",

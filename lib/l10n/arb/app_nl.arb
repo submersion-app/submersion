@@ -2521,6 +2521,8 @@
   "diveLog_deco_groupFast": "Snel, goed doorbloed weefsel",
   "diveLog_deco_groupMedium": "Gemiddeld, spier en huid",
   "diveLog_deco_groupSlow": "Langzaam, vet en bot",
+  "diveLog_deco_heatMapSemantics": "Heatmap van compartimenten {first} tot {last}, snelle bovenaan en trage onderaan",
+  "diveLog_deco_heatMapTimedSemantics": "Heatmap van compartimenten {first} tot {last}, snelle bovenaan en trage onderaan, van {start} tot {end} van de duik",
   "diveLog_deco_metricLoad": "Belading",
   "diveLog_deco_gasOngassing": "Gasopname",
   "diveLog_deco_gasOffgassing": "Gasafgifte",

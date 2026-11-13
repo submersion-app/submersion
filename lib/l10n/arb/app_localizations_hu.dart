@@ -7666,6 +7666,21 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_deco_groupSlow => 'Lassú, zsír és csont';
 
   @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'A(z) $first-$last. kamra hőtérképe, a gyorsak felül, a lassúak alul';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'A(z) $first-$last. kamra hőtérképe, a gyorsak felül, a lassúak alul, a merülés $start és $end közötti szakaszán';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Terhelés';
 
   @override

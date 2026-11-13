@@ -2421,6 +2421,8 @@
   "diveLog_deco_groupFast": "מהירה, רקמה עשירה בדם",
   "diveLog_deco_groupMedium": "בינונית, שריר ועור",
   "diveLog_deco_groupSlow": "איטית, שומן ועצם",
+  "diveLog_deco_heatMapSemantics": "מפת חום של התאים {first} עד {last}, המהירים למעלה והאיטיים למטה",
+  "diveLog_deco_heatMapTimedSemantics": "מפת חום של התאים {first} עד {last}, המהירים למעלה והאיטיים למטה, מ-{start} עד {end} של הצלילה",
   "diveLog_deco_metricLoad": "עומס",
   "diveLog_deco_gasOngassing": "ספיגה",
   "diveLog_deco_gasOffgassing": "שחרור",

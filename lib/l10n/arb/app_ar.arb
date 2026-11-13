@@ -2521,6 +2521,8 @@
   "diveLog_deco_groupFast": "سريعة، أنسجة غنية بالدم",
   "diveLog_deco_groupMedium": "متوسطة، العضلات والجلد",
   "diveLog_deco_groupSlow": "بطيئة، الدهون والعظام",
+  "diveLog_deco_heatMapSemantics": "الخريطة الحرارية للحجرات من {first} إلى {last}، السريعة في الأعلى والبطيئة في الأسفل",
+  "diveLog_deco_heatMapTimedSemantics": "الخريطة الحرارية للحجرات من {first} إلى {last}، السريعة في الأعلى والبطيئة في الأسفل، من {start} إلى {end} من الغوصة",
   "diveLog_deco_metricLoad": "الحمل",
   "diveLog_deco_gasOngassing": "امتصاص",
   "diveLog_deco_gasOffgassing": "إطلاق",

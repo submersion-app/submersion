@@ -2547,6 +2547,8 @@
   "diveLog_deco_groupFast": "Schnell, gut durchblutetes Gewebe",
   "diveLog_deco_groupMedium": "Mittel, Muskeln und Haut",
   "diveLog_deco_groupSlow": "Langsam, Fett und Knochen",
+  "diveLog_deco_heatMapSemantics": "Heatmap der Kompartimente {first} bis {last}, schnelle oben und langsame unten",
+  "diveLog_deco_heatMapTimedSemantics": "Heatmap der Kompartimente {first} bis {last}, schnelle oben und langsame unten, von {start} bis {end} des Tauchgangs",
   "diveLog_deco_metricLoad": "Belastung",
   "diveLog_deco_gasOngassing": "Aufsättigung",
   "diveLog_deco_gasOffgassing": "Entsättigung",
