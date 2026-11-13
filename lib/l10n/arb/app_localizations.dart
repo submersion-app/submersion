@@ -28612,6 +28612,12 @@ abstract class AppLocalizations {
   /// **'New Equipment Set'**
   String get equipment_setEdit_appBar_newTitle;
 
+  /// Title of the equipment set form when it is pre-filled to clone an existing set
+  ///
+  /// In en, this message translates to:
+  /// **'Clone Equipment Set'**
+  String get equipment_setEdit_appBar_cloneTitle;
+
   /// No description provided for @equipment_setEdit_descriptionHint.
   ///
   /// In en, this message translates to:
@@ -28707,6 +28713,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment set created'**
   String get equipment_setEdit_snackbar_created;
+
+  /// Shown after a cloned equipment set is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment set cloned'**
+  String get equipment_setEdit_snackbar_cloned;
 
   /// No description provided for @equipment_setEdit_snackbar_error.
   ///

@@ -17670,6 +17670,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'New Equipment Set';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => 'Clone Equipment Set';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Optional description...';
 
   @override
@@ -17720,6 +17723,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Equipment set created';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'Equipment set cloned';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {

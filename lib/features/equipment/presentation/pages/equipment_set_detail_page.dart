@@ -26,6 +26,7 @@ import 'package:submersion/features/equipment/figure/presentation/figure_selecti
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
+import 'package:submersion/features/equipment/presentation/helpers/equipment_set_clone_action.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
 
@@ -44,6 +45,9 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
   /// The menu value that shows or hides the diver figure, shared by the menu
   /// item and its handler so the two cannot drift apart.
   static const _toggleFigureAction = 'toggleFigure';
+
+  /// The menu value that clones the set (issue #2156).
+  static const _cloneAction = 'clone';
 
   /// The composed figure, reused by rebuilds that change none of its
   /// inputs (the highlight flash, for one), so the painter is not handed a
@@ -185,6 +189,15 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
+              // Clone (issue #2156), just above Delete.
+              PopupMenuItem(
+                value: _cloneAction,
+                child: ListTile(
+                  leading: const Icon(Icons.copy),
+                  title: Text(context.l10n.equipment_menu_clone),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
               PopupMenuItem(
                 value: 'delete',
                 child: ListTile(
@@ -496,6 +509,10 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
     String action,
     EquipmentSet set,
   ) async {
+    if (action == _cloneAction) {
+      await cloneEquipmentSet(context, setId);
+      return;
+    }
     if (action == _toggleFigureAction) {
       await ref
           .read(equipmentSetListNotifierProvider.notifier)

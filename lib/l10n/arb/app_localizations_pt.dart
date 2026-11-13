@@ -17927,6 +17927,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Novo Conjunto de Equipamentos';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Duplicar Conjunto de Equipamentos';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Descrição opcional...';
 
   @override
@@ -17982,6 +17986,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get equipment_setEdit_snackbar_created =>
       'Conjunto de equipamentos criado';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned =>
+      'Conjunto de equipamentos duplicado';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {

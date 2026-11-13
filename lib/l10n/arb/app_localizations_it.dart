@@ -17938,6 +17938,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Nuovo set di attrezzatura';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Duplica set di attrezzatura';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Descrizione opzionale...';
 
   @override
@@ -17991,6 +17995,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Set di attrezzatura creato';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned =>
+      'Set di attrezzatura duplicato';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
