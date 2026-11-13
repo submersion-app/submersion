@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/accessibility/semantic_helpers.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
+import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/insights/presentation/widgets/chart_row_link.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filtered_scaffold.dart';
@@ -256,7 +257,20 @@ class InsightsProfilePage extends ConsumerWidget {
         // than the whole page, once per dive.
         loading: () => Consumer(
           builder: (context, ref, _) {
-            final progress = ref.watch(decoClassificationProgressProvider);
+            // The card's own pass, else the verdict cache's pass an Insights
+            // filter naming deco makes it wait for (#4461). That pass judges
+            // every dive the diver logged, not the card's, so it shows no
+            // counts.
+            final writer = ref.watch(diveDecoStatusProgressProvider);
+            final progress =
+                ref.watch(decoClassificationProgressProvider) ??
+                (writer == null
+                    ? null
+                    : (
+                        stats: (decoCount: 0, noDecoCount: 0, unknownCount: 0),
+                        analyzed: writer.analyzed,
+                        total: writer.total,
+                      ));
             if (progress == null) {
               return const SizedBox(
                 height: 100,

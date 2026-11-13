@@ -210,8 +210,8 @@ void main() {
     },
   );
 
-  test('while an Insights Deco filter waits on the first analysis, the deco '
-      'card shows its progress', () async {
+  test('while a Deco filter waits on the first analysis, the analysis '
+      'publishes its progress', () async {
     await insertDive('deep');
     await insertProfile('deep', _square(40, 25));
     await insertDive('shallow', dayOffset: 1);
@@ -222,7 +222,7 @@ void main() {
         const DiveFilterState(decoOnly: true);
     final seen = <({int analyzed, int total})?>[];
     final progress = container.listen(
-      decoClassificationProgressProvider,
+      diveDecoStatusProgressProvider,
       (_, next) => seen.add(
         next == null ? null : (analyzed: next.analyzed, total: next.total),
       ),
@@ -234,7 +234,7 @@ void main() {
 
     // Both bare dives needed the analysis; the bar was cleared after.
     expect(seen, contains((analyzed: 1, total: 2)));
-    expect(container.read(decoClassificationProgressProvider), isNull);
+    expect(container.read(diveDecoStatusProgressProvider), isNull);
   });
 
   test(

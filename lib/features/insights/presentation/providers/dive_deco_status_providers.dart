@@ -9,12 +9,9 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
-import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/insights/data/repositories/dive_deco_status_repository.dart';
 import 'package:submersion/features/insights/data/services/deco_classification_service.dart';
-import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
 import 'package:submersion/features/settings/presentation/providers/diver_pinned_container.dart';
@@ -66,19 +63,13 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   final startedFrom = ref.read(diveDecoInputWritesProvider);
   final startedAt = nextDecoWriteStamp();
 
-  // An Insights filter naming deco makes every card wait for this pass
-  // (#4461), and a cold library's first pass runs for minutes on a phone
-  // (#3807): the deco card shows how far it has got, as it does for its own
-  // pass. Counts are left at zero, since this pass judges every dive the
-  // diver logged rather than the ones the card counts.
-  final insightsWaits = diveFilterTablesTouched(
-    ref.read(insightsFilterProvider),
-  ).contains(kDiveDecoStatusTable);
-  var published = false;
-  void publish(DecoClassificationProgress? progress) {
-    if (!ref.mounted) return;
-    ref.read(decoClassificationProgressProvider.notifier).state = progress;
-    published = progress != null;
+  // Every reader waits for this pass, and a cold library's first one runs
+  // for minutes on a phone (#3807): the dive list and the Insights deco card
+  // show how far it has got rather than a bare spinner.
+  void publish(DiveDecoAnalysisProgress? progress) {
+    if (ref.mounted) {
+      ref.read(diveDecoStatusProgressProvider.notifier).state = progress;
+    }
   }
 
   final ({Map<String, bool> verdicts, Set<String> scanned})? judged;
@@ -86,16 +77,11 @@ final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
     judged = await _judgeDiverDives(
       ref,
       diverId,
-      onProgress: insightsWaits
-          ? (analyzed, total) => publish((
-              stats: (decoCount: 0, noDecoCount: 0, unknownCount: 0),
-              analyzed: analyzed,
-              total: total,
-            ))
-          : null,
+      onProgress: (analyzed, total) =>
+          publish((analyzed: analyzed, total: total)),
     );
   } finally {
-    if (published) publish(null);
+    publish(null);
   }
   // A rebuild replaced this pass part way through: its verdicts are
   // incomplete, and the pass that replaced it writes the whole set.
@@ -158,6 +144,16 @@ Future<({Map<String, bool> verdicts, Set<String> scanned})?> _judgeDiverDives(
 /// A probe for the [Ref] of a throwaway container, for the services that
 /// take one.
 final _containerRefProvider = Provider<Ref>((ref) => ref);
+
+/// How far a pass of [diveDecoStatusCacheProvider] has got: [analyzed] of
+/// the [total] dives it has to analyze.
+typedef DiveDecoAnalysisProgress = ({int analyzed, int total});
+
+/// The progress of the running [diveDecoStatusCacheProvider] pass, or null
+/// when none is analyzing (a warm library's pass analyzes nothing).
+final diveDecoStatusProgressProvider = StateProvider<DiveDecoAnalysisProgress?>(
+  (ref) => null,
+);
 
 /// The tables a dive's deco verdict derives from: those of
 /// [diveSourceStampSql] and [diveAnalysisInputsStampSql] (the site's water,
