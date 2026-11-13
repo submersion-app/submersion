@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
@@ -14,9 +15,9 @@ import 'package:video_player_platform_interface/video_player_platform_interface.
 /// In-memory player: reports a ready 30 second clip and records what the bar
 /// asks of it, so a test can tell where it seeked and whether it plays.
 class _FakeVideoPlatform extends VideoPlayerPlatform {
-  // Single-subscription, so the initialized event waits for the controller
-  // to listen instead of being dropped.
-  final _events = StreamController<VideoEvent>();
+  // One single-subscription stream per player, so its initialized event
+  // waits for the controller to listen instead of being dropped.
+  final _events = <int, StreamController<VideoEvent>>{};
   final seeks = <Duration>[];
   Duration _position = Duration.zero;
   bool playing = false;
@@ -34,7 +35,8 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
 
   @override
   Future<int?> createWithOptions(VideoCreationOptions options) async {
-    _events.add(
+    final playerId = _events.length + 1;
+    (_events[playerId] = StreamController<VideoEvent>()).add(
       VideoEvent(
         eventType: VideoEventType.initialized,
         duration: const Duration(seconds: 30),
@@ -42,7 +44,7 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
         rotationCorrection: 0,
       ),
     );
-    return 1;
+    return playerId;
   }
 
   @override
@@ -50,11 +52,11 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
     playing = false;
     // Not awaited: the controller has already cancelled its subscription,
     // and close() on a single-subscription stream would wait forever.
-    unawaited(_events.close());
+    unawaited(_events[playerId]!.close());
   }
 
   @override
-  Stream<VideoEvent> videoEventsFor(int playerId) => _events.stream;
+  Stream<VideoEvent> videoEventsFor(int playerId) => _events[playerId]!.stream;
 
   @override
   Future<void> setLooping(int playerId, bool looping) async {}
@@ -86,8 +88,6 @@ class _FakeVideoPlatform extends VideoPlayerPlatform {
   @override
   Widget buildView(int playerId) => const SizedBox.expand();
 }
-
-const _trackFinder = ValueKey('videoControlsBar.track');
 
 /// Installs a fake player for this test, restoring the previous one when it
 /// ends: CI runs many test files in one isolate (#2500).
@@ -124,7 +124,7 @@ Widget _app(Widget child, {TextDirection? direction}) {
 
 /// The point [fraction] of the way along the bar's track, from its left edge.
 Offset _along(WidgetTester tester, double fraction) {
-  final track = tester.getRect(find.byKey(_trackFinder));
+  final track = tester.getRect(find.byKey(VideoControlsBar.trackKey));
   return Offset(track.left + track.width * fraction, track.center.dy);
 }
 
@@ -315,7 +315,7 @@ void main() {
       ),
     );
 
-    final track = tester.getRect(find.byKey(_trackFinder));
+    final track = tester.getRect(find.byKey(VideoControlsBar.trackKey));
     // Elapsed time on the left, total on the right, as in every language.
     expect(
       tester.getCenter(find.text('0:10')).dx,
@@ -346,11 +346,117 @@ void main() {
     // a flat sliver lost in the white progress fill.
     final stack = tester.widget<Stack>(
       find.descendant(
-        of: find.byKey(_trackFinder),
+        of: find.byKey(VideoControlsBar.trackKey),
         matching: find.byType(Stack),
       ),
     );
     expect(stack.clipBehavior, Clip.none);
     await _finish(tester, controller);
+  });
+  testWidgets('reports a scrub starting and settling, but not a tap', (
+    tester,
+  ) async {
+    _usePlatform();
+    final controller = await _readyController();
+    final reports = <bool>[];
+    await tester.pumpWidget(
+      _app(
+        VideoControlsBar(
+          controller: controller,
+          mediaId: 'm1',
+          onScrubbingChanged: reports.add,
+        ),
+      ),
+    );
+
+    await tester.tapAt(_along(tester, 0.5));
+    await tester.pump();
+    expect(reports, isEmpty);
+
+    final gesture = await tester.startGesture(_along(tester, 0.2));
+    await gesture.moveTo(_along(tester, 0.6));
+    await tester.pump();
+    expect(reports, [true]);
+
+    await gesture.up();
+    await tester.pump();
+    expect(reports, [true, false]);
+    await _finish(tester, controller);
+  });
+
+  testWidgets('a screen reader can step the video forward and back', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    final platform = _usePlatform();
+    final controller = await _readyController();
+    await controller.seekTo(const Duration(seconds: 10));
+    await tester.pumpWidget(
+      _app(VideoControlsBar(controller: controller, mediaId: 'm1')),
+    );
+
+    final bar = find.bySemanticsLabel('Seek video position');
+    final node = find.semantics.byLabel('Seek video position');
+    expect(
+      tester.getSemantics(bar),
+      isSemantics(
+        label: 'Seek video position',
+        value: '0:10',
+        increasedValue: '0:15',
+        decreasedValue: '0:05',
+        isSlider: true,
+        hasIncreaseAction: true,
+        hasDecreaseAction: true,
+      ),
+    );
+
+    tester.semantics.performAction(node, SemanticsAction.increase);
+    await tester.pump();
+    expect(platform.seeks.last, const Duration(seconds: 15));
+
+    tester.semantics.performAction(node, SemanticsAction.decrease);
+    await tester.pump();
+    expect(platform.seeks.last, const Duration(seconds: 10));
+
+    await _finish(tester, controller);
+    semantics.dispose();
+  });
+
+  testWidgets('a new video mid-scrub drops the old scrub', (tester) async {
+    final platform = _usePlatform();
+    final first = await _readyController();
+    final second = await _readyController();
+    final reports = <bool>[];
+    Widget bar(VideoPlayerController c) => _app(
+      VideoControlsBar(
+        controller: c,
+        mediaId: 'm1',
+        onScrubbingChanged: reports.add,
+      ),
+    );
+    await first.play();
+    await tester.pumpWidget(bar(first));
+
+    final gesture = await tester.startGesture(_along(tester, 0.2));
+    await gesture.moveTo(_along(tester, 0.6));
+    await tester.pump();
+    await tester.pumpWidget(bar(second));
+    final seeksBefore = platform.seeks.length;
+
+    await gesture.moveTo(_along(tester, 0.9));
+    await gesture.up();
+    await tester.pump();
+
+    // Nothing from the old drag reaches the new video, and it is not
+    // started by the old video's resume-on-release.
+    expect(platform.seeks.length, seeksBefore);
+    expect(second.value.isPlaying, isFalse);
+    expect(second.value.position, Duration.zero);
+    expect(reports, [true, false]);
+
+    await first.pause();
+    await tester.pumpWidget(const SizedBox());
+    await tester.runAsync(first.dispose);
+    await tester.runAsync(second.dispose);
   });
 }

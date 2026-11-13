@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -24,10 +25,22 @@ class VideoControlsBar extends StatefulWidget {
   /// The video, whose tagged moments are marked on the bar (issue #1745).
   final String mediaId;
 
+  /// Told true when a drag scrub begins and false once it has settled, so a
+  /// host that hides its controls on a timer can hold them up meanwhile.
+  final ValueChanged<bool>? onScrubbingChanged;
+
+  /// The bar's touch area, for tests that tap or drag along it.
+  @visibleForTesting
+  static const trackKey = ValueKey('videoControlsBar.track');
+
+  /// How far a screen reader's increase and decrease actions move.
+  static const accessibilityStep = Duration(seconds: 5);
+
   const VideoControlsBar({
     super.key,
     required this.controller,
     required this.mediaId,
+    this.onScrubbingChanged,
   });
 
   @override
@@ -68,6 +81,13 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_onVideoUpdate);
       widget.controller.addListener(_onVideoUpdate);
+      // A scrub in progress belonged to the old video: drop it rather than
+      // seek or resume the new one with it.
+      if (_scrubFraction != null) widget.onScrubbingChanged?.call(false);
+      _scrubId++;
+      _scrubFraction = null;
+      _resumeAfterScrub = false;
+      _pendingSeek = null;
     }
   }
 
@@ -83,10 +103,15 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     }
   }
 
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  String _formatDuration(Duration duration) =>
+      formatElapsedMmSs(duration.inSeconds);
+
+  /// [position] moved by [delta], kept inside the clip.
+  Duration _stepped(Duration position, Duration delta) {
+    final duration = widget.controller.value.duration;
+    final target = position + delta;
+    if (target < Duration.zero) return Duration.zero;
+    return target > duration ? duration : target;
   }
 
   double _fractionAt(double x, double width) =>
@@ -105,12 +130,11 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
   }
 
   Future<void> _drainSeeks() async {
-    final controller = widget.controller;
     try {
       while (_pendingSeek != null) {
         final target = _pendingSeek!;
         _pendingSeek = null;
-        await controller.seekTo(target);
+        await widget.controller.seekTo(target);
       }
     } catch (e, stackTrace) {
       _pendingSeek = null;
@@ -137,6 +161,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     _resumeAfterScrub = controller.value.isPlaying;
     if (_resumeAfterScrub) unawaited(controller.pause());
     _scrubTo(details.localPosition.dx, width);
+    widget.onScrubbingChanged?.call(true);
   }
 
   void _onScrubUpdate(DragUpdateDetails details, double width) {
@@ -164,12 +189,14 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
     if (resume && value.position < value.duration) {
       unawaited(widget.controller.play());
     }
+    widget.onScrubbingChanged?.call(false);
   }
 
   @override
   Widget build(BuildContext context) {
     final value = widget.controller.value;
     final duration = value.duration;
+    final canSeek = value.isInitialized && duration > Duration.zero;
     final scrubFraction = _scrubFraction;
     final position = scrubFraction != null
         ? _positionAt(scrubFraction)
@@ -207,8 +234,48 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final width = constraints.maxWidth;
+                  // A slider to assistive tech, stepping by a few seconds,
+                  // since a screen reader cannot tap a point or drag.
                   return Semantics(
                     label: context.l10n.media_photoViewer_seekVideoLabel,
+                    slider: true,
+                    value: _formatDuration(position),
+                    increasedValue: canSeek
+                        ? _formatDuration(
+                            _stepped(
+                              position,
+                              VideoControlsBar.accessibilityStep,
+                            ),
+                          )
+                        : null,
+                    decreasedValue: canSeek
+                        ? _formatDuration(
+                            _stepped(
+                              position,
+                              -VideoControlsBar.accessibilityStep,
+                            ),
+                          )
+                        : null,
+                    onIncrease: canSeek
+                        ? () => unawaited(
+                            _seekTo(
+                              _stepped(
+                                position,
+                                VideoControlsBar.accessibilityStep,
+                              ),
+                            ),
+                          )
+                        : null,
+                    onDecrease: canSeek
+                        ? () => unawaited(
+                            _seekTo(
+                              _stepped(
+                                position,
+                                -VideoControlsBar.accessibilityStep,
+                              ),
+                            ),
+                          )
+                        : null,
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTapDown: (details) => _onTapDown(details, width),
@@ -219,7 +286,7 @@ class _VideoControlsBarState extends State<VideoControlsBar> {
                       onHorizontalDragEnd: (_) => unawaited(_onScrubEnd()),
                       onHorizontalDragCancel: () => unawaited(_onScrubEnd()),
                       child: SizedBox(
-                        key: const ValueKey('videoControlsBar.track'),
+                        key: VideoControlsBar.trackKey,
                         height: 40, // Larger touch target
                         child: Center(
                           child: Stack(

@@ -18,6 +18,7 @@ import 'package:submersion/features/media/domain/value_objects/verify_result.dar
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
@@ -458,6 +459,82 @@ void main() {
         tester.view.physicalSize.height / tester.view.devicePixelRatio;
     expect(tester.getRect(seekBar).bottom, greaterThan(viewHeight - 100));
     expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('in fullscreen the controls stay up while scrubbing, and hide '
+      'again after (#4487)', (tester) async {
+    final platform = _FakeVideoPlatform();
+    _usePlatform(platform);
+
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            mediaSourceResolverRegistryProvider.overrideWithValue(
+              MediaSourceResolverRegistry({
+                MediaSourceType.localFile: _UnavailableResolver(),
+              }),
+            ),
+            resolvedFilePathProvider.overrideWith(
+              (ref, MediaItem arg) async => _tempVideoPath('v1'),
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: MediaViewerPage(
+              mediaList: [video('v1')],
+              initialMediaId: 'v1',
+            ),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      platform.completeInitialization();
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      await tester.pump();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    final track = find.byKey(VideoControlsBar.trackKey);
+    final playPause = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Play or pause video',
+    );
+
+    await tester.tap(find.byTooltip('Full screen'));
+    await tester.pump();
+    // Tap: plays and reveals the controls, on a 3 s clock.
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isTrue);
+    expect(track, findsOneWidget);
+
+    // A scrub begun just before the clock runs out, and held past it.
+    await tester.pump(const Duration(seconds: 2));
+    final rect = tester.getRect(track);
+    final gesture = await tester.startGesture(
+      rect.centerLeft + const Offset(40, 0),
+    );
+    await gesture.moveBy(const Offset(60, 0));
+    await tester.pump();
+    expect(platform.playing, isFalse, reason: 'paused while scrubbing');
+    await tester.pump(const Duration(seconds: 3));
+    expect(track, findsOneWidget, reason: 'not pulled from under the finger');
+
+    // Released: plays on, and the controls go 3 s later.
+    await gesture.up();
+    await tester.pump();
+    expect(platform.playing, isTrue);
+    expect(track, findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
+    expect(track, findsNothing);
+
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
     expect(tester.takeException(), isNull);
   });
 

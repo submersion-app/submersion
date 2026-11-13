@@ -1677,6 +1677,14 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               child: VideoControlsBar(
                 controller: controller,
                 mediaId: widget.item.id,
+                // Fullscreen controls hide 3 s after a reveal: hold them up
+                // while scrubbing, so the bar is not pulled from under the
+                // finger, then restart the clock only if the video plays on.
+                onScrubbingChanged: widget.fullscreen
+                    ? (scrubbing) => widget.onSetOverlay(
+                        scrubbing || !controller.value.isPlaying,
+                      )
+                    : null,
               ),
             ),
         ],
