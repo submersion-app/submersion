@@ -264,9 +264,10 @@ Future<void> refreshDiveDecoStatusFor(
       ref.read(_profileDecoPassesProvider)[diverId] == startedFrom) {
     return;
   }
-  final judged = isActive
-      ? await _judgeDiverDives(ref, diverId, onlyDiveIds: diveIds)
-      : await runInDiverContainer(
+  Future<({Map<String, bool> verdicts, Set<String> scanned, bool complete})?>
+  judge() => isActive
+      ? _judgeDiverDives(ref, diverId, onlyDiveIds: diveIds)
+      : runInDiverContainer(
           ref,
           diverId: diverId,
           settingsRepository: ref.read(diverSettingsRepositoryProvider),
@@ -276,6 +277,25 @@ Future<void> refreshDiveDecoStatusFor(
             onlyDiveIds: diveIds,
           ),
         );
+
+  // An input written while the analysis ran (a dive edit, a sync) can move
+  // a verdict it judged from the older inputs, and nothing re-runs this
+  // path afterwards: judge again, a bounded number of times, so the caller
+  // does not act on a verdict from before its own write.
+  var writesAtStart = startedFrom.writes;
+  var stampAtStart = nextDecoWriteStamp();
+  var judged = await judge();
+  for (
+    var retry = 0;
+    judged != null &&
+        retry < 3 &&
+        ref.read(diveDecoInputWritesProvider) != writesAtStart;
+    retry++
+  ) {
+    writesAtStart = ref.read(diveDecoInputWritesProvider);
+    stampAtStart = nextDecoWriteStamp();
+    judged = await judge();
+  }
   // A rebuild stopped the analysis part way through: writing its partial
   // verdicts would delete the rows of the dives it skipped.
   if (judged == null) return;
@@ -287,11 +307,17 @@ Future<void> refreshDiveDecoStatusFor(
         // named dive of another profile keeps its own verdict.
         diveIds: judged.scanned,
         computedAt: nextDecoWriteStamp(),
+        // A pass or refresh that began after this one, and wrote meanwhile,
+        // judged newer inputs: its verdicts stand.
+        keepWrittenAfter: stampAtStart,
       );
   // A dive the analysis could not judge is retried by the next query, not
   // skipped until some unrelated write.
   if (memoized && judged.complete) {
     final passes = ref.read(_profileDecoPassesProvider.notifier);
-    passes.state = {...passes.state, diverId: startedFrom};
+    passes.state = {
+      ...passes.state,
+      diverId: (writes: writesAtStart, settings: startedFrom.settings),
+    };
   }
 }

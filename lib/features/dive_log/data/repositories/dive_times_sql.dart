@@ -206,10 +206,12 @@ String earlierDivesRevisionSql(String alias) {
   final window = kResidualLookback + const Duration(days: 1);
   final from = '$start - ${window.inMilliseconds}';
   // The analysis inputs too (the site's water, the gas switches, the primary
-  // computer): an earlier dive's load is computed from them (#4461).
+  // computer, the computer events): an earlier dive's load is computed from
+  // them (#4461).
   String stamps(String where) =>
       'COALESCE((SELECT SUM(${diveSourceStampSql(h)} + '
-      '${diveAnalysisInputsStampSql(h)}) FROM dives $h '
+      '${diveAnalysisInputsStampSql(h)} + ${diveProfileEventsStampSql(h)}) '
+      'FROM dives $h '
       'WHERE $where), 0)';
   return '(${stamps('$h.entry_time >= $from AND $h.entry_time < $start')} + '
       '${stamps('$h.entry_time IS NULL '

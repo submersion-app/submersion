@@ -33,3 +33,14 @@ String diveAnalysisInputsStampSql(String dive) {
 Set<ResultSetImplementation<dynamic, dynamic>> diveAnalysisInputsStampTables(
   AppDatabase db,
 ) => {db.diveSites, db.gasSwitches, db.diveDataSources};
+
+/// The computer events of the dive at [dive] as a version token: their count,
+/// times and clocks. The dive analysis reads them (computer CNS, gas
+/// switches, stops) and a synced event never re-stamps its dive. Kept apart
+/// from [diveAnalysisInputsStampSql] because the derived metrics do not read
+/// events, and folding them in would re-sweep every dive that has any.
+String diveProfileEventsStampSql(String dive) =>
+    'COALESCE((SELECT COUNT(*) + SUM(stamp_e.timestamp) + '
+    'SUM(COALESCE(CAST(substr(stamp_e.hlc, 1, 15) AS INTEGER), 0)) + '
+    'SUM(stamp_e.created_at) '
+    'FROM dive_profile_events stamp_e WHERE stamp_e.dive_id = $dive.id), 0)';

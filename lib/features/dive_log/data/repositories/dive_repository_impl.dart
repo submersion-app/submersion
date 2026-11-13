@@ -7113,6 +7113,7 @@ class DiveRepository {
             readsFrom: {
               ...diveSourceStampTables(_db),
               ...diveAnalysisInputsStampTables(_db),
+              _db.diveProfileEvents,
             },
           )
           .getSingleOrNull();

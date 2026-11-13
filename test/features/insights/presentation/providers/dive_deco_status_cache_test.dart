@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
@@ -19,6 +20,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/insights/data/repositories/dive_deco_status_repository.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/insights/presentation/providers/dive_deco_status_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -56,6 +58,31 @@ List<ProfileSample> _square(double depth, int bottomMinutes) {
     );
   }
   return samples;
+}
+
+/// The real repository, with [onScan] run at each deco signal scan.
+class _ScanHook extends InsightsRepository {
+  _ScanHook(this.onScan);
+
+  final void Function() onScan;
+
+  @override
+  Future<DecoSignalScan> scanRecordedDecoSignals({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+    bool statsScoped = true,
+    Set<String>? onlyDiveIds,
+  }) async {
+    final scan = await super.scanRecordedDecoSignals(
+      diverId: diverId,
+      filter: filter,
+      statsScoped: statsScoped,
+      onlyDiveIds: onlyDiveIds,
+    );
+    onScan();
+    await pumpEventQueue();
+    return scan;
+  }
 }
 
 void main() {
@@ -433,6 +460,51 @@ void main() {
       "DELETE FROM dive_deco_status WHERE dive_id = 'deep'",
     );
     await prepareQueryCachesFor(ref, 'other', {kDiveDecoStatusTable});
+    expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
+  });
+
+  test('a targeted refresh judges again when an input is written while it '
+      'analyzes', () async {
+    // A rule run's refresh has no tick to re-run it: a dive edit that lands
+    // mid-analysis must not leave the verdict from before the edit.
+    await db
+        .into(db.divers)
+        .insert(
+          DiversCompanion.insert(
+            id: 'me',
+            name: 'me',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await insertDive('deep');
+    await (db.update(db.dives)..where((t) => t.id.equals('deep'))).write(
+      const DivesCompanion(diverId: Value('me')),
+    );
+    await insertProfile('deep', _square(40, 25));
+    final writes = StreamController<void>();
+    addTearDown(writes.close);
+    var scans = 0;
+    final container = ProviderContainer(
+      overrides: [
+        ...(await getBaseOverrides()).cast(),
+        diveDecoInputWritesProvider.overrideWith(
+          (ref) => DecoInputWritesCounter(writes.stream),
+        ),
+        insightsRepositoryProvider.overrideWith(
+          (ref) => _ScanHook(() {
+            // The first scan is overtaken by a write.
+            if (scans++ == 0) writes.add(null);
+          }),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final ref = container.read(Provider((ref) => ref));
+
+    await refreshDiveDecoStatusFor(ref, 'me', {'deep'}, isActive: true);
+
+    expect(scans, 2);
     expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
   });
 

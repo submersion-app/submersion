@@ -241,6 +241,25 @@ void main() {
         expect(await revision(), isNot(before));
       });
 
+      test('moves on a profile event, which the analysis reads and which never '
+          're-stamps the dive (#4461)', () async {
+        final before = await revision();
+
+        await db
+            .into(db.diveProfileEvents)
+            .insert(
+              DiveProfileEventsCompanion(
+                id: const Value('ev1'),
+                diveId: const Value('bare'),
+                timestamp: const Value(60),
+                eventType: const Value('bookmark'),
+                createdAt: Value(now),
+              ),
+            );
+
+        expect(await revision(), isNot(before));
+      });
+
       test("moves on the dive's own profile too", () async {
         final before = await revision();
 

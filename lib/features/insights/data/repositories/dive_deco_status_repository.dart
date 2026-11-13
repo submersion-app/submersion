@@ -22,6 +22,13 @@ int nextDecoWriteStamp() {
   return _lastDecoWriteStamp;
 }
 
+/// Per database, the stamp of the last write that judged each dive, kept
+/// in memory because a deletion leaves no row to carry it: what lets
+/// [DiveDecoStatusRepository.replaceFor]'s `keepWrittenAfter` protect a
+/// verdict a newer write removed. Passes run in this process, so the record
+/// spans every pass it has to order; a fresh database starts a fresh one.
+final _lastWrites = Expando<Map<String, int>>('deco verdict writes');
+
 /// The local deco verdict cache (`dive_deco_status`, v362): whether each
 /// dive with no recorded deco signal had a deco obligation, as the dive
 /// analysis last judged it under its own diver's settings (issue #4461). The
@@ -45,9 +52,10 @@ class DiveDecoStatusRepository {
   /// left as it is. One transaction, and a verdict for a dive deleted since
   /// it was analyzed is skipped rather than failing the dives foreign key.
   ///
-  /// [keepWrittenAfter] protects rows written after the pass that produced
-  /// [byId] began (a refresh of an import's dives meanwhile): that pass knew
-  /// nothing of them, so it neither deletes nor overwrites them.
+  /// [keepWrittenAfter] protects every dive a write judged after the pass
+  /// that produced [byId] began (a refresh of an import's dives meanwhile),
+  /// whether that write left a verdict or removed one: the pass knew nothing
+  /// of it, so it neither deletes, overwrites nor re-inserts.
   Future<void> replaceFor(
     Map<String, bool> byId, {
     required Set<String> diveIds,
@@ -87,10 +95,16 @@ class DiveDecoStatusRepository {
         )..where((t) => t.diveId.isIn(chunk))).get(),
     ];
     final existing = {for (final r in rows) r.diveId: r.hadDeco};
+    final touched = _lastWrites[_db] ??= <String, int>{};
+    // A row's own stamp, or the stamp of the write that removed it or found
+    // it needed none: a deletion leaves no row to carry the newer stamp.
     final kept = {
-      if (keepWrittenAfter != null)
+      if (keepWrittenAfter != null) ...[
         for (final r in rows)
           if (r.computedAt > keepWrittenAfter) r.diveId,
+        for (final id in within)
+          if ((touched[id] ?? 0) > keepWrittenAfter) id,
+      ],
     };
     final stale = [
       for (final id in existing.keys)
@@ -100,6 +114,11 @@ class DiveDecoStatusRepository {
       for (final e in byId.entries)
         if (!kept.contains(e.key) && existing[e.key] != e.value) e.key: e.value,
     };
+    // Every dive this write judged, written or not, as of [computedAt]: an
+    // older pass must not undo it.
+    for (final id in within) {
+      if (!kept.contains(id)) touched[id] = computedAt;
+    }
     if (stale.isEmpty && changed.isEmpty) return;
     await _db.batch((b) {
       for (final chunk in seriesIdChunks(stale)) {

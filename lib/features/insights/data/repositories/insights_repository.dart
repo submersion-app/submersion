@@ -2834,6 +2834,7 @@ class InsightsRepository with InsightsChartDives {
           c.classification AS classification,
           CASE WHEN c.classification = 'compute' THEN
             ${diveSourceStampSql('d')} + ${diveAnalysisInputsStampSql('d')} +
+            ${diveProfileEventsStampSql('d')} +
             ${earlierDivesRevisionSql('d')}
           END AS revision
         FROM classified c

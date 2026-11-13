@@ -97,6 +97,26 @@ void main() {
     expect(await repo.verdicts(), {'a': false, 'b': true});
   });
 
+  test(
+    'a whole pass does not bring back a verdict removed after it began',
+    () async {
+      // A targeted refresh found 'b' now records its own deco data and
+      // removed its computed verdict while an older pass was analyzing: that
+      // pass must not re-insert the verdict it judged before the change.
+      final repo = DiveDecoStatusRepository();
+      await repo.replaceFor({'b': true}, diveIds: all, computedAt: 10);
+      await repo.replaceFor({}, diveIds: {'b'}, computedAt: 30);
+
+      await repo.replaceFor(
+        {'b': true},
+        diveIds: all,
+        computedAt: 40,
+        keepWrittenAfter: 20,
+      );
+      expect(await repo.verdicts(), isEmpty);
+    },
+  );
+
   test('write stamps never tie, however fast they are taken', () {
     // A pass that begins and a targeted refresh that writes in the same
     // instant must still be ordered, or the pass would treat the newer row
