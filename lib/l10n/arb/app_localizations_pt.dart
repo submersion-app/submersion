@@ -20148,6 +20148,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_siteMediaSection_divePhotoLabel => 'Foto de mergulho';
 
   @override
+  String get media_siteDivePhotos_title => 'Fotos de mergulhos';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotos de mergulhos ($count)';
+  }
+
+  @override
+  String get media_siteDivePhotos_showAll => 'Mostrar tudo';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Mostrar menos';
+
+  @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
     return 'Desvincular $count itens?';
   }
@@ -23066,7 +23080,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Fotos, vídeos e documentos do ponto';
+      'Fotos, vídeos e documentos anexados ao ponto';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Fotos dos mergulhos registados neste ponto';
 
   @override
   String get siteDetailSection_tags_description => 'Tags deste ponto';

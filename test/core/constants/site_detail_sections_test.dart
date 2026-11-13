@@ -15,6 +15,7 @@ void main() {
       // when, then what is down there, then my own history and records.
       expect(SiteDetailSectionId.values, const [
         SiteDetailSectionId.description,
+        SiteDetailSectionId.divePhotos,
         SiteDetailSectionId.depth,
         SiteDetailSectionId.difficulty,
         SiteDetailSectionId.rating,
@@ -45,6 +46,7 @@ void main() {
         const {
           SiteDetailSectionId.diveStatistics: 'Dives at this Site',
           SiteDetailSectionId.description: 'Description',
+          SiteDetailSectionId.divePhotos: 'Photos from dives',
           SiteDetailSectionId.location: 'Location',
           SiteDetailSectionId.seascape: 'Site Seascape',
           SiteDetailSectionId.depth: 'Depth Range',
@@ -176,6 +178,36 @@ void main() {
       );
       expect(result.length, SiteDetailSectionId.values.length);
     });
+
+    test(
+      'a saved layout without divePhotos gets it right after Description',
+      () {
+        // Every card that existed before the dive photos card (issue #4502),
+        // with Description moved last, the way a diver could have saved it.
+        final saved = [
+          for (final id in SiteDetailSectionId.values)
+            if (id != SiteDetailSectionId.divePhotos &&
+                id != SiteDetailSectionId.description)
+              '{"id":"${id.name}","visible":true}',
+          '{"id":"description","visible":true}',
+        ];
+        final result = SiteDetailSectionConfig.sectionsFromJson(
+          '[${saved.join(',')}]',
+        );
+
+        final ids = _ids(result);
+        expect(
+          ids.indexOf(SiteDetailSectionId.divePhotos),
+          ids.indexOf(SiteDetailSectionId.description) + 1,
+        );
+        expect(
+          result
+              .firstWhere((s) => s.id == SiteDetailSectionId.divePhotos)
+              .visible,
+          isTrue,
+        );
+      },
+    );
 
     test('a card missing from a saved order lands after its neighbour', () {
       // A saved order without Altitude, which belongs right after Tags.

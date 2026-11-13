@@ -19850,6 +19850,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_siteMediaSection_divePhotoLabel => 'Dive photo';
 
   @override
+  String get media_siteDivePhotos_title => 'Photos from dives';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Photos from dives ($count)';
+  }
+
+  @override
+  String get media_siteDivePhotos_showAll => 'Show all';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Show less';
+
+  @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
     return 'Unlink $count items?';
   }
@@ -22731,7 +22745,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Photos, videos and documents for the site';
+      'Photos, videos and documents attached to the site';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Photos from the dives logged at this site';
 
   @override
   String get siteDetailSection_tags_description => 'Tags on this site';

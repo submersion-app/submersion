@@ -20456,6 +20456,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_siteMediaSection_divePhotoLabel => 'صورة غوص';
 
   @override
+  String get media_siteDivePhotos_title => 'صور من الغوصات';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'صور من الغوصات ($count)';
+  }
+
+  @override
+  String get media_siteDivePhotos_showAll => 'إظهار الكل';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'إظهار أقل';
+
+  @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
     return 'إلغاء ربط $count عنصر؟';
   }
@@ -23441,7 +23455,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'صور ومقاطع فيديو ومستندات الموقع';
+      'صور ومقاطع فيديو ومستندات مرفقة بالموقع';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'صور من الغوصات المسجلة في هذا الموقع';
 
   @override
   String get siteDetailSection_tags_description => 'وسوم هذا الموقع';

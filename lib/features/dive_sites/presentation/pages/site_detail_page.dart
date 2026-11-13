@@ -329,6 +329,7 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       ),
       SiteDetailSectionId.description: () =>
           (context) => _buildDescriptionSection(context, site),
+      SiteDetailSectionId.divePhotos: () => null,
       SiteDetailSectionId.location: () =>
           watching((context, ref) => _buildLocationSection(context, ref, site)),
       // The terrain needs coordinates to look up. A site whose bathymetry

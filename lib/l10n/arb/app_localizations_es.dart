@@ -20140,6 +20140,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_siteMediaSection_divePhotoLabel => 'Foto de inmersión';
 
   @override
+  String get media_siteDivePhotos_title => 'Fotos de inmersiones';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotos de inmersiones ($count)';
+  }
+
+  @override
+  String get media_siteDivePhotos_showAll => 'Mostrar todo';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Mostrar menos';
+
+  @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
     return 'Desvincular $count elementos?';
   }
@@ -23064,7 +23078,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Fotos, vídeos y documentos del sitio';
+      'Fotos, vídeos y documentos adjuntos al sitio';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Fotos de las inmersiones registradas en este sitio';
 
   @override
   String get siteDetailSection_tags_description => 'Etiquetas de este sitio';

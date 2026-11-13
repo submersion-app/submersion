@@ -19150,6 +19150,20 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteMediaSection_divePhotoLabel => '潜水照片';
 
   @override
+  String get media_siteDivePhotos_title => '潜水照片';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return '潜水照片（$count）';
+  }
+
+  @override
+  String get media_siteDivePhotos_showAll => '显示全部';
+
+  @override
+  String get media_siteDivePhotos_showLess => '收起';
+
+  @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
     return '取消关联 $count 项目?';
   }
@@ -21908,7 +21922,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteDetailSection_marineLife_description => '在此潜水点见到的物种';
 
   @override
-  String get siteDetailSection_media_description => '潜水点的照片、视频和文档';
+  String get siteDetailSection_media_description => '附加到潜水点的照片、视频和文档';
+
+  @override
+  String get siteDetailSection_divePhotos_description => '在此潜水点记录的潜水中拍摄的照片';
 
   @override
   String get siteDetailSection_tags_description => '此潜水点的标签';
