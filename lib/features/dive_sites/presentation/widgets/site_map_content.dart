@@ -9,6 +9,7 @@ import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
@@ -603,15 +604,13 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
     // Read now: adding a built-in site is creating a site by hand (#3513),
     // and it gets its rules even if the diver leaves meanwhile.
     final rulesAfterCreate = captureRulesAfterCreate(context, ref);
-    final String addedId;
+    final CatalogueAdoption adoption;
     try {
-      addedId =
-          (await ref
-                  .read(siteListNotifierProvider.notifier)
-                  // The one adoption path: full details, its site types
-                  // and the link back to the catalogue record.
-                  .adoptCatalogueSite(site))
-              .id;
+      adoption = (await ref
+          .read(siteListNotifierProvider.notifier)
+          // The one adoption path: full details, its site types
+          // and the link back to the catalogue record.
+          .adoptCatalogueSite(site));
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -631,7 +630,13 @@ class _SiteMapContentState extends ConsumerState<SiteMapContent>
         SnackBar(content: Text(context.l10n.diveSites_map_builtInSites_added)),
       );
     }
-    await rulesAfterCreate(subject: RuleSubject.sites, ids: [addedId]);
+    // Only a site this tap created (see CatalogueAdoption.created).
+    if (adoption.created) {
+      await rulesAfterCreate(
+        subject: RuleSubject.sites,
+        ids: [adoption.site.id],
+      );
+    }
   }
 
   /// Where [sites] sit on the map, skipping any without coordinates.

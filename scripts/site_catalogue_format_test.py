@@ -220,6 +220,55 @@ class RecordTest(unittest.TestCase):
         self.assertEqual(record["difficulty"], "beginner")
 
 
+class WebsiteTest(unittest.TestCase):
+    def test_web_addresses_pass_through(self):
+        self.assertEqual(
+            fmt.normalise_website("https://example.org/x"),
+            "https://example.org/x",
+        )
+        self.assertEqual(
+            fmt.normalise_website(" http://example.org "), "http://example.org"
+        )
+
+    def test_a_bare_host_gets_https(self):
+        self.assertEqual(
+            fmt.normalise_website("www.diveabaco.com"),
+            "https://www.diveabaco.com",
+        )
+        self.assertEqual(
+            fmt.normalise_website("example.org/sites?id=1"),
+            "https://example.org/sites?id=1",
+        )
+
+    def test_anything_that_is_not_a_web_address_is_dropped(self):
+        # The value is an OpenStreetMap tag anyone can edit, and the app
+        # opens it from a button labelled "Website".
+        for raw in (
+            "tel:+15551234",
+            "mailto:shop@example.org",
+            "javascript:alert(1)",
+            "intent://scan/#Intent;scheme=zxing;end",
+            "ftp://example.org/x",
+            "not a link",
+            "",
+            None,
+        ):
+            self.assertIsNone(fmt.normalise_website(raw), raw)
+
+    def test_a_record_keeps_only_a_web_address(self):
+        def website(raw):
+            return fmt.to_catalogue_record(
+                {"id": "osm_node_1", "name": "X", "website": raw},
+                source="osm",
+                source_ref=None,
+                country_code=None,
+                country=None,
+            ).get("website")
+
+        self.assertEqual(website("www.example.org"), "https://www.example.org")
+        self.assertIsNone(website("tel:+15551234"))
+
+
 class ValidateTest(unittest.TestCase):
     def test_a_good_document_passes(self):
         self.assertEqual(fmt.validate_catalogue(_doc([_record()])), [])
@@ -250,6 +299,29 @@ class ValidateTest(unittest.TestCase):
         self.assertIn("osm_node_7: unknown entry 'teleport'", text)
         self.assertIn("osm_node_8: min_depth_m above max_depth_m", text)
         self.assertEqual(len(problems), 8)
+
+    def test_a_website_that_is_not_a_web_address_is_a_problem(self):
+        problems = fmt.validate_catalogue(
+            _doc([_record(website="tel:+15551234")])
+        )
+
+        self.assertEqual(
+            problems, ["osm_node_1: website is not an http(s) address"]
+        )
+
+    def test_each_source_names_its_licence_text(self):
+        for key, source in fmt.SOURCES.items():
+            self.assertEqual(source["licence"], "ODbL-1.0", key)
+        # OpenStreetMap asks for a link to its copyright page; our own
+        # records point at the licence itself.
+        self.assertEqual(
+            fmt.SOURCES["osm"]["licence_url"],
+            "https://www.openstreetmap.org/copyright",
+        )
+        self.assertEqual(
+            fmt.SOURCES["curated"]["licence_url"],
+            "https://opendatacommons.org/licenses/odbl/1-0/",
+        )
 
     def test_a_wrong_format_number_is_a_problem(self):
         doc = _doc([_record()])

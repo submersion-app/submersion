@@ -8,6 +8,34 @@ import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_par
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
+/// A catalogue file as the rows the local cache stores.
+class SiteCatalogueRows {
+  const SiteCatalogueRows({required this.rows, required this.sources});
+
+  final List<SiteCatalogueEntriesCompanion> rows;
+
+  /// The file's sources, already encoded for the meta table.
+  final String sources;
+}
+
+/// Reads a catalogue file into rows. Top-level so the importer can run it
+/// through `compute`, keeping the parse, the search-text folding and the
+/// list encoding of every record off the UI isolate.
+SiteCatalogueRows buildSiteCatalogueRows(String json) {
+  final parsed = parseSiteCatalogue(json);
+  return SiteCatalogueRows(
+    rows: [for (final site in parsed.sites) catalogueSiteToRow(site)],
+    sources: encodeCatalogueSources(parsed.sources),
+  );
+}
+
+// Built once: `asNameMap` makes a new map on every call, and a read maps
+// every row.
+final _waterTypes = WaterType.values.asNameMap();
+final _entryMethodsByName = EntryMethod.values.asNameMap();
+final _difficulties = SiteDifficulty.values.asNameMap();
+final _trustLevels = CatalogueTrust.values.asNameMap();
+
 /// The local cache row for [site], with its search text folded once here so
 /// a search never folds a row.
 SiteCatalogueEntriesCompanion catalogueSiteToRow(CatalogueSite site) =>
@@ -53,23 +81,21 @@ CatalogueSite catalogueSiteFromRow(SiteCatalogueRow row) => CatalogueSite(
   locality: row.locality,
   island: row.island,
   bodyOfWater: row.bodyOfWater,
-  waterType: WaterType.values.asNameMap()[row.waterType],
+  waterType: _waterTypes[row.waterType],
   minDepth: row.minDepth,
   maxDepth: row.maxDepth,
   typeIds: _strings(row.typeIds),
   entryMethods: [
-    for (final name in _strings(row.entryMethods))
-      ?EntryMethod.values.asNameMap()[name],
+    for (final name in _strings(row.entryMethods)) ?_entryMethodsByName[name],
   ],
   features: _strings(row.features),
-  difficulty: SiteDifficulty.values.asNameMap()[row.difficulty],
+  difficulty: _difficulties[row.difficulty],
   hazards: row.hazards,
   description: row.description,
   website: row.website,
   source: row.source,
   sourceRef: row.sourceRef,
-  trust:
-      CatalogueTrust.values.asNameMap()[row.trust] ?? CatalogueTrust.verified,
+  trust: _trustLevels[row.trust] ?? CatalogueTrust.verified,
 );
 
 /// The stored form of the catalogue's sources.

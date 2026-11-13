@@ -117,6 +117,26 @@ void main() {
     expect(find.byIcon(Icons.warning_amber_outlined), findsNothing);
   });
 
+  testWidgets('a website that is not a web address shows no button', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      BuiltInSiteInfoCard(
+        site: const CatalogueSite(
+          id: 'x',
+          name: 'Blue Hole',
+          website: 'tel:+15551234',
+          source: 'osm',
+        ),
+        actionLabel: 'Use this site',
+        onAction: () async {},
+      ),
+    );
+
+    expect(find.text('Website'), findsNothing);
+  });
+
   testWidgets('the action runs once while it is in flight', (tester) async {
     var calls = 0;
     final gate = Completer<void>();

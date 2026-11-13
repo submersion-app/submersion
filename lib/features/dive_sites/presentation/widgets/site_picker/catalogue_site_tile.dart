@@ -27,7 +27,9 @@ class CatalogueSiteTile extends ConsumerWidget {
 
   /// Null while an adoption is under way, which disables the row.
   final VoidCallback? onTap;
-  final VoidCallback onDetails;
+
+  /// Null while an adoption is under way, for the same reason.
+  final VoidCallback? onDetails;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

@@ -1,3 +1,4 @@
+import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/geo_math.dart';
@@ -12,10 +13,16 @@ import 'package:submersion/features/dive_sites/domain/matching/match_thresholds.
 import 'package:submersion/features/dive_sites/domain/matching/site_match_outcome.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_matcher.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
+import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/services/photo_gps_point_selector.dart';
 
 enum ProposalStatus { clear, review, none }
+
+/// The built-in site types' names, by id.
+final Map<String, String> _builtInTypeNames = {
+  for (final type in kBuiltInSiteTypes) type.id: type.name,
+};
 
 /// A display candidate for the review screen + map (resolved from a user site
 /// or a bundled site; fields are null when the source lacks them).
@@ -228,9 +235,12 @@ class SiteMatchingService {
           MatchCandidate(id: s.id, location: s.location!, isExisting: true),
         );
       }
+      // A catalogue site the diver already adopted is among their own
+      // sites above: offering its record too would show the site twice.
+      final adopted = linkedCatalogueIds(_userSites);
       for (final b in bundled) {
         final location = b.location;
-        if (location == null) continue;
+        if (location == null || adopted.contains(b.id)) continue;
         refs[b.id] = _CandidateRef.bundled(b);
         candidates.add(
           MatchCandidate(id: b.id, location: location, isExisting: false),
@@ -349,10 +359,14 @@ class SiteMatchingService {
       maxDepth: b.maxDepth,
       country: b.country,
       region: b.region,
-      difficulty: b.difficulty?.name,
-      // What the review card lists: the site's types, then the source's
-      // other tags (drift, sharks).
-      features: [...b.typeIds, ...b.features],
+      // As an existing site's card shows it.
+      difficulty: b.difficulty?.displayName,
+      // What the review card lists: the site's types by name, then the
+      // source's other tags (drift, sharks).
+      features: [
+        for (final id in b.typeIds) _builtInTypeNames[id] ?? id,
+        ...b.features,
+      ],
       description: b.description,
     );
   }
@@ -477,11 +491,11 @@ class SiteMatchingService {
     // Adopt the catalogue site through the one adoption path, so it gets
     // the same details and link as a site picked anywhere else, then link.
     // Altitude is filled by [_fillAltitudes] once the transaction commits.
-    final createdSite = await _adoption.adopt(
+    final createdSite = (await _adoption.adopt(
       bundled,
       diverId: diverId,
       fillAltitude: false,
-    );
+    )).site;
     _createdByExternalId[bundled.id] = createdSite.id;
     if (createdSite.altitude == null) _locatedThisPass[createdSite.id] = point;
     await _diveRepository.setSite(diveId, createdSite.id);

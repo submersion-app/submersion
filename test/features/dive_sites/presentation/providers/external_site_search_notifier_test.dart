@@ -140,10 +140,12 @@ void main() {
   test('importing adopts the site with its details and marks it', () async {
     await notifier().search('blue');
 
-    final imported = await notifier().importSite(_blueHole);
+    final adoption = await notifier().importSite(_blueHole);
 
-    expect(imported, isNotNull);
-    final stored = (await sites.getSiteById(imported!.id))!;
+    expect(adoption, isNotNull);
+    expect(adoption!.created, isTrue);
+    final imported = adoption.site;
+    final stored = (await sites.getSiteById(imported.id))!;
     expect(stored.catalogueId, 'osm_node_1');
     expect(stored.maxDepth, 100);
     expect(stored.country, 'Egypt');
@@ -159,7 +161,9 @@ void main() {
     final first = await notifier().importSite(_blueHole);
     final second = await notifier().importSite(_blueHole);
 
-    expect(second!.id, first!.id);
+    expect(second!.site.id, first!.site.id);
+    // The second import made nothing: the page runs no rules for it.
+    expect(second.created, isFalse);
     expect(await sites.getAllSites(), hasLength(1));
   });
 

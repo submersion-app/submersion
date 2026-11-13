@@ -24,9 +24,13 @@ License (ODbL).
 © OpenStreetMap contributors
 https://www.openstreetmap.org/copyright
 
+Open Database License 1.0:
+https://opendatacommons.org/licenses/odbl/1-0/
+
 The built-in dive site data as a whole is made available under the same
-licence. It is published with the scripts that produce it in the
-Submersion source repository.''',
+licence. It is published, with the scripts that produce it, in the
+Submersion source repository:
+https://github.com/submersion-app/submersion''',
       );
     });
   }

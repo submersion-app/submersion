@@ -109,6 +109,23 @@ void main() {
     );
   });
 
+  testWidgets('a null onDetails disables the details button', (tester) async {
+    await _pump(
+      tester,
+      const CatalogueSiteTile(
+        site: _site,
+        distanceText: null,
+        onTap: null,
+        onDetails: null,
+      ),
+    );
+
+    expect(
+      tester.widget<IconButton>(find.byType(IconButton)).onPressed,
+      isNull,
+    );
+  });
+
   testWidgets('tapping the row calls onTap', (tester) async {
     var taps = 0;
     await _pump(

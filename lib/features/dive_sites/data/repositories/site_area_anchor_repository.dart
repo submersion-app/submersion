@@ -62,6 +62,9 @@ class SiteAreaAnchorRepository {
             sites.country,
           ])
           ..where(sites.latitude.isNotNull() & sites.longitude.isNotNull())
+          // A plan says where the diver means to go, not where they were:
+          // next week's Bonaire plan is not the area of Saturday's dive.
+          ..where(dives.isPlanned.equals(false))
           ..where(sameTrip == null ? inWindow : sameTrip | inWindow);
     if (diverId != null) query.where(dives.diverId.equals(diverId));
     if (excludeDiveIds.isNotEmpty) {

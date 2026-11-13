@@ -214,6 +214,23 @@ void main() {
       expect(await anchors.forDive(at: at), isNull);
     });
 
+    test('a planned dive says nothing about where a logged one was', () async {
+      // Next week's plan for Bonaire is not where Saturday's dive was.
+      final planned = await site('planned-at');
+      await dives.createDive(
+        Dive(
+          id: 'plan',
+          diveNumber: 1,
+          dateTime: at.add(const Duration(days: 2)),
+          maxDepth: 18,
+          site: planned,
+          isPlanned: true,
+        ),
+      );
+
+      expect(await anchors.forDive(at: at), isNull);
+    });
+
     test('the dive being edited is excluded', () async {
       final here = await site('here');
       await dive('editing', when: at, at: here);

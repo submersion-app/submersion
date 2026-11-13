@@ -52,7 +52,8 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     // Read now: importing a site from the search is creating it by hand
     // (#3513), and it gets its rules even if the diver leaves meanwhile.
     final rulesAfterCreate = captureRulesAfterCreate(context, ref);
-    final importedSite = await notifier.importSite(site);
+    final adoption = await notifier.importSite(site);
+    final importedSite = adoption?.site;
 
     if (mounted) {
       if (importedSite != null) {
@@ -80,10 +81,12 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
         );
       }
     }
-    if (importedSite != null) {
+    // Only a site this import created: one the diver already had may have
+    // been edited since, and the rules would undo that.
+    if (adoption != null && adoption.created) {
       await rulesAfterCreate(
         subject: RuleSubject.sites,
-        ids: [importedSite.id],
+        ids: [adoption.site.id],
       );
     }
   }

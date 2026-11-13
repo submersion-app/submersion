@@ -129,6 +129,58 @@ void main() {
     });
   });
 
+  group('catalogue candidates', () {
+    test('an adopted site is not also offered as its catalogue twin', () async {
+      // 400 m from the dive: outside the inner radius, so catalogue sites
+      // compete, and the adopted site's own record would be a second card.
+      final adopted = DiveSite(
+        id: 's-adopted',
+        name: 'Salt Pier',
+        location: _eastMeters(400),
+        catalogueId: 'osm_3',
+      );
+      when(
+        sites.getAllSites(diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => [adopted]);
+      catalogue.sites = [
+        CatalogueSite(
+          id: 'osm_3',
+          name: 'Salt Pier',
+          location: _eastMeters(400),
+          source: 'osm',
+        ),
+      ];
+
+      final proposals = await service().computeProposals([
+        _diveAt('d1', const GeoPoint(0, 0)),
+      ]);
+
+      expect(proposals.single.candidates.map((c) => c.id), ['s-adopted']);
+    });
+
+    test('a card reads in words, not ids', () async {
+      catalogue.sites = const [
+        CatalogueSite(
+          id: 'osm_4',
+          name: 'The Tugs',
+          location: GeoPoint(0, 0),
+          typeIds: ['artificial_reef', 'wreck'],
+          features: ['sharks'],
+          difficulty: SiteDifficulty.beginner,
+          source: 'osm',
+        ),
+      ];
+
+      final proposals = await service().computeProposals([
+        _diveAt('d1', _eastMeters(22)),
+      ]);
+
+      final card = proposals.single.candidates.single;
+      expect(card.difficulty, 'Beginner');
+      expect(card.features, ['Artificial reef', 'Wreck', 'sharks']);
+    });
+  });
+
   group('applyConfirmed', () {
     setUp(() {
       when(
@@ -301,45 +353,40 @@ void main() {
       expect((captured[1] as SiteClassification).typeIds, ['reef']);
     });
 
-    test(
-      'a candidate the diver already adopted is linked, not created again',
-      () async {
-        // Adopted earlier and since moved 400 m: past the 100 m guard, so
-        // only the link can tell this is the same site.
-        final adopted = DiveSite(
-          id: 's-adopted',
+    test('a candidate adopted since the proposals were made is linked, not '
+        'created again', () async {
+      // Not among the diver's sites when the proposals were computed (it
+      // was adopted on the map a moment later, or it has no coordinates
+      // of its own any more), so its record was offered.
+      const adopted = DiveSite(
+        id: 's-adopted',
+        name: 'Salt Pier',
+        catalogueId: 'osm_3',
+      );
+      catalogue.sites = const [
+        CatalogueSite(
+          id: 'osm_3',
           name: 'Salt Pier',
-          location: _eastMeters(400),
-          catalogueId: 'osm_3',
-        );
-        when(
-          sites.getAllSites(diverId: anyNamed('diverId')),
-        ).thenAnswer((_) async => [adopted]);
-        when(
-          sites.getSiteByCatalogueId('osm_3', diverId: 'diver-1'),
-        ).thenAnswer((_) async => adopted);
-        catalogue.sites = const [
-          CatalogueSite(
-            id: 'osm_3',
-            name: 'Salt Pier',
-            location: GeoPoint(0, 0),
-            source: 'osm',
-          ),
-        ];
-        final s = service();
-        await s.computeProposals([_diveAt('d1', const GeoPoint(0, 0))]);
+          location: GeoPoint(0, 0),
+          source: 'osm',
+        ),
+      ];
+      final s = service();
+      await s.computeProposals([_diveAt('d1', const GeoPoint(0, 0))]);
+      when(
+        sites.getSiteByCatalogueId('osm_3', diverId: 'diver-1'),
+      ).thenAnswer((_) async => adopted);
 
-        final result = await s.applyConfirmed([
-          const ConfirmedMatch('d1', 'osm_3'),
-        ]);
+      final result = await s.applyConfirmed([
+        const ConfirmedMatch('d1', 'osm_3'),
+      ]);
 
-        expect(result.sitesCreated, 0);
-        verify(dives.setSite('d1', 's-adopted')).called(1);
-        verifyNever(
-          sites.createSite(any, classification: anyNamed('classification')),
-        );
-      },
-    );
+      expect(result.sitesCreated, 0);
+      verify(dives.setSite('d1', 's-adopted')).called(1);
+      verifyNever(
+        sites.createSite(any, classification: anyNamed('classification')),
+      );
+    });
 
     test('empty confirmed list writes nothing', () async {
       final s = service();

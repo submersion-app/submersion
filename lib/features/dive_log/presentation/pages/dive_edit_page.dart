@@ -2110,18 +2110,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// dive in the bulk service, so the form's own rows keep what the diver
   /// set (#3657).
   Future<void> _showBulkSitePicker() async {
-    final areaAnchor = await _areaAnchor();
-    if (!mounted) return;
-    final site = await pickOrCreateSite(
-      context,
-      ref,
-      selectedSiteId: _selectedSite?.id,
-      currentLocation: _currentLocation,
-      areaAnchor: areaAnchor,
-    );
-    if (site != null && mounted) {
-      _markDirty();
-      setState(() => _selectedSite = site);
+    if (_openingSitePicker) return;
+    _openingSitePicker = true;
+    try {
+      final areaAnchor = await _areaAnchor();
+      if (!mounted) return;
+      final site = await pickOrCreateSite(
+        context,
+        ref,
+        selectedSiteId: _selectedSite?.id,
+        currentLocation: _currentLocation,
+        areaAnchor: areaAnchor,
+      );
+      if (site != null && mounted) {
+        _markDirty();
+        setState(() => _selectedSite = site);
+      }
+    } finally {
+      _openingSitePicker = false;
     }
   }
 
@@ -3195,24 +3201,36 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
   }
 
+  /// True from a tap on the Site row until its picker has closed. Working
+  /// out the dive's area takes a moment before the sheet shows, and a
+  /// second tap in that moment would open a second sheet over the first.
+  bool _openingSitePicker = false;
+
   Future<void> _showSitePicker() async {
-    final anchor = _existingDive?.entryLocation ?? _existingDive?.exitLocation;
-    // A dive with its own GPS needs no inference.
-    final areaAnchor = anchor == null ? await _areaAnchor() : null;
-    if (!mounted) return;
-    final site = await pickOrCreateSite(
-      context,
-      ref,
-      selectedSiteId: _selectedSite?.id,
-      currentLocation: _currentLocation,
-      diveLocation: anchor,
-      areaAnchor: areaAnchor,
-      newSiteSeedLocation: anchor,
-    );
-    if (site != null && mounted) {
-      _markDirty();
-      setState(() => _assignSite(site));
-      _reevaluateGeofenceForSite();
+    if (_openingSitePicker) return;
+    _openingSitePicker = true;
+    try {
+      final anchor =
+          _existingDive?.entryLocation ?? _existingDive?.exitLocation;
+      // A dive with its own GPS needs no inference.
+      final areaAnchor = anchor == null ? await _areaAnchor() : null;
+      if (!mounted) return;
+      final site = await pickOrCreateSite(
+        context,
+        ref,
+        selectedSiteId: _selectedSite?.id,
+        currentLocation: _currentLocation,
+        diveLocation: anchor,
+        areaAnchor: areaAnchor,
+        newSiteSeedLocation: anchor,
+      );
+      if (site != null && mounted) {
+        _markDirty();
+        setState(() => _assignSite(site));
+        _reevaluateGeofenceForSite();
+      }
+    } finally {
+      _openingSitePicker = false;
     }
   }
 

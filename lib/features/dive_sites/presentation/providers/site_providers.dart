@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -605,14 +606,15 @@ class SiteListNotifier
   }
 
   /// Makes the current diver's site from the built-in catalogue [site], or
-  /// returns the one they already adopted from it.
-  Future<domain.DiveSite> adoptCatalogueSite(CatalogueSite site) async {
+  /// returns the one they already adopted from it. The result says which,
+  /// so a caller runs its "after create" rules only on a new site.
+  Future<CatalogueAdoption> adoptCatalogueSite(CatalogueSite site) async {
     final validatedId = await _ref.read(validatedCurrentDiverIdProvider.future);
-    final adopted = await _ref
+    final adoption = await _ref
         .read(catalogueAdoptionServiceProvider)
         .adopt(site, diverId: validatedId);
-    await _loadSites();
-    return adopted;
+    if (adoption.created) await _loadSites();
+    return adoption;
   }
 
   /// Updates [site]. Its types and tags change only when a [classification]

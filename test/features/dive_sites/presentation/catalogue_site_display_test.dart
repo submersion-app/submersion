@@ -119,6 +119,38 @@ void main() {
     });
   });
 
+  group('catalogueWebsiteUri', () {
+    test('accepts web addresses', () {
+      expect(
+        catalogueWebsiteUri('https://example.org/salt-pier'),
+        Uri.parse('https://example.org/salt-pier'),
+      );
+      expect(
+        catalogueWebsiteUri(' http://example.org '),
+        Uri.parse('http://example.org'),
+      );
+    });
+
+    test('refuses everything a "Website" button must not open', () {
+      // The value comes from a source anyone can edit.
+      for (final raw in [
+        'tel:+15551234',
+        'mailto:shop@example.org',
+        'javascript:alert(1)',
+        'intent://scan/#Intent;scheme=zxing;end',
+        'submersion://settings',
+        'file:///etc/passwd',
+        'https://',
+        'www.example.org',
+        'not a link',
+        '',
+        null,
+      ]) {
+        expect(catalogueWebsiteUri(raw), isNull, reason: '$raw');
+      }
+    });
+  });
+
   group('catalogueSiteSummary', () {
     test('joins place, entry, depth and types', () {
       expect(

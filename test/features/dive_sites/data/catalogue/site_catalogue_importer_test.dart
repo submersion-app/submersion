@@ -101,7 +101,7 @@ void main() {
 
     expect(outcome, SiteCatalogueImportOutcome.imported);
     expect(await ids(), ['osm_node_1', 'osm_node_2', 'osm_node_3']);
-    expect(await meta('version'), 'v1');
+    expect(await meta('version'), '$kSiteCatalogueImportRevision:v1');
     final sources = jsonDecode((await meta('sources'))!) as List;
     expect((sources.single as Map)['credit'], 'OpenStreetMap contributors');
 
@@ -147,7 +147,7 @@ void main() {
 
     expect(outcome, SiteCatalogueImportOutcome.imported);
     expect(await ids(), ['osm_node_2', 'osm_node_9']);
-    expect(await meta('version'), 'v2');
+    expect(await meta('version'), '$kSiteCatalogueImportRevision:v2');
   });
 
   test('a file that cannot be parsed leaves the old rows', () async {
@@ -162,7 +162,7 @@ void main() {
 
     expect(outcome, SiteCatalogueImportOutcome.failed);
     expect(await ids(), ['osm_node_1', 'osm_node_2', 'osm_node_3']);
-    expect(await meta('version'), 'v1');
+    expect(await meta('version'), '$kSiteCatalogueImportRevision:v1');
 
     // A later launch with a good file recovers.
     bundle.catalogue = _catalogue([_site('osm_node_9', 'New Reef')]);
@@ -227,6 +227,42 @@ void main() {
         .customSelect('SELECT COUNT(*) AS c FROM site_catalogue')
         .getSingle();
     expect(count.read<int>('c'), 1203);
+  });
+
+  test('a file with no usable record leaves the old rows', () async {
+    final bundle = _Bundle(catalogue: _three, version: 'v1');
+    final importer = SiteCatalogueImporter(database: db, bundle: bundle);
+    await importer.importIfChanged();
+
+    // Parses, but nothing in it is a site: emptying the catalogue until
+    // the next app update would be worse than keeping the old one.
+    bundle
+      ..catalogue = _catalogue([
+        {'id': 'osm_node_9', 'source': 'osm'},
+        'not a record',
+      ])
+      ..version = 'v2';
+    final outcome = await importer.importIfChanged();
+
+    expect(outcome, SiteCatalogueImportOutcome.failed);
+    expect(await ids(), ['osm_node_1', 'osm_node_2', 'osm_node_3']);
+    expect(await meta('version'), '$kSiteCatalogueImportRevision:v1');
+  });
+
+  test('a build that reads the file differently imports it again', () async {
+    final bundle = _Bundle(catalogue: _three, version: 'v1');
+    await SiteCatalogueImporter(database: db, bundle: bundle).importIfChanged();
+
+    // The same file, a newer importer (a fix to how search text is folded,
+    // say): the stored rows are from the old reading.
+    final outcome = await SiteCatalogueImporter(
+      database: db,
+      bundle: bundle,
+      importRevision: kSiteCatalogueImportRevision + 1,
+    ).importIfChanged();
+
+    expect(outcome, SiteCatalogueImportOutcome.imported);
+    expect(await meta('version'), '${kSiteCatalogueImportRevision + 1}:v1');
   });
 
   test('two calls at once import once', () async {

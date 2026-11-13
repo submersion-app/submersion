@@ -21,6 +21,9 @@ void main() {
       expect(text, contains('(ODbL)'));
       expect(text, contains('https://www.openstreetmap.org/copyright'));
       expect(text, contains('assets/data/site_catalogue.json'));
+      // The licence itself, and where the database is offered.
+      expect(text, contains('https://opendatacommons.org/licenses/odbl/1-0/'));
+      expect(text, contains('https://github.com/submersion-app/submersion'));
     },
   );
 

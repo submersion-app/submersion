@@ -127,7 +127,10 @@ class CountryResolver:
         self, latitude: float, longitude: float
     ) -> tuple[str | None, str | None]:
         """(code, English name) for a position, or (None, None) at sea."""
-        key = f"{round(latitude, 2)},{round(longitude, 2)}"
+        # About 11 m: fine enough that a site never answers for its
+        # neighbour across a border (Eilat and Taba share a hundredth of a
+        # degree), coarse enough that a re-harvested site keeps its answer.
+        key = f"{round(latitude, 4)},{round(longitude, 4)}"
         if key in self._cache:
             code, name = self._cache[key]
             return settle_country(code, name)

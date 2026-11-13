@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
+import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -152,7 +153,7 @@ class _CatalogueLine extends ConsumerWidget {
 
     final theme = Theme.of(context);
     final l10n = context.l10n;
-    final website = Uri.tryParse(record.website ?? '');
+    final website = catalogueWebsiteUri(record.website);
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Wrap(
@@ -165,7 +166,7 @@ class _CatalogueLine extends ConsumerWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          if (website != null && website.hasScheme)
+          if (website != null)
             TextButton.icon(
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,

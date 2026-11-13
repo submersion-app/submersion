@@ -8,6 +8,19 @@ import 'package:submersion/features/dive_sites/domain/services/catalogue_site_ma
 
 const _log = LoggerService('CatalogueAdoption');
 
+/// What adopting a catalogue site came to: the diver's site, and whether
+/// this call made it.
+///
+/// [created] is false when the diver already had the site. Callers run the
+/// diver's "after creating by hand" rules only on a site that was created:
+/// re-running them on a site the diver has since edited would undo that.
+class CatalogueAdoption {
+  const CatalogueAdoption({required this.site, required this.created});
+
+  final DiveSite site;
+  final bool created;
+}
+
 /// Makes one of the diver's sites from a built-in catalogue record.
 ///
 /// The one path every screen that offers built-in sites goes through: the
@@ -25,25 +38,56 @@ class CatalogueAdoptionService {
   /// wherever the caller fills altitudes itself.
   final Future<double?> Function(GeoPoint point)? fetchElevation;
 
+  /// Adoptions under way, by diver and catalogue id. "Has the diver this
+  /// site?" and "create it" are two steps, so two callers asking at once
+  /// (the map and the picker, two taps on two screens) would both create
+  /// it; the second waits for the first here instead.
+  final Map<String, Future<CatalogueAdoption>> _inFlight = {};
+
   /// The diver's site for [site], creating it if they have none.
   ///
   /// A diver who already adopted this record gets that site back, so a
-  /// second tap, or a stale list, never makes a second site.
+  /// second tap, or a stale list, never makes a second site. Two devices
+  /// that each adopt the same record before they sync still end with two
+  /// sites: nothing local can see the other device's write.
   ///
   /// With [fillAltitude], a new site's altitude is then looked up in the
   /// background: the returned site does not wait for it, and a failed
   /// lookup leaves the altitude empty. Pass false from inside a
   /// transaction, where the caller fills altitudes after it commits.
-  Future<DiveSite> adopt(
+  Future<CatalogueAdoption> adopt(
     CatalogueSite site, {
     required String? diverId,
     bool fillAltitude = true,
+  }) async {
+    final key = '${diverId ?? ''}|${site.id}';
+    final running = _inFlight[key];
+    if (running != null) {
+      // The other caller is the one that creates it.
+      final first = await running;
+      return CatalogueAdoption(site: first.site, created: false);
+    }
+    final adoption = _adopt(site, diverId: diverId, fillAltitude: fillAltitude);
+    _inFlight[key] = adoption;
+    try {
+      return await adoption;
+    } finally {
+      _inFlight.remove(key);
+    }
+  }
+
+  Future<CatalogueAdoption> _adopt(
+    CatalogueSite site, {
+    required String? diverId,
+    required bool fillAltitude,
   }) async {
     final existing = await _siteRepository.getSiteByCatalogueId(
       site.id,
       diverId: diverId,
     );
-    if (existing != null) return existing;
+    if (existing != null) {
+      return CatalogueAdoption(site: existing, created: false);
+    }
 
     final created = await _siteRepository.createSite(
       catalogueSiteToDiveSite(site, diverId: diverId),
@@ -56,7 +100,7 @@ class CatalogueAdoptionService {
     if (fillAltitude && location != null && fetch != null) {
       unawaited(_fillAltitude(created.id, location, fetch));
     }
-    return created;
+    return CatalogueAdoption(site: created, created: true);
   }
 
   Future<void> _fillAltitude(

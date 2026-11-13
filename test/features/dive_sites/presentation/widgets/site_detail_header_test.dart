@@ -252,6 +252,26 @@ void main() {
       expect(find.text('Website'), findsOneWidget);
     });
 
+    testWidgets('does not link a website that is not a web address', (
+      tester,
+    ) async {
+      await pumpHeader(
+        tester,
+        adopted,
+        catalogueSite: const CatalogueSite(
+          id: 'osm_node_1',
+          name: 'Salt Pier',
+          website: 'intent://scan/#Intent;scheme=zxing;end',
+          source: 'osm',
+        ),
+        catalogueSource: osm,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('built-in site catalogue'), findsOneWidget);
+      expect(find.text('Website'), findsNothing);
+    });
+
     testWidgets('shows nothing once the catalogue dropped the record', (
       tester,
     ) async {

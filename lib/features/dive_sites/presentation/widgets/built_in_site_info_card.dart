@@ -73,7 +73,7 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
       ...catalogueEntryNames(site, l10n),
       ?depth,
     ];
-    final website = Uri.tryParse(site.website ?? '');
+    final website = catalogueWebsiteUri(site.website);
 
     return Card(
       child: Padding(
@@ -140,7 +140,7 @@ class _BuiltInSiteInfoCardState extends ConsumerState<BuiltInSiteInfoCard> {
             const SizedBox(height: 8),
             Row(
               children: [
-                if (website != null && website.hasScheme)
+                if (website != null)
                   TextButton.icon(
                     style: TextButton.styleFrom(padding: EdgeInsets.zero),
                     onPressed: () => launchUrl(

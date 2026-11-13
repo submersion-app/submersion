@@ -21,6 +21,7 @@ CATALOGUE_FILE = "site_catalogue.json"
 VERSION_FILE = "site_catalogue.version"
 
 _OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright"
+_ODBL = "https://opendatacommons.org/licenses/odbl/1-0/"
 
 # Where records come from, keyed by a record's `source`.
 SOURCES = {
@@ -33,7 +34,7 @@ SOURCES = {
     "curated": {
         "name": "Submersion",
         "licence": "ODbL-1.0",
-        "licence_url": _OSM_COPYRIGHT,
+        "licence_url": _ODBL,
         "credit": "Submersion contributors",
     },
 }
@@ -96,6 +97,8 @@ _ENTRY_ALIASES = {
 }
 
 _ENTRY_SPLIT = re.compile(r"[:;,/]|\bor\b")
+_HAS_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.\-]*:")
+_BARE_HOST = re.compile(r"^[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+(/\S*)?$")
 _OSM_ID = re.compile(r"^osm_(node|way|relation)_(\d+)$")
 
 # Optional text fields that keep their legacy name.
@@ -149,6 +152,26 @@ def normalise_depths(
     return depth, max_depth
 
 
+def normalise_website(raw: str | None) -> str | None:
+    """A site's website as an http(s) address, or None.
+
+    The value comes from a source anyone can edit, and the app opens it
+    from a button labelled "Website": anything that is not a web address
+    (tel:, mailto:, an app's own scheme) is dropped. A bare host, which
+    sources often carry, gets https.
+    """
+    text = (raw or "").strip()
+    if not text:
+        return None
+    if text.lower().startswith(("http://", "https://")):
+        return text
+    if _HAS_SCHEME.match(text):
+        return None
+    if _BARE_HOST.match(text):
+        return "https://" + text
+    return None
+
+
 def osm_source_ref(site_id: str) -> str | None:
     """The OpenStreetMap object behind an `osm_<type>_<id>` site id."""
     match = _OSM_ID.match(site_id)
@@ -196,7 +219,7 @@ def to_catalogue_record(
     put("difficulty", legacy.get("difficulty"))
     put("hazards", legacy.get("hazards"))
     put("description", legacy.get("description"))
-    put("website", legacy.get("website"))
+    put("website", normalise_website(legacy.get("website")))
     record["source"] = source
     put("source_ref", source_ref)
     record["trust"] = "verified"
@@ -233,6 +256,9 @@ def validate_catalogue(doc: dict) -> list[str]:
         for method in record.get("entry") or []:
             if method not in ENTRY_METHODS:
                 problems.append(f"{site_id}: unknown entry {method!r}")
+        website = record.get("website")
+        if website is not None and normalise_website(website) != website:
+            problems.append(f"{site_id}: website is not an http(s) address")
         min_depth = record.get("min_depth_m")
         max_depth = record.get("max_depth_m")
         if min_depth is not None and max_depth is not None and min_depth > max_depth:

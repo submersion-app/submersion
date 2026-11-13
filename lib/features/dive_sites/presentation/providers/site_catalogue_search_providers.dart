@@ -1,5 +1,6 @@
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
@@ -118,15 +119,15 @@ class ExternalSiteSearchNotifier
   /// The quick-search chips: a search for a country or region name.
   Future<void> searchByCountry(String country) => search(country);
 
-  /// Adopts [site] as one of the diver's sites, or returns the one they
+  /// Adopts [site] as one of the diver's sites, or finds the one they
   /// already adopted from it. Null, with an error in the state, on failure.
-  Future<domain.DiveSite?> importSite(CatalogueSite site) async {
+  Future<CatalogueAdoption?> importSite(CatalogueSite site) async {
     try {
-      final savedSite = await _siteListNotifier.adoptCatalogueSite(site);
+      final adoption = await _siteListNotifier.adoptCatalogueSite(site);
       state = state.copyWith(
         linkedCatalogueIds: {...state.linkedCatalogueIds, site.id},
       );
-      return savedSite;
+      return adoption;
     } catch (e) {
       state = state.copyWith(errorMessage: 'Failed to import site: $e');
       return null;

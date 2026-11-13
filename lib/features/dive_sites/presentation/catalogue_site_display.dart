@@ -58,6 +58,19 @@ String catalogueSiteSummary(
   catalogueTypeNames(site, l10n).join(', '),
 ].whereType<String>().where((part) => part.isNotEmpty).join(' · ');
 
+/// A catalogue site's website as a link that is safe to open, or null.
+///
+/// The value comes from a source anyone can edit (an OpenStreetMap tag),
+/// and it is opened from a button labelled "Website": only a web address
+/// qualifies. A phone number, a mail address or another app's own scheme
+/// would open something else behind that label.
+Uri? catalogueWebsiteUri(String? raw) {
+  final uri = Uri.tryParse(raw?.trim() ?? '');
+  if (uri == null || uri.host.isEmpty) return null;
+  if (uri.scheme != 'https' && uri.scheme != 'http') return null;
+  return uri;
+}
+
 String? _firstNonBlank(List<String?> values) {
   for (final value in values) {
     final trimmed = value?.trim() ?? '';

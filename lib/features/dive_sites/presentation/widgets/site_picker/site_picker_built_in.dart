@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 const _log = LoggerService('SitePickerBuiltIn');
@@ -160,9 +161,13 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
   /// all" when there are more than fit. Empty when nothing is offered.
   List<Widget Function()> builtInRows(List<DiveSite> userSites) {
     final offered = offeredBuiltIn(userSites);
-    if (offered.isEmpty) return const [];
-
     final l10n = context.l10n;
+    if (offered.isEmpty) {
+      // A failure is still said when the site it was about is gone from
+      // the list (an import replaced the catalogue meanwhile).
+      return [if (_adoptFailed) () => _adoptError(l10n)];
+    }
+
     final searching = builtInQuery.isNotEmpty;
     final place = builtInAnchorIsInferred ? builtInPlaceLabel : null;
     final label = searching
@@ -180,29 +185,26 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
 
     return [
       () => SiteSectionLabel(label),
-      if (_adoptFailed)
-        () => Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-          child: Text(
-            l10n.diveSites_picker_builtIn_adoptError,
-            style: TextStyle(color: Theme.of(context).colorScheme.error),
-          ),
-        ),
+      if (_adoptFailed) () => _adoptError(l10n),
       for (final site in shown)
         () => CatalogueSiteTile(
           site: site,
           distanceText: showDistance && site.location != null
               ? formatBuiltInDistance(distanceMeters(anchor, site.location!))
               : null,
-          onTap: _adopting ? null : () => unawaited(_adopt(site, userSites)),
-          onDetails: () => unawaited(
-            showCatalogueSiteDetails(
-              context,
-              site: site,
-              actionLabel: l10n.diveSites_picker_builtIn_useSite,
-              onAction: () => _adopt(site, userSites),
-            ),
-          ),
+          // Both off while a site is being adopted: a second sheet opened
+          // then would be the route the finished adoption closes.
+          onTap: _adopting ? null : () => unawaited(_adopt(site)),
+          onDetails: _adopting
+              ? null
+              : () => unawaited(
+                  showCatalogueSiteDetails(
+                    context,
+                    site: site,
+                    actionLabel: l10n.diveSites_picker_builtIn_useSite,
+                    onAction: () => _adopt(site),
+                  ),
+                ),
         ),
       if (collapsed)
         () => ListTile(
@@ -214,6 +216,19 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
     ];
   }
 
+  Widget _adoptError(AppLocalizations l10n) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+    child: Text(
+      l10n.diveSites_picker_builtIn_adoptError,
+      style: TextStyle(color: Theme.of(context).colorScheme.error),
+    ),
+  );
+
+  /// Whether a built-in site is being adopted. The sheet's own rows hold
+  /// off while it is: picking one then would leave the adopted site made
+  /// but not chosen.
+  bool get isAdoptingBuiltIn => _adopting;
+
   /// Whether the built-in section shows sites around an anchor now, so the
   /// header can say what the list is sorted by.
   bool hasBuiltInNearby(List<DiveSite> userSites) =>
@@ -221,7 +236,7 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
 
   /// Adopts [site] and hands the diver's new site to the picker's caller,
   /// exactly as tapping one of their own sites does.
-  Future<void> _adopt(CatalogueSite site, List<DiveSite> userSites) async {
+  Future<void> _adopt(CatalogueSite site) async {
     if (_adopting) return;
     setState(() {
       _adopting = true;
@@ -232,12 +247,12 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
     final rulesAfterCreate = captureRulesAfterCreate(context, ref);
     final adopt = ref.read(catalogueSiteAdopterProvider);
     final repository = ref.read(siteRepositoryProvider);
-    // A site the diver already had is handed back as it is: nothing was
-    // created, so no rules run.
-    final alreadyTheirs = linkedCatalogueIds(userSites).contains(site.id);
     try {
-      final adopted = await adopt(site);
-      if (!alreadyTheirs) {
+      final adoption = await adopt(site);
+      final adopted = adoption.site;
+      // A site the diver already had (a list gone stale, a site that
+      // arrived by sync) is handed back as it is: nothing was created.
+      if (adoption.created) {
         // Before the dive form takes the site, so it gets the site's
         // values as the rules left them.
         await rulesAfterCreate(subject: RuleSubject.sites, ids: [adopted.id]);

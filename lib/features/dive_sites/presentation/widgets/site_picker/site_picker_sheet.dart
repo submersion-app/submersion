@@ -339,6 +339,13 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet>
     return _searchIndex;
   }
 
+  /// Picks one of the diver's own sites, unless a built-in site is being
+  /// adopted: that site would then be made but not chosen.
+  void _selectOwn(DiveSite site) {
+    if (isAdoptingBuiltIn) return;
+    widget.onSiteSelected(site);
+  }
+
   /// The "New Dive Site" buttons' handler, or null to disable them.
   VoidCallback? get _createNewSite {
     final onCreateNewSite = widget.onCreateNewSite;
@@ -677,10 +684,13 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet>
             distanceText: _anchorIsInferred
                 ? null
                 : _formatDistance(context, units, entry.distance),
-            onTap: () => widget.onSiteSelected(entry.site),
+            onTap: () => _selectOwn(entry.site),
           ),
       ],
-      ...builtIn,
+      // Around an anchor the built-in sites follow the diver's nearby
+      // ones. In a search they go last: the diver's own matches, nearby or
+      // not, always come before the catalogue's.
+      if (!searching) ...builtIn,
       for (final row in flattenSiteGroups(groups, expanded: expanded))
         switch (row) {
           OuterHeaderRow(:final group, :final isExpanded) =>
@@ -707,9 +717,10 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet>
             isSelected: item.id == widget.selectedSiteId,
             isNearby: false,
             subtitle: siteGroupedSubtitle(item),
-            onTap: () => widget.onSiteSelected(item),
+            onTap: () => _selectOwn(item),
           ),
         },
+      if (searching) ...builtIn,
     ];
 
     return ListView.builder(

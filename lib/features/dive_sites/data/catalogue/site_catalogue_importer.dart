@@ -5,7 +5,6 @@ import 'package:flutter/services.dart' show AssetBundle, rootBundle;
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
-import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
 
 /// The bundled catalogue.
@@ -16,8 +15,15 @@ const kSiteCatalogueAsset = 'assets/data/site_catalogue.json';
 /// the large one to learn nothing changed.
 const kSiteCatalogueVersionAsset = 'assets/data/site_catalogue.version';
 
-/// The meta row holding the version of the catalogue last imported.
+/// The meta row holding the version of the catalogue last imported: the
+/// importer's revision, then the file's hash.
 const kSiteCatalogueMetaVersion = 'version';
+
+/// Goes up whenever this build reads the same file into different rows: a
+/// change to how a record is parsed, or to how its search text is folded.
+/// Stored with the file's hash, so such a build imports again even though
+/// the file itself did not change.
+const kSiteCatalogueImportRevision = 1;
 
 /// The meta row holding the catalogue's sources, as JSON.
 const kSiteCatalogueMetaSources = 'sources';
@@ -43,12 +49,19 @@ enum SiteCatalogueImportOutcome {
 /// Loads the bundled catalogue into the local cache database whenever its
 /// version sidecar differs from the version last imported.
 class SiteCatalogueImporter {
-  SiteCatalogueImporter({LocalCacheDatabase? database, AssetBundle? bundle})
-    : _database = database,
-      _bundle = bundle ?? rootBundle;
+  SiteCatalogueImporter({
+    LocalCacheDatabase? database,
+    AssetBundle? bundle,
+    this.importRevision = kSiteCatalogueImportRevision,
+  }) : _database = database,
+       _bundle = bundle ?? rootBundle;
 
   final LocalCacheDatabase? _database;
   final AssetBundle _bundle;
+
+  /// [kSiteCatalogueImportRevision], except in a test that stands in for a
+  /// later build.
+  final int importRevision;
 
   Future<SiteCatalogueImportOutcome>? _running;
 
@@ -66,14 +79,15 @@ class SiteCatalogueImporter {
   Future<SiteCatalogueImportOutcome> _run() async {
     try {
       final db = _db;
-      final version = (await _bundle.loadString(
+      final hash = (await _bundle.loadString(
         kSiteCatalogueVersionAsset,
         cache: false,
       )).trim();
-      if (version.isEmpty) {
+      if (hash.isEmpty) {
         _log.warning('The site catalogue has an empty version sidecar');
         return SiteCatalogueImportOutcome.failed;
       }
+      final version = '$importRevision:$hash';
 
       final stored =
           await (db.select(db.siteCatalogueMeta)
@@ -85,8 +99,18 @@ class SiteCatalogueImporter {
 
       // Not cached by the bundle: this is megabytes read once per update.
       final json = await _bundle.loadString(kSiteCatalogueAsset, cache: false);
-      final parsed = await compute(parseSiteCatalogue, json);
-      final rows = [for (final site in parsed.sites) catalogueSiteToRow(site)];
+      // Parsing, folding each site's search text and encoding its lists
+      // all happen off the UI isolate: at tens of thousands of sites that
+      // is too much work for a frame.
+      final built = await compute(buildSiteCatalogueRows, json);
+      final rows = built.rows;
+      if (rows.isEmpty) {
+        // A file that parses but holds no usable site. Emptying the
+        // catalogue until the next app update would be worse than keeping
+        // the one already here.
+        _log.warning('The site catalogue file holds no usable site');
+        return SiteCatalogueImportOutcome.failed;
+      }
 
       await db.transaction(() async {
         await db.delete(db.siteCatalogueEntries).go();
@@ -112,7 +136,7 @@ class SiteCatalogueImporter {
             ),
             SiteCatalogueMetaCompanion.insert(
               key: kSiteCatalogueMetaSources,
-              value: encodeCatalogueSources(parsed.sources),
+              value: built.sources,
             ),
           ], mode: InsertMode.insertOrReplace);
         });

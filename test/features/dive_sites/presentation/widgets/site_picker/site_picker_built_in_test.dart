@@ -10,6 +10,7 @@ import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/models/site_area_anchor.dart';
@@ -100,16 +101,22 @@ class _Adoptions extends SiteRepository {
   /// What the logbook rules "changed" the site's name to, once they ran.
   String? renamedByRules;
 
-  Future<DiveSite> adopt(CatalogueSite site) async {
+  /// False to answer as when the diver already had the site.
+  bool created = true;
+
+  Future<CatalogueAdoption> adopt(CatalogueSite site) async {
     adopted.add(site);
     order.add('adopt');
     await gate?.future;
     if (fail) throw StateError('write failed');
-    return DiveSite(
-      id: 'adopted-${site.id}',
-      name: site.name,
-      location: site.location,
-      catalogueId: site.id,
+    return CatalogueAdoption(
+      site: DiveSite(
+        id: 'adopted-${site.id}',
+        name: site.name,
+        location: site.location,
+        catalogueId: site.id,
+      ),
+      created: created,
     );
   }
 
@@ -533,6 +540,49 @@ void main() {
       expect(find.text('More sites near Bonaire'), findsOneWidget);
     });
 
+    testWidgets("the diver's own matches come before built-in matches", (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        areaAnchor: _inferred,
+        catalogueSites: [
+          _cat('c1', 'Angel Reef', north: 9000),
+          _cat('c2', 'Bari Reef', north: 8000),
+        ],
+        sites: [
+          // One of theirs nearby, one far away (so it is only in the
+          // grouped list).
+          DiveSite(
+            id: 'near',
+            name: 'My House Reef',
+            location: GeoPoint(_pier.latitude + 0.001, _pier.longitude),
+            country: 'Caribbean Netherlands',
+          ),
+          const DiveSite(
+            id: 'far',
+            name: 'Shaab Reef',
+            location: GeoPoint(27.0, 34.0),
+            country: 'Egypt',
+          ),
+        ],
+      );
+
+      await tester.enterText(find.byType(TextField), 'reef');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+
+      final titles = _rowTitles(tester);
+      final firstBuiltIn = titles.indexOf('Angel Reef');
+      expect(firstBuiltIn, greaterThan(titles.lastIndexOf('My House Reef')));
+      expect(firstBuiltIn, greaterThan(titles.lastIndexOf('Shaab Reef')));
+      // The section label sits between them.
+      expect(
+        tester.getTopLeft(find.text('Built-in sites')).dy,
+        greaterThan(tester.getTopLeft(find.text('Shaab Reef').last).dy),
+      );
+    });
+
     testWidgets("a match shows even when none of the diver's sites match", (
       tester,
     ) async {
@@ -623,6 +673,72 @@ void main() {
       expect(h.adoptions.order, ['adopt', 'rules', 'read']);
       // The dive form gets the site as the rules left it.
       expect(h.picked.single.name, 'Renamed By A Rule');
+    });
+
+    testWidgets('a site the diver already had runs no rules', (tester) async {
+      final h = await _pump(tester, areaAnchor: _inferred, withRules: true);
+      // The list was stale: the site arrived by sync a moment ago.
+      h.adoptions.created = false;
+
+      await tester.tap(find.text('Angel City'));
+      await tester.pumpAndSettle();
+
+      expect(h.adoptions.order, ['adopt', 'read']);
+      expect(h.picked.single.catalogueId, 'c1');
+    });
+
+    testWidgets('while a site is being adopted nothing else can be picked', (
+      tester,
+    ) async {
+      final h = await _pump(
+        tester,
+        areaAnchor: _inferred,
+        sites: [
+          DiveSite(
+            id: 'mine',
+            name: 'My House Reef',
+            location: GeoPoint(_pier.latitude + 0.2, _pier.longitude),
+          ),
+        ],
+      );
+      h.adoptions.gate = Completer<void>();
+
+      await tester.tap(find.text('Angel City'));
+      await tester.pump();
+      // Their own site, and another site's details, while it is in flight.
+      await tester.tap(find.text('My House Reef').first, warnIfMissed: false);
+      await tester.tap(
+        find.byTooltip('Site details').at(1),
+        warnIfMissed: false,
+      );
+      await tester.pump();
+
+      expect(h.picked, isEmpty);
+      expect(find.text('Use this site'), findsNothing);
+
+      h.adoptions.gate!.complete();
+      await tester.pumpAndSettle();
+
+      // Exactly the adopted site was handed back.
+      expect(h.picked.map((s) => s.id), ['adopted-c1']);
+    });
+
+    testWidgets('the failure stays said when the list empties under it', (
+      tester,
+    ) async {
+      final h = await _pump(tester, areaAnchor: _inferred);
+      h.adoptions.fail = true;
+      await tester.tap(find.text('Angel City'));
+      await tester.pumpAndSettle();
+      expect(find.text('Could not add this site'), findsOneWidget);
+
+      // The catalogue is replaced by an import that offers nothing here.
+      h.catalogue.sites = const [];
+      h.container.read(siteCatalogueRevisionProvider.notifier).state++;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CatalogueSiteTile), findsNothing);
+      expect(find.text('Could not add this site'), findsOneWidget);
     });
 
     testWidgets('a failed adoption keeps the picker open and says so', (

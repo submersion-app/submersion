@@ -128,7 +128,7 @@ class CountryResolverTest(unittest.TestCase):
 
     def test_lookup_reads_the_cache_before_the_network(self):
         self.cache_path.write_text(
-            json.dumps({"12.08,-68.28": ["BQ", "Caribbean Netherlands"]}),
+            json.dumps({"12.0811,-68.2793": ["BQ", "Caribbean Netherlands"]}),
             encoding="utf-8",
         )
 
@@ -182,6 +182,24 @@ class CountryResolverTest(unittest.TestCase):
         # The answer is on disk, so a stopped run resumes from it.
         stored = json.loads(self.cache_path.read_text(encoding="utf-8"))
         self.assertEqual(stored["27.2,33.8"], ["EG", "Egypt"])
+
+    def test_two_sites_a_few_hundred_metres_apart_are_asked_separately(self):
+        # Eilat and Taba sit either side of a border, well inside one
+        # hundredth of a degree: one must not answer for the other.
+        answers = iter(
+            [
+                {"address": {"country": "Israel", "country_code": "il"}},
+                {"address": {"country": "Egypt", "country_code": "eg"}},
+            ]
+        )
+        resolver = res.CountryResolver(
+            self.cache_path,
+            http_get=lambda *a, **k: _Response(next(answers)),
+            sleep=lambda _: None,
+        )
+
+        self.assertEqual(resolver.lookup(29.5012, 34.9123), ("IL", "Israel"))
+        self.assertEqual(resolver.lookup(29.4951, 34.9041), ("EG", "Egypt"))
 
     def test_open_sea_is_remembered_as_no_country(self):
         calls = []
