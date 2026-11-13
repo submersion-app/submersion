@@ -66173,6 +66173,58 @@ abstract class AppLocalizations {
   /// **'Average {rate}'**
   String diveLog_detail_sacSegments_average(String rate);
 
+  /// Label over the dive average rate in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get diveLog_detail_sacSegments_summaryAverage;
+
+  /// Label over the highest segment rate in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Peak'**
+  String get diveLog_detail_sacSegments_summaryPeak;
+
+  /// Label over the total gas used in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used'**
+  String get diveLog_detail_sacSegments_summaryUsed;
+
+  /// Heading of the gas used column in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get diveLog_detail_sacSegments_used;
+
+  /// Heading of the bar showing each phase's share of the gas used
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used by phase'**
+  String get diveLog_detail_sacSegments_shareByPhase;
+
+  /// Gas used in a stretch of the dive, such as 228 L used
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} used'**
+  String diveLog_detail_sacSegments_usedAmount(String amount);
+
+  /// A row's share of the gas used, such as 59%
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String diveLog_detail_sacSegments_share(String percent);
+
+  /// Average depth of a stretch of the dive with its shallowest and deepest, such as 27m (18-30m)
+  ///
+  /// In en, this message translates to:
+  /// **'{average} ({shallowest}-{deepest})'**
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  );
+
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
   /// In en, this message translates to:

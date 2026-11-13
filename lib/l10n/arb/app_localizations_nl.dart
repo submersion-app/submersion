@@ -41776,6 +41776,40 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Gemiddeld';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Piek';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gasverbruik';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Verbruikt';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'Gasverbruik per fase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount verbruikt';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Voeg een flesvolume toe om de RMV in $unit te tonen';
   }

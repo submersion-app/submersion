@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
@@ -9,11 +7,16 @@ import 'package:submersion/features/dive_log/presentation/utils/sac_segment_grou
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_table.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_summary.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_share_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_time_columns.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The body of the Gas consumption by segment card: time, phase and gas
-/// breakdowns of the same dive, shown together.
+/// The body of the Gas consumption by segment card: the dive's average, peak
+/// and gas used over time, phase and gas breakdowns of the same dive.
+///
+/// On a wide card the time chart and the breakdowns sit side by side, so the
+/// chart does not stretch across the whole window.
 ///
 /// One position in the dive ties the three together. It comes from a column
 /// the diver hovers or tapped, else from the profile chart's cursor, and it
@@ -55,6 +58,10 @@ class SacSegmentsView extends StatefulWidget {
 }
 
 class _SacSegmentsViewState extends State<SacSegmentsView> {
+  /// From this width the chart and the breakdowns sit side by side.
+  static const double _sideBySideWidth = 720;
+  static const double _columnGap = 24;
+
   int? _pinnedIndex;
   int? _hoveredIndex;
 
@@ -96,6 +103,29 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
   String _depth(double meters) =>
       widget.rates.units.formatDepth(meters, decimals: 0);
 
+  /// The average depth with the shallowest and deepest, such as `27m (18-30m)`,
+  /// or the average alone where the two read the same.
+  String _depthWithRange(SacSegment segment) {
+    final units = widget.rates.units;
+    final shallowest = formatFixedForDisplay(
+      units.convertDepth(segment.minDepth),
+      0,
+    );
+    final deepest = formatFixedForDisplay(
+      units.convertDepth(segment.maxDepth),
+      0,
+    );
+    if (shallowest == deepest) return _depth(segment.avgDepth);
+    return context.l10n.diveLog_detail_sacSegments_depthWithRange(
+      _depth(segment.avgDepth),
+      shallowest,
+      _depth(segment.maxDepth),
+    );
+  }
+
+  String _share(double share) =>
+      context.l10n.diveLog_detail_sacSegments_share('${(share * 100).round()}');
+
   String _phaseLabel(DivePhase phase) {
     final l10n = context.l10n;
     return switch (phase) {
@@ -106,14 +136,6 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
       DivePhase.deco => l10n.diveLog_detail_sacSegments_phaseDeco,
     };
   }
-
-  static IconData _phaseIcon(DivePhase phase) => switch (phase) {
-    DivePhase.descent => Icons.south,
-    DivePhase.bottom => Icons.horizontal_rule,
-    DivePhase.ascent => Icons.north,
-    DivePhase.safetyStop => Icons.pause,
-    DivePhase.deco => Icons.hourglass_bottom,
-  };
 
   static String _duration(int seconds) =>
       '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
@@ -146,17 +168,77 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     return mix == null ? null : GasColors.forGasMix(mix);
   }
 
-  Widget _timeSection(int? activeIndex) {
+  /// The time segment with the highest rate, on the scale the chart draws.
+  SacSegment _findPeak() {
+    final tankIds = [for (final s in widget.timeSegments) s.tankId];
+    double comparable(SacSegment s) =>
+        widget.rates.comparable(s.sacRate, tankId: s.tankId, among: tankIds);
+    return widget.timeSegments.reduce(
+      (best, s) => comparable(s) > comparable(best) ? s : best,
+    );
+  }
+
+  /// [peak]'s rate on the chart's shared scale, so it reads in the unit the
+  /// axis does even where another column's cylinder can't convert.
+  String _formatPeak(SacSegment peak) {
+    final tankIds = [for (final s in widget.timeSegments) s.tankId];
+    return widget.rates.formatComparable(
+      widget.rates.comparable(
+        peak.sacRate,
+        tankId: peak.tankId,
+        among: tankIds,
+      ),
+      among: tankIds,
+    );
+  }
+
+  /// The gas the whole dive used, or null where its cylinders' gas can't be
+  /// added up.
+  ///
+  /// The time segments follow the reference cylinder's pressure alone, so a
+  /// dive on several cylinders totals its per-cylinder stretches instead.
+  String? _totalGasUsed() {
+    final rates = widget.rates;
+    final cylinders = gasSectionRows(widget.gasSegments);
+    if (cylinders.isEmpty) return rates.formatGasUsed(widget.timeSegments);
+    final stretches = [for (final g in cylinders) ...g.segments];
+    return rates.canShare(stretches.map((s) => s.tankId))
+        ? rates.formatGasUsed(stretches)
+        : null;
+  }
+
+  Widget _summary(SacSegment peak) {
+    final l10n = context.l10n;
+    final rates = widget.rates;
+    final segments = widget.timeSegments;
+    final used = _totalGasUsed();
+    return SacSegmentsSummary(
+      figures: [
+        SacSummaryFigure(
+          label: l10n.diveLog_detail_sacSegments_summaryAverage,
+          value: rates.formatAverage(segments),
+        ),
+        SacSummaryFigure(
+          label: l10n.diveLog_detail_sacSegments_summaryPeak,
+          value: _formatPeak(peak),
+        ),
+        if (used != null)
+          SacSummaryFigure(
+            label: l10n.diveLog_detail_sacSegments_summaryUsed,
+            value: used,
+          ),
+      ],
+    );
+  }
+
+  Widget _timeSection(int? activeIndex, SacSegment peak) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final rates = widget.rates;
     final segments = widget.timeSegments;
-    final tankIds = segments.map((s) => s.tankId);
+    final tankIds = [for (final s in segments) s.tankId];
     double comparable(SacSegment s) =>
         rates.comparable(s.sacRate, tankId: s.tankId, among: tankIds);
-    final peak = segments.reduce(
-      (best, s) => comparable(s) > comparable(best) ? s : best,
-    );
     final axis = SacRateAxis.forPeak(
       rates.displayComparable(comparable(peak), among: tankIds),
     );
@@ -220,24 +302,69 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
               ? null
               : _reportCursor,
         ),
-        const SizedBox(height: 6),
-        Text(
-          active != null
-              ? [
-                  _timeRange(active),
-                  rates.format(active.sacRate, tankId: active.tankId),
-                  _depth(active.avgDepth),
-                ].join(' · ')
-              : l10n.diveLog_detail_sacSegments_peak(
-                  rates.format(peak.sacRate, tankId: peak.tankId),
-                  _timeRange(peak),
-                ),
-          style: theme.textTheme.bodySmall,
+        const SizedBox(height: 8),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Text(
+              active != null
+                  ? [
+                      _timeRange(active),
+                      rates.format(active.sacRate, tankId: active.tankId),
+                      _depthWithRange(active),
+                      l10n.diveLog_detail_sacSegments_usedAmount(
+                        rates.formatGasUsed([active]),
+                      ),
+                    ].join(' · ')
+                  : l10n.diveLog_detail_sacSegments_peak(
+                      _formatPeak(peak),
+                      _timeRange(peak),
+                    ),
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
         ),
       ],
     );
   }
 
+  SacSegmentTableRow _row(
+    SacSegmentGroup group, {
+    required String label,
+    required Color? color,
+    required String rate,
+    required String? share,
+    required bool selected,
+  }) {
+    final rates = widget.rates;
+    final used = rates.formatGasUsed(group.segments);
+    final depth = _depth(group.avgDepth);
+    final duration = _duration(group.durationSeconds);
+    return SacSegmentTableRow(
+      label: label,
+      color: color,
+      rate: rate,
+      used: used,
+      share: share,
+      depth: depth,
+      duration: duration,
+      selected: selected,
+      semanticLabel: [
+        label,
+        rates.formatAverage(group.segments),
+        context.l10n.diveLog_detail_sacSegments_usedAmount(used),
+        ?share,
+        depth,
+        duration,
+      ].join(', '),
+    );
+  }
+
+  /// The share bar and the phase and gas table, or null with neither.
   Widget? _tableSection(int? focusTimestamp) {
     final l10n = context.l10n;
     final rates = widget.rates;
@@ -245,66 +372,101 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     final gases = gasSectionRows(widget.gasSegments);
     if (phases.isEmpty && gases.isEmpty) return null;
 
-    // Phase and gas bars share a scale, so a row compares across sections.
-    final groups = [...phases, ...gases];
+    // Rates in one section share a heading unit across both.
     final tankIds = [
-      for (final group in groups) ...group.segments.map((s) => s.tankId),
+      for (final group in [...phases, ...gases])
+        ...group.segments.map((s) => s.tankId),
     ];
     final headingUnit = rates.unit(tankIds);
-    double comparable(SacSegmentGroup g) =>
-        rates.averageRate(g.segments, among: tankIds);
-    final peak = groups.map(comparable).reduce(math.max);
+
+    /// Each group's share of the gas its section used, or null where the
+    /// section's gas can't be added up or adds up to nothing.
+    List<double>? shares(List<SacSegmentGroup> groups) {
+      final among = [
+        for (final group in groups) ...group.segments.map((s) => s.tankId),
+      ];
+      if (!rates.canShare(among)) return null;
+      final used = [
+        for (final group in groups) rates.gasUsed(group.segments, among: among),
+      ];
+      final total = used.fold(0.0, (sum, u) => sum + u);
+      return total > 0 ? [for (final u in used) u / total] : null;
+    }
 
     List<SacSegmentTableRow> rows(
       List<SacSegmentGroup> groups, {
       required String Function(SacSegmentGroup) label,
       required Color? Function(SacSegmentGroup) color,
-      IconData? Function(SacSegmentGroup)? icon,
+      required List<double>? shares,
     }) {
       final selected = focusTimestamp == null
           ? -1
           : groups.indexWhere((g) => g.containsTimestamp(focusTimestamp));
       return [
         for (final (index, group) in groups.indexed)
-          SacSegmentTableRow(
+          _row(
+            group,
             label: label(group),
-            icon: icon?.call(group),
-            barFactor: peak > 0 ? comparable(group) / peak : 0,
             color: color(group),
             rate: rates.cell(group.segments, headingUnit: headingUnit),
-            depth: _depth(group.avgDepth),
-            duration: _duration(group.durationSeconds),
+            share: shares == null ? null : _share(shares[index]),
             selected: index == selected,
-            semanticLabel: [
-              label(group),
-              rates.formatAverage(group.segments),
-              _depth(group.avgDepth),
-              _duration(group.durationSeconds),
-            ].join(', '),
           ),
       ];
     }
 
-    return SacSegmentTable(
-      rateHeading: headingUnit,
-      depthHeading: l10n.diveLog_detail_sacSegments_depth,
-      durationHeading: l10n.diveLog_detail_sacSegments_time,
-      sections: [
-        if (phases.isNotEmpty)
-          SacSegmentTableSection(
-            title: l10n.diveLog_detail_sacSegments_phase,
-            rows: rows(
-              phases,
-              label: (g) => _phaseLabel(g.phase!),
-              color: (g) => _phaseColor(g.phase!),
-              icon: (g) => _phaseIcon(g.phase!),
-            ),
+    String phaseLabel(SacSegmentGroup g) => _phaseLabel(g.phase!);
+    Color phaseColor(SacSegmentGroup g) => _phaseColor(g.phase!);
+    final phaseShares = shares(phases);
+    final gasShares = shares(gases);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (phaseShares != null) ...[
+          SacShareBar(
+            title: l10n.diveLog_detail_sacSegments_shareByPhase,
+            parts: [
+              for (final (index, group) in phases.indexed)
+                SacSharePart(
+                  label: phaseLabel(group),
+                  share: phaseShares[index],
+                  shareText: _share(phaseShares[index]),
+                  color: phaseColor(group),
+                ),
+            ],
           ),
-        if (gases.isNotEmpty)
-          SacSegmentTableSection(
-            title: l10n.diveLog_detail_sacSegments_gas,
-            rows: rows(gases, label: (g) => g.label, color: _gasColor),
-          ),
+          const SizedBox(height: 12),
+        ],
+        SacSegmentTable(
+          rateHeading: headingUnit,
+          usedHeading: l10n.diveLog_detail_sacSegments_used,
+          depthHeading: l10n.diveLog_detail_sacSegments_depth,
+          durationHeading: l10n.diveLog_detail_sacSegments_time,
+          sections: [
+            if (phases.isNotEmpty)
+              SacSegmentTableSection(
+                title: l10n.diveLog_detail_sacSegments_phase,
+                rows: rows(
+                  phases,
+                  label: phaseLabel,
+                  color: phaseColor,
+                  shares: phaseShares,
+                ),
+              ),
+            if (gases.isNotEmpty)
+              SacSegmentTableSection(
+                title: l10n.diveLog_detail_sacSegments_gas,
+                rows: rows(
+                  gases,
+                  label: (g) => g.label,
+                  color: _gasColor,
+                  shares: gasShares,
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
@@ -324,14 +486,35 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
         ? segments[picked].midTimestamp
         : cursor;
     final table = _tableSection(focusTimestamp);
+    final peak = segments.isEmpty ? null : _findPeak();
+    final chart = peak == null ? null : _timeSection(activeIndex, peak);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (segments.isNotEmpty) _timeSection(activeIndex),
-        if (table != null) ...[const SizedBox(height: 8), table],
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sideBySide = constraints.maxWidth >= _sideBySideWidth;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (peak != null) ...[_summary(peak), const SizedBox(height: 12)],
+            if (sideBySide)
+              // A missing side keeps its half, so the chart stays half wide.
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: chart ?? const SizedBox.shrink()),
+                  const SizedBox(width: _columnGap),
+                  Expanded(child: table ?? const SizedBox.shrink()),
+                ],
+              )
+            else ...[
+              ?chart,
+              if (chart != null && table != null) const SizedBox(height: 16),
+              ?table,
+            ],
+          ],
+        );
+      },
     );
   }
 }

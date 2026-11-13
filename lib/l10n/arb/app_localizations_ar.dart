@@ -42609,6 +42609,41 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'المتوسط';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'الذروة';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'الغاز المستهلك';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'المستهلك';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'الغاز المستهلك حسب المرحلة';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount مستهلكة';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'أضف حجم الأسطوانة لعرض RMV بوحدة $unit';
   }

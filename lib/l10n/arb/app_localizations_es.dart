@@ -42082,6 +42082,40 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Media';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Pico';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gas usado';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Usado';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'Gas usado por fase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount usados';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent %';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Añade el volumen del cilindro para mostrar el RMV en $unit';
   }

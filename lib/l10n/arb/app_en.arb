@@ -25534,6 +25534,59 @@
       }
     }
   },
+  "diveLog_detail_sacSegments_summaryAverage": "Average",
+  "@diveLog_detail_sacSegments_summaryAverage": {
+    "description": "Label over the dive average rate in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_summaryPeak": "Peak",
+  "@diveLog_detail_sacSegments_summaryPeak": {
+    "description": "Label over the highest segment rate in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_summaryUsed": "Gas used",
+  "@diveLog_detail_sacSegments_summaryUsed": {
+    "description": "Label over the total gas used in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_used": "Used",
+  "@diveLog_detail_sacSegments_used": {
+    "description": "Heading of the gas used column in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_shareByPhase": "Gas used by phase",
+  "@diveLog_detail_sacSegments_shareByPhase": {
+    "description": "Heading of the bar showing each phase's share of the gas used"
+  },
+  "diveLog_detail_sacSegments_usedAmount": "{amount} used",
+  "@diveLog_detail_sacSegments_usedAmount": {
+    "description": "Gas used in a stretch of the dive, such as 228 L used",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_share": "{percent}%",
+  "@diveLog_detail_sacSegments_share": {
+    "description": "A row's share of the gas used, such as 59%",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_depthWithRange": "{average} ({shallowest}-{deepest})",
+  "@diveLog_detail_sacSegments_depthWithRange": {
+    "description": "Average depth of a stretch of the dive with its shallowest and deepest, such as 27m (18-30m)",
+    "placeholders": {
+      "average": {
+        "type": "String"
+      },
+      "shallowest": {
+        "type": "String"
+      },
+      "deepest": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_detail_sacVolumeHint": "Add a cylinder volume to show RMV in {unit}",
   "@diveLog_detail_sacVolumeHint": {
     "placeholders": {

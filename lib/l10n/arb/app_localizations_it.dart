@@ -42059,6 +42059,40 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Media';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Picco';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gas usato';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Usato';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'Gas usato per fase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount usati';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Aggiungi il volume della bombola per mostrare l\'RMV in $unit';
   }

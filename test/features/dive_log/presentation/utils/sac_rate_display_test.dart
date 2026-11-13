@@ -251,4 +251,97 @@ void main() {
       expect(rates.comparableUnit(const ['back', 'stage']), 'bar/min');
     });
   });
+
+  group('gas used', () {
+    SacSegment used(double bar, {String? tankId}) => SacSegment(
+      startTimestamp: 0,
+      endTimestamp: 60,
+      avgDepth: 10,
+      minDepth: 0,
+      maxDepth: 20,
+      sacRate: 1.0,
+      gasConsumed: bar,
+      tankId: tankId,
+    );
+
+    test('reads in volume in the RMV lane, each on its own cylinder', () {
+      final rates = display(volumeFor: (id) => id == 'stage' ? 7.0 : 12.0);
+      final segments = [used(10, tankId: 'back'), used(20, tankId: 'stage')];
+
+      expect(rates.gasUsed(segments), 260);
+      expect(rates.formatGasUsed(segments), '260 L');
+    });
+
+    test('stays in pressure units in the SAC lane', () {
+      final rates = display(lane: GasConsumptionLane.sac);
+
+      expect(rates.formatGasUsed([used(30)]), '30 bar');
+    });
+
+    test('adds no bar from cylinders that cannot convert', () {
+      final rates = display(volumeFor: (id) => id == 'back' ? 12.0 : null);
+
+      expect(
+        rates.formatGasUsed([
+          used(100, tankId: 'back'),
+          used(20, tankId: 'stage'),
+        ]),
+        '--',
+      );
+      // One cylinder's drops still add up.
+      expect(
+        rates.formatGasUsed([
+          used(10, tankId: 'stage'),
+          used(5, tankId: 'stage'),
+        ]),
+        '15 bar',
+      );
+    });
+
+    test('is not scaled by the normalization factor', () {
+      // The rate is aligned with the dive's own SAC; what was used is what
+      // the pressure readings say.
+      expect(display(factor: 2.0).formatGasUsed([used(10)]), '120 L');
+    });
+
+    test('follows the diver\'s volume unit', () {
+      const imperial = UnitFormatter(
+        AppSettings(volumeUnit: VolumeUnit.cubicFeet),
+      );
+
+      expect(display(units: imperial).formatGasUsed([used(100)]), '42 cuft');
+    });
+
+    test('shares among entries that all read in volume', () {
+      final rates = display(volumeFor: (id) => id == 'stage' ? 7.0 : 12.0);
+
+      expect(rates.canShare(const ['back', 'stage']), isTrue);
+    });
+
+    test('shares in pressure only within one cylinder', () {
+      final rates = display(lane: GasConsumptionLane.sac);
+
+      expect(rates.canShare(const ['back', 'back']), isTrue);
+      expect(rates.canShare(const [null, null]), isTrue);
+      // Bar from two cylinders of unknown size can't be added up.
+      expect(rates.canShare(const ['back', 'stage']), isFalse);
+    });
+
+    test('measures shares on one scale among mixed cylinders', () {
+      final rates = display(volumeFor: (id) => id == 'back' ? 12.0 : null);
+
+      // The stage can't convert, so all of them stay in bar.
+      expect(
+        rates.gasUsed([used(10, tankId: 'back')], among: const ['back']),
+        120,
+      );
+      expect(
+        rates.gasUsed(
+          [used(10, tankId: 'back')],
+          among: const ['back', 'stage'],
+        ),
+        10,
+      );
+    });
+  });
 }

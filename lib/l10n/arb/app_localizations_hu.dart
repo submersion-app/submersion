@@ -41824,6 +41824,41 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Átlag';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Csúcs';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Felhasznált gáz';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Felhasznált';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'Felhasznált gáz fázisonként';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount felhasználva';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
+  }
+
+  @override
   String diveLog_detail_sacVolumeHint(String unit) {
     return 'Add meg a palack térfogatát, hogy az RMV $unit-ben jelenjen meg';
   }
