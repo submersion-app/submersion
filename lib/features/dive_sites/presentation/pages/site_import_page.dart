@@ -3,9 +3,11 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_search_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
@@ -21,7 +23,6 @@ class SiteImportPage extends ConsumerStatefulWidget {
 class _SiteImportPageState extends ConsumerState<SiteImportPage> {
   final _searchController = TextEditingController();
   final _focusNode = FocusNode();
-  final Set<String> _importedIds = {};
 
   @override
   void initState() {
@@ -46,7 +47,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
     }
   }
 
-  Future<void> _importSite(ExternalDiveSite site) async {
+  Future<void> _importSite(CatalogueSite site) async {
     final notifier = ref.read(externalSiteSearchProvider.notifier);
     // Read now: importing a site from the search is creating it by hand
     // (#3513), and it gets its rules even if the diver leaves meanwhile.
@@ -55,10 +56,7 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
 
     if (mounted) {
       if (importedSite != null) {
-        setState(() {
-          _importedIds.add(site.externalId);
-        });
-
+        // The notifier marks the site as the diver's; no page state needed.
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -372,11 +370,17 @@ class _SiteImportPageState extends ConsumerState<SiteImportPage> {
             ),
           ),
           ...state.sites.map((site) {
-            final isImported = _importedIds.contains(site.externalId);
+            // Already one of the diver's sites, in this session or any
+            // earlier one: the link says so.
+            final isImported = state.linkedCatalogueIds.contains(site.id);
             return _DiveSiteCard(
               site: site,
               isImported: isImported,
               units: units,
+              sourceCredit: ref
+                  .watch(catalogueSourceProvider(site.source))
+                  .value
+                  ?.credit,
               onImport: () => _importSite(site),
             );
           }),
@@ -544,17 +548,28 @@ class _LocalSiteCard extends StatelessWidget {
 }
 
 class _DiveSiteCard extends StatelessWidget {
-  final ExternalDiveSite site;
+  final CatalogueSite site;
   final bool isImported;
   final UnitFormatter units;
+
+  /// Who to credit for the record, or null while that is unknown.
+  final String? sourceCredit;
   final VoidCallback onImport;
 
   const _DiveSiteCard({
     required this.site,
     required this.isImported,
     required this.units,
+    required this.sourceCredit,
     required this.onImport,
   });
+
+  /// What the catalogue says the site is: its types by name, then the
+  /// source's other tags.
+  List<String> _tags(BuildContext context) => [
+    ...catalogueTypeNames(site, context.l10n),
+    ...site.features,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -654,12 +669,12 @@ class _DiveSiteCard extends StatelessWidget {
                 ),
 
                 // Features
-                if (site.features.isNotEmpty) ...[
+                if (_tags(context).isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
                     runSpacing: 4,
-                    children: site.features.take(4).map((feature) {
+                    children: _tags(context).take(4).map((feature) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -693,7 +708,7 @@ class _DiveSiteCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${site.maxDepth!.toStringAsFixed(0)}m',
+                          units.formatDepth(site.maxDepth, decimals: 0),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
@@ -732,11 +747,6 @@ class _DiveSiteCard extends StatelessWidget {
     }
     if (site.country != null && site.country!.isNotEmpty) {
       parts.add(site.country!);
-    }
-    if (site.ocean != null &&
-        site.ocean!.isNotEmpty &&
-        !parts.contains(site.ocean)) {
-      parts.add(site.ocean!);
     }
     return parts.isNotEmpty ? parts.join(', ') : 'Location unknown';
   }
@@ -819,24 +829,28 @@ class _DiveSiteCard extends StatelessWidget {
                           avatar: const Icon(Icons.location_on, size: 18),
                           label: Text(
                             units.formatCoordinates(
-                              site.latitude,
-                              site.longitude,
+                              site.location!.latitude,
+                              site.location!.longitude,
                             ),
                           ),
                         ),
-                      ...site.features.map((f) => Chip(label: Text(f))),
+                      ..._tags(context).map((f) => Chip(label: Text(f))),
                     ],
                   ),
                   const SizedBox(height: 24),
 
                   // Source
-                  Text(
-                    context.l10n.diveSites_import_detail_source(site.source),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                  if (sourceCredit != null) ...[
+                    Text(
+                      context.l10n.diveSites_import_detail_source(
+                        sourceCredit!,
+                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
+                  ],
 
                   // Import button
                   if (!isImported)
