@@ -75,14 +75,23 @@ class BuddySharedDivesSection extends ConsumerWidget {
                     ),
                   );
                 }
-                // Show first 5 dives with same format as trip detail page
+                // Show the first 5 dives in the trip Dives tab's row format.
                 final displayDives = dives.take(5).toList();
                 return Column(
                   children: displayDives.map((dive) {
+                    final siteName =
+                        dive.site?.name ??
+                        context.l10n.diveLog_listPage_unknownSite;
                     return Semantics(
                       button: true,
-                      label:
-                          'View dive ${dive.diveNumber ?? ''} at ${dive.site?.name ?? 'Unknown Site'}',
+                      label: switch (dive.diveNumber) {
+                        final number? =>
+                          context.l10n.diveLog_listPage_semanticsDiveAtSite(
+                            number,
+                            siteName,
+                          ),
+                        null => siteName,
+                      },
                       child: InkWell(
                         onTap: () => context.push('/dives/${dive.id}'),
                         borderRadius: BorderRadius.circular(8),
@@ -101,7 +110,7 @@ class BuddySharedDivesSection extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      dive.site?.name ?? 'Unknown Site',
+                                      siteName,
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.w500,
@@ -134,9 +143,14 @@ class BuddySharedDivesSection extends ConsumerWidget {
                                             fontWeight: FontWeight.w500,
                                           ),
                                     ),
-                                  if (dive.bottomTime != null)
+                                  // Measured runtime, as the trip Dives tab
+                                  // shows it (bottom time is derived and
+                                  // never stands in for runtime).
+                                  if (dive.measuredRuntime case final runtime?)
                                     Text(
-                                      '${dive.bottomTime!.inMinutes}min',
+                                      context.l10n.diveLog_sources_minutes(
+                                        runtime.inMinutes,
+                                      ),
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: theme

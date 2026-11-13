@@ -238,65 +238,70 @@ void main() {
     });
   });
 
-  group('BuddyDetailPage bottomTime coverage', () {
-    testWidgets('displays dive bottomTime in buddy dive history', (
-      tester,
-    ) async {
-      final buddy = Buddy(
-        id: 'buddy-1',
-        name: 'Jane Doe',
-        notes: '',
-        createdAt: DateTime(2026, 1, 1),
-        updatedAt: DateTime(2026, 1, 1),
-      );
+  group('BuddyDetailPage runtime coverage', () {
+    testWidgets(
+      'displays measured runtime, not bottom time, in buddy dive history',
+      (tester) async {
+        final buddy = Buddy(
+          id: 'buddy-1',
+          name: 'Jane Doe',
+          notes: '',
+          createdAt: DateTime(2026, 1, 1),
+          updatedAt: DateTime(2026, 1, 1),
+        );
 
-      final dives = [
-        createTestDiveWithBottomTime(
-          id: 'buddy-dive-1',
-          diveNumber: 1,
-          bottomTime: const Duration(minutes: 45),
-          maxDepth: 25.0,
-        ),
-      ];
-
-      final overrides = await getBaseOverrides();
-
-      // Use mobile size to avoid master-detail layout
-      tester.view.devicePixelRatio = 1.0;
-      tester.view.physicalSize = const Size(390, 844);
-      addTearDown(() {
-        tester.view.resetPhysicalSize();
-        tester.view.resetDevicePixelRatio();
-      });
-
-      // Installed before the first frame: an overflow thrown during
-      // pumpWidget would otherwise escape the handler.
-      _ignoreOverflowErrors();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            ...overrides,
-            buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
-            buddyStatsProvider(
-              buddy.id,
-            ).overrideWith((ref) async => const BuddyStats(totalDives: 1)),
-            diveIdsForBuddyProvider(
-              buddy.id,
-            ).overrideWith((ref) async => ['buddy-dive-1']),
-            divesForBuddyProvider(buddy.id).overrideWith((ref) async => dives),
-          ].cast(),
-          child: MaterialApp(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: BuddyDetailPage(buddyId: buddy.id, embedded: true),
+        final dives = [
+          createTestDiveWithBottomTime(
+            id: 'buddy-dive-1',
+            diveNumber: 1,
+            bottomTime: const Duration(minutes: 45),
+            maxDepth: 25.0,
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
+        ];
 
-      // Should show bottomTime formatted as minutes in dive history
-      expect(find.text('45min'), findsOneWidget);
-    });
+        final overrides = await getBaseOverrides();
+
+        // Use mobile size to avoid master-detail layout
+        tester.view.devicePixelRatio = 1.0;
+        tester.view.physicalSize = const Size(390, 844);
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        // Installed before the first frame: an overflow thrown during
+        // pumpWidget would otherwise escape the handler.
+        _ignoreOverflowErrors();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              ...overrides,
+              buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+              buddyStatsProvider(
+                buddy.id,
+              ).overrideWith((ref) async => const BuddyStats(totalDives: 1)),
+              diveIdsForBuddyProvider(
+                buddy.id,
+              ).overrideWith((ref) async => ['buddy-dive-1']),
+              divesForBuddyProvider(
+                buddy.id,
+              ).overrideWith((ref) async => dives),
+            ].cast(),
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: BuddyDetailPage(buddyId: buddy.id, embedded: true),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // The 50 minute runtime, as the trip Dives tab shows it; the derived
+        // 45 minute bottom time never stands in for it (#3304).
+        expect(find.text('50 min'), findsOneWidget);
+        expect(find.textContaining('45'), findsNothing);
+      },
+    );
   });
 
   testWidgets('notes draw as Markdown (#3683)', (tester) async {
