@@ -309,8 +309,15 @@ final diveOwnerProvider = FutureProvider.family<Diver?, String?>((
   diverId,
 ) {
   if (diverId == null) return ref.watch(currentDiverProvider.future);
-  final current = ref.watch(currentDiverProvider).value;
-  if (current != null && current.id == diverId) return current;
+  // Selected down to this dive's owner, so another profile's entry does not
+  // rebuild on every change of the active diver.
+  final current = ref.watch(
+    currentDiverProvider.select((active) {
+      final diver = active.value;
+      return diver != null && diver.id == diverId ? diver : null;
+    }),
+  );
+  if (current != null) return current;
   return ref.watch(diverByIdProvider(diverId).future);
 });
 
