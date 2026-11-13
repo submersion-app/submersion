@@ -109,6 +109,24 @@ void main() {
       expect(model.byId('t')!.zone, FigureZone.stageLeft);
     });
 
+    test(
+      'every back role keeps its cylinder on the back in a sidemount rig',
+      () {
+        // The role names the back, so it wins over the rig's sidemount rule.
+        for (final role in [
+          TankRole.backGas,
+          TankRole.twinSet,
+          TankRole.diluent,
+          TankRole.oxygenSupply,
+        ]) {
+          final model = composeFigure([
+            item('t', EquipmentType.tank, tankRole: role),
+          ], sidemountRig: true);
+          expect(model.byId('t')!.zone, FigureZone.backTank, reason: '$role');
+        }
+      },
+    );
+
     test('a role tank keeps its zone ahead of an earlier plain tank', () {
       // Placement walks the input order within a type; the plain tank must
       // not take the left side the role names.
