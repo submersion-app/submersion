@@ -189,6 +189,8 @@ void main() {
         expect(body, contains('11-16'));
         // The tissues are examples, never presented as anatomy.
         expect(body, contains('rough examples, not anatomy'));
+        // Each group's clause says what it limits.
+        expect(body, contains('slow ones limit long and repeat dives'));
       },
     );
   });

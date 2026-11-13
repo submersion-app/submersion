@@ -205,6 +205,15 @@ void main() {
       });
     }
 
+    test('keeps a time before zero negative, under a minute too', () {
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      // The minute a sample falls in: -0:30 is in minute -1, 52:40 in 52.
+      expect(TissueHeatMapTimeAxis.timeLabel(l10n, -30), '-1 min');
+      expect(TissueHeatMapTimeAxis.timeLabel(l10n, -170), '-3 min');
+      expect(TissueHeatMapTimeAxis.timeLabel(l10n, 0), '0 min');
+      expect(TissueHeatMapTimeAxis.timeLabel(l10n, 3160), '52 min');
+    });
+
     test('fits only a timeline with one time per sample', () {
       expect(TissueHeatMapTimeAxis.fits(null, 3), isFalse);
       expect(TissueHeatMapTimeAxis.fits(const [0, 10], 3), isFalse);

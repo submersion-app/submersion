@@ -133,11 +133,12 @@ class TissueHeatMapTimeAxis extends StatelessWidget {
   /// the analysis's own sample times, so they match its statuses by
   /// construction; this guards an analysis built without them (empty) and
   /// any caller that pairs the two itself.
-  /// [seconds] on the profile chart's clock as the axis reads it: whole
-  /// minutes, part minutes dropped, and below zero for a computer that
-  /// started logging before the dive's zero point.
+  /// [seconds] on the profile chart's clock as the axis reads it: the whole
+  /// minute the sample falls in, so 52:40 reads 52 and a time before the
+  /// dive's zero point stays negative even under a minute (-0:30 reads -1).
+  /// `~/` would truncate toward zero and drop that sign.
   static String timeLabel(AppLocalizations l10n, int seconds) =>
-      l10n.diveLog_deco_minutesValue('${seconds ~/ 60}');
+      l10n.diveLog_deco_minutesValue('${(seconds / 60).floor()}');
 
   static bool fits(List<int>? timestamps, int sampleCount) =>
       timestamps != null &&
