@@ -238,8 +238,8 @@ void main() {
     });
   });
 
-  group('BuddyDetailPage bottomTime coverage', () {
-    testWidgets('displays dive bottomTime in buddy dive history', (
+  group('BuddyDetailPage runtime coverage', () {
+    testWidgets('displays measured runtime in buddy dive history', (
       tester,
     ) async {
       final buddy = Buddy(
@@ -294,8 +294,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Should show bottomTime formatted as minutes in dive history
-      expect(find.text('45min'), findsOneWidget);
+      // The 50 minute runtime, as the trip Dives tab shows it; the derived
+      // 45 minute bottom time never stands in for it (#3304).
+      expect(find.text('50 min'), findsOneWidget);
+      expect(find.textContaining('45'), findsNothing);
     });
   });
 

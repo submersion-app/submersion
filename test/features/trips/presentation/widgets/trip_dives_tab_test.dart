@@ -7,6 +7,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/trip_dives_tab.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/dive_number_badge_expectations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
@@ -82,5 +83,34 @@ void main() {
 
     expect(find.textContaining('52'), findsOneWidget);
     expect(find.textContaining('47'), findsNothing);
+  });
+
+  // #4497: the badge was a fixed 40 point box, so a four digit dive number
+  // wrapped onto two lines.
+  testWidgets('dive numbers past 999 stay on one line in their badges', (
+    tester,
+  ) async {
+    final dive = Dive(
+      id: 'big',
+      diveNumber: 12345,
+      dateTime: DateTime(2026, 3, 8, 9),
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          divesForTripProvider('t1').overrideWith((ref) async => [dive]),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: TripDivesTab(tripId: 't1')),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expectDiveNumberOnOneLineInBadge(tester, '#12345');
   });
 }
