@@ -301,6 +301,7 @@ void main() {
     WidgetTester tester, {
     required double condense,
     required double background,
+    ThemeData? theme,
   }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
@@ -314,6 +315,7 @@ void main() {
           )).overrideWith((ref) async => analysis),
         ],
         child: MaterialApp(
+          theme: theme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -394,25 +396,79 @@ void main() {
     expect(surface().elevation, closeTo(1, 1e-6));
   });
 
+  RoundedRectangleBorder surfaceShape(WidgetTester tester) =>
+      tester
+              .widget<Material>(
+                find
+                    .descendant(
+                      of: find.byType(PinnedProfileStrip),
+                      matching: find.byType(Material),
+                    )
+                    .first,
+              )
+              .shape!
+          as RoundedRectangleBorder;
+
   // Card-width under the header, it reads as the card tucked up there: its
   // bottom corners keep the card's rounding all the way to pinned (#4488).
   testWidgets('its bottom corners stay round as it condenses', (tester) async {
     for (final condense in [0.0, 0.5, 1.0]) {
       await pumpMorphing(tester, condense: condense, background: 1);
-      final surface = tester.widget<Material>(
-        find
-            .descendant(
-              of: find.byType(PinnedProfileStrip),
-              matching: find.byType(Material),
-            )
-            .first,
-      );
       expect(
-        surface.borderRadius,
-        const BorderRadius.vertical(bottom: Radius.circular(12)),
+        surfaceShape(tester).borderRadius,
+        const BorderRadius.only(
+          bottomLeft: Radius.circular(12),
+          bottomRight: Radius.circular(12),
+        ),
         reason: 'condense=$condense',
       );
     }
+  });
+
+  // Pinned among the other cards, it matches them in every theme preset:
+  // their corners, outline and fill, a translucent fill made opaque over
+  // the page as the cards are, so content scrolling beneath never shows.
+  testWidgets('it takes its corners, outline and fill from the card theme', (
+    tester,
+  ) async {
+    const side = BorderSide(color: Color(0xFF336699), width: 1.5);
+    final base = ThemeData(useMaterial3: true);
+    final theme = base.copyWith(
+      cardTheme: CardThemeData(
+        color: const Color(0x80FF0000),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: side,
+        ),
+      ),
+    );
+    await pumpMorphing(tester, condense: 1, background: 1, theme: theme);
+    final shape = surfaceShape(tester);
+    expect(
+      shape.borderRadius,
+      const BorderRadius.only(
+        bottomLeft: Radius.circular(20),
+        bottomRight: Radius.circular(20),
+      ),
+    );
+    expect(shape.side, side);
+    final material = tester.widget<Material>(
+      find
+          .descendant(
+            of: find.byType(PinnedProfileStrip),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+    expect(
+      material.color,
+      Color.alphaBlend(const Color(0x80FF0000), base.colorScheme.surface),
+    );
+    expect(material.color!.a, 1);
+
+    // While the surface fades in, so does the outline.
+    await pumpMorphing(tester, condense: 0, background: 0.5, theme: theme);
+    expect(surfaceShape(tester).side.color.a, closeTo(0.5, 1e-6));
   });
 
   testWidgets('the strip has a semantics label', (tester) async {

@@ -15,8 +15,39 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dar
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Corner radius of the profile card the strip condenses out of.
-const double _cardRadius = 12;
+/// Corner radius of the profile card the strip condenses out of when the
+/// theme's card shape gives none: Material 3's default card radius.
+const double _defaultCardRadius = 12;
+
+/// The look of the profile card the strip condenses out of, resolved from
+/// the theme as [Card] resolves it, so the strip pinned among the other cards
+/// matches them in every theme preset (#4488): its [fill], its bottom
+/// [corners] and its outline [side].
+///
+/// A translucent card fill (Deep dark) is composited over the page surface,
+/// as the card is: the strip lies over scrolling content, which would
+/// otherwise show through it.
+({Color fill, BorderRadius corners, BorderSide side}) _cardLook(
+  BuildContext context,
+) {
+  final theme = Theme.of(context);
+  final scheme = theme.colorScheme;
+  final shape = theme.cardTheme.shape;
+  final radius = shape is RoundedRectangleBorder
+      ? shape.borderRadius.resolve(Directionality.of(context))
+      : BorderRadius.circular(_defaultCardRadius);
+  return (
+    fill: Color.alphaBlend(
+      theme.cardTheme.color ?? scheme.surfaceContainerLow,
+      scheme.surface,
+    ),
+    corners: BorderRadius.only(
+      bottomLeft: radius.bottomLeft,
+      bottomRight: radius.bottomRight,
+    ),
+    side: shape is OutlinedBorder ? shape.side : BorderSide.none,
+  );
+}
 
 /// The thin, scrubbable dive profile pinned at the top of dive details once
 /// the full profile card scrolls away (issue #4423).
@@ -111,6 +142,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
       cursorIndex: cursor,
     );
     final colors = Theme.of(context).colorScheme;
+    final card = _cardLook(context);
     final selectedSeconds =
         cursor != null && cursor >= 0 && cursor < profile.length
         ? profile[cursor].timestamp
@@ -123,9 +155,7 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
       label: context.l10n.diveLog_pinnedStrip_semantics,
       child: Material(
         // The card's own colour, so the strip reads as the card condensing.
-        color: colors.surfaceContainerLow.withValues(
-          alpha: colors.surfaceContainerLow.a * background,
-        ),
+        color: card.fill.withValues(alpha: card.fill.a * background),
         // No shadow while the surface is see-through (it would show through
         // and grey the card), then one that grows with the condense, so it
         // never switches on or off in a single frame either way.
@@ -136,8 +166,15 @@ class _PinnedProfileStripState extends ConsumerState<PinnedProfileStrip> {
         // It starts across the card at the plot's top and pins flush under
         // the header at the card's width, so only its bottom corners round,
         // like the card's own, condensing and pinned alike (#4488).
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(_cardRadius),
+        // Its outline, where the theme's cards have one, fades in with
+        // the surface.
+        shape: RoundedRectangleBorder(
+          borderRadius: card.corners,
+          side: card.side.copyWith(
+            color: card.side.color.withValues(
+              alpha: card.side.color.a * background,
+            ),
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: SizedBox(
