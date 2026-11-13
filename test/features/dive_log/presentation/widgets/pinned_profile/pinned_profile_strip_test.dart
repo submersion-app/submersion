@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_painter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_tooltip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -47,6 +48,7 @@ void main() {
   Future<ProviderContainer> pump(
     WidgetTester tester, {
     bool insideScrollView = false,
+    ThemeData? theme,
   }) async {
     final base = await getBaseOverrides();
     const strip = SizedBox(width: stripWidth);
@@ -61,6 +63,7 @@ void main() {
           )).overrideWith((ref) async => analysis),
         ],
         child: MaterialApp(
+          theme: theme,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -193,6 +196,29 @@ void main() {
     expect(find.bySemanticsLabel('12:30'), findsNothing);
     expect(find.bySemanticsLabel('Depth'), findsNothing);
     handle.dispose();
+  });
+
+  // The chart's dark max-depth colour does not read on a dark surface, so
+  // the label lifts it toward white there and keeps it as is in light.
+  testWidgets('lifts the max-depth label toward white in dark mode', (
+    tester,
+  ) async {
+    PinnedStripPainter painter() =>
+        tester
+                .widget<CustomPaint>(
+                  find.byWidgetPredicate(
+                    (w) => w is CustomPaint && w.painter is PinnedStripPainter,
+                  ),
+                )
+                .painter!
+            as PinnedStripPainter;
+    await pump(tester, theme: ThemeData(brightness: Brightness.dark));
+    expect(
+      painter().maxDepthLabelColor,
+      Color.lerp(ProfileMetricColors.maxDepth, Colors.white, 0.45),
+    );
+    await pump(tester, theme: ThemeData(brightness: Brightness.light));
+    expect(painter().maxDepthLabelColor, ProfileMetricColors.maxDepth);
   });
 
   testWidgets('passes the analysis curves to the painter', (tester) async {

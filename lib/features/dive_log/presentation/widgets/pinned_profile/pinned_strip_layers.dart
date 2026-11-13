@@ -19,16 +19,6 @@ class StripSeriesPoint {
 
   final int index;
   final double value;
-
-  @override
-  bool operator ==(Object other) =>
-      other is StripSeriesPoint && other.index == index && other.value == value;
-
-  @override
-  int get hashCode => Object.hash(index, value);
-
-  @override
-  String toString() => 'StripSeriesPoint($index, $value)';
 }
 
 final Expando<List<List<StripSeriesPoint>>> _ndlRuns = Expando('pinnedNdl');
