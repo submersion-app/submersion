@@ -61,11 +61,17 @@ class OceanBackground extends StatefulWidget {
   /// the splash rather than stepping down to the dark-theme palette.
   final Brightness? brightness;
 
+  /// Optional static backgrounds; ambient effects keep their original palette.
+  final Gradient? backgroundGradient;
+  final Gradient? backgroundHighlight;
+
   const OceanBackground({
     super.key,
     required this.child,
     this.borderRadius = BorderRadius.zero,
     this.brightness,
+    this.backgroundGradient,
+    this.backgroundHighlight,
   });
 
   @override
@@ -208,17 +214,27 @@ class _OceanBackgroundState extends State<OceanBackground>
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradientColors,
-        ),
+        gradient:
+            widget.backgroundGradient ??
+            LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: gradientColors,
+            ),
         borderRadius: widget.borderRadius,
       ),
       child: ClipRRect(
         borderRadius: widget.borderRadius,
         child: Stack(
           children: [
+            if (widget.backgroundHighlight != null)
+              Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: widget.backgroundHighlight,
+                  ),
+                ),
+              ),
             Positioned.fill(
               child: RepaintBoundary(
                 child: ValueListenableBuilder<double>(

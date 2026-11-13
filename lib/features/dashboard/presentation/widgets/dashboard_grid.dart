@@ -10,7 +10,10 @@ sealed class DashboardEntry {
 /// Spans all columns at every width.
 class FullBlock extends DashboardEntry {
   final Widget child;
-  const FullBlock(this.child);
+
+  /// Reaches the page edges, bypassing the grid's content padding.
+  final bool edgeToEdge;
+  const FullBlock(this.child, {this.edgeToEdge = false});
 }
 
 /// Spans one column; consecutive [ThirdBlock]s share a row. A leftover
@@ -52,8 +55,14 @@ class LeadSideGroup extends DashboardEntry {
 class DashboardGrid extends StatelessWidget {
   final List<DashboardEntry> entries;
   final double spacing;
+  final double contentPadding;
 
-  const DashboardGrid({required this.entries, this.spacing = 12, super.key});
+  const DashboardGrid({
+    required this.entries,
+    this.spacing = 12,
+    this.contentPadding = 0,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +71,11 @@ class DashboardGrid extends StatelessWidget {
         : ResponsiveBreakpoints.isDesktop(context)
         ? 2
         : 1;
+
+    final edgeToEdge = {
+      for (final entry in entries)
+        if (entry is FullBlock && entry.edgeToEdge) entry.child,
+    };
 
     // Each row with the card that names it, the first one it holds.
     final rows = <(Widget, Widget)>[];
@@ -165,7 +179,12 @@ class DashboardGrid extends StatelessWidget {
             // card that resolves late would remount every row below it (the
             // map included) instead of pushing them down.
             key: ValueKey<Object>(firstCard.key ?? firstCard.runtimeType),
-            bottomGap: i < rows.length - 1 ? spacing : 0,
+            padding: EdgeInsets.fromLTRB(
+              edgeToEdge.contains(firstCard) ? 0 : contentPadding,
+              i == 0 && !edgeToEdge.contains(firstCard) ? contentPadding : 0,
+              edgeToEdge.contains(firstCard) ? 0 : contentPadding,
+              i < rows.length - 1 ? spacing : contentPadding,
+            ),
             child: row,
           ),
       ],
@@ -181,10 +200,10 @@ class DashboardGrid extends StatelessWidget {
 /// card, so a row counts as on screen only once the card is, not while the
 /// transparent gap above it peeks over the fold.
 class _GridRow extends StatefulWidget {
-  final double bottomGap;
+  final EdgeInsets padding;
   final Widget child;
 
-  const _GridRow({super.key, required this.bottomGap, required this.child});
+  const _GridRow({super.key, required this.padding, required this.child});
 
   @override
   State<_GridRow> createState() => _GridRowState();
@@ -197,9 +216,6 @@ class _GridRowState extends State<_GridRow> with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Padding(
-      padding: EdgeInsets.only(bottom: widget.bottomGap),
-      child: widget.child,
-    );
+    return Padding(padding: widget.padding, child: widget.child);
   }
 }

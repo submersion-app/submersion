@@ -20,6 +20,60 @@ import '../../../../helpers/mock_providers.dart';
 
 void main() {
   group('HeroHeader', () {
+    testWidgets('uses available width and keeps enlarged text readable', (
+      tester,
+    ) async {
+      // A narrow pane inside a desktop window must use the phone arrangement.
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            diveStatisticsProvider.overrideWith(
+              (ref) async => DiveStatistics(
+                totalDives: 247,
+                totalTimeSeconds: 669600,
+                maxDepth: 52,
+                avgMaxDepth: 27.5,
+                totalSites: 83,
+              ),
+            ),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: MediaQuery(
+                data: MediaQueryData(
+                  size: Size(1200, 900),
+                  textScaler: TextScaler.linear(2),
+                ),
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(width: 320, child: HeroHeader()),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(tester.takeException(), isNull);
+      expect(find.text('247'), findsOneWidget);
+      expect(find.text('SITES'), findsNothing);
+      expect(
+        tester.getTopLeft(find.text('247')).dy,
+        greaterThan(tester.getBottomLeft(find.byType(Image)).dy),
+      );
+    });
+
     testWidgets('shows diver full name and career stats', (tester) async {
       // Pin to phone width: the career-stats subtitle only renders below
       // the desktop breakpoint (desktop shows quiet stats instead).
@@ -80,7 +134,10 @@ void main() {
       // Greeting includes first name
       expect(find.textContaining('Eric'), findsOneWidget);
       // Stats subtitle includes dive count
-      expect(find.textContaining('2 dives logged'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      expect(find.text('1.8'), findsOneWidget);
+      expect(find.text('HOURS'), findsOneWidget);
+      expect(find.textContaining('underwater'), findsNothing);
     });
 
     group('headline with nothing in the statistics', () {
@@ -249,6 +306,7 @@ void main() {
 
       expect(find.text('247'), findsOneWidget);
       expect(find.text('DIVES'), findsOneWidget);
+      expect(tester.getRect(find.byType(Image)).right, 1270);
       expect(find.text('COUNTRIES'), findsOneWidget);
       expect(find.text('14'), findsOneWidget);
     });
@@ -289,7 +347,9 @@ void main() {
       expect(find.text(today), findsNothing);
     });
 
-    testWidgets('phone width hides quiet center stats', (tester) async {
+    testWidgets('phone shows dives and hours without desktop-only stats', (
+      tester,
+    ) async {
       tester.view.physicalSize = const Size(500, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -327,7 +387,12 @@ void main() {
       }
 
       expect(find.text('COUNTRIES'), findsNothing);
-      expect(find.textContaining('247 dives logged'), findsOneWidget);
+      expect(find.text('247'), findsOneWidget);
+      expect(find.text('186'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('247')).dy,
+        greaterThan(tester.getBottomLeft(find.byType(Image)).dy),
+      );
     });
 
     testWidgets('headline totals include prior dives and time (#808)', (
@@ -377,9 +442,9 @@ void main() {
 
       // Neutral copy, not "dives logged": 125 of these were never logged
       // in-app.
-      expect(find.textContaining('372 dives'), findsOneWidget);
+      expect(find.text('372'), findsOneWidget);
       expect(find.textContaining('logged'), findsNothing);
-      expect(find.textContaining('286 hours'), findsOneWidget);
+      expect(find.text('286'), findsOneWidget);
     });
 
     testWidgets('quiet desktop stats include prior dives (#808)', (
@@ -480,7 +545,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 100));
       }
 
-      expect(find.textContaining('480 dives'), findsOneWidget);
+      expect(find.text('480'), findsOneWidget);
       expect(find.textContaining('logged'), findsNothing);
     });
 

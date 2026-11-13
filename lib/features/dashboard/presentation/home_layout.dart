@@ -45,7 +45,7 @@ Widget _pairedWidget(HomeCardType card) => card == HomeCardType.photoRibbon
     : const RecentSitesMapCard();
 
 DashboardEntry _standaloneEntry(HomeCardType card) => switch (card) {
-  HomeCardType.hero => const FullBlock(HeroHeader()),
+  HomeCardType.hero => const FullBlock(HeroHeader(), edgeToEdge: true),
   HomeCardType.gaugeStrip => const FullBlock(GaugeStrip()),
   HomeCardType.preDive => const FullBlock(PreDiveDashboardCard()),
   HomeCardType.waitingForDownload => const FullBlock(WaitingForDownloadCard()),

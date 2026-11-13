@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
-
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_diver_avatar.dart';
@@ -11,15 +10,8 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
-/// Hero header widget with personalized greeting, key stats,
-/// and animated ambient ocean effects (caustic shimmer + rising bubbles).
-///
-/// At desktop widths (>=800) the app logo anchors left and subdued
-/// lifetime stats fill the center; on phones the header keeps the
-/// compact greeting + headline stats layout.
-///
-/// Dive and time totals come from [careerTotalsProvider], so they include the
-/// diver's pre-app logbook and agree with the Insights overview (issue #808).
+/// A full-width ocean header with a compact greeting, career stats, and logo.
+/// The existing ocean painter owns all bubble shapes, motion, and timing.
 class HeroHeader extends ConsumerWidget {
   const HeroHeader({super.key});
 
@@ -28,115 +20,123 @@ class HeroHeader extends ConsumerWidget {
     final diverAsync = ref.watch(dashboardDiverProvider);
     final careerAsync = ref.watch(careerTotalsProvider);
     final theme = Theme.of(context);
-    final isDesktop = ResponsiveBreakpoints.isDesktop(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final l10n = context.l10n;
+    final greeting = _getGreeting(context);
+    final greetingText = diverAsync.when(
+      data: (diver) => l10n.dashboard_greeting_withName(
+        greeting,
+        diver?.name.split(' ').first ?? l10n.dashboard_hero_diverFallbackName,
+      ),
+      loading: () => l10n.dashboard_greeting_withoutName(greeting),
+      error: (_, _) => l10n.dashboard_greeting_withoutName(greeting),
+    );
 
     return Semantics(
-      label: context.l10n.dashboard_semantics_greetingBanner,
-      child: OceanBackground(
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          // Compact insets; tightest on the right so the logo sits close
-          // to the banner edge.
-          padding: const EdgeInsets.fromLTRB(18, 16, 12, 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Empty with one profile; brings its own gap otherwise.
-              const HeroDiverAvatar(),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Greeting
-                    diverAsync.when(
-                      data: (diver) {
-                        final greeting = _getGreeting(context);
-                        final name =
-                            diver?.name.split(' ').first ??
-                            context.l10n.dashboard_hero_diverFallbackName;
-                        return Text(
-                          context.l10n.dashboard_greeting_withName(
-                            greeting,
-                            name,
-                          ),
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      },
-                      loading: () => Text(
-                        context.l10n.dashboard_greeting_withoutName(
-                          _getGreeting(context),
-                        ),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      error: (_, _) => Text(
-                        context.l10n.dashboard_greeting_withoutName(
-                          _getGreeting(context),
-                        ),
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+      label: l10n.dashboard_semantics_greetingBanner,
+      child: Container(
+        foregroundDecoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isDark ? const Color(0x2BFFFFFF) : const Color(0x24000000),
+            ),
+          ),
+        ),
+        child: OceanBackground(
+          // Null keeps the shared light palette exactly as it is today.
+          backgroundGradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF0B304A), Color(0xFF061B2D)],
+                )
+              : null,
+          backgroundHighlight: isDark
+              ? const RadialGradient(
+                  center: Alignment(-0.84, -1),
+                  radius: 0.65,
+                  colors: [Color(0xAA16A5B3), Color(0x0016A5B3)],
+                  transform: _HeaderHighlightTransform(),
+                )
+              : null,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Available pane width matters more than the window width.
+              // Enlarged text gets a stacked layout instead of being scaled down.
+              final wide =
+                  constraints.maxWidth >= ResponsiveBreakpoints.desktop &&
+                  MediaQuery.textScalerOf(context).scale(18) <= 24;
+              final identity = Row(
+                children: [
+                  const HeroDiverAvatar(),
+                  Expanded(
+                    child: Text(
+                      greetingText,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    // Desktop shows the greeting alone; the quiet center
-                    // stats carry the numbers.
-                    if (!isDesktop) ...[
-                      const SizedBox(height: 4),
-                      // Headline stats (phone)
-                      careerAsync.when(
-                        data: (career) {
-                          final screenWidth = MediaQuery.sizeOf(context).width;
-                          final isNarrow = screenWidth < 600;
-                          return Text(
-                            career.combinedDives == 0
-                                ? _noDivesHeadline(context, ref)
-                                : _buildHeadlineStats(
-                                    context,
-                                    career,
-                                    isNarrow: isNarrow,
-                                  ),
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
-                          );
-                        },
-                        loading: () => Text(
-                          context.l10n.dashboard_hero_loading,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                        ),
-                        error: (_, _) => Text(
-                          context.l10n.dashboard_hero_error,
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (isDesktop) ...[
-                const SizedBox(width: 24),
-                const Expanded(flex: 2, child: _QuietStats()),
-              ],
-              const SizedBox(width: 16),
-              ExcludeSemantics(
+                  ),
+                ],
+              );
+              final logo = ExcludeSemantics(
                 child: Image.asset(
                   'assets/icon/icon.png',
-                  width: 64,
-                  height: 64,
+                  width: wide ? 58 : 46,
+                  height: wide ? 58 : 46,
                 ),
-              ),
-            ],
+              );
+              Widget status(String text) => Text(
+                text,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+              );
+              final stats = careerAsync.when(
+                data: (career) => career.combinedDives == 0
+                    ? status(_noDivesHeadline(context, ref))
+                    : _HeroStats(career: career, showPlaces: wide),
+                loading: () => status(l10n.dashboard_hero_loading),
+                error: (_, _) => status(l10n.dashboard_hero_error),
+              );
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: wide ? 30 : 20,
+                  vertical: wide ? 27 : 21,
+                ),
+                child: wide
+                    ? Row(
+                        children: [
+                          Expanded(child: identity),
+                          const SizedBox(width: 28),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: stats,
+                            ),
+                          ),
+                          const SizedBox(width: 28),
+                          logo,
+                        ],
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(child: identity),
+                              const SizedBox(width: 16),
+                              logo,
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          stats,
+                        ],
+                      ),
+              );
+            },
           ),
         ),
       ),
@@ -150,8 +150,7 @@ class HeroHeader extends ConsumerWidget {
     return context.l10n.dashboard_greeting_evening;
   }
 
-  /// A career of zero is not an empty logbook when every dive is excluded, so
-  /// the first-dive prompt waits for the logbook counts.
+  /// Zero career dives can mean every logged dive was excluded from stats.
   String _noDivesHeadline(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     return ref
@@ -164,121 +163,100 @@ class HeroHeader extends ConsumerWidget {
               : l10n.dashboard_hero_noDives,
         );
   }
+}
 
-  String _buildHeadlineStats(
-    BuildContext context,
-    CareerTotals career, {
-    bool isNarrow = false,
-  }) {
-    final dives = career.combinedDives;
+/// Stretch the glow to the header's aspect ratio, anchored at its origin.
+/// This affects only the static background, never the ocean-effect painter.
+class _HeaderHighlightTransform extends GradientTransform {
+  const _HeaderHighlightTransform();
 
-    final parts = <String>[];
-
-    // "N dives logged" would misdescribe a total that includes the diver's
-    // prior offset -- those dives are precisely the ones NOT logged in-app, and
-    // the Insights breakdown reserves "logged" for the in-app count. Divers
-    // without prior experience keep the original copy.
-    final String diveText;
-    if (career.hasPriorDives) {
-      diveText = dives == 1
-          ? context.l10n.dashboard_hero_divesTotalOne
-          : context.l10n.dashboard_hero_divesTotalOther(dives);
-    } else {
-      diveText = dives == 1
-          ? context.l10n.dashboard_hero_divesLoggedOne
-          : context.l10n.dashboard_hero_divesLoggedOther(dives);
-    }
-    parts.add(diveText);
-
-    final totalTimeSeconds = career.combinedTimeSeconds;
-    final hours = totalTimeSeconds / 3600;
-    if (hours >= 1) {
-      final hoursStr = hours < 10
-          ? hours.toStringAsFixed(1)
-          : hours.round().toString();
-      parts.add(context.l10n.dashboard_hero_hoursUnderwater(hoursStr));
-    } else if (totalTimeSeconds > 0) {
-      final minutes = totalTimeSeconds ~/ 60;
-      parts.add(context.l10n.dashboard_hero_minutesUnderwater(minutes));
-    }
-
-    return parts.join(isNarrow ? '\n' : ' • ');
+  @override
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
+    final center = const Alignment(-0.84, -1).withinRect(bounds);
+    return Matrix4.identity()
+      ..translateByDouble(center.dx, center.dy, 0, 1)
+      ..scaleByDouble(
+        bounds.width / bounds.shortestSide,
+        bounds.height / bounds.shortestSide,
+        1,
+        1,
+      )
+      ..translateByDouble(-center.dx, -center.dy, 0, 1);
   }
 }
 
-/// Subdued lifetime stats for the desktop hero: regular weight, reduced
-/// opacity, hairline dividers -- present but never louder than the
-/// greeting.
-class _QuietStats extends ConsumerWidget {
-  const _QuietStats();
+/// Career totals include prior experience; sites/countries remain logged-only.
+class _HeroStats extends ConsumerWidget {
+  final CareerTotals career;
+  final bool showPlaces;
+
+  const _HeroStats({required this.career, required this.showPlaces});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final careerAsync = ref.watch(careerTotalsProvider);
-    final quickAsync = ref.watch(dashboardQuickStatsProvider);
-    final career = careerAsync.valueOrNull;
-    if (career == null || career.combinedDives == 0) {
-      return const SizedBox.shrink();
-    }
-    // Sites stay logged-only: the prior-experience offset records dives and
-    // time, not the distinct sites behind them.
-    final totalSites = ref
-        .watch(diveStatisticsProvider)
-        .valueOrNull
-        ?.totalSites;
-    final countries = quickAsync.valueOrNull?.countriesVisited ?? 0;
-    final hours = (career.combinedTimeSeconds / 3600).round();
-
+    final l10n = context.l10n;
+    final seconds = career.combinedTimeSeconds;
+    final hours = seconds / 3600;
+    final shortDive = seconds > 0 && seconds < 3600;
     final items = <(String, String)>[
-      ('${career.combinedDives}', context.l10n.dashboard_hero_statDives),
-      ('$hours', context.l10n.dashboard_hero_statHours),
-      if (totalSites != null)
-        ('$totalSites', context.l10n.dashboard_hero_statSites),
-      if (countries > 0)
-        ('$countries', context.l10n.dashboard_hero_statCountries),
+      ('${career.combinedDives}', l10n.dashboard_hero_statDives),
+      (
+        shortDive
+            ? '${seconds ~/ 60}'
+            : hours > 0 && hours < 10
+            ? hours.toStringAsFixed(1)
+            : '${hours.round()}',
+        shortDive
+            ? l10n.insights_focus_unit_minutes
+            : l10n.dashboard_hero_statHours,
+      ),
     ];
-
-    final theme = Theme.of(context);
-    // FittedBox: at mid desktop widths the five stat columns can exceed
-    // the space between greeting and banner edge; scale down rather than
-    // overflow the row.
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < items.length; i++) ...[
-            if (i > 0)
-              Container(
-                width: 1,
-                height: 32,
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                color: Colors.white.withValues(alpha: 0.15),
-              ),
-            Column(
+    if (showPlaces) {
+      final sites = ref.watch(diveStatisticsProvider).valueOrNull?.totalSites;
+      final countries =
+          ref
+              .watch(dashboardQuickStatsProvider)
+              .valueOrNull
+              ?.countriesVisited ??
+          0;
+      if (sites != null) items.add(('$sites', l10n.dashboard_hero_statSites));
+      if (countries > 0) {
+        items.add(('$countries', l10n.dashboard_hero_statCountries));
+      }
+    }
+    final textTheme = Theme.of(context).textTheme;
+    return Wrap(
+      spacing: 24,
+      runSpacing: 12,
+      children: [
+        for (final (value, label) in items)
+          Semantics(
+            label: '$value $label',
+            excludeSemantics: true,
+            child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  items[i].$1,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.85),
-                    fontWeight: FontWeight.w400,
+                  value,
+                  style: textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
+                const SizedBox(height: 3),
                 Text(
-                  items[i].$2.toUpperCase(),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.55),
-                    letterSpacing: 1.2,
-                    fontSize: 10,
+                  label.toUpperCase(),
+                  style: textTheme.labelSmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    letterSpacing: 0.5,
                   ),
                 ),
               ],
             ),
-          ],
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

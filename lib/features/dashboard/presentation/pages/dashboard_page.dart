@@ -137,6 +137,9 @@ class DashboardPage extends ConsumerWidget {
     final entries = buildDashboardEntries(visibleCards);
 
     return Scaffold(
+      backgroundColor: Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF121212)
+          : Colors.white,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -162,7 +165,9 @@ class DashboardPage extends ConsumerWidget {
               // Demo mode's way out heads the page (issue #4436).
               const SliverToBoxAdapter(child: DemoModeDashboardCard()),
               SliverPadding(
-                padding: const EdgeInsets.all(16),
+                padding: chosenCards.isEmpty
+                    ? const EdgeInsets.all(16)
+                    : EdgeInsets.zero,
                 // Keyed off chosenCards, not visibleCards: a strip forced back
                 // by a safety alert renders above the CTA rather than replacing
                 // it, so the diver keeps the route to re-enable their cards.
@@ -179,7 +184,7 @@ class DashboardPage extends ConsumerWidget {
                           ],
                         ),
                       )
-                    : DashboardGrid(entries: entries),
+                    : DashboardGrid(entries: entries, contentPadding: 16),
               ),
             ],
           ),

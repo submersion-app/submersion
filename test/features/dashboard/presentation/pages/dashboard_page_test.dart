@@ -202,6 +202,24 @@ Future<void> pumpDashboard(
 }
 
 void main() {
+  for (final width in [500.0, 1200.0]) {
+    testWidgets('hero reaches page edges at $width while content stays inset', (
+      tester,
+    ) async {
+      tester.view.physicalSize = Size(width, 900);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await pumpDashboard(tester);
+      final hero = tester.getRect(find.byType(HeroHeader));
+      final content = tester.getRect(find.byType(RecentDivesCard));
+      expect(hero.left, 0);
+      expect(hero.right, width);
+      expect(hero.top, 0);
+      expect(content.left, 16);
+      expect(content.right, lessThanOrEqualTo(width - 16));
+    });
+  }
+
   testWidgets('empty data renders always-on blocks, hides conditional cards', (
     tester,
   ) async {

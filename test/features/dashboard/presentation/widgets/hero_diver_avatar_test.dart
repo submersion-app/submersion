@@ -137,14 +137,15 @@ void main() {
       expect(find.byIcon(Icons.swap_horiz), findsNothing);
     });
 
-    testWidgets('single-profile greeting keeps the pre-avatar 18px inset', (
-      tester,
-    ) async {
-      await pumpHeader(tester, diver: () async => _eric, divers: [_eric]);
+    testWidgets(
+      'single-profile greeting keeps the 20px inset without an avatar',
+      (tester) async {
+        await pumpHeader(tester, diver: () async => _eric, divers: [_eric]);
 
-      final headerLeft = tester.getTopLeft(find.byType(HeroHeader)).dx;
-      expect(tester.getTopLeft(greeting()).dx - headerLeft, 18);
-    });
+        final headerLeft = tester.getTopLeft(find.byType(HeroHeader)).dx;
+        expect(tester.getTopLeft(greeting()).dx - headerLeft, 20);
+      },
+    );
 
     testWidgets('shows the avatar with its swap badge for two profiles', (
       tester,
@@ -153,9 +154,9 @@ void main() {
 
       expect(find.text('EG'), findsOneWidget);
       expect(find.byIcon(Icons.swap_horiz), findsOneWidget);
-      // 18px inset, 44px tap target, 8px gap.
+      // 20px inset, 44px tap target, 8px gap.
       final headerLeft = tester.getTopLeft(find.byType(HeroHeader)).dx;
-      expect(tester.getTopLeft(greeting()).dx - headerLeft, 70);
+      expect(tester.getTopLeft(greeting()).dx - headerLeft, 72);
     });
 
     testWidgets('keeps the current avatar while the next diver loads', (
