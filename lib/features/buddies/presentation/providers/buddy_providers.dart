@@ -26,20 +26,31 @@ final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {
   return BuddyRepository();
 });
 
-/// Self-invalidates on any change a buddy's dive count reads, or the buddy
-/// listed beside it, whose primary certification is derived from the
-/// certifications table (issue #4496).
+/// Self-invalidates on any change a buddy's dive count reads.
 ///
 /// Two separate subscriptions on purpose, not one merged stream: an
-/// undebounced tick on `buddies` and the certification tables (a rename,
-/// favorite toggle or cert edit should refresh instantly, matching how the
-/// button that triggered it reads its own state) plus [DiveRepository.watchDivesChangesWithBuddyLinks], which
+/// undebounced tick on `buddies` (a rename or favorite toggle should refresh
+/// instantly, matching how the button that triggered it reads its own
+/// state) plus [DiveRepository.watchDivesChangesWithBuddyLinks], which
 /// unions `dives` with the junction table `dive_buddies` and `buddies`
 /// again but debounced. A buddy link written by a sync pull touches only
 /// `dive_buddies` and never restamps the parent dive (#1769/#1915), so
 /// watching plain `dives` alone missed it (#2084).
-void invalidateOnBuddyDiveChanges(Ref ref, BuddyRepository repository) {
-  ref.invalidateSelfWhen(repository.watchHydratedBuddiesChanges());
+///
+/// [readsBuddies] is for a provider that also returns the hydrated buddies,
+/// whose primary certification is derived from the certification tables:
+/// it follows those too (issue #4496). Stats and dive-id reads leave it off
+/// so a certification edit does not reload them.
+void invalidateOnBuddyDiveChanges(
+  Ref ref,
+  BuddyRepository repository, {
+  bool readsBuddies = true,
+}) {
+  ref.invalidateSelfWhen(
+    readsBuddies
+        ? repository.watchHydratedBuddiesChanges()
+        : repository.watchBuddiesChanges(),
+  );
   ref.invalidateSelfWhen(
     ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
   );
@@ -270,7 +281,7 @@ final buddyStatsProvider = FutureProvider.family<BuddyStats, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  invalidateOnBuddyDiveChanges(ref, repository);
+  invalidateOnBuddyDiveChanges(ref, repository, readsBuddies: false);
   return repository.getBuddyStats(buddyId);
 });
 
@@ -284,7 +295,7 @@ final diveIdsForBuddyProvider = FutureProvider.family<List<String>, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  invalidateOnBuddyDiveChanges(ref, repository);
+  invalidateOnBuddyDiveChanges(ref, repository, readsBuddies: false);
   return repository.getDiveIdsForBuddy(buddyId);
 });
 

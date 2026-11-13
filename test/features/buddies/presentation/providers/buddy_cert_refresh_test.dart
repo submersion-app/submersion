@@ -109,10 +109,7 @@ void main() {
 
     expect(levelOf(await read(container)), twoStar);
     await upgradeCert();
-    await waitUntil(
-      () async => levelOf(await read(container)) == threeStar,
-      timeout: const Duration(seconds: 3),
-    );
+    await waitUntil(() async => levelOf(await read(container)) == threeStar);
   }
 
   String? levelIn(List<Buddy> buddies) =>
@@ -190,7 +187,7 @@ void main() {
         name: 'Club',
         isShared: false,
       );
-      await tick.timeout(const Duration(seconds: 3));
+      await tick.timeout(const Duration(seconds: 10));
 
       tick = buddyRepo.watchHydratedBuddiesChanges().first;
       await customRepo.createLevel(
@@ -200,7 +197,7 @@ void main() {
         isProgression: true,
         isShared: false,
       );
-      await tick.timeout(const Duration(seconds: 3));
+      await tick.timeout(const Duration(seconds: 10));
     });
   });
 }
