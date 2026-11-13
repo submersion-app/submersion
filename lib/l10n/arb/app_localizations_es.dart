@@ -1440,7 +1440,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora? «A partir de ahora» mantiene su material y desvincula el equipo de ellas.';
+      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora? «A partir de ahora» mantiene su equipo y desvincula el conjunto de ellas.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5469,24 +5469,24 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLog_gear_removeSet => 'Quitar el equipo de esta inmersión';
+  String get diveLog_gear_removeSet => 'Quitar el conjunto de esta inmersión';
 
   @override
   String get diveLog_gear_removeSetTitle =>
-      '¿Quitar el equipo de esta inmersión?';
+      '¿Quitar el conjunto de esta inmersión?';
 
   @override
   String get diveLog_gear_removeSetBody =>
-      '¿Quitar también el material que añadió este equipo, o mantener el material en la inmersión y solo desvincular el equipo?';
+      '¿Quitar también el equipo que añadió este conjunto, o mantener el equipo en la inmersión y solo desvincular el conjunto?';
 
   @override
-  String get diveLog_gear_removeSetKeepGear => 'Mantener material';
+  String get diveLog_gear_removeSetKeepGear => 'Mantener equipo';
 
   @override
-  String get diveLog_gear_removeSetRemoveGear => 'Quitar material';
+  String get diveLog_gear_removeSetRemoveGear => 'Quitar equipo';
 
   @override
-  String get diveLog_gear_unknownSet => 'Equipo';
+  String get diveLog_gear_unknownSet => 'Conjunto';
 
   @override
   String get diveLog_health_after15 => 'Después de 15 min';
