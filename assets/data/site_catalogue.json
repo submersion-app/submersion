@@ -14,7 +14,7 @@
       "curated": {
         "name": "Submersion",
         "licence": "ODbL-1.0",
-        "licence_url": "https://www.openstreetmap.org/copyright",
+        "licence_url": "https://opendatacommons.org/licenses/odbl/1-0/",
         "credit": "Submersion contributors"
       }
     }
@@ -2955,7 +2955,7 @@
       "country_code": "ID",
       "country": "Indonesia",
       "region": "Nusa Tenggara Barat",
-      "website": "www.dare2travel.nl",
+      "website": "https://www.dare2travel.nl",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/4201455791",
       "trust": "verified"
@@ -3230,7 +3230,7 @@
       "country": "Indonesia",
       "region": "Bali",
       "description": "Very nice and good dive center with international dive masters and instructors.",
-      "website": "www.driftdiving.blogspot.com",
+      "website": "https://www.driftdiving.blogspot.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/5091152979",
       "trust": "verified"
@@ -3933,7 +3933,7 @@
       "country": "Indonesia",
       "region": "Sulawesi Tengah",
       "description": "Our view out to the Tomini bay is amazing",
-      "website": "togeanadventures.com",
+      "website": "https://togeanadventures.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/5389892922",
       "trust": "verified"
@@ -3946,7 +3946,7 @@
       "country_code": "ID",
       "country": "Indonesia",
       "region": "Sulawesi Tengah",
-      "website": "togeanadventures.com",
+      "website": "https://togeanadventures.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/5389936693",
       "trust": "verified"
@@ -3960,7 +3960,7 @@
       "country": "Indonesia",
       "region": "Sulawesi Tengah",
       "description": "Balu reef is a very nice fish spot",
-      "website": "togeanadventures.com",
+      "website": "https://togeanadventures.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/5643671518",
       "trust": "verified"
@@ -3973,7 +3973,7 @@
       "country_code": "ID",
       "country": "Indonesia",
       "region": "Sulawesi Tengah",
-      "website": "togeanadventures.com",
+      "website": "https://togeanadventures.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/5643700414",
       "trust": "verified"
@@ -16629,7 +16629,7 @@
       "country_code": "BS",
       "country": "Bahamas",
       "region": "Central Abaco",
-      "website": "www.diveabaco.com",
+      "website": "https://www.diveabaco.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/3425099796",
       "trust": "verified"
@@ -16643,7 +16643,7 @@
       "country": "Bahamas",
       "region": "Exuma",
       "description": "Scuba diving, deep sea & bone fishing, kitesurfing, land tours, snorkling, boat charters, boat & paddle tours.",
-      "website": "www.ExumaExperience.com",
+      "website": "https://www.ExumaExperience.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/3483175598",
       "trust": "verified"
@@ -22627,7 +22627,7 @@
       "country_code": "GR",
       "country": "Greece",
       "region": "Περιφέρεια Νοτίου Αιγαίου",
-      "website": "Aegeandivers.com",
+      "website": "https://Aegeandivers.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/3796766500",
       "trust": "verified"
@@ -30145,8 +30145,8 @@
       "name": "Diepoldsau Strandbad Einstieg 2 Winter",
       "lat": 47.380574,
       "lon": 9.672247,
-      "country_code": "AT",
-      "country": "Austria",
+      "country_code": "CH",
+      "country": "Switzerland",
       "region": "Vorarlberg",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/665087352",
@@ -30157,8 +30157,8 @@
       "name": "Diepoldsau Strandbad Einstieg 1 Badebetrieb",
       "lat": 47.379986,
       "lon": 9.671805,
-      "country_code": "AT",
-      "country": "Austria",
+      "country_code": "CH",
+      "country": "Switzerland",
       "region": "Vorarlberg",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/665087353",
@@ -30169,8 +30169,8 @@
       "name": "Diepoldsau Sportplatz",
       "lat": 47.382348,
       "lon": 9.672494,
-      "country_code": "AT",
-      "country": "Austria",
+      "country_code": "CH",
+      "country": "Switzerland",
       "region": "Vorarlberg",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/665087354",
@@ -33842,7 +33842,7 @@
       "country_code": "FR",
       "country": "France",
       "region": "Auvergne-Rhône-Alpes",
-      "website": "thalassalyonplongee.fr",
+      "website": "https://thalassalyonplongee.fr",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/node/13162128720",
       "trust": "verified"
@@ -33958,7 +33958,7 @@
     {
       "id": "osm_way_179138978",
       "name": "GRASM - CEFERAS Centre de plongée",
-      "website": "www.grasm-plongee.com",
+      "website": "https://www.grasm-plongee.com",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/way/179138978",
       "trust": "verified"
@@ -44078,7 +44078,7 @@
       "id": "osm_way_46946539",
       "name": "Zur Anne",
       "description": "ehem. Steinbruch Rocc & Co",
-      "website": "www.granite-diving.de",
+      "website": "https://www.granite-diving.de",
       "source": "osm",
       "source_ref": "https://www.openstreetmap.org/way/46946539",
       "trust": "verified"
