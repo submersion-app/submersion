@@ -178,6 +178,20 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
     );
   }
 
+  /// [peak]'s rate on the chart's shared scale, so it reads in the unit the
+  /// axis does even where another column's cylinder can't convert.
+  String _formatPeak(SacSegment peak) {
+    final tankIds = [for (final s in widget.timeSegments) s.tankId];
+    return widget.rates.formatComparable(
+      widget.rates.comparable(
+        peak.sacRate,
+        tankId: peak.tankId,
+        among: tankIds,
+      ),
+      among: tankIds,
+    );
+  }
+
   /// The gas the whole dive used, or null where its cylinders' gas can't be
   /// added up.
   ///
@@ -206,7 +220,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
         ),
         SacSummaryFigure(
           label: l10n.diveLog_detail_sacSegments_summaryPeak,
-          value: rates.format(peak.sacRate, tankId: peak.tankId),
+          value: _formatPeak(peak),
         ),
         if (used != null)
           SacSummaryFigure(
@@ -307,7 +321,7 @@ class _SacSegmentsViewState extends State<SacSegmentsView> {
                       ),
                     ].join(' · ')
                   : l10n.diveLog_detail_sacSegments_peak(
-                      rates.format(peak.sacRate, tankId: peak.tankId),
+                      _formatPeak(peak),
                       _timeRange(peak),
                     ),
               style: theme.textTheme.bodySmall,

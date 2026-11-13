@@ -411,6 +411,22 @@ void main() {
       expect(find.text('20 L'), findsOneWidget);
     });
 
+    testWidgets('gives the peak in the unit of the chart axis', (tester) async {
+      // The stage can't convert, so the whole chart reads in bar/min.
+      await pumpSacSegmentsView(
+        tester,
+        time: [
+          sacSegment(0, 5, sacRate: 2.0, tankId: 'back'),
+          sacSegment(5, 10, sacRate: 1.0, tankId: 'stage'),
+        ],
+        rates: sacRates(volumeFor: (id) => id == 'stage' ? null : 10.0),
+      );
+
+      expect(find.text('2.0 bar/min'), findsNWidgets(2)); // Summary and axis.
+      expect(find.text('Peak 2.0 bar/min at 0-5 min'), findsOneWidget);
+      expect(find.text('20.0 L/min'), findsNothing);
+    });
+
     testWidgets('totals the time chart on a dive on one cylinder', (
       tester,
     ) async {
