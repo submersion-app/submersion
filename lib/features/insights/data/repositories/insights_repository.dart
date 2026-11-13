@@ -2780,15 +2780,13 @@ class InsightsRepository with InsightsChartDives {
   }) async {
     try {
       final diverFilter = diverId != null ? 'AND d.diver_id = ?' : '';
-      final df = statsScoped
+      final view = statsScoped ? null : _viewFilterOnly(filter, alias: 'd');
+      final df = view == null
           ? _diveFilter(filter, alias: 'd')
-          : (() {
-              final view = _viewFilterOnly(filter, alias: 'd');
-              return (
-                clause: ' AND NOT ${diveUndivedSql('d')}${view.clause}',
-                params: view.params,
-              );
-            })();
+          : (
+              clause: ' AND NOT ${diveUndivedSql('d')}${view.clause}',
+              params: view.params,
+            );
       // One bind for any number of ids, so no variable limit applies.
       final idFilter = onlyDiveIds == null
           ? ''

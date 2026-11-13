@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
@@ -7,6 +8,7 @@ import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 import 'package:submersion/features/dive_log/presentation/providers/analysis_settings_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -47,6 +49,12 @@ final diveDecoStatusRepositoryProvider = Provider<DiveDecoStatusRepository>(
 final diveDecoStatusCacheProvider = FutureProvider.autoDispose<int>((
   ref,
 ) async {
+  // A database reopened in place (a storage move) leaves the table ticks
+  // below on the closed connection, so a new instance re-runs the pass.
+  final reopened = DatabaseService.instance.generationChanges.listen((_) {
+    ref.invalidateSelf();
+  });
+  ref.onDispose(reopened.cancel);
   // The id every reader scopes its query by, and that
   // `prepareQueryCachesFor` compares against: the raw id can be null or a
   // removed diver's, which would judge every profile's dives (or none of the
@@ -197,8 +205,36 @@ Future<_Judgment?> _judgeDiverDives(
       for (final id in scan.needsCompute.keys)
         if (verdicts.containsKey(id)) id,
       ...scan.noProfile,
+      // Plans nobody has dived are not judged, but answered for with no
+      // verdict: a dive turned into one must not keep the row it had.
+      ...await _undivedPlanIds(
+        DatabaseService.instance.database,
+        diverId,
+        among: onlyDiveIds,
+      ),
     },
   );
+}
+
+/// [diverId]'s plans nobody has dived (every diver's with none), or those
+/// among [among] when given.
+Future<Set<String>> _undivedPlanIds(
+  AppDatabase db,
+  String? diverId, {
+  Set<String>? among,
+}) async {
+  final rows = await db
+      .customSelect(
+        'SELECT d.id AS id FROM dives d '
+        'WHERE (?1 IS NULL OR d.diver_id = ?1) AND ${diveUndivedSql('d')} '
+        '${among == null ? '' : 'AND d.id IN (SELECT value FROM json_each(?2))'}',
+        variables: [
+          Variable<String>(diverId),
+          if (among != null) Variable<String>(jsonEncode(among.toList())),
+        ],
+      )
+      .get();
+  return {for (final r in rows) r.read<String>('id')};
 }
 
 /// A probe for the [Ref] of a throwaway container, for the services that
@@ -231,60 +267,91 @@ List<TableUpdateQuery> _verdictInputTables(AppDatabase db) => [
 TableUpdateQuery _divesQuery(AppDatabase db) =>
     TableUpdateQuery.onTable(db.dives);
 
-/// The `dives` columns a deco verdict can depend on: the dive's identity and
-/// timing (its own and its residual lookback), its site and environment,
-/// its gradient factors and algorithm, its mode and rebreather settings,
-/// the computer's starting loads and tissues, and whether it is a plan or a
-/// draft. Everything else on the row (a rating, notes, people, weather) is
-/// read by no analysis.
-const _decoDiveColumns = [
-  'id',
-  'diver_id',
-  'dive_date_time',
-  'entry_time',
-  'exit_time',
-  'bottom_time',
-  'runtime',
-  'max_depth',
-  'avg_depth',
-  'site_id',
-  'water_type',
-  'altitude',
-  'surface_pressure',
-  'surface_interval_seconds',
-  'gradient_factor_low',
-  'gradient_factor_high',
-  'deco_algorithm',
-  'deco_conservatism',
-  'computer_tissue_json',
-  'gas_switches_edited',
-  'dive_mode',
-  'cns_start',
-  'cns_end',
-  'otu',
-  'setpoint_low',
-  'setpoint_high',
-  'setpoint_deco',
-  'scr_type',
-  'scr_injection_rate',
-  'scr_addition_ratio',
-  'scr_orifice_size',
-  'diluent_he',
-  'loop_volume',
-  'is_planned',
-  'is_draft',
-  'outing_id',
-  'computer_id',
+/// The `dives` columns no analysis reads: the dive's description, its
+/// people and places as text, its ratings and conditions as logged, its
+/// weather, its gear's weighting, and bookkeeping. Every other column counts
+/// toward [_decoDiveColumnsSignature]. A denylist on purpose: a column added
+/// later is read by the signature until it is known to be irrelevant, so a
+/// miss costs one needless scan rather than a stale verdict.
+const _irrelevantDiveColumns = {
+  'dive_number',
+  'name',
+  'water_temp',
+  'air_temp',
+  'visibility',
+  'visibility_meters',
+  'visibility_min_meters',
+  'visibility_max_meters',
+  'dive_type',
+  'buddy',
+  'dive_master',
+  'diver_role',
+  'boat_name',
+  'boat_captain',
+  'dive_operator',
+  'surface_conditions',
+  'notes',
+  'rating',
+  'dive_center_id',
+  'trip_id',
+  'course_id',
+  'current_direction',
+  'current_strength',
+  'swell_height',
+  'entry_method',
+  'exit_method',
+  'dive_computer_model',
+  'dive_computer_serial',
+  'dive_computer_firmware',
+  'weight_amount',
+  'weight_type',
+  'weighting_feedback',
+  'weighting_feedback_kg',
+  'is_favorite',
+  'excluded_from_stats',
+  'excluded_from_gas_stats',
+  'import_source',
+  'import_id',
+  'import_version',
+  'wind_speed',
+  'wind_direction',
+  'cloud_cover',
+  'precipitation',
+  'humidity',
+  'weather_description',
+  'weather_source',
+  'weather_fetched_at',
+  'weather_code',
+  'entry_latitude',
+  'entry_longitude',
+  'exit_latitude',
+  'exit_longitude',
+  'site_suggestion_dismissed_at',
+  // Bookkeeping: every edit moves these, which is what this filter exists to
+  // see past.
+  'created_at',
+  'updated_at',
+  'hlc',
+};
+
+/// The `dives` columns a deco verdict can depend on, as the database has
+/// them: every column but [_irrelevantDiveColumns].
+Future<List<String>> _decoDiveColumns(AppDatabase db) async => [
+  for (final row in await db.customSelect("PRAGMA table_info('dives')").get())
+    if (!_irrelevantDiveColumns.contains(row.read<String>('name')))
+      row.read<String>('name'),
 ];
 
-/// A hash of [_decoDiveColumns] over [diverId]'s dives (every diver's with
+/// A hash of the [_decoDiveColumns] of [diverId]'s dives (every diver's with
 /// none), so a `dives` write that moved none of them can be told apart from
 /// one that did. One read of one table, far cheaper than the scan it saves.
 Future<int> _decoDiveColumnsSignature(AppDatabase db, String? diverId) async {
+  final columns = await _decoDiveColumns(db);
   final rows = await db
       .customSelect(
-        'SELECT ${_decoDiveColumns.join(', ')} FROM dives '
-        'WHERE diver_id IS ? ORDER BY id',
+        'SELECT ${columns.map((c) => '"$c"').join(', ')} FROM dives '
+        // A null id scans every diver's dives, so it hashes every one too.
+        'WHERE (?1 IS NULL OR diver_id = ?1) ORDER BY id',
         variables: [Variable<String>(diverId)],
       )
       .get();

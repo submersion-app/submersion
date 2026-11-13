@@ -515,6 +515,29 @@ void main() {
     expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
   });
 
+  test(
+    'a dive turned into a plan nobody has dived loses its verdict',
+    () async {
+      // The pass never scans such a plan, so it must still clear the row the
+      // dive had before, or the plan keeps matching deco.
+      await insertDive('deep');
+      await insertProfile('deep', _square(40, 25));
+      final container = await makeContainer();
+      final sub = container.listen(diveDecoStatusCacheProvider, (_, _) {});
+      addTearDown(sub.close);
+      await container.read(diveDecoStatusCacheProvider.future);
+      expect(await DiveDecoStatusRepository().verdicts(), {'deep': true});
+
+      await (db.update(db.dives)..where((t) => t.id.equals('deep'))).write(
+        const DivesCompanion(isPlanned: Value(true)),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await container.read(diveDecoStatusCacheProvider.future);
+
+      expect(await DiveDecoStatusRepository().verdicts(), isEmpty);
+    },
+  );
+
   test('a plan nobody has dived is not analyzed for a search', () async {
     // The search classifies the dives the diver logged; a saved plan is not
     // one, and analyzing every plan would lengthen a cold first pass.
@@ -592,8 +615,47 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 500));
       await container.read(diveDecoStatusCacheProvider.future);
       expect(scans, 2);
+
+      // The rebreather loop model reads the diluent's O2 and the assumed VO2.
+      await (db.update(db.dives)..where((t) => t.id.equals('deep'))).write(
+        const DivesCompanion(diluentO2: Value(21)),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await container.read(diveDecoStatusCacheProvider.future);
+      expect(scans, 3);
+
+      await (db.update(db.dives)..where((t) => t.id.equals('deep'))).write(
+        const DivesCompanion(assumedVo2: Value(1.6)),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await container.read(diveDecoStatusCacheProvider.future);
+      expect(scans, 4);
     },
   );
+
+  test('the writer follows a database reopened in place', () async {
+    // A storage-location move installs a new database without a restart:
+    // a writer still on the old connection would never see a later edit.
+    var scans = 0;
+    final container = ProviderContainer(
+      overrides: [
+        ...(await getBaseOverrides()).cast(),
+        insightsRepositoryProvider.overrideWith(
+          (ref) => _ScanHook(() => scans++),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    final sub = container.listen(diveDecoStatusCacheProvider, (_, _) {});
+    addTearDown(sub.close);
+    await container.read(diveDecoStatusCacheProvider.future);
+    expect(scans, 1);
+
+    db = await setUpTestDatabase();
+    await pumpEventQueue();
+    await container.read(diveDecoStatusCacheProvider.future);
+    expect(scans, 2);
+  });
 
   test('verdicts judged on fallback settings after a failed load are not '
       'mirrored', () async {

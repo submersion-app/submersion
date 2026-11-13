@@ -95,7 +95,7 @@ class DiveDecoStatusRepository {
         )..where((t) => t.diveId.isIn(chunk))).get(),
     ];
     final existing = {for (final r in rows) r.diveId: r.hadDeco};
-    final touched = _lastWrites[_db] ??= <String, int>{};
+    final touched = _lastWrites[_db] ?? const <String, int>{};
     // A row's own stamp, or the stamp of the write that removed it or found
     // it needed none: a deletion leaves no row to carry the newer stamp. A
     // row stamped later than any stamp this process has taken was written
@@ -122,10 +122,13 @@ class DiveDecoStatusRepository {
     // Every dive this write judged, written or not, as of [computedAt]: an
     // older pass must not undo it. Recorded only once the rows are written,
     // so a batch that fails (and rolls back) protects nothing it never wrote.
+    // A new map rather than an edit of the stored one.
     void recordJudged() {
-      for (final id in within) {
-        if (!kept.contains(id)) touched[id] = computedAt;
-      }
+      _lastWrites[_db] = {
+        ...?_lastWrites[_db],
+        for (final id in within)
+          if (!kept.contains(id)) id: computedAt,
+      };
     }
 
     if (stale.isEmpty && changed.isEmpty) {
