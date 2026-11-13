@@ -4,13 +4,14 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_candidate.dart';
 import 'package:submersion/features/dive_sites/domain/matching/match_thresholds.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_outcome.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_matcher.dart';
+import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/services/photo_gps_point_selector.dart';
 
@@ -111,7 +112,7 @@ typedef _ResolvedPoint = ({GeoPoint point, PointSource source});
 /// Resolved candidate objects retained per dive so apply can act on a chosen id.
 class _CandidateRef {
   final DiveSite? existing; // link the dive to this site
-  final ExternalDiveSite? bundled; // materialise, then link
+  final CatalogueSite? bundled; // adopt, then link
   final DiveSite? currentSite; // keep the dive's site, give it coordinates
   const _CandidateRef.existing(this.existing)
     : bundled = null,
@@ -132,7 +133,8 @@ enum _ApplyOutcome { linked, created, located }
 class SiteMatchingService {
   SiteMatchingService({
     required SiteRepository siteRepository,
-    required DiveSiteApiService apiService,
+    required SiteCatalogue catalogue,
+    required CatalogueAdoptionService adoption,
     required DiveRepository diveRepository,
     required MediaRepository mediaRepository,
     required this.diverId,
@@ -140,7 +142,8 @@ class SiteMatchingService {
     TransactionRunner? runInTransaction,
     this.fetchElevation,
   }) : _siteRepository = siteRepository,
-       _apiService = apiService,
+       _catalogue = catalogue,
+       _adoption = adoption,
        _diveRepository = diveRepository,
        _mediaRepository = mediaRepository,
        _runInTransaction =
@@ -148,7 +151,8 @@ class SiteMatchingService {
            ((body) => DatabaseService.instance.database.transaction(body));
 
   final SiteRepository _siteRepository;
-  final DiveSiteApiService _apiService;
+  final SiteCatalogue _catalogue;
+  final CatalogueAdoptionService _adoption;
   final DiveRepository _diveRepository;
   final MediaRepository _mediaRepository;
   final String? diverId;
@@ -211,10 +215,9 @@ class SiteMatchingService {
       final point = resolved.point;
       _pointByDive[dive.id] = point;
 
-      final bundled = await _apiService.searchNearby(
-        latitude: point.latitude,
-        longitude: point.longitude,
-        radiusKm: thresholds.outerRadiusMeters / 1000.0,
+      final bundled = await _catalogue.near(
+        point,
+        radiusMeters: thresholds.outerRadiusMeters,
       );
 
       final refs = <String, _CandidateRef>{};
@@ -225,15 +228,12 @@ class SiteMatchingService {
           MatchCandidate(id: s.id, location: s.location!, isExisting: true),
         );
       }
-      for (final b in bundled.sites) {
-        if (!b.hasCoordinates) continue;
-        refs[b.externalId] = _CandidateRef.bundled(b);
+      for (final b in bundled) {
+        final location = b.location;
+        if (location == null) continue;
+        refs[b.id] = _CandidateRef.bundled(b);
         candidates.add(
-          MatchCandidate(
-            id: b.externalId,
-            location: GeoPoint(b.latitude!, b.longitude!),
-            isExisting: false,
-          ),
+          MatchCandidate(id: b.id, location: location, isExisting: false),
         );
       }
       _refsByDive[dive.id] = refs;
@@ -339,18 +339,21 @@ class SiteMatchingService {
     }
     final b = ref.bundled!;
     return MatchCandidateView(
-      id: b.externalId,
+      id: b.id,
       name: b.name,
       isExisting: false,
       distanceMeters: distance,
-      location: GeoPoint(b.latitude!, b.longitude!),
+      // Only located catalogue sites become candidates.
+      location: b.location!,
+      minDepth: b.minDepth,
       maxDepth: b.maxDepth,
       country: b.country,
-      region: b.region ?? b.ocean,
-      features: b.features,
-      description: (b.description == null || b.description!.isEmpty)
-          ? null
-          : b.description,
+      region: b.region,
+      difficulty: b.difficulty?.name,
+      // What the review card lists: the site's types, then the source's
+      // other tags (drift, sharks).
+      features: [...b.typeIds, ...b.features],
+      description: b.description,
     );
   }
 
@@ -443,12 +446,23 @@ class SiteMatchingService {
     }
 
     final bundled = ref.bundled!;
-    final point = GeoPoint(bundled.latitude!, bundled.longitude!);
+    final point = bundled.location!;
 
     // Batch dedup: this bundled site already materialised in this pass?
-    final dedupId = _createdByExternalId[bundled.externalId];
+    final dedupId = _createdByExternalId[bundled.id];
     if (dedupId != null) {
       await _diveRepository.setSite(diveId, dedupId);
+      return _ApplyOutcome.linked;
+    }
+
+    // Already adopted, wherever the diver has since moved it? The link is a
+    // surer sign of the same site than the distance guard below.
+    final adopted = await _siteRepository.getSiteByCatalogueId(
+      bundled.id,
+      diverId: diverId,
+    );
+    if (adopted != null) {
+      await _diveRepository.setSite(diveId, adopted.id);
       return _ApplyOutcome.linked;
     }
 
@@ -460,13 +474,15 @@ class SiteMatchingService {
       }
     }
 
-    // Materialise the bundled site, then link.
-    final createdSite = await _siteRepository.createSite(
-      bundled.toDiveSite(diverId: diverId),
-      // Its bundled features as site types (issue #1765).
-      classification: SiteClassification(typeIds: bundled.siteTypeIds),
+    // Adopt the catalogue site through the one adoption path, so it gets
+    // the same details and link as a site picked anywhere else, then link.
+    // Altitude is filled by [_fillAltitudes] once the transaction commits.
+    final createdSite = await _adoption.adopt(
+      bundled,
+      diverId: diverId,
+      fillAltitude: false,
     );
-    _createdByExternalId[bundled.externalId] = createdSite.id;
+    _createdByExternalId[bundled.id] = createdSite.id;
     if (createdSite.altitude == null) _locatedThisPass[createdSite.id] = point;
     await _diveRepository.setSite(diveId, createdSite.id);
     return _ApplyOutcome.created;

@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
@@ -15,7 +16,8 @@ final siteMatchingServiceFactoryProvider =
     Provider<SiteMatchingService Function(String? diverId)>((ref) {
       return (diverId) => SiteMatchingService(
         siteRepository: ref.read(siteRepositoryProvider),
-        apiService: ref.read(diveSiteApiServiceProvider),
+        catalogue: ref.read(siteCatalogueProvider),
+        adoption: ref.read(catalogueAdoptionServiceProvider),
         diveRepository: ref.read(diveRepositoryProvider),
         mediaRepository: ref.read(mediaRepositoryProvider),
         diverId: diverId,
