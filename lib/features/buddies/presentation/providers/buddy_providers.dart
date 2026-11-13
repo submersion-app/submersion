@@ -26,18 +26,20 @@ final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {
   return BuddyRepository();
 });
 
-/// Self-invalidates on any change a buddy's dive count reads.
+/// Self-invalidates on any change a buddy's dive count reads, or the buddy
+/// listed beside it, whose primary certification is derived from the
+/// certifications table (issue #4496).
 ///
 /// Two separate subscriptions on purpose, not one merged stream: an
-/// undebounced tick on `buddies` (a rename or favorite toggle should refresh
-/// instantly, matching how the button that triggered it reads its own
-/// state) plus [DiveRepository.watchDivesChangesWithBuddyLinks], which
+/// undebounced tick on `buddies` and the certification tables (a rename,
+/// favorite toggle or cert edit should refresh instantly, matching how the
+/// button that triggered it reads its own state) plus [DiveRepository.watchDivesChangesWithBuddyLinks], which
 /// unions `dives` with the junction table `dive_buddies` and `buddies`
 /// again but debounced. A buddy link written by a sync pull touches only
 /// `dive_buddies` and never restamps the parent dive (#1769/#1915), so
 /// watching plain `dives` alone missed it (#2084).
 void invalidateOnBuddyDiveChanges(Ref ref, BuddyRepository repository) {
-  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
+  ref.invalidateSelfWhen(repository.watchHydratedBuddiesChanges());
   ref.invalidateSelfWhen(
     ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
   );
@@ -45,8 +47,9 @@ void invalidateOnBuddyDiveChanges(Ref ref, BuddyRepository repository) {
 
 /// All buddies provider (filtered by current diver).
 ///
-/// A one-shot read that self-invalidates whenever the `buddies` table changes
-/// (a sync apply, a local create/edit/delete, ...), so list UIs refresh
+/// A one-shot read that self-invalidates whenever a buddy or a certification
+/// it is shown with changes (a sync apply, a local create/edit/delete, ...;
+/// see [BuddyRepository.watchHydratedBuddiesChanges]), so list UIs refresh
 /// automatically while imperative `ref.read(allBuddiesProvider.future)` reads
 /// still resolve.
 final allBuddiesProvider = FutureProvider<List<Buddy>>((ref) async {
@@ -55,7 +58,7 @@ final allBuddiesProvider = FutureProvider<List<Buddy>>((ref) async {
     validatedCurrentDiverIdProvider.future,
   );
 
-  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
+  ref.invalidateSelfWhen(repository.watchHydratedBuddiesChanges());
 
   return repository.getAllBuddies(diverId: validatedDiverId);
 });
@@ -226,7 +229,7 @@ final buddyByIdProvider = FutureProvider.family<Buddy?, String>((
   id,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
+  ref.invalidateSelfWhen(repository.watchHydratedBuddiesChanges());
   return repository.getBuddyById(id);
 });
 
@@ -252,7 +255,7 @@ final buddySearchProvider = FutureProvider.family<List<Buddy>, String>((
     return ref.watch(allBuddiesProvider).value ?? [];
   }
   final repository = ref.watch(buddyRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
+  ref.invalidateSelfWhen(repository.watchHydratedBuddiesChanges());
   return repository.searchBuddies(query, diverId: validatedDiverId);
 });
 
@@ -361,10 +364,11 @@ class BuddyListNotifier extends StateNotifier<AsyncValue<List<Buddy>>> {
       }
     });
 
-    // Reload when the `buddies` table changes (e.g. a sync writes rows
-    // directly) so surfaces watching this notifier (e.g. the buddy summary)
-    // refresh too.
-    final tableChangeSub = _repository.watchBuddiesChanges().listen(
+    // Reload when a buddy or its certifications change (e.g. a sync writes
+    // rows directly, or the edit form commits certs after the buddy row,
+    // issue #4496) so surfaces watching this notifier (e.g. the buddy
+    // summary) refresh too.
+    final tableChangeSub = _repository.watchHydratedBuddiesChanges().listen(
       (_) => _silentReloadBuddies(),
     );
     _ref.onDispose(tableChangeSub.cancel);

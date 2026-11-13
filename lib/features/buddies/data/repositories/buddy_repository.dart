@@ -106,6 +106,22 @@ class BuddyRepository {
   Stream<void> watchBuddiesChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.buddies));
 
+  /// Emits whenever a buddy as the hydrated reads return it may change: its
+  /// `buddies` row, a `certifications` row its primary certification is
+  /// derived from, or a custom agency or level that ranks and titles it (see
+  /// [_withPrimaryCerts]). The buddy edit form writes the certifications
+  /// after the buddy row, so a reader that follows only [watchBuddiesChanges]
+  /// reloads too early and keeps the old level (issue #4496). Readers that
+  /// use only the buddy rows stay on [watchBuddiesChanges].
+  Stream<void> watchHydratedBuddiesChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.buddies),
+      TableUpdateQuery.onTable(_db.certifications),
+      TableUpdateQuery.onTable(_db.customCertificationAgencies),
+      TableUpdateQuery.onTable(_db.customCertificationLevels),
+    ]),
+  );
+
   /// Get all buddies ordered by name
   Future<List<domain.Buddy>> getAllBuddies({String? diverId}) async {
     try {
