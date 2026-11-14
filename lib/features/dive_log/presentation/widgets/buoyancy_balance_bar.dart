@@ -31,8 +31,11 @@ class BuoyancyBalanceBar extends StatelessWidget {
   static const double _ruleWidth = 2;
   static const double _labelPadding = 8;
   static const double _minSegmentWidth = 2;
-  static const double _iconSize = 16;
-  static const double _iconPadding = 3;
+  // Small enough that a typical cylinder segment on a phone (about 20 px:
+  // an aluminium 80 swings only a couple of kilos either side of neutral)
+  // still has room for its icon.
+  static const double _iconSize = 14;
+  static const double _iconPadding = 2;
 
   /// How far each part's fill moves from its side's container colour toward
   /// that side's strong colour. Parts that share a side differ, so a legend

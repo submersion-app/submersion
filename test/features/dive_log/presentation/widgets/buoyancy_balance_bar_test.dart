@@ -207,6 +207,21 @@ void main() {
       );
     });
 
+    testWidgets('a 20 px segment still has room for its icon', (tester) async {
+      // 430 px is a phone; 1.4 kg of cylinder at a 12 kg scale is about 24 px
+      // of the 205 px usable half, and 1.2 kg about 20 px.
+      await _pump(tester, _balance(tanks: -1.2), width: 430);
+      final tanks = _segment(TwinBalancePartKind.tanks);
+      expect(tester.getSize(tanks).width, inInclusiveRange(18.0, 22.0));
+      expect(
+        find.descendant(
+          of: tanks,
+          matching: find.byIcon(SubmersionIcons.tankBackGas),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('a sliver too narrow for an icon stays bare', (tester) async {
       await _pump(tester, _balance(suit: 0.3), width: 300);
       expect(
