@@ -180,11 +180,12 @@ class OrphanedSourceRelinker {
     // is unambiguous. The sync bus is left to the caller, which notifies
     // once its transaction commits.
     final diveIds = {for (final o in orphans) o.source.diveId}.toList();
+    final relinked = sourceIds.toSet();
     for (final chunk in seriesIdChunks(diveIds)) {
       await _profileSeries.relinkComputer(
         computerId,
         chunk,
-        sourceIds: sourceIds,
+        sourceIds: relinked,
         now: now,
         notify: false,
       );

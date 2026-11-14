@@ -662,17 +662,17 @@ class ProfileSeriesRepository {
                 OrderingTerm.asc(_db.diveProfileSeries.id),
               ]))
             .get();
-    return [
-      for (final r in rows)
-        (
-          id: r.read(_db.diveProfileSeries.id)!,
-          computerId: r.read(_db.diveProfileSeries.computerId),
-          sourceId: r.read(_db.diveProfileSeries.sourceId),
-          isPrimary: r.read(_db.diveProfileSeries.isPrimary) ?? false,
-          isEdit: r.read(_db.diveProfileSeries.isEdit),
-        ),
-    ];
+    return [for (final r in rows) _identityOf(r)];
   }
+
+  /// The identity of a row selected with the identity columns.
+  ProfileSeriesIdentity _identityOf(TypedResult r) => (
+    id: r.read(_db.diveProfileSeries.id)!,
+    computerId: r.read(_db.diveProfileSeries.computerId),
+    sourceId: r.read(_db.diveProfileSeries.sourceId),
+    isPrimary: r.read(_db.diveProfileSeries.isPrimary) ?? false,
+    isEdit: r.read(_db.diveProfileSeries.isEdit),
+  );
 
   /// Whether any series of [diveId] is attributed to [computerId], the
   /// exact predicate [promoteByComputer] promotes on.
@@ -1130,14 +1130,13 @@ class ProfileSeriesRepository {
   Future<int> relinkComputer(
     String computerId,
     List<String> diveIds, {
-    required List<String> sourceIds,
+    required Set<String> sourceIds,
     int? now,
     bool notify = true,
   }) async {
     if (diveIds.isEmpty) return 0;
     final seriesByDive = await _identitiesByDive(diveIds);
     final soleComputerSourceDives = await _divesWithOneComputerSource(diveIds);
-    final relinked = sourceIds.toSet();
     List<String> takenOf(String diveId, List<ProfileSeriesIdentity> series) {
       final liveEdits = liveEditIdsOf(series);
       return [
@@ -1147,7 +1146,7 @@ class ProfileSeriesRepository {
               !liveEdits.contains(s.id) &&
               (s.sourceId == null
                   ? soleComputerSourceDives.contains(diveId)
-                  : relinked.contains(s.sourceId)))
+                  : sourceIds.contains(s.sourceId)))
             s.id,
       ];
     }
@@ -1184,16 +1183,8 @@ class ProfileSeriesRepository {
     return rows
         .groupListsBy((r) => r.read(t.diveId)!)
         .map(
-          (diveId, group) => MapEntry(diveId, [
-            for (final r in group)
-              (
-                id: r.read(t.id)!,
-                computerId: r.read(t.computerId),
-                sourceId: r.read(t.sourceId),
-                isPrimary: r.read(t.isPrimary) ?? false,
-                isEdit: r.read(t.isEdit),
-              ),
-          ]),
+          (diveId, group) =>
+              MapEntry(diveId, [for (final r in group) _identityOf(r)]),
         );
   }
 

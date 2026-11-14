@@ -178,7 +178,7 @@ void main() {
         await profileSeries.relinkComputer(
           'comp-a',
           ['d-mine', 'd-theirs'],
-          sourceIds: const [],
+          sourceIds: const {},
           now: 2000,
         ),
         1,
@@ -223,7 +223,7 @@ void main() {
         await profileSeries.relinkComputer(
           'comp-a',
           ['d-mine', 'd-theirs'],
-          sourceIds: const ['ds-1', 'ds-3'],
+          sourceIds: const {'ds-1', 'ds-3'},
           now: 2000,
         ),
         1,
@@ -258,7 +258,7 @@ void main() {
         await profileSeries.relinkComputer(
           'comp-a',
           ['d-mine'],
-          sourceIds: const [],
+          sourceIds: const {},
           now: 2000,
         ),
         2,
@@ -293,7 +293,7 @@ void main() {
         await profileSeries.relinkComputer(
           'comp-a',
           ['d-mine'],
-          sourceIds: const [],
+          sourceIds: const {},
           now: 2000,
         ),
         1,
@@ -320,7 +320,7 @@ void main() {
           await profileSeries.relinkComputer(
             'comp-a',
             ['d-mine'],
-            sourceIds: const [],
+            sourceIds: const {},
             now: 2000,
           ),
           1,

@@ -217,6 +217,36 @@ void main() {
       expect(after.values.where((v) => v.isPrimary), hasLength(1));
     });
 
+    test('is replaced with the duplicate an earlier re-parse wrote live '
+        'beside it, when marked as a parse', () async {
+      // The mark is final: a series a download wrote is no edit, whatever
+      // sits on the strand beside it. Both go, and one series comes back.
+      await twoComputerDive();
+      final orphan = await insertSeries(
+        sourceId: 'src-a',
+        isPrimary: true,
+        isEdit: false,
+      );
+      final duplicate = await insertSeries(
+        sourceId: 'src-a',
+        computerId: 'comp-a',
+        isPrimary: true,
+        isEdit: false,
+        now: 2000,
+      );
+
+      await reparse('src-a');
+
+      final after = await seriesById();
+      expect(after.containsKey(orphan), isFalse);
+      expect(after.containsKey(duplicate), isFalse);
+      expect(after.values.where((v) => v.sourceId == 'src-a').single, (
+        sourceId: 'src-a',
+        computerId: 'comp-a',
+        isPrimary: true,
+      ));
+    });
+
     test('is kept when the recording it corrects is live beside it', () async {
       // A dive re-parsed before #3189: that re-parse put the recording back
       // live beside the edit instead of beneath it. The recording is there
