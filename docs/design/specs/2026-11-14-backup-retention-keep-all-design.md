@@ -65,6 +65,8 @@ The count picker:
   reads it as "keep a billion", which keeps everything.
 - `BackupSettings.keepsAll` is true for any count above the custom maximum
   (9999), so a stored value is never shown as a raw number.
+- `BackupPreferences.getSettings` reads any stored count above 9999 as the
+  sentinel, so a value shown as Keep all also prunes as Keep all.
 - `pruneOldBackups` needs no change: with the sentinel no record is past the
   count. The cross-device plan likewise removes nothing.
 
