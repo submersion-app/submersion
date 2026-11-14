@@ -20,7 +20,7 @@ import 'package:submersion/shared/widgets/record_editing/record_card_header.dart
 /// dive conditions, then the satellite water conditions on the dive date.
 ///
 /// Each subsection shows only when it has something to say, so callers gate
-/// the card as a whole on [watchHasEnvironmentData].
+/// the card as a whole on `diveCardIsShown`.
 class DiveEnvironmentSection extends ConsumerWidget {
   const DiveEnvironmentSection({super.key, required this.dive});
 

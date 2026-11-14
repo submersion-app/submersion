@@ -37,16 +37,10 @@ bool diveHasExposureSuit(Dive dive) => dive.equipment.any(
 bool diveHasBuoyancyInputs(Dive dive) =>
     dive.tanks.isNotEmpty || diveHasExposureSuit(dive);
 
-/// Whether the Environment card has anything to show: a logged weather or
-/// dive-conditions field, or satellite water conditions for the dive date.
-bool watchHasEnvironmentData(WidgetRef ref, Dive dive) {
-  return hasLoggedEnvironmentData(dive) ||
-      watchSatelliteWaterConditions(ref, dive) != null;
-}
-
 /// Whether the diver logged any weather or dive-conditions value, which is
 /// what the Environment card's editor holds. Satellite conditions are not
-/// counted: see [watchHasEnvironmentData] for whether the card shows.
+/// counted: the card shows for those too ([watchSatelliteWaterConditions]),
+/// which `diveCardIsShown` adds.
 bool hasLoggedEnvironmentData(Dive dive) {
   return trimmedOrNull(dive.surfaceConditions) != null ||
       dive.airTemp != null ||

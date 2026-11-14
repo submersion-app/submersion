@@ -143,6 +143,15 @@ class EditSession<T> extends ChangeNotifier {
     }
   }
 
+  /// What has been asked about with [firstTime].
+  final Set<String> _asked = {};
+
+  /// True the first time it is asked about [key] in this sitting, false
+  /// from then on. For what a card does once however often it is opened,
+  /// such as looking a value up: a card's editor is built anew each time
+  /// the card opens, and only the sitting outlives it.
+  bool firstTime(String key) => _asked.add(key);
+
   bool _isDisposed = false;
 
   /// Whether the sitting has ended. Work that can outlive it (a lookup, a

@@ -8,6 +8,7 @@ import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
 import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/reveal_answering.dart';
 
 /// A number row of a card editor, bound to one field of the sitting.
 ///
@@ -16,11 +17,11 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 /// row sets the field to null.
 ///
 /// What the diver types is what is stored, with one exception: the number
-/// the row is already showing is left as it is. A stored 1,234.5 m shown as
+/// the row itself put on show is left as it is. A stored 1,234.5 m shown as
 /// 4050 ft would read back as 1,234.44 m, and a value shown with fewer
 /// decimals than it has would lose them; neither is a change the diver made.
 /// Any other number is taken as typed, so 100.4 typed over 100 is kept even
-/// where both show as "100".
+/// where both show as "100", and so is 100 typed over that 100.4.
 ///
 /// Text that is not a number never reaches the sitting. The row shows its
 /// own message and tells the page's [RecordEditController], which keeps the
@@ -71,21 +72,28 @@ class RecordNumberRow<T> extends StatefulWidget {
   State<RecordNumberRow<T>> createState() => _RecordNumberRowState<T>();
 }
 
-class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
+class _RecordNumberRowState<T> extends State<RecordNumberRow<T>>
+    with RevealAnswering<RecordNumberRow<T>> {
   late FieldTextBinding<T, double?> _binding = _bind();
 
   /// The page's controller, kept so the mark can be cleared in [dispose].
   RecordEditController<T>? _controller;
 
-  /// The last request to show itself this row answered.
-  int _answeredSerial = 0;
+  /// The value whose number this row last put on show itself: the one it
+  /// opened with, or one that arrived from elsewhere since. Null when that
+  /// was nothing, or the diver has only typed.
+  double? _onShow;
 
   FieldTextBinding<T, double?> _bind() {
     return FieldTextBinding<T, double?>(
       session: widget.session,
       field: widget.field,
-      // Read through the widget each time, so a change of unit is followed.
-      format: _format,
+      // The binding formats only what it is about to show.
+      format: (stored) {
+        _onShow = stored;
+        // Read through the widget each time, so a change of unit is followed.
+        return _format(stored);
+      },
       parse: _parse,
       onUnreadableChanged: _report,
     );
@@ -117,15 +125,15 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
       case NumberInvalid():
         return const FieldUnreadable();
       case NumberValue(value: final typed):
-        // The number already on show stands for the value behind it, which
-        // may carry more than the row can show: the sitting's value first,
-        // then the stored one, so typing that back clears the change.
-        final session = widget.session;
-        final current = session.valueOf(widget.field);
-        if (current != null && typed == _shownNumber(current)) {
-          return FieldValue(current);
+        // A number the row put on show itself stands for the value behind
+        // it, which may carry more than the row can show: the one it last
+        // showed, then the stored one, so typing that back clears the
+        // change. A number the diver typed stands for itself.
+        final onShow = _onShow;
+        if (onShow != null && typed == _shownNumber(onShow)) {
+          return FieldValue(onShow);
         }
-        final stored = widget.field.read(session.stored);
+        final stored = widget.field.read(widget.session.stored);
         if (stored != null && typed == _shownNumber(stored)) {
           return FieldValue(stored);
         }
@@ -146,29 +154,15 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
     super.didChangeDependencies();
     final controller = RecordEditScope.maybeOf<T>(context);
     _controller = controller;
-    _answerReveal(controller);
-  }
-
-  /// Scrolls this row into view when the controller asks for its field: a
-  /// Done or a Save was refused because its text cannot be read.
-  void _answerReveal(RecordEditController<T>? controller) {
-    final request = controller?.revealRequest;
-    if (controller == null || request == null) return;
-    if (request.cardId != widget.field.cardId ||
-        request.fieldId != widget.field.id ||
-        request.serial == _answeredSerial) {
-      return;
-    }
-    _answeredSerial = request.serial;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.revealHandled(request.serial);
-      if (!mounted) return;
-      Scrollable.ensureVisible(
-        context,
-        alignment: 0.3,
-        duration: const Duration(milliseconds: 200),
-      );
-    });
+    // Asked for by name when a Done or a Save was refused because this
+    // row's text cannot be read.
+    answerReveal<T>(
+      controller,
+      isMine: (request) =>
+          request.cardId == widget.field.cardId &&
+          request.fieldId == widget.field.id,
+      alignment: 0.3,
+    );
   }
 
   @override
@@ -182,8 +176,17 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
       _binding = _bind();
       return;
     }
-    // The unit or the number of decimals may have changed.
-    _binding.resync();
+    // The binding follows the sitting by itself. The text is read again
+    // here only when what it would show may have changed: the unit, or how
+    // the number is written.
+    if (oldWidget.toDisplay != widget.toDisplay ||
+        oldWidget.fromDisplay != widget.fromDisplay ||
+        oldWidget.fractionDigits != widget.fractionDigits ||
+        oldWidget.trimZeros != widget.trimZeros ||
+        oldWidget.integer != widget.integer ||
+        oldWidget.allowNegative != widget.allowNegative) {
+      _binding.resync();
+    }
   }
 
   /// Withdraws this row's unreadable mark, as reported for [row]'s field.

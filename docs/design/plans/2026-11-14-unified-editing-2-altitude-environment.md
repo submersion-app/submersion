@@ -1044,6 +1044,14 @@ Added when #4536 merged and main was brought in, from its last review and from a
 - **`replaceTextKeepingCaret`** (`text_keeping_caret.dart`), used by `FieldTextBinding` and the Notes editor. An editor that shows a value of the sitting in a text field uses it; assigning `text` throws the caret out of a field the diver is in.
 - A disposed `EditSession` ignores `set` and `rebase`. The row of an open card in the folding layout does not save a fold. The closed header row is announced as a button.
 
+Changed by the review of this plan's own pull request (#4550):
+
+- **One question decides where a card is.** `diveCardIsOnPage(ref, id, layout:, working:)` in `dive_card_presence.dart` is asked by the section list, the pair and the Add strip: a card is on the page only when the held layout and the dive as it is now both have something for it. A card emptied and closed while another editor is open used to be in neither place. `diveCardIsShown` now reads the card's own `isEmpty`, adding satellite conditions for Environment, and `watchHasEnvironmentData` is gone. A new card needs its `isEmpty` and nothing else.
+- **`RecordNumberRow`: the number that stands for a value is one the row put on show itself.** It was any number that read the same as the sitting's value, so 100.4 typed and then cut back to 100 stayed 100.4. A number the diver typed stands for itself.
+- **`EditSession.firstTime(key)`.** True once in a sitting. The altitude lookup asks it, so reopening the card does not bring back an altitude the diver took out; fetching the weather still asks again.
+- **`RevealAnswering`** (`reveal_answering.dart`), a mixin the card frame and the number row both use to answer `revealRequest`. A field type that scrolls itself in uses it too.
+- A number row reads its text again on a rebuild only when its unit or decimals changed. The weather description is trimmed and compared trimmed, as surface conditions are. Whether the exit follows the entry is settled in `initState`. The fetch's confirmation asks its question once. A pair frames a stacked card only when it has one.
+
 ### Calls, as they turned out
 
 - Call 7 changes nothing on screen: every language's altitude range text is the same as the English one. The shared banner uses `localizedRange` all the same.

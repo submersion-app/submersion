@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_card_presence.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
@@ -147,9 +148,13 @@ class DiveDetailSectionList extends ConsumerWidget {
         if (cards != null) {
           _addSectionGap(children, layout);
           // Each side is framed like a card on a row of its own, so a card
-          // with an editor gains its pencil and opens where it sits.
-          Widget? left(Widget? card) => _framed(pair.left, card, open);
-          Widget? right(Widget? card) => _framed(pair.right, card, open);
+          // with an editor gains its pencil and opens where it sits. A pair
+          // with no card of its own for a narrow pane has none to frame:
+          // stacked, it shows the row card.
+          Widget? left(Widget? card) =>
+              card == null ? null : _framed(pair.left, card, open);
+          Widget? right(Widget? card) =>
+              card == null ? null : _framed(pair.right, card, open);
           children.add(
             ResponsiveSectionPair(
               key: ValueKey('diveSectionPair_${pair.left.name}'),
@@ -279,10 +284,10 @@ class DiveDetailSectionList extends ConsumerWidget {
       case DiveDetailSectionId.details:
         return DiveDetailsSection(dive: dive);
       case DiveDetailSectionId.environment:
-        if (!watchHasEnvironmentData(ref, presence)) return null;
+        if (!_onPage(ref, id, presence)) return null;
         return DiveEnvironmentSection(dive: dive);
       case DiveDetailSectionId.altitude:
-        if (presence.altitude == null || presence.altitude! <= 0) {
+        if (!diveCardIsShown(ref, id, presence)) {
           // Safety phase 2: the site is at altitude but the dive was not
           // altitude-adjusted: surface an informational note instead of
           // silently hiding the section.
@@ -294,6 +299,9 @@ class DiveDetailSectionList extends ConsumerWidget {
           }
           return null;
         }
+        // Emptied since the layout was fixed: closed, it has nothing to
+        // draw, and the strip offers it again.
+        if (!diveCardIsShown(ref, id, dive)) return null;
         return DiveAltitudeSection(dive: dive);
       case DiveDetailSectionId.tide:
         return DiveTideSection(dive: dive, topGap: topGap);
@@ -345,7 +353,7 @@ class DiveDetailSectionList extends ConsumerWidget {
           onHoverMedia: mediaHoverCursorHandler(ref.container, dive),
         );
       case DiveDetailSectionId.tags:
-        if (presence.tags.isEmpty) return null;
+        if (!_onPage(ref, id, presence)) return null;
         return DiveTagsSection(dive: dive);
       case DiveDetailSectionId.notes:
         return DiveNotesSection(
@@ -396,6 +404,12 @@ class DiveDetailSectionList extends ConsumerWidget {
     if (children.isEmpty) return;
     children.add(SizedBox(height: layout.sectionGap));
   }
+
+  /// Whether [id]'s card is on the page: the layout held while an editor
+  /// is open ([presence]) and the dive as it is now both have something for
+  /// it. The Add strip asks the same question, so a card is one or the other.
+  bool _onPage(WidgetRef ref, DiveDetailSectionId id, Dive presence) =>
+      diveCardIsOnPage(ref, id, layout: presence, working: dive);
 
   /// [content] wrapped so the section can be edited in place, when it has
   /// a card (see [diveEditCards]); otherwise [content] as it is.
@@ -518,7 +532,11 @@ class DiveDetailSectionList extends ConsumerWidget {
         );
 
       case DiveDetailSectionId.details:
-        final hasEnvironment = watchHasEnvironmentData(ref, presence);
+        final hasEnvironment = _onPage(
+          ref,
+          DiveDetailSectionId.environment,
+          presence,
+        );
         final environmentOpen = open.contains(
           DiveDetailSectionId.environment.name,
         );

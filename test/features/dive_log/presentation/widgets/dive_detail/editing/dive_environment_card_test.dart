@@ -440,6 +440,28 @@ void main() {
       expect(controller.session!.working.exitMethod, EntryMethod.shore);
     });
 
+    // Whether the exit follows is settled when the editor opens. A change
+    // underneath that makes the two alike afterwards does not link them.
+    testWidgets('an exit that did not follow when editing began does not '
+        'start to', (tester) async {
+      final stored = bare.copyWith(
+        entryMethod: EntryMethod.shore,
+        exitMethod: EntryMethod.boat,
+      );
+      final controller = await pumpEditor(tester, stored);
+      final l10n = l10nOf(tester);
+
+      controller.storedChanged(stored.copyWith(exitMethod: EntryMethod.shore));
+      await tester.pump();
+      await tester.tap(find.text(l10n.diveLog_edit_label_entryMethod));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(ListTile, 'Ladder'));
+      await tester.pumpAndSettle();
+
+      expect(controller.session!.working.entryMethod, EntryMethod.ladder);
+      expect(controller.session!.working.exitMethod, EntryMethod.shore);
+    });
+
     testWidgets('picking an entry method carries a linked exit with it', (
       tester,
     ) async {
@@ -546,7 +568,9 @@ void main() {
             of: find.byType(AlertDialog),
             matching: find.text(l10n.diveLog_edit_fetchWeatherConfirm),
           ),
-          findsWidgets,
+          // Asked once: the question is the dialog's title, with no body
+          // repeating it.
+          findsOneWidget,
         );
         await tester.tap(find.text(l10n.common_action_cancel));
         await tester.pumpAndSettle();

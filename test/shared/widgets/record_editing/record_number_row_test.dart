@@ -303,6 +303,44 @@ void main() {
     expect(controller.isDirty, isFalse);
   });
 
+  // The binding follows the sitting by itself. A rebuild has to read the
+  // text again only when the unit or the decimals may have changed.
+  testWidgets('a rebuild that changes nothing it shows does not re-read it', (
+    tester,
+  ) async {
+    final controller = _unlocked(const _Rec(altitude: 1200));
+    var conversions = 0;
+    double counted(double metres) {
+      conversions++;
+      return _toFeet(metres);
+    }
+
+    Widget host() => MaterialApp(
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: RecordEditScope<_Rec>(
+          controller: controller,
+          child: RecordNumberRow<_Rec>(
+            session: controller.session!,
+            field: _altitude,
+            label: 'Altitude',
+            suffixText: 'ft',
+            toDisplay: counted,
+            fromDisplay: _fromFeet,
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(host());
+    final before = conversions;
+    await tester.pumpWidget(host());
+
+    expect(conversions, before);
+  });
+
   testWidgets('with no controller above it the row still edits the session', (
     tester,
   ) async {
@@ -351,6 +389,41 @@ void main() {
       await tester.pump();
 
       expect(controller.session!.valueOf(_altitude), 100.4);
+    });
+
+    // And back again: a number the diver typed stands for itself, so taking
+    // off decimals the row does not show takes them out of the sitting.
+    testWidgets('deleting typed decimals takes them out of the sitting', (
+      tester,
+    ) async {
+      final controller = _unlocked(const _Rec());
+      await tester.pumpWidget(_host(controller, feet: false));
+      await tester.tap(find.text('Altitude'));
+      await tester.pump();
+
+      await tester.enterText(find.byType(TextFormField), '100.4');
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField), '100.');
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField), '100');
+      await tester.pump();
+
+      expect(controller.session!.valueOf(_altitude), 100);
+    });
+
+    // A value the row put on show itself is another matter: it arrived
+    // whole, and the number it shows as stands for all of it.
+    testWidgets('the number shown for a value from elsewhere stands for it', (
+      tester,
+    ) async {
+      final controller = _unlocked(const _Rec());
+      await tester.pumpWidget(_host(controller));
+      controller.session!.set(_altitude, 1234.5);
+      await tester.pump();
+
+      await _type(tester, '4050 ft', '4050.');
+
+      expect(controller.session!.valueOf(_altitude), 1234.5);
     });
 
     testWidgets('a finer value than the stored one is a change', (

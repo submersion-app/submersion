@@ -337,6 +337,55 @@ void main() {
       expect(controller.isDirty, isFalse);
     });
 
+    // The lookup is made once in a sitting, as the dive form made it once
+    // when it loaded. Opening the card again must not bring back an
+    // altitude the diver took out.
+    testWidgets('a looked-up altitude the diver cleared is not looked up '
+        'again', (tester) async {
+      final elevation = _FakeElevation(result: 512);
+      final dive = bare.copyWith(site: lakeNoAltitude);
+      final controller = await pumpEditor(
+        tester,
+        dive,
+        elevation: elevation,
+        sites: _FakeSites(),
+      );
+      expect(controller.session!.valueOf(diveAltitudeField), 512);
+
+      controller.session!.set(diveAltitudeField, null);
+      // The card is closed, then opened again.
+      await pumpEditor(
+        tester,
+        dive,
+        showEditor: false,
+        controller: controller,
+        elevation: elevation,
+        sites: _FakeSites(),
+      );
+      await pumpEditor(
+        tester,
+        dive,
+        controller: controller,
+        elevation: elevation,
+        sites: _FakeSites(),
+      );
+
+      expect(elevation.calls, 1);
+      expect(controller.session!.valueOf(diveAltitudeField), isNull);
+    });
+
+    testWidgets('a stored altitude the diver cleared stays cleared when the '
+        'card is opened again', (tester) async {
+      final dive = high.copyWith(site: lakeAt900);
+      final controller = await pumpEditor(tester, dive);
+
+      controller.session!.set(diveAltitudeField, null);
+      await pumpEditor(tester, dive, showEditor: false, controller: controller);
+      await pumpEditor(tester, dive, controller: controller);
+
+      expect(controller.session!.valueOf(diveAltitudeField), isNull);
+    });
+
     testWidgets(
       'a lookup that returns after the editor has gone sets nothing',
       (tester) async {

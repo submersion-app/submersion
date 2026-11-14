@@ -63,14 +63,21 @@ final diveHumidityField = EditField<Dive, double?>(
       dive.copyWith(humidity: value, clearHumidity: value == null),
 );
 
+/// The weather in the diver's own words. Stored trimmed; blank is no value,
+/// and words that differ only in the space around them are the same, as for
+/// [diveSurfaceConditionsField].
 final diveWeatherDescriptionField = EditField<Dive, String?>(
   id: 'weatherDescription',
   cardId: _card,
   read: (dive) => dive.weatherDescription,
-  write: (dive, value) => dive.copyWith(
-    weatherDescription: value,
-    clearWeatherDescription: value == null,
-  ),
+  write: (dive, value) {
+    final words = trimmedOrNull(value);
+    return dive.copyWith(
+      weatherDescription: words,
+      clearWeatherDescription: words == null,
+    );
+  },
+  equals: (a, b) => trimmedOrNull(a) == trimmedOrNull(b),
 );
 
 /// Where the weather values came from. Set by [applyFetchedWeather].
