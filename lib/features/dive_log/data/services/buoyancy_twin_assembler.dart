@@ -118,6 +118,9 @@ class BuoyancyTwinAssembler {
   ///
   /// [heightCm] feeds the body-composition term; null falls back to the
   /// height the model was fitted with, as [FittedWeightModel.predict] does.
+  /// [bodyFatPercent] is a body fat the diver entered, with the same
+  /// fallback; the model's age and sex sharpen the estimate when there is
+  /// none.
   ///
   /// [salinityPpt] wins over [waterType] for the water term, so a plan on a
   /// custom salinity predicts against the same density its deco uses.
@@ -128,6 +131,7 @@ class BuoyancyTwinAssembler {
     required WaterType? waterType,
     required double? bodyWeightKg,
     double? heightCm,
+    double? bodyFatPercent,
     double? salinityPpt,
     Set<String> rolledUpIds = const {},
   }) {
@@ -151,16 +155,23 @@ class BuoyancyTwinAssembler {
     // only when the calibration can carry the term without double counting.
     final knownBodyMass = bodyWeightKg ?? model.bodyWeightKg;
     final height = heightCm ?? model.heightCm;
+    final bodyFat = bodyFatPercent ?? model.bodyFatPercent;
     if (model.bodyCompositionCalibrated &&
         knownBodyMass != null &&
-        BodyComposition.bmi(weightKg: knownBodyMass, heightCm: height) !=
-            null) {
+        BodyComposition.hasTerm(
+          bodyMassKg: knownBodyMass,
+          heightCm: height,
+          bodyFatPercent: bodyFat,
+        )) {
       staticTerms.add(
         TwinStaticTerm(
-          label: BodyComposition.termLabel,
+          label: BodyComposition.termLabelFor(bodyFatPercent: bodyFat),
           kg: BodyComposition.leadTermKg(
             bodyMassKg: knownBodyMass,
             heightCm: height,
+            bodyFatPercent: bodyFat,
+            ageYears: model.ageYears,
+            sex: model.sex,
           ),
           source: TermSource.bodyComposition,
         ),

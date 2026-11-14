@@ -546,6 +546,46 @@ void main() {
       final rig = compose(emptyModel());
       expect(rig.staticTerms.any((t) => t.label == 'bmi'), isFalse);
     });
+
+    test('labels a measured body fat term bodyFat (issue #4525)', () {
+      final rig = BuoyancyTwinAssembler.composeRigTerms(
+        items: const [wetsuit],
+        tanks: const [],
+        model: emptyModel(),
+        waterType: WaterType.salt,
+        bodyWeightKg: 80,
+        bodyFatPercent: 30,
+      );
+      final term = rig.staticTerms.singleWhere((t) => t.label == 'bodyFat');
+      expect(
+        term.kg,
+        closeTo(
+          BodyComposition.leadTermKg(
+            bodyMassKg: 80,
+            heightCm: null,
+            bodyFatPercent: 30,
+          ),
+          1e-9,
+        ),
+      );
+      expect(rig.staticTerms.any((t) => t.label == 'bmi'), isFalse);
+    });
+
+    test('falls back to the body fat, sex and age the model was fitted '
+        'with (issue #4525)', () {
+      final model = WeightPredictionEngine.fit(
+        observations: const [],
+        gearById: (_) => null,
+        bodyWeightKg: 80,
+        heightCm: 175,
+        ageYears: 40,
+        sex: DiverSex.male,
+      );
+      final term = compose(
+        model,
+      ).staticTerms.singleWhere((t) => t.label == 'bmi');
+      expect(term.kg, closeTo(-80 * 0.2 * 5.4 / 100, 1e-9));
+    });
   });
 
   group('BuoyancyTwinAssembler.composeRigTerms salinity', () {

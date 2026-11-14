@@ -131,4 +131,38 @@ void main() {
     expect(find.text('Body composition (estimated from BMI)'), findsOneWidget);
     expect(find.text('+0.6 kg'), findsOneWidget);
   });
+
+  testWidgets('a measured body fat term says so, without the BMI source '
+      '(issue #4525)', (tester) async {
+    const measuredPrediction = WeightPrediction(
+      totalKg: 8.6,
+      terms: [
+        PredictionTerm(
+          label: 'bodyFat',
+          kg: 0.6,
+          source: TermSource.bodyComposition,
+        ),
+      ],
+      confidence: PredictionConfidence.low,
+      supportingDives: 0,
+    );
+    await tester.pumpWidget(
+      localizedMaterialApp(
+        locale: const Locale('en'),
+        home: const SingleChildScrollView(
+          child: WeightPredictionCard(
+            prediction: measuredPrediction,
+            units: units,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('How this was calculated'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Body fat (measured)'), findsOneWidget);
+    expect(find.textContaining('estimated from BMI'), findsNothing);
+  });
 }

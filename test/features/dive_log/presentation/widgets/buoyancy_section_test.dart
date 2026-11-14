@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/buoyancy/buoyancy_twin.dart';
+import 'package:submersion/core/buoyancy/weight_prediction_engine.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/buoyancy_twin_assembler.dart';
@@ -57,6 +58,51 @@ void main() {
     await tester.tap(expansion);
     await tester.pumpAndSettle();
     expect(find.textContaining('-6.0'), findsWidgets);
+  });
+
+  testWidgets('a measured body fat term says so, without the BMI source '
+      '(issue #4525)', (tester) async {
+    await _pump(
+      tester,
+      buoyancyOutcome(
+        extraVerdictTerms: const [
+          TwinStaticTerm(
+            label: 'bodyFat',
+            kg: 0.6,
+            source: TermSource.bodyComposition,
+          ),
+        ],
+      ),
+    );
+    final expansion = find.byType(ExpansionTile);
+    await tester.ensureVisible(expansion);
+    await tester.tap(expansion);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Body fat (measured)'), findsOneWidget);
+    expect(find.textContaining('estimated from BMI'), findsNothing);
+  });
+
+  testWidgets('an estimated body term keeps its BMI source', (tester) async {
+    await _pump(
+      tester,
+      buoyancyOutcome(
+        extraVerdictTerms: const [
+          TwinStaticTerm(
+            label: 'bmi',
+            kg: 0.6,
+            source: TermSource.bodyComposition,
+          ),
+        ],
+      ),
+    );
+    final expansion = find.byType(ExpansionTile);
+    await tester.ensureVisible(expansion);
+    await tester.tap(expansion);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Body composition'), findsOneWidget);
+    expect(find.text('(estimated from BMI)'), findsOneWidget);
   });
 
   testWidgets('warns when droppable lead is below the minimum ditchable', (

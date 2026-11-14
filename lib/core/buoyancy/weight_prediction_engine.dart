@@ -58,6 +58,10 @@ class RigSpec extends Equatable {
   /// height the model was fitted with, like [bodyWeightKg].
   final double? heightCm;
 
+  /// Body fat percentage the diver entered. Null falls back to the one the
+  /// model was fitted with, and then to an estimate from the height.
+  final double? bodyFatPercent;
+
   const RigSpec({
     this.gear = const [],
     this.tanks = const [],
@@ -65,6 +69,7 @@ class RigSpec extends Equatable {
     this.salinityPpt,
     this.bodyWeightKg,
     this.heightCm,
+    this.bodyFatPercent,
   });
 
   @override
@@ -75,6 +80,7 @@ class RigSpec extends Equatable {
     salinityPpt,
     bodyWeightKg,
     heightCm,
+    bodyFatPercent,
   ];
 }
 
@@ -146,26 +152,50 @@ class WeightPredictionEngine {
   /// intercept explains only what neither physics nor BMI can, then added
   /// back by [FittedWeightModel.predict]. It needs a real [bodyWeightKg];
   /// the default body mass would fabricate a BMI.
+  ///
+  /// [bodyFatPercent] is a body fat the diver entered: it replaces the
+  /// estimate and needs no height. [ageYears] and [sex] sharpen the
+  /// estimate when there is none (issue #4525).
   static FittedWeightModel fit({
     required List<WeightObservation> observations,
     required GearFeature? Function(String equipmentId) gearById,
     double? bodyWeightKg,
     double? heightCm,
+    double? bodyFatPercent,
+    int? ageYears,
+    DiverSex? sex,
     DateTime? now,
   }) {
     final effectiveNow = now ?? DateTime.now();
     final bodyMass = bodyWeightKg ?? BuoyancyPhysics.defaultBodyMassKg;
-    // The stored height must mean "a term was subtracted": an implausible
-    // height, or a height without a real body weight, subtracts nothing and
-    // is forgotten so predict cannot add a term the fit never removed.
+    // The stored body inputs must mean "a term was subtracted": without a
+    // real body weight, or with neither a usable body fat nor a plausible
+    // height, the fit subtracts nothing and forgets them all, so predict
+    // cannot add a term the fit never removed.
+    final fitBodyFatPercent =
+        bodyFatPercent != null &&
+            BodyComposition.isPlausibleBodyFat(bodyFatPercent)
+        ? bodyFatPercent
+        : null;
+    final plausibleHeightCm =
+        heightCm != null && BodyComposition.isPlausibleHeight(heightCm)
+        ? heightCm
+        : null;
     final subtractsBodyComposition =
         bodyWeightKg != null &&
-        BodyComposition.bmi(weightKg: bodyWeightKg, heightCm: heightCm) != null;
-    final fitHeightCm = subtractsBodyComposition ? heightCm : null;
+        BodyComposition.hasTerm(
+          bodyMassKg: bodyWeightKg,
+          heightCm: plausibleHeightCm,
+          bodyFatPercent: fitBodyFatPercent,
+        );
+    final fitHeightCm = subtractsBodyComposition ? plausibleHeightCm : null;
     final bodyCompositionKg = subtractsBodyComposition
         ? BodyComposition.leadTermKg(
             bodyMassKg: bodyWeightKg,
             heightCm: fitHeightCm,
+            bodyFatPercent: fitBodyFatPercent,
+            ageYears: ageYears,
+            sex: sex,
           )
         : 0.0;
 
@@ -269,6 +299,9 @@ class WeightPredictionEngine {
       residualStdKg: residualStd,
       bodyWeightKg: bodyWeightKg,
       heightCm: fitHeightCm,
+      bodyFatPercent: subtractsBodyComposition ? fitBodyFatPercent : null,
+      ageYears: subtractsBodyComposition ? ageYears : null,
+      sex: subtractsBodyComposition ? sex : null,
     );
   }
 
@@ -353,14 +386,20 @@ class FittedWeightModel {
   /// subtracted a body-composition term; the fallback for rigs that omit it.
   final double? heightCm;
 
+  /// Body fat, age and sex the model was fitted with, kept on the same
+  /// terms as [heightCm]: [predict] adds back what the fit subtracted.
+  final double? bodyFatPercent;
+  final int? ageYears;
+  final DiverSex? sex;
+
   /// Whether [predict] may add a body-composition term. True when the fit
-  /// subtracted one (fitted with a height) or had no observations to
-  /// subtract from, so the coefficients are still the priors. A model
-  /// calibrated on history WITHOUT a height has already absorbed the diver's
-  /// real body composition into the intercept; adding the term on top would
-  /// double count it.
+  /// subtracted one (fitted with a height or a body fat) or had no
+  /// observations to subtract from, so the coefficients are still the
+  /// priors. A model calibrated on history WITHOUT either has already
+  /// absorbed the diver's real body composition into the intercept; adding
+  /// the term on top would double count it.
   bool get bodyCompositionCalibrated =>
-      heightCm != null || supportingDives == 0;
+      heightCm != null || bodyFatPercent != null || supportingDives == 0;
 
   const FittedWeightModel._({
     required this.personalCoefficient,
@@ -370,6 +409,9 @@ class FittedWeightModel {
     required this.residualStdKg,
     required this.bodyWeightKg,
     required this.heightCm,
+    required this.bodyFatPercent,
+    required this.ageYears,
+    required this.sex,
   });
 
   WeightPrediction predict(RigSpec rig) {
@@ -391,16 +433,23 @@ class FittedWeightModel {
     // carry a different body than the calibration did.
     final knownBodyMass = rig.bodyWeightKg ?? bodyWeightKg;
     final height = rig.heightCm ?? heightCm;
+    final bodyFat = rig.bodyFatPercent ?? bodyFatPercent;
     if (bodyCompositionCalibrated &&
         knownBodyMass != null &&
-        BodyComposition.bmi(weightKg: knownBodyMass, heightCm: height) !=
-            null) {
+        BodyComposition.hasTerm(
+          bodyMassKg: knownBodyMass,
+          heightCm: height,
+          bodyFatPercent: bodyFat,
+        )) {
       terms.add(
         PredictionTerm(
-          label: BodyComposition.termLabel,
+          label: BodyComposition.termLabelFor(bodyFatPercent: bodyFat),
           kg: BodyComposition.leadTermKg(
             bodyMassKg: knownBodyMass,
             heightCm: height,
+            bodyFatPercent: bodyFat,
+            ageYears: ageYears,
+            sex: sex,
           ),
           source: TermSource.bodyComposition,
         ),

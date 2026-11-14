@@ -15,6 +15,7 @@ BuoyancyTwinOutcome buoyancyOutcome({
   double? wingLiftCapacityKg,
   double verdictNet = 1.8,
   List<TwinTankInput> tanks = const [],
+  List<TwinStaticTerm> extraVerdictTerms = const [],
 }) {
   final env = DiveEnvironment.forConditions(waterType: WaterType.salt);
   final input = TwinInput(
@@ -64,6 +65,7 @@ BuoyancyTwinOutcome buoyancyOutcome({
         kg: 5.0,
         source: TermSource.measured,
       ),
+      ...extraVerdictTerms,
       TwinStaticTerm(label: 'lead', kg: -leadKg, source: TermSource.measured),
     ],
   );

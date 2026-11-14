@@ -198,12 +198,15 @@ class BuoyancySection extends ConsumerWidget {
       child: Row(
         children: [
           Expanded(child: Text(_termLabel(context, term.label))),
-          Text(
-            '(${_sourceLabel(context, term.source)})',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.outline,
+          // A body fat the diver entered names its own source in its label
+          // (issue #4525).
+          if (term.label != BodyComposition.measuredTermLabel)
+            Text(
+              '(${_sourceLabel(context, term.source)})',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
             ),
-          ),
           const SizedBox(width: 12),
           Text(
             units.formatWeight(term.kg),
@@ -266,6 +269,7 @@ class BuoyancySection extends ConsumerWidget {
       'personal' => l10n.tools_weight_personalTerm,
       'water' => l10n.tools_weight_waterTerm,
       BodyComposition.termLabel => l10n.tools_weight_bmiTerm,
+      BodyComposition.measuredTermLabel => l10n.tools_weight_bodyFatTerm,
       'suit' => l10n.buoyancy_suitTerm,
       'lead' => l10n.buoyancy_leadTerm,
       // Fallback for a tank with no preset/user name (see the assembler and
