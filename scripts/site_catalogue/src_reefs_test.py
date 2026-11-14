@@ -155,6 +155,18 @@ class FederalTest(unittest.TestCase):
             src_reefs.federal_records([row])[0][0]["name"], "Blue Crown"
         )
 
+    def test_a_corner_of_a_reef_area_is_not_a_site(self):
+        # Hawaii lists the corner markers of each reef area beside the
+        # structures in it.
+        base = dict(_sample("federal_reefs.json")[5], waterDepthFeet=60)
+        corner = dict(base, reefName="Kualoa Artificial Reef - Corner A")
+        barge = dict(base, reefName="Kualoa Artificial Reef - Small Barge")
+        records, dropped = src_reefs.federal_records([corner, barge])
+        self.assertEqual(dict(dropped), {"area_corner": 1})
+        self.assertEqual(
+            [r["name"] for r in records], ["Kualoa Artificial Reef - Small Barge"]
+        )
+
     def test_a_row_with_no_name_or_position_is_dropped_quietly(self):
         self.assertEqual(self.dropped["no_name"], 1)
         row = dict(_sample("federal_reefs.json")[0], latitudeDMS="")

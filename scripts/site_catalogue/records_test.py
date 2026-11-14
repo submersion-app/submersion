@@ -91,6 +91,13 @@ class WordListTest(unittest.TestCase):
             self.assertFalse(records.is_placeholder(name), name)
         self.assertTrue(records.is_placeholder("BARGE"))
 
+    def test_a_single_character_names_nothing(self):
+        for name in ("F", "M", "-", "(7)"):
+            self.assertTrue(records.is_placeholder(name), name)
+        # Two are a designation, or a whole name in another script.
+        for name in ("F2", "U 8", "RA", "砂辺"):
+            self.assertFalse(records.is_placeholder(name), name)
+
     def test_generic_names(self):
         self.assertTrue(records.is_generic("tug"))
         self.assertTrue(records.is_generic("abc"))

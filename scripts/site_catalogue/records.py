@@ -99,7 +99,9 @@ def fold_name(name: str) -> str:
 def is_placeholder(name: str) -> bool:
     """Whether [name] names no particular site ("Unknown", "Wreck")."""
     text = (name or "").strip()
-    if not text:
+    # One letter or digit ("F", "M") names nothing; two can be a
+    # designation, or a whole name in another script.
+    if len(re.sub(r"[\W_]", "", text)) < 2:
         return True
     return (
         text.lower() in _PLACEHOLDERS

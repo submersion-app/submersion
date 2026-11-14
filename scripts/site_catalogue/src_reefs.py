@@ -120,6 +120,9 @@ _FWC_MATERIALS = {
     "Metal": "Metal structure",
     "Rock": "Rock",
 }
+# "Kualoa Artificial Reef - Corner A": a marker at the corner of a reef
+# area, not a structure in it.
+_AREA_CORNER = re.compile(r"\bCorner\s+[A-Z0-9]$", re.IGNORECASE)
 _DMS = re.compile(r"^\s*(\d+)\s+(\d+)\s+([\d.]+)\s*([NSEW])\s*$")
 
 
@@ -264,6 +267,9 @@ def federal_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
         name = (row.get("reefName") or "").strip()
         if rec.is_placeholder(name):
             dropped["no_name"] += 1
+            continue
+        if _AREA_CORNER.search(name):
+            dropped["area_corner"] += 1
             continue
         lat, lon = _dms(row.get("latitudeDMS")), _dms(row.get("longitudeDMS"))
         if lat is None or lon is None:
