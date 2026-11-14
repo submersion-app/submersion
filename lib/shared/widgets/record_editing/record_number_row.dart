@@ -21,7 +21,8 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 ///
 /// Text that is not a number never reaches the sitting. The row shows its
 /// own message and tells the page's [RecordEditController], which keeps the
-/// card open and refuses to save until it is fixed.
+/// card open and refuses to save until it is fixed, and asks the row to
+/// scroll itself into view when it has had to refuse.
 class RecordNumberRow<T> extends StatefulWidget {
   const RecordNumberRow({
     super.key,
@@ -67,6 +68,9 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
 
   /// The page's controller, kept so the mark can be cleared in [dispose].
   RecordEditController<T>? _controller;
+
+  /// The last request to show itself this row answered.
+  int _answeredSerial = 0;
 
   FieldTextBinding<T, double?> _bind() {
     final field = widget.field;
@@ -120,7 +124,31 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _controller = RecordEditScope.maybeOf<T>(context);
+    final controller = RecordEditScope.maybeOf<T>(context);
+    _controller = controller;
+    _answerReveal(controller);
+  }
+
+  /// Scrolls this row into view when the controller asks for its field: a
+  /// Done or a Save was refused because its text cannot be read.
+  void _answerReveal(RecordEditController<T>? controller) {
+    final request = controller?.revealRequest;
+    if (controller == null || request == null) return;
+    if (request.cardId != widget.field.cardId ||
+        request.fieldId != widget.field.id ||
+        request.serial == _answeredSerial) {
+      return;
+    }
+    _answeredSerial = request.serial;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.revealHandled(request.serial);
+      if (!mounted) return;
+      Scrollable.ensureVisible(
+        context,
+        alignment: 0.3,
+        duration: const Duration(milliseconds: 200),
+      );
+    });
   }
 
   @override

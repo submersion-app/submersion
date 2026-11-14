@@ -17,8 +17,7 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 /// When the controller asks for this card to be shown
 /// ([RecordEditController.revealRequest]), the frame scrolls into view and
 /// withdraws the request. That is how a card brought in from the Add strip,
-/// which may take its place below what is on screen, is seen to have opened,
-/// and how a card that could not be closed or saved is brought back.
+/// which may take its place below what is on screen, is seen to have opened.
 class RecordCardFrame<T> extends StatefulWidget {
   const RecordCardFrame({super.key, required this.card, required this.child});
 
@@ -42,7 +41,8 @@ class _RecordCardFrameState<T> extends State<RecordCardFrame<T>> {
     final controller = RecordEditScope.maybeOf<T>(context);
     final request = controller?.revealRequest;
     if (controller == null || request == null) return;
-    if (request.cardId != widget.card.id) return;
+    // A request that names a field is for that field's row to answer.
+    if (request.cardId != widget.card.id || request.fieldId != null) return;
     if (request.serial == _answeredSerial) return;
     _answeredSerial = request.serial;
     // After this frame, when the card has its place and its size.

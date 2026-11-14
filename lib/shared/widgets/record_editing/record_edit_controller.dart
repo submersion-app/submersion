@@ -44,7 +44,7 @@ class RecordEditController<T> extends ChangeNotifier {
   /// order each card first got one.
   final Map<String, Set<String>> _invalidFields = {};
   bool _refusedForInvalidInput = false;
-  ({String cardId, int serial})? _revealRequest;
+  ({String cardId, String? fieldId, int serial})? _revealRequest;
 
   /// Never reset, so a request in a later sitting is never mistaken for one
   /// a card has already answered.
@@ -74,12 +74,18 @@ class RecordEditController<T> extends ChangeNotifier {
   /// ([save]) until it is fixed.
   Set<String> get invalidCardIds => Set.unmodifiable(_invalidFields.keys);
 
-  /// The card last asked to scroll into view, if no card has answered yet.
-  /// The serial goes up on every request, so the same card can be asked
-  /// twice. A card answers with [revealHandled].
-  ({String cardId, int serial})? get revealRequest => _revealRequest;
+  /// What was last asked to scroll into view, if nothing has answered yet.
+  ///
+  /// With no field it is the card as a whole, which its frame answers: a
+  /// card just added from the strip. With a field it is that field's row,
+  /// which answers for itself: the unreadable input that stopped a card
+  /// closing or the sitting saving, and which on a tall card can be far
+  /// from the card's top. The serial goes up on every request, so the same
+  /// thing can be asked for twice. Whoever answers calls [revealHandled].
+  ({String cardId, String? fieldId, int serial})? get revealRequest =>
+      _revealRequest;
 
-  /// Withdraws the request numbered [serial], once the card it names has
+  /// Withdraws the request numbered [serial], once what it names has
   /// scrolled into view. It does not notify: nothing is drawn from it.
   void revealHandled(int serial) {
     if (_revealRequest?.serial == serial) _revealRequest = null;
@@ -106,10 +112,14 @@ class RecordEditController<T> extends ChangeNotifier {
     if (fields.isEmpty) _invalidFields.remove(cardId);
   }
 
-  void _requestReveal(String cardId) {
+  void _requestReveal(String cardId, {String? fieldId}) {
     _revealSerial++;
-    _revealRequest = (cardId: cardId, serial: _revealSerial);
+    _revealRequest = (cardId: cardId, fieldId: fieldId, serial: _revealSerial);
   }
+
+  /// Asks for the first unreadable field of [cardId] to be shown.
+  void _requestRevealOfInvalid(String cardId) =>
+      _requestReveal(cardId, fieldId: _invalidFields[cardId]?.first);
 
   void unlock(T stored) {
     if (isUnlocked) return;
@@ -151,7 +161,7 @@ class RecordEditController<T> extends ChangeNotifier {
     final session = _session;
     if (session == null || _isSaving) return;
     if (_invalidFields.containsKey(cardId)) {
-      _requestReveal(cardId);
+      _requestRevealOfInvalid(cardId);
       notifyListeners();
       return;
     }
@@ -223,7 +233,7 @@ class RecordEditController<T> extends ChangeNotifier {
     _refusedForInvalidInput = false;
     if (_invalidFields.isNotEmpty) {
       _refusedForInvalidInput = true;
-      _requestReveal(_invalidFields.keys.first);
+      _requestRevealOfInvalid(_invalidFields.keys.first);
       notifyListeners();
       return false;
     }

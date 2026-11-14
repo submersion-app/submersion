@@ -383,6 +383,41 @@ void main() {
       expect(controller.revealRequest!.cardId, 'notes');
     });
 
+    test('a refused close names the unreadable field', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('details')
+        ..setFieldInvalid('details', 'time', invalid: true)
+        ..setFieldInvalid('details', 'depth', invalid: true);
+
+      controller.closeCard('details');
+
+      // The first field of the card that became unreadable.
+      expect(controller.revealRequest!.cardId, 'details');
+      expect(controller.revealRequest!.fieldId, 'time');
+    });
+
+    test('a refused save names the unreadable field', () async {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+
+      await controller.save();
+
+      expect(controller.revealRequest!.cardId, 'notes');
+      expect(controller.revealRequest!.fieldId, 'notes');
+    });
+
+    test('an added card is asked for as a whole, with no field', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..addCard('tags');
+
+      expect(controller.revealRequest!.cardId, 'tags');
+      expect(controller.revealRequest!.fieldId, isNull);
+    });
+
     test('a refused close notifies, so the card can scroll into view', () {
       final controller = _controller()
         ..unlock(const _Rec())

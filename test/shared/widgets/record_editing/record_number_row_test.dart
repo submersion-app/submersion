@@ -89,6 +89,40 @@ Future<void> _type(WidgetTester tester, String resting, String text) async {
 AppLocalizations _l10n(WidgetTester tester) =>
     AppLocalizations.of(tester.element(find.byType(Scaffold)));
 
+/// The row 600 px down a page seen through a 300 px high window.
+Widget _tallHost(RecordEditController<_Rec> controller) {
+  return MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          height: 300,
+          child: RecordEditScope<_Rec>(
+            controller: controller,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 600),
+                  RecordNumberRow<_Rec>(
+                    session: controller.session!,
+                    field: _altitude,
+                    label: 'Altitude',
+                    suffixText: 'm',
+                  ),
+                  const SizedBox(height: 600),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 void main() {
   testWidgets('shows the value in the display unit with its suffix', (
     tester,
@@ -293,5 +327,94 @@ void main() {
     await tester.pump();
 
     expect(controller.session!.valueOf(_altitude), 50);
+  });
+
+  // A refused Done or Save names the unreadable field, and its row brings
+  // itself into view: on a tall card it can be far from the card's top.
+  group('a row asked to show itself', () {
+    Finder field() => find.byType(TextFormField);
+
+    /// Types unreadable text into the row, then scrolls it out of sight.
+    Future<RecordEditController<_Rec>> unreadableAndAway(
+      WidgetTester tester,
+    ) async {
+      final controller = _unlocked(const _Rec(altitude: 120));
+      await tester.pumpWidget(_tallHost(controller));
+      await tester.ensureVisible(find.text('120 m'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('120 m'));
+      await tester.pump();
+      await tester.enterText(field(), '1.2.3');
+      await tester.pump();
+      expect(controller.invalidCardIds, {'altitude'});
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .jumpTo(0);
+      await tester.pump();
+      expect(tester.getRect(field()).top, greaterThan(300));
+      return controller;
+    }
+
+    void expectInView(WidgetTester tester) {
+      final rect = tester.getRect(field());
+      expect(rect.top, greaterThanOrEqualTo(0));
+      expect(rect.bottom, lessThanOrEqualTo(300));
+    }
+
+    testWidgets('a refused Done scrolls the row into view', (tester) async {
+      final controller = await unreadableAndAway(tester);
+
+      controller.closeCard('altitude');
+      await tester.pumpAndSettle();
+
+      expectInView(tester);
+      expect(controller.openCardIds, {'altitude'});
+      expect(controller.revealRequest, isNull, reason: 'answered');
+    });
+
+    testWidgets('a refused Save scrolls the row into view', (tester) async {
+      final controller = await unreadableAndAway(tester);
+
+      expect(await controller.save(), isFalse);
+      await tester.pumpAndSettle();
+
+      expectInView(tester);
+    });
+
+    testWidgets('asked again after scrolling away, it scrolls again', (
+      tester,
+    ) async {
+      final controller = await unreadableAndAway(tester);
+      controller.closeCard('altitude');
+      await tester.pumpAndSettle();
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .jumpTo(0);
+      await tester.pump();
+
+      controller.closeCard('altitude');
+      await tester.pumpAndSettle();
+
+      expectInView(tester);
+    });
+
+    testWidgets('a request that names another field does not move it', (
+      tester,
+    ) async {
+      final controller = await unreadableAndAway(tester);
+      // Another field of the same card became unreadable first.
+      controller
+        ..setFieldInvalid('altitude', 'altitude', invalid: false)
+        ..setFieldInvalid('altitude', 'pressure', invalid: true)
+        ..setFieldInvalid('altitude', 'altitude', invalid: true);
+
+      controller.closeCard('altitude');
+      await tester.pumpAndSettle();
+
+      expect(controller.revealRequest!.fieldId, 'pressure');
+      expect(tester.getRect(field()).top, greaterThan(300));
+    });
   });
 }

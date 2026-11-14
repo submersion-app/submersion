@@ -403,74 +403,24 @@ void main() {
   group('a card asked to show itself', () {
     const editor = ValueKey('editor');
 
-    testWidgets('a refused save scrolls the card into view', (tester) async {
-      final controller = _controller()
-        ..unlock(const _Rec())
-        ..openCard('notes');
-      await tester.pumpWidget(_tallHost(controller));
-      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
-
-      controller.setFieldInvalid('notes', 'notes', invalid: true);
-      await controller.save();
-      await tester.pumpAndSettle();
-
-      final rect = tester.getRect(find.byKey(editor));
-      expect(rect.top, greaterThanOrEqualTo(0));
-      expect(rect.bottom, lessThanOrEqualTo(300));
-    });
-
-    testWidgets('a refused Done scrolls the card into view', (tester) async {
-      final controller = _controller()
-        ..unlock(const _Rec())
-        ..openCard('notes');
-      await tester.pumpWidget(_tallHost(controller));
-
-      controller
-        ..setFieldInvalid('notes', 'notes', invalid: true)
-        ..closeCard('notes');
-      await tester.pumpAndSettle();
-
-      expect(tester.getRect(find.byKey(editor)).bottom, lessThanOrEqualTo(300));
-    });
-
-    testWidgets('a second request scrolls again after the diver moved away', (
+    // A refusal for unreadable input names the field. Its own row scrolls
+    // itself into view, which may be far below the top of a tall card.
+    testWidgets('a request that names a field is left to that field', (
       tester,
     ) async {
       final controller = _controller()
         ..unlock(const _Rec())
         ..openCard('notes');
       await tester.pumpWidget(_tallHost(controller));
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+
       controller
         ..setFieldInvalid('notes', 'notes', invalid: true)
         ..closeCard('notes');
       await tester.pumpAndSettle();
 
-      final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
-      scrollable.position.jumpTo(0);
-      await tester.pump();
       expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
-
-      controller.closeCard('notes');
-      await tester.pumpAndSettle();
-
-      expect(tester.getRect(find.byKey(editor)).bottom, lessThanOrEqualTo(300));
-    });
-
-    testWidgets('a request for another card does not move this one', (
-      tester,
-    ) async {
-      final controller = _controller()
-        ..unlock(const _Rec())
-        ..openCard('notes')
-        ..openCard('details');
-      await tester.pumpWidget(_tallHost(controller));
-
-      controller
-        ..setFieldInvalid('details', 'depth', invalid: true)
-        ..closeCard('details');
-      await tester.pumpAndSettle();
-
-      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+      expect(controller.revealRequest, isNotNull, reason: 'not answered');
     });
 
     testWidgets('a card added from the strip scrolls into view', (
