@@ -443,6 +443,99 @@ void main() {
       expect(series.computerId, isNull);
     });
 
+    test('gives the series of a dive read by two computers the computer of '
+        'the source each names (issue #4529)', () async {
+      // A series that names its source says exactly whose it is, as a tank
+      // does, so the second computer on the dive does not make it ambiguous.
+      await insertComputer(id: 'a-perdix', serialNumber: 'SN-12345');
+      await insertComputer(id: 'b-teric', model: 'Teric', serialNumber: 'T1');
+      final diveId = await insertDive();
+      final perdix = await insertDownloadedSource(
+        diveId: diveId,
+        computerSerial: 'SN-12345',
+      );
+      final teric = await insertDownloadedSource(
+        diveId: diveId,
+        isPrimary: false,
+        computerModel: 'Shearwater Teric',
+        computerSerial: 'T1',
+        product: 'Teric',
+      );
+      Future<String> series(String sourceId, {required bool isPrimary}) =>
+          profileSeries.insertSeries(
+            diveId: diveId,
+            sourceId: sourceId,
+            isPrimary: isPrimary,
+            samples: const [ProfileSample(timestamp: 0, depth: 10.0)],
+            now: 1000,
+          );
+      final perdixSeries = await series(perdix, isPrimary: true);
+      final tericSeries = await series(teric, isPrimary: false);
+
+      expect(await repository.relinkOrphanedSources(), 2);
+
+      final rows = await profileSeries.getRowsForDives([diveId]);
+      String? computerOf(String id) =>
+          rows.firstWhere((r) => r.id == id).computerId;
+      expect(computerOf(perdixSeries), 'a-perdix');
+      expect(computerOf(tericSeries), 'b-teric');
+    });
+
+    test(
+      'leaves the edit of a source on a two-computer dive unattributed',
+      () async {
+        // The edit names its source and has no computer, the shape a delete
+        // leaves on the recording too. Stamping it would hand it to the next
+        // re-parse, which replaces what its source owns.
+        await insertComputer(id: 'a-perdix', serialNumber: 'SN-12345');
+        await insertComputer(id: 'b-teric', model: 'Teric', serialNumber: 'T1');
+        final diveId = await insertDive();
+        final perdix = await insertDownloadedSource(
+          diveId: diveId,
+          computerSerial: 'SN-12345',
+        );
+        await insertDownloadedSource(
+          diveId: diveId,
+          isPrimary: false,
+          computerModel: 'Shearwater Teric',
+          computerSerial: 'T1',
+          product: 'Teric',
+        );
+        const samples = [ProfileSample(timestamp: 0, depth: 10.0)];
+        final unmarkedEdit = await profileSeries.insertSeries(
+          diveId: diveId,
+          sourceId: perdix,
+          isPrimary: true,
+          samples: samples,
+          now: 1000,
+        );
+        final generation = await profileSeries.insertSeries(
+          diveId: diveId,
+          sourceId: perdix,
+          isPrimary: false,
+          samples: samples,
+          now: 500,
+        );
+        final markedEdit = await profileSeries.insertSeries(
+          diveId: diveId,
+          sourceId: perdix,
+          isPrimary: false,
+          isEdit: true,
+          samples: samples,
+          now: 400,
+        );
+
+        expect(await repository.relinkOrphanedSources(), 2);
+
+        final rows = await profileSeries.getRowsForDives([diveId]);
+        String? computerOf(String id) =>
+            rows.firstWhere((r) => r.id == id).computerId;
+        expect(computerOf(unmarkedEdit), isNull);
+        expect(computerOf(markedEdit), isNull);
+        expect(computerOf(generation), 'a-perdix');
+      },
+    );
+
     test('a second run links nothing', () async {
       await insertComputer(id: 'perdix', serialNumber: 'SN-12345');
       await insertDownloadedSource(diveId: await insertDive());

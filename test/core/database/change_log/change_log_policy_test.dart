@@ -116,6 +116,22 @@ void main() {
     );
   });
 
+  test('what a set carries besides gear is logged as an edit to the set '
+      '(issue #4525)', () {
+    for (final table in [
+      'equipment_set_includes',
+      'equipment_set_weight_presets',
+      'equipment_set_cylinder_configs',
+    ]) {
+      expect(
+        changeLogParents[table]?.rootTable,
+        'equipment_sets',
+        reason: table,
+      );
+      expect(changeLogParents[table]?.column, 'set_id', reason: table);
+    }
+  });
+
   test('the bookkeeping columns match the conflict catalogue', () {
     final expected = {
       for (final key in conflictBookkeepingColumns)

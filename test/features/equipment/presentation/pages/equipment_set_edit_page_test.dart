@@ -20,6 +20,7 @@ import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
 void main() {
   setUp(() async {
@@ -377,5 +378,77 @@ void main() {
       unorderedEquals(['e1', 'e3']),
       reason: 'the surviving members must still be saved, not wiped',
     );
+  });
+
+  group('bundle lists (issue #4525)', () {
+    late String presetId;
+
+    setUp(() async {
+      presetId = (await WeightPresetRepository().createPreset(
+        diverId: 'd1',
+        displayName: 'Belt 8 lb',
+        entries: const [
+          (weightType: WeightType.belt, amountKg: 3.63, notes: '', label: ''),
+        ],
+      )).id;
+    });
+
+    testWidgets('saving an edited set keeps its lists', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 4000);
+      addTearDown(tester.view.reset);
+      final repo = EquipmentSetRepository();
+      await repo.createSet(
+        EquipmentSet(
+          id: 'rig',
+          diverId: 'd1',
+          name: 'Rig',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await repo.createSet(
+        EquipmentSet(
+          id: 's1',
+          diverId: 'd1',
+          name: 'Outer',
+          includedSetIds: const ['rig'],
+          weightPresetIds: [presetId],
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        ),
+      );
+      await tester.pumpWidget(await buildPage(setId: 's1'));
+      await tester.pumpAndSettle();
+      expect(find.text('Belt 8 lb'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextFormField).first, 'Renamed');
+      await tester.tap(appBarSave());
+      await tester.pumpAndSettle();
+
+      final saved = (await repo.getSetById('s1'))!;
+      expect(saved.name, 'Renamed');
+      expect(saved.includedSetIds, ['rig']);
+      expect(saved.weightPresetIds, [presetId]);
+    });
+
+    testWidgets('a weight preset added in the form is saved', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(800, 4000);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(await buildPage());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextFormField).first, 'Lead only');
+      await tester.tap(find.byKey(const Key('set-bundle-add-presets')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(Key('set-bundle-option-$presetId')));
+      await tester.pumpAndSettle();
+      await tester.tap(appBarSave());
+      await tester.pumpAndSettle();
+
+      final sets = await EquipmentSetRepository().getAllSets(diverId: 'd1');
+      expect(sets.single.weightPresetIds, [presetId]);
+    });
   });
 }

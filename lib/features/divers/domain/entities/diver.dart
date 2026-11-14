@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
+import 'package:submersion/core/constants/enums.dart';
+
 import 'package:submersion/features/documents/domain/entities/document.dart';
 
 /// Emergency contact information
@@ -183,6 +185,13 @@ class Diver extends Equatable {
   final String? socialHandle;
   final String? buddyCardShare;
 
+  /// Body composition inputs (issue #4525), used only to estimate body fat
+  /// for the weight prediction. Both optional; null means not given.
+  final DiverSex? sex;
+
+  /// Year of birth, e.g. 1984.
+  final int? birthYear;
+
   const Diver({
     required this.id,
     required this.name,
@@ -207,6 +216,8 @@ class Diver extends Equatable {
     this.divingSince,
     this.socialHandle,
     this.buddyCardShare,
+    this.sex,
+    this.birthYear,
   });
 
   /// Get initials for avatar display
@@ -294,6 +305,8 @@ class Diver extends Equatable {
     Object? divingSince = _unset,
     Object? socialHandle = _unset,
     Object? buddyCardShare = _unset,
+    Object? sex = _unset,
+    Object? birthYear = _unset,
   }) {
     return Diver(
       id: id ?? this.id,
@@ -347,6 +360,8 @@ class Diver extends Equatable {
         this.buddyCardShare,
         'buddyCardShare',
       ),
+      sex: _resolve<DiverSex?>(sex, this.sex, 'sex'),
+      birthYear: _resolve<int?>(birthYear, this.birthYear, 'birthYear'),
     );
   }
 
@@ -375,5 +390,7 @@ class Diver extends Equatable {
     divingSince,
     socialHandle,
     buddyCardShare,
+    sex,
+    birthYear,
   ];
 }

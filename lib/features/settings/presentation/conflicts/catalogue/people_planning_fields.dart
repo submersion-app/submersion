@@ -54,9 +54,17 @@ final Map<String, ConflictField> peoplePlanningFields = {
     (l) => l.settings_conflict_field_bestMixEndMeters,
     FieldKind.depth,
   ),
+  'birthYear': ConflictField(
+    (l) => l.settings_conflict_field_birthYear,
+    FieldKind.number,
+  ),
   'bloodType': ConflictField(
     (l) => l.settings_conflict_field_bloodType,
     FieldKind.shortText,
+  ),
+  'bodyFatPercent': ConflictField(
+    (l) => l.settings_conflict_field_bodyFatPercent,
+    FieldKind.percent,
   ),
   'buddyCardShare': ConflictField(
     (l) => l.settings_conflict_field_buddyCardShare,
@@ -471,6 +479,11 @@ final Map<String, ConflictField> peoplePlanningFields = {
   'settingOverrides': ConflictField(
     (l) => l.settings_conflict_field_settingOverrides,
     FieldKind.opaque,
+  ),
+  'sex': ConflictField(
+    (l) => l.settings_conflict_field_sex,
+    FieldKind.enumValue,
+    enumLabel: diverSexLabeler,
   ),
   'shallowAscentRate': ConflictField(
     (l) => l.settings_conflict_field_shallowAscentRate,

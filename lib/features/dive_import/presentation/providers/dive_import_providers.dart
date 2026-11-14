@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_import/domain/services/imported_dive_converter.dart';
 import 'package:submersion/features/dive_import/domain/services/health_import_service.dart';
 import 'package:submersion/features/dive_import/presentation/widgets/imported_dive_card.dart';
+import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
 
 // ============================================================================
 // Service Providers
@@ -394,7 +395,8 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
         );
 
         await repository.createDive(dive);
-        await DiveEquipmentDefaulter().applyForImportedDive(dive);
+        final defaultSetId = await DiveEquipmentDefaulter()
+            .applySetForImportedDive(dive);
         await ChecklistDiveLinker().applyForImportedDive(dive);
         await altitudeEnricher.applyForImportedDive(dive);
         // After the defaulter, never before: the defaulter bails on a dive
@@ -403,8 +405,15 @@ class DiveImportNotifier extends StateNotifier<DiveImportState> {
         await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
         // Apply every equipment set that lists this computer as a member
         // (issue #1020). Additive, independent of the defaulter above.
-        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+        final computerSetIds = await EquipmentSetForComputerLinker()
+            .linkComputerSets(diveId: dive.id);
+        // What those sets carry besides gear (issue #4525): weights only
+        // where the dive has none, and never a cylinder beside its own.
+        await DiveSetBundleApplier().applyTagged(
           diveId: dive.id,
+          leadSetId: defaultSetId,
+          alsoSetIds: computerSetIds,
+          retagAbsorbed: true,
         );
         imported++;
       }
