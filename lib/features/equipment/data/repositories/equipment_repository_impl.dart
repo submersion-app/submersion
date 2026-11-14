@@ -343,7 +343,7 @@ class EquipmentRepository {
 
   /// The off-palette colours on [diverId]'s own gear, newest first (issue
   /// #4537); see [EquipmentColorQueries.gearColors].
-  Future<List<String>> getGearColors(String diverId) =>
+  Future<List<String>> getGearColors(String? diverId) =>
       _colors.gearColors(diverId);
 
   /// Create new equipment. With [notify] false the caller notifies sync once

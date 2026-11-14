@@ -16,8 +16,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// placeholder, opening the colour sheet on tap. Laid out like the form's
 /// date field, with a clear button once a colour is set.
 ///
-/// The sheet's Recent row (issue #4537) is read when the field is tapped:
-/// the diver's remembered colours, then the colours on their gear.
+/// The sheet's Recent row (issue #4537) is the diver's remembered colours,
+/// then the colours on their gear, which the field keeps watched.
 class EquipmentColorField extends ConsumerWidget {
   const EquipmentColorField({
     super.key,

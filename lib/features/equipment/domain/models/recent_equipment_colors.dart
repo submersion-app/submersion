@@ -13,9 +13,9 @@ String? _customCode(Object? code) {
   return normal;
 }
 
-/// [codes] as custom codes, normalised, first occurrence kept, at most
-/// [cap].
-List<String> _distinctCustom(Iterable<Object?> codes, int cap) {
+/// [codes] as custom codes: normalised, palette colours and non-codes
+/// dropped, first occurrence kept, at most [cap].
+List<String> distinctCustomEquipmentColors(Iterable<Object?> codes, int cap) {
   final seen = <String>{};
   final out = <String>[];
   for (final code in codes) {
@@ -40,7 +40,7 @@ List<String> decodeRecentEquipmentColors(String? json) {
     return const [];
   }
   if (decoded is! List) return const [];
-  return _distinctCustom(decoded, rememberedEquipmentColorCap);
+  return distinctCustomEquipmentColors(decoded, rememberedEquipmentColorCap);
 }
 
 /// [codes] as the column stores them.
@@ -52,7 +52,10 @@ String encodeRecentEquipmentColors(List<String> codes) => jsonEncode(codes);
 List<String> rememberEquipmentColor(List<String> current, String hex) {
   final code = _customCode(hex);
   if (code == null) return current;
-  return _distinctCustom([code, ...current], rememberedEquipmentColorCap);
+  return distinctCustomEquipmentColors([
+    code,
+    ...current,
+  ], rememberedEquipmentColorCap);
 }
 
 /// How many colours the colour sheet's Recent row holds.
@@ -67,7 +70,7 @@ List<String> recentEquipmentColorRow({
   String? current,
   required List<String> remembered,
   required List<String> gear,
-}) => _distinctCustom([
+}) => distinctCustomEquipmentColors([
   current,
   ...remembered,
   ...gear,

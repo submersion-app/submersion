@@ -59,8 +59,8 @@ String nearestEquipmentColor(Color color) {
   final target = _lab(color);
   var best = equipmentColorPalette.first;
   var bestDistance = double.infinity;
-  for (final hex in equipmentColorPalette) {
-    final d = _distance(target, _lab(colorFromHex(hex)));
+  for (final (i, hex) in equipmentColorPalette.indexed) {
+    final d = _distance(target, _paletteLab[i]);
     if (d < bestDistance) {
       bestDistance = d;
       best = hex;
@@ -68,6 +68,11 @@ String nearestEquipmentColor(Color color) {
   }
   return best;
 }
+
+/// The palette in Lab, worked out once: every custom swatch name searches it.
+final List<List<double>> _paletteLab = [
+  for (final hex in equipmentColorPalette) _lab(colorFromHex(hex)),
+];
 
 double _lin(double c) =>
     c <= 0.04045 ? c / 12.92 : math.pow((c + 0.055) / 1.055, 2.4).toDouble();

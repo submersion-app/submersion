@@ -10,6 +10,5 @@ final equipmentGearColorsProvider = FutureProvider<List<String>>((ref) async {
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   ref.invalidateSelfWhen(repository.watchAttributeChanges());
-  if (diverId == null) return const [];
   return repository.getGearColors(diverId);
 });

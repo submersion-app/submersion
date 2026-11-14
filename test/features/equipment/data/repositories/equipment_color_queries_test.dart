@@ -86,6 +86,13 @@ void main() {
     expect(await repo.getGearColors('d1'), isEmpty);
   });
 
+  test('with no profile chosen, every item is read', () async {
+    await item('d1', '#123456', at: 1);
+    await item('d2', '#ABCDEF', at: 2);
+
+    expect(await repo.getGearColors(null), ['#ABCDEF', '#123456']);
+  });
+
   test('retired gear is listed', () async {
     await item('d1', '#123456', at: 1, status: EquipmentStatus.retired);
 
