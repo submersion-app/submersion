@@ -10,6 +10,8 @@ import 'package:submersion/features/universal_import/domain/services/import_medi
 import 'package:submersion/features/universal_import/data/models/picked_import_file.dart';
 import 'package:submersion/features/universal_import/data/csv/models/parsed_csv.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart';
+import 'package:submersion/features/universal_import/data/models/garmin_import_progress.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_device_importer.dart';
 
 // ============================================================================
 // Wizard Steps
@@ -51,6 +53,9 @@ class UniversalImportState {
     this.detectionResult,
     this.parseCurrent = 0,
     this.parseTotal = 0,
+    this.garminProgress,
+    this.garminNothingNew = false,
+    this.garminPendingMarker,
     this.pendingSourceOverride,
     this.pendingFormatOverride,
     this.detectedCsvPreset,
@@ -119,6 +124,18 @@ class UniversalImportState {
   /// Batch parse progress (files parsed so far / files pending).
   final int parseCurrent;
   final int parseTotal;
+
+  /// Where an import from a connected Garmin watch has got to (issue
+  /// #4223). Null when none is running.
+  final GarminImportProgress? garminProgress;
+
+  /// True after a Garmin download found nothing after the watch's marker,
+  /// so the Import page offers to read every activity again.
+  final bool garminNothingNew;
+
+  /// Saved on the Garmin's computer once the import of its dives completes,
+  /// so the next download starts after them.
+  final GarminPendingMarker? garminPendingMarker;
 
   /// Raw file bytes for the classic single-file flow (kept for re-parsing if
   /// field mapping changes). Null for batches: batch parsing re-reads bytes
@@ -221,6 +238,11 @@ class UniversalImportState {
     List<String>? zipTempDirPaths,
     int? parseCurrent,
     int? parseTotal,
+    GarminImportProgress? garminProgress,
+    bool clearGarminProgress = false,
+    bool? garminNothingNew,
+    GarminPendingMarker? garminPendingMarker,
+    bool clearGarminPendingMarker = false,
     Uint8List? additionalFileBytes,
     bool clearAdditionalFileBytes = false,
     String? additionalFileName,
@@ -272,6 +294,13 @@ class UniversalImportState {
       zipTempDirPaths: zipTempDirPaths ?? this.zipTempDirPaths,
       parseCurrent: parseCurrent ?? this.parseCurrent,
       parseTotal: parseTotal ?? this.parseTotal,
+      garminProgress: clearGarminProgress
+          ? null
+          : (garminProgress ?? this.garminProgress),
+      garminNothingNew: garminNothingNew ?? this.garminNothingNew,
+      garminPendingMarker: clearGarminPendingMarker
+          ? null
+          : (garminPendingMarker ?? this.garminPendingMarker),
       additionalFileBytes: clearAdditionalFileBytes
           ? null
           : (additionalFileBytes ?? this.additionalFileBytes),

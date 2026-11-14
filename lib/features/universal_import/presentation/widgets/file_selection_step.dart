@@ -6,6 +6,8 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_han
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+import 'package:submersion/features/universal_import/presentation/widgets/garmin_import_progress_panel.dart';
+import 'package:submersion/features/universal_import/presentation/widgets/garmin_nothing_new_card.dart';
 import 'package:submersion/features/universal_import/presentation/widgets/suunto_json_handoff_card.dart';
 import 'package:submersion/core/platform/desktop_target_platform.dart';
 
@@ -24,10 +26,15 @@ class FileSelectionStep extends ConsumerWidget {
     final theme = Theme.of(context);
 
     final hasFile = state.files.isNotEmpty;
-    // Only offer the Garmin option when a device is actually mounted, so the
-    // import dialog stays clean for everyone who doesn't own one.
+    // Only offer the Garmin option when a device is actually connected
+    // (mounted, or over MTP on Windows), so the import dialog stays clean for
+    // everyone who doesn't own one.
     final hasGarminDevice =
         ref.watch(garminDevicesProvider).valueOrNull?.isNotEmpty ?? false;
+    // A Garmin import says what it is doing in its own panel, so the Select
+    // Files button keeps its own label and spinner for file detection.
+    final garminProgress = state.isLoading ? state.garminProgress : null;
+    final detectingFiles = state.isLoading && garminProgress == null;
 
     // A hand-off format never advances to Confirm Source: a Seacraft ENC
     // file is a route, not a dive log, and a Suunto JSON export belongs to
@@ -53,7 +60,7 @@ class FileSelectionStep extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              icon: state.isLoading
+              icon: detectingFiles
                   ? const SizedBox(
                       width: 16,
                       height: 16,
@@ -61,7 +68,7 @@ class FileSelectionStep extends ConsumerWidget {
                     )
                   : const Icon(Icons.file_open),
               label: Text(
-                state.isLoading
+                detectingFiles
                     ? context.l10n.universalImport_label_detecting
                     : hasFile
                     ? context.l10n.universalImport_action_changeFile
@@ -105,6 +112,20 @@ class FileSelectionStep extends ConsumerWidget {
                 ),
               ),
             ],
+          ],
+          if (garminProgress != null) ...[
+            const SizedBox(height: 16),
+            GarminImportProgressPanel(progress: garminProgress),
+          ],
+          // Gone once files are picked by hand: the message is about the
+          // watch, and its button would replace the picked files.
+          if (state.garminNothingNew && !state.isLoading && !hasFile) ...[
+            const SizedBox(height: 16),
+            GarminNothingNewCard(
+              onDownloadAll: () => ref
+                  .read(universalImportNotifierProvider.notifier)
+                  .importAllFromGarminDevice(),
+            ),
           ],
           if (state.error != null) ...[
             const SizedBox(height: 16),

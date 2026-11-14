@@ -35878,6 +35878,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא נמצאו צלילות במכשיר ה-Garmin המחובר.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'מכשיר ה-Garmin נמצא בשימוש של אפליקציה אחרת. סגור את Garmin Express ונסה שוב.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'לא ניתן היה לפתוח את הקובץ הנוסף: $details';
   }
@@ -35895,6 +35899,31 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'מזהה...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'קורא קבצים מהשעון ($copied מתוך $total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch => 'מחפש את השעון...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return 'סורק את הפעילויות ב-$device...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'מחפש צלילות ($checked מתוך $total)...';
+  }
+
+  @override
+  String get universalImport_info_garminNoNewDives =>
+      'אין צלילות חדשות בשעון מאז ההורדה האחרונה.';
+
+  @override
+  String get universalImport_action_garminDownloadAll => 'הורדת הכול מחדש';
 
   @override
   String get universalImport_label_duplicate => 'כפילות';
@@ -36375,6 +36404,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'שעון Garmin (Descent, Fenix, Epix...)';
+
+  @override
   String diveComputer_discovery_usbModelCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -36604,6 +36637,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'שעוני Garmin אינם מורדים כאן. ייבא את הצלילות שלהם דרך $importPath או $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'שעוני Garmin אינם מורדים דרך Bluetooth. חבר שעון בכבל ובחר Garmin ברשימת ה-USB, או ייבא את הצלילות שלהם דרך $importPath או $cloudPath.';
   }
 
   @override
@@ -52627,6 +52668,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'ייבוא מקובץ';
 
   @override
+  String get importWizard_dc_downloadFromWatch => 'הורדה מהשעון';
+
+  @override
   String get importWizard_dc_knownComputer => 'מחשב צלילה מוכר';
 
   @override
@@ -52646,6 +52690,24 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'שעוני Garmin שומרים צלילות כקובצי FIT במקום לאפשר הורדה ישירה. חבר את השעון ב-USB, העתק את הקבצים מהתיקייה GARMIN/Activity שלו, ולאחר מכן ייבא אותם.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'השעון שלך מחובר. Submersion יכול להוריד ממנו את הצלילות ישירות, או שאפשר לייבא קובצי FIT שכבר העתקת.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'הורדת צלילות מ-$name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'חבר את $name כדי להוריד את הצלילות';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'חבר את השעון ב-USB ובחר שוב ב\"הורד צלילות\", או ייבא קובצי FIT שכבר העתקת.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

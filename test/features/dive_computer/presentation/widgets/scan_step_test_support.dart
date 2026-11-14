@@ -84,13 +84,16 @@ class TestDiscoveryNotifier extends DiscoveryNotifier {
 /// Pumps [ScanStepWidget] inside a localized MaterialApp with the platform
 /// dependent providers replaced by fakes.
 ///
-/// [onDeviceSelected] receives the device a tap picks.
-/// [discoveryNotifier] replaces the default [TestDiscoveryNotifier], for a
-/// test that needs the scan itself to run.
+/// [onDeviceSelected] receives the device a tap picks, and
+/// [onGarminWatchSelected] is told when the Garmin entry is picked; both are
+/// passed to the widget as they are. [discoveryNotifier] replaces the
+/// default [TestDiscoveryNotifier], for a test that needs the scan itself
+/// to run.
 Widget buildScanStepTestWidget({
   Map<String, List<DeviceModel>> usbDevices = const {},
   DiscoveryNotifier Function()? discoveryNotifier,
   void Function(DiscoveredDevice device)? onDeviceSelected,
+  VoidCallback? onGarminWatchSelected,
 }) {
   return ProviderScope(
     overrides: [
@@ -106,7 +109,10 @@ Widget buildScanStepTestWidget({
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        body: ScanStepWidget(onDeviceSelected: onDeviceSelected ?? (_) {}),
+        body: ScanStepWidget(
+          onDeviceSelected: onDeviceSelected ?? (_) {},
+          onGarminWatchSelected: onGarminWatchSelected,
+        ),
       ),
     ),
   );

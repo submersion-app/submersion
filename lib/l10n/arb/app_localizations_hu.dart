@@ -36583,6 +36583,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A csatlakoztatott Garmin eszközön nem található merülés.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'A Garmin eszközt egy másik alkalmazás használja. Zárd be a Garmin Expresst, és próbáld újra.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'A kiegészítő fájl nem nyitható meg: $details';
   }
@@ -36600,6 +36604,32 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'Észlelés...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'Az óra fájljainak olvasása ($copied/$total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch => 'Óra keresése...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return '$device tevékenységeinek vizsgálata...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'Merülések keresése ($checked/$total)...';
+  }
+
+  @override
+  String get universalImport_info_garminNoNewDives =>
+      'A legutóbbi letöltés óta nincs új merülés az órán.';
+
+  @override
+  String get universalImport_action_garminDownloadAll =>
+      'Összes letöltése újra';
 
   @override
   String get universalImport_label_duplicate => 'Duplikátum';
@@ -37093,6 +37123,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'Garmin óra (Descent, Fenix, Epix...)';
+
+  @override
   String diveComputer_discovery_usbModelCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37327,6 +37361,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'A Garmin órák merüléseit nem itt kell letölteni. Importálja őket innen: $importPath vagy $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'A Garmin órák merüléseit nem Bluetooth-on kell letölteni. Csatlakoztass egyet kábellel, és válaszd a Garmint az USB-listában, vagy importáld őket innen: $importPath vagy $cloudPath.';
   }
 
   @override
@@ -53447,6 +53489,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importálás fájlból';
 
   @override
+  String get importWizard_dc_downloadFromWatch => 'Letöltés az óráról';
+
+  @override
   String get importWizard_dc_knownComputer => 'Ismert búvárszámítógép';
 
   @override
@@ -53466,6 +53511,24 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'A Garmin órák FIT-fájlokként tárolják a merüléseket, és nem kínálnak közvetlen letöltést. Csatlakoztassa az órát USB-n, másolja ki a fájlokat a GARMIN/Activity mappájából, majd importálja őket.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'Az órád csatlakoztatva van. A Submersion közvetlenül letöltheti róla a merüléseket, vagy importálhatod a már átmásolt FIT-fájlokat.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Merülések letöltése: $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Csatlakoztasd a(z) $name eszközt a merülések letöltéséhez';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Csatlakoztasd az órát USB-n, majd válaszd újra a „Merülések letöltése” lehetőséget, vagy importáld a már átmásolt FIT-fájlokat.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

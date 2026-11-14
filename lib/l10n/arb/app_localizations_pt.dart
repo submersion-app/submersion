@@ -36751,6 +36751,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhum mergulho foi encontrado no dispositivo Garmin conectado.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'O dispositivo Garmin está sendo usado por outro app. Feche o Garmin Express e tente novamente.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'Não foi possível abrir o arquivo adicional: $details';
   }
@@ -36768,6 +36772,32 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'Detectando...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'Lendo arquivos do relógio ($copied de $total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch => 'Procurando o relógio...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return 'Verificando as atividades do $device...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'Procurando mergulhos ($checked de $total)...';
+  }
+
+  @override
+  String get universalImport_info_garminNoNewDives =>
+      'Nenhum mergulho novo no relógio desde o último download.';
+
+  @override
+  String get universalImport_action_garminDownloadAll =>
+      'Baixar tudo novamente';
 
   @override
   String get universalImport_label_duplicate => 'Duplicado';
@@ -37264,6 +37294,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'Relógio Garmin (Descent, Fenix, Epix...)';
+
+  @override
   String diveComputer_discovery_usbModelCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37498,6 +37532,14 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'Relógios Garmin não são baixados aqui. Importe os mergulhos deles em $importPath ou $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'Relógios Garmin não são baixados por Bluetooth. Conecte um por cabo e escolha Garmin na lista USB, ou importe os mergulhos deles em $importPath ou $cloudPath.';
   }
 
   @override
@@ -53727,6 +53769,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importar de arquivo';
 
   @override
+  String get importWizard_dc_downloadFromWatch => 'Baixar do relógio';
+
+  @override
   String get importWizard_dc_knownComputer => 'Computador Conhecido';
 
   @override
@@ -53746,6 +53791,24 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Os relógios Garmin armazenam os mergulhos como arquivos FIT em vez de oferecer um download direto. Conecte o relógio por USB, copie os arquivos da pasta GARMIN/Activity e depois importe-os.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'Seu relógio está conectado. O Submersion pode baixar os mergulhos direto dele, ou você pode importar arquivos FIT que já copiou.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Baixar mergulhos do $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Conecte o $name para baixar os mergulhos';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Conecte o relógio por USB e escolha \"Baixar mergulhos\" novamente, ou importe arquivos FIT que você já copiou.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {
