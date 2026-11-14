@@ -225,9 +225,21 @@ class TripMediaScanner {
       tripWindowEnd.add(_photoLibraryTimezoneSlack),
     );
 
-    final assets = await photoPickerService.getAssetsInDateRange(
-      queryStart,
-      queryEnd,
+    // Build DiveBounds from each dive (normalised to wall-clock-as-UTC).
+    final bounds = dives.map((dive) {
+      final (rawEntry, rawExit) = diveBounds(dive);
+      return DiveBounds(
+        diveId: dive.id,
+        entryTime: toWallClockUtc(rawEntry),
+        exitTime: toWallClockUtc(rawExit),
+      );
+    }).toList();
+
+    final assets = await _assetsForTrip(
+      photoPickerService: photoPickerService,
+      queryStart: queryStart,
+      queryEnd: queryEnd,
+      bounds: bounds,
     );
 
     // Build lookup and ExtractedFile list for the matcher.
@@ -239,16 +251,6 @@ class TripMediaScanner {
       candidates: assets,
       linked: linked,
     );
-
-    // Build DiveBounds from each dive (normalised to wall-clock-as-UTC).
-    final bounds = dives.map((dive) {
-      final (rawEntry, rawExit) = diveBounds(dive);
-      return DiveBounds(
-        diveId: dive.id,
-        entryTime: toWallClockUtc(rawEntry),
-        exitTime: toWallClockUtc(rawExit),
-      );
-    }).toList();
 
     final primaryExtractedById = <String, ExtractedFile>{};
     for (final asset in newAssets) {
@@ -345,6 +347,48 @@ class TripMediaScanner {
       unmatched: unmatched,
       alreadyLinkedCount: alreadyLinkedCount,
     );
+  }
+
+  /// The gallery assets a trip scan matches against: the trip's own range,
+  /// plus the window of any dive that falls outside it.
+  ///
+  /// A dive's window is read on its camera's clock (see [diveBounds]), so a
+  /// camera on the wrong date puts it days from the trip, where the trip's
+  /// range never looks (issue #4539). Each such dive gets a query of its own
+  /// rather than a wider trip range: a camera a decade out would otherwise
+  /// pull the whole library.
+  static Future<List<AssetInfo>> _assetsForTrip({
+    required PhotoPickerService photoPickerService,
+    required DateTime queryStart,
+    required DateTime queryEnd,
+    required List<DiveBounds> bounds,
+  }) async {
+    final assets = await photoPickerService.getAssetsInDateRange(
+      queryStart,
+      queryEnd,
+    );
+    final tripStart = toWallClockUtc(queryStart);
+    final tripEnd = toWallClockUtc(queryEnd);
+    final outside = [
+      for (final dive in bounds)
+        (
+          start: dive.entryTime.subtract(DivePhotoMatcher.preBuffer),
+          end: dive.exitTime.add(DivePhotoMatcher.postBuffer),
+        ),
+    ].where((w) => w.start.isBefore(tripStart) || w.end.isAfter(tripEnd));
+    if (outside.isEmpty) return assets;
+
+    final byId = {for (final asset in assets) asset.id: asset};
+    for (final window in outside) {
+      final found = await photoPickerService.getAssetsInDateRange(
+        wallClockUtcToLocal(window.start),
+        wallClockUtcToLocal(window.end),
+      );
+      for (final asset in found) {
+        byId.putIfAbsent(asset.id, () => asset);
+      }
+    }
+    return byId.values.toList();
   }
 
   /// Scan the device gallery for photos near a single dive.
