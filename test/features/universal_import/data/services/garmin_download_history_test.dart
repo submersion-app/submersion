@@ -129,6 +129,49 @@ void main() {
     expect(await savedOn(computer), newer);
   });
 
+  test('never touches a computer that is not a Garmin', () async {
+    // The computer comes from a link. Handed some other computer's id, a
+    // Garmin download must not replace that computer's own download cursor
+    // with a Garmin marker, nor read one from it.
+    final now = DateTime(2026, 11, 1);
+    final shearwater = await repository.createComputer(
+      DiveComputer(
+        id: '',
+        name: 'Shearwater Perdix',
+        manufacturer: 'Shearwater',
+        model: 'Perdix',
+        serialNumber: '7',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await repository.updateLastFingerprint(shearwater.id, 'a1b2c3d4');
+
+    expect(await history.save(newer, computerId: shearwater.id), isFalse);
+    expect(await history.markerFor(computerId: shearwater.id), isNull);
+    expect(
+      (await repository.getComputerById(shearwater.id))?.lastDiveFingerprint,
+      'a1b2c3d4',
+    );
+  });
+
+  test('takes a Garmin whatever the casing of its brand', () async {
+    final now = DateTime(2026, 11, 1);
+    final computer = await repository.createComputer(
+      DiveComputer(
+        id: '',
+        name: 'Descent',
+        manufacturer: ' GARMIN ',
+        model: 'Descent Mk2',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    expect(await history.save(newer, computerId: computer.id), isTrue);
+    expect(await savedOn(computer), newer);
+  });
+
   test('reports when no computer matches', () async {
     expect(await history.save(newer, watchSerial: '42'), isFalse);
   });

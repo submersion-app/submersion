@@ -111,9 +111,15 @@ class RepositoryGarminDownloadHistory implements GarminDownloadHistory {
     final serial = _clean(watchSerial);
     if (computerId != null) {
       final computer = await _repository.getComputerById(computerId);
-      // The diver may have plugged in a different Garmin than the one whose
-      // Download they chose; that watch has its own marker.
-      if (computer != null && !_isOtherWatch(computer, serial)) {
+      // The id arrives in a link, so it is only taken for a Garmin: on any
+      // other computer `lastDiveFingerprint` is its libdivecomputer download
+      // cursor, which a marker saved here would replace.
+      //
+      // The diver may also have plugged in a different Garmin than the one
+      // whose Download they chose; that watch has its own marker.
+      if (computer != null &&
+          _isGarmin(computer) &&
+          !_isOtherWatch(computer, serial)) {
         return computer;
       }
     }
@@ -129,6 +135,9 @@ class RepositoryGarminDownloadHistory implements GarminDownloadHistory {
     }
     return null;
   }
+
+  static bool _isGarmin(DiveComputer computer) =>
+      computer.manufacturer?.trim().toLowerCase() == 'garmin';
 
   static bool _isOtherWatch(DiveComputer computer, String? watchSerial) {
     final saved = _clean(computer.serialNumber);
