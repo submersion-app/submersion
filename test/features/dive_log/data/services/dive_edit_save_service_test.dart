@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/app_enums.dart';
 import 'package:submersion/core/database/database.dart'
-    hide Dive, DiveCustomField, DiveWeight, Tag;
+    hide Dive, DiveCustomField, DiveWeight, Tag, Trip;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
@@ -11,9 +11,13 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_details_fields.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/visibility_input/visibility_entry.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 import '../../../../core/database/change_log/change_log_support.dart';
 import '../../../../helpers/test_database.dart';
@@ -31,6 +35,7 @@ void main() {
   // Built per test: a repository made for an earlier test's database must
   // not be reused on this one.
   late DiveRepository dives;
+  late TripRepository trips;
   final epoch = DateTime.fromMillisecondsSinceEpoch(0);
 
   Future<Dive> stored() async => (await dives.getDiveById('dive'))!;
@@ -47,7 +52,8 @@ void main() {
     db = await setUpTestDatabase();
     addTearDown(SyncCoordinator.reset);
     dives = DiveRepository();
-    service = DiveEditSaveService(dives);
+    trips = TripRepository();
+    service = DiveEditSaveService(dives, trips);
     await insertDiver(db, 'me');
     await insertDive(db, 'dive', diverId: 'me', notes: 'Calm');
     await db
@@ -350,5 +356,215 @@ void main() {
       expect((await stored()).notes, 'Calm');
       expect(await siteAltitude(), isNull);
     });
+  });
+
+  // What the Details card edits, and the one rule that runs at save time:
+  // a dive put on a trip stretches that trip's dates to cover it.
+  group('the Details card', () {
+    // The seeded dive is on 1 January 1970, before either trip begins.
+    Future<Trip> addTrip(String id) => trips.createTrip(
+      Trip(
+        id: id,
+        diverId: 'me',
+        name: 'Trip $id',
+        startDate: DateTime(1970, 1, 5),
+        endDate: DateTime(1970, 1, 7),
+        createdAt: epoch,
+        updatedAt: epoch,
+      ),
+    );
+
+    /// Forgets what seeding wrote, so a test sees only its own save.
+    Future<void> forgetLog() async {
+      await changeLog.settleAll();
+      await clearLog(db);
+      await db.customStatement('DELETE FROM change_log_operations');
+    }
+
+    Future<DateTime> startOf(String tripId) async =>
+        (await trips.getTripById(tripId))!.startDate;
+
+    bool isFirstOfJanuary(DateTime day) =>
+        (day.year, day.month, day.day) == (1970, 1, 1);
+
+    test('a cleared trip is stored with no trip', () async {
+      final tripA = await addTrip('a');
+      await dives.updateDive(
+        (await stored()).copyWith(trip: tripA, tripId: 'a'),
+      );
+      expect((await stored()).tripId, 'a');
+
+      await service.save(
+        diveId: 'dive',
+        apply: (dive) => diveTripField.write(dive, null),
+        changedCardIds: ['details'],
+      );
+
+      final after = await stored();
+      expect((after.trip, after.tripId), (null, null));
+    });
+
+    test(
+      'a dive put on a trip stretches it, in the one History entry',
+      () async {
+        final tripA = await addTrip('a');
+        await forgetLog();
+
+        final result = await service.save(
+          diveId: 'dive',
+          apply: (dive) => diveTripField.write(dive, tripA),
+          changedCardIds: ['details'],
+        );
+
+        expect(result!.tripDateStretches.single.tripId, 'a');
+        expect(isFirstOfJanuary(await startOf('a')), isTrue);
+        expect((await stored()).tripId, 'a');
+        expect(await operations(), hasLength(1));
+        expect({
+          for (final event in await logEvents(db)) event['table_name'],
+        }, containsAll(['dives', 'trips']));
+      },
+    );
+
+    test('a dive whose trip was not touched does not stretch it', () async {
+      final tripA = await addTrip('a');
+      // On the trip already, and outside its dates.
+      await dives.updateDive(
+        (await stored()).copyWith(trip: tripA, tripId: 'a'),
+      );
+
+      final result = await service.save(
+        diveId: 'dive',
+        apply: (dive) => dive.copyWith(notes: 'Current'),
+        changedCardIds: ['notes'],
+      );
+
+      expect(result!.tripDateStretches, isEmpty);
+      expect(await startOf('a'), DateTime(1970, 1, 5));
+    });
+
+    test('a failing alsoWrite rolls the stretch back with the dive', () async {
+      final tripA = await addTrip('a');
+
+      await expectLater(
+        service.save(
+          diveId: 'dive',
+          apply: (dive) => diveTripField.write(dive, tripA),
+          changedCardIds: ['details'],
+          alsoWrite: () async => throw StateError('no'),
+        ),
+        throwsStateError,
+      );
+
+      expect(await startOf('a'), DateTime(1970, 1, 5));
+      expect((await stored()).tripId, isNull);
+    });
+
+    test(
+      'a tank linked to the old trip\'s cylinder loses the link when the trip '
+      'changes',
+      () async {
+        final tripA = await addTrip('a');
+        final tripB = await addTrip('b');
+        await db
+            .into(db.tripCylinders)
+            .insert(
+              TripCylindersCompanion.insert(
+                id: 'slot',
+                tripId: 'a',
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+        final seeded = await stored();
+        await dives.updateDive(
+          seeded.copyWith(
+            trip: tripA,
+            tripId: 'a',
+            tanks: [seeded.tanks.single.copyWith(tripCylinderId: 'slot')],
+          ),
+        );
+        expect((await stored()).tanks.single.tripCylinderId, 'slot');
+
+        await service.save(
+          diveId: 'dive',
+          apply: (dive) => diveTripField.write(dive, tripB),
+          changedCardIds: ['details'],
+        );
+
+        final after = await stored();
+        expect(after.tripId, 'b');
+        expect(after.tanks.single.tripCylinderId, isNull);
+      },
+    );
+
+    test('dive types are written with the dive, in order', () async {
+      await service.save(
+        diveId: 'dive',
+        apply: (dive) => diveTypeIdsField.write(dive, ['wreck', 'night']),
+        changedCardIds: ['details'],
+      );
+
+      expect((await stored()).diveTypeIds, ['wreck', 'night']);
+    });
+
+    test('courses are written with the dive, as a set', () async {
+      for (final id in ['c1', 'c2']) {
+        await db
+            .into(db.courses)
+            .insert(
+              CoursesCompanion.insert(
+                id: id,
+                diverId: 'me',
+                name: 'Course $id',
+                agency: 'padi',
+                startDate: 0,
+                createdAt: 0,
+                updatedAt: 0,
+              ),
+            );
+      }
+
+      await service.save(
+        diveId: 'dive',
+        apply: (dive) => diveCourseIdsField.write(dive, ['c2', 'c1']),
+        changedCardIds: ['details'],
+      );
+
+      // Read back in the writer's own order: by start date, then name.
+      expect((await stored()).courseIds, ['c1', 'c2']);
+    });
+
+    test(
+      'a cleared visibility, water type and operator are stored as null',
+      () async {
+        await dives.updateDive(
+          (await stored()).copyWith(
+            visibilityMeters: 12,
+            waterType: WaterType.salt,
+            diveOperator: 'Emperor',
+          ),
+        );
+        final seeded = await stored();
+        expect(seeded.visibilityMeters, 12);
+        expect(seeded.waterType, WaterType.salt);
+        expect(seeded.diveOperator, 'Emperor');
+
+        await service.save(
+          diveId: 'dive',
+          apply: (dive) {
+            var next = diveVisibilityField.write(dive, StoredVisibility.none);
+            next = diveWaterTypeField.write(next, null);
+            return diveOperatorField.write(next, null);
+          },
+          changedCardIds: ['details'],
+        );
+
+        final after = await stored();
+        expect(after.visibilityMeters, isNull);
+        expect(after.waterType, isNull);
+        expect(after.diveOperator, isNull);
+      },
+    );
   });
 }

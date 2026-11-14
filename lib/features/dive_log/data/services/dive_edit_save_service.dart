@@ -4,6 +4,8 @@ import 'package:submersion/core/services/change_log/record_edit_label.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/domain/services/trip_date_stretch.dart';
 
 /// Saves one editing sitting on a dive (issue #4527).
 ///
@@ -14,24 +16,33 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 /// transaction, so a failure leaves nothing half saved, and in one change
 /// log operation, so the sitting is one History entry that reverts as a
 /// unit.
+///
+/// A sitting that puts the dive on a trip, or moves it to another day on
+/// one, stretches that trip's dates to cover it (issue #3351). That is
+/// written with the sitting too, so the trip's dates move with the dive or
+/// not at all.
 class DiveEditSaveService {
-  DiveEditSaveService(this._diveRepo);
+  DiveEditSaveService(this._diveRepo, this._tripRepo);
 
   final DiveRepository _diveRepo;
+  final TripRepository _tripRepo;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
   /// Applies [apply] to the dive as stored now and writes the result.
   ///
   /// [changedCardIds] names the cards the sitting changed, for its History
-  /// label. Returns the dive before and after, or null when [apply] changed
-  /// nothing. Throws [StateError] when the dive no longer exists.
+  /// label. Returns the dive before and after, with the trips whose dates
+  /// moved to cover it, or null when [apply] changed nothing. Throws
+  /// [StateError] when the dive no longer exists.
   ///
   /// [alsoWrite] makes the sitting's writes to other records (an altitude
   /// copied back to the dive's site). It runs after the dive is written, in
-  /// the same transaction and History entry, so if it throws the dive is
-  /// left as it was. It is not called when [apply] changed nothing.
-  Future<({Dive before, Dive after})?> save({
+  /// the same transaction and History entry, so if it throws the dive and
+  /// its trip are left as they were. It is not called when [apply] changed
+  /// nothing.
+  Future<({Dive before, Dive after, List<TripDateStretch> tripDateStretches})?>
+  save({
     required String diveId,
     required Dive Function(Dive stored) apply,
     required Iterable<String> changedCardIds,
@@ -52,8 +63,20 @@ class DiveEditSaveService {
         final merged = apply(stored);
         if (merged == stored) return null;
         await _diveRepo.updateDive(merged);
+        // Only a save that touched the trip moves its dates: a dive saved
+        // for something else leaves a trip it sits outside of alone, so a
+        // date the diver set by hand is never reopened.
+        final touchesTrip = diveSaveTouchesTrip(
+          tripId: merged.tripId ?? merged.trip?.id,
+          previousTripId: stored.tripId ?? stored.trip?.id,
+          date: merged.effectiveEntryTime,
+          previousDate: stored.effectiveEntryTime,
+        );
+        final stretches = touchesTrip
+            ? await _tripRepo.stretchToCoverDives([diveId])
+            : const <TripDateStretch>[];
         await alsoWrite?.call();
-        return (before: stored, after: merged);
+        return (before: stored, after: merged, tripDateStretches: stretches);
       }),
     );
   }
