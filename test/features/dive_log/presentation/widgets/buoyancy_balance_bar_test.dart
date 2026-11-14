@@ -176,6 +176,32 @@ void main() {
     ]);
   });
 
+  testWidgets('slivers beside a full side shrink to fit, not overflow', (
+    tester,
+  ) async {
+    // Lead alone fills the 6 kg scale; two slivers each take their 2 px
+    // minimum on top of it, which would push the side past its half.
+    const parts = [
+      TwinBalancePart(kind: TwinBalancePartKind.lead, kg: -6.0),
+      TwinBalancePart(kind: TwinBalancePartKind.tanks, kg: -0.06),
+      TwinBalancePart(kind: TwinBalancePartKind.gear, kg: -0.06),
+    ];
+    await _pump(
+      tester,
+      const TwinBalance(parts: parts, netKg: -6.12),
+      scaleKg: 6.0,
+    );
+    expect(tester.takeException(), isNull);
+    final half =
+        (tester.getSize(find.byType(BuoyancyBalanceBar)).width - 2) / 2;
+    final used = [
+      for (final part in parts) tester.getSize(_segment(part.kind)).width,
+    ].fold(0.0, (sum, w) => sum + w);
+    // Unshrunk they would total the usable width plus 4 px. Shrunk, they fit
+    // the usable width exactly: the half less the room kept for four gaps.
+    expect(used, closeTo(half - 8, 0.01));
+  });
+
   testWidgets('a bar squeezed to almost nothing draws no segments', (
     tester,
   ) async {

@@ -347,6 +347,36 @@ void main() {
         expect(shown, [true, false, true, true]);
       });
 
+      testWidgets('a plot with no width still labels every marker', (
+        tester,
+      ) async {
+        // 60 px is all axis: the reserved left margin leaves no plot to
+        // measure label collisions against, so no label is dropped.
+        await tester.pumpWidget(
+          MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: Align(
+                alignment: Alignment.topLeft,
+                child: SizedBox(
+                  width: 60,
+                  child: BuoyancyChart(
+                    result: result,
+                    units: units,
+                    markers: markers,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        expect(tester.takeException(), isNull);
+        final lines = verticalLines(tester);
+        expect(lines.map((l) => l.label.show), [true, true, true]);
+      });
+
       testWidgets('no dots without markers', (tester) async {
         await pumpChart(tester);
         expect(barOf(tester).dotData.show, isFalse);
