@@ -21,8 +21,9 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 /// its own snapshot is empty, its dive takes the computer when the source is
 /// the dive's primary and no computer claims the dive, the tanks and tank
 /// pressure series the source recorded take it (both name their source, so
-/// that match is exact), and the dive's profile series take it where the
-/// dive has no other computer source. Each relinked row is restamped and
+/// that match is exact), and so do the profile series that name the source
+/// (issue #4529); a series with no source takes it only where the dive has
+/// no other computer source. Each relinked row is restamped and
 /// marked pending, so the links reach the diver's other devices.
 class OrphanedSourceRelinker {
   /// Shares its owner's repositories rather than building its own.

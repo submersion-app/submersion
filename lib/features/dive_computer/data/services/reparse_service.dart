@@ -195,8 +195,10 @@ class ReparseService {
       // before the mark, liveEditIds, the rule a resync keeps an edit by,
       // reads it off the generation demoted beneath it. An edit that lost its
       // source is kept too, whoever re-parses (issue #4529).
-      final keptEdits = await _keptEdits(
-        diveId,
+      // Read once: nothing below writes a series before the replace.
+      final series = await _profileSeries.getIdentitiesForDive(diveId);
+      final keptEdits = _keptEdits(
+        series,
         sourceRow.id,
         sourceRow.computerId,
         sources,
@@ -247,6 +249,7 @@ class ReparseService {
           computerId: computerId,
           sourceId: sourceRow.id,
           sources: sources,
+          series: series,
           keptEdits: keptEdits.ids,
           liveEditKept: keptEdits.anyLive,
           parsed: parsed,
@@ -789,9 +792,10 @@ class ReparseService {
   /// [keptEdits] are the manual edits this source owns and any with no
   /// source or computer, which stay, live or demoted (issue #4386);
   /// [liveEditKept] says one of them is the live series, so the fresh parse
-  /// lands beneath it.
+  /// lands beneath it. [series] are the dive's series as read before.
   Future<void> _replaceDiveProfiles({
     required String diveId,
+    required List<ProfileSeriesIdentity> series,
     required String? computerId,
     required String sourceId,
     required List<({String id, String? computerId})> sources,
@@ -803,7 +807,7 @@ class ReparseService {
     required int timeOffset,
   }) async {
     final replaced = [
-      for (final s in await _profileSeries.getIdentitiesForDive(diveId))
+      for (final s in series)
         if (!keptEdits.contains(s.id) &&
             _ownsSeries(
               s,
@@ -873,13 +877,12 @@ class ReparseService {
   /// (issue #3189): an edit of a source with a computer names that source
   /// and no computer, the shape a computer delete leaves on its recording
   /// too, and only the generation demoted beneath tells them apart.
-  Future<({Set<String> ids, bool anyLive})> _keptEdits(
-    String diveId,
+  static ({Set<String> ids, bool anyLive}) _keptEdits(
+    List<ProfileSeriesIdentity> series,
     String sourceId,
     String? computerId,
     List<({String id, String? computerId})> sources,
-  ) async {
-    final series = await _profileSeries.getIdentitiesForDive(diveId);
+  ) {
     final byShape = ProfileSeriesRepository.liveEditIdsOf(series);
     final edits = [
       for (final s in series)
