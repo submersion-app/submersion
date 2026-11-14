@@ -82,8 +82,10 @@ profile both ways), with these changes:
 
 - Three marked points, labelled by name only: **Start** (first in-water
   sample), **Deepest** (greatest depth), **Final stop** (the verdict anchor;
-  omitted when the anchor is the no-profile convention). If the Deepest label
-  would collide with another label it is dropped and its dot stays.
+  omitted when the anchor is the no-profile convention). Each is a dot on the
+  line with a thin dashed rule up to its label at the top of the plot. If the
+  Deepest label would collide with another label it is dropped and its dot
+  stays.
 - The touch tooltip is removed. The readout and the bar now say what it said,
   without covering the line.
 - With no cursor, the cursor line rests on the final stop.
@@ -103,9 +105,12 @@ and "Holding you up" (right) over a bar split at a centre line. The parts:
   cross from down to up. A part within 0.05 kg of zero is not drawn.
 - The scale is fixed for the whole dive (the largest side total across all
   samples), so only the parts that really change move while scrubbing.
-- A segment shows "Name value" when it fits. A segment too narrow for its
-  label lists it in a legend line under the bar instead. Each segment has a
-  tooltip and a semantic label.
+- A segment shows "Name value" when it fits, the name alone when only that
+  fits, and nothing when it is narrower still. Any part not shown in full is
+  listed in a legend line under the bar, in the bar's own left-to-right
+  order. Each segment has a tooltip and a semantic label.
+- From the centre outward the order is lead, body, gear, suit, tanks: the
+  constant parts first, so the parts that change never push them sideways.
 - At rest it draws the verdict's terms. While scrubbing it draws that
   sample's `suitKg` and `tanksKg` with the constant parts.
 - With fewer than two plottable samples there is no chart; the readout and
@@ -158,7 +163,12 @@ Unchanged, at the bottom of the card.
   "Buoyancy through the dive, swing, ditchable weight" to name the lead
   answer instead of swing.
 - New strings go into all eleven ARB files. The verdict sentences stay; the
-  Weight Planner and the Adjust sheet still use them.
+  Weight Planner and the Adjust sheet still use them. Two strings retire with
+  the code that used them: the hard-coded "5 m" convention line (its
+  replacement takes the depth from the diver's units) and the tooltip's
+  "Rig + lead" label.
+- The Weight Planner user guide's "After the Dive" section describes the new
+  card.
 
 ## Units
 
