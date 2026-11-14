@@ -96,7 +96,13 @@ class CsvEquipmentWriter {
                           (!_dedicatedAttrKeys.contains(a.key) &&
                               !EquipmentAttributeCatalog.isSystemKey(a.key))),
                 )
-                .map((a) => formatAttributePair(a, units)),
+                .map(
+                  (a) => formatAttributePair(
+                    a,
+                    units,
+                    workingPressureBar: item.workingPressureBar,
+                  ),
+                ),
           ),
         ),
         sanitizeCsvField(
