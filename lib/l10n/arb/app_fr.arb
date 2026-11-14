@@ -2984,9 +2984,9 @@
   "diveLog_legend_label_counterdiffusion": "Contre-diffusion",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "Tout",
-  "diveLog_tooltip_counterdiffusion_icd": "Contre-diffusion isobare",
-  "diveLog_tooltip_counterdiffusion_opposing": "Échange gazeux opposé",
-  "diveLog_tooltip_counterdiffusion_compartments": "Compartiments {list}",
+  "diveLog_tooltip_counterdiffusion_icd": "Contre-diffusion (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Échange opposé",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
   "@diveLog_tooltip_counterdiffusion_compartments": {
     "placeholders": {
       "list": {

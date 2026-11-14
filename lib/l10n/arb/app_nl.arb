@@ -3107,9 +3107,9 @@
   "diveLog_legend_label_counterdiffusion": "Tegendiffusie",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "Alles",
-  "diveLog_tooltip_counterdiffusion_icd": "Isobare tegendiffusie",
-  "diveLog_tooltip_counterdiffusion_opposing": "Tegengestelde gasuitwisseling",
-  "diveLog_tooltip_counterdiffusion_compartments": "Compartimenten {list}",
+  "diveLog_tooltip_counterdiffusion_icd": "Tegendiffusie (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Tegengestelde uitwisseling",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
   "@diveLog_tooltip_counterdiffusion_compartments": {
     "placeholders": {
       "list": {

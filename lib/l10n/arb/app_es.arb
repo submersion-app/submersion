@@ -3107,9 +3107,9 @@
   "diveLog_legend_label_counterdiffusion": "Contradifusión",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "Todo",
-  "diveLog_tooltip_counterdiffusion_icd": "Contradifusión isobárica",
-  "diveLog_tooltip_counterdiffusion_opposing": "Intercambio de gases opuesto",
-  "diveLog_tooltip_counterdiffusion_compartments": "Compartimentos {list}",
+  "diveLog_tooltip_counterdiffusion_icd": "Contradifusión (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Intercambio opuesto",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
   "@diveLog_tooltip_counterdiffusion_compartments": {
     "placeholders": {
       "list": {

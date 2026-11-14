@@ -9430,14 +9430,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_counterdiffusion_segment_all => 'Tudo';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_icd => 'Contradifusão isobárica';
+  String get diveLog_tooltip_counterdiffusion_icd => 'Contradifusão (ICD)';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_opposing => 'Troca gasosa oposta';
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Troca oposta';
 
   @override
   String diveLog_tooltip_counterdiffusion_compartments(String list) {
-    return 'Compartimentos $list';
+    return '#$list';
   }
 
   @override

@@ -9421,15 +9421,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_counterdiffusion_segment_all => 'Alle';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_icd => 'Isobare Gegendiffusion';
+  String get diveLog_tooltip_counterdiffusion_icd => 'Gegendiffusion (ICD)';
 
   @override
   String get diveLog_tooltip_counterdiffusion_opposing =>
-      'Gegenläufiger Gasaustausch';
+      'Gegenläufiger Austausch';
 
   @override
   String diveLog_tooltip_counterdiffusion_compartments(String list) {
-    return 'Kompartimente $list';
+    return '#$list';
   }
 
   @override

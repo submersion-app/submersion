@@ -9558,15 +9558,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_counterdiffusion_segment_all => 'الكل';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_icd =>
-      'الانتشار العكسي متساوي الضغط';
+  String get diveLog_tooltip_counterdiffusion_icd => 'انتشار عكسي (ICD)';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_opposing => 'تبادل غازي متعاكس';
+  String get diveLog_tooltip_counterdiffusion_opposing => 'تبادل متعاكس';
 
   @override
   String diveLog_tooltip_counterdiffusion_compartments(String list) {
-    return 'الأنسجة $list';
+    return '#$list';
   }
 
   @override

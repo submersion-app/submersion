@@ -9221,14 +9221,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_counterdiffusion_segment_all => 'הכול';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_icd => 'דיפוזיה נגדית איזוברית';
+  String get diveLog_tooltip_counterdiffusion_icd => 'דיפוזיה נגדית (ICD)';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_opposing => 'חילוף גזים מנוגד';
+  String get diveLog_tooltip_counterdiffusion_opposing => 'חילוף מנוגד';
 
   @override
   String diveLog_tooltip_counterdiffusion_compartments(String list) {
-    return 'מדורים $list';
+    return '#$list';
   }
 
   @override

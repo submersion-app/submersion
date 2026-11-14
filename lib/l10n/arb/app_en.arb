@@ -5550,9 +5550,9 @@
   "diveLog_legend_label_counterdiffusion": "Counterdiffusion",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "All",
-  "diveLog_tooltip_counterdiffusion_icd": "Isobaric counterdiffusion",
-  "diveLog_tooltip_counterdiffusion_opposing": "Opposing gas exchange",
-  "diveLog_tooltip_counterdiffusion_compartments": "Compartments {list}",
+  "diveLog_tooltip_counterdiffusion_icd": "Counterdiffusion (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Opposing exchange",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
   "@diveLog_tooltip_counterdiffusion_compartments": {
     "placeholders": {
       "list": {

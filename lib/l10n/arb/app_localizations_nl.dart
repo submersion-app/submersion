@@ -9369,15 +9369,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_counterdiffusion_segment_all => 'Alles';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_icd => 'Isobare tegendiffusie';
+  String get diveLog_tooltip_counterdiffusion_icd => 'Tegendiffusie (ICD)';
 
   @override
   String get diveLog_tooltip_counterdiffusion_opposing =>
-      'Tegengestelde gasuitwisseling';
+      'Tegengestelde uitwisseling';
 
   @override
   String diveLog_tooltip_counterdiffusion_compartments(String list) {
-    return 'Compartimenten $list';
+    return '#$list';
   }
 
   @override

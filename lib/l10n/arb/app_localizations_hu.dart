@@ -9407,14 +9407,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_counterdiffusion_segment_all => 'Mind';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_icd => 'Izobár ellendiffúzió';
+  String get diveLog_tooltip_counterdiffusion_icd => 'Ellendiffúzió (ICD)';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_opposing => 'Ellentétes gázcsere';
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Ellentétes csere';
 
   @override
   String diveLog_tooltip_counterdiffusion_compartments(String list) {
-    return 'Kompartmentek $list';
+    return '#$list';
   }
 
   @override

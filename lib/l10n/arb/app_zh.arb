@@ -3220,9 +3220,9 @@
   "diveLog_legend_label_counterdiffusion": "逆向扩散",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "全部",
-  "diveLog_tooltip_counterdiffusion_icd": "等压逆向扩散",
-  "diveLog_tooltip_counterdiffusion_opposing": "反向气体交换",
-  "diveLog_tooltip_counterdiffusion_compartments": "隔室 {list}",
+  "diveLog_tooltip_counterdiffusion_icd": "逆向扩散 (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "反向交换",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
   "@diveLog_tooltip_counterdiffusion_compartments": {
     "placeholders": {
       "list": {

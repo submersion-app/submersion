@@ -3107,9 +3107,9 @@
   "diveLog_legend_label_counterdiffusion": "الانتشار العكسي",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "الكل",
-  "diveLog_tooltip_counterdiffusion_icd": "الانتشار العكسي متساوي الضغط",
-  "diveLog_tooltip_counterdiffusion_opposing": "تبادل غازي متعاكس",
-  "diveLog_tooltip_counterdiffusion_compartments": "الأنسجة {list}",
+  "diveLog_tooltip_counterdiffusion_icd": "انتشار عكسي (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "تبادل متعاكس",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
   "@diveLog_tooltip_counterdiffusion_compartments": {
     "placeholders": {
       "list": {

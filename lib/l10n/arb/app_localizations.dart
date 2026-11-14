@@ -14844,19 +14844,19 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_tooltip_counterdiffusion_icd.
   ///
   /// In en, this message translates to:
-  /// **'Isobaric counterdiffusion'**
+  /// **'Counterdiffusion (ICD)'**
   String get diveLog_tooltip_counterdiffusion_icd;
 
   /// No description provided for @diveLog_tooltip_counterdiffusion_opposing.
   ///
   /// In en, this message translates to:
-  /// **'Opposing gas exchange'**
+  /// **'Opposing exchange'**
   String get diveLog_tooltip_counterdiffusion_opposing;
 
   /// No description provided for @diveLog_tooltip_counterdiffusion_compartments.
   ///
   /// In en, this message translates to:
-  /// **'Compartments {list}'**
+  /// **'#{list}'**
   String diveLog_tooltip_counterdiffusion_compartments(String list);
 
   /// No description provided for @diveLog_legend_label_gasSwitches.

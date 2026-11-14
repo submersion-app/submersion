@@ -2984,9 +2984,9 @@
   "diveLog_legend_label_counterdiffusion": "דיפוזיה נגדית",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "הכול",
-  "diveLog_tooltip_counterdiffusion_icd": "דיפוזיה נגדית איזוברית",
-  "diveLog_tooltip_counterdiffusion_opposing": "חילוף גזים מנוגד",
-  "diveLog_tooltip_counterdiffusion_compartments": "מדורים {list}",
+  "diveLog_tooltip_counterdiffusion_icd": "דיפוזיה נגדית (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "חילוף מנוגד",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
   "@diveLog_tooltip_counterdiffusion_compartments": {
     "placeholders": {
       "list": {

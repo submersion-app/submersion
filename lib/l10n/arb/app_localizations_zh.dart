@@ -8943,14 +8943,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_counterdiffusion_segment_all => '全部';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_icd => '等压逆向扩散';
+  String get diveLog_tooltip_counterdiffusion_icd => '逆向扩散 (ICD)';
 
   @override
-  String get diveLog_tooltip_counterdiffusion_opposing => '反向气体交换';
+  String get diveLog_tooltip_counterdiffusion_opposing => '反向交换';
 
   @override
   String diveLog_tooltip_counterdiffusion_compartments(String list) {
-    return '隔室 $list';
+    return '#$list';
   }
 
   @override

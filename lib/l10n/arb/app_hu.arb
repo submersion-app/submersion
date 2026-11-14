@@ -2984,9 +2984,9 @@
   "diveLog_legend_label_counterdiffusion": "Ellendiffúzió",
   "diveLog_counterdiffusion_segment_icd": "ICD",
   "diveLog_counterdiffusion_segment_all": "Mind",
-  "diveLog_tooltip_counterdiffusion_icd": "Izobár ellendiffúzió",
-  "diveLog_tooltip_counterdiffusion_opposing": "Ellentétes gázcsere",
-  "diveLog_tooltip_counterdiffusion_compartments": "Kompartmentek {list}",
+  "diveLog_tooltip_counterdiffusion_icd": "Ellendiffúzió (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Ellentétes csere",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
   "@diveLog_tooltip_counterdiffusion_compartments": {
     "placeholders": {
       "list": {
