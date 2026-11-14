@@ -200,11 +200,13 @@ final Set<String> consolidationFilledColumns = {
 /// what [secondaries] recorded, before the secondaries are tombstoned and
 /// their rows are gone.
 ///
-/// Never overwrites a value the target holds. [targetHasProfile] says
-/// whether the target has profile samples of its own, which the row cannot
-/// show, and [diveIdsWithMedia] which of the dives own media, which decides
-/// the one media time shift the merged dive keeps. Keyed by SQL column name,
-/// for a `RawValuesInsertable`; empty when there is nothing to fill.
+/// Never overwrites a value the target holds, with one exception: the media
+/// time shift belongs to whichever dive's media is placed by it, so a target
+/// that owns no media gives its own up to the first secondary that does
+/// (see [mergedMediaTimeOffsetSeconds]). [targetHasProfile] says whether the
+/// target has profile samples of its own, which the row cannot show, and
+/// [diveIdsWithMedia] which of the dives own media. Keyed by SQL column
+/// name, for a `RawValuesInsertable`; empty when there is nothing to fill.
 Map<String, Expression> consolidationFieldFill(
   Dive target,
   List<Dive> secondaries, {
