@@ -69,9 +69,12 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 }
 
 class _FakeLocationService implements LocationService {
-  _FakeLocationService({this.result});
+  _FakeLocationService({this.result, this.gate});
 
   final LocationResult? result;
+
+  /// Completed by a test that wants the fix to arrive late.
+  final Completer<void>? gate;
   int calls = 0;
 
   @override
@@ -81,6 +84,7 @@ class _FakeLocationService implements LocationService {
     String languageCode = LocationService.defaultLanguageCode,
   }) async {
     calls++;
+    await gate?.future;
     return result;
   }
 
@@ -165,6 +169,7 @@ Future<_Harness> _pump(
   GeoPoint? diveLocation,
   SiteAreaAnchor? areaAnchor,
   LocationResult? deviceLocation,
+  Completer<void>? locationGate,
   bool withCatalogue = true,
   bool withRules = false,
   void Function(String query)? onCreateNewSite,
@@ -177,7 +182,7 @@ Future<_Harness> _pump(
   final harness = _Harness(
     FakeSiteCatalogue(catalogueSites ?? _bonaire),
     adoptions,
-    _FakeLocationService(result: deviceLocation),
+    _FakeLocationService(result: deviceLocation, gate: locationGate),
   );
 
   await tester.pumpWidget(
@@ -301,6 +306,34 @@ void main() {
       ]);
       expect(find.textContaining(' away'), findsNothing);
       expect(find.text('Near the sites of your other dives'), findsOneWidget);
+    });
+
+    testWidgets('a search typed before the device fix arrives is run again '
+        'around it', (tester) async {
+      // The fix can take seconds. A search typed meanwhile knew no area; it
+      // must not keep that order for the rest of the sheet's life.
+      final fix = Completer<void>();
+      await _pump(
+        tester,
+        catalogueSites: [
+          _cat('far', 'Alpha Reef', north: 200000),
+          _cat('near', 'Zulu Reef', north: 1000),
+        ],
+        deviceLocation: LocationResult(
+          latitude: _pier.latitude,
+          longitude: _pier.longitude,
+        ),
+        locationGate: fix,
+      );
+      await tester.enterText(find.byType(TextField), 'reef');
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.pumpAndSettle();
+      expect(_builtInTitles(tester), ['Alpha Reef', 'Zulu Reef']);
+
+      fix.complete();
+      await tester.pumpAndSettle();
+
+      expect(_builtInTitles(tester), ['Zulu Reef', 'Alpha Reef']);
     });
 
     testWidgets('the by-name list ignores case and accents', (tester) async {

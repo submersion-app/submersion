@@ -139,6 +139,13 @@ class ExternalSiteSearchNotifier
     }
   }
 
+  /// Runs the search on the page again, if there is one. For when the
+  /// catalogue changes under it: an import that lands after the search.
+  Future<void> refresh() async {
+    if (state.query.trim().isEmpty) return;
+    await search(state.query);
+  }
+
   /// Adopts [site] as one of the diver's sites, or finds the one they
   /// already adopted from it. Null, with an error in the state, on failure.
   Future<CatalogueAdoption?> importSite(CatalogueSite site) async {
@@ -163,15 +170,22 @@ class ExternalSiteSearchNotifier
 
 /// The import page's search.
 // no-tick: a search the page runs on demand; it re-reads the diver's sites
-// each time it runs.
+// each time it runs, and runs again when the catalogue is replaced.
 final externalSiteSearchProvider =
     StateNotifierProvider<ExternalSiteSearchNotifier, ExternalSiteSearchState>((
       ref,
     ) {
-      return ExternalSiteSearchNotifier(
+      final notifier = ExternalSiteSearchNotifier(
         ref.watch(siteCatalogueProvider),
         ref.watch(siteListNotifierProvider.notifier),
         ref.watch(siteRepositoryProvider),
         ref,
       );
+      // The catalogue is imported after the first frame of an app run. A
+      // search made before it landed found nothing: run it again, rather
+      // than leave an empty page until the diver searches a second time.
+      // Listened to, not watched: watching would rebuild the notifier and
+      // drop the page's results.
+      ref.listen(siteCatalogueRevisionProvider, (_, _) => notifier.refresh());
+      return notifier;
     });

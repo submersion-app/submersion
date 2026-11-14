@@ -56,6 +56,10 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
   Timer? _debounce;
   ProviderSubscription<int>? _revision;
 
+  /// Counts searches, so an answer that comes back after a newer search
+  /// started is dropped.
+  int _searchRun = 0;
+
   /// The point "near here" is measured from, or null when none is known.
   GeoPoint? get builtInAnchor;
 
@@ -79,11 +83,21 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
     if (!_enabled) return;
     // The catalogue is imported after the first frame of an app run: a
     // picker opened before that fills in when the import lands.
-    _revision = ref.listenManual(siteCatalogueRevisionProvider, (_, _) {
-      unawaited(loadBuiltInNearby());
-      _search(builtInQuery);
-    });
+    _revision = ref.listenManual(
+      siteCatalogueRevisionProvider,
+      (_, _) => refreshBuiltIn(),
+    );
     unawaited(loadBuiltInNearby());
+  }
+
+  /// Reads the built-in sites again: those around the anchor, and the
+  /// matches for the text in the search field. Call when what they depend
+  /// on changes under an open sheet: the catalogue (an import landing) or
+  /// the anchor (a device fix arriving, which a search typed before it
+  /// could not put first).
+  void refreshBuiltIn() {
+    unawaited(loadBuiltInNearby());
+    unawaited(_search(builtInQuery));
   }
 
   /// Call from `dispose`.
@@ -123,11 +137,13 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
 
   Future<void> _search(String query) async {
     if (!_enabled || query.length < _minSearchLength) return;
+    final run = ++_searchRun;
     final sites = await ref
         .read(siteCatalogueProvider)
         .search(query, areaFirst: builtInAnchor, limit: _searchLimit);
-    // The diver typed on while this was out: a newer search is coming.
-    if (!mounted || query != builtInQuery) return;
+    // The diver typed on while this was out, or the same text was searched
+    // again around a new anchor: a newer answer is coming.
+    if (!mounted || run != _searchRun || query != builtInQuery) return;
     setState(() {
       _matches = sites;
       _matchesQuery = query;

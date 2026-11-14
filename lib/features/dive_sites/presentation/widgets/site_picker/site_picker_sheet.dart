@@ -272,8 +272,10 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet>
           );
       if (mounted && location != null) {
         setState(() => _deviceLocation = location);
-        // The anchor just appeared: the built-in sites around it can load.
-        unawaited(loadBuiltInNearby());
+        // The anchor just appeared: the built-in sites around it can load,
+        // and a search typed while the fix was out is run again so its
+        // matches in this area come first.
+        refreshBuiltIn();
       }
     } catch (_) {
       // Proximity sorting is a convenience; the list stays usable without it.

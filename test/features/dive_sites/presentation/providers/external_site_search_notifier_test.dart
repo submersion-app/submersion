@@ -234,6 +234,34 @@ void main() {
     ]);
   });
 
+  test('a search made before the catalogue was loaded is run again when it '
+      'is', () async {
+    // The catalogue is imported after the first frame of an app run. A
+    // search made in that window found nothing; it must not stay that way.
+    catalogue.sites = [];
+    await notifier().search('blue');
+    expect(state().sites, isEmpty);
+
+    catalogue.sites = [_blueHole, _blueCorner];
+    container.read(siteCatalogueRevisionProvider.notifier).state++;
+    await pumpEventQueue();
+
+    expect(state().query, 'blue');
+    expect(state().sites.map((s) => s.id), ['osm_node_2', 'osm_node_1']);
+  });
+
+  test(
+    'a catalogue import with no search on the page searches nothing',
+    () async {
+      notifier();
+      container.read(siteCatalogueRevisionProvider.notifier).state++;
+      await pumpEventQueue();
+
+      expect(catalogue.searchCalls, 0);
+      expect(state().query, isEmpty);
+    },
+  );
+
   test('a search that finishes late does not replace a newer one', () async {
     final hole = Completer<void>();
     catalogue.gates['hole'] = hole;
