@@ -196,6 +196,12 @@ class BuildTest(unittest.TestCase):
         self.assertEqual(wreck["source_ref"], "https://example.org/pocopson")
         self.assertEqual(self.by_id["curated_shore"]["entry"], ["shore"])
 
+    def test_a_curated_kind_that_is_not_a_site_type_stays_a_feature(self):
+        records, _ = _build(curated=[dict(_CURATED[0], kind="drift")])
+        wreck = {r["id"]: r for r in records}["curated_nj_pocopson"]
+        self.assertNotIn("types", wreck)
+        self.assertEqual(wreck["features"], ["drift"])
+
     def test_a_curated_site_the_lookup_cannot_place_keeps_its_own_country(self):
         records, _ = _build(
             places=_Places(default=Place(None, None, None, None, False, True))
