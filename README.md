@@ -603,6 +603,12 @@ You are free to use, modify, and distribute this software. If you distribute mod
 
 See [LICENSE](LICENSE) for the full text.
 
+### Bundled dive site data
+
+The GPL covers the software, not the built-in dive site catalogue (`assets/data/site_catalogue.json`). Most of the catalogue is a database under the [Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/), compiled from OpenStreetMap and open wreck and reef registers. The records from New Jersey, Hawaii, Texas and North Carolina are not part of that database: they stay under their publishers' own terms, and the Hawaii, Texas and North Carolina records may not be used commercially.
+
+Every source and its terms are listed in the file's own notice and on the app's licenses page (**Dive site data**). Anyone redistributing the app commercially can build the catalogue without those four sources: `python3 scripts/site_catalogue/merge.py --open-only`.
+
 ## Acknowledgments
 
 Submersion builds on the work of the dive logging community:

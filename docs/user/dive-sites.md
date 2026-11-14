@@ -109,6 +109,10 @@ Tapping any marker shows an info card with the site name, location string, dive 
 
 The heat map layer shows where your diving activity is concentrated. Toggle it with the heat-map button in the map toolbar (top-right of the map pane). The overlay renders a density-colorized gradient directly over the tile layer: cooler colors for sparse visits, warmer colors where many dives are recorded.
 
+### Built-in sites on the map
+
+**Show built-in sites** in the map's controls adds the built-in catalogue's sites as hollow grey pins beneath your own. The map marks the sites in view, and reads them again when you move or zoom it. Zoomed far out, a view can hold more than it marks (1,500): dive sites are marked first, then the charted wrecks and reefs nearest the middle, and a note says **Zoom in to see every built-in site**. Tap a pin to read about the site, and **Add to my sites** to keep it.
+
 ### Map / list split pane (desktop)
 
 On a window at least 1100 px wide the Sites screen uses a split-pane layout: the list occupies the left column and the interactive map fills the right. Selecting a site in the list animates the map to center on that site's marker; tapping a marker highlights the matching row in the list and shows the info card.
@@ -159,12 +163,15 @@ Wherever you choose a site (on a dive, a planned dive, or a trip day), the same 
 
 When you choose a site for a dive, the sheet also offers sites from the built-in catalogue, so a site you have not logged before rarely needs typing in:
 
-- **More sites nearby** lists built-in sites within 50 km (31 mi) of the dive. It shows the first five, with **Show all** for the rest.
+- **More sites nearby** lists built-in dive sites within 50 km (31 mi) of the dive. It shows the first five, with **Show all** for the rest.
+- **Wrecks and reefs nearby** sits below it when charted wrecks or artificial reefs lie within the same distance. It starts closed, as one row with a count (**Show charted wrecks and reefs**); tap the row to list them. There can be hundreds near a busy harbour, so it lists the nearest 200 and you search for the rest.
 - Typing two or more characters adds a **Built-in sites** section with matches from the whole catalogue. The search matches a site's name, its country, region or island, and its sea ("Red Sea"). A country can be typed in any language: "Thaïlande" and "Ägypten" find the sites of Thailand and Egypt. Sites whose own name matches come first, then sites matched by place or sea; within each, those in the dive's area lead.
 
 Tap a built-in site to add it to your sites and select it in one step. It arrives with the catalogue's details, and the dive takes the site's entry method and water type as it does for any site. Tap the **Site details** button on a row to read about a site before you pick it.
 
 A built-in site you have already added is no longer offered, and neither is one that sits within 150 m (490 ft) of a site you created yourself.
+
+When a dive's GPS position lies beside both a built-in dive site and a charted wreck, the suggested site is the dive site; the wreck is still on the list to choose.
 
 ### Area memory
 
@@ -174,7 +181,14 @@ In practice you name the first dive of a trip by searching, and the rest of the 
 
 ### Where the built-in sites come from
 
-The built-in catalogue contains information from OpenStreetMap, which is made available under the Open Database License (ODbL). The credit is on the licenses page (**Settings > About > Open Source Licenses**, under **Dive site data**), and a site you added from the catalogue shows its source at the top of its page.
+The built-in catalogue holds two kinds of record:
+
+- **Dive sites**: places people dive, from OpenStreetMap, the Florida Keys National Marine Sanctuary's mooring buoys, Wikidata and a small list researched for Submersion.
+- **Charted wrecks and artificial reefs**: records from registers of what lies on the seabed. Wrecks come from the UK Hydrographic Office, NOAA, Ireland's National Monuments Service, OpenStreetMap and Wikidata; reefs from the reef programs of Florida, New Jersey, North Carolina and other US states.
+
+A register record is a charted position, not a dive guide: its position and depth are the register's own, and nothing says the wreck is worth diving or open to divers. Only wrecks that stay under water in 2 to 60 m (7 to 197 ft), with a position the register stands behind, are included. Where a register notes a restriction or a protection, it is shown as the site's hazards; check before you dive.
+
+The catalogue contains information from OpenStreetMap, which is made available under the Open Database License (ODbL). Every source and its licence is on the licenses page (**Settings > About > Open Source Licenses**, under **Dive site data**), and a site you added from the catalogue shows its source at the top of its page. The data is not for navigation.
 
 ## Merging duplicate sites
 
