@@ -9,6 +9,11 @@ String colorHexOf(Color color) {
       .toUpperCase();
 }
 
+/// The opaque colour a `#RRGGBB` [code] names. [code] must already be a
+/// valid code (from [parseColorHexInput] or a normaliser).
+Color colorFromHex(String code) =>
+    Color(int.parse(code.substring(1), radix: 16) | 0xFF000000);
+
 final RegExp _hexInput = RegExp(r'^#?[0-9A-Fa-f]{6}$');
 
 /// A colour code the diver typed, as `#RRGGBB` in capitals, or null when it

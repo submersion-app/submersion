@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_color_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
-import 'package:submersion/features/equipment/presentation/utils/recent_equipment_colors.dart';
+import 'package:submersion/features/equipment/domain/models/recent_equipment_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_color_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/list_arrangement_writes.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -35,34 +34,22 @@ class EquipmentColorField extends ConsumerWidget {
   final ValueChanged<String> onChanged;
   final VoidCallback onCleared;
 
-  static final _log = LoggerService.forClass(EquipmentColorField);
-
-  /// The remembered colours, then the gear colours. A failed gear read
-  /// leaves those out rather than keeping the sheet closed.
-  Future<List<String>> _recent(WidgetRef ref) async {
-    final remembered = decodeRecentEquipmentColors(
-      ref.read(settingsProvider).listArrangements.recentEquipmentColors,
-    );
-    var gear = const <String>[];
-    try {
-      gear = await ref.read(equipmentGearColorsProvider.future);
-    } catch (error, stackTrace) {
-      _log.error(
-        'Failed to read gear colours',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-    return recentEquipmentColorRow(remembered: remembered, gear: gear);
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final code = normalizeEquipmentColor(hex);
+    // Watched, not read on tap: a watched provider stays live, so a gear
+    // colour an import or a sync pull just wrote is already in the next
+    // sheet, and the sheet opens at once rather than after a query. A gear
+    // read still loading or failed offers the remembered colours alone.
+    final gear = ref.watch(equipmentGearColorsProvider).value ?? const [];
     return InkWell(
       onTap: () async {
-        final recent = await _recent(ref);
-        if (!context.mounted) return;
+        final recent = recentEquipmentColorRow(
+          remembered: decodeRecentEquipmentColors(
+            ref.read(settingsProvider).listArrangements.recentEquipmentColors,
+          ),
+          gear: gear,
+        );
         final choice = await showEquipmentColorSheet(
           context,
           selected: code,

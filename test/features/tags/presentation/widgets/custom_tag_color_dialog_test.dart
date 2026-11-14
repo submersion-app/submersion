@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/shared/utils/color_hex.dart';
 import 'package:submersion/features/tags/presentation/widgets/custom_tag_color_dialog.dart';
-import 'package:submersion/shared/widgets/color_picker/hsv_color_controls.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
+import 'package:submersion/shared/utils/color_hex.dart';
+import 'package:submersion/shared/widgets/color_picker/hsv_color_controls.dart';
 
 import '../../../../helpers/test_app.dart';
 

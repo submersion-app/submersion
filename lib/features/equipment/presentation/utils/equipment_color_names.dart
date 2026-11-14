@@ -4,6 +4,7 @@ import 'package:flutter/painting.dart';
 
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/utils/color_hex.dart';
 
 export 'package:submersion/features/equipment/domain/constants/equipment_colors.dart'
     show equipmentColorBlack, equipmentColorPalette, equipmentColorWhite;
@@ -18,13 +19,10 @@ String equipmentColorName(AppLocalizations l10n, String hex) {
   if (code == null) return hex;
   return _paletteName(l10n, code) ??
       l10n.equipment_color_customName(
-        _paletteName(l10n, nearestEquipmentColor(_colorOf(code)))!,
+        _paletteName(l10n, nearestEquipmentColor(colorFromHex(code)))!,
         code,
       );
 }
-
-Color _colorOf(String code) =>
-    Color(int.parse(code.substring(1), radix: 16) | 0xFF000000);
 
 /// The palette colour's localized name, or null for a code off the palette.
 String? _paletteName(AppLocalizations l10n, String code) {
@@ -62,7 +60,7 @@ String nearestEquipmentColor(Color color) {
   var best = equipmentColorPalette.first;
   var bestDistance = double.infinity;
   for (final hex in equipmentColorPalette) {
-    final d = _distance(target, _lab(_colorOf(hex)));
+    final d = _distance(target, _lab(colorFromHex(hex)));
     if (d < bestDistance) {
       bestDistance = d;
       best = hex;

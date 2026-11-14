@@ -301,5 +301,60 @@ void main() {
       );
       expect(remembered, isEmpty);
     });
+
+    testWidgets('on a short window the sheet scrolls to the custom swatch', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(700, 420);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await _open(
+        tester,
+        recent: const ['#FF6A00', '#0A3D91'],
+        act: () async {
+          expect(tester.takeException(), isNull);
+          final custom = find.byKey(const ValueKey('color-swatch-custom'));
+          await tester.ensureVisible(custom);
+          await tester.pumpAndSettle();
+          await tester.tap(custom);
+          await tester.pumpAndSettle();
+          expect(find.text('Custom color'), findsWidgets);
+          await tester.tap(find.text('Cancel'));
+          await tester.pumpAndSettle();
+          await _dismiss(tester);
+        },
+      );
+    });
+
+    testWidgets('the title and Recent are headings', (tester) async {
+      await _open(
+        tester,
+        recent: const ['#FF6A00'],
+        act: () async {
+          for (final text in ['Choose a color', 'Recent']) {
+            expect(
+              tester.getSemantics(find.text(text)).flagsCollection.isHeader,
+              isTrue,
+              reason: text,
+            );
+          }
+          await _dismiss(tester);
+        },
+      );
+    });
+
+    testWidgets('a lowercase stored colour built directly is selected', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: EquipmentColorSheet(selected: '#ff6a00')),
+        ),
+      );
+      expect(isSelected(tester, 'color-swatch-recent-#FF6A00'), isTrue);
+    });
   });
 }

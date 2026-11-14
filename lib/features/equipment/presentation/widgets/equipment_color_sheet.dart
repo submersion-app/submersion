@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
-import 'package:submersion/features/equipment/presentation/utils/recent_equipment_colors.dart';
+import 'package:submersion/features/equipment/domain/models/recent_equipment_colors.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/utils/color_hex.dart';
@@ -47,8 +47,12 @@ class EquipmentColorSheet extends StatelessWidget {
     this.onRemember,
   });
 
-  /// The stored colour, already normalised; null when unset.
+  /// The stored colour; null when unset. Any spelling selects its swatch:
+  /// the sheet normalises it ([_current]).
   final String? selected;
+
+  /// [selected] as a `#RRGGBB` code, or null when unset or not a code.
+  String? get _current => normalizeEquipmentColor(selected);
 
   /// The diver's remembered and gear colours. The sheet puts [selected]
   /// first when it is off the palette, so opening it never hides the
@@ -65,7 +69,7 @@ class EquipmentColorSheet extends StatelessWidget {
     final l10n = context.l10n;
     final code = await showCustomColorDialog(
       context,
-      initial: TagColors.fromHex(selected ?? _customStart),
+      initial: TagColors.fromHex(_current ?? _customStart),
       title: l10n.common_color_custom,
       preview: (color) => _CustomPreview(color: color),
     );
@@ -82,7 +86,7 @@ class EquipmentColorSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final row = recentEquipmentColorRow(
-      current: selected,
+      current: _current,
       remembered: recent,
       gear: const [],
     );
@@ -103,9 +107,12 @@ class EquipmentColorSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            l10n.equipment_color_sheetTitle,
-            style: Theme.of(context).textTheme.titleMedium,
+          Semantics(
+            header: true,
+            child: Text(
+              l10n.equipment_color_sheetTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
           const SizedBox(height: 16),
           Wrap(
@@ -116,7 +123,7 @@ class EquipmentColorSheet extends StatelessWidget {
                 key: const ValueKey('color-swatch-none'),
                 color: null,
                 label: l10n.equipment_color_none,
-                selected: selected == null,
+                selected: _current == null,
                 onTap: () => Navigator.of(context).pop((hex: null)),
               ),
               for (final hex in equipmentColorPalette)
@@ -124,7 +131,7 @@ class EquipmentColorSheet extends StatelessWidget {
                   key: ValueKey('color-swatch-$hex'),
                   color: TagColors.fromHex(hex),
                   label: equipmentColorName(l10n, hex),
-                  selected: selected == hex,
+                  selected: _current == hex,
                   onTap: () => Navigator.of(context).pop((hex: hex)),
                 ),
               if (row.isEmpty) custom,
@@ -132,9 +139,12 @@ class EquipmentColorSheet extends StatelessWidget {
           ),
           if (row.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text(
-              l10n.equipment_color_recent,
-              style: Theme.of(context).textTheme.titleSmall,
+            Semantics(
+              header: true,
+              child: Text(
+                l10n.equipment_color_recent,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
             ),
             const SizedBox(height: 8),
             Wrap(
@@ -146,7 +156,7 @@ class EquipmentColorSheet extends StatelessWidget {
                     key: ValueKey('color-swatch-recent-$hex'),
                     color: TagColors.fromHex(hex),
                     label: equipmentColorName(l10n, hex),
-                    selected: selected == hex,
+                    selected: _current == hex,
                     onTap: () => Navigator.of(context).pop((hex: hex)),
                   ),
                 custom,

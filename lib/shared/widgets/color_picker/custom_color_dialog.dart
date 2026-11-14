@@ -71,19 +71,16 @@ class _CustomColorDialogState extends State<_CustomColorDialog> {
     setState(() {
       _code = code;
       if (code == null) return;
-      final typed = HSVColor.fromColor(_colorOf(code));
+      final typed = HSVColor.fromColor(colorFromHex(code));
       _hsv = typed.saturation == 0 ? typed.withHue(_hsv.hue) : typed;
     });
   }
-
-  static Color _colorOf(String code) =>
-      Color(int.parse(code.substring(1), radix: 16) | 0xFF000000);
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final code = _code;
-    final shown = code != null ? _colorOf(code) : _hsv.toColor();
+    final shown = code != null ? colorFromHex(code) : _hsv.toColor();
 
     return AlertDialog(
       title: Text(widget.title),

@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
+import 'package:submersion/features/equipment/domain/models/recent_equipment_colors.dart';
 
 /// The custom colours already on a diver's gear (issue #4537), which the
 /// item colour sheet offers beside the colours the diver remembered.
@@ -13,7 +14,7 @@ class EquipmentColorQueries {
   const EquipmentColorQueries(this._db);
 
   /// How many gear colours the sheet can use: its Recent row's length.
-  static const int cap = 12;
+  static const int cap = recentEquipmentColorRowCap;
 
   /// The off-palette colours on items [diverId] owns, retired ones included,
   /// newest colour edit first: normalised, each once, at most [cap]. A

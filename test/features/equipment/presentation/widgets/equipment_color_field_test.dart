@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_color_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_color_field.dart';
@@ -119,6 +121,7 @@ void main() {
           gear: () async => ['#0A3D91', '#FF6A00'],
         ),
       );
+      await tester.pumpAndSettle();
       await tester.tap(find.byType(EquipmentColorField));
       await tester.pumpAndSettle();
       final remembered = tester.getCenter(
@@ -173,6 +176,82 @@ void main() {
       expect(
         find.byKey(const ValueKey('color-swatch-#EF4444')),
         findsOneWidget,
+      );
+    });
+
+    testWidgets('a gear colour added after the first open is offered next '
+        'time', (tester) async {
+      // The real provider's refresh: a pause-aware tick (issue #4537).
+      final ticks = StreamController<void>.broadcast();
+      addTearDown(ticks.close);
+      var gear = const <String>[];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            equipmentGearColorsProvider.overrideWith((ref) {
+              ref.invalidateSelfWhen(ticks.stream);
+              return Future.value(gear);
+            }),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: EquipmentColorField(
+                label: 'Color',
+                hex: null,
+                onChanged: (_) {},
+                onCleared: () {},
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(EquipmentColorField));
+      await tester.pumpAndSettle();
+      expect(find.text('Recent'), findsNothing);
+      await tester.tapAt(const Offset(5, 5));
+      await tester.pumpAndSettle();
+
+      // An import or a sync pull colours another item.
+      gear = const ['#FF6A00'];
+      ticks.add(null);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(EquipmentColorField));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const ValueKey('color-swatch-recent-#FF6A00')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('typing a palette code picks it without remembering it', (
+      tester,
+    ) async {
+      final settings = _remembering(['#0A3D91']);
+      String? picked;
+      await tester.pumpWidget(
+        _field(settings: settings, onChanged: (hex) => picked = hex),
+      );
+      await tester.tap(find.byType(EquipmentColorField));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('color-swatch-custom')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('custom-color-hex')),
+        'f97316',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('custom-color-use')));
+      await tester.pumpAndSettle();
+      expect(picked, '#F97316');
+      expect(
+        settings.state.listArrangements.recentEquipmentColors,
+        '["#0A3D91"]',
       );
     });
   });

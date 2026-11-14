@@ -25,10 +25,13 @@ void main() {
     },
   );
 
-  Future<String?> stored(AppDatabase db) async => (await db
-          .customSelect('SELECT recent_equipment_colors AS v FROM diver_settings')
-          .getSingle())
-      .read<String?>('v');
+  Future<String?> stored(AppDatabase db) async =>
+      (await db
+              .customSelect(
+                'SELECT recent_equipment_colors AS v FROM diver_settings',
+              )
+              .getSingle())
+          .read<String?>('v');
 
   test('v364 is in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(364));

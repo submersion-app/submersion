@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/equipment/presentation/utils/recent_equipment_colors.dart';
+import 'package:submersion/features/equipment/domain/models/recent_equipment_colors.dart';
 
 /// The diver's remembered custom colours (issue #4537): a JSON list on the
 /// settings row that any peer can write, so reading it never trusts it.
