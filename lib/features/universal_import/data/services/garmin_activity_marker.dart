@@ -21,6 +21,13 @@ class GarminActivityFile {
 /// other way is placed by its modified time, and a file that cannot be placed
 /// at all is kept, so the marker never hides a new dive.
 ///
+/// A known limit: the file name carries the watch's local time, with no
+/// zone. An activity recorded after the watch clock moved back (a flight
+/// west across the date line, say) can be named earlier than one already
+/// downloaded, and is then not offered. The modified time is local too, so
+/// it cannot settle it. "Re-import all dives" reads every activity and
+/// brings such a dive in.
+///
 /// Stored in the computer's `lastDiveFingerprint`, which a Garmin never
 /// otherwise uses, so it syncs and merges like a download cursor.
 class GarminActivityMarker {

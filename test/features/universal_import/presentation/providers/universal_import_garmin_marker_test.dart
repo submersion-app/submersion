@@ -164,6 +164,125 @@ void main() {
     );
   });
 
+  group('a file that could not be read', () {
+    const january = '2027-01-05-11-00-00.fit';
+
+    FakeGarminMtpSource watchFailing(
+      Map<String, Uint8List> files,
+      Set<String> failing,
+    ) {
+      final watch = fakeGarminWatch();
+      return FakeGarminMtpSource(
+        devices: [watch],
+        filesByDevice: {watch.id: files},
+        failingFiles: failing,
+      );
+    }
+
+    test('holds the marker, so the next download offers it again', () async {
+      // December never came off the watch. Moving the marker to it would
+      // hide that dive from every later download.
+      final source = watchFailing(
+        {october: diveBytes, november: diveBytes, december: diveBytes},
+        {december},
+      );
+      final history = FakeGarminDownloadHistory(
+        const GarminActivityMarker(name: october),
+      );
+      final notifier = await notifierFor(source, history);
+
+      await notifier.importFromGarminDevice();
+
+      expect(notifier.state.files.single.name, november);
+      expect(notifier.state.error, isNull);
+      expect(notifier.state.garminPendingMarker, isNull);
+      expect(history.saves, isEmpty);
+    });
+
+    test('is an error, not "nothing new", when it was the only one', () async {
+      final source = watchFailing(
+        {november: diveBytes, december: diveBytes},
+        {december},
+      );
+      final history = FakeGarminDownloadHistory(markerAtNovember);
+      final notifier = await notifierFor(source, history);
+
+      await notifier.importFromGarminDevice();
+
+      expect(notifier.state.garminNothingNew, isFalse);
+      expect(notifier.state.error, contains('read failed'));
+      expect(notifier.state.files, isEmpty);
+      expect(notifier.state.isLoading, isFalse);
+      expect(history.saves, isEmpty);
+    });
+
+    test('is an error when the files that did read are not dives', () async {
+      // December read fine but is no dive; January did not read. Saying
+      // "nothing new" would move the marker past January.
+      final source = watchFailing(
+        {
+          november: diveBytes,
+          december: Uint8List.fromList([0, 1, 2]),
+          january: diveBytes,
+        },
+        {january},
+      );
+      final history = FakeGarminDownloadHistory(markerAtNovember);
+      final notifier = await notifierFor(source, history);
+
+      await notifier.importFromGarminDevice();
+
+      expect(notifier.state.garminNothingNew, isFalse);
+      expect(
+        notifier.state.error,
+        contains('1 activity file could not be read'),
+      );
+      expect(history.saves, isEmpty);
+    });
+  });
+
+  test('reads the watch the saved computer is, not the first one', () async {
+    // Two Garmins plugged in. The diver chose Download on the second.
+    final first = fakeGarminWatch(id: 'watch-1', serial: '111');
+    final second = fakeGarminWatch(id: 'watch-2', serial: '222');
+    final source = FakeGarminMtpSource(
+      devices: [first, second],
+      filesByDevice: {
+        first.id: {october: diveBytes},
+        second.id: {november: diveBytes},
+      },
+    );
+    final history = FakeGarminDownloadHistory()..serials['dc-2'] = '222';
+    final notifier = await notifierFor(source, history);
+
+    await notifier.importFromGarminDevice(
+      const GarminImportRequest(computerId: 'dc-2'),
+    );
+
+    expect(source.readObjectIds, ['watch-2/$november']);
+    expect(notifier.state.files.single.name, november);
+    expect(history.lookups.single.serialNumber, '222');
+  });
+
+  test('without a saved serial the first watch is read, as before', () async {
+    final first = fakeGarminWatch(id: 'watch-1', serial: '111');
+    final second = fakeGarminWatch(id: 'watch-2', serial: '222');
+    final source = FakeGarminMtpSource(
+      devices: [first, second],
+      filesByDevice: {
+        first.id: {october: diveBytes},
+        second.id: {november: diveBytes},
+      },
+    );
+    final notifier = await notifierFor(source, FakeGarminDownloadHistory());
+
+    await notifier.importFromGarminDevice(
+      const GarminImportRequest(computerId: 'dc-unknown'),
+    );
+
+    expect(notifier.state.files.single.name, october);
+  });
+
   test('without a marker every activity is read', () async {
     final source = watchWith({october: diveBytes, november: diveBytes});
     final notifier = await notifierFor(source, FakeGarminDownloadHistory());

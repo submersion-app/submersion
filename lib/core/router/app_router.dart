@@ -252,6 +252,7 @@ import 'package:submersion/features/planner/presentation/pages/plan_compare_page
 import 'package:submersion/features/planning/presentation/pages/planned_dives_page.dart';
 import 'package:submersion/features/surface_interval_tool/presentation/pages/surface_interval_tool_page.dart';
 import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/main_scaffold.dart';
@@ -1306,10 +1307,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'import-wizard',
                 name: 'universalImport',
                 onExit: confirmLeaveRunningImport,
+                // The Garmin download is a desktop import: a browser or a
+                // phone handed its location opens the plain file import.
                 builder: (context, state) => UniversalImportWizardRoute(
-                  garminImport: UniversalImportWizardRoute.garminImportFrom(
-                    state.uri,
-                  ),
+                  garminImport: GarminDeviceDetector.isSupportedPlatform
+                      ? UniversalImportWizardRoute.garminImportFrom(state.uri)
+                      : null,
                 ),
               ),
               GoRoute(

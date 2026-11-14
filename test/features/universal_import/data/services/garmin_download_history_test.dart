@@ -76,6 +76,15 @@ void main() {
     },
   );
 
+  test('reports the serial saved on a computer', () async {
+    final withSerial = await garmin(serial: ' 3456789012 ');
+    final without = await garmin();
+
+    expect(await history.serialOf(withSerial.id), '3456789012');
+    expect(await history.serialOf(without.id), isNull);
+    expect(await history.serialOf('no-such-computer'), isNull);
+  });
+
   test('a libdivecomputer fingerprint is not a marker', () async {
     final computer = await garmin(serial: '1', fingerprint: 'a1b2c3d4');
 

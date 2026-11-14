@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
@@ -73,11 +74,31 @@ final class GarminDivesFound extends GarminImportOutcome {
   final GarminPendingMarker? pendingMarker;
 }
 
-/// Reads the dives off the first connected Garmin (issue #4223): mounted as
-/// a drive, or over MTP (Windows), copied into a staging folder first.
+/// Some activity files could not be read, and none of the others is a dive,
+/// so there is nothing to offer and no telling what was missed.
+class GarminFilesUnreadable implements Exception {
+  const GarminFilesUnreadable(this.count);
+
+  /// How many files failed to read.
+  final int count;
+
+  @override
+  String toString() => count == 1
+      ? '1 activity file could not be read'
+      : '$count activity files could not be read';
+}
+
+/// Reads the dives off a connected Garmin (issue #4223): mounted as a
+/// drive, or over MTP (Windows), copied into a staging folder first. With
+/// several connected it reads the one the diver chose Download on, when its
+/// serial says which that is, and otherwise the first.
 ///
 /// Only the activities after the watch's download marker are read, unless
 /// the request says to read them all. Non-dive activities are filtered out.
+///
+/// The marker only ever moves past files that were read. If any file fails
+/// to read it stays where it was, so the next download offers that file
+/// again instead of hiding the dive in it.
 class GarminDeviceImporter {
   GarminDeviceImporter({
     required GarminDeviceDetector detector,
@@ -100,7 +121,9 @@ class GarminDeviceImporter {
   /// goes to [onTempDir] as soon as it exists, so the caller deletes it
   /// whatever happens next.
   ///
-  /// Throws what the device throws (a `PlatformException` over MTP).
+  /// Throws what the device throws (a `PlatformException` over MTP), and
+  /// [GarminFilesUnreadable] when files failed to read and no dive was found
+  /// among the rest.
   Future<GarminImportOutcome> run(
     GarminImportRequest request, {
     required void Function(GarminImportProgress progress) onProgress,
@@ -109,7 +132,7 @@ class GarminDeviceImporter {
     onProgress(const GarminImportProgress(GarminImportPhase.lookingForWatch));
     final devices = await _detector.detect();
     if (devices.isEmpty) return const GarminNotConnected();
-    final device = devices.first;
+    final device = await _deviceFor(request.computerId, devices);
     final serial = device.serialNumber;
 
     final previous = request.readAll
@@ -119,17 +142,17 @@ class GarminDeviceImporter {
     final List<String> candidates;
     final GarminActivityMarker? newest;
     final String? name;
+    // Files that never came off the watch.
+    var unread = 0;
     switch (device) {
       case GarminVolume(:final activityDirPath):
         name = null;
         final all = await _detector.listFitFiles(activityDirPath);
-        final activities = {
-          for (final path in all) path: await _activityAt(path),
-        };
-        newest = GarminActivityMarker.newest(activities.values);
+        final activities = await Future.wait(all.map(_activityAt));
+        newest = GarminActivityMarker.newest(activities);
         candidates = [
-          for (final entry in activities.entries)
-            if (previous == null || previous.isBefore(entry.value)) entry.key,
+          for (final (index, path) in all.indexed)
+            if (previous == null || previous.isBefore(activities[index])) path,
         ];
       case GarminMtpWatch():
         final stager = _mtpStager;
@@ -152,13 +175,21 @@ class GarminDeviceImporter {
         );
         onTempDir(staging.dirPath);
         newest = staging.newest;
+        unread = staging.failedCount;
         candidates = await _detector.listFitFiles(staging.dirPath);
     }
 
-    final divePaths = await _keepDives(candidates, name, onProgress);
-    final next = newest?.laterOf(previous);
+    final checked = await _keepDives(candidates, name, onProgress);
+    final divePaths = checked.dives;
+    unread += checked.unreadable;
+    // A file that could not be read has not been handled. Leaving the marker
+    // where it was makes the next download offer it again; moving it on would
+    // hide the dive in it for good.
+    final next = unread > 0 ? null : newest?.laterOf(previous);
 
     if (divePaths.isEmpty) {
+      // Not "no dives": some files were never looked at.
+      if (unread > 0) throw GarminFilesUnreadable(unread);
       // Nothing to review, so the new activities are handled already.
       if (next != null) await _save(next, request.computerId, serial);
       return previous != null
@@ -176,6 +207,31 @@ class GarminDeviceImporter {
               watchSerial: serial,
             ),
     );
+  }
+
+  /// The connected Garmin that is the saved computer [computerId], told by
+  /// its serial number, so a second Garmin plugged in at the same time (a
+  /// bike computer mounted as a drive, say) is not read in its place. With
+  /// no such match the first is used, mounted volumes ahead of MTP watches.
+  Future<GarminDevice> _deviceFor(
+    String? computerId,
+    List<GarminDevice> devices,
+  ) async {
+    final history = _history;
+    if (computerId == null || history == null || devices.length == 1) {
+      return devices.first;
+    }
+    try {
+      final wanted = await history.serialOf(computerId);
+      if (wanted != null) {
+        for (final device in devices) {
+          if (device.serialNumber == wanted) return device;
+        }
+      }
+    } catch (e) {
+      _log.warning('Reading the saved Garmin serial failed: $e');
+    }
+    return devices.first;
   }
 
   Future<GarminActivityMarker?> _markerFor(
@@ -209,8 +265,10 @@ class GarminDeviceImporter {
   }
 
   /// The files among [paths] that parse as dives, reporting each one
-  /// checked. Corrupt and non-dive FITs (which parse to null) are skipped.
-  Future<List<String>> _keepDives(
+  /// checked, and how many could not be read at all. A corrupt or non-dive
+  /// FIT (which parses to null, or does not parse) was read and is skipped;
+  /// a file that fails to read was not, and is counted.
+  Future<({List<String> dives, int unreadable})> _keepDives(
     List<String> paths,
     String? deviceName,
     void Function(GarminImportProgress progress) onProgress,
@@ -226,16 +284,34 @@ class GarminDeviceImporter {
 
     report(0);
     final dives = <String>[];
+    var unreadable = 0;
     for (var i = 0; i < paths.length; i++) {
-      try {
-        final bytes = await File(paths[i]).readAsBytes();
-        if (await _fitParser.parseFitFile(bytes) != null) dives.add(paths[i]);
-      } catch (_) {
-        // Unreadable/corrupt FIT: skip it and keep scanning the rest.
+      final bytes = await _read(paths[i]);
+      if (bytes == null) {
+        unreadable++;
+      } else {
+        try {
+          if (await _fitParser.parseFitFile(bytes) != null) {
+            dives.add(paths[i]);
+          }
+        } catch (_) {
+          // A corrupt FIT: not a dive. Keep scanning the rest.
+        }
       }
       report(i + 1);
     }
-    return dives;
+    return (dives: dives, unreadable: unreadable);
+  }
+
+  /// The bytes of the file at [path]; null when it cannot be read, as when a
+  /// watch mounted as a drive is unplugged part way through.
+  static Future<Uint8List?> _read(String path) async {
+    try {
+      return await File(path).readAsBytes();
+    } catch (e) {
+      _log.warning('Could not read ${p.basename(path)}: $e');
+      return null;
+    }
   }
 
   static Future<GarminActivityFile> _activityAt(String path) async {

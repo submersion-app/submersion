@@ -14,6 +14,11 @@ abstract interface class GarminDownloadHistory {
     String? serialNumber,
   });
 
+  /// The serial number saved on the computer [computerId], which tells
+  /// which connected watch it is. Null when the computer is unknown or has
+  /// no serial.
+  Future<String?> serialOf(String computerId);
+
   /// Moves the watch's marker on to [marker], never back. The computer is
   /// [computerId], or else the saved Garmin whose serial is [watchSerial],
   /// or else one of [fitSerials] (from the imported dives, which name the
@@ -48,6 +53,10 @@ class RepositoryGarminDownloadHistory implements GarminDownloadHistory {
     final computer = await _resolve(computerId, serialNumber, const []);
     return GarminActivityMarker.fromFingerprint(computer?.lastDiveFingerprint);
   }
+
+  @override
+  Future<String?> serialOf(String computerId) async =>
+      _clean((await _repository.getComputerById(computerId))?.serialNumber);
 
   @override
   Future<bool> save(

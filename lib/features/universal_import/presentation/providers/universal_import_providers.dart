@@ -8,7 +8,6 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/platform/device_capabilities.dart';
-import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
@@ -674,11 +673,20 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// so its files are copied into a staging folder first, which the wizard
   /// deletes with its other temp folders. Only activities after the
   /// watch's download marker are read, unless [request] reads them all.
+  ///
+  /// A download is dropped once the wizard is reset or another download
+  /// starts: copying a watch takes a while, and one still running from an
+  /// earlier opening must not load its dives into this one.
   Future<void> importFromGarminDevice([
     GarminImportRequest request = const GarminImportRequest(),
   ]) async {
     DemoModeGate.instance.ensureNotDemo(DemoSealedFeature.cloudImport);
     _lastGarminRequest = request;
+    final run = ++_garminRun;
+    bool isCurrent() => mounted && run == _garminRun;
+    // The staging folder of a download that went stale before it could be
+    // registered with the wizard's temp folders.
+    String? orphanedDir;
     state = state.copyWith(
       isLoading: true,
       clearError: true,
@@ -691,20 +699,24 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
       final outcome = await _garminImporter.run(
         request,
         onProgress: (progress) {
-          if (mounted) state = state.copyWith(garminProgress: progress);
+          if (isCurrent()) state = state.copyWith(garminProgress: progress);
         },
         onTempDir: (dirPath) {
           // Registered before anything can fail, so the folder is always
           // cleaned up. Also drops an earlier import's leftovers, as a
           // fresh pick does.
-          if (mounted) {
+          if (isCurrent()) {
             applyExpansionExtras(
               ArchiveExpansion(filePaths: const [], tempDirPaths: [dirPath]),
             );
+          } else {
+            // Registering it would delete the staging folder of the
+            // download that replaced this one.
+            orphanedDir = dirPath;
           }
         },
       );
-      if (!mounted) return;
+      if (!isCurrent()) return;
       switch (outcome) {
         case GarminNotConnected():
           state = state.copyWith(
@@ -731,7 +743,7 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
           }
       }
     } on PlatformException catch (e) {
-      if (!mounted) return;
+      if (!isCurrent()) return;
       state = state.copyWith(
         isLoading: false,
         error: switch (e.code) {
@@ -743,13 +755,16 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         },
       );
     } catch (e) {
-      if (!mounted) return;
+      if (!isCurrent()) return;
       state = state.copyWith(
         isLoading: false,
         error: _l10n.universalImport_error_garminReadFailed('$e'),
       );
     } finally {
-      if (mounted) state = state.copyWith(clearGarminProgress: true);
+      if (isCurrent()) state = state.copyWith(clearGarminProgress: true);
+      // Only now, when this download has stopped reading it.
+      final orphaned = orphanedDir;
+      if (orphaned != null) _deleteTempDirs([orphaned]);
     }
   }
 
@@ -763,6 +778,10 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   );
 
   GarminImportRequest _lastGarminRequest = const GarminImportRequest();
+
+  /// Numbers the Garmin downloads, and moves on at every reset. A download
+  /// whose number is no longer this one is stale and leaves the state alone.
+  int _garminRun = 0;
 
   // -- Step 1: Source Confirmation --
 
@@ -1376,6 +1395,8 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   }
 
   void reset() {
+    // A Garmin download still running belongs to the session being reset.
+    _garminRun++;
     final staleTempDirs = state.zipTempDirPaths;
     state = const UniversalImportState();
     _deleteTempDirs(staleTempDirs);
@@ -1421,6 +1442,6 @@ final garminDownloadHistoryProvider = Provider<GarminDownloadHistory>((ref) {
 /// Reads Garmin watches that connect over MTP. Windows only (issue #4223);
 /// null everywhere else, where the plugin has no MTP reader.
 final garminMtpSourceProvider = Provider<GarminMtpSource?>((ref) {
-  if (HostPlatform.isWeb || !HostPlatform.isWindows) return null;
+  if (!GarminMtpSource.isSupportedPlatform) return null;
   return PigeonGarminMtpSource();
 });

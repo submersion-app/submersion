@@ -7,6 +7,9 @@ class FakeGarminDownloadHistory implements GarminDownloadHistory {
 
   GarminActivityMarker? marker;
 
+  /// Saved computer id to its serial number, for [serialOf].
+  final serials = <String, String>{};
+
   final lookups = <({String? computerId, String? serialNumber})>[];
   final saves = <({GarminActivityMarker marker, String? computerId})>[];
 
@@ -18,6 +21,9 @@ class FakeGarminDownloadHistory implements GarminDownloadHistory {
     lookups.add((computerId: computerId, serialNumber: serialNumber));
     return marker;
   }
+
+  @override
+  Future<String?> serialOf(String computerId) async => serials[computerId];
 
   @override
   Future<bool> save(

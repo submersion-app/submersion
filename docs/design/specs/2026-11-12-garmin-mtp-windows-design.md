@@ -44,8 +44,10 @@ same import, and the dives flow through the existing FIT import.
   (no count: WPD reports none while it lists a folder), "Reading watch
   files (n of N)..." and "Checking for dives (n of N)...". The last stage
   also shows for a drive-mounted watch.
-- The staging folder is deleted when the wizard finishes or is reset, the same
-  way ZIP expansion folders are.
+- The staging folder is deleted when the wizard is reset (its next opening) or
+  another source is picked, the same way ZIP expansion folders are. Until
+  then it is where the importer reads each dive's original FIT file from, to
+  store beside the dive.
 - Every opening of the wizard reads the watch afresh. A Garmin import is not
   marked "loaded externally" (the drag-and-drop mark that makes the wizard
   keep its state on the next opening), since it always runs inside the
@@ -54,9 +56,12 @@ same import, and the dives flow through the existing FIT import.
 
 ## Non-goals
 
-- No other platform changes. macOS, Linux, Android and iOS keep their current
-  behaviour, including no Garmin in the USB list. The new native code exists
-  only in the Windows plugin.
+- No MTP reading on other platforms, and no Garmin in their USB list. The
+  new native code exists only in the Windows plugin. A Garmin mounted as a
+  drive on macOS or Linux does change in two ways, because the download
+  logic is shared: it follows the download marker, and a saved Garmin offers
+  "Download from Watch" while its drive is mounted (see below). Android and
+  iOS are unchanged.
 - No libdivecomputer change, and no libmtp. Subsurface reaches the same files
   through its libdc fork's `garmin.c` and a libmtp-on-WPD shim; Submersion
   needs only "list and read files" and already has a fuller FIT parser
@@ -130,8 +135,8 @@ abstract class GarminMtpHostApi {
 - Errors (device unplugged, access denied because another app holds it) reach
   Dart as `FlutterError` with a stable code (`notFound`, `busy`, `ioError`)
   plus the HRESULT text.
-- Links `PortableDeviceGuids.lib` and `Ole32.lib`, both in the Windows SDK;
-  no new package.
+- Links `PortableDeviceGuids.lib`, `Ole32.lib` and `OleAut32.lib`, all in the
+  Windows SDK; no new package.
 
 This is written for Submersion, not copied from Subsurface's
 `msvc_wpd.cpp`, which has no licence header and an unclear origin.
@@ -159,14 +164,23 @@ where CI tests them (native tests run on macOS CI; Windows CI only builds).
   on a drive-mounting watch.
 - `garminMtpSourceProvider` is the Pigeon-backed source on Windows and null
   everywhere else; the detector and notifier take it from there.
-- `GarminMtpStager` copies a device's `.fit` files (filtered by name, the same
-  rule as `listFitFiles`) into a fresh folder under `resolveSyncTempDir()`,
-  reporting `(copied, total)` as it goes, and returns the folder path. A file
-  that fails to read is skipped and counted, as an unreadable FIT is today.
-- `UniversalImportNotifier.importFromGarminDevice()`: for an MTP device, stage
-  first, register the staging folder with the wizard's temp-folder cleanup
-  (the list ZIP expansion uses), then call the existing
-  `_loadDiveFitsFromFolder` on it. The volume case is unchanged.
+- `GarminMtpStager` copies a device's `.fit` files (filtered by name with
+  `GarminDeviceDetector.isFitFileName`, the rule `listFitFiles` uses) into a
+  fresh folder under `resolveSyncTempDir()`, reporting `(copied, total)` as it
+  goes, and returns the folder path. A file that fails to read is skipped and
+  counted. When every file fails, the watch is gone or another app holds it,
+  so the failure is rethrown instead of reporting an empty watch.
+- `GarminDeviceImporter.run()` does the whole download for both kinds of
+  device: find the watch, apply the download marker, stage the files (MTP
+  only), and keep the dives. With several Garmins connected it reads the one
+  whose serial is the saved computer's, when Download was chosen on one, and
+  otherwise the first, volumes ahead of MTP watches.
+- `UniversalImportNotifier.importFromGarminDevice()` runs it, registers the
+  staging folder with the wizard's temp-folder cleanup (the list ZIP
+  expansion uses), and loads the dive files through the single-file or batch
+  flow. A download is dropped once the wizard is reset or another download
+  starts, so one still copying from an earlier opening cannot load its dives
+  into the new one. A mounted volume follows the same marker as an MTP watch.
 
 ### Dart layer: the three entry points
 
@@ -197,14 +211,19 @@ opens) resets the import and then starts `importFromGarminDevice()`, once.
      message tells the diver to connect it by cable.
    - This is the only branch in the discovery flow that bypasses
      libdivecomputer, and it is decided once, at the tap.
-3. **Saved Garmin, Download** (`dc_no_direct_download_view.dart`): on Windows,
-   when `garminDevicesProvider` finds a watch, the title becomes "Download
-   dives from {name}", "Download from Watch" becomes the main action and
-   "Import from File" moves to a secondary, outlined one (`DcMessageLayout`
-   gains an optional secondary action). With no watch connected, the title
-   is "Connect {name} to download its dives" and the body asks for the watch
-   by USB rather than a manual copy of GARMIN/Activity. Other platforms keep
-   "Can't download this computer directly".
+3. **Saved Garmin, Download** (`dc_no_direct_download_view.dart`): when
+   `garminDevicesProvider` finds a watch (over MTP on Windows, or mounted as
+   a drive on any desktop), the title becomes "Download dives from {name}",
+   "Download from Watch" becomes the main action and "Import from File"
+   moves to a secondary, outlined one (`DcMessageLayout` gains an optional
+   secondary action). This is not limited to Windows because the marker is
+   not: a mounted watch's marker puts "Re-import all dives" on its page on
+   every desktop, and that button has to reach a screen that can read every
+   activity. With no watch connected, on Windows the title is "Connect
+   {name} to download its dives" and the body asks for the watch by USB
+   rather than a manual copy of GARMIN/Activity. Elsewhere it stays "Can't
+   download this computer directly", since a watch that only speaks MTP
+   never appears there.
 
 ### Download marker
 
@@ -233,6 +252,12 @@ skipped are not offered again.
   the others are never copied off the watch. When none of them is a dive,
   the marker moves on at once and the Import page says "No new dives on the
   watch since your last download", with "Download All Again".
+- The marker moves only past files that were read. If any file fails to
+  read (the watch unplugged part way, a failed MTP transfer), the marker
+  stays where it was and the next download offers those activities again;
+  dives already imported then show as duplicates. If files failed and none
+  of the others is a dive, the import reports that the watch could not be
+  read, not that there is nothing new.
 - Otherwise the marker is held as pending, with the dive files it covers,
   and `UniversalAdapter.performImport` saves it once the import runs to the
   end (not cancelled, every slice reached), whatever the diver imported,
@@ -242,6 +267,11 @@ skipped are not offered again.
   moves back.
 - "Re-import all dives" on a saved Garmin, and "Download All Again", read
   every activity (`?all=1`).
+- Known limit: the file name is the watch's local time, with no zone. An
+  activity recorded after the watch clock moved back (a flight west across
+  the date line) can be named earlier than one already downloaded, and is
+  then not offered. The modified time is local too, so it cannot settle it.
+  "Re-import all dives" reads every activity and recovers such a dive.
 
 ### Text
 

@@ -689,12 +689,16 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
     });
   }
 
-  /// On Windows, with a Garmin watch plugged in, a saved Garmin's dives can
-  /// be imported straight from it (issue #4223). Null otherwise, which keeps
-  /// the file import as the only way in.
+  /// With a Garmin connected, a saved Garmin's dives can be imported
+  /// straight from it (issue #4223): mounted as a drive on any desktop, or
+  /// over MTP on Windows. Null otherwise, which keeps the file import as the
+  /// only way in.
+  ///
+  /// Not limited to Windows: a mounted watch follows the same download
+  /// marker everywhere, which puts "Re-import all dives" on its page, and
+  /// that button has to lead somewhere that can read every activity.
   VoidCallback? _connectedGarminImport(DiveComputer computer) {
     if (computer.manufacturer?.trim().toLowerCase() != 'garmin') return null;
-    if (ref.watch(garminMtpSourceProvider) == null) return null;
     final watches = ref.watch(garminDevicesProvider).valueOrNull ?? const [];
     if (watches.isEmpty) return null;
     // Its own marker, or every activity for "Re-import all dives".

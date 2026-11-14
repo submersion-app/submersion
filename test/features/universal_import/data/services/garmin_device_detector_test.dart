@@ -181,6 +181,19 @@ void main() {
     expect(files, isEmpty);
   });
 
+  test('one rule says what a FIT file is', () {
+    expect(GarminDeviceDetector.isFitFileName('2026-11-01-10-22-31.fit'), true);
+    expect(GarminDeviceDetector.isFitFileName('A1B23456.FIT'), true);
+    expect(
+      GarminDeviceDetector.isFitFileName(p.join('GARMIN', 'Activity', 'a.fit')),
+      true,
+    );
+    expect(GarminDeviceDetector.isFitFileName('a.fit.txt'), false);
+    expect(GarminDeviceDetector.isFitFileName('notes.txt'), false);
+    // A bare extension is a hidden file with no name, not an activity.
+    expect(GarminDeviceDetector.isFitFileName('.fit'), false);
+  });
+
   group('MTP watches', () {
     test('lists a Garmin watch the MTP source reports', () async {
       final watch = fakeGarminWatch(name: 'Descent G2', serial: '123');

@@ -11,7 +11,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/import_wizard/data/adapters/batch_source_files.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_mtp_stager.dart';
 import 'package:submersion/features/universal_import/data/models/garmin_import_progress.dart';
@@ -205,6 +207,105 @@ void main() {
       expect(Directory(firstStaging).existsSync(), isFalse);
     },
   );
+
+  group('a download the wizard has moved on from', () {
+    FakeGarminMtpSource twoDives() {
+      final watch = fakeGarminWatch();
+      return FakeGarminMtpSource(
+        devices: [watch],
+        filesByDevice: {
+          watch.id: {'a.fit': diveBytes, 'b.fit': diveBytes},
+        },
+      );
+    }
+
+    test('is dropped by a reset, with its staging folder', () async {
+      // Copying a watch takes a while. Backing out and reopening the
+      // wizard must not have the old download land in the new session.
+      final (:notifier, :progress) = await notifierFor(twoDives());
+
+      final download = notifier.importFromGarminDevice();
+      notifier.reset();
+      await download;
+      await notifier.pendingTempCleanup;
+
+      expect(notifier.state.files, isEmpty);
+      expect(notifier.state.error, isNull);
+      expect(notifier.state.isLoading, isFalse);
+      expect(notifier.state.garminProgress, isNull);
+      expect(notifier.state.zipTempDirPaths, isEmpty);
+      expect(tmp.listSync(), isEmpty);
+      // Nothing it reported after the reset reached the page.
+      expect(progress.whereType<_Snapshot>().length, lessThanOrEqualTo(1));
+    });
+
+    test('is replaced by a second download, not mixed with it', () async {
+      final (:notifier, progress: _) = await notifierFor(twoDives());
+
+      final first = notifier.importFromGarminDevice();
+      final second = notifier.importFromGarminDevice();
+      await Future.wait([first, second]);
+      await notifier.pendingTempCleanup;
+
+      expect(notifier.state.error, isNull);
+      expect(notifier.state.files, hasLength(2));
+      // One staging folder is left, and it is the one the files are in.
+      final staging = notifier.state.zipTempDirPaths.single;
+      expect(tmp.listSync().map((e) => e.path), [staging]);
+      for (final file in notifier.state.files) {
+        expect(File(file.path!).existsSync(), isTrue);
+      }
+    });
+  });
+
+  group('the original FIT file', () {
+    // The importer stores a copy of each dive's source file, read through
+    // these sources (issue #478). For a watch over MTP the staged copy is
+    // the only place those bytes exist, so it must reach the importer whole.
+    test('reaches the importer for every dive of a batch', () async {
+      final watch = fakeGarminWatch();
+      final (:notifier, progress: _) = await notifierFor(
+        FakeGarminMtpSource(
+          devices: [watch],
+          filesByDevice: {
+            watch.id: {'dive_a.fit': diveBytes, 'dive_b.fit': diveBytes},
+          },
+        ),
+      );
+
+      await notifier.importFromGarminDevice();
+
+      final sources = batchSourceFiles(notifier.state.files);
+      expect(sources, hasLength(2));
+      for (final source in sources.values) {
+        expect(source.format, ImportFormat.fit);
+        expect(await source.readBytes(), diveBytes);
+      }
+      expect(
+        sources.values.map((s) => s.fileName),
+        unorderedEquals(['dive_a.fit', 'dive_b.fit']),
+      );
+    });
+
+    test('reaches the importer for a single dive', () async {
+      final watch = fakeGarminWatch();
+      final (:notifier, progress: _) = await notifierFor(
+        FakeGarminMtpSource(
+          devices: [watch],
+          filesByDevice: {
+            watch.id: {'2026-11-01-10-22-31.fit': diveBytes},
+          },
+        ),
+      );
+
+      await notifier.importFromGarminDevice();
+
+      // The single-file flow hands the importer these two.
+      expect(notifier.state.fileName, '2026-11-01-10-22-31.fit');
+      expect(notifier.state.fileBytes, diveBytes);
+      expect(notifier.state.detectionResult?.format, ImportFormat.fit);
+    });
+  });
 
   test('deletes the staging folder when the wizard resets', () async {
     final watch = fakeGarminWatch();

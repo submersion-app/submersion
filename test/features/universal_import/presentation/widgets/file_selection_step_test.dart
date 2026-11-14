@@ -94,8 +94,8 @@ Widget harnessImportingFromGarmin(GarminImportProgress progress) {
 
 /// A notifier whose last Garmin download found nothing new (issue #4223).
 class _NothingNewNotifier extends UniversalImportNotifier {
-  _NothingNewNotifier(super.ref) {
-    state = state.copyWith(garminNothingNew: true);
+  _NothingNewNotifier(super.ref, {List<PickedImportFile> files = const []}) {
+    state = state.copyWith(garminNothingNew: true, files: files);
   }
 
   var readAllCalls = 0;
@@ -310,6 +310,33 @@ void main() {
     testWidgets('is not shown otherwise', (tester) async {
       await tester.pumpWidget(harness());
 
+      expect(find.text('Download All Again'), findsNothing);
+    });
+
+    testWidgets('gives way to files picked by hand', (tester) async {
+      // The message is about the watch, and its button would replace the
+      // files the diver has just picked.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            universalImportNotifierProvider.overrideWith(
+              (ref) => _NothingNewNotifier(ref, files: [_file('logbook.uddf')]),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: FileSelectionStep()),
+          ),
+        ),
+      );
+
+      expect(find.text('logbook.uddf'), findsOneWidget);
+      expect(
+        find.text('No new dives on the watch since your last download.'),
+        findsNothing,
+      );
       expect(find.text('Download All Again'), findsNothing);
     });
   });

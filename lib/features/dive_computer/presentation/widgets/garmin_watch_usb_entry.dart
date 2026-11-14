@@ -1,7 +1,5 @@
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
-
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_mtp_source.dart';
 
 /// The Garmin entry in Connect New Computer's USB list (issue #4223).
 ///
@@ -16,9 +14,8 @@ abstract final class GarminWatchUsbEntry {
   /// to a download.
   static const modelId = 'garmin_watch_import';
 
-  /// Windows only, matching the platform that reads watches over MTP.
-  static bool get isOffered =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.windows;
+  /// Only where Submersion reads watches over MTP (Windows).
+  static bool get isOffered => GarminMtpSource.isSupportedPlatform;
 
   static bool isEntry(DeviceModel model) => model.id == modelId;
 

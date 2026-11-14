@@ -139,6 +139,27 @@ void main() {
     expect(staging.failedCount, 1);
   });
 
+  test('rethrows when no file could be read, and deletes its folder', () async {
+    // A watch unplugged as the copy starts fails every read. That is a
+    // watch that could not be read, not a watch with nothing on it.
+    final watch = fakeGarminWatch();
+    final source = FakeGarminMtpSource(
+      devices: [watch],
+      filesByDevice: {
+        watch.id: {'1.fit': bytes(1), '2.fit': bytes(2)},
+      },
+      failingFiles: {'1.fit', '2.fit'},
+    );
+
+    await expectLater(
+      stagerFor(source).stage(watch.id),
+      throwsA(
+        isA<PlatformException>().having((e) => e.code, 'code', 'ioError'),
+      ),
+    );
+    expect(tmp.listSync(), isEmpty);
+  });
+
   test('keeps a device-supplied name inside the staging folder', () async {
     final watch = fakeGarminWatch();
     final source = FakeGarminMtpSource(

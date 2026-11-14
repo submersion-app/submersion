@@ -21,10 +21,12 @@ enum DcNoDirectDownloadReason {
 /// devices at all. Their dives arrive as FIT files, so the view points at the
 /// file import instead of leaving the download spinning (issue #1858).
 ///
-/// Where Submersion reads Garmin watches itself (Windows, issue #4223), a
-/// Garmin can be downloaded after all, so the view says so: with a watch
-/// connected it offers the download first, and without one it asks for the
-/// watch instead of a manual copy.
+/// A Garmin whose watch is connected can be downloaded after all (issue
+/// #4223), so the view offers the download first: a watch mounted as a
+/// drive on any desktop, or one reached over MTP on Windows. Where
+/// Submersion reads watches over MTP, a Garmin with no watch connected is
+/// asked for instead of a manual copy; elsewhere the manual copy stays,
+/// since a watch that only speaks MTP never shows up there.
 ///
 /// A USB computer saved on a desktop also syncs to iOS, which has no USB
 /// host; there the view says to download it on a desktop (issue #2837).
@@ -42,9 +44,9 @@ class DcNoDirectDownloadView extends StatelessWidget {
   final DiveComputer computer;
   final VoidCallback onImportFromFile;
 
-  /// True where Submersion reads a connected Garmin watch directly
-  /// (Windows). Only changes the wording for a Garmin with no watch
-  /// connected.
+  /// True where Submersion reads a Garmin watch over MTP (Windows), so
+  /// plugging any Garmin in is enough. Only changes the wording for a
+  /// Garmin with no watch connected.
   final bool readsConnectedWatches;
 
   /// Downloads the dives from the Garmin watch that is plugged in. Only for

@@ -1,6 +1,10 @@
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart';
+
+import 'package:submersion/core/platform/host_platform.dart';
 
 /// Reads a Garmin watch that connects over MTP instead of mounting as a
 /// drive, such as the Descent G2 (issue #4223).
@@ -9,6 +13,12 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart';
 /// no other platform registers the channel. Failures are
 /// `PlatformException`s with code `notFound`, `busy` or `ioError`.
 abstract interface class GarminMtpSource {
+  /// Whether this platform reads Garmin watches over MTP: Windows, where the
+  /// plugin has the reader. The one check for it, so the USB list entry, the
+  /// help note and the download screen cannot disagree.
+  static bool get isSupportedPlatform =>
+      !HostPlatform.isWeb && defaultTargetPlatform == TargetPlatform.windows;
+
   /// Connected portable devices with Garmin's USB vendor ID.
   Future<List<GarminMtpDevice>> listDevices();
 

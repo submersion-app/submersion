@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_activity_marker.dart';
+import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_mtp_source.dart';
 
 /// What [GarminMtpStager.stage] copied.
@@ -57,7 +58,11 @@ class GarminMtpStager {
   /// marker are copied; the rest are never read off the watch.
   ///
   /// Throws what the source throws for the listing, having removed the
-  /// folder. A single file that fails to read is skipped and counted.
+  /// folder. A file that fails to read is skipped and counted in
+  /// [GarminMtpStaging.failedCount], which the caller must not ignore: the
+  /// download marker may not move past a file that was never read. When
+  /// every file fails the watch is gone or held by another app, so the last
+  /// failure is rethrown instead of reporting an empty watch.
   Future<GarminMtpStaging> stage(
     String deviceId, {
     GarminActivityMarker? after,
@@ -69,7 +74,7 @@ class GarminMtpStager {
       final listed = await _source.listActivityFiles(deviceId);
       final fits = [
         for (final file in listed)
-          if (_isFit(file.name)) file,
+          if (GarminDeviceDetector.isFitFileName(file.name)) file,
       ];
       final newest = GarminActivityMarker.newest(fits.map(_activity));
       final files = [
@@ -81,6 +86,7 @@ class GarminMtpStager {
       final used = <String>{};
       var copied = 0;
       var failed = 0;
+      (Object, StackTrace)? lastFailure;
       for (var i = 0; i < files.length; i++) {
         final file = files[i];
         try {
@@ -88,10 +94,14 @@ class GarminMtpStager {
           final name = _uniqueName(_safeName(file.name), used);
           await File(p.join(dir.path, name)).writeAsBytes(bytes, flush: true);
           copied++;
-        } catch (_) {
+        } catch (error, stackTrace) {
           failed++;
+          lastFailure = (error, stackTrace);
         }
         onProgress?.call(i + 1, files.length);
+      }
+      if (copied == 0 && lastFailure != null) {
+        Error.throwWithStackTrace(lastFailure.$1, lastFailure.$2);
       }
       return GarminMtpStaging(
         dirPath: dir.path,
@@ -112,8 +122,6 @@ class GarminMtpStager {
 
   static GarminActivityFile _activity(GarminMtpFile file) =>
       GarminActivityFile(name: file.name, modifiedMillis: file.modifiedMillis);
-
-  static bool _isFit(String name) => name.toLowerCase().endsWith('.fit');
 
   /// The last path segment of a name the device reported, split on either
   /// separator whatever the host, so a name can never leave the folder.

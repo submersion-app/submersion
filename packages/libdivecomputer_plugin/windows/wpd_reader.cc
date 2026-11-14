@@ -389,6 +389,11 @@ std::optional<WpdError> WpdReader::Open(const std::wstring& device_id) {
 std::optional<WpdError> WpdReader::ListGarminDevices(
     std::vector<WpdDeviceInfo>* out) {
   out->clear();
+  // A device left open by an earlier call may have been unplugged since,
+  // and plugging it back in keeps its ID: Open() would hand back the dead
+  // handle, the serial below would come up empty, and the next listing
+  // would fail. Every download starts with this call, so start it clean.
+  Close();
   ComPtr<IPortableDeviceManager> manager;
   HRESULT hr = CoCreateInstance(CLSID_PortableDeviceManager, nullptr,
                                 CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&manager));

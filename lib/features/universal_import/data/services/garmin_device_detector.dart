@@ -111,7 +111,11 @@ class GarminDeviceDetector {
   /// non-empty `GARMIN/Activity` folder beside `GARMIN/GarminDevice.xml`)
   /// first, then MTP watches.
   Future<List<GarminDevice>> detect() async {
-    return [...await _detectVolumes(), ...await _detectMtpWatches()];
+    // Started together: neither scan needs the other, and each can take a
+    // moment (drive letters with no media, a watch waking over MTP).
+    final volumes = _detectVolumes();
+    final watches = _detectMtpWatches();
+    return [...await volumes, ...await watches];
   }
 
   Future<List<GarminMtpWatch>> _detectMtpWatches() async {
@@ -208,7 +212,7 @@ class GarminDeviceDetector {
     final dir = Directory(activityDirPath);
     if (!await dir.exists()) return paths;
     await for (final entity in dir.list(followLinks: false)) {
-      if (entity is File && _isFit(entity.path)) paths.add(entity.path);
+      if (entity is File && isFitFileName(entity.path)) paths.add(entity.path);
     }
     paths.sort();
     return paths;
@@ -217,12 +221,16 @@ class GarminDeviceDetector {
   Future<int> _countFitFiles(Directory dir) async {
     var count = 0;
     await for (final entity in dir.list(followLinks: false)) {
-      if (entity is File && _isFit(entity.path)) count++;
+      if (entity is File && isFitFileName(entity.path)) count++;
     }
     return count;
   }
 
-  static bool _isFit(String path) => p.extension(path).toLowerCase() == '.fit';
+  /// Whether [name], a file name or path, is a FIT file. The one rule for
+  /// what counts as an activity file, shared by the folder scan and by the
+  /// copy off an MTP watch, so both always agree.
+  static bool isFitFileName(String name) =>
+      p.extension(name).toLowerCase() == '.fit';
 
   /// Candidate mounted-volume roots per platform.
   List<Directory> _defaultVolumeRoots() {

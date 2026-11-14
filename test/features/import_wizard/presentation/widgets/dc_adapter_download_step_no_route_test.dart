@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/download_step_widget.dart';
@@ -111,7 +112,8 @@ class _Harness {
   final FakeImportAdapterDeps deps = FakeImportAdapterDeps();
   late final pigeon.DiveComputerService service;
 
-  Widget build(DiveComputer computer) {
+  /// [forceFullDownload] is what "Re-import all dives" opens the step with.
+  Widget build(DiveComputer computer, {bool forceFullDownload = false}) {
     final adapter = DiveComputerAdapter(
       importService: deps.importService,
       computerRepository: deps.computerRepo,
@@ -119,6 +121,7 @@ class _Harness {
       consolidationService: deps.consolidationService,
       diverId: 'diver-1',
       knownComputer: computer,
+      forceFullDownload: forceFullDownload,
     );
     // The step sits on top of a parent page, as the real download route
     // does, so Done has somewhere to pop back to.
@@ -318,6 +321,75 @@ void main() {
         findsOne,
       );
       expect(find.textContaining('GARMIN/Activity'), findsNothing);
+      expect(find.text('Download from Watch'), findsNothing);
+    });
+  });
+
+  // A watch mounted as a drive follows the download marker on every desktop,
+  // which puts "Re-import all dives" on its page there too. Without the MTP
+  // reader (macOS, Linux) that button used to end at "Can't download this
+  // computer directly".
+  group('a saved Garmin mounted as a drive, with no MTP reader', () {
+    final garmin = _computer(
+      manufacturer: 'Garmin',
+      model: 'Descent Mk2',
+      connectionType: 'usb',
+    );
+    final root = p.join('Volumes', 'GARMIN');
+    final mounted = [
+      GarminVolume(
+        volumeName: 'GARMIN',
+        volumeRootPath: root,
+        activityDirPath: p.join(root, 'GARMIN', 'Activity'),
+        fitFileCount: 3,
+      ),
+    ];
+
+    testWidgets('offers the download from the watch', (tester) async {
+      final harness = _Harness(garminWatches: mounted);
+      await tester.pumpWidget(harness.build(garmin));
+      await _settle(tester);
+
+      expect(find.text('Download dives from Garmin Descent Mk2'), findsOne);
+      expect(find.text("Can't download this computer directly"), findsNothing);
+
+      await tester.tap(find.text('Download from Watch'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('import wizard route ?source=garmin-device&computer=dc-1'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Re-import all dives reads every activity', (tester) async {
+      final harness = _Harness(garminWatches: mounted);
+      await tester.pumpWidget(harness.build(garmin, forceFullDownload: true));
+      await _settle(tester);
+
+      await tester.tap(find.text('Download from Watch'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'import wizard route ?source=garmin-device&computer=dc-1&all=1',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('unplugged, still points at the manual copy', (tester) async {
+      // A watch that only speaks MTP never mounts here, so "connect it to
+      // download" would promise something that cannot happen.
+      final harness = _Harness();
+      await tester.pumpWidget(harness.build(garmin));
+      await _settle(tester);
+
+      expect(
+        find.text("Can't download this computer directly"),
+        findsOneWidget,
+      );
+      expect(find.textContaining('GARMIN/Activity'), findsOneWidget);
       expect(find.text('Download from Watch'), findsNothing);
     });
   });

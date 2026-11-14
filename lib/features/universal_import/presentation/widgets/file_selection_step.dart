@@ -117,7 +117,9 @@ class FileSelectionStep extends ConsumerWidget {
             const SizedBox(height: 16),
             GarminImportProgressPanel(progress: garminProgress),
           ],
-          if (state.garminNothingNew && !state.isLoading) ...[
+          // Gone once files are picked by hand: the message is about the
+          // watch, and its button would replace the picked files.
+          if (state.garminNothingNew && !state.isLoading && !hasFile) ...[
             const SizedBox(height: 16),
             GarminNothingNewCard(
               onDownloadAll: () => ref
