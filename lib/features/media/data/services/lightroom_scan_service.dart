@@ -23,6 +23,12 @@ class LightroomScanSummary {
   int skippedNoCaptureTime = 0;
 }
 
+/// A dive's profile and the clock its media is placed against.
+typedef _DivePlacement = ({
+  List<DiveProfilePoint> profile,
+  DiveMediaClock clock,
+});
+
 /// Matches Lightroom catalog assets to dives by capture time.
 ///
 /// Confident matches become `serviceConnector` media rows (enriched from
@@ -118,6 +124,9 @@ class LightroomScanService {
         : await _fetchAlbumAssets(catalogId, albumIds);
 
     final seenThisScan = <String>{};
+    // A card of photos lands on a handful of dives. Each dive is read once
+    // for the scan, not once per photo placed on it.
+    final placements = <String, Future<_DivePlacement?>>{};
     for (final asset in assets) {
       if (!seenThisScan.add(asset.id)) continue;
       summary.examined++;
@@ -137,7 +146,12 @@ class LightroomScanService {
         case TimestampMatchKind.none:
           break;
         case TimestampMatchKind.confident:
-          await _attach(asset, diveId: match.diveId!, account: account);
+          await _attach(
+            asset,
+            diveId: match.diveId!,
+            account: account,
+            placements: placements,
+          );
           summary.attached++;
         case TimestampMatchKind.ambiguous:
           for (final diveId in match.candidateDiveIds) {
@@ -300,10 +314,30 @@ class LightroomScanService {
     return assets;
   }
 
+  /// What placing media on a dive needs: its profile and its media clock.
+  /// Null when the dive is gone or has no profile to place anything on.
+  Future<_DivePlacement?> _placementFor(String diveId) async {
+    final dive = await _diveRepository.getDiveById(diveId);
+    if (dive == null || dive.profile.isEmpty) return null;
+    return (
+      profile: dive.profile,
+      clock: DiveMediaClock.of(
+        diveStart: dive.effectiveEntryTime,
+        primarySourceEntry: await _diveRepository.getPrimarySourceEntry(diveId),
+        offsetSeconds: dive.mediaTimeOffsetSeconds,
+      ),
+    );
+  }
+
+  /// Creates the media row for [asset] on [diveId] and places it.
+  ///
+  /// [placements] is a scan's per-dive cache of [_placementFor]; without one
+  /// (a single confirmed suggestion) the dive is read for this asset alone.
   Future<void> _attach(
     LightroomAsset asset, {
     required String diveId,
     required ConnectedAccount account,
+    Map<String, Future<_DivePlacement?>>? placements,
   }) async {
     final now = _now();
     final saved = await _mediaRepository.createMedia(
@@ -326,16 +360,13 @@ class LightroomScanService {
       ),
     );
 
-    final dive = await _diveRepository.getDiveById(diveId);
-    final profile = dive?.profile ?? const [];
-    if (dive != null && profile.isNotEmpty) {
-      final clock = DiveMediaClock.of(
-        diveStart: dive.effectiveEntryTime,
-        primarySourceEntry: await _diveRepository.getPrimarySourceEntry(diveId),
-        offsetSeconds: dive.mediaTimeOffsetSeconds,
-      );
+    final placement = await (placements == null
+        ? _placementFor(diveId)
+        : placements.putIfAbsent(diveId, () => _placementFor(diveId)));
+    if (placement != null) {
+      final clock = placement.clock;
       final result = _enrichmentService.calculateEnrichment(
-        profile: profile,
+        profile: placement.profile,
         diveStartTime: clock.start,
         photoTime: clock.onDiveClock(asset.captureDate!),
       );
@@ -345,7 +376,7 @@ class LightroomScanService {
           domain.MediaEnrichment(
             id: '',
             mediaId: saved.id,
-            diveId: dive.id,
+            diveId: diveId,
             depthMeters: result.depthMeters,
             temperatureCelsius: result.temperatureCelsius,
             elapsedSeconds: result.elapsedSeconds,
