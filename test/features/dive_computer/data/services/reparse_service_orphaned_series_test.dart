@@ -287,6 +287,46 @@ void main() {
       ));
     });
 
+    test('is kept beside a live series of the source marked as a parse that '
+        'lost its computer too', () async {
+      // The twin dive with the recording written since v357. Its mark says
+      // which of the two is the recording, so only that one is replaced.
+      await twoComputerDive();
+      final edit = await insertSeries(
+        sourceId: 'src-a',
+        isPrimary: true,
+        depth: 25.0,
+      );
+      final recording = await insertSeries(
+        sourceId: 'src-a',
+        isPrimary: true,
+        isEdit: false,
+        now: 500,
+      );
+
+      await reparse('src-a');
+
+      final after = await seriesById();
+      expect(after[edit], (
+        sourceId: 'src-a',
+        computerId: null,
+        isPrimary: true,
+      ));
+      expect(after.containsKey(recording), isFalse);
+      final fresh = after.entries.where(
+        (e) => e.key != edit && e.value.sourceId == 'src-a',
+      );
+      expect(fresh.single.value, (
+        sourceId: 'src-a',
+        computerId: 'comp-a',
+        isPrimary: false,
+      ));
+      final dive = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals('dive-1'))).getSingle();
+      expect(dive.maxDepth, 25.0);
+    });
+
     test('is kept when the recording it corrects is live beside it', () async {
       // A dive re-parsed before #3189: that re-parse put the recording back
       // live beside the edit instead of beneath it. The recording is there
