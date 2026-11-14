@@ -1,0 +1,177 @@
+import 'package:flutter/material.dart';
+
+import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/shared/widgets/forms/form_row.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/field_text_binding.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+
+/// A number row of a card editor, bound to one field of the sitting.
+///
+/// The field holds the value in its stored unit; [toDisplay] and
+/// [fromDisplay] carry it to and from the unit the diver reads. Emptying the
+/// row sets the field to null.
+///
+/// Two values that show as the same number are the same value here, whatever
+/// the field's own equality says: a stored 1,234.5 m shown as 4050 ft reads
+/// back as 1,234.44 m, and that must not count as a change.
+///
+/// Text that is not a number never reaches the sitting. The row shows its
+/// own message and tells the page's [RecordEditController], which keeps the
+/// card open and refuses to save until it is fixed.
+class RecordNumberRow<T> extends StatefulWidget {
+  const RecordNumberRow({
+    super.key,
+    required this.session,
+    required this.field,
+    required this.label,
+    this.suffixText,
+    this.placeholder,
+    this.fractionDigits = 0,
+    this.toDisplay,
+    this.fromDisplay,
+    this.integer = false,
+    this.allowNegative = true,
+  });
+
+  final EditSession<T> session;
+
+  /// The value, in the unit it is stored in.
+  final EditField<T, double?> field;
+  final String label;
+  final String? suffixText;
+  final String? placeholder;
+
+  /// How many decimals the value is shown with.
+  final int fractionDigits;
+
+  /// The stored unit to the one shown. Null when they are the same.
+  final double Function(double stored)? toDisplay;
+
+  /// The shown unit back to the stored one. Null when they are the same.
+  final double Function(double shown)? fromDisplay;
+
+  /// Whether only whole numbers are accepted.
+  final bool integer;
+  final bool allowNegative;
+
+  @override
+  State<RecordNumberRow<T>> createState() => _RecordNumberRowState<T>();
+}
+
+class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
+  late FieldTextBinding<T, double?> _binding = _bind();
+
+  /// The page's controller, kept so the mark can be cleared in [dispose].
+  RecordEditController<T>? _controller;
+
+  FieldTextBinding<T, double?> _bind() {
+    final field = widget.field;
+    return FieldTextBinding<T, double?>(
+      session: widget.session,
+      // The same field, compared by what the diver sees.
+      field: EditField<T, double?>(
+        id: field.id,
+        cardId: field.cardId,
+        read: field.read,
+        write: field.write,
+        equals: (a, b) =>
+            a == null || b == null ? a == b : _format(a) == _format(b),
+      ),
+      // Read through the widget each time, so a change of unit is followed.
+      format: _format,
+      parse: _parse,
+      onUnreadableChanged: _report,
+    );
+  }
+
+  String _format(double? stored) {
+    if (stored == null) return '';
+    final shown = widget.toDisplay?.call(stored) ?? stored;
+    return formatFixedForInput(shown, widget.fractionDigits);
+  }
+
+  FieldInput<double?> _parse(String text) {
+    final read = readNumber(
+      text,
+      integer: widget.integer,
+      allowNegative: widget.allowNegative,
+    );
+    return switch (read) {
+      NumberBlank() => const FieldValue(null),
+      NumberValue(:final value) => FieldValue(
+        widget.fromDisplay?.call(value) ?? value,
+      ),
+      NumberInvalid() => const FieldUnreadable(),
+    };
+  }
+
+  void _report(bool unreadable) {
+    _controller?.setFieldInvalid(
+      widget.field.cardId,
+      widget.field.id,
+      invalid: unreadable,
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _controller = RecordEditScope.maybeOf<T>(context);
+  }
+
+  @override
+  void didUpdateWidget(RecordNumberRow<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != widget.session ||
+        oldWidget.field.id != widget.field.id ||
+        oldWidget.field.cardId != widget.field.cardId) {
+      _clearMark(oldWidget);
+      _binding.dispose();
+      _binding = _bind();
+      return;
+    }
+    // The unit or the number of decimals may have changed.
+    _binding.resync();
+  }
+
+  /// Withdraws this row's unreadable mark, as reported for [row]'s field.
+  void _clearMark(RecordNumberRow<T> row) {
+    if (!_binding.isUnreadable) return;
+    _controller?.setFieldInvalid(
+      row.field.cardId,
+      row.field.id,
+      invalid: false,
+    );
+  }
+
+  @override
+  void dispose() {
+    _clearMark(widget);
+    _binding.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FormRow.text(
+      label: widget.label,
+      controller: _binding.controller,
+      suffixText: widget.suffixText,
+      placeholder: widget.placeholder,
+      keyboardType: TextInputType.numberWithOptions(
+        decimal: !widget.integer,
+        signed: widget.allowNegative,
+      ),
+      inputFormatters: numberInputFormatters(),
+      inputValidator: numberValidator(
+        context,
+        integer: widget.integer,
+        allowNegative: widget.allowNegative,
+      ),
+    );
+  }
+}
