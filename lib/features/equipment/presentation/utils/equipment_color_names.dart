@@ -1,27 +1,28 @@
+import 'dart:math' as math;
+
+import 'package:flutter/painting.dart';
+
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-
-/// Black and White, which the tag palette lacks because a tag chip in either
-/// cannot keep its text readable on every theme, while most dive gear is one
-/// or the other (issue #2627). Black is a near-black so the figure's shade
-/// and outline, which darken the item colour, still show.
-const String equipmentColorBlack = '#1C1C1E';
-const String equipmentColorWhite = '#FFFFFF';
-
-/// The colours the item colour sheet offers: the tag palette, then Black
-/// and White.
-const List<String> equipmentColorPalette = [
-  ...TagColors.predefined,
-  equipmentColorBlack,
-  equipmentColorWhite,
-];
+import 'package:submersion/shared/utils/color_hex.dart';
 
 /// The name a diver and a screen reader know an item colour by: the
-/// palette colour's localized name, or the code itself for a colour from
-/// outside the palette (an import or a peer can write any `#RRGGBB`).
+/// palette colour's localized name, or for any other `#RRGGBB` (a custom
+/// colour, an import's, a peer's) the nearest palette name and the code,
+/// "Orange (#FF6A00)" (issue #4537). A value that is not a colour code reads
+/// as itself.
 String equipmentColorName(AppLocalizations l10n, String hex) {
-  final code = normalizeEquipmentColor(hex) ?? hex;
+  final code = normalizeEquipmentColor(hex);
+  if (code == null) return hex;
+  return _paletteName(l10n, code) ??
+      l10n.equipment_color_customName(
+        _paletteName(l10n, nearestEquipmentColor(colorFromHex(code)))!,
+        code,
+      );
+}
+
+/// The palette colour's localized name, or null for a code off the palette.
+String? _paletteName(AppLocalizations l10n, String code) {
   return switch (code) {
     '#EF4444' => l10n.equipment_color_red,
     '#F97316' => l10n.equipment_color_orange,
@@ -45,6 +46,46 @@ String equipmentColorName(AppLocalizations l10n, String hex) {
     '#64748B' => l10n.equipment_color_slate,
     equipmentColorBlack => l10n.equipment_color_black,
     equipmentColorWhite => l10n.equipment_color_white,
-    _ => code,
+    _ => null,
   };
 }
+
+/// The palette code nearest [color], by CIE76 distance in Lab, which tracks
+/// how different two colours look far better than RGB distance does.
+String nearestEquipmentColor(Color color) {
+  final target = _lab(color);
+  var best = equipmentColorPalette.first;
+  var bestDistance = double.infinity;
+  for (final (i, hex) in equipmentColorPalette.indexed) {
+    final d = _distance(target, _paletteLab[i]);
+    if (d < bestDistance) {
+      bestDistance = d;
+      best = hex;
+    }
+  }
+  return best;
+}
+
+/// The palette in Lab, worked out once: every custom swatch name searches it.
+final List<List<double>> _paletteLab = [
+  for (final hex in equipmentColorPalette) _lab(colorFromHex(hex)),
+];
+
+double _lin(double c) =>
+    c <= 0.04045 ? c / 12.92 : math.pow((c + 0.055) / 1.055, 2.4).toDouble();
+
+List<double> _lab(Color c) {
+  final r = _lin(c.r), g = _lin(c.g), b = _lin(c.b);
+  final x = (0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047;
+  final y = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  final z = (0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883;
+  double f(double t) =>
+      t > 0.008856 ? math.pow(t, 1 / 3).toDouble() : 7.787 * t + 16 / 116;
+  return [116 * f(y) - 16, 500 * (f(x) - f(y)), 200 * (f(y) - f(z))];
+}
+
+double _distance(List<double> a, List<double> b) => math.sqrt(
+  math.pow(a[0] - b[0], 2) +
+      math.pow(a[1] - b[1], 2) +
+      math.pow(a[2] - b[2], 2),
+);

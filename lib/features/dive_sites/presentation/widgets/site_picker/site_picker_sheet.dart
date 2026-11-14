@@ -402,7 +402,7 @@ class _SitePickerSheetState extends ConsumerState<SitePickerSheet>
     // it after the search.
     final offered = offeredBuiltIn(sites);
     final hasNearby = nearby.isNotEmpty || showsBuiltInNearby(offered);
-    final builtIn = builtInRows(offered);
+    final builtIn = builtInRows(offered, sites);
 
     return Column(
       children: [

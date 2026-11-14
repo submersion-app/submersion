@@ -1,6 +1,22 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
+
+/// Black and White, which the tag palette lacks because a tag chip in either
+/// cannot keep its text readable on every theme, while most dive gear is one
+/// or the other (issue #2627). Black is a near-black so the figure's shade
+/// and outline, which darken the item colour, still show.
+const String equipmentColorBlack = '#1C1C1E';
+const String equipmentColorWhite = '#FFFFFF';
+
+/// The colours the item colour sheet offers: the tag palette, then Black
+/// and White.
+const List<String> equipmentColorPalette = [
+  ...TagColors.predefined,
+  equipmentColorBlack,
+  equipmentColorWhite,
+];
 
 /// An item's colour is stored as `#RRGGBB` in the `color` attribute's
 /// `valueText` (issue #2326). Values reach it from the colour sheet, CSV

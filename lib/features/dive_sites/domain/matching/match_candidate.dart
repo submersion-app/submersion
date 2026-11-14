@@ -7,9 +7,15 @@ class MatchCandidate {
   final GeoPoint location;
   final bool isExisting;
 
+  /// Whether this is a catalogue register record (a charted wreck, a reef
+  /// deployment) and not a place the catalogue lists as dived. A dive site
+  /// close to the dive is preferred to one of these.
+  final bool isRegister;
+
   const MatchCandidate({
     required this.id,
     required this.location,
     required this.isExisting,
+    this.isRegister = false,
   });
 }

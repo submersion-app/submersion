@@ -106,7 +106,7 @@ class _TagColorPickerState extends State<TagColorPicker> {
           );
     final customDot = _ColorDot(
       key: const ValueKey('tag-color-custom'),
-      label: l10n.tags_color_custom,
+      label: l10n.common_color_custom,
       onTap: _pickCustom,
     );
 

@@ -1524,6 +1524,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_color_white => 'Bianco';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recenti';
+
+  @override
   String get equipment_color_none => 'Nessuno';
 
   @override
@@ -12983,6 +12991,38 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Usa questo sito';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Relitti e reef vicino a $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Relitti e reef nelle vicinanze';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Mostra relitti e reef censiti ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Vengono mostrati i $count più vicini. Cerca per trovare gli altri.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Sono già tutti tra i tuoi siti.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'I $count più vicini sono già tra i tuoi siti. Cerca per trovare gli altri.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Ingrandisci per vedere tutti i siti integrati';
 
   @override
   String get diveSites_list_groupBy => 'Raggruppa per';
@@ -25168,6 +25208,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gruppi di attrezzatura compressi';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Colori recenti dell\'attrezzatura';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Registro della disposizione degli elenchi';
 
@@ -33654,23 +33698,23 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Colore personalizzato';
+  String get common_color_custom => 'Colore personalizzato';
 
   @override
-  String get tags_color_hexLabel => 'Codice esadecimale';
+  String get common_color_hexLabel => 'Codice esadecimale';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Inserisci sei caratteri 0-9 o A-F, ad esempio #2E8B57';
 
   @override
-  String get tags_color_use => 'Usa';
+  String get common_color_use => 'Usa';
 
   @override
-  String get tags_color_hueLabel => 'Tonalità';
+  String get common_color_hueLabel => 'Tonalità';
 
   @override
-  String get tags_color_squareLabel => 'Saturazione e luminosità';
+  String get common_color_squareLabel => 'Saturazione e luminosità';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Rimuovi';

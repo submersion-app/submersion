@@ -241,7 +241,12 @@ class SiteMatchingService {
         if (location == null || adopted.contains(b.id)) continue;
         refs[b.id] = _CandidateRef.bundled(b);
         candidates.add(
-          MatchCandidate(id: b.id, location: location, isExisting: false),
+          MatchCandidate(
+            id: b.id,
+            location: location,
+            isExisting: false,
+            isRegister: b.kind == CatalogueKind.register,
+          ),
         );
       }
       _refsByDive[dive.id] = refs;

@@ -78,6 +78,9 @@ class StorySchedule {
 
   static const firstYearDives = 90;
 
+  /// The story's sixth and last year, counted from 0.
+  static const _lastYear = 5;
+
   /// A destination's sites: one picked at random, then its nearest
   /// neighbours within [clusterKm] (or the nearest few where the catalogue
   /// is sparse), so a day's dives are a boat ride apart, not a flight.
@@ -124,7 +127,7 @@ class StorySchedule {
           : (y < 5 ? perYear : diveCount - firstYearDives - 4 * perYear);
       final yearSlots = <Slot>[];
       final busy = <(DateTime, DateTime)>[];
-      final last = y == 5;
+      final last = y == _lastYear;
       final tripCount = y == 0 ? 6 : 6 + random.nextInt(3);
       // Weekends at the lakes are most of a year's diving days.
       final minHome = y == 0 ? 12 : 45;
@@ -165,6 +168,12 @@ class StorySchedule {
     slots.sort((a, b) => a.start.compareTo(b.start));
     return slots;
   }
+
+  /// Whether [d] is in a part of the world (`worldRegions`) no trip has
+  /// gone to yet. The Caribbean is in none of them.
+  bool _regionUnseen(Destination d) => worldRegions.values.any(
+    (keys) => keys.contains(d.key) && !keys.any(_used.contains),
+  );
 
   /// The destinations and lengths of one year's trips.
   List<_TripPlan> _tripPlans(
@@ -213,8 +222,17 @@ class StorySchedule {
         for (final d in eligibleAll)
           if (caribbeanDestinations.contains(d.key) == caribbean) d,
       ];
+      // In the last year a part of the world the diver has not yet seen
+      // comes first, so every story reaches all of them.
+      final unseen = [
+        if (year == _lastYear && weekend.isEmpty)
+          for (final d in eligibleAll)
+            if (_regionUnseen(d)) d,
+      ];
       final pool = weekend.isNotEmpty
           ? weekend
+          : unseen.isNotEmpty
+          ? unseen
           : ofRegion.isNotEmpty
           ? ofRegion
           : eligibleAll;
@@ -301,6 +319,11 @@ class StorySchedule {
     DateTime? notBefore,
     int finalDays = 0,
   }) {
+    // The Jersey boats run from April to November; the first year waits
+    // for the warm months.
+    bool inSeason(DateTime day) => warmOnly
+        ? day.month >= 5 && day.month <= 9
+        : day.month >= 4 && day.month <= 11;
     final saturdays = <DateTime>[];
     final finalFrom = _day(windowEnd, -finalDays);
     var left = dives;
@@ -334,22 +357,24 @@ class StorySchedule {
       if (day.weekday != DateTime.saturday) continue;
       if (finalDays > 0 && !day.isBefore(finalFrom)) continue;
       if (notBefore != null && !day.isAfter(notBefore)) continue;
-      if (warmOnly && (day.month < 5 || day.month > 9)) continue;
-      // The Jersey boats run from April to November.
-      if (day.month < 4 || day.month > 11) continue;
+      if (!inSeason(day)) continue;
       final clash = busy.any(
         (b) => !day.isBefore(_day(b.$1, -2)) && !day.isAfter(_day(b.$2, 3)),
       );
       if (!clash) saturdays.add(day);
     }
     // When the season's free Saturdays are too few, the Sundays dive too;
-    // each day is dived at most once.
+    // each day is dived at most once. A Sunday is in the season on its own
+    // account: the Saturday that ends November has none.
     final days = (left / 2).ceil();
     final saturdaysOnly = days <= saturdays.length;
     final pool = saturdaysOnly
         ? saturdays
         : [
-            for (final s in saturdays) ...[s, _day(s, 1)],
+            for (final s in saturdays) ...[
+              s,
+              if (inSeason(_day(s, 1))) _day(s, 1),
+            ],
           ];
     final spread = min(days, pool.length);
     for (var k = 0; k < spread && left > 0; k++) {
@@ -357,7 +382,7 @@ class StorySchedule {
       final count = min(2, left);
       _dayAtHome(day, count, out);
       left -= count;
-      if (saturdaysOnly && left > 0 && k % 4 == 3) {
+      if (saturdaysOnly && left > 0 && k % 4 == 3 && inSeason(_day(day, 1))) {
         final sunday = min(2, left);
         _dayAtHome(_day(day, 1), sunday, out);
         left -= sunday;

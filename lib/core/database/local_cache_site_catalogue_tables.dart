@@ -42,6 +42,11 @@ class SiteCatalogueEntries extends Table {
   TextColumn get sourceRef => text().nullable()();
   TextColumn get trust => text().withDefault(const Constant('verified'))();
 
+  /// `site` or `register` (CatalogueKind): a place people dive, or a
+  /// record from a wreck register or a reef deployment list. Reads filter
+  /// on it, so it is a column and not part of the JSON.
+  TextColumn get kind => text().withDefault(const Constant('site'))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -89,9 +94,16 @@ const String kCreateSiteCatalogueTableSql = '''
     source TEXT NOT NULL,
     source_ref TEXT NULL,
     trust TEXT NOT NULL DEFAULT 'verified',
+    kind TEXT NOT NULL DEFAULT 'site',
     PRIMARY KEY (id)
   )
 ''';
+
+/// Adds [SiteCatalogueEntries.kind] to a table created before v22. The rows
+/// already there are dive sites: every record was, before register records
+/// existed.
+const String kAddSiteCatalogueKindSql =
+    "ALTER TABLE site_catalogue ADD COLUMN kind TEXT NOT NULL DEFAULT 'site'";
 
 /// The open backstop's copy of [SiteCatalogueMeta].
 const String kCreateSiteCatalogueMetaTableSql = '''
@@ -106,3 +118,9 @@ const String kCreateSiteCatalogueMetaTableSql = '''
 const String kCreateSiteCatalogueIndexSql =
     'CREATE INDEX IF NOT EXISTS idx_site_catalogue_lat_lon '
     'ON site_catalogue (latitude, longitude)';
+
+/// The same lookup for one kind of record: the picker asks for dive sites
+/// and for register records apart.
+const String kCreateSiteCatalogueKindIndexSql =
+    'CREATE INDEX IF NOT EXISTS idx_site_catalogue_kind_lat_lon '
+    'ON site_catalogue (kind, latitude, longitude)';

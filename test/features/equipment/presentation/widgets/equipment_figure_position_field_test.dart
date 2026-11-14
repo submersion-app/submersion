@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_color_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_attribute_form_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+
+/// The appearance block's colour field reads the diver's recent colours
+/// (issue #4537).
+Widget _scoped(Widget child) => ProviderScope(
+  overrides: [
+    settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+    equipmentGearColorsProvider.overrideWith(
+      (ref) => Future.value(const <String>[]),
+    ),
+  ],
+  child: child,
+);
 
 /// The item form's "Position on figure" picker (issue #4493): offered in
 /// the appearance block when the item can be drawn in more than one way,
@@ -23,19 +39,21 @@ void main() {
     void Function(String)? onCleared,
   }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: EquipmentAttributeFormSection(
-              type: type,
-              group: AttributeGroup.appearance,
-              values: values,
-              units: const UnitFormatter(AppSettings()),
-              onChanged: onChanged ?? (_) {},
-              onCleared: onCleared ?? (_) {},
+      _scoped(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: EquipmentAttributeFormSection(
+                type: type,
+                group: AttributeGroup.appearance,
+                values: values,
+                units: const UnitFormatter(AppSettings()),
+                onChanged: onChanged ?? (_) {},
+                onCleared: onCleared ?? (_) {},
+              ),
             ),
           ),
         ),
@@ -129,18 +147,20 @@ void main() {
 
   testWidgets('a cylinder offers Worn as in its spec fields', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: EquipmentAttributeFormSection(
-              type: EquipmentType.tank,
-              values: const {},
-              units: const UnitFormatter(AppSettings()),
-              onChanged: (_) {},
-              onCleared: (_) {},
+      _scoped(
+        MaterialApp(
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: EquipmentAttributeFormSection(
+                type: EquipmentType.tank,
+                values: const {},
+                units: const UnitFormatter(AppSettings()),
+                onChanged: (_) {},
+                onCleared: (_) {},
+              ),
             ),
           ),
         ),

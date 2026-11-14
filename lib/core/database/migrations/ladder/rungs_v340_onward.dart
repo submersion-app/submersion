@@ -192,11 +192,19 @@ extension RungsFromV340 on AppDatabase {
     if (from < 364) await _assertBodyCompositionColumns();
     if (from < 364) await reportProgress();
 
-    // v365: dives.media_time_offset_seconds, the correction for a camera
+    // v365: diver_settings.recent_equipment_colors, the custom colours the
+    // diver picked for their gear (issue #4537). Nullable, no backfill.
+    // Re-asserted in beforeOpen. Renumbered from 364, which main took for
+    // #4525.
+    if (from < 365) await _assertRecentEquipmentColorsColumn();
+    if (from < 365) await reportProgress();
+
+    // v366: dives.media_time_offset_seconds, the correction for a camera
     // whose clock disagrees with the dive computer's (issue #4539). Column
     // only, defaulted to 0, so the compatibility floor does not move.
-    // Re-asserted in beforeOpen. Numbered 365 because main holds 364.
-    if (from < 365) await _assertDiveMediaTimeOffsetColumn();
-    if (from < 365) await reportProgress();
+    // Re-asserted in beforeOpen. Renumbered from 365, which main took for
+    // #4537.
+    if (from < 366) await _assertDiveMediaTimeOffsetColumn();
+    if (from < 366) await reportProgress();
   }
 }

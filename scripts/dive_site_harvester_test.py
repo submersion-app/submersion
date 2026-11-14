@@ -59,124 +59,6 @@ class UtcTimestampTest(unittest.TestCase):
         self.assertLessEqual(parsed, after)
 
 
-class _FixedCountry:
-    """Stands in for the country resolver, which would ask the network."""
-
-    def __init__(self, answer):
-        self.answer = answer
-        self.asked = []
-
-    def lookup_place(self, latitude, longitude):
-        self.asked.append((latitude, longitude))
-        # A two-part answer is a country with no island.
-        return (*self.answer, None)[:3]
-
-
-@unittest.skipUnless(_HAS_DEPS, "the harvester's dependencies are not installed")
-class TransformTest(unittest.TestCase):
-    def _with_country(self, answer):
-        resolver = _FixedCountry(answer)
-        original = dive_site_harvester.country_resolver
-        dive_site_harvester.country_resolver = resolver
-        self.addCleanup(
-            setattr, dive_site_harvester, "country_resolver", original
-        )
-        return resolver
-
-    def test_an_osm_site_becomes_a_catalogue_record(self):
-        resolver = self._with_country(("BQ", "Caribbean Netherlands"))
-
-        record = dive_site_harvester.transform_to_catalogue_record(
-            {
-                "osm_id": 663869401,
-                "osm_type": "node",
-                "tags": {"name": "Salt Pier", "description": "Pillars."},
-                "geometry": {"type": "Point", "coordinates": [-68.28, 12.08]},
-                "address": {"country": "Nederland", "state": "Bonaire"},
-                "contact": {"website": "https://example.org"},
-                "dive_attributes": {
-                    "depth": "15 m",
-                    "entry_type": "shore",
-                    "hazards": "boat traffic",
-                    "site_types": ["reef", "sharks"],
-                    "drift_diving": True,
-                },
-            }
-        )
-
-        self.assertEqual(resolver.asked, [(12.08, -68.28)])
-        self.assertEqual(
-            record,
-            {
-                "id": "osm_node_663869401",
-                "name": "Salt Pier",
-                "lat": 12.08,
-                "lon": -68.28,
-                "country_code": "BQ",
-                "country": "Caribbean Netherlands",
-                "region": "Bonaire",
-                "max_depth_m": 15.0,
-                "types": ["reef"],
-                "entry": ["shore"],
-                "features": ["sharks", "drift"],
-                "hazards": "boat traffic",
-                "description": "Pillars.",
-                "website": "https://example.org",
-                "source": "osm",
-                "source_ref": "https://www.openstreetmap.org/node/663869401",
-                "trust": "verified",
-            },
-        )
-
-    def test_a_site_on_an_island_territory_carries_the_island(self):
-        self._with_country(("BQ", "Caribbean Netherlands", "Bonaire"))
-
-        record = dive_site_harvester.transform_to_catalogue_record(
-            {
-                "osm_id": 313862678,
-                "osm_type": "node",
-                "tags": {"name": "Bari Reef"},
-                "geometry": {"type": "Point", "coordinates": [-68.29, 12.17]},
-                "address": {},
-            }
-        )
-
-        self.assertEqual(record["country_code"], "BQ")
-        self.assertEqual(record["island"], "Bonaire")
-
-    def test_a_site_without_coordinates_keeps_a_two_letter_country_code(self):
-        resolver = self._with_country(("XX", "Never asked"))
-
-        record = dive_site_harvester.transform_to_catalogue_record(
-            {
-                "osm_id": 7,
-                "osm_type": "way",
-                "tags": {"name": "Somewhere"},
-                "address": {"country": "cw"},
-            }
-        )
-
-        self.assertEqual(resolver.asked, [])
-        self.assertEqual(record["country_code"], "CW")
-        self.assertNotIn("country", record)
-        self.assertNotIn("lat", record)
-
-    def test_a_site_without_coordinates_drops_a_country_name(self):
-        self._with_country(("XX", "Never asked"))
-
-        record = dive_site_harvester.transform_to_catalogue_record(
-            {
-                "osm_id": 8,
-                "osm_type": "way",
-                "tags": {"name": "Somewhere"},
-                "address": {"country": "Deutschland"},
-            }
-        )
-
-        self.assertNotIn("country_code", record)
-        self.assertNotIn("country", record)
-
-
 class GeneratedAtCallSiteTest(unittest.TestCase):
     """The helper is only worth having if every call site reaches for it.
 
@@ -212,32 +94,22 @@ class GeneratedAtCallSiteTest(unittest.TestCase):
             if isinstance(key, ast.Constant) and key.value == "generated_at"
         ]
 
-        # The centres file and the raw dump; the site catalogue is stamped
-        # through write_catalogue, checked below.
+        # The centres file and the raw dump.
         self.assertEqual(stamps, ["utc_timestamp()"] * 2)
-
-    def test_the_site_catalogue_is_stamped_by_the_helper(self):
-        stamps = [
-            ast.unparse(node.args[2])
-            for node in ast.walk(self.tree)
-            if isinstance(node, ast.Call)
-            and isinstance(node.func, ast.Name)
-            and node.func.id == "write_catalogue"
-        ]
-
-        self.assertEqual(stamps, ["utc_timestamp()"])
 
 
 class CatalogueOutputTest(unittest.TestCase):
-    """Sites leave the harvester in the catalogue format, and only there.
+    """The site catalogue is built by scripts/site_catalogue/, not here.
 
-    A source scan for the same reason as above: the write happens after a
-    full Overpass harvest.
+    A source scan: this script must never write the catalogue again, or a
+    centres-only run would replace the merged catalogue with OpenStreetMap
+    alone.
     """
 
     def setUp(self):
         with open(_SOURCE, encoding="utf-8") as f:
-            self.tree = ast.parse(f.read())
+            self.source = f.read()
+            self.tree = ast.parse(self.source)
 
     def test_the_legacy_site_file_is_no_longer_written(self):
         names = [
@@ -252,21 +124,56 @@ class CatalogueOutputTest(unittest.TestCase):
 
         self.assertEqual(names, [])
 
-    def test_sites_take_their_country_from_the_resolver(self):
-        transform = next(
-            node
-            for node in ast.walk(self.tree)
-            if isinstance(node, ast.FunctionDef)
-            and node.name == "transform_to_catalogue_record"
-        )
+    def test_the_site_catalogue_is_not_written_here(self):
         calls = [
             ast.unparse(node.func)
-            for node in ast.walk(transform)
+            for node in ast.walk(self.tree)
             if isinstance(node, ast.Call)
         ]
+        imported = [
+            node.module
+            for node in ast.walk(self.tree)
+            if isinstance(node, ast.ImportFrom)
+        ]
 
-        self.assertIn("country_resolver.lookup_place", calls)
-        self.assertIn("to_catalogue_record", calls)
+        self.assertNotIn("write_catalogue", calls)
+        self.assertNotIn("site_catalogue_format", imported)
+        self.assertNotIn("curated_sites", imported)
+
+    def test_only_dive_centres_are_asked_for(self):
+        tags = next(
+            ast.literal_eval(node.value)
+            for node in ast.walk(self.tree)
+            if isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == "DIVE_TAGS"
+                for target in node.targets
+            )
+        )
+
+        self.assertEqual(
+            tags,
+            [
+                ("amenity", "dive_centre"),
+                ("shop", "scuba_diving"),
+                ("club", "scuba_diving"),
+            ],
+        )
+
+
+@unittest.skipUnless(_HAS_DEPS, "the harvester's dependencies are not installed")
+class ClientNameTest(unittest.TestCase):
+    def test_overpass_is_asked_under_the_generic_client_name(self):
+        # The Overpass library sends Python's default client name unless
+        # it is handed a request that carries one.
+        harvester = dive_site_harvester.DiveSiteHarvester()
+        request = harvester.api.url
+        self.assertEqual(
+            request.full_url, dive_site_harvester.OVERPASS_ENDPOINT
+        )
+        self.assertEqual(
+            request.get_header("User-agent"), "dive-site-harvester/1.0"
+        )
 
 
 if __name__ == "__main__":

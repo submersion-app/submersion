@@ -21,7 +21,7 @@ import urllib.request
 from pathlib import Path
 
 NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/reverse"
-NOMINATIM_USER_AGENT = "DiveSiteHarvester/1.0 (Submersion Dive Log App)"
+NOMINATIM_USER_AGENT = "dive-site-harvester/1.0"
 # Nominatim allows at most one request a second.
 NOMINATIM_MIN_INTERVAL = 1.1
 
@@ -59,6 +59,11 @@ NAMED_TERRITORIES: dict[str, tuple[str, str]] = {
 NAME_OVERRIDES: dict[str, str] = {
     # The geocoder says "Federated States of Micronesia".
     "FM": "Micronesia",
+    # Natural Earth's names for these, which the app's table spells the
+    # way CLDR does.
+    "PM": "St. Pierre & Miquelon",
+    "SJ": "Svalbard & Jan Mayen",
+    "VI": "U.S. Virgin Islands",
 }
 
 _SUBDIVISION_PREFIX = "ISO3166-2-lvl"

@@ -4,14 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// v365 adds `dives.media_time_offset_seconds` (issue #4539): the seconds
+/// v366 adds `dives.media_time_offset_seconds` (issue #4539): the seconds
 /// added to each photo's capture time before it is placed on the dive, which
 /// corrects a camera whose clock disagrees with the dive computer's. NOT NULL
 /// with a default of 0, so every existing dive keeps placing media unshifted.
 void main() {
-  test('v365 is in the migration ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(365));
-    expect(AppDatabase.migrationVersions, contains(365));
+  test('v366 is in the migration ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(366));
+    expect(AppDatabase.migrationVersions, contains(366));
   });
 
   test(
@@ -36,7 +36,7 @@ void main() {
   test('an existing dive upgrades to no shift', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 363');
+        rawDb.execute('PRAGMA user_version = 365');
         rawDb.execute('''
           CREATE TABLE dives (
             id TEXT NOT NULL PRIMARY KEY,

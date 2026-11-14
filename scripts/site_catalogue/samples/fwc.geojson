@@ -1,0 +1,302 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": 2172,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.02380000019784,
+     27.931916667438806
+    ]
+   },
+   "properties": {
+    "OBJECTID": 2172,
+    "DeployID": "PI0280",
+    "DDate": 20031022,
+    "Description": "7 - 12\" X 30' Steel Beams",
+    "Tonnage": 6,
+    "Depth": 45,
+    "Relief": 17,
+    "Name": "Rube Allyn Reef",
+    "Jurisdiction": "Federal",
+    "Coast": "Gulf",
+    "County": "Pinellas",
+    "MatDescrip": "Beams (7)",
+    "MatCat": "Metal",
+    "DeployDate": "10/22/2003",
+    "Long_DM": "83° 01.428' W",
+    "Lat_DM": "27° 55.915' N",
+    "Long_DD": -83.02379646,
+    "Lat_DD": 27.93191147,
+    "LocAccuracy": 3,
+    "last_edited_date": 1778696217000
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 2197,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.02360000041908,
+     27.93206666666577
+    ]
+   },
+   "properties": {
+    "OBJECTID": 2197,
+    "DeployID": "PI0248",
+    "DDate": 20030421,
+    "Description": "9 Pieces Culverts Various Sizes",
+    "Tonnage": 26,
+    "Depth": 43,
+    "Relief": 12,
+    "Name": "Rube Allyn Reef",
+    "Jurisdiction": "Federal",
+    "Coast": "Gulf",
+    "County": "Pinellas",
+    "MatDescrip": "Culverts (9)",
+    "MatCat": "Concrete",
+    "DeployDate": "04/21/2003",
+    "Long_DM": "83° 01.416' W",
+    "Lat_DM": "27° 55.924' N",
+    "Long_DD": -83.02359646,
+    "Lat_DD": 27.93206147,
+    "LocAccuracy": 3,
+    "last_edited_date": 1778696217000
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 2222,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.02381666662883,
+     27.932099999695044
+    ]
+   },
+   "properties": {
+    "OBJECTID": 2222,
+    "DeployID": "PI0223",
+    "DDate": 20020604,
+    "Description": "Placed On Southwest Corner of Site",
+    "Tonnage": 30.2,
+    "Depth": 45,
+    "Relief": 13,
+    "Name": "Rube Allyn Reef",
+    "Jurisdiction": "Federal",
+    "Coast": "Gulf",
+    "County": "Pinellas",
+    "MatDescrip": "Culverts (27)",
+    "MatCat": "Concrete",
+    "DeployDate": "06/04/2002",
+    "Long_DM": "83° 01.429' W",
+    "Lat_DM": "27° 55.926' N",
+    "Long_DD": -83.02381313,
+    "Lat_DD": 27.9320948,
+    "LocAccuracy": 3,
+    "last_edited_date": 1778696217000
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 2400,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.92601666703649,
+     28.043416666930998
+    ]
+   },
+   "properties": {
+    "OBJECTID": 2400,
+    "DeployID": "PI0014",
+    "DDate": 19820920,
+    "Description": "Concrete Culverts, 10 Yards, 100 Sq. Feet Coverage",
+    "Tonnage": 0,
+    "Depth": 44,
+    "Relief": 0,
+    "Name": "Rube Allyn Reef",
+    "Jurisdiction": "State",
+    "Coast": "Gulf",
+    "County": "Pinellas",
+    "MatDescrip": "Culverts",
+    "MatCat": "Concrete",
+    "DeployDate": "09/20/1982",
+    "Long_DM": "82° 55.561' W",
+    "Lat_DM": "28° 02.605' N",
+    "Long_DD": -82.92601315,
+    "Lat_DD": 28.04341144,
+    "LocAccuracy": 1,
+    "last_edited_date": 1778696217000
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 1638,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.73647000029888,
+     24.459950000191075
+    ]
+   },
+   "properties": {
+    "OBJECTID": 1638,
+    "DeployID": "MO0062",
+    "DDate": 20090527,
+    "Description": "522' Former Missile Tracking Ship, the \"Hoyt Vandenberg\"",
+    "Tonnage": 13300,
+    "Depth": 145,
+    "Relief": 100,
+    "Name": "Hoyt Vandenberg",
+    "Jurisdiction": "State",
+    "Coast": "Atlantic",
+    "County": "Monroe",
+    "MatDescrip": "Missile Tracking Ship 522'",
+    "MatCat": "Vessel",
+    "DeployDate": "05/27/2009",
+    "Long_DM": "81° 44.188' W",
+    "Lat_DM": "24° 27.597' N",
+    "Long_DD": -81.73646693,
+    "Lat_DD": 24.45994563,
+    "LocAccuracy": 3,
+    "last_edited_date": 1778696217000
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 1,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.91216666696691,
+     30.168466667407
+    ]
+   },
+   "properties": {
+    "OBJECTID": 1,
+    "DeployID": "BA0323",
+    "DDate": 20140626,
+    "Description": "2 Modules; 1 Florida Limestone & 1 Grouper Reef with Ecosystem (3 Tiers)",
+    "Tonnage": 7.5,
+    "Depth": 77,
+    "Relief": 8,
+    "Name": "BC2014-Set#16",
+    "Jurisdiction": "State",
+    "Coast": "Gulf",
+    "County": "Bay",
+    "MatDescrip": "Reefmaker Florida Limestone (1)",
+    "MatCat": "Module",
+    "DeployDate": "06/26/2014",
+    "Long_DM": "85° 54.730' W",
+    "Lat_DM": "30° 10.108' N",
+    "Long_DD": -85.91216222,
+    "Lat_DD": 30.16846103,
+    "LocAccuracy": 3,
+    "last_edited_date": 1778696217000
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 355,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.06391666655968,
+     26.143500000342787
+    ]
+   },
+   "properties": {
+    "OBJECTID": 355,
+    "DeployID": "BO0104",
+    "DDate": 20021004,
+    "Description": "180' Freighter, the \"Bulk Trader\", Part of Governors Riverwalk",
+    "Tonnage": 0,
+    "Depth": 313,
+    "Relief": 40,
+    "Name": "Bulk Trader",
+    "Jurisdiction": "State",
+    "Coast": "Atlantic",
+    "County": "Broward",
+    "MatDescrip": "Freighter 180'",
+    "MatCat": "Vessel",
+    "DeployDate": "10/04/2002",
+    "Long_DM": "80° 03.835' W",
+    "Lat_DM": "26° 08.610' N",
+    "Long_DD": -80.06391404,
+    "Lat_DD": 26.14349517,
+    "LocAccuracy": 3,
+    "last_edited_date": 1778696217000
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 157,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.52135000007335,
+     29.894866667147785
+    ]
+   },
+   "properties": {
+    "OBJECTID": 157,
+    "DeployID": "BA0166",
+    "DDate": 20010628,
+    "Description": "Concrete Pipes & Junction Boxes, 112 Pieces, 2 Loads This Location Also 6/26/2001",
+    "Tonnage": 350.2,
+    "Depth": 52,
+    "Relief": 8,
+    "Name": "Unnamed",
+    "Jurisdiction": "State",
+    "Coast": "Gulf",
+    "County": "Bay",
+    "MatDescrip": "Precast Materials (117)",
+    "MatCat": "Concrete",
+    "DeployDate": "06/28/2001",
+    "Long_DM": "85° 31.281' W",
+    "Lat_DM": "29° 53.692' N",
+    "Long_DD": -85.52134568,
+    "Lat_DD": 29.89486108,
+    "LocAccuracy": 3,
+    "last_edited_date": 1778696217000
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 134,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.86189835552192,
+     29.978373400763175
+    ]
+   },
+   "properties": {
+    "OBJECTID": 134,
+    "DeployID": "BA0188",
+    "DDate": 20040514,
+    "Description": "Large Concrete Beams, 66 Ft Long, End of May 14 Drop, 2 of 2 Drops",
+    "Tonnage": 4187,
+    "Depth": 0,
+    "Relief": 0,
+    "Name": "Hathaway Bridge 2 Finish",
+    "Jurisdiction": "Federal",
+    "Coast": "Gulf",
+    "County": "Bay",
+    "MatDescrip": "Beams Bridge",
+    "MatCat": "Concrete",
+    "DeployDate": "05/14/2004",
+    "Long_DM": "85° 51.714' W",
+    "Lat_DM": "29° 58.702' N",
+    "Long_DD": -85.86189393,
+    "Lat_DD": 29.9783678,
+    "LocAccuracy": 3,
+    "last_edited_date": 1778696217000
+   }
+  }
+ ]
+}

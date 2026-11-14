@@ -1566,6 +1566,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_color_white => 'أبيض';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'الأخيرة';
+
+  @override
   String get equipment_color_none => 'بلا';
 
   @override
@@ -13163,6 +13171,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'استخدام هذا الموقع';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'حطام وشعاب بالقرب من $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'حطام وشعاب قريبة';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'عرض الحطام والشعاب المسجّلة ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'يُعرض أقرب $count. ابحث للعثور على البقية.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'جميعها موجودة بالفعل ضمن مواقعك.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'أقرب $count موجودة بالفعل ضمن مواقعك. ابحث للعثور على البقية.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'قرّب الخريطة لرؤية جميع المواقع المدمجة';
 
   @override
   String get diveSites_list_groupBy => 'التجميع حسب';
@@ -25533,6 +25572,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'مجموعات المعدات المطوية';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'ألوان المعدات الأخيرة';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';
 
   @override
@@ -33976,22 +34019,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'لون مخصص';
+  String get common_color_custom => 'لون مخصص';
 
   @override
-  String get tags_color_hexLabel => 'الرمز الست عشري';
+  String get common_color_hexLabel => 'الرمز الست عشري';
 
   @override
-  String get tags_color_hexError => 'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
+  String get common_color_hexError =>
+      'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
 
   @override
-  String get tags_color_use => 'استخدام';
+  String get common_color_use => 'استخدام';
 
   @override
-  String get tags_color_hueLabel => 'تدرج اللون';
+  String get common_color_hueLabel => 'تدرج اللون';
 
   @override
-  String get tags_color_squareLabel => 'التشبع والسطوع';
+  String get common_color_squareLabel => 'التشبع والسطوع';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'إزالة';

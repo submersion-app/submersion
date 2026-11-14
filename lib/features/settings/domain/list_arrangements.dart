@@ -33,6 +33,10 @@ class ListArrangements {
   /// see `equipment_fold_keys.dart`.
   final String? equipmentCollapsedGroups;
 
+  /// The custom colours the diver picked for their gear as a JSON list,
+  /// most recent first (issue #4537), see `recent_equipment_colors.dart`.
+  final String? recentEquipmentColors;
+
   const ListArrangements({
     this.diveSort,
     this.divePlanSort,
@@ -48,6 +52,7 @@ class ListArrangements {
     this.equipmentArrangement,
     this.equipmentGroupByLocation,
     this.equipmentCollapsedGroups,
+    this.recentEquipmentColors,
   });
 
   /// No list changed yet: every list opens on its starting order.
@@ -70,6 +75,7 @@ class ListArrangements {
     String? equipmentArrangement,
     bool? equipmentGroupByLocation,
     String? equipmentCollapsedGroups,
+    String? recentEquipmentColors,
   }) {
     return ListArrangements(
       diveSort: diveSort ?? this.diveSort,
@@ -88,6 +94,8 @@ class ListArrangements {
           equipmentGroupByLocation ?? this.equipmentGroupByLocation,
       equipmentCollapsedGroups:
           equipmentCollapsedGroups ?? this.equipmentCollapsedGroups,
+      recentEquipmentColors:
+          recentEquipmentColors ?? this.recentEquipmentColors,
     );
   }
 
@@ -106,6 +114,7 @@ class ListArrangements {
     equipmentArrangement,
     equipmentGroupByLocation,
     equipmentCollapsedGroups,
+    recentEquipmentColors,
   ];
 
   @override

@@ -68,7 +68,7 @@ extension BeforeOpenChildColumns on AppDatabase {
     // row, for the same reason as the tank columns.
     await _assertDiveIsDraftColumn();
 
-    // v365: dives.media_time_offset_seconds (issue #4539), for the same
+    // v366: dives.media_time_offset_seconds (issue #4539), for the same
     // reason.
     await _assertDiveMediaTimeOffsetColumn();
 

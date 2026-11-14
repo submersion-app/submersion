@@ -133,7 +133,7 @@ class Dives extends Table {
   // list alone, the way they already keep an edited profile.
   BoolColumn get gasSwitchesEdited =>
       boolean().withDefault(const Constant(false))();
-  // v365: seconds added to each photo's capture time before it is placed on
+  // v366: seconds added to each photo's capture time before it is placed on
   // the dive (issue #4539). Negative for a camera running ahead of the dive
   // computer, positive for one behind; 0 places media unshifted.
   IntColumn get mediaTimeOffsetSeconds =>

@@ -2360,6 +2360,18 @@ abstract class AppLocalizations {
   /// **'White'**
   String get equipment_color_white;
 
+  /// A custom item colour: its nearest named colour, then its code
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({code})'**
+  String equipment_color_customName(String name, String code);
+
+  /// Heading for the custom item colours the diver used recently, in the colour sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get equipment_color_recent;
+
   /// No description provided for @equipment_color_none.
   ///
   /// In en, this message translates to:
@@ -20567,6 +20579,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use this site'**
   String get diveSites_picker_builtIn_useSite;
+
+  /// No description provided for @diveSites_picker_register_nearPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrecks and reefs near {place}'**
+  String diveSites_picker_register_nearPlace(Object place);
+
+  /// No description provided for @diveSites_picker_register_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrecks and reefs nearby'**
+  String get diveSites_picker_register_nearby;
+
+  /// No description provided for @diveSites_picker_register_show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show charted wrecks and reefs ({count})'**
+  String diveSites_picker_register_show(Object count);
+
+  /// No description provided for @diveSites_picker_register_capped.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the nearest {count}. Search to find the rest.'**
+  String diveSites_picker_register_capped(Object count);
+
+  /// No description provided for @diveSites_picker_register_allYours.
+  ///
+  /// In en, this message translates to:
+  /// **'All of these are already among your sites.'**
+  String get diveSites_picker_register_allYours;
+
+  /// No description provided for @diveSites_picker_register_nearestYours.
+  ///
+  /// In en, this message translates to:
+  /// **'The nearest {count} are already among your sites. Search to find the rest.'**
+  String diveSites_picker_register_nearestYours(Object count);
+
+  /// No description provided for @diveSites_map_builtIn_zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in to see every built-in site'**
+  String get diveSites_map_builtIn_zoomIn;
 
   /// No description provided for @diveSites_list_groupBy.
   ///
@@ -39662,6 +39716,12 @@ abstract class AppLocalizations {
   /// **'Equipment folded groups'**
   String get settings_conflict_field_equipmentCollapsedGroups;
 
+  /// Label for the custom equipment colours the diver picked recently, in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Recent equipment colors'**
+  String get settings_conflict_field_recentEquipmentColors;
+
   /// Label for a saved list arrangement in a sync conflict
   ///
   /// In en, this message translates to:
@@ -53334,41 +53394,41 @@ abstract class AppLocalizations {
   /// **'Current color, {code}'**
   String tags_color_current(String code);
 
-  /// No description provided for @tags_color_custom.
+  /// No description provided for @common_color_custom.
   ///
   /// In en, this message translates to:
   /// **'Custom color'**
-  String get tags_color_custom;
+  String get common_color_custom;
 
-  /// No description provided for @tags_color_hexLabel.
+  /// No description provided for @common_color_hexLabel.
   ///
   /// In en, this message translates to:
   /// **'Hex code'**
-  String get tags_color_hexLabel;
+  String get common_color_hexLabel;
 
-  /// No description provided for @tags_color_hexError.
+  /// No description provided for @common_color_hexError.
   ///
   /// In en, this message translates to:
   /// **'Enter six digits 0-9 or A-F, like #2E8B57'**
-  String get tags_color_hexError;
+  String get common_color_hexError;
 
-  /// No description provided for @tags_color_use.
+  /// No description provided for @common_color_use.
   ///
   /// In en, this message translates to:
   /// **'Use'**
-  String get tags_color_use;
+  String get common_color_use;
 
-  /// No description provided for @tags_color_hueLabel.
+  /// No description provided for @common_color_hueLabel.
   ///
   /// In en, this message translates to:
   /// **'Hue'**
-  String get tags_color_hueLabel;
+  String get common_color_hueLabel;
 
-  /// No description provided for @tags_color_squareLabel.
+  /// No description provided for @common_color_squareLabel.
   ///
   /// In en, this message translates to:
   /// **'Saturation and brightness'**
-  String get tags_color_squareLabel;
+  String get common_color_squareLabel;
 
   /// No description provided for @tags_manage_narrowDialog_confirm.
   ///
