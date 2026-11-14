@@ -42,7 +42,6 @@ MediaItem _photo() {
   return MediaItem(
     id: 'm1',
     diveId: _dive.id,
-    filePath: '/tmp/m1.jpg',
     originalFilename: 'm1.jpg',
     mediaType: MediaType.photo,
     takenAt: now,

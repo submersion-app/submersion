@@ -15,7 +15,6 @@ import '../../../../helpers/test_app.dart';
 MediaItem _item(String id) => MediaItem(
   id: id,
   diveId: 'dive-1',
-  filePath: '/tmp/$id.jpg',
   originalFilename: '$id.jpg',
   mediaType: MediaType.photo,
   takenAt: DateTime(2026, 3, 15),
