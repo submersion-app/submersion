@@ -20,6 +20,7 @@ import 'package:submersion/features/weight_planner/presentation/providers/plan_b
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/twin_summary_rows.dart';
+import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
 
 /// Gear & Weights card in the plan editor: attach equipment to the plan and
 /// show a live weight prediction with an accept action that snapshots it
@@ -101,6 +102,26 @@ class PlanGearWeightsSection extends ConsumerWidget {
     );
   }
 
+  /// A set brings its gear and the cylinders it carries (issue #4525).
+  /// Its weights stay out: the plan predicts its own.
+  Future<void> _useSet(
+    WidgetRef ref,
+    String setId,
+    List<EquipmentItem> items,
+  ) async {
+    // Read before the first await: the section can be gone by the time the
+    // gear has expanded.
+    final notifier = ref.read(divePlanNotifierProvider.notifier);
+    final bundleFuture = ref.read(setBundleProvider(setId).future);
+    await _addGear(ref, items, viaSetId: setId);
+    try {
+      final bundle = await bundleFuture;
+      if (bundle != null) notifier.addSetCylinders(bundle.cylinders);
+    } catch (_) {
+      // Sets unavailable: the gear is on, the tanks stay as they were.
+    }
+  }
+
   void _showSetPicker(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
@@ -115,7 +136,7 @@ class PlanGearWeightsSection extends ConsumerWidget {
           scrollController: scrollController,
           onSetSelected: (set, items) {
             Navigator.of(context).pop();
-            _addGear(ref, items, viaSetId: set.id);
+            _useSet(ref, set.id, items);
           },
         ),
       ),
