@@ -7820,27 +7820,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes perc';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Megálló $depth · $minutes perc';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Húzd a végiggörgetéshez';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Vidd fölé a végiggörgetéshez';
-
-  @override
   String get diveLog_pinnedStrip_semantics =>
       'Merülési profil, görgesd a kurzor mozgatásához';
 
