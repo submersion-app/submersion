@@ -13,7 +13,8 @@ import 'package:submersion/features/agent_access/data/writes/writable_entity.dar
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
-import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
+import 'package:submersion/features/equipment/domain/services/set_bundle_resolver.dart';
+import 'package:submersion/features/equipment/domain/services/set_history_diff.dart';
 
 /// Equipment sets, through the repository the sets page uses: members the
 /// owner can use, one default per diver, the figure, and the places a set
@@ -53,11 +54,25 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
   @override
   final Map<String, RelationSpec> relations = const {
     'equipment_ids': RelationSpec(refEntity: 'equipment'),
+    // What the set applies besides its own gear (issue #4525).
+    'included_set_ids': RelationSpec(refEntity: 'equipment_sets'),
+    'weight_preset_ids': RelationSpec(refEntity: 'weight_presets'),
+    'cylinder_config_ids': RelationSpec(refEntity: 'cylinder_configs'),
   };
 
   @override
-  Future<Set<String>> currentRelation(String id, String relation) async =>
-      (await _r.equipmentSets.getEquipmentIdsInSet(id)).toSet();
+  Future<Set<String>> currentRelation(String id, String relation) async {
+    if (relation == 'equipment_ids') {
+      return (await _r.equipmentSets.getEquipmentIdsInSet(id)).toSet();
+    }
+    final set = await _r.equipmentSets.getSetById(id);
+    return switch (relation) {
+      'included_set_ids' => {...?set?.includedSetIds},
+      'weight_preset_ids' => {...?set?.weightPresetIds},
+      'cylinder_config_ids' => {...?set?.cylinderConfigIds},
+      _ => const {},
+    };
+  }
 
   /// The geofences a read lists only on request, so a plan compares them.
   @override
@@ -108,6 +123,36 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
         );
       }
     }
+    final included =
+        check.relations['included_set_ids']?.add ?? const <String>{};
+    if (included.isNotEmpty) {
+      // One level of nesting, as the set editor allows (issue #4525).
+      final all = await _r.equipmentSets.getAllSets();
+      final byId = {for (final s in all) s.id: s};
+      final now = DateTime.now();
+      final outer =
+          byId[check.id] ??
+          EquipmentSet(
+            id: check.id ?? '',
+            diverId: check.ownerId,
+            name: '',
+            createdAt: now,
+            updatedAt: now,
+          );
+      final refused = [
+        for (final id in included)
+          if (byId[id] case final candidate?
+              when !SetBundleResolver.canInclude(outer, candidate, all))
+            id,
+      ];
+      if (refused.isNotEmpty) {
+        return PlanBlock(
+          BlockReason.invalidValue,
+          'included_set_ids: ${refused.join(', ')} cannot be included. '
+          '$_nestingRule',
+        );
+      }
+    }
     if (check.kind == ChangeKind.create && check.values['is_default'] == true) {
       return const PlanBlock(
         BlockReason.invalidValue,
@@ -127,16 +172,26 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
     RecordUpdate update,
     Map<String, Object?> document,
   ) async {
-    final members = update.relations['equipment_ids'];
-    var planned = 0;
-    if (members != null && !members.isEmpty) {
-      // Only a delta that changes the members reaches a dive.
-      final current = (await _r.equipmentSets.getEquipmentIdsInSet(id)).toSet();
-      final changes =
-          members.add.any((e) => !current.contains(e)) ||
-          members.remove.any(current.contains);
-      if (changes) planned = await _r.dives.countPlannedDivesWithSet(id);
+    // Only a delta that changes the gear the set applies reaches a dive:
+    // its own members, or the sets it includes (issue #4525). The planned
+    // dives of every set that includes this one carry its gear too.
+    // A dive carrying gear under two of those sets is still one dive.
+    bool touches(String relation) =>
+        !(update.relations[relation]?.isEmpty ?? true);
+    final plannedDives = <String>{};
+    final current = touches('equipment_ids') || touches('included_set_ids')
+        ? await _r.equipmentSets.getSetById(id)
+        : null;
+    if (current != null) {
+      for (final change in setHistoryRewrites(
+        before: current,
+        after: _afterUpdate(current, update),
+        allSets: await _r.equipmentSets.getAllSets(diverId: current.diverId),
+      )) {
+        plannedDives.addAll(await _r.dives.plannedDiveIdsWithSet(change.setId));
+      }
     }
+    final planned = plannedDives.length;
     final others = update.values['is_default'] != true
         ? 0
         : await _otherDefaults(id, ownerId);
@@ -147,6 +202,46 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
       },
     );
   }
+
+  /// [current] as [update] leaves it. Each list keeps its order: what is
+  /// removed leaves, what is added goes on the end.
+  static EquipmentSet _afterUpdate(EquipmentSet current, RecordUpdate update) {
+    final v = update.values;
+    List<String> listOf(String relation, List<String> stored) {
+      final change = update.relations[relation];
+      return [
+        ...stored.where((e) => !(change?.remove.contains(e) ?? false)),
+        for (final e in change?.add ?? const <String>{})
+          if (!stored.contains(e)) e,
+      ];
+    }
+
+    return EquipmentSet(
+      id: current.id,
+      diverId: current.diverId,
+      name: v['name'] as String? ?? current.name,
+      description: v['description'] as String? ?? current.description,
+      equipmentIds: listOf('equipment_ids', current.equipmentIds),
+      includedSetIds: listOf('included_set_ids', current.includedSetIds),
+      weightPresetIds: listOf('weight_preset_ids', current.weightPresetIds),
+      cylinderConfigIds: listOf(
+        'cylinder_config_ids',
+        current.cylinderConfigIds,
+      ),
+      isDefault: current.isDefault,
+      autoApplyOnComputerImport:
+          v['auto_apply_on_computer_import'] as bool? ??
+          current.autoApplyOnComputerImport,
+      showFigure: current.showFigure,
+      createdAt: current.createdAt,
+      updatedAt: current.updatedAt,
+    );
+  }
+
+  /// One level of nesting, as the set editor allows (issue #4525).
+  static const _nestingRule =
+      'A set cannot include itself, a set that includes other sets, or '
+      'anything while another set includes it.';
 
   /// The diver's other sets marked default.
   Future<int> _otherDefaults(String id, String? ownerId) async {
@@ -204,7 +299,8 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
           details: {'id': id},
         ));
     final v = update.values;
-    final members = update.relations['equipment_ids'];
+    bool changes(String relation) =>
+        !(update.relations[relation]?.isEmpty ?? true);
     if (v.keys.any(
           const {
             'name',
@@ -212,45 +308,47 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
             'auto_apply_on_computer_import',
           }.contains,
         ) ||
-        (members != null && !members.isEmpty)) {
-      final ids = current.equipmentIds.toSet();
-      final diff = await sets.updateSet(
-        EquipmentSet(
-          id: id,
-          diverId: current.diverId,
-          name: v['name'] as String? ?? current.name,
-          description: v['description'] as String? ?? current.description,
-          equipmentIds: [
-            ...current.equipmentIds.where(
-              (e) => !(members?.remove.contains(e) ?? false),
-            ),
-            for (final e in members?.add ?? const <String>{})
-              if (!ids.contains(e)) e,
-          ],
-          isDefault: current.isDefault,
-          autoApplyOnComputerImport:
-              v['auto_apply_on_computer_import'] as bool? ??
-              current.autoApplyOnComputerImport,
-          showFigure: current.showFigure,
-          createdAt: current.createdAt,
-          updatedAt: current.updatedAt,
-        ),
-      );
-      // Planned dives follow the set, as the editor's "from now on" does;
-      // an agent never rewrites logged dives (issue #4283). Inside the
-      // apply's transaction, so a revert takes it back with the set; the
-      // rescan waits for afterApply.
-      holdForRescan(
-        await _r.dives.rewriteSetOnDives(
-          id,
-          [
-            for (final e in diff.added) SetItemAdded(e),
-            for (final e in diff.removed) SetItemRemoved(e),
-          ],
-          alsoLogged: false,
-          notify: false,
-        ),
-      );
+        changes('equipment_ids') ||
+        changes('included_set_ids') ||
+        changes('weight_preset_ids') ||
+        changes('cylinder_config_ids')) {
+      final after = _afterUpdate(current, update);
+      // Read before the save: the sets that include this one carry its
+      // gear on their dives too.
+      final allSets = await sets.getAllSets(diverId: current.diverId);
+      try {
+        await sets.updateSet(after);
+      } on ArgumentError catch (e) {
+        if (e.name != 'includedSetIds') rethrow;
+        // The plan checks nesting against stored sets, so an earlier
+        // operation in the same change set can make an include illegal by
+        // the time this one applies. The repository refuses it; say why.
+        throw AgentToolException(
+          AgentToolErrorCode.invalidArgument,
+          'included_set_ids: ${e.invalidValue} ${e.message}. $_nestingRule',
+          details: {'id': id},
+        );
+      }
+      // Planned dives follow the gear the set applies, as the editor's
+      // "from now on" does; an agent never rewrites logged dives (issue
+      // #4283). That gear is the set's own and that of the sets it
+      // includes, on its dives and on those of every set that includes it
+      // (issue #4525). Inside the apply's transaction, so a revert takes it
+      // back with the set; the rescan waits for afterApply.
+      for (final change in setHistoryRewrites(
+        before: current,
+        after: after,
+        allSets: allSets,
+      )) {
+        holdForRescan(
+          await _r.dives.rewriteSetOnDives(
+            change.setId,
+            change.rewrites,
+            alsoLogged: false,
+            notify: false,
+          ),
+        );
+      }
     }
     if (v['show_figure'] case final bool show) {
       await sets.setShowFigure(id, show);

@@ -71,6 +71,10 @@ void main() {
       activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
       latestDiverWeightProvider.overrideWith((ref) async => entry),
       latestDiverHeightProvider.overrideWith((ref) async => null),
+      latestDiverBodyFatProvider.overrideWith((ref) async => null),
+      diverBodyProfileProvider.overrideWith(
+        (ref) async => (sex: null, ageYears: null),
+      ),
     ];
 
     await tester.pumpWidget(
@@ -127,6 +131,10 @@ void main() {
           activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
           latestDiverWeightProvider.overrideWith((ref) async => null),
           latestDiverHeightProvider.overrideWith((ref) async => null),
+          latestDiverBodyFatProvider.overrideWith((ref) async => null),
+          diverBodyProfileProvider.overrideWith(
+            (ref) async => (sex: null, ageYears: null),
+          ),
           equipmentSetsProvider.overrideWith((ref) async => [set]),
           equipmentSetWithItemsProvider(
             'set-1',
@@ -196,6 +204,10 @@ void main() {
           ),
           latestDiverWeightProvider.overrideWith((ref) async => null),
           latestDiverHeightProvider.overrideWith((ref) async => null),
+          latestDiverBodyFatProvider.overrideWith((ref) async => null),
+          diverBodyProfileProvider.overrideWith(
+            (ref) async => (sex: null, ageYears: null),
+          ),
           equipmentSetsProvider.overrideWith((ref) async => [set]),
           equipmentSetWithItemsProvider('set-1').overrideWith(
             (ref) async => set.copyWith(items: const [suitItem, theirs]),
@@ -239,6 +251,10 @@ void main() {
           ),
           latestDiverWeightProvider.overrideWith((ref) async => null),
           latestDiverHeightProvider.overrideWith((ref) async => null),
+          latestDiverBodyFatProvider.overrideWith((ref) async => null),
+          diverBodyProfileProvider.overrideWith(
+            (ref) async => (sex: null, ageYears: null),
+          ),
         ],
         child: const PlanGearWeightsSection(),
       ),
@@ -289,6 +305,10 @@ void main() {
           activeEquipmentProvider.overrideWith((ref) async => const [hose]),
           latestDiverWeightProvider.overrideWith((ref) async => null),
           latestDiverHeightProvider.overrideWith((ref) async => null),
+          latestDiverBodyFatProvider.overrideWith((ref) async => null),
+          diverBodyProfileProvider.overrideWith(
+            (ref) async => (sex: null, ageYears: null),
+          ),
         ],
         child: const PlanGearWeightsSection(),
       ),
@@ -324,6 +344,10 @@ void main() {
           activeEquipmentProvider.overrideWith((ref) async => const []),
           latestDiverWeightProvider.overrideWith((ref) async => null),
           latestDiverHeightProvider.overrideWith((ref) async => null),
+          latestDiverBodyFatProvider.overrideWith((ref) async => null),
+          diverBodyProfileProvider.overrideWith(
+            (ref) async => (sex: null, ageYears: null),
+          ),
         ],
         child: const PlanGearWeightsSection(),
       ),
@@ -346,6 +370,10 @@ void main() {
       activeEquipmentProvider.overrideWith((ref) async => const [suitItem]),
       latestDiverWeightProvider.overrideWith((ref) async => entry),
       latestDiverHeightProvider.overrideWith((ref) async => null),
+      latestDiverBodyFatProvider.overrideWith((ref) async => null),
+      diverBodyProfileProvider.overrideWith(
+        (ref) async => (sex: null, ageYears: null),
+      ),
     ];
 
     Future<ProviderContainer> pumpSeeded(

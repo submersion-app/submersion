@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/rules/domain/entities/rule_run.dart';
@@ -84,6 +85,53 @@ void main() {
 
       expect(d.before, 'BCD, Reg');
       expect(d.after, 'BCD (Warm), Reg');
+    });
+
+    test('weights a set filled read as a total in the diver\'s unit', () {
+      const pounds = UnitFormatter(AppSettings(weightUnit: WeightUnit.pounds));
+      final d = describeRuleChange(
+        l,
+        pounds,
+        const RuleChange(
+          subject: RuleSubject.dives,
+          targetId: 'd1',
+          ruleId: 'r1',
+          ruleName: 'Deep',
+          field: 'weights',
+          before: <Object>[],
+          after: [
+            {'id': 'w1', 'type': 'belt', 'kg': 2.72, 'label': '', 'notes': ''},
+            {'id': 'w2', 'type': 'belt', 'kg': 2.72, 'label': '', 'notes': ''},
+          ],
+        ),
+        (_, _) => null,
+      );
+      expect(d.field, 'Weights');
+      expect(d.before, l.rules_value_empty);
+      expect(d.after, '12.0 lbs');
+    });
+
+    test('cylinders a set added read as a count', () {
+      final d = describeRuleChange(
+        l,
+        u,
+        const RuleChange(
+          subject: RuleSubject.dives,
+          targetId: 'd1',
+          ruleId: 'r1',
+          ruleName: 'Deep',
+          field: 'tanks',
+          before: <Object>[],
+          after: [
+            {'id': 't1', 'role': 'backGas', 'volume': 11.1, 'o2': 32.0},
+            {'id': 't2', 'role': 'deco', 'volume': 5.7, 'o2': 50.0},
+          ],
+        ),
+        (_, _) => null,
+      );
+      expect(d.field, 'Tanks');
+      expect(d.before, l.rules_value_empty);
+      expect(d.after, '2 cylinders');
     });
 
     test('a plain add or remove reads by name alone', () {

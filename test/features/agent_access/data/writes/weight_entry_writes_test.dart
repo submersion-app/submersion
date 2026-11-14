@@ -70,4 +70,52 @@ void main() {
       expect(item.block, isNotNull, reason: '${item.values}');
     }
   });
+
+  test('body fat is written, kept by an unrelated update and cleared '
+      '(issue #4525)', () async {
+    final id = (await h.run([
+      createOp('weight_entries', {
+        'weight_kg': 81.5,
+        'measured_at': '2024-03-01',
+        'body_fat_percent': 18.5,
+      }, diver: kDiverB),
+    ])).created.single.id;
+    expect(
+      (await h.one(
+        'weight_entries',
+        id,
+        diverId: kDiverB,
+      ))!['body_fat_percent'],
+      18.5,
+    );
+
+    await h.run([
+      updateOp('weight_entries', id, {'weight_kg': 80.0}),
+    ]);
+    final row = await (db.select(
+      db.diverWeightEntries,
+    )..where((e) => e.id.equals(id))).getSingle();
+    expect(row.bodyFatPercent, 18.5);
+
+    await h.run([
+      updateOp('weight_entries', id, {'body_fat_percent': null}),
+    ]);
+    expect(
+      (await (db.select(
+        db.diverWeightEntries,
+      )..where((e) => e.id.equals(id))).getSingle()).bodyFatPercent,
+      isNull,
+    );
+  });
+
+  test('a body fat outside 3 to 60 is refused', () async {
+    final plan = await h.preview([
+      createOp('weight_entries', {
+        'weight_kg': 80,
+        'measured_at': '2024-03-01',
+        'body_fat_percent': 75,
+      }),
+    ]);
+    expect(plan.items.single.block, isNotNull);
+  });
 }

@@ -41,6 +41,14 @@ class SessionItemComposer {
     // still resolves the device on a plain re-run with no fresh picker
     // interaction.
     Map<String, String> equipmentByTemplateItemId = const {},
+    // The gear the set applies, when that is more than its own members:
+    // the sets it includes bring theirs too (issue #4525). Null means the
+    // set's own.
+    List<String>? equipmentSetGearIds,
+    // Checks for what the set carries besides gear, its lead and its
+    // cylinders, already in the diver's words and units. They follow the
+    // set's gear rows.
+    List<String> setCheckTitles = const [],
     required DateTime now,
   }) {
     final byId = {for (final g in equipmentItems) g.id: g};
@@ -108,7 +116,7 @@ class SessionItemComposer {
         continue;
       }
       if (t.itemType == PreDiveItemType.equipmentSet && equipmentSet != null) {
-        for (final gearId in equipmentSet.equipmentIds) {
+        for (final gearId in equipmentSetGearIds ?? equipmentSet.equipmentIds) {
           final gear = byId[gearId];
           if (gear == null) continue;
           out.add(
@@ -121,6 +129,21 @@ class SessionItemComposer {
               itemType: PreDiveItemType.check,
               isRequired: t.isRequired,
               equipmentId: gear.id,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          );
+        }
+        for (final title in setCheckTitles) {
+          out.add(
+            PreDiveSessionItem(
+              id: _uuid.v4(),
+              sessionId: '',
+              sectionId: remapSection(t.sectionId),
+              title: title,
+              sortOrder: order++,
+              itemType: PreDiveItemType.check,
+              isRequired: t.isRequired,
               createdAt: now,
               updatedAt: now,
             ),

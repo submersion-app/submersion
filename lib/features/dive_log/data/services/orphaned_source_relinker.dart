@@ -21,8 +21,9 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_ser
 /// its own snapshot is empty, its dive takes the computer when the source is
 /// the dive's primary and no computer claims the dive, the tanks and tank
 /// pressure series the source recorded take it (both name their source, so
-/// that match is exact), and the dive's profile series take it where the
-/// dive has no other computer source. Each relinked row is restamped and
+/// that match is exact), and so do the profile series that name the source
+/// (issue #4529); a series with no source takes it only where the dive has
+/// no other computer source. Each relinked row is restamped and
 /// marked pending, so the links reach the diver's other devices.
 class OrphanedSourceRelinker {
   /// Shares its owner's repositories rather than building its own.
@@ -173,14 +174,21 @@ class OrphanedSourceRelinker {
       await _tankSeries.relinkSources(computerId, chunk, now: now);
     }
 
-    // Profiles carry no serial snapshot of their own, so they follow only
-    // where the dive's computer attribution is unambiguous. The sync bus is
-    // left to the caller, which notifies once its transaction commits.
-    final diveIds = {for (final o in orphans) o.source.diveId}.toList();
-    for (final chunk in seriesIdChunks(diveIds)) {
+    // A profile series that names its source follows it exactly, as the
+    // tanks do (issue #4529). One with no source carries no serial snapshot
+    // of its own, so it follows only where the dive's computer attribution
+    // is unambiguous. The source ids of the dives in a chunk ride along
+    // with it. The sync bus is left to the caller, which notifies once its
+    // transaction commits.
+    final sourcesByDive = <String, List<String>>{};
+    for (final o in orphans) {
+      (sourcesByDive[o.source.diveId] ??= []).add(o.source.id);
+    }
+    for (final chunk in seriesIdChunks(sourcesByDive.keys.toList())) {
       await _profileSeries.relinkComputer(
         computerId,
         chunk,
+        sourceIds: [for (final diveId in chunk) ...sourcesByDive[diveId]!],
         now: now,
         notify: false,
       );

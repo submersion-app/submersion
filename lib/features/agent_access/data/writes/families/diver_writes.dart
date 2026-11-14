@@ -6,6 +6,7 @@ import 'package:submersion/features/agent_access/data/writes/field_codec.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/core/constants/enums.dart';
 
 /// Diver profiles, through the repository the profile hub's edit pages use:
 /// a save reads the profile, changes it and writes it back whole. A profile
@@ -68,6 +69,14 @@ class DiverWrites extends WritableEntry {
       nullable: true,
     ),
     'diving_since_date': const FieldCodec.calendarDate(nullable: true),
+    // Used only to estimate body fat for the weight prediction (issue
+    // #4525).
+    'sex': FieldCodec.enumName(DiverSex.values, nullable: true),
+    'birth_year': const FieldCodec.integer(
+      min: 1900,
+      max: 2200,
+      nullable: true,
+    ),
   };
 
   @override
@@ -124,6 +133,13 @@ class DiverWrites extends WritableEntry {
         BlockReason.invalidValue,
         'diving_since_date: a year from 1900 to ${DateTime.now().year}, '
         'written YYYY-01-01.',
+      );
+    }
+    final born = v['birth_year'];
+    if (born is int && born > DateTime.now().year) {
+      return PlanBlock(
+        BlockReason.invalidValue,
+        'birth_year: a year from 1900 to ${DateTime.now().year}.',
       );
     }
     return null;
@@ -231,6 +247,10 @@ class DiverWrites extends WritableEntry {
               null => null,
             }
           : diver.divingSince,
+      sex: values.containsKey('sex')
+          ? DiverSex.values.asNameMap()[values['sex']]
+          : diver.sex,
+      birthYear: kept('birth_year', diver.birthYear),
     );
   }
 }

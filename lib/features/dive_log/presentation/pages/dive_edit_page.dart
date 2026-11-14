@@ -208,10 +208,16 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/cylinder_configs/domain/services/main_supply.dart';
+import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
+import 'package:submersion/features/equipment/domain/services/set_bundle_form_plan.dart';
+import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/set_weights_choice_dialog.dart';
 
 part 'dive_edit_page_annotations.dart';
 part 'dive_edit_page_gas_switches.dart';
 part 'dive_edit_page_linked_times.dart';
+part 'dive_edit_page_set_bundle.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -513,9 +519,19 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   bool _gasSwitchesDirty = false;
 
   void _updateGasSwitches(VoidCallback mutate) => setState(mutate);
+
+  /// The setState seam for dive_edit_page_set_bundle.dart.
+  void _applyBundleChange(VoidCallback change) => setState(change);
   final _uuid = const Uuid();
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
+
+  /// Whether a prefill (a scanned log page, a cylinder tag) wrote the first
+  /// tank. [_tanksDirty] cannot say so: a prefill that only gives a mix or
+  /// pressures leaves it clear so the default preset can still load. A set's
+  /// cylinders must not replace that tank as if it were the untouched
+  /// starter (issue #4525).
+  bool _firstTankPrefilled = false;
 
   /// Part of every tank row's key, bumped when a configuration rewrites
   /// cylinders in place. A tank editor reads its text fields once, so an
@@ -981,6 +997,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           t.material != null) {
         _tanksDirty = true;
       }
+      _firstTankPrefilled = true;
       _loadedTankIds = {..._loadedTankIds, _tanks.first.id};
     } else if (p.startPressureBar != null ||
         p.endPressureBar != null ||
@@ -1004,6 +1021,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         ..._tanks.skip(1),
       ];
+      _firstTankPrefilled = true;
       _loadedTankIds = {..._loadedTankIds, _tanks.first.id};
     }
   }
@@ -1505,6 +1523,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// Sets staged to come off every selected dive with what they brought.
   List<BulkStagedSet> _equipmentSetRemovals = const [];
+
+  /// Sets used in this bulk edit that bring no gear, only weights or tanks
+  /// (issue #4525): with no gear row to carry them, they are staged here.
+  List<BulkStagedSet> _equipmentSetAdds = const [];
 
   /// The gear rows already on every selected dive.
   Set<String> get _equipmentOnEveryDive {
@@ -2026,6 +2048,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               ? AssemblyChips(itemId: item.id)
               : null,
         ),
+        if (_equipmentSetAdds.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 4, 14, 0),
+            child: Wrap(
+              spacing: 8,
+              children: [
+                for (final staged in _equipmentSetAdds)
+                  InputChip(
+                    key: ValueKey('bulk-used-set-${staged.id}'),
+                    avatar: const Icon(Icons.folder_special, size: 18),
+                    label: Text(staged.name),
+                    onDeleted: () => setState(
+                      () => _equipmentSetAdds = [
+                        for (final s in _equipmentSetAdds)
+                          if (s.id != staged.id) s,
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
         BulkEquipmentSetRemovals(
           sets: _equipmentSetRemovals,
           onPick: _bulkRemoveEquipmentSet,
@@ -2177,6 +2220,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         EquipmentSetsOp(
           mode: BulkCollectionMode.remove,
           setIds: [for (final s in _equipmentSetRemovals) s.id],
+        ),
+      );
+    }
+    // A set with no gear has no gear op to ride on (issue #4525).
+    if (_equipmentSetAdds.isNotEmpty) {
+      ops.add(
+        EquipmentSetsOp(
+          mode: BulkCollectionMode.add,
+          setIds: [for (final s in _equipmentSetAdds) s.id],
         ),
       );
     }
@@ -2705,11 +2757,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       ),
       (
         title: l10n.diveLog_bulkEdit_equipmentSets,
-        delta: MembershipDelta(const [], [
-          for (final s in _equipmentSetRemovals) s.id,
-        ]),
+        delta: MembershipDelta(
+          [for (final s in _equipmentSetAdds) s.id],
+          [for (final s in _equipmentSetRemovals) s.id],
+        ),
         members: [
-          for (final s in _equipmentSetRemovals)
+          for (final s in [..._equipmentSetAdds, ..._equipmentSetRemovals])
             BulkMembershipItem(id: s.id, label: s.name),
         ],
       ),
@@ -4429,11 +4482,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         sets: inputs.sets,
         geofences: inputs.geofences,
       );
-      final items = best?.items ?? const [];
+      final items = best?.items ?? const <EquipmentItem>[];
       // Re-check emptiness after the await: the diver may have manually added
       // gear while the provider resolved, and auto-apply must never overwrite.
-      if (items.isEmpty || !mounted || _selectedEquipment.isNotEmpty) return;
-      await _addGear(items, viaSetId: best!.id, markDirty: false);
+      // A set with no gear of its own may still carry weights or tanks
+      // (issue #4525).
+      if (best == null ||
+          (items.isEmpty && !best.carriesBeyondGear) ||
+          !mounted ||
+          _selectedEquipment.isNotEmpty) {
+        return;
+      }
+      await _useSet(best, items, auto: true);
     } catch (_) {
       // Equipment sets unavailable; skip best-effort auto-apply.
     }
@@ -4461,9 +4521,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           sets: inputs.sets,
           geofences: inputs.geofences,
         );
-        final items = best?.items ?? const [];
-        if (items.isNotEmpty && _selectedEquipment.isEmpty) {
-          await _addGear(items, viaSetId: best!.id, markDirty: false);
+        final items = best?.items ?? const <EquipmentItem>[];
+        if (best != null &&
+            (items.isNotEmpty || best.carriesBeyondGear) &&
+            _selectedEquipment.isEmpty) {
+          await _useSet(best, items, auto: true);
         }
         return;
       }
@@ -4528,7 +4590,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               onApply: () {
                 final suggestion = _geofenceSuggestion!;
                 setState(() => _geofenceSuggestion = null);
-                _addGear(suggestion.items ?? const [], viaSetId: suggestion.id);
+                _useSet(suggestion, suggestion.items ?? const [], auto: false);
               },
               onDismiss: () => setState(() {
                 _dismissedSuggestionSetIds.add(_geofenceSuggestion!.id);
@@ -4823,7 +4885,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           onSetSelected: (set, items) {
             Navigator.of(context).pop();
-            _addGear(items, viaSetId: set.id);
+            _useSet(set, items, auto: false);
           },
         ),
       ),
@@ -4992,6 +5054,20 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final set = picked.set;
     final items = await _bulkUsableSetItems(picked.items);
     if (!mounted) return;
+    if (items.isEmpty) {
+      // Nothing to list among the gear, so the set itself is staged, when
+      // it carries weights or tanks to apply. A set with neither, whose
+      // gear cannot go on these dives, would change nothing.
+      if (!set.carriesBeyondGear) return;
+      _markDirty();
+      setState(
+        () => _equipmentSetAdds = withStagedSet(_equipmentSetAdds, (
+          id: set.id,
+          name: set.name,
+        )),
+      );
+      return;
+    }
     setState(() {
       _bulkGear = withBulkGear(_bulkGear, items);
       // Rows already listed keep whatever the user set them to, so

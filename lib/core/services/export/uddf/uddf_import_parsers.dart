@@ -938,6 +938,16 @@ class UddfImportParsers {
       equipmentSet['equipmentRefs'] = itemRefs;
     }
 
+    // The sets this one includes (issue #4525), as set refs in order.
+    final includesElement = setElement.findElements('includes').firstOrNull;
+    if (includesElement != null) {
+      final setRefs = <String>[
+        for (final setRef in includesElement.findElements('setref'))
+          if (setRef.innerText.trim().isNotEmpty) setRef.innerText.trim(),
+      ];
+      if (setRefs.isNotEmpty) equipmentSet['includedSetRefs'] = setRefs;
+    }
+
     return equipmentSet;
   }
 

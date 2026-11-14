@@ -86,8 +86,11 @@ const Map<String, ChangeLogClass> changeLogTables = {
   'equipment_locations': ChangeLogClass.tracked,
   'equipment_observations': ChangeLogClass.tracked,
   'equipment_ownership_events': ChangeLogClass.tracked,
+  'equipment_set_cylinder_configs': ChangeLogClass.tracked,
   'equipment_set_geofences': ChangeLogClass.tracked,
+  'equipment_set_includes': ChangeLogClass.tracked,
   'equipment_set_items': ChangeLogClass.tracked,
+  'equipment_set_weight_presets': ChangeLogClass.tracked,
   'equipment_sets': ChangeLogClass.tracked,
   'equipment_shares': ChangeLogClass.tracked,
   'equipment_tags': ChangeLogClass.tracked,
@@ -327,11 +330,23 @@ const Map<String, ChangeLogParent> changeLogParents = {
     rootTable: 'equipment',
     column: 'equipment_id',
   ),
+  'equipment_set_cylinder_configs': ChangeLogParent(
+    rootTable: 'equipment_sets',
+    column: 'set_id',
+  ),
   'equipment_set_geofences': ChangeLogParent(
     rootTable: 'equipment_sets',
     column: 'set_id',
   ),
+  'equipment_set_includes': ChangeLogParent(
+    rootTable: 'equipment_sets',
+    column: 'set_id',
+  ),
   'equipment_set_items': ChangeLogParent(
+    rootTable: 'equipment_sets',
+    column: 'set_id',
+  ),
+  'equipment_set_weight_presets': ChangeLogParent(
     rootTable: 'equipment_sets',
     column: 'set_id',
   ),

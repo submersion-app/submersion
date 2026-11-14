@@ -66,6 +66,14 @@ class Divers extends Table {
   IntColumn get priorDiveTimeSeconds => integer().nullable()();
   IntColumn get divingSince => integer().nullable()(); // year, e.g. 1990
 
+  /// v364 body composition inputs (issue #4525), used only to estimate
+  /// body fat for the weight prediction. DiverSex.name, or null when not
+  /// given.
+  TextColumn get sex => text().nullable()();
+
+  /// Year of birth, e.g. 1984, or null when not given.
+  IntColumn get birthYear => integer().nullable()();
+
   /// v324 buddy card swap (issue #3728): a handle shared on the diver's
   /// card, and which fields the diver shares, as JSON (null = defaults).
   TextColumn get socialHandle => text().nullable()();
@@ -428,7 +436,7 @@ class DiverSettings extends Table {
   /// #4184). Null or empty means every group open.
   TextColumn get equipmentCollapsedGroups => text().nullable()();
 
-  /// v364: the custom colours the diver picked for their gear, a JSON list,
+  /// v365: the custom colours the diver picked for their gear, a JSON list,
   /// most recent first (issue #4537). Null or empty means none remembered.
   TextColumn get recentEquipmentColors => text().nullable()();
 

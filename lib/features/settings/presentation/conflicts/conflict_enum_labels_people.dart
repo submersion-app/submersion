@@ -12,6 +12,14 @@ import 'package:submersion/features/settings/presentation/conflicts/conflict_fie
 // Labelers for the enums of certifications, courses, dive plans and pre-dive
 // checklists.
 
+final ConflictEnumLabeler diverSexLabeler = enumLabeler(
+  DiverSex.values,
+  (l, v) => switch (v) {
+    DiverSex.female => l.diverProfile_sex_female,
+    DiverSex.male => l.diverProfile_sex_male,
+  },
+);
+
 final ConflictEnumLabeler certificationAgencyLabeler = enumLabeler(
   CertificationAgency.values,
   (l, v) => v.localizedName(l),

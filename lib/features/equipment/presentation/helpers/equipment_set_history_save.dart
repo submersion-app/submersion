@@ -1,11 +1,10 @@
-import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
-import 'package:submersion/features/equipment/domain/entities/set_history_rewrite.dart';
+import 'package:submersion/features/equipment/domain/services/set_history_diff.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
 
@@ -25,11 +24,32 @@ Future<Future<void> Function()?> saveSetWithHistory(
   EquipmentSet set,
   EquipmentSet loaded,
 ) async {
+  // The gear a set applies is its own plus that of the sets it includes,
+  // and the dives of a set that includes this one carry its gear too
+  // (issue #4525), so the question and the replay go by effective gear.
+  List<EquipmentSet> allSets;
+  try {
+    allSets = await ref.read(equipmentSetsProvider.future);
+  } catch (_) {
+    allSets = [loaded];
+  }
+  if (!context.mounted) return null;
   var choice = AssemblyHistoryChoice.futureOnly;
-  if (!setEquals(set.equipmentIds.toSet(), loaded.equipmentIds.toSet())) {
-    final asked = await askSetHistory(context, ref, setId: set.id);
-    // The page may have gone while the question was open; nothing is
-    // written yet, so stopping here leaves everything as it was.
+  final planned = setHistoryRewrites(
+    before: loaded,
+    after: set,
+    allSets: allSets,
+  );
+  if (planned.isNotEmpty) {
+    final asked = await askSetHistory(
+      context,
+      ref,
+      setId: set.id,
+      alsoSetIds: [
+        for (final change in planned)
+          if (change.setId != set.id) change.setId,
+      ],
+    );
     if (asked == null || !context.mounted) return null;
     choice = asked;
   }
@@ -37,19 +57,29 @@ Future<Future<void> Function()?> saveSetWithHistory(
   final diff = await ref
       .read(equipmentSetListNotifierProvider.notifier)
       .updateSet(set);
-  // What the repository actually wrote, not the editor's own diff: it drops
-  // members whose gear is gone (issue #819).
-  final rewrites = <SetHistoryRewrite>[
-    for (final id in diff.added) SetItemAdded(id),
-    for (final id in diff.removed) SetItemRemoved(id),
-  ];
+  // The save drops ids whose gear has gone, so the replay goes by what it
+  // actually wrote.
+  final saved = set.copyWith(
+    equipmentIds: [
+      ...loaded.equipmentIds.where((id) => !diff.removed.contains(id)),
+      ...diff.added,
+    ],
+  );
+  final changes = setHistoryRewrites(
+    before: loaded,
+    after: saved,
+    allSets: allSets,
+  );
   final alsoLogged = choice == AssemblyHistoryChoice.alsoPast;
   return () async {
-    if (rewrites.isEmpty) return;
-    await dives.rewriteSetOnDives(set.id, rewrites, alsoLogged: alsoLogged);
-    // A logged dive kept as it was no longer matches the set, so it stops
-    // naming it and keeps the gear as its own (issue #4500).
-    if (!alsoLogged) await dives.unlinkSetFromLoggedDives(set.id);
+    for (final change in changes) {
+      await dives.rewriteSetOnDives(
+        change.setId,
+        change.rewrites,
+        alsoLogged: alsoLogged,
+      );
+      if (!alsoLogged) await dives.unlinkSetFromLoggedDives(change.setId);
+    }
   };
 }
 

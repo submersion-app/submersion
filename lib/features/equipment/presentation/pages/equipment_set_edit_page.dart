@@ -4,8 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
-import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -21,7 +19,6 @@ import 'package:submersion/features/equipment/figure/domain/figure_composer.dart
 import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_model_memo.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
-import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_selection.dart';
 import 'package:submersion/features/equipment/figure/presentation/gear_figure.dart';
 import 'package:submersion/features/equipment/presentation/helpers/equipment_set_history_save.dart';
@@ -30,6 +27,8 @@ import 'package:submersion/features/equipment/domain/services/equipment_set_clon
 import 'package:submersion/features/equipment/presentation/helpers/equipment_set_form_values.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_clone_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/set_bundle_sections.dart';
+import 'package:submersion/features/equipment/presentation/widgets/set_equipment_checkbox_row.dart';
 import 'package:submersion/features/equipment/presentation/widgets/set_geofences_editor.dart';
 import 'package:submersion/features/equipment/presentation/widgets/unsaved_changes_scope.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -78,6 +77,9 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
   Set<String> _touchedIds = const {};
   List<EquipmentSetGeofence> _geofences = [];
 
+  /// What the set carries besides its own gear (issue #4525).
+  SetBundleListValues _lists = SetBundleListValues.empty;
+
   /// The form as it opened, to tell whether Back would lose anything. Null
   /// for a clone: the copy itself is unsaved, so Back always asks.
   EquipmentSetFormValues? _opened = EquipmentSetFormValues.blank;
@@ -100,6 +102,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
     autoApplyOnComputerImport: _autoApplyOnComputerImport,
     showFigure: _showFigure,
     geofences: _geofences,
+    lists: _lists,
   );
 
   bool get _hasChanges => _opened != _values;
@@ -149,6 +152,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
     _autoApplyOnComputerImport = set.autoApplyOnComputerImport;
     _showFigure = set.showFigure;
     _geofences = List.of(set.geofences);
+    _lists = SetBundleListValues.of(set);
   }
 
   /// Drops selections whose equipment has been deleted since the form opened.
@@ -350,6 +354,17 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
               ),
               const SizedBox(height: 24),
 
+              SetBundleSections(
+                setId: widget.setId ?? '',
+                diverId:
+                    existingSet?.diverId ??
+                    ref.watch(validatedCurrentDiverIdProvider).valueOrNull,
+                ownGearIds: _selectedEquipmentIds,
+                values: _lists,
+                onChanged: (lists) => setState(() => _lists = lists),
+              ),
+              const SizedBox(height: 24),
+
               // Equipment selection
               Text(
                 context.l10n.equipment_setEdit_selectEquipmentTitle,
@@ -465,11 +480,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
                       .value
                       ?.map((e) => e.id)
                       .toSet();
-                  final unshared = [
-                    if (visibleIds != null)
-                      for (final item in existingSet?.items ?? const [])
-                        if (!visibleIds.contains(item.id)) item,
-                  ];
+                  final unshared = unsharedSetMembers(existingSet, visibleIds);
 
                   // The live figure (issue #2326): the ticked items that have
                   // a row here, in the order the page lists them, so its
@@ -614,88 +625,34 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
         )
       : ListView(padding: const EdgeInsets.all(16), children: children);
 
-  /// One picker row. While the figure shows, every row leads with a slot
-  /// [badgeSlot] wide (the widest badge at the diver's text size) holding the
-  /// [number] badge, which reveals the figure, or nothing. Null when it is off.
+  /// One picker row; see [SetEquipmentCheckboxRow]. Null [number] when the
+  /// figure is off or the item is not on it.
   Widget _buildEquipmentCheckbox(
     BuildContext context,
     EquipmentItem item,
     Map<String, EquipmentRowLabel> labels,
     int? number, {
     double? badgeSlot,
-  }) {
-    final isSelected = _selectedEquipmentIds.contains(item.id);
-    final scheme = Theme.of(context).colorScheme;
-    final flashing = number != null && item.id == selectedFigureItemId;
-    final highlight = flashing ? figureHighlightFor(scheme) : null;
-    final icon = Icon(
-      equipmentTypeIcon(item.type),
-      color: highlight?.onFill ?? scheme.onSurfaceVariant,
-    );
-
-    return KeyedSubtree(
-      key: figureRowKey(item.id),
-      child: ListTileTheme.merge(
-        textColor: highlight?.onFill,
-        iconColor: highlight?.onFill,
-        child: CheckboxListTile(
-          tileColor: highlight?.fill,
-          value: isSelected,
-          onChanged: (value) {
-            setState(() {
-              if (value == true) {
-                _selectedEquipmentIds.add(item.id);
-              } else {
-                _selectedEquipmentIds.remove(item.id);
-              }
-              _touchedIds = {..._touchedIds, item.id};
-            });
-          },
-          title: Text(item.name),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              switch (labels[item.id]?.subtitle) {
-                final detail? => Text(detail),
-                null => const SizedBox.shrink(),
-              },
-              ServiceStatusIndicatorFor(
-                equipmentId: item.id,
-                density: ServiceIndicatorDensity.compact,
-              ),
-            ],
-          ),
-          secondary: badgeSlot == null
-              ? icon
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: badgeSlot,
-                      child: number == null
-                          ? null
-                          : Align(
-                              alignment: AlignmentDirectional.centerStart,
-                              child: FigureNumberBadge(
-                                number: number,
-                                selected: flashing,
-                                onTap: () => selectFigureItem(
-                                  item.id,
-                                  revealFigure: true,
-                                ),
-                              ),
-                            ),
-                    ),
-                    const SizedBox(width: 8),
-                    icon,
-                  ],
-                ),
-          controlAffinity: ListTileControlAffinity.trailing,
-        ),
-      ),
-    );
-  }
+  }) => KeyedSubtree(
+    key: figureRowKey(item.id),
+    child: SetEquipmentCheckboxRow(
+      item: item,
+      detail: labels[item.id]?.subtitle,
+      isSelected: _selectedEquipmentIds.contains(item.id),
+      number: number,
+      badgeSlot: badgeSlot,
+      flashing: number != null && item.id == selectedFigureItemId,
+      onBadgeTap: () => selectFigureItem(item.id, revealFigure: true),
+      onChanged: (value) => setState(() {
+        if (value == true) {
+          _selectedEquipmentIds.add(item.id);
+        } else {
+          _selectedEquipmentIds.remove(item.id);
+        }
+        _touchedIds = {..._touchedIds, item.id};
+      }),
+    ),
+  );
 
   Future<void> _saveSet(EquipmentSet? existingSet) async {
     if (!_formKey.currentState!.validate()) return;
@@ -721,6 +678,9 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage>
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         equipmentIds: _selectedEquipmentIds.toList(),
+        includedSetIds: _lists.includedSetIds,
+        weightPresetIds: _lists.weightPresetIds,
+        cylinderConfigIds: _lists.cylinderConfigIds,
         autoApplyOnComputerImport: _autoApplyOnComputerImport,
         showFigure: _showFigure,
         createdAt: existingSet?.createdAt ?? DateTime.now(),

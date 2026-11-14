@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v364: diver_settings.recent_equipment_colors, the custom colours
+/// Schema v365: diver_settings.recent_equipment_colors, the custom colours
 /// the diver picked for their gear (issue #4537). Nullable, no backfill:
 /// null means none remembered.
 void main() {
@@ -33,27 +33,27 @@ void main() {
               .getSingle())
           .read<String?>('v');
 
-  test('v364 is in the ladder', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(364));
-    expect(AppDatabase.migrationVersions, contains(364));
+  test('v365 is in the ladder', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(365));
+    expect(AppDatabase.migrationVersions, contains(365));
     expect(
-      AppDatabase.migrationStepCount(363),
-      AppDatabase.migrationStepCount(364) + 1,
+      AppDatabase.migrationStepCount(364),
+      AppDatabase.migrationStepCount(365) + 1,
     );
   });
 
   test('the new column is additive and kept the floor', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(364));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(365));
   });
 
-  test('upgrading from v363 adds a null column', () async {
-    final db = AppDatabase(dbAt(363));
+  test('upgrading from v364 adds a null column', () async {
+    final db = AppDatabase(dbAt(364));
     addTearDown(db.close);
     expect(await stored(db), isNull);
   });
 
   test('a database already carrying the column keeps its value', () async {
-    final db = AppDatabase(dbAt(363, stored: '["#FF6A00"]'));
+    final db = AppDatabase(dbAt(364, stored: '["#FF6A00"]'));
     addTearDown(db.close);
     expect(await stored(db), '["#FF6A00"]');
   });
