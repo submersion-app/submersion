@@ -115,6 +115,20 @@ void main() {
     expect(await savedOn(computer), newer);
   });
 
+  test('overlapping saves never put an older marker back', () async {
+    // Two downloads can finish close together. Each save reads the stored
+    // marker and writes the later of the two, so interleaved, the one
+    // holding the older marker could write last.
+    final computer = await garmin(serial: '1');
+
+    await Future.wait([
+      history.save(newer, computerId: computer.id),
+      history.save(older, computerId: computer.id),
+    ]);
+
+    expect(await savedOn(computer), newer);
+  });
+
   test('reports when no computer matches', () async {
     expect(await history.save(newer, watchSerial: '42'), isFalse);
   });

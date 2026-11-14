@@ -58,13 +58,33 @@ class RepositoryGarminDownloadHistory implements GarminDownloadHistory {
   Future<String?> serialOf(String computerId) async =>
       _clean((await _repository.getComputerById(computerId))?.serialNumber);
 
+  /// The save in progress, if any. Saves run one at a time: each reads the
+  /// stored marker and writes the later of the two, so two interleaved (a
+  /// superseded download finishing beside its replacement) could let the
+  /// one holding the older marker write last and move the marker back.
+  Future<void> _saving = Future<void>.value();
+
   @override
   Future<bool> save(
     GarminActivityMarker marker, {
     String? computerId,
     String? watchSerial,
     Iterable<String> fitSerials = const [],
-  }) async {
+  }) {
+    final result = _saving.then(
+      (_) => _saveNow(marker, computerId, watchSerial, fitSerials),
+    );
+    // The next save waits for this one whether or not it failed.
+    _saving = result.then<void>((_) {}, onError: (_) {});
+    return result;
+  }
+
+  Future<bool> _saveNow(
+    GarminActivityMarker marker,
+    String? computerId,
+    String? watchSerial,
+    Iterable<String> fitSerials,
+  ) async {
     final computer = await _resolve(computerId, watchSerial, fitSerials);
     if (computer == null) {
       _log.info('No saved Garmin for this watch; download marker not saved');

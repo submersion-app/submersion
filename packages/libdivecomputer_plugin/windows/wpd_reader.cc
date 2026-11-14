@@ -30,6 +30,11 @@ bool IsGarminPnpId(const std::wstring& pnp_id) {
 // a stray firmware image into memory.
 constexpr size_t kMaxFileBytes = 64 * 1024 * 1024;
 
+// The most the reader allocates for one read, whatever buffer size the
+// device asks for: that size comes from the device, and the file cap above
+// is only checked once bytes have arrived.
+constexpr DWORD kMaxReadBufferBytes = 1024 * 1024;
+
 // Reads one of the manager's string properties for |pnp_id|, which report
 // their length first. Empty when the device does not have it.
 template <typename Getter>
@@ -540,7 +545,9 @@ std::optional<WpdError> WpdReader::ReadFile(const std::wstring& device_id,
     return WpdErrorFromHresult("Opening the file", hr);
   }
 
-  std::vector<uint8_t> buffer(optimal_buffer > 0 ? optimal_buffer : 65536);
+  DWORD buffer_bytes = optimal_buffer > 0 ? optimal_buffer : 65536;
+  if (buffer_bytes > kMaxReadBufferBytes) buffer_bytes = kMaxReadBufferBytes;
+  std::vector<uint8_t> buffer(buffer_bytes);
   for (;;) {
     ULONG read = 0;
     hr = stream->Read(buffer.data(), static_cast<ULONG>(buffer.size()), &read);
