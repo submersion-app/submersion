@@ -114,6 +114,7 @@ void main() {
     required Dive dive,
     required _RecordingSettings settings,
     RecordEditController<Dive>? controller,
+    double above = 0,
   }) {
     final list = DiveDetailSectionList(
       dive: dive,
@@ -144,9 +145,18 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
           body: SingleChildScrollView(
-            child: controller == null
-                ? list
-                : RecordEditScope<Dive>(controller: controller, child: list),
+            // [above] pushes the list down the page, out of a short window.
+            child: Column(
+              children: [
+                SizedBox(height: above),
+                controller == null
+                    ? list
+                    : RecordEditScope<Dive>(
+                        controller: controller,
+                        child: list,
+                      ),
+              ],
+            ),
           ),
         ),
       ),
@@ -283,6 +293,37 @@ void main() {
       DiveDetailSectionId.tags,
       DiveDetailSectionId.notes,
     ], layout: DiveDetailLayout.list);
+
+    // The card's frame sits inside its fold, which opens for the editor, so
+    // an added card is asked to show itself here as in the card layout.
+    testWidgets('a card added from the strip is scrolled into view', (
+      tester,
+    ) async {
+      // A short window, with the list pushed below it.
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(600, 300);
+      addTearDown(tester.view.reset);
+      final untagged = dive.copyWith(tags: const []);
+      final controller = controllerOver(untagged);
+      await tester.pumpWidget(
+        harness(
+          dive: untagged,
+          settings: _RecordingSettings(folded),
+          controller: controller,
+          above: 600,
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(TagFormBlock), findsNothing);
+
+      controller.addCard('tags');
+      await tester.pumpAndSettle();
+
+      final editor = tester.getRect(find.byType(TagFormBlock));
+      expect(editor.top, greaterThanOrEqualTo(0));
+      expect(editor.top, lessThan(300));
+      expect(controller.revealRequest, isNull, reason: 'answered');
+    });
 
     testWidgets('locked: the fold rows carry no pencil', (tester) async {
       await tester.pumpWidget(
