@@ -66,6 +66,14 @@ class Divers extends Table {
   IntColumn get priorDiveTimeSeconds => integer().nullable()();
   IntColumn get divingSince => integer().nullable()(); // year, e.g. 1990
 
+  /// v363 body composition inputs (issue #4525), used only to estimate
+  /// body fat for the weight prediction. DiverSex.name, or null when not
+  /// given.
+  TextColumn get sex => text().nullable()();
+
+  /// Year of birth, e.g. 1984, or null when not given.
+  IntColumn get birthYear => integer().nullable()();
+
   /// v324 buddy card swap (issue #3728): a handle shared on the diver's
   /// card, and which fields the diver shares, as JSON (null = defaults).
   TextColumn get socialHandle => text().nullable()();

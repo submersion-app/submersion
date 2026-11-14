@@ -19,6 +19,10 @@ class DiverWeightEntries extends Table {
   IntColumn get measuredAt => integer()(); // Unix ms
   RealColumn get weightKg => real()();
   RealColumn get heightCm => real().nullable()();
+
+  /// Measured body fat as a percentage, 3 to 60 (v363, issue #4525). Null
+  /// means not measured: the weight prediction then estimates it.
+  RealColumn get bodyFatPercent => real().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 

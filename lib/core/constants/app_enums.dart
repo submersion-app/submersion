@@ -261,6 +261,10 @@ enum EquipmentStatus {
   const EquipmentStatus(this.displayName);
 }
 
+/// A diver's sex, as the body fat estimate of the weight prediction needs
+/// it (issue #4525). Optional everywhere: null means not given.
+enum DiverSex { female, male }
+
 /// Weight type
 enum WeightType {
   belt('Weight Belt'),

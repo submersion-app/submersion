@@ -63964,4 +63964,180 @@ class AppLocalizationsIt extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'La MOD viene sempre arrotondata per difetto, mai per eccesso. Rec usa 1 bar ogni $depth, come il logbook. OC Tec e CCR Tec ricavano la pressione in profondità dal tipo di acqua, quindi la stessa miscela può mostrare lì una MOD un po\' minore.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Sesso';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Anno di nascita';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Grasso corporeo';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Set inclusi';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Aggiungi set';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'Nessun set incluso';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'Nessun altro set può essere incluso';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Zavorra';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Aggiungi preset di zavorra';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'Nessun preset di zavorra';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Totale $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Bombole';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Aggiungi configurazione bombole';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'Nessuna configurazione bombole';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Ancora nessuna configurazione bombole';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Rimuovi dal set';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Applica in totale: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'Un set senza attrezzatura non lascia alcuna etichetta di set sull\'immersione, quindi non può essere rimosso dall\'immersione come set.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'Da $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight di zavorra';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count bombole',
+      one: '1 bombola',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Usare la zavorra di $setName?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Questa immersione ha già $current. Il set porta $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Aggiungi';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Sostituisci';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Mantieni attuale';
+
+  @override
+  String get rules_change_weights => 'Zavorra';
+
+  @override
+  String get rules_change_tanks => 'Bombole';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Zavorra: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Zavorra: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'La zavorra non è stata aggiunta: questo viaggio non ha una checklist.';
+
+  @override
+  String get trips_gear_pickChecklist =>
+      'A quale checklist aggiungere la zavorra?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Grasso corporeo (misurato)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Grasso corporeo (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Facoltativo. Se lasciato vuoto, la composizione corporea viene stimata da altezza e peso.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Stimato: circa $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Aggiungi sesso e anno di nascita in Informazioni personali per vedere una stima.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Inserisci un valore da 3 a 60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% di grasso corporeo';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Sesso';
+
+  @override
+  String get diverProfile_sex_female => 'Femmina';
+
+  @override
+  String get diverProfile_sex_male => 'Maschio';
+
+  @override
+  String get diverProfile_sex_notSet => 'Non impostato';
+
+  @override
+  String get diverProfile_birthYear_label => 'Anno di nascita';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Inserisci un anno dal 1900 al $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Usato solo per stimare la composizione corporea nella previsione della zavorra.';
 }

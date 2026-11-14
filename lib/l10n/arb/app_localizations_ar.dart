@@ -64879,4 +64879,182 @@ class AppLocalizationsAr extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'يُقرَّب الـ MOD دائمًا للأسفل، ولا يُقرَّب للأعلى أبدًا. يستخدم Rec بارًا واحدًا لكل $depth، مثل سجل الغوص. ويحسب OC Tec وCCR Tec الضغط عند العمق من نوع الماء، لذا قد يظهر للخليط نفسه MOD أقل عمقًا بقليل هناك.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'الجنس';
+
+  @override
+  String get settings_conflict_field_birthYear => 'سنة الميلاد';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'دهون الجسم';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'المجموعات المضمَّنة';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'إضافة مجموعة';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'لا توجد مجموعات مضمَّنة';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'لا توجد مجموعة أخرى يمكن تضمينها';
+
+  @override
+  String get equipment_setEdit_weights_title => 'الأثقال';
+
+  @override
+  String get equipment_setEdit_weights_add => 'إضافة إعداد أثقال';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'لا توجد إعدادات أثقال';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'الإجمالي $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'الأسطوانات';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'إضافة تهيئة أسطوانات';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'لا توجد تهيئات أسطوانات';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'لا توجد تهيئات أسطوانات بعد';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'إزالة من المجموعة';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'يطبِّق إجمالاً: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'المجموعة التي لا تحتوي على معدات لا تترك وسم مجموعة على الغوصة، لذا لا يمكن إزالتها من الغوصة كمجموعة.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'من $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight من الرصاص';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانة',
+      many: '$count أسطوانة',
+      few: '$count أسطوانات',
+      two: 'أسطوانتان',
+      one: 'أسطوانة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'استخدام الأثقال من $setName؟';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'هذه الغوصة فيها $current بالفعل. المجموعة تحمل $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'إضافة';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'استبدال';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'الإبقاء على الحالي';
+
+  @override
+  String get rules_change_weights => 'الأثقال';
+
+  @override
+  String get rules_change_tanks => 'الأسطوانات';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'الأثقال: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'الرصاص: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'لم يُضَف الرصاص: هذه الرحلة ليس لها قائمة تحقق.';
+
+  @override
+  String get trips_gear_pickChecklist => 'إلى أي قائمة تحقق يُضاف الرصاص؟';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'دهون الجسم (مقيسة)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'دهون الجسم (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'اختياري. إذا تُرك فارغاً، يُقدَّر تكوين الجسم من الطول والوزن.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'التقدير: نحو $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'أضف الجنس وسنة الميلاد في المعلومات الشخصية لعرض تقدير.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'أدخل قيمة من 3 إلى 60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% دهون الجسم';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'الجنس';
+
+  @override
+  String get diverProfile_sex_female => 'أنثى';
+
+  @override
+  String get diverProfile_sex_male => 'ذكر';
+
+  @override
+  String get diverProfile_sex_notSet => 'غير محدَّد';
+
+  @override
+  String get diverProfile_birthYear_label => 'سنة الميلاد';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'أدخل سنة من 1900 إلى $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'يُستخدمان فقط لتقدير تكوين الجسم من أجل توقّع الأثقال.';
 }

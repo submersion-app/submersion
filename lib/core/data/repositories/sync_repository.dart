@@ -207,6 +207,15 @@ class SyncRepository {
     'diveDiveTypes': (table: 'dive_dive_types', pk: 'id'),
     'diveCourses': (table: 'dive_courses', pk: 'id'),
     'weightPresetEntries': (table: 'weight_preset_entries', pk: 'id'),
+    'equipmentSetIncludes': (table: 'equipment_set_includes', pk: 'id'),
+    'equipmentSetWeightPresets': (
+      table: 'equipment_set_weight_presets',
+      pk: 'id',
+    ),
+    'equipmentSetCylinderConfigs': (
+      table: 'equipment_set_cylinder_configs',
+      pk: 'id',
+    ),
     'diveCenterGearNotes': (table: 'dive_center_gear_notes', pk: 'id'),
     'tideRecords': (table: 'tide_records', pk: 'id'),
     'diveHealthRecords': (table: 'dive_health_records', pk: 'id'),

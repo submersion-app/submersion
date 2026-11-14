@@ -59968,4 +59968,172 @@ class AppLocalizationsZh extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'MOD 始终向下取整，从不向上。Rec 按每 $depth 1 bar 计算，与潜水日志相同。OC Tec 和 CCR Tec 根据水体类型计算水下压力，因此同一混合气在那里显示的 MOD 可能略浅。';
   }
+
+  @override
+  String get settings_conflict_field_sex => '性别';
+
+  @override
+  String get settings_conflict_field_birthYear => '出生年份';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => '体脂';
+
+  @override
+  String get equipment_setEdit_includedSets_title => '包含的套装';
+
+  @override
+  String get equipment_setEdit_includedSets_add => '添加套装';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => '没有包含的套装';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable => '没有其他可包含的套装';
+
+  @override
+  String get equipment_setEdit_weights_title => '配重';
+
+  @override
+  String get equipment_setEdit_weights_add => '添加配重预设';
+
+  @override
+  String get equipment_setEdit_weights_empty => '没有配重预设';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return '合计 $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => '气瓶';
+
+  @override
+  String get equipment_setEdit_tanks_add => '添加气瓶配置';
+
+  @override
+  String get equipment_setEdit_tanks_empty => '没有气瓶配置';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable => '尚无气瓶配置';
+
+  @override
+  String get equipment_setEdit_bundle_remove => '从套装中移除';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return '合计应用：$summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      '没有装备的套装不会在潜水记录上留下套装标签，因此无法作为套装从潜水中移除。';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return '来自 $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight 配重';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个气瓶',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return '使用 $setName 的配重？';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return '此次潜水已有 $current。该套装带有 $setTotal。';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => '添加';
+
+  @override
+  String get diveLog_edit_setWeights_replace => '替换';
+
+  @override
+  String get diveLog_edit_setWeights_keep => '保留当前';
+
+  @override
+  String get rules_change_weights => '配重';
+
+  @override
+  String get rules_change_tanks => '气瓶';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return '配重：$total（$breakdown）';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return '配重：$weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist => '未添加配重：此行程没有清单。';
+
+  @override
+  String get trips_gear_pickChecklist => '将配重添加到哪个清单？';
+
+  @override
+  String get tools_weight_bodyFatTerm => '体脂（实测）';
+
+  @override
+  String get bodyWeight_bodyFatLabel => '体脂 (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper => '可选。留空时，将根据身高和体重估算身体成分。';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return '估算：约 $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint => '在个人信息中添加性别和出生年份即可查看估算值。';
+
+  @override
+  String get bodyWeight_bodyFatRange => '请输入 3 到 60 之间的数值';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '体脂 $percent%';
+  }
+
+  @override
+  String get diverProfile_sex_label => '性别';
+
+  @override
+  String get diverProfile_sex_female => '女';
+
+  @override
+  String get diverProfile_sex_male => '男';
+
+  @override
+  String get diverProfile_sex_notSet => '未设置';
+
+  @override
+  String get diverProfile_birthYear_label => '出生年份';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return '请输入 1900 到 $year 之间的年份';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note => '仅用于估算身体成分以预测配重。';
 }

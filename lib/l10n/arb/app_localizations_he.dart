@@ -62651,4 +62651,179 @@ class AppLocalizationsHe extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'ה-MOD תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה. Rec משתמש בבר אחד לכל $depth, כמו יומן הצלילות. OC Tec ו-CCR Tec מחשבים את הלחץ בעומק לפי סוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'מין';
+
+  @override
+  String get settings_conflict_field_birthYear => 'שנת לידה';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'שומן גוף';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'ערכות כלולות';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'הוספת ערכה';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'אין ערכות כלולות';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'אין ערכה אחרת שאפשר לכלול';
+
+  @override
+  String get equipment_setEdit_weights_title => 'משקולות';
+
+  @override
+  String get equipment_setEdit_weights_add => 'הוספת תצורת משקולות';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'אין תצורות משקולות';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'סה\"כ $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'מכלים';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'הוספת תצורת מכלים';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'אין תצורות מכלים';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable => 'עדיין אין תצורות מכלים';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'הסרה מהערכה';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'מחיל בסך הכול: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'ערכה ללא ציוד אינה משאירה תג ערכה בצלילה, ולכן אי אפשר להסיר אותה מצלילה כערכה.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'מתוך $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight עופרת';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מכלים',
+      two: '2 מכלים',
+      one: 'מכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'להשתמש במשקולות מתוך $setName?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'בצלילה הזו כבר יש $current. הערכה נושאת $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'הוספה';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'החלפה';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'השארת הקיים';
+
+  @override
+  String get rules_change_weights => 'משקולות';
+
+  @override
+  String get rules_change_tanks => 'מכלים';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'משקולות: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'עופרת: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'העופרת לא נוספה: לטיול הזה אין רשימת תיוג.';
+
+  @override
+  String get trips_gear_pickChecklist => 'לאיזו רשימת תיוג להוסיף את העופרת?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'שומן גוף (נמדד)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'שומן גוף (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'אופציונלי. אם נשאר ריק, הרכב הגוף מוערך לפי גובה ומשקל.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'הערכה: כ-$percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'הוסיפו מין ושנת לידה תחת מידע אישי כדי לראות הערכה.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'הזינו ערך בין 3 ל-60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% שומן גוף';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'מין';
+
+  @override
+  String get diverProfile_sex_female => 'נקבה';
+
+  @override
+  String get diverProfile_sex_male => 'זכר';
+
+  @override
+  String get diverProfile_sex_notSet => 'לא הוגדר';
+
+  @override
+  String get diverProfile_birthYear_label => 'שנת לידה';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'הזינו שנה בין 1900 ל-$year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'משמש רק להערכת הרכב הגוף לצורך חיזוי משקולות.';
 }

@@ -100464,6 +100464,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The MOD is always rounded down, never up. Rec uses 1 bar per {depth}, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.'**
   String info_calculators_mod_background(String depth);
+
+  /// Sync conflict label for a diver's sex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get settings_conflict_field_sex;
+
+  /// Sync conflict label for a diver's birth year.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth year'**
+  String get settings_conflict_field_birthYear;
+
+  /// Sync conflict label for a body-weight entry's body fat percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Body fat'**
+  String get settings_conflict_field_bodyFatPercent;
+
+  /// Section title on the equipment set editor: other sets this set includes.
+  ///
+  /// In en, this message translates to:
+  /// **'Included sets'**
+  String get equipment_setEdit_includedSets_title;
+
+  /// Button on the equipment set editor that adds another set to this set.
+  ///
+  /// In en, this message translates to:
+  /// **'Add set'**
+  String get equipment_setEdit_includedSets_add;
+
+  /// Shown on the equipment set editor when the set includes no other sets.
+  ///
+  /// In en, this message translates to:
+  /// **'No included sets'**
+  String get equipment_setEdit_includedSets_empty;
+
+  /// Shown in the picker when no other equipment set can be included in this one.
+  ///
+  /// In en, this message translates to:
+  /// **'No other set can be included'**
+  String get equipment_setEdit_includedSets_noneAvailable;
+
+  /// Section title on the equipment set editor: weight presets this set applies.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get equipment_setEdit_weights_title;
+
+  /// Button on the equipment set editor that adds a weight preset to this set.
+  ///
+  /// In en, this message translates to:
+  /// **'Add weight preset'**
+  String get equipment_setEdit_weights_add;
+
+  /// Shown on the equipment set editor when the set has no weight presets.
+  ///
+  /// In en, this message translates to:
+  /// **'No weight presets'**
+  String get equipment_setEdit_weights_empty;
+
+  /// Total lead of the weight presets on an equipment set. {weight} is formatted in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {weight}'**
+  String equipment_setEdit_weights_total(String weight);
+
+  /// Section title on the equipment set editor: cylinder configurations this set applies.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get equipment_setEdit_tanks_title;
+
+  /// Button on the equipment set editor that adds a cylinder configuration to this set.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cylinder configuration'**
+  String get equipment_setEdit_tanks_add;
+
+  /// Shown on the equipment set editor when the set has no cylinder configurations.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder configurations'**
+  String get equipment_setEdit_tanks_empty;
+
+  /// Shown in the picker when the diver has no cylinder configurations to add to a set.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder configurations yet'**
+  String get equipment_setEdit_tanks_noneAvailable;
+
+  /// Tooltip of the button that removes an included set, weight preset or cylinder configuration from an equipment set.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from set'**
+  String get equipment_setEdit_bundle_remove;
+
+  /// Summary of everything an equipment set applies. {summary} is a comma-separated list such as "8 items, 12 lbs lead, 1 cylinder".
+  ///
+  /// In en, this message translates to:
+  /// **'Applies in total: {summary}'**
+  String equipment_setEdit_bundle_total(String summary);
+
+  /// Note on the equipment set editor when the set carries weights or tanks but no gear.
+  ///
+  /// In en, this message translates to:
+  /// **'A set with no gear leaves no set tag on a dive, so it cannot be removed from a dive as a set.'**
+  String get equipment_setEdit_bundle_noGearHint;
+
+  /// Marks a gear row on the equipment set page that comes from an included set. {setName} is that set's name.
+  ///
+  /// In en, this message translates to:
+  /// **'From {setName}'**
+  String equipment_setDetail_fromSet(String setName);
+
+  /// Lead an equipment set carries, in a summary line. {weight} is formatted in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} lead'**
+  String equipment_sets_leadTotal(String weight);
+
+  /// Number of cylinders an equipment set carries, in a summary line.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 cylinder} other{{count} cylinders}}'**
+  String equipment_sets_cylinderCount(int count);
+
+  /// Title of the question asked in the dive editor when a picked equipment set carries weights and the dive already has some.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the weights from {setName}?'**
+  String diveLog_edit_setWeights_title(String setName);
+
+  /// Body of the set weights question. {current} is the lead already on the dive and {setTotal} the lead the set carries, both formatted in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive already has {current}. The set carries {setTotal}.'**
+  String diveLog_edit_setWeights_body(String current, String setTotal);
+
+  /// Button: add the set's weights to the ones already on the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get diveLog_edit_setWeights_add;
+
+  /// Button: replace the dive's weights with the set's.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get diveLog_edit_setWeights_replace;
+
+  /// Button: leave the dive's weights as they are.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current'**
+  String get diveLog_edit_setWeights_keep;
+
+  /// Label of a rule run change to a dive's weights.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get rules_change_weights;
+
+  /// Label of a rule run change to a dive's tanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get rules_change_tanks;
+
+  /// Title of a pre-dive check for the lead an equipment set carries. {total} is the total and {breakdown} lists each weight, both in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights: {total} ({breakdown})'**
+  String preDive_setChecks_weights(String total, String breakdown);
+
+  /// Title of the trip checklist item added for the lead an equipment set carries. {weight} is in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead: {weight}'**
+  String trips_gear_leadItem(String weight);
+
+  /// Added to the confirmation when a set's lead could not be listed because the trip has no checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead was not added: this trip has no checklist.'**
+  String get trips_gear_leadNoChecklist;
+
+  /// Title of the dialog asking which trip checklist should list a set's lead.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the lead to which checklist?'**
+  String get trips_gear_pickChecklist;
+
+  /// Label of the weight prediction term that comes from a measured body fat percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Body fat (measured)'**
+  String get tools_weight_bodyFatTerm;
+
+  /// Label of the optional body fat percentage field.
+  ///
+  /// In en, this message translates to:
+  /// **'Body fat (%)'**
+  String get bodyWeight_bodyFatLabel;
+
+  /// Helper under the body fat field.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Left blank, body composition is estimated from height and weight.'**
+  String get bodyWeight_bodyFatHelper;
+
+  /// The app's own estimate of body fat, shown under the field. {percent} is a whole number.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated: about {percent}%'**
+  String bodyWeight_bodyFatEstimate(int percent);
+
+  /// Shown under the body fat field when the app cannot estimate it yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add sex and birth year under Personal info to see an estimate.'**
+  String get bodyWeight_bodyFatEstimateHint;
+
+  /// Validation message for the body fat field.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value from 3 to 60'**
+  String get bodyWeight_bodyFatRange;
+
+  /// Body fat shown on a body-weight entry. {percent} is a number such as 18.5.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% body fat'**
+  String bodyWeight_bodyFatValue(String percent);
+
+  /// Label of the optional sex field on the diver's personal info.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get diverProfile_sex_label;
+
+  /// Sex option.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get diverProfile_sex_female;
+
+  /// Sex option.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get diverProfile_sex_male;
+
+  /// Sex option meaning the diver has not given it.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get diverProfile_sex_notSet;
+
+  /// Label of the optional birth year field on the diver's personal info.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth year'**
+  String get diverProfile_birthYear_label;
+
+  /// Validation message for the birth year field. {year} is the current year.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a year from 1900 to {year}'**
+  String diverProfile_birthYear_invalid(int year);
+
+  /// Note under the sex and birth year fields.
+  ///
+  /// In en, this message translates to:
+  /// **'Used only to estimate body composition for weight prediction.'**
+  String get diverProfile_bodyEstimate_note;
 }
 
 class _AppLocalizationsDelegate

@@ -63572,4 +63572,180 @@ class AppLocalizationsNl extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'De MOD wordt altijd naar beneden afgerond, nooit naar boven. Rec rekent met 1 bar per $depth, zoals het logboek. OC Tec en CCR Tec berekenen de druk op diepte uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Geslacht';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Geboortejaar';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Lichaamsvet';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Opgenomen sets';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Set toevoegen';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'Geen opgenomen sets';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'Er kan geen andere set worden opgenomen';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Lood';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Loodvoorinstelling toevoegen';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'Geen loodvoorinstellingen';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Totaal $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Flessen';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Flesconfiguratie toevoegen';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'Geen flesconfiguraties';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Nog geen flesconfiguraties';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Uit set verwijderen';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Past in totaal toe: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'Een set zonder uitrusting laat geen setlabel achter op een duik en kan dus niet als set van een duik worden verwijderd.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'Uit $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight lood';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen',
+      one: '1 fles',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Het lood van $setName gebruiken?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Deze duik heeft al $current. De set bevat $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Toevoegen';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Vervangen';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Huidige behouden';
+
+  @override
+  String get rules_change_weights => 'Lood';
+
+  @override
+  String get rules_change_tanks => 'Flessen';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Lood: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Lood: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'Lood is niet toegevoegd: deze reis heeft geen checklist.';
+
+  @override
+  String get trips_gear_pickChecklist =>
+      'Aan welke checklist het lood toevoegen?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Lichaamsvet (gemeten)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Lichaamsvet (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Optioneel. Leeg gelaten wordt de lichaamssamenstelling geschat op basis van lengte en gewicht.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Geschat: ongeveer $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Voeg geslacht en geboortejaar toe onder Persoonlijke gegevens om een schatting te zien.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Voer een waarde van 3 tot 60 in';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% lichaamsvet';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Geslacht';
+
+  @override
+  String get diverProfile_sex_female => 'Vrouw';
+
+  @override
+  String get diverProfile_sex_male => 'Man';
+
+  @override
+  String get diverProfile_sex_notSet => 'Niet ingesteld';
+
+  @override
+  String get diverProfile_birthYear_label => 'Geboortejaar';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Voer een jaar in van 1900 tot $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Wordt alleen gebruikt om de lichaamssamenstelling te schatten voor de loodvoorspelling.';
 }

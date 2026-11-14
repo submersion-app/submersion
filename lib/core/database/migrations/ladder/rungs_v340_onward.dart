@@ -173,5 +173,15 @@ extension RungsFromV340 on AppDatabase {
     // backfill: the app fills it on demand. Re-asserted in beforeOpen.
     if (from < 362) await _assertDiveDecoStatusTable();
     if (from < 362) await reportProgress();
+
+    // v363: what an equipment set carries besides gear (included sets,
+    // weight presets, cylinder configurations) and the body composition
+    // columns of the weight prediction (issue #4525). Tables and nullable
+    // columns only, no backfill: a set with none of the three and a diver
+    // with no body data are the correct starting state. Re-asserted in
+    // beforeOpen.
+    if (from < 363) await _assertSetBundleTables();
+    if (from < 363) await _assertBodyCompositionColumns();
+    if (from < 363) await reportProgress();
   }
 }

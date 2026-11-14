@@ -106,6 +106,7 @@ class ConflictReferenceResolver {
     'observationId': 'equipmentObservations',
     'scooterEquipmentId': 'equipment',
     'setId': 'equipmentSets',
+    'includedSetId': 'equipmentSets',
     'equipmentSetId': 'equipmentSets',
     'configId': 'cylinderConfigs',
     'computerId': 'diveComputers',
@@ -165,6 +166,7 @@ class ConflictReferenceResolver {
     'dives': {'diveType': 'diveTypes'},
     'diveBuddies': {'role': 'diveRoles'},
     'weightPresetEntries': {'presetId': 'weightPresets'},
+    'equipmentSetWeightPresets': {'presetId': 'weightPresets'},
     'divePlanSegments': {'tankId': 'divePlanTanks'},
     'preDiveSessions': {'templateId': 'preDiveChecklistTemplates'},
     'preDiveChecklistTemplateItems': {

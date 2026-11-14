@@ -64105,4 +64105,180 @@ class AppLocalizationsFr extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'La MOD est toujours arrondie vers le bas, jamais vers le haut. Rec utilise 1 bar par $depth, comme le carnet. OC Tec et CCR Tec calculent la pression en profondeur à partir du type d\'eau, donc le même mélange peut y afficher une MOD un peu moins profonde.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Sexe';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Année de naissance';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Masse grasse';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Ensembles inclus';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Ajouter un ensemble';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'Aucun ensemble inclus';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'Aucun autre ensemble ne peut être inclus';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Lest';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Ajouter un préréglage de lest';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'Aucun préréglage de lest';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Total $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Blocs';
+
+  @override
+  String get equipment_setEdit_tanks_add =>
+      'Ajouter une configuration de blocs';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'Aucune configuration de blocs';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Pas encore de configuration de blocs';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Retirer de l\'ensemble';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Applique au total : $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'Un ensemble sans matériel ne laisse aucune étiquette d\'ensemble sur la plongée ; il ne peut donc pas en être retiré comme ensemble.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'De $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight de lest';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count blocs',
+      one: '1 bloc',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Utiliser le lest de $setName ?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Cette plongée a déjà $current. L\'ensemble comporte $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Ajouter';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Remplacer';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Conserver l\'actuel';
+
+  @override
+  String get rules_change_weights => 'Lest';
+
+  @override
+  String get rules_change_tanks => 'Blocs';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Lest : $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Lest : $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'Le lest n\'a pas été ajouté : ce voyage n\'a pas de liste de contrôle.';
+
+  @override
+  String get trips_gear_pickChecklist => 'À quelle liste ajouter le lest ?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Masse grasse (mesurée)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Masse grasse (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Facultatif. Laissé vide, la composition corporelle est estimée à partir de la taille et du poids.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Estimation : environ $percent %';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Ajoutez le sexe et l\'année de naissance dans Informations personnelles pour voir une estimation.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Saisissez une valeur de 3 à 60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent % de masse grasse';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Sexe';
+
+  @override
+  String get diverProfile_sex_female => 'Femme';
+
+  @override
+  String get diverProfile_sex_male => 'Homme';
+
+  @override
+  String get diverProfile_sex_notSet => 'Non renseigné';
+
+  @override
+  String get diverProfile_birthYear_label => 'Année de naissance';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Saisissez une année entre 1900 et $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Sert uniquement à estimer la composition corporelle pour la prévision du lest.';
 }
