@@ -3,7 +3,7 @@ import 'dart:ui' show Tristate;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_color_sheet.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// Opens the sheet, runs [act] against it, and returns what it completed

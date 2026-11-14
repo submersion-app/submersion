@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_placement.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
 
 /// The mannequin and the number badges have to read on every theme the app ships.

@@ -6,9 +6,6 @@ import 'package:submersion/features/equipment/domain/constants/equipment_colors.
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/utils/color_hex.dart';
 
-export 'package:submersion/features/equipment/domain/constants/equipment_colors.dart'
-    show equipmentColorBlack, equipmentColorPalette, equipmentColorWhite;
-
 /// The name a diver and a screen reader know an item colour by: the
 /// palette colour's localized name, or for any other `#RRGGBB` (a custom
 /// colour, an import's, a peer's) the nearest palette name and the code,

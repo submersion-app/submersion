@@ -28,7 +28,7 @@ Future<EquipmentColorChoice?> showEquipmentColorSheet(
     useSafeArea: true,
     showDragHandle: true,
     builder: (context) => EquipmentColorSheet(
-      selected: normalizeEquipmentColor(selected),
+      selected: selected,
       recent: recent,
       onRemember: onRemember,
     ),
