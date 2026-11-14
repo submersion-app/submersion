@@ -139,6 +139,58 @@ void main() {
     expect(container.read(builtInOverlayTruncatedProvider), isFalse);
   });
 
+  group('the limit is of markers shown, not of records read', () {
+    // The view's middle is 15 N, 70 W: w0 is nearest it, then w1, w2...
+    List<CatalogueSite> wrecks(int count) => [
+      for (var i = 0; i < count; i++)
+        _at('w$i', 15 + i * 0.001, -70, kind: CatalogueKind.register),
+    ];
+
+    /// The diver has adopted the [count] records nearest the middle.
+    List<DiveSite> adopted(int count) => [
+      for (var i = 0; i < count; i++)
+        DiveSite(
+          id: 'mine$i',
+          name: 'mine$i',
+          location: GeoPoint(15 + i * 0.001, -70),
+          catalogueId: 'w$i',
+        ),
+    ];
+
+    test('records the diver already has do not use up the limit', () async {
+      // Ten more than the limit in view, twenty of them the diver's own:
+      // every one of the rest fits, and none is left out.
+      final container = _container(
+        FakeSiteCatalogue(wrecks(kBuiltInOverlayMarkerLimit + 10)),
+        mine: adopted(20),
+      );
+
+      container.read(builtInOverlayBoundsProvider.notifier).state = _tropics;
+      final sites = await container.read(visibleBuiltInSitesProvider.future);
+
+      expect(sites, hasLength(kBuiltInOverlayMarkerLimit - 10));
+      expect(
+        sites.map((s) => s.id),
+        contains('w${kBuiltInOverlayMarkerLimit + 9}'),
+      );
+      expect(container.read(builtInOverlayTruncatedProvider), isFalse);
+    });
+
+    test('with more left than the limit it is filled, and says so', () async {
+      final container = _container(
+        FakeSiteCatalogue(wrecks(kBuiltInOverlayMarkerLimit + 50)),
+        mine: adopted(20),
+      );
+
+      container.read(builtInOverlayBoundsProvider.notifier).state = _tropics;
+      final sites = await container.read(visibleBuiltInSitesProvider.future);
+
+      expect(sites, hasLength(kBuiltInOverlayMarkerLimit));
+      expect(sites.first.id, 'w20');
+      expect(container.read(builtInOverlayTruncatedProvider), isTrue);
+    });
+  });
+
   test('a record an unlinked site of the diver sits on is hidden', () async {
     final container = _container(
       FakeSiteCatalogue([_at('keep', 12.0, -68.0), _at('dupe', 10.0, -70.0)]),
