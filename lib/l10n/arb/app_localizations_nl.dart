@@ -25748,6 +25748,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Gaswissels handmatig bewerkt';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Tijdverschuiving van media';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Uitgesloten van gasstatistieken';
 
@@ -54982,6 +54986,37 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => 'Terugzetten naar automatisch';
+
+  @override
+  String get media_timeInDive_shiftAll =>
+      'Alle media van deze duik verschuiven';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Alle foto\'s en video\'s van deze duik verschuiven evenveel';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Alle foto\'s en video\'s van deze duik komen $amount eerder te staan';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Alle foto\'s en video\'s van deze duik komen $amount later te staan';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'De media van deze duik zijn $amount eerder gezet';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'De media van deze duik zijn $amount later gezet';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Verschuiving verwijderen';
 
   @override
   String get media_info_store => 'Cloudopslag';

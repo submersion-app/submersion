@@ -25496,6 +25496,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Gas switches edited by hand';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Media time shift';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Left out of gas statistics';
 
@@ -54468,6 +54472,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => 'Reset to automatic';
+
+  @override
+  String get media_timeInDive_shiftAll => 'Shift all media on this dive';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Every photo and video on this dive moves by the same amount';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Every photo and video on this dive moves $amount earlier';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Every photo and video on this dive moves $amount later';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'Media on this dive is shifted $amount earlier';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'Media on this dive is shifted $amount later';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Remove shift';
 
   @override
   String get media_info_store => 'Cloud store';

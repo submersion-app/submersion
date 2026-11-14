@@ -184,6 +184,9 @@ const Map<String, String> consolidationUnfilledColumns = {
   'site_suggestion_dismissed_at':
       "the diver's answer to the target's own "
       'site suggestion',
+  'media_time_offset_seconds':
+      "the camera's clock against the target's own computer; a secondary's "
+      'was measured against a different clock',
 };
 
 /// Every dives column a consolidation can fill.

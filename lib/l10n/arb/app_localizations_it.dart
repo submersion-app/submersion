@@ -25911,6 +25911,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Cambi gas modificati a mano';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Spostamento orario dei media';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Escluso dalle statistiche dei gas';
 
@@ -55329,6 +55333,37 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => 'Ripristina automatico';
+
+  @override
+  String get media_timeInDive_shiftAll =>
+      'Sposta tutti i media di questa immersione';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Tutte le foto e i video di questa immersione si spostano della stessa quantità';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Tutte le foto e i video di questa immersione si spostano di $amount prima';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Tutte le foto e i video di questa immersione si spostano di $amount dopo';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'I media di questa immersione sono spostati di $amount prima';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'I media di questa immersione sono spostati di $amount dopo';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Rimuovi spostamento';
 
   @override
   String get media_info_store => 'Archivio cloud';

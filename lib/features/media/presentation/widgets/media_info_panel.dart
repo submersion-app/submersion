@@ -236,15 +236,20 @@ class _SetTimeButton extends ConsumerWidget {
       icon: const Icon(Icons.push_pin_outlined),
       label: Text(context.l10n.media_timeInDive_setAction),
       onPressed: () async {
+        final pinner = ref.read(mediaTimePinnerProvider);
+        final settings = ref.read(settingsProvider);
+        final automatic = await pinner.automaticTimeFor(item);
+        if (!context.mounted) return;
         final choice = await showSetMediaTimeDialog(
           context,
           profile: profile,
           initialElapsedSeconds: initialElapsedSeconds,
           isPinned: item.manualElapsedSeconds != null,
-          settings: ref.read(settingsProvider),
+          settings: settings,
+          automatic: automatic,
         );
         if (choice == null || !context.mounted) return;
-        await ref.read(mediaTimePinnerProvider).apply(item, choice);
+        await pinner.apply(item, choice);
       },
     );
   }

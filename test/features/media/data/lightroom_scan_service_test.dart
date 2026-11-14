@@ -1,5 +1,8 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, DiveDataSourcesCompanion;
 import 'package:submersion/core/services/lightroom/adobe_ims_auth_manager.dart';
 import 'package:submersion/core/services/lightroom/lightroom_api_client.dart';
 import 'package:submersion/core/services/lightroom/lightroom_models.dart';
@@ -126,6 +129,7 @@ class _PagingLightroomApi extends LightroomApiClient {
 }
 
 void main() {
+  late AppDatabase db;
   late MediaRepository mediaRepository;
   late DiveRepository diveRepository;
   late LightroomConnectorState state;
@@ -141,7 +145,7 @@ void main() {
   );
 
   setUp(() async {
-    await setUpTestDatabase();
+    db = await setUpTestDatabase();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     mediaRepository = MediaRepository();
@@ -357,6 +361,52 @@ void main() {
     expect(item.enrichment, isNotNull);
     expect(item.enrichment!.depthMeters, 18.0);
     expect(enqueued, [item.id]);
+  });
+
+  // Issue #4539: the dive is logged at 10:00:00, its computer began at
+  // 10:00:30, and the camera runs 30 seconds ahead. A shot stamped 10:31:00
+  // was taken at the computer's 10:30:30, 1800 s into the profile.
+  test("places a new asset on the dive's media clock", () async {
+    final dive = await createDive(
+      entry: DateTime.utc(2026, 7, 1, 10),
+      exit: DateTime.utc(2026, 7, 1, 11),
+    );
+    await ProfileSeriesRepository().insertSeries(
+      diveId: dive.id,
+      samples: [
+        for (final (ts, depth) in const [(0, 0.0), (1800, 18.0), (3600, 0.0)])
+          ProfileSample(timestamp: ts, depth: depth),
+      ],
+    );
+    await db
+        .into(db.diveDataSources)
+        .insert(
+          DiveDataSourcesCompanion.insert(
+            id: 'src1',
+            diveId: dive.id,
+            isPrimary: const Value(true),
+            entryTime: Value(DateTime.utc(2026, 7, 1, 10, 0, 30)),
+            importedAt: DateTime.utc(2026, 7, 2),
+            createdAt: DateTime.utc(2026, 7, 2),
+          ),
+        );
+    await diveRepository.setMediaTimeOffsetSeconds(dive.id, -30);
+
+    final api = _FakeLightroomApi(
+      assets: [
+        LightroomAsset(
+          id: 'lr1',
+          subtype: 'image',
+          captureDate: DateTime.utc(2026, 7, 1, 10, 31),
+          fileName: 'reef.jpg',
+        ),
+      ],
+    );
+    await service(api).scanDives(account: account, dives: [dive], state: state);
+
+    final item = (await mediaRepository.getMediaForDive(dive.id)).single;
+    expect(item.enrichment!.elapsedSeconds, 1800);
+    expect(item.enrichment!.depthMeters, 18.0);
   });
 
   test('video asset attaches with duration and enqueues', () async {

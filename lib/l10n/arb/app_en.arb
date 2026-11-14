@@ -15790,6 +15790,7 @@
   "settings_conflict_field_evidence": "Evidence",
   "settings_conflict_field_evidenceFingerprint": "Evidence fingerprint",
   "settings_conflict_field_gasSwitchesEdited": "Gas switches edited by hand",
+  "settings_conflict_field_mediaTimeOffsetSeconds": "Media time shift",
   "settings_conflict_field_excludedFromGasStats": "Left out of gas statistics",
   "settings_conflict_field_excludedFromStats": "Left out of statistics",
   "settings_conflict_field_exitLatitude": "Exit latitude",
@@ -33111,6 +33112,54 @@
   "media_timeInDive_reset": "Reset to automatic",
   "@media_timeInDive_reset": {
     "description": "Set-time dialog: button that removes the diver's pin so the position derives from the capture time again."
+  },
+  "media_timeInDive_shiftAll": "Shift all media on this dive",
+  "@media_timeInDive_shiftAll": {
+    "description": "Set-time dialog: switch that makes Save move every photo and video on the dive, not only this one, to correct a camera clock that disagrees with the dive computer."
+  },
+  "media_timeInDive_shiftAllHint": "Every photo and video on this dive moves by the same amount",
+  "@media_timeInDive_shiftAllHint": {
+    "description": "Set-time dialog: text under the shift-all switch while the chosen time is the item's automatic one, so nothing would move yet."
+  },
+  "media_timeInDive_shiftAllEarlier": "Every photo and video on this dive moves {amount} earlier",
+  "@media_timeInDive_shiftAllEarlier": {
+    "description": "Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive start, as minutes:seconds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "media_timeInDive_shiftAllLater": "Every photo and video on this dive moves {amount} later",
+  "@media_timeInDive_shiftAllLater": {
+    "description": "Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive end, as minutes:seconds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "media_timeInDive_diveShiftEarlier": "Media on this dive is shifted {amount} earlier",
+  "@media_timeInDive_diveShiftEarlier": {
+    "description": "Set-time dialog: the shift this dive already applies to its media, towards the dive start; {amount} is minutes:seconds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "media_timeInDive_diveShiftLater": "Media on this dive is shifted {amount} later",
+  "@media_timeInDive_diveShiftLater": {
+    "description": "Set-time dialog: the shift this dive already applies to its media, towards the dive end; {amount} is minutes:seconds.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "media_timeInDive_removeShift": "Remove shift",
+  "@media_timeInDive_removeShift": {
+    "description": "Set-time dialog: button that removes the dive's media time shift so its photos and videos sit by capture time again."
   },
   "media_info_store": "Cloud store",
   "media_info_storeNotConnected": "No cloud store connected",

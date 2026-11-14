@@ -26237,6 +26237,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تبديلات الغاز معدّلة يدويًا';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'إزاحة وقت الوسائط';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'مستبعد من إحصاءات الغاز';
 
@@ -56121,6 +56125,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => 'إعادة التعيين إلى التلقائي';
+
+  @override
+  String get media_timeInDive_shiftAll => 'إزاحة جميع وسائط هذه الغوصة';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'تُزاح جميع صور ومقاطع فيديو هذه الغوصة بالمقدار نفسه';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'تُزاح جميع صور ومقاطع فيديو هذه الغوصة $amount للخلف';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'تُزاح جميع صور ومقاطع فيديو هذه الغوصة $amount للأمام';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'وسائط هذه الغوصة مُزاحة $amount للخلف';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'وسائط هذه الغوصة مُزاحة $amount للأمام';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'إزالة الإزاحة';
 
   @override
   String get media_info_store => 'التخزين السحابي';

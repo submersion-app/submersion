@@ -40,6 +40,7 @@ void main() {
         // Shutter at 12:08 == 2520s (42 min) after the 11:26 entry.
         _media('m1', takenAt: DateTime.utc(2025, 12, 27, 12, 8)),
       ],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => saved.addAll(rows),
     );
 
@@ -80,6 +81,7 @@ void main() {
             ),
           ),
         ],
+        loadPrimarySourceEntry: (_) async => null,
         saveEnrichments: (rows) async => saved.addAll(rows),
       );
 
@@ -114,6 +116,7 @@ void main() {
             ),
           ),
         ],
+        loadPrimarySourceEntry: (_) async => null,
         saveEnrichments: (rows) async => saved.addAll(rows),
       );
 
@@ -150,6 +153,7 @@ void main() {
           ),
         ),
       ],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => saved.addAll(rows),
     );
 
@@ -164,6 +168,7 @@ void main() {
       loadMediaForDive: (_) async => [
         _media('m1', takenAt: DateTime.utc(2025, 12, 27, 12, 8)),
       ],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => saved.addAll(rows),
     );
 
@@ -185,6 +190,7 @@ void main() {
     final enricher = DiveMediaEnricher(
       loadDive: (_) async => _diveWithProfile(),
       loadMediaForDive: (_) async => [signature],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => saved.addAll(rows),
     );
 
@@ -199,6 +205,7 @@ void main() {
       loadMediaForDive: (_) async => [
         _media('m1', takenAt: DateTime.utc(2025, 12, 27, 12, 8)),
       ],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => saved.addAll(rows),
     );
 
@@ -218,6 +225,7 @@ void main() {
         _media('m1', takenAt: DateTime.utc(2025, 12, 27, 12, 8)),
         _media('m2', takenAt: DateTime.utc(2025, 12, 27, 12, 9)),
       ],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => batches.add(rows),
     );
 
@@ -249,6 +257,7 @@ void main() {
           ),
         ),
       ],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => calls++,
     );
 
@@ -282,6 +291,7 @@ void manualPositionTests() {
             takenAt: DateTime.utc(2016, 1, 6, 0, 3),
           ).copyWith(manualElapsedSeconds: 2520),
         ],
+        loadPrimarySourceEntry: (_) async => null,
         saveEnrichments: (rows) async => saved.addAll(rows),
       );
 
@@ -313,6 +323,7 @@ void manualPositionTests() {
           ),
         ).copyWith(manualElapsedSeconds: 2520),
       ],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => saved.addAll(rows),
     );
 
@@ -339,6 +350,7 @@ void manualPositionTests() {
           ),
         ),
       ],
+      loadPrimarySourceEntry: (_) async => null,
       saveEnrichments: (rows) async => saved.addAll(rows),
     );
 

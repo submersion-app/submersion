@@ -25894,6 +25894,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Trocas de gás editadas manualmente';
 
   @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Deslocamento horário da mídia';
+
+  @override
   String get settings_conflict_field_excludedFromGasStats =>
       'Excluído das estatísticas de gás';
 
@@ -55319,6 +55323,37 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get media_timeInDive_reset => 'Redefinir para automático';
+
+  @override
+  String get media_timeInDive_shiftAll =>
+      'Deslocar toda a mídia deste mergulho';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Todas as fotos e vídeos deste mergulho são deslocados na mesma medida';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Todas as fotos e vídeos deste mergulho são deslocados $amount antes';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Todas as fotos e vídeos deste mergulho são deslocados $amount depois';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'A mídia deste mergulho está deslocada $amount antes';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'A mídia deste mergulho está deslocada $amount depois';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Remover deslocamento';
 
   @override
   String get media_info_store => 'Armazenamento na nuvem';
