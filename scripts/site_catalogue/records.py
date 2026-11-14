@@ -53,6 +53,19 @@ _PLACEHOLDERS = frozenset(
 )
 _PLACEHOLDER_START = re.compile(r"^(unnamed|unknown)\b", re.IGNORECASE)
 
+# The word for a wreck, alone, in the languages OpenStreetMap is mapped in:
+# as much a non-name as "WRECK" is in a British register. Compared without
+# accents, a leading article or "old", or a plural "s".
+_WRECK_WORDS = (
+    "shipwreck", "ship wreck", "boat wreck", "wreckage",
+    "sunken barge", "sunken boat", "sunken ship", "sunken vessel",
+    "wrack", "schiffswrack", "bootswrack", "wrak", "scheepswrak",
+    "vrak", "skibsvrag", "skeppsvrak", "epave", "naufragio", "relitto",
+    "pecio", "barco hundido", "desconocido",
+    "уламки", "баржа", "затонувшая баржа", "остов корабля",
+)
+_LEADING_WORD = re.compile(r"^(the|a|an|old|el|la|le|un|una|une|das|der|ein)\s+")
+
 # Names so common that two records sharing one are the same site only when
 # they are almost on top of each other.
 GENERIC_NAMES = frozenset(
@@ -96,16 +109,34 @@ def fold_name(name: str) -> str:
     return words.strip()
 
 
+def _bare(text: str) -> str:
+    """[text] in lower case without accents, punctuation or a leading
+    article."""
+    plain = "".join(
+        char
+        for char in unicodedata.normalize("NFKD", text.lower())
+        if not unicodedata.combining(char)
+    )
+    return _LEADING_WORD.sub("", " ".join(re.sub(r"[\W_]+", " ", plain).split()))
+
+
+_BARE_WRECK_WORDS = frozenset(_bare(word) for word in _WRECK_WORDS)
+
+
 def is_placeholder(name: str) -> bool:
-    """Whether [name] names no particular site ("Unknown", "Wreck")."""
+    """Whether [name] names no particular site ("Unknown", "Wreck",
+    "Wrack")."""
     text = (name or "").strip()
     # One letter or digit ("F", "M") names nothing; two can be a
     # designation, or a whole name in another script.
     if len(re.sub(r"[\W_]", "", text)) < 2:
         return True
+    bare = _bare(text)
     return (
         text.lower() in _PLACEHOLDERS
         or _PLACEHOLDER_START.match(text) is not None
+        or bare in _BARE_WRECK_WORDS
+        or (bare.endswith("s") and bare[:-1] in _BARE_WRECK_WORDS)
     )
 
 

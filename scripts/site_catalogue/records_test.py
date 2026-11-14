@@ -98,6 +98,23 @@ class WordListTest(unittest.TestCase):
         for name in ("F2", "U 8", "RA", "砂辺"):
             self.assertFalse(records.is_placeholder(name), name)
 
+    def test_the_word_for_a_wreck_in_any_language_names_nothing(self):
+        # OpenStreetMap is mapped in local languages: an unnamed wreck is
+        # "Wrack" there as it is "WRECK" in a British register.
+        for name in ("Wrack", "Schiffswrack", "Bootswrack", "Shipwreck",
+                     "SHIP Wreck", "Shipwrecks", "old shipwreck", "Boat wrecks",
+                     "Naufragio", "NAUFRAGIO", "Épave", "Épaves", "Epave",
+                     "Barco hundido", "El Barco Hundido", "desconocido",
+                     "Sunken barge", "sunken barges", "Уламки", "Баржа",
+                     "Затонувшая баржа", "Остов корабля", "Wrak", "Vrak",
+                     "Relitto", "Pecio"):
+            self.assertTrue(records.is_placeholder(name), name)
+        # A wreck word with a name beside it is a name.
+        for name in ("Wrack Jan Heweliusz", "Épave du Donator",
+                     "Shipwreck Cove", "Naufragio del Sirio", "Wrakken Bank",
+                     "Barge Wreck 12", "Баржа Волга"):
+            self.assertFalse(records.is_placeholder(name), name)
+
     def test_generic_names(self):
         self.assertTrue(records.is_generic("tug"))
         self.assertTrue(records.is_generic("abc"))
