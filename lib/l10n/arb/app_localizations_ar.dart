@@ -23518,9 +23518,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buoyancy_historyCarried => 'المحمول';
 
   @override
-  String get buoyancy_historyModeled => 'المُنمذَج';
-
-  @override
   String buoyancy_historyMore(String delta) {
     return 'عادةً ما تحمل $delta أكثر مما يقترحه النموذج';
   }
@@ -23528,6 +23525,28 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String buoyancy_historyLess(String delta) {
     return 'عادةً ما تحمل $delta أقل مما يقترحه النموذج';
+  }
+
+  @override
+  String buoyancy_historyCaption(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'الرصاص في آخر $count غطسة بهذه البدلة',
+      many: 'الرصاص في آخر $count غطسة بهذه البدلة',
+      few: 'الرصاص في آخر $count غطسات بهذه البدلة',
+      two: 'الرصاص في آخر غطستين بهذه البدلة',
+      one: 'الرصاص في غطستك الأخيرة بهذه البدلة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get buoyancy_historyThisDive => 'هذه الغطسة';
+
+  @override
+  String buoyancy_historyPoint(String date, String carried, String suggested) {
+    return '$date: $carried، $suggested';
   }
 
   @override
