@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/record_editing/edit_field.dart';
@@ -28,6 +31,9 @@ final _notes = EditField<_Rec, String>(
 /// What the page's "cancel" button last got back from [cancelSitting].
 bool? _cancelResult;
 
+/// How often the page's other control was pressed.
+int _taps = 0;
+
 /// A home page that pushes the guarded record page.
 Widget _app(RecordEditController<_Rec> controller) {
   return MaterialApp(
@@ -44,14 +50,23 @@ Widget _app(RecordEditController<_Rec> controller) {
                 child: Scaffold(
                   appBar: AppBar(title: const Text('Record')),
                   body: Builder(
-                    builder: (context) => TextButton(
-                      onPressed: () async {
-                        _cancelResult = await cancelSitting(
-                          context,
-                          controller,
-                        );
-                      },
-                      child: const Text('cancel sitting'),
+                    builder: (context) => Column(
+                      children: [
+                        TextButton(
+                          onPressed: () async {
+                            _cancelResult = await cancelSitting(
+                              context,
+                              controller,
+                            );
+                          },
+                          child: const Text('cancel sitting'),
+                        ),
+                        TextButton(
+                          onPressed: () => _taps++,
+                          child: const Text('a control'),
+                        ),
+                        const TextField(key: ValueKey('a field')),
+                      ],
                     ),
                   ),
                 ),
@@ -65,8 +80,14 @@ Widget _app(RecordEditController<_Rec> controller) {
   );
 }
 
-Future<RecordEditController<_Rec>> _open(WidgetTester tester) async {
-  final controller = RecordEditController<_Rec>(onSave: (_) async {});
+Future<RecordEditController<_Rec>> _open(
+  WidgetTester tester, {
+  Future<void> Function()? onSave,
+}) async {
+  _taps = 0;
+  final controller = RecordEditController<_Rec>(
+    onSave: (_) async => onSave?.call(),
+  );
   addTearDown(controller.dispose);
   await tester.pumpWidget(_app(controller));
   await tester.tap(find.text('open'));
@@ -184,5 +205,121 @@ void main() {
     expect(find.text('Discard changes?'), findsNothing);
     expect(_cancelResult, isTrue);
     expect(controller.isUnlocked, isFalse);
+  });
+
+  // The write takes a moment. Until it ends the sitting is neither left nor
+  // changed: discarding it then would let the write land on a page the
+  // diver thinks they abandoned.
+  group('while a save is running', () {
+    Future<({RecordEditController<_Rec> controller, Completer<void> gate})>
+    saving(WidgetTester tester, {bool fail = false}) async {
+      final gate = Completer<void>();
+      final controller = await _open(
+        tester,
+        onSave: () async {
+          await gate.future;
+          if (fail) throw StateError('no');
+        },
+      );
+      controller.unlock(const _Rec(notes: 'a'));
+      controller.session!.set(_notes, 'b');
+      await tester.pump();
+      unawaited(controller.save());
+      await tester.pump();
+      expect(controller.isSaving, isTrue);
+      return (controller: controller, gate: gate);
+    }
+
+    testWidgets('Back is ignored, and the page closes nothing', (tester) async {
+      final page = await saving(tester);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.text('Record'), findsOneWidget);
+      expect(page.controller.isUnlocked, isTrue);
+
+      page.gate.complete();
+      await tester.pumpAndSettle();
+      expect(page.controller.isUnlocked, isFalse);
+      expect(find.text('Record'), findsOneWidget);
+    });
+
+    testWidgets('cancelSitting does nothing', (tester) async {
+      final page = await saving(tester);
+
+      final cancelled = cancelSitting(
+        tester.element(find.text('Record')),
+        page.controller,
+      );
+      await tester.pumpAndSettle();
+
+      expect(await cancelled, isFalse);
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(page.controller.isSaving, isTrue);
+
+      page.gate.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('controls on the page do not respond', (tester) async {
+      final page = await saving(tester);
+
+      await tester.tap(find.text('a control'), warnIfMissed: false);
+      await tester.pump();
+
+      expect(_taps, 0);
+
+      page.gate.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a field being typed in loses the keyboard', (tester) async {
+      final gate = Completer<void>();
+      final controller = await _open(tester, onSave: () => gate.future);
+      controller.unlock(const _Rec(notes: 'a'));
+      controller.session!.set(_notes, 'b');
+      await tester.pump();
+      final field = find.byKey(const ValueKey('a field'));
+      await tester.tap(field);
+      await tester.pump();
+      bool focused() => tester
+          .widget<EditableText>(
+            find.descendant(of: field, matching: find.byType(EditableText)),
+          )
+          .focusNode
+          .hasFocus;
+      expect(focused(), isTrue);
+
+      unawaited(controller.save());
+      await tester.pump();
+
+      expect(focused(), isFalse);
+      // Nor can it be given back, by a tap or from the keyboard.
+      await tester.tap(field, warnIfMissed: false);
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(focused(), isFalse);
+
+      gate.complete();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a save that fails gives the page back', (tester) async {
+      final page = await saving(tester, fail: true);
+      page.gate.complete();
+      await tester.pumpAndSettle();
+      expect(page.controller.isSaving, isFalse);
+      expect(page.controller.isUnlocked, isTrue);
+
+      await tester.tap(find.text('a control'));
+      await tester.pump();
+      expect(_taps, 1);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+      expect(find.text('Discard changes?'), findsOneWidget);
+    });
   });
 }

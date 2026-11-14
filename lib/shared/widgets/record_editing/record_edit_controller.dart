@@ -12,6 +12,9 @@ typedef RecordSave<T> = Future<void> Function(EditSession<T> session);
 /// [save] writes it and locks again; [lock] discards it. The lock is never
 /// stored: every controller starts locked.
 ///
+/// While a save is running the sitting is frozen: its values cannot change
+/// and its cards cannot be opened, closed or added.
+///
 /// It notifies when the lock, the open or added cards, the saving state, or
 /// the set of cards with changes changes, and when the stored record changes
 /// underneath. It does not notify for each further change to an open card
@@ -71,9 +74,16 @@ class RecordEditController<T> extends ChangeNotifier {
   /// ([save]) until it is fixed.
   Set<String> get invalidCardIds => Set.unmodifiable(_invalidFields.keys);
 
-  /// The card last asked to scroll into view, with a serial that goes up on
-  /// every request so the same card can be asked twice.
+  /// The card last asked to scroll into view, if no card has answered yet.
+  /// The serial goes up on every request, so the same card can be asked
+  /// twice. A card answers with [revealHandled].
   ({String cardId, int serial})? get revealRequest => _revealRequest;
+
+  /// Withdraws the request numbered [serial], once the card it names has
+  /// scrolled into view. It does not notify: nothing is drawn from it.
+  void revealHandled(int serial) {
+    if (_revealRequest?.serial == serial) _revealRequest = null;
+  }
 
   /// True when the last [save] was refused for unreadable input. Cleared by
   /// the next save and by [lock].
@@ -124,9 +134,11 @@ class RecordEditController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Opens [cardId]'s editor. Like every change to the cards, it is
+  /// refused while a save is running.
   void openCard(String cardId) {
     final session = _session;
-    if (session == null) return;
+    if (session == null || _isSaving) return;
     if (!_openCardIds.add(cardId)) return;
     _toldRevisions[cardId] = session.revisionOf(cardId);
     notifyListeners();
@@ -137,7 +149,7 @@ class RecordEditController<T> extends ChangeNotifier {
   /// and is asked to show itself instead ([revealRequest]).
   void closeCard(String cardId) {
     final session = _session;
-    if (session == null) return;
+    if (session == null || _isSaving) return;
     if (_invalidFields.containsKey(cardId)) {
       _requestReveal(cardId);
       notifyListeners();
@@ -153,14 +165,17 @@ class RecordEditController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Brings in a card the page was leaving out, already open.
+  /// Brings in a card the page was leaving out, already open, and asks for
+  /// it to be scrolled into view ([revealRequest]): it takes its place in
+  /// the page's order, which may be below what is on screen.
   void addCard(String cardId) {
     final session = _session;
-    if (session == null) return;
+    if (session == null || _isSaving) return;
     final added = _addedCardIds.add(cardId);
     final opened = _openCardIds.add(cardId);
     if (!added && !opened) return;
     _toldRevisions[cardId] = session.revisionOf(cardId);
+    _requestReveal(cardId);
     notifyListeners();
   }
 
@@ -218,6 +233,8 @@ class RecordEditController<T> extends ChangeNotifier {
     }
     _isSaving = true;
     _saveError = null;
+    // What is written is what the diver saw when they asked for it.
+    session.freeze();
     notifyListeners();
     try {
       await onSave(session);
@@ -225,6 +242,7 @@ class RecordEditController<T> extends ChangeNotifier {
       // The page went away, or the sitting was discarded, while the write
       // was running: there is no one left to tell.
       if (!identical(_session, session)) return false;
+      session.thaw();
       _saveError = error;
       _isSaving = false;
       notifyListeners();

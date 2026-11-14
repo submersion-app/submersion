@@ -662,6 +662,24 @@ void main() {
     expect(find.text('Something else'), findsOneWidget);
   });
 
+  // A card takes its place in the page's order, which on a short screen is
+  // below the fold. Without a scroll the chip would vanish and nothing else
+  // would seem to happen.
+  testWidgets('a card added from the strip is scrolled into view', (
+    tester,
+  ) async {
+    const height = 360.0;
+    await pumpPage(tester, size: const Size(700, height));
+    await unlock(tester);
+
+    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await tester.pumpAndSettle();
+
+    final editor = tester.getRect(find.byType(TagFormBlock));
+    expect(editor.top, lessThan(height));
+    expect(editor.bottom, lessThanOrEqualTo(height));
+  });
+
   testWidgets('the arrow keys change dive only while locked', (tester) async {
     final page = await pumpPage(tester);
     await unlock(tester);

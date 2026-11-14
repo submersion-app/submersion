@@ -14,8 +14,11 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 /// The tree beneath a frame keeps one shape while the card is closed, so
 /// unlocking and locking never remount [child].
 ///
-/// When the controller asks this card to show itself
-/// ([RecordEditController.revealRequest]), the frame scrolls into view.
+/// When the controller asks for this card to be shown
+/// ([RecordEditController.revealRequest]), the frame scrolls into view and
+/// withdraws the request. That is how a card brought in from the Add strip,
+/// which may take its place below what is on screen, is seen to have opened,
+/// and how a card that could not be closed or saved is brought back.
 class RecordCardFrame<T> extends StatefulWidget {
   const RecordCardFrame({super.key, required this.card, required this.child});
 
@@ -29,20 +32,22 @@ class RecordCardFrame<T> extends StatefulWidget {
 }
 
 class _RecordCardFrameState<T> extends State<RecordCardFrame<T>> {
-  /// The newest reveal request this frame has seen. Null until the first
-  /// look, which only notes what is already there: a request is for the
-  /// frames on the page when it is made.
-  int? _seenRevealSerial;
+  /// The last request this frame answered, so one request scrolls once
+  /// however often the page rebuilds before it is withdrawn.
+  int _answeredSerial = 0;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final request = RecordEditScope.maybeOf<T>(context)?.revealRequest;
-    final seen = _seenRevealSerial;
-    _seenRevealSerial = request?.serial ?? seen ?? 0;
-    if (seen == null || request == null) return;
-    if (request.serial <= seen || request.cardId != widget.card.id) return;
+    final controller = RecordEditScope.maybeOf<T>(context);
+    final request = controller?.revealRequest;
+    if (controller == null || request == null) return;
+    if (request.cardId != widget.card.id) return;
+    if (request.serial == _answeredSerial) return;
+    _answeredSerial = request.serial;
+    // After this frame, when the card has its place and its size.
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.revealHandled(request.serial);
       if (!mounted) return;
       Scrollable.ensureVisible(
         context,

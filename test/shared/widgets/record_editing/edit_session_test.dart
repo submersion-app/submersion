@@ -275,6 +275,32 @@ void main() {
     expect(session.isDisposed, isTrue);
   });
 
+  // A sitting is frozen while it is being written, so what is saved is
+  // what the diver saw when they tapped Save.
+  test('a frozen session drops changes, and takes them again once thawed', () {
+    final session = EditSession(const _Rec(notes: 'a'))..set(_notes, 'b');
+    var told = 0;
+    session
+      ..addListener(() => told++)
+      ..freeze();
+    expect(session.isFrozen, isTrue);
+
+    session
+      ..set(_notes, 'late')
+      ..set(_depth, 9);
+
+    expect(session.valueOf(_notes), 'b');
+    expect(session.changedCardIds, {'notes'});
+    expect(told, 0);
+
+    session
+      ..thaw()
+      ..set(_notes, 'c');
+
+    expect(session.isFrozen, isFalse);
+    expect(session.valueOf(_notes), 'c');
+    expect(told, 1);
+  });
   test('revisionOf is counted per card', () {
     final session = EditSession(const _Rec(notes: 'a'))
       ..set(_notes, 'b')
