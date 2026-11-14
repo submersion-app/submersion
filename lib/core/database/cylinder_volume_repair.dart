@@ -39,7 +39,9 @@ Future<int> repairCylinderVolumeCubicFeet(DatabaseConnectionUser db) async {
         'JOIN equipment e ON e.id = v.equipment_id '
         "WHERE v.attr_key = 'volume_l' AND v.is_custom = 0 "
         "AND e.type = 'tank' AND v.value_num > ?",
-        variables: [Variable<double>(cylinderVolumeRepairThresholdLiters)],
+        variables: [
+          const Variable<double>(cylinderVolumeRepairThresholdLiters),
+        ],
       )
       .get();
   for (final row in rows) {
