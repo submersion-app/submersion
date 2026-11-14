@@ -9420,6 +9420,48 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Späte Gaswechsel';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Gegendiffusion';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Alle';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Gegendiffusion (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing =>
+      'Gegenläufiger Austausch';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gasaustausch';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, netto $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'ein';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'aus';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'gemischt';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gaswechsel';
 
   @override
@@ -22409,6 +22451,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Verstanden';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Profil zeigt isobare Gegendiffusion';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planungs-Hinweis bestätigt';
 
@@ -22782,6 +22828,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Später Gaswechsel';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobare Gegendiffusion';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobare Gegendiffusion während $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Ein Gaswechsel verletzte die Fünftelregel';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23359,6 +23418,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Isobare Gegendiffusion';
 
   @override
   String get settings_appearance_metric_events => 'Ereignisse';
@@ -28985,7 +29048,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Zeigt im ICD-Rechner eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.';
+      'Zeigt im ICD-Rechner und in der Gegendiffusionsanzeige des Tauchprofils eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-Berechnung';
@@ -63047,6 +63110,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Ein Gaswechsel kann das gesamte Inertgas im Gewebe ohne Tiefenänderung erhöhen, wenn Stickstoff schneller steigt als Helium fällt. Die übliche Prüfung, die Fünftelregel, begrenzt den Stickstoffanstieg auf ein Fünftel des Heliumrückgangs.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Gegendiffusion im Tauchprofil';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'Im Tauchprofil markiert ein oranges Band, wo ein Kompartiment bereits mehr Inertgas enthält, als eingeatmet wird, und trotzdem spürbar aufsättigt. Im Bühlmann-Modell fließt Helium schneller ab, als Stickstoff einströmt, daher zeigt ein Wechsel von Trimix auf Nitrox selten ein Band; die gestrichelte Linie am Wechsel zeigt stattdessen die Fünftelregel.';
 
   @override
   String get info_term_hypercapnia_label => 'Hyperkapnie';

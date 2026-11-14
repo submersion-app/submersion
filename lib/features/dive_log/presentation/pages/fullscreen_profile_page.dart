@@ -585,6 +585,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                             meanDepthCurve: analysis?.meanDepthCurve,
                             ttsCurve: analysis?.ttsCurve,
                             gasSwitchEfficiency: analysis?.gasSwitchEfficiency,
+                            counterdiffusion: analysis?.counterdiffusion,
                             gtrCurve: analysis?.gtrCurve,
                             cnsCurve: analysis?.cnsCurve,
                             otuCurve: analysis?.otuCurve,

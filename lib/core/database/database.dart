@@ -328,7 +328,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 366;
+  static const int currentSchemaVersion = 367;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1695,11 +1695,16 @@ class AppDatabase extends _$AppDatabase {
     // peer omits, so the floor does not move. Renumbered from 364, which
     // main took for #4525.
     365,
-    // v366: dives.media_time_offset_seconds, the correction for a camera
-    // whose clock disagrees with the dive computer's (issue #4539). A
-    // defaulted column an older peer omits, so the floor does not move.
+    // v366: diver_settings.default_show_counterdiffusion, the default
+    // visibility of the isobaric counterdiffusion overlay on the dive profile
+    // (issue #4530). Additive and defaulted off; the floor does not move.
     // Renumbered from 365, which main took for #4537.
     366,
+    // v367: dives.media_time_offset_seconds, the correction for a camera
+    // whose clock disagrees with the dive computer's (issue #4539). A
+    // defaulted column an older peer omits, so the floor does not move.
+    // Renumbered from 366, which main took for #4530.
+    367,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

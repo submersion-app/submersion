@@ -199,12 +199,19 @@ extension RungsFromV340 on AppDatabase {
     if (from < 365) await _assertRecentEquipmentColorsColumn();
     if (from < 365) await reportProgress();
 
-    // v366: dives.media_time_offset_seconds, the correction for a camera
+    // v366: diver_settings.default_show_counterdiffusion, the default
+    // visibility of the isobaric counterdiffusion overlay on the dive profile
+    // (issue #4530). Column only, defaulted off; re-asserted in beforeOpen.
+    // Renumbered from 365, which main took for #4537.
+    if (from < 366) await _assertDefaultShowCounterdiffusionColumn();
+    if (from < 366) await reportProgress();
+
+    // v367: dives.media_time_offset_seconds, the correction for a camera
     // whose clock disagrees with the dive computer's (issue #4539). Column
     // only, defaulted to 0, so the compatibility floor does not move.
-    // Re-asserted in beforeOpen. Renumbered from 365, which main took for
-    // #4537.
-    if (from < 366) await _assertDiveMediaTimeOffsetColumn();
-    if (from < 366) await reportProgress();
+    // Re-asserted in beforeOpen. Renumbered from 366, which main took for
+    // #4530.
+    if (from < 367) await _assertDiveMediaTimeOffsetColumn();
+    if (from < 367) await reportProgress();
   }
 }

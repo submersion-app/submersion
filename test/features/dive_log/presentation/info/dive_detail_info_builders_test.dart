@@ -207,6 +207,20 @@ void main() {
     ]);
   });
 
+  test('a counterdiffusion finding explains both the switch and the span', () {
+    // The rule fires on rule-of-fifths switches and on tissue-model spans;
+    // the ICD term alone describes only the switch (#4530).
+    final content = safetyReviewInfo(
+      l10n,
+      units,
+      rules: {SafetyRuleId.isobaricCounterdiffusion},
+    );
+    expect(labels(content), [
+      label(DiveTerm.isobaricCounterdiffusion),
+      label(DiveTerm.counterdiffusionProfile),
+    ]);
+  });
+
   test('cylinders on an open-circuit air dive have no loop or trimix', () {
     final content = cylindersInfo(
       l10n,
