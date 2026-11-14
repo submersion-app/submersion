@@ -12355,6 +12355,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours => '这些都已在你的潜水点中。';
+
+  @override
   String get diveSites_map_builtIn_zoomIn => '放大地图以查看所有内置潜水点';
 
   @override

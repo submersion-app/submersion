@@ -4018,6 +4018,7 @@
   "diveSites_picker_register_nearby": "Pecios y arrecifes cercanos",
   "diveSites_picker_register_show": "Mostrar pecios y arrecifes cartografiados ({count})",
   "diveSites_picker_register_capped": "Se muestran los {count} más cercanos. Busca para encontrar el resto.",
+  "diveSites_picker_register_allYours": "Todos están ya entre tus sitios.",
   "diveSites_map_builtIn_zoomIn": "Acerca el mapa para ver todos los sitios integrados",
   "diveSites_list_groupBy": "Agrupar por",
   "diveSites_list_groupBy_location": "País y región",

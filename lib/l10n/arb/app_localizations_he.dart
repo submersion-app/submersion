@@ -12715,6 +12715,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours =>
+      'כולם כבר נמצאים בין האתרים שלך.';
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'התקרב במפה כדי לראות את כל האתרים המובנים';
 

@@ -31,14 +31,14 @@ void main() {
     },
   );
 
-  /// The licence entry as one text, its line breaks folded.
-  Future<String> licenceText() async {
-    SiteCatalogueAttribution.registerLicense();
-    final entries = await LicenseRegistry.licenses
-        .where((entry) => entry.packages.contains('Dive site data'))
-        .toList();
-    return entries.last.paragraphs.map((p) => p.text).join('\n');
-  }
+  /// The licence entry as one text, its line breaks folded. Read from the
+  /// entry itself: registering it again for every test would leave a copy
+  /// in the app-wide registry each time.
+  Future<String> licenceText() async => SiteCatalogueAttribution
+      .licenceEntry
+      .paragraphs
+      .map((p) => p.text)
+      .join('\n');
 
   test('every source the shipped catalogue declares is credited with its '
       'licence', () async {
@@ -134,5 +134,15 @@ void main() {
 
   test('the credit is filed under one heading', () {
     expect(SiteCatalogueAttribution.packageName, 'Dive site data');
+  });
+
+  test('these tests register the credit once between them', () async {
+    // Last in the file: the registry is app-wide, and what a test adds to
+    // it stays for whatever runs next.
+    final entries = await LicenseRegistry.licenses
+        .where((entry) => entry.packages.contains('Dive site data'))
+        .toList();
+
+    expect(entries, hasLength(1));
   });
 }

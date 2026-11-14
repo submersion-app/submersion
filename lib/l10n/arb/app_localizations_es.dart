@@ -12999,6 +12999,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours =>
+      'Todos están ya entre tus sitios.';
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Acerca el mapa para ver todos los sitios integrados';
 

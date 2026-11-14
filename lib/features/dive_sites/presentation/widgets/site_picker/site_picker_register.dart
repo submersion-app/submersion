@@ -47,7 +47,8 @@ class SitePickerRegisterSection {
   bool _open = false;
   List<CatalogueSite> _sites = const [];
 
-  /// Whether the diver opened the section and it has rows to show.
+  /// Whether the diver opened the section and it read records to show
+  /// (rows, or the note that all of them are already the diver's).
   bool get isOpen => _open && _sites.isNotEmpty;
 
   /// Counts the register records around [anchor], and reads them again if
@@ -129,7 +130,22 @@ class SitePickerRegisterSection {
       offered = [...offered]
         ..sort((a, b) => compareTextForSort(a.name, b.name));
     }
-    if (offered.isEmpty) return const [];
+    if (offered.isEmpty) {
+      // Every record in reach is one the diver adopted or already has a
+      // site on: the count promised rows, so say where they went.
+      return [
+        () => SiteSectionLabel(label),
+        () => Padding(
+          padding: const EdgeInsets.fromLTRB(72, 8, 16, 16),
+          child: Text(
+            l10n.diveSites_picker_register_allYours,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ];
+    }
     return [
       () => SiteSectionLabel(label),
       for (final site in offered)

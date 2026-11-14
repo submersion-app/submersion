@@ -12968,6 +12968,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours =>
+      'Mindegyik már szerepel a merülőhelyei között.';
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Nagyítson a térképen az összes beépített merülőhely megjelenítéséhez';
 

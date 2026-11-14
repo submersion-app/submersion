@@ -3895,6 +3895,7 @@
   "diveSites_picker_register_nearby": "Relitti e reef nelle vicinanze",
   "diveSites_picker_register_show": "Mostra relitti e reef censiti ({count})",
   "diveSites_picker_register_capped": "Vengono mostrati i {count} più vicini. Cerca per trovare gli altri.",
+  "diveSites_picker_register_allYours": "Sono già tutti tra i tuoi siti.",
   "diveSites_map_builtIn_zoomIn": "Ingrandisci per vedere tutti i siti integrati",
   "diveSites_list_groupBy": "Raggruppa per",
   "diveSites_list_groupBy_location": "Paese e regione",

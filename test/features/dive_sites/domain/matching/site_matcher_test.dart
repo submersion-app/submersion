@@ -61,6 +61,35 @@ void main() {
       expect((out as AutoMatch).siteId, 'wreck');
     });
 
+    test('a dive site close behind a register record keeps it from being '
+        'picked on its own', () {
+      // At the strict setting the dive site, 120 m away, is outside the
+      // 100 m inside which a match is made, but it is too near the wreck
+      // at 60 m to say the dive was on the wreck and not the site.
+      const strict = MatchThresholds(
+        innerRadiusMeters: 100,
+        outerRadiusMeters: 500,
+        separationMeters: 100,
+      );
+      SiteMatchOutcome strictly(List<MatchCandidate> candidates) => matchDive(
+        point: _origin(),
+        candidates: candidates,
+        thresholds: strict,
+      );
+
+      final close = strictly([_register('wreck', 60), _bundled('site', 120)]);
+      expect(close, isA<Suggested>());
+      expect((close as Suggested).candidates.map((c) => c.candidate.id), [
+        'wreck',
+        'site',
+      ]);
+
+      // Well clear of it, the wreck is matched as before.
+      final clear = strictly([_register('wreck', 60), _bundled('site', 300)]);
+      expect(clear, isA<AutoMatch>());
+      expect((clear as AutoMatch).siteId, 'wreck');
+    });
+
     test('two register records too close to tell apart are suggested', () {
       final out = match([_register('a', 40), _register('b', 80)]);
 

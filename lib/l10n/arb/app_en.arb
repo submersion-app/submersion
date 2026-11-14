@@ -7741,6 +7741,7 @@
   "diveSites_picker_register_nearby": "Wrecks and reefs nearby",
   "diveSites_picker_register_show": "Show charted wrecks and reefs ({count})",
   "diveSites_picker_register_capped": "Showing the nearest {count}. Search to find the rest.",
+  "diveSites_picker_register_allYours": "All of these are already among your sites.",
   "diveSites_map_builtIn_zoomIn": "Zoom in to see every built-in site",
   "diveSites_list_groupBy": "Group by",
   "diveSites_list_groupBy_location": "Country & region",

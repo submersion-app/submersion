@@ -20592,6 +20592,12 @@ abstract class AppLocalizations {
   /// **'Showing the nearest {count}. Search to find the rest.'**
   String diveSites_picker_register_capped(Object count);
 
+  /// No description provided for @diveSites_picker_register_allYours.
+  ///
+  /// In en, this message translates to:
+  /// **'All of these are already among your sites.'**
+  String get diveSites_picker_register_allYours;
+
   /// No description provided for @diveSites_map_builtIn_zoomIn.
   ///
   /// In en, this message translates to:

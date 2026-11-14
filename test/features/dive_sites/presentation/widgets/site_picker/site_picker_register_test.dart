@@ -165,6 +165,35 @@ void main() {
     expect(builtInTitles(tester), isNot(contains('Mike Tug')));
   });
 
+  testWidgets('opened with every record already among the diver\'s sites, '
+      'it says so and does not vanish', (tester) async {
+    await pumpPicker(
+      tester,
+      catalogueSites: [
+        builtInSite('s1', 'Windsock', north: 500),
+        registerSite('w3', 'Zulu Trader', north: 200),
+      ],
+      diveLocation: saltPier,
+      sites: [
+        DiveSite(
+          id: 'mine-1',
+          name: 'Zulu Trader',
+          location: _mixed[2].location,
+          catalogueId: 'w3',
+        ),
+      ],
+    );
+
+    await _open(tester, 'Show charted wrecks and reefs (1)');
+
+    expect(find.text('Wrecks and reefs nearby'), findsOneWidget);
+    expect(
+      find.text('All of these are already among your sites.'),
+      findsOneWidget,
+    );
+    expect(find.text('Show charted wrecks and reefs (1)'), findsNothing);
+  });
+
   testWidgets('tapping a register row adopts it once and picks it', (
     tester,
   ) async {

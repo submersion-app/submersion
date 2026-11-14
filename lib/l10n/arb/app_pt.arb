@@ -4018,6 +4018,7 @@
   "diveSites_picker_register_nearby": "Naufrágios e recifes por perto",
   "diveSites_picker_register_show": "Mostrar naufrágios e recifes cartografados ({count})",
   "diveSites_picker_register_capped": "Mostrando os {count} mais próximos. Busque para encontrar os demais.",
+  "diveSites_picker_register_allYours": "Todos já estão entre os seus pontos.",
   "diveSites_map_builtIn_zoomIn": "Aproxime o mapa para ver todos os pontos integrados",
   "diveSites_list_groupBy": "Agrupar por",
   "diveSites_list_groupBy_location": "País e região",

@@ -13001,6 +13001,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours =>
+      'Todos já estão entre os seus pontos.';
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Aproxime o mapa para ver todos os pontos integrados';
 

@@ -21,9 +21,14 @@ abstract final class SiteCatalogueAttribution {
   /// declares one this text does not credit. Called once from `main()`.
   static void registerLicense() {
     LicenseRegistry.addLicense(() async* {
-      yield const LicenseEntryWithLineBreaks(
-        <String>[packageName],
-        '''
+      yield licenceEntry;
+    });
+  }
+
+  /// The credit itself, as the license page shows it.
+  static const licenceEntry = LicenseEntryWithLineBreaks(
+    <String>[packageName],
+    '''
 Built-in dive sites (assets/data/site_catalogue.json) contain information
 from OpenStreetMap, which is made available under the Open Database
 License (ODbL).
@@ -104,7 +109,5 @@ https://www.nc.gov/disclaimer-terms-use
 
 Positions and depths are as their sources published them. This data is
 not for navigation.''',
-      );
-    });
-  }
+  );
 }

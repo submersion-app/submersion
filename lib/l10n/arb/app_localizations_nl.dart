@@ -12914,6 +12914,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours =>
+      'Ze staan allemaal al tussen je stekken.';
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Zoom in om alle ingebouwde stekken te zien';
 

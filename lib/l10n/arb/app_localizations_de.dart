@@ -12990,6 +12990,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours =>
+      'Alle sind bereits unter deinen Tauchplätzen.';
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Hineinzoomen, um alle integrierten Tauchplätze zu sehen';
 

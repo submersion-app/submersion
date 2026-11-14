@@ -13046,6 +13046,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours =>
+      'Ils figurent tous déjà parmi tes sites.';
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'Zoome pour voir tous les sites intégrés';
 

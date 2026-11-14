@@ -3895,6 +3895,7 @@
   "diveSites_picker_register_nearby": "Épaves et récifs à proximité",
   "diveSites_picker_register_show": "Afficher les épaves et récifs répertoriés ({count})",
   "diveSites_picker_register_capped": "Les {count} plus proches sont affichés. Fais une recherche pour trouver les autres.",
+  "diveSites_picker_register_allYours": "Ils figurent tous déjà parmi tes sites.",
   "diveSites_map_builtIn_zoomIn": "Zoome pour voir tous les sites intégrés",
   "diveSites_list_groupBy": "Grouper par",
   "diveSites_list_groupBy_location": "Pays et région",

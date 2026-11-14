@@ -13183,6 +13183,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveSites_picker_register_allYours =>
+      'جميعها موجودة بالفعل ضمن مواقعك.';
+
+  @override
   String get diveSites_map_builtIn_zoomIn =>
       'قرّب الخريطة لرؤية جميع المواقع المدمجة';
 

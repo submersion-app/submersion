@@ -4018,6 +4018,7 @@
   "diveSites_picker_register_nearby": "Wrakken en riffen in de buurt",
   "diveSites_picker_register_show": "In kaart gebrachte wrakken en riffen tonen ({count})",
   "diveSites_picker_register_capped": "De dichtstbijzijnde {count} worden getoond. Zoek om de rest te vinden.",
+  "diveSites_picker_register_allYours": "Ze staan allemaal al tussen je stekken.",
   "diveSites_map_builtIn_zoomIn": "Zoom in om alle ingebouwde stekken te zien",
   "diveSites_list_groupBy": "Groeperen op",
   "diveSites_list_groupBy_location": "Land en regio",
