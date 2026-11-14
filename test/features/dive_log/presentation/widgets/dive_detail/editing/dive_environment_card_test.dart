@@ -574,12 +574,37 @@ void main() {
         ),
       );
 
-      // Worked out by hand: 21 C is 69.8 F, shown whole; 1.5 m is 4.92 ft,
-      // shown to one place.
-      expect(find.text('70 °F'), findsOneWidget);
+      // Worked out by hand: 21 C is 69.8 F; 1.5 m is 4.92 ft, shown to one
+      // place.
+      expect(find.text('69.8 °F'), findsOneWidget);
       expect(find.text('4.9 ft'), findsOneWidget);
       expect(find.text('60 %'), findsOneWidget);
       expect(controller.isDirty, isFalse);
+    });
+
+    // The read card shows a temperature to one decimal, without a trailing
+    // zero. A row that showed fewer could not be used to round the value.
+    testWidgets('air temperature shows the decimals the read card shows', (
+      tester,
+    ) async {
+      final controller = await pumpEditor(tester, full.copyWith(airTemp: 21.4));
+      expect(find.text('21.4 °C'), findsOneWidget);
+
+      await tester.tap(find.text('21.4 °C'));
+      await tester.pump();
+      await tester.enterText(
+        fieldOf(l10nOf(tester).diveLog_edit_label_airTemp),
+        '21',
+      );
+      await tester.pump();
+
+      expect(controller.session!.valueOf(diveAirTempField), 21);
+    });
+
+    testWidgets('a whole air temperature shows no decimals', (tester) async {
+      await pumpEditor(tester, full);
+
+      expect(find.text('21 °C'), findsOneWidget);
     });
 
     testWidgets('typing an air temperature in Fahrenheit stores Celsius', (
@@ -594,7 +619,7 @@ void main() {
       );
 
       final airTemp = fieldOf(l10nOf(tester).diveLog_edit_label_airTemp);
-      await tester.tap(find.text('70 °F'));
+      await tester.tap(find.text('69.8 °F'));
       await tester.pump();
       await tester.enterText(airTemp, '50');
       await tester.pump();

@@ -15,9 +15,12 @@ import 'package:submersion/shared/widgets/record_editing/record_edit_controller.
 /// [fromDisplay] carry it to and from the unit the diver reads. Emptying the
 /// row sets the field to null.
 ///
-/// Two values that show as the same number are the same value here, whatever
-/// the field's own equality says: a stored 1,234.5 m shown as 4050 ft reads
-/// back as 1,234.44 m, and that must not count as a change.
+/// What the diver types is what is stored, with one exception: the number
+/// the row is already showing is left as it is. A stored 1,234.5 m shown as
+/// 4050 ft would read back as 1,234.44 m, and a value shown with fewer
+/// decimals than it has would lose them; neither is a change the diver made.
+/// Any other number is taken as typed, so 100.4 typed over 100 is kept even
+/// where both show as "100".
 ///
 /// Text that is not a number never reaches the sitting. The row shows its
 /// own message and tells the page's [RecordEditController], which keeps the
@@ -36,6 +39,7 @@ class RecordNumberRow<T> extends StatefulWidget {
     this.fromDisplay,
     this.integer = false,
     this.allowNegative = true,
+    this.trimZeros = false,
   });
 
   final EditSession<T> session;
@@ -59,6 +63,10 @@ class RecordNumberRow<T> extends StatefulWidget {
   final bool integer;
   final bool allowNegative;
 
+  /// Whether decimals a value does not need are left off: 18 shows as "18"
+  /// and 21.4 as "21.4" at one decimal, the way a temperature reads.
+  final bool trimZeros;
+
   @override
   State<RecordNumberRow<T>> createState() => _RecordNumberRowState<T>();
 }
@@ -73,18 +81,9 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
   int _answeredSerial = 0;
 
   FieldTextBinding<T, double?> _bind() {
-    final field = widget.field;
     return FieldTextBinding<T, double?>(
       session: widget.session,
-      // The same field, compared by what the diver sees.
-      field: EditField<T, double?>(
-        id: field.id,
-        cardId: field.cardId,
-        read: field.read,
-        write: field.write,
-        equals: (a, b) =>
-            a == null || b == null ? a == b : _format(a) == _format(b),
-      ),
+      field: widget.field,
       // Read through the widget each time, so a change of unit is followed.
       format: _format,
       parse: _parse,
@@ -95,8 +94,16 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
   String _format(double? stored) {
     if (stored == null) return '';
     final shown = widget.toDisplay?.call(stored) ?? stored;
-    return formatFixedForInput(shown, widget.fractionDigits);
+    return widget.trimZeros
+        ? formatRoundedForInput(shown, widget.fractionDigits)
+        : formatFixedForInput(shown, widget.fractionDigits);
   }
+
+  /// The number the row shows for [stored], or null when it shows nothing.
+  double? _shownNumber(double? stored) => switch (readNumber(_format(stored))) {
+    NumberValue(:final value) => value,
+    NumberBlank() || NumberInvalid() => null,
+  };
 
   FieldInput<double?> _parse(String text) {
     final read = readNumber(
@@ -104,13 +111,26 @@ class _RecordNumberRowState<T> extends State<RecordNumberRow<T>> {
       integer: widget.integer,
       allowNegative: widget.allowNegative,
     );
-    return switch (read) {
-      NumberBlank() => const FieldValue(null),
-      NumberValue(:final value) => FieldValue(
-        widget.fromDisplay?.call(value) ?? value,
-      ),
-      NumberInvalid() => const FieldUnreadable(),
-    };
+    switch (read) {
+      case NumberBlank():
+        return const FieldValue(null);
+      case NumberInvalid():
+        return const FieldUnreadable();
+      case NumberValue(value: final typed):
+        // The number already on show stands for the value behind it, which
+        // may carry more than the row can show: the sitting's value first,
+        // then the stored one, so typing that back clears the change.
+        final session = widget.session;
+        final current = session.valueOf(widget.field);
+        if (current != null && typed == _shownNumber(current)) {
+          return FieldValue(current);
+        }
+        final stored = widget.field.read(session.stored);
+        if (stored != null && typed == _shownNumber(stored)) {
+          return FieldValue(stored);
+        }
+        return FieldValue(widget.fromDisplay?.call(typed) ?? typed);
+    }
   }
 
   void _report(bool unreadable) {

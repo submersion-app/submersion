@@ -226,6 +226,9 @@ class _DiveEnvironmentCardEditorState
         suffixText: units.temperatureSymbol,
         toDisplay: units.convertTemperature,
         fromDisplay: units.temperatureToCelsius,
+        // As the read card shows a temperature: one decimal when it has one.
+        fractionDigits: 1,
+        trimZeros: true,
       ),
       // Shown here as on the read card, and edited on the Altitude card.
       if (pressure != null)

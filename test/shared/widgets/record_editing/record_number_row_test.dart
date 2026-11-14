@@ -47,6 +47,7 @@ Widget _host(
   int fractionDigits = 0,
   String? placeholder,
   bool showRow = true,
+  bool trimZeros = false,
 }) {
   return MaterialApp(
     locale: const Locale('en'),
@@ -69,6 +70,7 @@ Widget _host(
                 integer: integer,
                 fractionDigits: fractionDigits,
                 placeholder: placeholder,
+                trimZeros: trimZeros,
               ),
             const TextField(key: ValueKey('elsewhere')),
           ],
@@ -327,6 +329,109 @@ void main() {
     await tester.pump();
 
     expect(controller.session!.valueOf(_altitude), 50);
+  });
+
+  // What the diver types is what is stored. The one exception is the number
+  // the row is already showing, which is left as it is: shown in another
+  // unit, or with fewer decimals than are stored, it would not read back to
+  // the same value.
+  group('what is typed is what is stored', () {
+    testWidgets('a number typed digit by digit keeps its last digit', (
+      tester,
+    ) async {
+      final controller = _unlocked(const _Rec());
+      await tester.pumpWidget(_host(controller, feet: false));
+      await tester.tap(find.text('Altitude'));
+      await tester.pump();
+
+      // 100 and 100.4 both show as "100" at no decimals.
+      await tester.enterText(find.byType(TextFormField), '100');
+      await tester.pump();
+      await tester.enterText(find.byType(TextFormField), '100.4');
+      await tester.pump();
+
+      expect(controller.session!.valueOf(_altitude), 100.4);
+    });
+
+    testWidgets('a finer value than the stored one is a change', (
+      tester,
+    ) async {
+      final controller = _unlocked(const _Rec(altitude: 100));
+      await tester.pumpWidget(_host(controller, feet: false));
+
+      await _type(tester, '100 m', '100.4');
+
+      expect(controller.isDirty, isTrue);
+      expect(controller.session!.valueOf(_altitude), 100.4);
+    });
+
+    testWidgets('a stored value can be rounded by typing the round number', (
+      tester,
+    ) async {
+      final controller = _unlocked(const _Rec(altitude: 21.4));
+      await tester.pumpWidget(
+        _host(controller, feet: false, fractionDigits: 1),
+      );
+
+      await _type(tester, '21.4 m', '21');
+
+      expect(controller.session!.valueOf(_altitude), 21);
+      expect(controller.isDirty, isTrue);
+    });
+
+    testWidgets('typing the number the row shows is no change', (tester) async {
+      // Stored with more decimals than the row shows.
+      final controller = _unlocked(const _Rec(altitude: 21.44));
+      await tester.pumpWidget(
+        _host(controller, feet: false, fractionDigits: 1),
+      );
+
+      await _type(tester, '21.4 m', '21');
+      await tester.enterText(find.byType(TextFormField), '21.4');
+      await tester.pump();
+
+      expect(controller.isDirty, isFalse);
+      expect(controller.session!.valueOf(_altitude), 21.44);
+    });
+
+    testWidgets('typed decimals the row would not show stay in the field', (
+      tester,
+    ) async {
+      final controller = _unlocked(const _Rec(altitude: 55));
+      await tester.pumpWidget(_host(controller, feet: false));
+
+      await _type(tester, '55 m', '55.4');
+      // Anything else changing in the sitting must not tidy it away.
+      controller.session!.rebase(const _Rec(altitude: 55));
+      await tester.pump();
+
+      expect(
+        tester
+            .widget<TextFormField>(find.byType(TextFormField))
+            .controller!
+            .text,
+        '55.4',
+      );
+      expect(controller.session!.valueOf(_altitude), 55.4);
+    });
+
+    testWidgets('trimZeros drops decimals a whole number does not need', (
+      tester,
+    ) async {
+      final whole = _unlocked(const _Rec(altitude: 18));
+      await tester.pumpWidget(
+        _host(whole, feet: false, fractionDigits: 1, trimZeros: true),
+      );
+      expect(find.text('18 m'), findsOneWidget);
+
+      final fine = _unlocked(const _Rec(altitude: 21.44));
+      await tester.pumpWidget(
+        _host(fine, feet: false, fractionDigits: 1, trimZeros: true),
+      );
+      await tester.pump();
+      expect(find.text('21.4 m'), findsOneWidget);
+      expect(fine.isDirty, isFalse);
+    });
   });
 
   // A refused Done or Save names the unreadable field, and its row brings
