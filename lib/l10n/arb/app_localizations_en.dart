@@ -12779,6 +12779,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'Use this site';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Wrecks and reefs near $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'Wrecks and reefs nearby';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Show charted wrecks and reefs ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Showing the nearest $count. Search to find the rest.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'All of these are already among your sites.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'The nearest $count are already among your sites. Search to find the rest.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Zoom in to see every built-in site';
+
+  @override
   String get diveSites_list_groupBy => 'Group by';
 
   @override

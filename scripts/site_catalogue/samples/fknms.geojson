@@ -1,0 +1,245 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": 43,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.3776855469999,
+     25.008050919
+    ]
+   },
+   "properties": {
+    "OBJECTID": 43,
+    "Buoy_Number": "M1",
+    "FKNMSRegion": "Upper Region",
+    "Location": "Molasses Reef",
+    "Resource_Shipwreck_": "Natural Resource",
+    "Location_Abbreviation": "M",
+    "BuoyType": "Mooring",
+    "LV": null,
+    "AnchoringType_abbreviated": "P",
+    "AnchoringType": "Pin",
+    "Depth__ft_": 24,
+    "Latitude_Y": 25.00805,
+    "Longitude_X": -80.37769,
+    "DDM": "25.00.483",
+    "LO_DDM_": "80.22.661",
+    "LO__DD_": 0.3776833,
+    "ORDER_ID": 190
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 44,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.377113342,
+     25.0083007810001
+    ]
+   },
+   "properties": {
+    "OBJECTID": 44,
+    "Buoy_Number": "M2",
+    "FKNMSRegion": "Upper Region",
+    "Location": "Molasses Reef",
+    "Resource_Shipwreck_": "Natural Resource",
+    "Location_Abbreviation": "M",
+    "BuoyType": "Mooring",
+    "LV": null,
+    "AnchoringType_abbreviated": "P",
+    "AnchoringType": "Pin",
+    "Depth__ft_": 21,
+    "Latitude_Y": 25.0083,
+    "Longitude_X": -80.37711,
+    "DDM": "25.00.498",
+    "LO_DDM_": "80.22.627",
+    "LO__DD_": 0.3771167,
+    "ORDER_ID": 191
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 45,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.3767852779999,
+     25.0084171300001
+    ]
+   },
+   "properties": {
+    "OBJECTID": 45,
+    "Buoy_Number": "M3",
+    "FKNMSRegion": "Upper Region",
+    "Location": "Molasses Reef",
+    "Resource_Shipwreck_": "Natural Resource",
+    "Location_Abbreviation": "M",
+    "BuoyType": "Mooring",
+    "LV": null,
+    "AnchoringType_abbreviated": "P",
+    "AnchoringType": "Pin",
+    "Depth__ft_": 22,
+    "Latitude_Y": 25.00842,
+    "Longitude_X": -80.37679,
+    "DDM": "25.00.505",
+    "LO_DDM_": "80.22.607",
+    "LO__DD_": 0.3767833,
+    "ORDER_ID": 192
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 101,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.31288147,
+     25.0661506650001
+    ]
+   },
+   "properties": {
+    "OBJECTID": 101,
+    "Buoy_Number": "SG 1",
+    "FKNMSRegion": "Upper Region",
+    "Location": "The Spiegel Grove",
+    "Resource_Shipwreck_": "Shipwreck",
+    "Location_Abbreviation": "SG",
+    "BuoyType": "Mooring Wreck",
+    "LV": null,
+    "AnchoringType_abbreviated": "WW",
+    "AnchoringType": "WW 10' 1 1/4\"",
+    "Depth__ft_": 61,
+    "Latitude_Y": 25.06615,
+    "Longitude_X": -80.31288,
+    "DDM": "25.03.969",
+    "LO_DDM_": "80.18.773",
+    "LO__DD_": 0.3128833,
+    "ORDER_ID": 131
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 102,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.312698364,
+     25.06603241
+    ]
+   },
+   "properties": {
+    "OBJECTID": 102,
+    "Buoy_Number": "SG 2",
+    "FKNMSRegion": "Upper Region",
+    "Location": "The Spiegel Grove",
+    "Resource_Shipwreck_": "Shipwreck",
+    "Location_Abbreviation": "SG",
+    "BuoyType": "Mooring Wreck",
+    "LV": null,
+    "AnchoringType_abbreviated": "WW",
+    "AnchoringType": "WW 10' 1 1/4\"",
+    "Depth__ft_": 129,
+    "Latitude_Y": 25.06603,
+    "Longitude_X": -80.3127,
+    "DDM": "25.03.962",
+    "LO_DDM_": "80.18.762",
+    "LO__DD_": 0.3127,
+    "ORDER_ID": 132
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 42,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.39389801,
+     25.0363674160001
+    ]
+   },
+   "properties": {
+    "OBJECTID": 42,
+    "Buoy_Number": "Amys SPAR",
+    "FKNMSRegion": "Upper Region",
+    "Location": "Amys",
+    "Resource_Shipwreck_": null,
+    "Location_Abbreviation": "AD",
+    "BuoyType": "Spar",
+    "LV": null,
+    "AnchoringType_abbreviated": "M",
+    "AnchoringType": "Manta",
+    "Depth__ft_": 11,
+    "Latitude_Y": 25.03637,
+    "Longitude_X": -80.3939,
+    "DDM": "25.02.702",
+    "LO_DDM_": "80.23.634",
+    "LO__DD_": 0.3939,
+    "ORDER_ID": 189
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 18,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.354484558,
+     25.0392837520001
+    ]
+   },
+   "properties": {
+    "OBJECTID": 18,
+    "Buoy_Number": "F A",
+    "FKNMSRegion": "Upper Region",
+    "Location": "French Reef SPA Boundaries",
+    "Resource_Shipwreck_": "Natural Resource",
+    "Location_Abbreviation": "F",
+    "BuoyType": "SPA Boundary",
+    "LV": null,
+    "AnchoringType_abbreviated": "M",
+    "AnchoringType": "Manta",
+    "Depth__ft_": 16,
+    "Latitude_Y": 25.03928,
+    "Longitude_X": -80.35448,
+    "DDM": "25.02.357",
+    "LO_DDM_": "80.21.269",
+    "LO__DD_": 0.3544833,
+    "ORDER_ID": 168
+   }
+  },
+  {
+   "type": "Feature",
+   "id": 21,
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.350784302,
+     25.0356826780001
+    ]
+   },
+   "properties": {
+    "OBJECTID": 21,
+    "Buoy_Number": "FI",
+    "FKNMSRegion": null,
+    "Location": null,
+    "Resource_Shipwreck_": "i-beam",
+    "Location_Abbreviation": null,
+    "BuoyType": "I Beam",
+    "LV": null,
+    "AnchoringType_abbreviated": null,
+    "AnchoringType": null,
+    "Depth__ft_": null,
+    "Latitude_Y": 25.03568,
+    "Longitude_X": -80.35078,
+    "DDM": "25.02.141",
+    "LO_DDM_": "80.21.047",
+    "LO__DD_": 0.3507833,
+    "ORDER_ID": 171
+   }
+  }
+ ]
+}

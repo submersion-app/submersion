@@ -10,6 +10,15 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// against such a source.
 enum CatalogueTrust { verified, researched }
 
+/// What kind of list a catalogue record came from.
+///
+/// A [site] comes from a source that lists places people dive. A [register]
+/// record comes from a list of things on the seabed: a wreck register or a
+/// reef deployment list. There are many times more of those, so the picker
+/// keeps them in a section of their own and GPS matching prefers a dive
+/// site to one of them.
+enum CatalogueKind { site, register }
+
 /// One site of the built-in catalogue (`assets/data/site_catalogue.json`).
 ///
 /// Not one of the diver's sites: adopting it creates a [DiveSite] whose
@@ -58,6 +67,7 @@ class CatalogueSite extends Equatable {
   /// position cites.
   final String? sourceRef;
   final CatalogueTrust trust;
+  final CatalogueKind kind;
 
   const CatalogueSite({
     required this.id,
@@ -82,6 +92,7 @@ class CatalogueSite extends Equatable {
     required this.source,
     this.sourceRef,
     this.trust = CatalogueTrust.verified,
+    this.kind = CatalogueKind.site,
   });
 
   bool get hasCoordinates => location != null;
@@ -110,6 +121,7 @@ class CatalogueSite extends Equatable {
     source,
     sourceRef,
     trust,
+    kind,
   ];
 }
 

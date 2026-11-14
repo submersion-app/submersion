@@ -13165,6 +13165,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'استخدام هذا الموقع';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'حطام وشعاب بالقرب من $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'حطام وشعاب قريبة';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'عرض الحطام والشعاب المسجّلة ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'يُعرض أقرب $count. ابحث للعثور على البقية.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'جميعها موجودة بالفعل ضمن مواقعك.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'أقرب $count موجودة بالفعل ضمن مواقعك. ابحث للعثور على البقية.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'قرّب الخريطة لرؤية جميع المواقع المدمجة';
+
+  @override
   String get diveSites_list_groupBy => 'التجميع حسب';
 
   @override

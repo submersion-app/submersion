@@ -13028,6 +13028,37 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'Utiliser ce site';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Épaves et récifs près de $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'Épaves et récifs à proximité';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Afficher les épaves et récifs répertoriés ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Les $count plus proches sont affichés. Fais une recherche pour trouver les autres.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Ils figurent tous déjà parmi tes sites.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'Les $count plus proches figurent déjà parmi tes sites. Fais une recherche pour trouver les autres.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Zoome pour voir tous les sites intégrés';
+
+  @override
   String get diveSites_list_groupBy => 'Grouper par';
 
   @override

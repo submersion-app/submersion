@@ -30,6 +30,8 @@ const _columns = [
   'source',
   'source_ref',
   'trust',
+  // Added by v22; a fresh database is created with it.
+  'kind',
 ];
 
 Future<List<String>> _columnsOf(LocalCacheDatabase db, String table) async =>

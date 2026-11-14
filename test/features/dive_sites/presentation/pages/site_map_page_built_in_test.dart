@@ -9,8 +9,10 @@ import 'package:submersion/features/dive_sites/domain/entities/site_classificati
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_map_page.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/built_in_overlay_view.dart';
 import 'package:submersion/features/maps/domain/entities/heat_map_point.dart';
 import 'package:submersion/features/maps/presentation/providers/heat_map_providers.dart';
+import 'package:submersion/features/site_scape/presentation/site_scape_view.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -60,6 +62,7 @@ Future<void> _semanticsTap(WidgetTester tester, String label) async {
 Future<ProviderContainer> _pumpMap(
   WidgetTester tester, {
   required List<Override> extraOverrides,
+  Locale? locale,
 }) async {
   final base = await getBaseOverrides();
   late ProviderContainer container;
@@ -76,10 +79,11 @@ Future<ProviderContainer> _pumpMap(
       child: Builder(
         builder: (context) {
           container = ProviderScope.containerOf(context);
-          return const MaterialApp(
+          return MaterialApp(
+            locale: locale,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: SiteMapPage(),
+            home: const SiteMapPage(),
           );
         },
       ),
@@ -92,6 +96,40 @@ Future<ProviderContainer> _pumpMap(
 }
 
 void main() {
+  testWidgets('the zoom-in caption wraps beside the map controls on a phone, '
+      'however long its language makes it', (tester) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(360, 700);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final container = await _pumpMap(
+      tester,
+      // Hungarian's caption is twice the length of the English one.
+      locale: const Locale('hu'),
+      extraOverrides: [
+        visibleBuiltInSitesProvider.overrideWith((ref) async => [_builtInA]),
+        builtInOverlayTruncatedProvider.overrideWithValue(true),
+      ],
+    );
+    container.read(showBuiltInSitesProvider.notifier).state = true;
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final caption = tester.getRect(
+      find.descendant(
+        of: find.byType(BuiltInOverlayCaption),
+        matching: find.byType(Material),
+      ),
+    );
+    final controls = tester.getRect(find.byType(SiteScapeModeToggle));
+    expect(caption.right, lessThanOrEqualTo(controls.left));
+    expect(caption.left, greaterThanOrEqualTo(0));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('built-in pins appear only when the toggle is on', (
     tester,
   ) async {

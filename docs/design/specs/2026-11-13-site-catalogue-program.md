@@ -41,7 +41,7 @@ These were chosen by the maintainer during the design conversation.
 | # | Slice | What it delivers | Status |
 |---|---|---|---|
 | 1 | Catalogue foundation and picker | New catalogue format and storage, picker with area memory, one adoption path with fuller details and a stored link, OpenStreetMap credit | Design: `2026-11-13-site-catalogue-picker-design.md` |
-| 2 | Open-register expansion | Harvester pulls the open registers below and removes overlap; cleans the existing data | Not designed |
+| 2 | Open-register expansion | Harvester pulls the open registers below and removes overlap; cleans the existing data | Design: `2026-11-14-site-catalogue-register-expansion-design.md` |
 | 3 | AI-researched sites | The research process, what each site must cite, checks before one ships, the "not verified" badge and its matching rule | Not designed |
 | 4 | Fill gaps in existing sites | A review list offering catalogue details for sites the diver already has; links sites adopted before slice 1 | Not designed |
 | 5 | Browse before diving | Catalogue site pages, catalogue sites on the map by default | Not designed |
@@ -82,11 +82,19 @@ usable name.
 | SHOM (France) wrecks | 2,197 named | Unclear | Only after the licence is confirmed | |
 | Wikivoyage dive guides | 700 to 1,000 sites (estimated) | CC BY-SA 4.0 | No | Cannot be merged into an ODbL table |
 | Dive Vibe community repo | 4,076 | ODbL, mixed origins | No | See above |
-| New Jersey, North Carolina reef programs | 3,828 and 50 | Restrictive or non-commercial | No | |
+| New Jersey, North Carolina reef programs | 3,828 deployments and 55 sites | Conditions on redistribution; non-commercial and unaltered | Yes, kept apart (decided 2026-11-14) | Own-terms sources; see the slice 2 spec |
 | wrecksite.eu, WannaDive, Diveboard | n/a | Proprietary or non-commercial | No | |
 
+**Corrected on 2026-11-14.** Slice 2 downloaded and measured every source;
+its spec holds the figures that replace this table. In short: NOAA's ENC
+wrecks are unnamed and drop out; AWOIS has 2,376 named wrecks, 646 of them
+with a good position, and survives only as an archive copy; the federal reef
+file is a compilation of state data, each with its own terms; 590 Irish
+positions come from wrecksite.eu; SHOM is CC BY-SA and is out.
+
 Realistic total after removing overlap (estimated): 28,000 to 31,000 named
-points, about 8 times today's catalogue. Of those, 4,500 to 5,000 are
+points, about 8 times today's catalogue. Measured: about 28,400, of which
+about 21,400 have a position that can be defended; slice 2 ships those. Of those, 4,500 to 5,000 are
 recreational dive sites, 17,000 to 20,000 are wrecks and about 6,000 are US
 artificial reefs. None of the open sources supplies difficulty or entry type,
 so recognisable reef and shore sites and richer details depend on slice 3.
@@ -101,7 +109,13 @@ so recognisable reef and shore sites and richer details depend on slice 3.
   data, and the database offered to anyone who asks. The harvester and the
   data file live in this public repository, which satisfies the offer.
 - CC0, public domain, Open Government Licence and CC BY sources can be merged
-  in. CC BY-SA and non-commercial sources cannot.
+  in. CC BY-SA sources cannot.
+- **Amended on 2026-11-14.** A non-commercial term does not exclude a source:
+  Submersion is open source and takes no money. Such a source cannot be
+  offered under ODbL, which allows commercial reuse, so its records ship as
+  an own-terms collection beside the ODbL database: never de-duplicated into
+  it, marked with their own terms, and left out of the ODbL offer. A source
+  that forbids redistribution stays out. The slice 2 spec has the rules.
 - Every record carries its source and licence so each source's credit can be
   shown.
 - The app carries no OpenStreetMap credit for this data today. Slice 1 adds

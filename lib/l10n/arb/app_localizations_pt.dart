@@ -12982,6 +12982,38 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'Usar este ponto';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Naufrágios e recifes perto de $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Naufrágios e recifes por perto';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Mostrar naufrágios e recifes cartografados ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Mostrando os $count mais próximos. Busque para encontrar os demais.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Todos já estão entre os seus pontos.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'Os $count mais próximos já estão entre os seus pontos. Busque para encontrar os demais.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Aproxime o mapa para ver todos os pontos integrados';
+
+  @override
   String get diveSites_list_groupBy => 'Agrupar por';
 
   @override

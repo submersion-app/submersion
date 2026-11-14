@@ -2,6 +2,7 @@ import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
@@ -24,7 +25,11 @@ class FakeSiteCatalogue implements SiteCatalogue {
   int nearCalls = 0;
   int searchCalls = 0;
   int byIdCalls = 0;
-  int allWithCoordinatesCalls = 0;
+  int countNearCalls = 0;
+  int inBoundsCalls = 0;
+
+  /// The bounds of every [inBounds] call, in order.
+  final List<CatalogueBounds> boundsAsked = [];
 
   /// The query of every [search] call, in order.
   final List<String> searches = [];
@@ -34,15 +39,63 @@ class FakeSiteCatalogue implements SiteCatalogue {
     GeoPoint point, {
     required double radiusMeters,
     int limit = 500,
+    CatalogueKind? kind,
   }) async {
     nearCalls++;
     final inside = [
       for (final site in sites)
-        if (site.location case final location?)
-          if (distanceMeters(point, location) <= radiusMeters)
-            (site: site, distance: distanceMeters(point, location)),
+        if (kind == null || site.kind == kind)
+          if (site.location case final location?)
+            if (distanceMeters(point, location) <= radiusMeters)
+              (site: site, distance: distanceMeters(point, location)),
     ]..sort((a, b) => a.distance.compareTo(b.distance));
     return [for (final entry in inside.take(limit)) entry.site];
+  }
+
+  @override
+  Future<int> countNear(
+    GeoPoint point, {
+    required double radiusMeters,
+    required CatalogueKind kind,
+  }) async {
+    countNearCalls++;
+    return sites
+        .where(
+          (site) =>
+              site.kind == kind &&
+              site.location != null &&
+              distanceMeters(point, site.location!) <= radiusMeters,
+        )
+        .length;
+  }
+
+  @override
+  Future<CatalogueBoundsResult> inBounds(
+    CatalogueBounds bounds, {
+    int limit = 1500,
+  }) async {
+    inBoundsCalls++;
+    boundsAsked.add(bounds);
+    final inside = [
+      for (final site in sites)
+        if (site.location case final location? when bounds.contains(location))
+          site,
+    ];
+    final center = bounds.center;
+    int nearestFirst(CatalogueSite a, CatalogueSite b) => distanceMeters(
+      center,
+      a.location!,
+    ).compareTo(distanceMeters(center, b.location!));
+    final ordered = [
+      ...inside.where((site) => site.kind == CatalogueKind.site).toList()
+        ..sort(nearestFirst),
+      ...inside.where((site) => site.kind == CatalogueKind.register).toList()
+        ..sort(nearestFirst),
+    ];
+    return (
+      sites: ordered.take(limit).toList(),
+      truncated: ordered.length > limit,
+    );
   }
 
   @override
@@ -80,11 +133,20 @@ class FakeSiteCatalogue implements SiteCatalogue {
       return words.every(name.contains);
     }
 
+    // Within each group, dive sites before register records.
+    List<CatalogueSite> group(bool Function(CatalogueSite) test) {
+      final members = matches.where(test).toList();
+      return [
+        ...members.where((site) => site.kind == CatalogueKind.site),
+        ...members.where((site) => site.kind == CatalogueKind.register),
+      ];
+    }
+
     return [
-      ...matches.where((site) => byName(site) && inArea(site)),
-      ...matches.where((site) => byName(site) && !inArea(site)),
-      ...matches.where((site) => !byName(site) && inArea(site)),
-      ...matches.where((site) => !byName(site) && !inArea(site)),
+      ...group((site) => byName(site) && inArea(site)),
+      ...group((site) => byName(site) && !inArea(site)),
+      ...group((site) => !byName(site) && inArea(site)),
+      ...group((site) => !byName(site) && !inArea(site)),
     ].take(limit).toList();
   }
 
@@ -92,12 +154,6 @@ class FakeSiteCatalogue implements SiteCatalogue {
   Future<CatalogueSite?> byId(String id) async {
     byIdCalls++;
     return sites.where((site) => site.id == id).firstOrNull;
-  }
-
-  @override
-  Future<List<CatalogueSite>> allWithCoordinates() async {
-    allWithCoordinatesCalls++;
-    return sites.where((site) => site.hasCoordinates).toList();
   }
 
   @override

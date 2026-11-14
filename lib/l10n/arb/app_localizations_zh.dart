@@ -12337,6 +12337,35 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => '使用此潜水点';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return '$place附近的沉船和礁石';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => '附近的沉船和礁石';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return '显示已标注的沉船和礁石（$count）';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return '仅显示最近的 $count 个。请搜索以查找其余结果。';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours => '这些都已在你的潜水点中。';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return '最近的 $count 个都已在你的潜水点中。请搜索以查找其余结果。';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn => '放大地图以查看所有内置潜水点';
+
+  @override
   String get diveSites_list_groupBy => '分组方式';
 
   @override

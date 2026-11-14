@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_bounds.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -8,16 +9,38 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 abstract interface class SiteCatalogue {
   /// Sites within [radiusMeters] of [point], nearest first. Sites without
   /// coordinates are never returned.
+  ///
+  /// With [kind], only records of that kind, and [limit] counts those
+  /// alone: the picker lists dive sites and register records apart.
   Future<List<CatalogueSite>> near(
     GeoPoint point, {
     required double radiusMeters,
     int limit = 500,
+    CatalogueKind? kind,
+  });
+
+  /// How many records of [kind] lie within [radiusMeters] of [point],
+  /// without reading them: there can be thousands of register records
+  /// where there are a dozen dive sites.
+  Future<int> countNear(
+    GeoPoint point, {
+    required double radiusMeters,
+    required CatalogueKind kind,
+  });
+
+  /// The sites in [bounds], for a map: at most [limit], dive sites first,
+  /// then register records, each kind nearest the middle of the box first.
+  /// `truncated` says the box held more.
+  Future<CatalogueBoundsResult> inBounds(
+    CatalogueBounds bounds, {
+    int limit = 1500,
   });
 
   /// Sites whose name or place matches every word of [query].
   ///
   /// With [areaFirst], matches within [areaRadiusMeters] of it come first;
-  /// the rest follow by name. A blank query matches nothing.
+  /// the rest follow by name. Among matches that are otherwise equal, dive
+  /// sites come before register records. A blank query matches nothing.
   Future<List<CatalogueSite>> search(
     String query, {
     GeoPoint? areaFirst,
@@ -26,9 +49,6 @@ abstract interface class SiteCatalogue {
   });
 
   Future<CatalogueSite?> byId(String id);
-
-  /// Every site that has coordinates, for the map overlay.
-  Future<List<CatalogueSite>> allWithCoordinates();
 
   /// The source a record names in its `source`.
   Future<CatalogueSource?> source(String key);

@@ -1,0 +1,258 @@
+{
+ "elements": [
+  {
+   "type": "node",
+   "id": 663869401,
+   "lat": 12.0835942,
+   "lon": -68.2819519,
+   "tags": {
+    "name": "Salt Pier",
+    "note": "Not allowed to access when there's a ship at the pier",
+    "sport": "scuba_diving",
+    "website": "https://www.shorediving.com/Earth/ABC/BonaireS/Salt_Pier/index.htm"
+   }
+  },
+  {
+   "type": "node",
+   "id": 5710652974,
+   "lat": 27.3032589,
+   "lon": 33.8262069,
+   "tags": {
+    "name": "Sha'ab Bruce",
+    "scuba_diving:attraction:biology": "yes",
+    "scuba_diving:attraction:reef": "yes",
+    "scuba_diving:depth": "7",
+    "scuba_diving:entry:boat": "yes",
+    "scuba_diving:maxdepth": "13",
+    "scuba_diving:type:sea": "yes",
+    "sport": "scuba_diving"
+   }
+  },
+  {
+   "type": "way",
+   "id": 4323234,
+   "center": {
+    "lat": 51.2833855,
+    "lon": 4.3967241
+   },
+   "tags": {
+    "alt_name": "Grote Put",
+    "intermittent": "no",
+    "name": "Put van Ekeren",
+    "natural": "water",
+    "salt": "no",
+    "scuba_diving:current": "0",
+    "scuba_diving:depth": "21m",
+    "scuba_diving:divespot": "yes",
+    "sport": "scuba_diving",
+    "tidal": "no",
+    "water": "lake"
+   }
+  },
+  {
+   "type": "node",
+   "id": 68531521,
+   "lat": 27.158759,
+   "lon": 33.8247073,
+   "tags": {
+    "amenity": "dive_centre",
+    "name": "Emperor Divers",
+    "sport": "scuba_diving"
+   }
+  },
+  {
+   "type": "node",
+   "id": 33756441,
+   "lat": 28.498434,
+   "lon": 34.5177424,
+   "tags": {
+    "name": "Sea Dancer",
+    "shop": "scuba_diving",
+    "sport": "scuba_diving"
+   }
+  },
+  {
+   "type": "way",
+   "id": 153071972,
+   "center": {
+    "lat": 47.8359313,
+    "lon": 12.1544695
+   },
+   "tags": {
+    "addr:city": "Rohrdorf",
+    "addr:country": "DE",
+    "addr:housenumber": "6 1/2",
+    "addr:postcode": "83101",
+    "addr:street": "Ahornstraße",
+    "building": "yes",
+    "club": "scuba_diving",
+    "name": "Tauchclub Octopus",
+    "source": "DOP_LVA_BY_01",
+    "sport": "scuba_diving"
+   }
+  },
+  {
+   "type": "node",
+   "id": 663870622,
+   "lat": 53.5086083,
+   "lon": 8.0944529,
+   "tags": {
+    "addr:city": "Wilhelmshaven",
+    "addr:country": "DE",
+    "addr:housenumber": "15",
+    "addr:postcode": "26382",
+    "addr:street": "Henschelstraße",
+    "club": "scuba_diving",
+    "name": "Banter See - UWC Heim",
+    "scuba_diving:divespot": "yes",
+    "sport": "scuba_diving",
+    "website": "https://www.uwc-manta.de/"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2130801890,
+   "lat": 16.3220366,
+   "lon": -86.5068895,
+   "tags": {
+    "name": "Tobri Divers",
+    "sport": "scuba_diving",
+    "tourism": "hotel"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4432316400,
+   "lat": 1.45695,
+   "lon": 124.7625408,
+   "tags": {
+    "name": "Murex Dive",
+    "scuba_diving:nitrox_filling": "yes",
+    "scuba_diving:rental": "yes",
+    "sport": "scuba_diving",
+    "tourism": "hotel"
+   }
+  },
+  {
+   "type": "node",
+   "id": 663869535,
+   "lat": 45.255239,
+   "lon": -81.6808551,
+   "tags": {
+    "historic": "wreck",
+    "leisure": "divespot",
+    "location": "underwater",
+    "name": "Sweepstakes (schooner)",
+    "scuba_diving:divespot": "Sweepstakes (schooner)",
+    "scuba_diving:maxdepth": "7m",
+    "scuba_diving:type": "wreck",
+    "seamark:type": "wreck",
+    "seamark:wreck:category": "distributed_remains",
+    "source": "https://www.pc.gc.ca/en/amnc-nmca/on/fathomfive/activ/plong-dive/activ2a",
+    "sport": "scuba_diving",
+    "tourism": "viewpoint",
+    "wreck:date_sunk": "1885",
+    "wreck:length": "36.3m",
+    "wreck:type": "schooner"
+   }
+  },
+  {
+   "type": "node",
+   "id": 270985343,
+   "lat": 7.8073921,
+   "lon": 98.6273756,
+   "tags": {
+    "name": "Hin Jom",
+    "name:en": "Anemone Reef",
+    "natural": "reef",
+    "sport": "scuba_diving",
+    "tourism": "attraction"
+   }
+  },
+  {
+   "type": "node",
+   "id": 384934092,
+   "lat": 36.0817449,
+   "lon": 14.2486946,
+   "tags": {
+    "name": "Calypso Cave",
+    "natural": "cave_entrance",
+    "scuba_diving:divespot": "yes",
+    "sport": "scuba_diving"
+   }
+  },
+  {
+   "type": "node",
+   "id": 764536299,
+   "lat": 47.8597579,
+   "lon": 4.5793746,
+   "tags": {
+    "drinking_water:signed": "no",
+    "karst": "yes",
+    "name": "Douix de Châtillon",
+    "natural": "spring",
+    "scuba_diving:divespot": "yes",
+    "scuba_diving:type:speleology": "yes",
+    "sport": "scuba_diving"
+   }
+  },
+  {
+   "type": "node",
+   "id": 663869563,
+   "lat": 53.122765,
+   "lon": -4.1138938,
+   "tags": {
+    "disused": "yes",
+    "landuse": "quarry",
+    "name": "Vivian Quarry",
+    "source": "www.dive-links.com",
+    "sport": "scuba_diving",
+    "website": "http://www.dive-links.com/tauchplatz.php?id=1985"
+   }
+  },
+  {
+   "type": "node",
+   "id": 31567779,
+   "lat": -5.7461293,
+   "lon": 39.2866147,
+   "tags": {
+    "scuba_diving:divespot": "yes",
+    "sport": "scuba_diving"
+   }
+  },
+  {
+   "type": "node",
+   "id": 663869458,
+   "lat": 26.453632,
+   "lon": -80.056344,
+   "tags": {
+    "description": "The old shipwreck know as the Delray Wreck rests at the bottom of the ocean in 25 feet of water about 150 yards offshore the south end of Delray’s municipal beach.",
+    "historic": "wreck",
+    "name": "S.S. Inchulva / Delray Wreck (Wrack)",
+    "seamark:type": "wreck",
+    "source": "www.dive-links.com",
+    "sport": "scuba_diving",
+    "verified": "no, please check and del this tag",
+    "website": "http://www.dive-links.com/tauchplatz.php?id=1983"
+   }
+  },
+  {
+   "type": "relation",
+   "id": 50701,
+   "center": {
+    "lat": 51.2719126,
+    "lon": 14.5918435
+   },
+   "tags": {
+    "name": "Olbasee",
+    "name:hsb": "Olba",
+    "natural": "water",
+    "scuba_diving:divespot": "yes",
+    "sport": "scuba_diving",
+    "type": "multipolygon",
+    "wikidata": "Q1700558",
+    "wikipedia": "de:Olbasee"
+   }
+  }
+ ]
+}

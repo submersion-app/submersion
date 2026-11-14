@@ -12895,6 +12895,38 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'Deze stek gebruiken';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Wrakken en riffen bij $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Wrakken en riffen in de buurt';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'In kaart gebrachte wrakken en riffen tonen ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'De dichtstbijzijnde $count worden getoond. Zoek om de rest te vinden.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Ze staan allemaal al tussen je stekken.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'De dichtstbijzijnde $count staan al tussen je stekken. Zoek om de rest te vinden.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Zoom in om alle ingebouwde stekken te zien';
+
+  @override
   String get diveSites_list_groupBy => 'Groeperen op';
 
   @override

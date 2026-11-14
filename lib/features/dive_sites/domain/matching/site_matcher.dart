@@ -22,7 +22,13 @@ List<RankedCandidate> rankCandidates(
 /// 2. Pool selection: if any existing site is within the inner radius, the
 ///    auto-decision considers only those (existing-site precedence — never
 ///    auto-create a bundled duplicate when the user already has a site here);
-///    otherwise consider every candidate within the inner radius.
+///    otherwise, if any catalogue dive site is within the inner radius, only
+///    those (a place known to be dived beats a charted wreck or a reef
+///    deployment that happens to lie nearer); otherwise every candidate
+///    within the inner radius, which are then register records only. A
+///    register record is not picked on its own when a dive site lies
+///    within the separation margin behind it, even outside the inner
+///    radius: the diver chooses.
 /// 3. The nearest in the pool is a clear [AutoMatch] when it has no in-pool
 ///    competitor, or the runner-up is farther by at least the separation
 ///    margin. Otherwise -> [Suggested] (all in-range candidates, both pools).
@@ -45,11 +51,27 @@ SiteMatchOutcome matchRanked(
   final innerAny = inRange
       .where((r) => r.distanceMeters <= thresholds.innerRadiusMeters)
       .toList();
+  final innerSites = innerAny.where((r) => !r.candidate.isRegister).toList();
 
-  final pool = innerExisting.isNotEmpty ? innerExisting : innerAny;
+  final pool = innerExisting.isNotEmpty
+      ? innerExisting
+      : innerSites.isNotEmpty
+      ? innerSites
+      : innerAny;
   if (pool.isEmpty) return Suggested(inRange);
 
   final nearest = pool.first;
+  if (nearest.candidate.isRegister) {
+    // The pool is register records only. A dive site just outside the
+    // inner radius is still too near to say which of the two was dived.
+    final siteCloseBehind = inRange.any(
+      (r) =>
+          !r.candidate.isRegister &&
+          (r.distanceMeters - nearest.distanceMeters) <
+              thresholds.separationMeters,
+    );
+    if (siteCloseBehind) return Suggested(inRange);
+  }
   final clear =
       pool.length == 1 ||
       (pool[1].distanceMeters - nearest.distanceMeters) >=

@@ -311,7 +311,13 @@ class ValidateTest(unittest.TestCase):
 
     def test_each_source_names_its_licence_text(self):
         for key, source in fmt.SOURCES.items():
-            self.assertEqual(source["licence"], "ODbL-1.0", key)
+            for field in ("name", "licence", "licence_url", "credit"):
+                self.assertTrue(source.get(field), f"{key}: {field}")
+            self.assertTrue(
+                source["licence_url"].startswith("https://"), key
+            )
+        for key in ("osm", "curated"):
+            self.assertEqual(fmt.SOURCES[key]["licence"], "ODbL-1.0", key)
         # OpenStreetMap asks for a link to its copyright page; our own
         # records point at the licence itself.
         self.assertEqual(
@@ -377,6 +383,180 @@ class WriteTest(unittest.TestCase):
                     "2026-02-01T02:12:29Z",
                 )
             self.assertFalse((directory / "site_catalogue.json").exists())
+
+
+class KindTest(unittest.TestCase):
+    def _converted(self, kind):
+        return fmt.to_catalogue_record(
+            {
+                "id": "ukho_1",
+                "name": "HMS Exeter",
+                "latitude": -4.9,
+                "longitude": 111.6,
+                "website": "https://example.org/exeter",
+            },
+            source="ukho",
+            source_ref="https://example.org",
+            country_code="ID",
+            country="Indonesia",
+            kind=kind,
+        )
+
+    def test_a_register_record_carries_its_kind_and_a_site_does_not(self):
+        register = self._converted("register")
+        self.assertEqual(register["kind"], "register")
+        keys = list(register)
+        # After the website, before the source.
+        self.assertEqual(keys.index("kind"), keys.index("website") + 1)
+        self.assertEqual(keys.index("source"), keys.index("kind") + 1)
+        self.assertNotIn("kind", self._converted("site"))
+
+    def test_validate_rejects_an_unknown_kind(self):
+        problems = fmt.validate_catalogue(_doc([_record(kind="other")]))
+        self.assertEqual(problems, ["osm_node_1: kind 'other'"])
+
+    def test_a_register_record_needs_a_position(self):
+        problems = fmt.validate_catalogue(
+            _doc([_record(source="ukho", kind="register")])
+        )
+        self.assertEqual(
+            problems, ["osm_node_1: a register record needs lat and lon"]
+        )
+        self.assertEqual(
+            fmt.validate_catalogue(
+                _doc([_record(source="ukho", kind="register", lat=1, lon=2)])
+            ),
+            [],
+        )
+
+
+class SourcesTest(unittest.TestCase):
+    def test_every_source_of_the_program_is_declared(self):
+        self.assertEqual(
+            sorted(fmt.SOURCES),
+            sorted(
+                [
+                    "osm",
+                    "curated",
+                    "ukho",
+                    "awois",
+                    "fwc",
+                    "noaa_reefs",
+                    "fknms",
+                    "nms_ie",
+                    "wikidata",
+                    "njdep",
+                    "hi_dar",
+                    "tpwd",
+                    "nc_dmf",
+                ]
+            ),
+        )
+
+    def test_every_own_terms_source_states_its_terms(self):
+        self.assertEqual(
+            sorted(fmt.OWN_TERMS_SOURCES),
+            ["hi_dar", "nc_dmf", "njdep", "tpwd"],
+        )
+        for key, source in fmt.SOURCES.items():
+            if key in fmt.OWN_TERMS_SOURCES:
+                self.assertTrue(source["own_terms"].strip(), key)
+            else:
+                self.assertNotIn("own_terms", source, key)
+
+    def test_the_credits_are_the_short_names_a_site_page_shows(self):
+        self.assertEqual(
+            fmt.SOURCES["ukho"]["credit"], "UK Hydrographic Office"
+        )
+        self.assertEqual(fmt.SOURCES["ukho"]["licence"], "OGL-UK-3.0")
+        self.assertEqual(fmt.SOURCES["nms_ie"]["licence"], "CC-BY-4.0")
+        self.assertEqual(fmt.SOURCES["wikidata"]["licence"], "CC0-1.0")
+
+    def test_the_notice_names_every_source_and_the_non_commercial_ones(self):
+        for key, source in fmt.SOURCES.items():
+            self.assertIn(source["name"], fmt.NOTICE, key)
+        self.assertIn(
+            "Contains public sector information, licensed under the Open "
+            "Government Licence v3.0, from the UK Hydrographic Office.",
+            fmt.NOTICE,
+        )
+        self.assertIn(
+            "This application was developed using New Jersey Department of "
+            "Environmental Protection Geographic Information System digital "
+            "data, but this secondary product has not been verified by NJDEP "
+            "and is not state-authorized or endorsed.",
+            fmt.NOTICE,
+        )
+        self.assertIn("not for navigation", fmt.NOTICE)
+        self.assertIn("may not be used commercially", fmt.NOTICE)
+        self.assertIn("without alteration", fmt.NOTICE)
+        self.assertIn("https://www.openstreetmap.org/copyright", fmt.NOTICE)
+
+    def test_a_record_of_an_own_terms_source_needs_its_terms_declared(self):
+        doc = _doc([_record(source="njdep", kind="register", lat=1, lon=2)])
+        doc["metadata"]["sources"] = {
+            "njdep": {"name": "x", "licence": "x", "credit": "x"}
+        }
+        self.assertEqual(
+            fmt.validate_catalogue(doc),
+            ["metadata: source njdep must state its own_terms"],
+        )
+
+
+class LinesTest(unittest.TestCase):
+    def _write(self, records, **kwargs):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            fmt.write_catalogue(
+                directory, records, "2026-02-01T02:12:29Z", **kwargs
+            )
+            return (directory / "site_catalogue.json").read_text(
+                encoding="utf-8"
+            )
+
+    def test_the_file_is_one_record_per_line_sorted_by_id(self):
+        raw = self._write(
+            [
+                _record(id="osm_node_3"),
+                _record(id="osm_node_1"),
+                _record(id="osm_node_2"),
+            ]
+        )
+        doc = json.loads(raw)
+        self.assertEqual(
+            [site["id"] for site in doc["sites"]],
+            ["osm_node_1", "osm_node_2", "osm_node_3"],
+        )
+        lines = raw.split("\n")
+        self.assertTrue(lines[0].startswith('{"metadata":'))
+        self.assertTrue(lines[0].endswith(',"sites":['))
+        record_lines = lines[1:4]
+        for line in record_lines:
+            self.assertTrue(line.startswith('{"id":'), line)
+        self.assertEqual(lines[4], "]}")
+        self.assertEqual(lines[5], "")
+        self.assertEqual(len(lines), 6)
+
+    def test_open_only_leaves_out_own_terms_sources(self):
+        records = [
+            _record(id="ukho_1", source="ukho", kind="register", lat=1, lon=2),
+            _record(
+                id="njreef_1", source="njdep", kind="register", lat=1, lon=2
+            ),
+        ]
+        full = json.loads(self._write(records))
+        self.assertEqual(len(full["sites"]), 2)
+        self.assertIn("njdep", full["metadata"]["sources"])
+
+        doc = json.loads(self._write(records, open_only=True))
+        self.assertEqual([s["id"] for s in doc["sites"]], ["ukho_1"])
+        self.assertEqual(doc["metadata"]["total_count"], 1)
+        for key in fmt.OWN_TERMS_SOURCES:
+            self.assertNotIn(key, doc["metadata"]["sources"])
+        self.assertNotIn(
+            "may not be used commercially", doc["metadata"]["notice"]
+        )
+        self.assertIn("Open Database License", doc["metadata"]["notice"])
 
 
 if __name__ == "__main__":
