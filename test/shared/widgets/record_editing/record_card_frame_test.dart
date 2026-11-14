@@ -94,6 +94,40 @@ RecordEditController<_Rec> _controller() {
   return controller;
 }
 
+/// The frame 600 px down a page seen through a 300 px high window, so it
+/// starts out of sight. [showFrame] leaves the frame out, to mount it later.
+Widget _tallHost(
+  RecordEditController<_Rec> controller, {
+  bool showFrame = true,
+}) {
+  return MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          height: 300,
+          child: RecordEditScope<_Rec>(
+            controller: controller,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 600),
+                  if (showFrame)
+                    RecordCardFrame<_Rec>(card: _card, child: _readCard),
+                  const SizedBox(height: 600),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 void main() {
   setUp(() => _ReadBody.created = 0);
 
@@ -250,5 +284,98 @@ void main() {
     expect(find.text('READ'), findsOneWidget);
     expect(find.byKey(const ValueKey('editor')), findsNothing);
     expect(find.byIcon(Icons.edit_outlined), findsNothing);
+  });
+
+  group('a card asked to show itself', () {
+    const editor = ValueKey('editor');
+
+    testWidgets('a refused save scrolls the card into view', (tester) async {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      await tester.pumpWidget(_tallHost(controller));
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+
+      controller.setFieldInvalid('notes', 'notes', invalid: true);
+      await controller.save();
+      await tester.pumpAndSettle();
+
+      final rect = tester.getRect(find.byKey(editor));
+      expect(rect.top, greaterThanOrEqualTo(0));
+      expect(rect.bottom, lessThanOrEqualTo(300));
+    });
+
+    testWidgets('a refused Done scrolls the card into view', (tester) async {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      await tester.pumpWidget(_tallHost(controller));
+
+      controller
+        ..setFieldInvalid('notes', 'notes', invalid: true)
+        ..closeCard('notes');
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byKey(editor)).bottom, lessThanOrEqualTo(300));
+    });
+
+    testWidgets('a second request scrolls again after the diver moved away', (
+      tester,
+    ) async {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      await tester.pumpWidget(_tallHost(controller));
+      controller
+        ..setFieldInvalid('notes', 'notes', invalid: true)
+        ..closeCard('notes');
+      await tester.pumpAndSettle();
+
+      final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
+      scrollable.position.jumpTo(0);
+      await tester.pump();
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+
+      controller.closeCard('notes');
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byKey(editor)).bottom, lessThanOrEqualTo(300));
+    });
+
+    testWidgets('a request for another card does not move this one', (
+      tester,
+    ) async {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..openCard('details');
+      await tester.pumpWidget(_tallHost(controller));
+
+      controller
+        ..setFieldInvalid('details', 'depth', invalid: true)
+        ..closeCard('details');
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+    });
+
+    // A request is for the frames on the page when it is made. One that is
+    // built later must not pull the page to itself for old news.
+    testWidgets('a frame mounted after a request does not act on it', (
+      tester,
+    ) async {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+      await tester.pumpWidget(_tallHost(controller, showFrame: false));
+      controller.closeCard('notes');
+      await tester.pumpAndSettle();
+
+      await tester.pumpWidget(_tallHost(controller));
+      await tester.pumpAndSettle();
+
+      expect(tester.getRect(find.byKey(editor)).top, greaterThan(300));
+    });
   });
 }

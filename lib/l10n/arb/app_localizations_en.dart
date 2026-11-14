@@ -9787,6 +9787,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t save your changes. Nothing was changed.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'Some values can\'t be read. Fix them before saving.';
+
+  @override
   String get settings_manage_setupAssistant => 'Setup assistant';
 
   @override

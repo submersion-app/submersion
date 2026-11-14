@@ -10092,6 +10092,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recordEdit_saveFailed => 'تعذّر حفظ التغييرات. لم يتغيّر شيء.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'تعذّرت قراءة بعض القيم. صحّحها قبل الحفظ.';
+
+  @override
   String get settings_manage_setupAssistant => 'مساعد الإعداد';
 
   @override

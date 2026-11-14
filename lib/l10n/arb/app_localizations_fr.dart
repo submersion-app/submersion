@@ -9977,6 +9977,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'enregistrer vos modifications. Rien n\'a été modifié.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'Certaines valeurs sont illisibles. Corrigez-les avant d\'enregistrer.';
+
+  @override
   String get settings_manage_setupAssistant => 'Assistant de configuration';
 
   @override

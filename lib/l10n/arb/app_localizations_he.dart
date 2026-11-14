@@ -9724,6 +9724,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן היה לשמור את השינויים. שום דבר לא השתנה.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'לא ניתן לקרוא חלק מהערכים. תקן אותם לפני השמירה.';
+
+  @override
   String get settings_manage_setupAssistant => 'אשף ההגדרה';
 
   @override

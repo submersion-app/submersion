@@ -3282,6 +3282,7 @@
   "recordEdit_unsavedChanges": "Nicht gespeicherte Änderungen",
   "recordEdit_hiddenCard": "{card}, ausgeblendet",
   "recordEdit_saveFailed": "Die Änderungen konnten nicht gespeichert werden. Es wurde nichts geändert.",
+  "recordEdit_fixInvalid": "Einige Werte können nicht gelesen werden. Korrigiere sie vor dem Speichern.",
   "siteMatchReview_title": "Tauchplätze zuordnen",
   "siteMatchReview_diveNumber": "Tauchgang #{number}",
   "siteMatchReview_empty": "Nichts zuzuordnen.",

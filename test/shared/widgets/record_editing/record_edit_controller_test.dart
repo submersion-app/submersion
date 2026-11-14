@@ -367,6 +367,200 @@ void main() {
     expect(controller.session, isNull);
   });
 
+  // Text that is not a value ('1.2.3') never reaches the session, so the
+  // controller is told about it and keeps the card that holds it open.
+  group('unreadable input', () {
+    test('an invalid card cannot be closed', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+
+      controller.closeCard('notes');
+
+      expect(controller.openCardIds, {'notes'});
+      expect(controller.invalidCardIds, {'notes'});
+      expect(controller.revealRequest!.cardId, 'notes');
+    });
+
+    test('a refused close notifies, so the card can scroll into view', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+      var told = 0;
+      controller.addListener(() => told++);
+
+      controller.closeCard('notes');
+
+      expect(told, 1);
+    });
+
+    test('save is refused while a card is invalid', () async {
+      var calls = 0;
+      final controller = _controller(onSave: (_) async => calls++)
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      controller.session!.set(_notes, 'b');
+      controller.setFieldInvalid('notes', 'notes', invalid: true);
+
+      expect(await controller.save(), isFalse);
+
+      expect(calls, 0);
+      expect(controller.refusedForInvalidInput, isTrue);
+      expect(controller.saveError, isNull);
+      expect(controller.isSaving, isFalse);
+      expect(controller.isUnlocked, isTrue);
+      expect(controller.session!.valueOf(_notes), 'b');
+      expect(controller.revealRequest!.cardId, 'notes');
+    });
+
+    test(
+      'a refused save asks for the card that became invalid first',
+      () async {
+        final controller = _controller()
+          ..unlock(const _Rec())
+          ..openCard('notes')
+          ..openCard('details')
+          ..setFieldInvalid('details', 'depth', invalid: true)
+          ..setFieldInvalid('notes', 'notes', invalid: true);
+
+        await controller.save();
+
+        expect(controller.revealRequest!.cardId, 'details');
+      },
+    );
+
+    test('a card is valid again once every field of it is', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('details')
+        ..setFieldInvalid('details', 'depth', invalid: true)
+        ..setFieldInvalid('details', 'time', invalid: true)
+        ..setFieldInvalid('details', 'depth', invalid: false);
+      expect(controller.invalidCardIds, {'details'});
+
+      controller.setFieldInvalid('details', 'time', invalid: false);
+      expect(controller.invalidCardIds, isEmpty);
+
+      controller.closeCard('details');
+      expect(controller.openCardIds, isEmpty);
+    });
+
+    test('a save after the input is fixed goes through', () async {
+      var calls = 0;
+      final controller = _controller(onSave: (_) async => calls++)
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      controller.session!.set(_notes, 'b');
+      controller.setFieldInvalid('notes', 'notes', invalid: true);
+      await controller.save();
+
+      controller.setFieldInvalid('notes', 'notes', invalid: false);
+
+      expect(await controller.save(), isTrue);
+      expect(calls, 1);
+      expect(controller.refusedForInvalidInput, isFalse);
+      expect(controller.isUnlocked, isFalse);
+    });
+
+    test(
+      'a save that then fails is not reported as unreadable input',
+      () async {
+        var fail = true;
+        final controller =
+            _controller(
+                onSave: (_) async {
+                  if (fail) throw StateError('no');
+                },
+              )
+              ..unlock(const _Rec())
+              ..openCard('notes');
+        controller.session!.set(_notes, 'b');
+        controller.setFieldInvalid('notes', 'notes', invalid: true);
+        await controller.save();
+        controller.setFieldInvalid('notes', 'notes', invalid: false);
+
+        expect(await controller.save(), isFalse);
+
+        expect(controller.refusedForInvalidInput, isFalse);
+        expect(controller.saveError, isA<StateError>());
+        fail = false;
+      },
+    );
+
+    test('lock forgets invalid input', () async {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+      await controller.save();
+      expect(controller.refusedForInvalidInput, isTrue);
+
+      controller
+        ..lock()
+        ..unlock(const _Rec());
+
+      expect(controller.invalidCardIds, isEmpty);
+      expect(controller.refusedForInvalidInput, isFalse);
+      expect(controller.revealRequest, isNull);
+    });
+
+    test('asking twice for the same card gives a new serial', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+
+      controller.closeCard('notes');
+      final first = controller.revealRequest!.serial;
+      controller.closeCard('notes');
+
+      expect(controller.revealRequest!.serial, greaterThan(first));
+    });
+
+    test('a serial is never reused by a later sitting', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+      controller.closeCard('notes');
+      final first = controller.revealRequest!.serial;
+
+      controller
+        ..lock()
+        ..unlock(const _Rec())
+        ..openCard('notes')
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+      controller.closeCard('notes');
+
+      expect(controller.revealRequest!.serial, greaterThan(first));
+    });
+
+    // A field reports from its text listener and from its dispose, where a
+    // page rebuild is not allowed. Nothing on the page draws the mark.
+    test('marking a field does not notify', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      var told = 0;
+      controller.addListener(() => told++);
+
+      controller
+        ..setFieldInvalid('notes', 'notes', invalid: true)
+        ..setFieldInvalid('notes', 'notes', invalid: false);
+
+      expect(told, 0);
+    });
+
+    test('nothing is marked while locked', () {
+      final controller = _controller()
+        ..setFieldInvalid('notes', 'notes', invalid: true);
+
+      expect(controller.invalidCardIds, isEmpty);
+    });
+  });
+
   testWidgets('RecordEditScope hands the controller to its subtree', (
     tester,
   ) async {

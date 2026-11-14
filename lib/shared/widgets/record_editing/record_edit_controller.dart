@@ -37,6 +37,16 @@ class RecordEditController<T> extends ChangeNotifier {
   /// told, or when the card was last opened or closed.
   Map<String, int> _toldRevisions = {};
 
+  /// Fields holding text that cannot be read as a value, by card id, in the
+  /// order each card first got one.
+  final Map<String, Set<String>> _invalidFields = {};
+  bool _refusedForInvalidInput = false;
+  ({String cardId, int serial})? _revealRequest;
+
+  /// Never reset, so a request in a later sitting is never mistaken for one
+  /// a card has already answered.
+  int _revealSerial = 0;
+
   bool get isUnlocked => _session != null;
 
   /// The sitting, non-null exactly while unlocked.
@@ -55,6 +65,42 @@ class RecordEditController<T> extends ChangeNotifier {
   /// Cards brought in from the Add strip during this sitting.
   Set<String> get addedCardIds => Set.unmodifiable(_addedCardIds);
 
+  /// Cards holding input that cannot be read as a value, such as `1.2.3` in
+  /// a number field. Such text never reaches the [session], so a card that
+  /// holds it stays open ([closeCard]) and the sitting cannot be saved
+  /// ([save]) until it is fixed.
+  Set<String> get invalidCardIds => Set.unmodifiable(_invalidFields.keys);
+
+  /// The card last asked to scroll into view, with a serial that goes up on
+  /// every request so the same card can be asked twice.
+  ({String cardId, int serial})? get revealRequest => _revealRequest;
+
+  /// True when the last [save] was refused for unreadable input. Cleared by
+  /// the next save and by [lock].
+  bool get refusedForInvalidInput => _refusedForInvalidInput;
+
+  /// Records whether [fieldId] on [cardId] holds text that cannot be read.
+  ///
+  /// It does not notify: a field calls it from its text listener and from
+  /// its dispose, where a page may not rebuild, and nothing on the page
+  /// draws the mark. The field shows its own message.
+  void setFieldInvalid(String cardId, String fieldId, {required bool invalid}) {
+    if (!isUnlocked) return;
+    if (invalid) {
+      (_invalidFields[cardId] ??= {}).add(fieldId);
+      return;
+    }
+    final fields = _invalidFields[cardId];
+    if (fields == null) return;
+    fields.remove(fieldId);
+    if (fields.isEmpty) _invalidFields.remove(cardId);
+  }
+
+  void _requestReveal(String cardId) {
+    _revealSerial++;
+    _revealRequest = (cardId: cardId, serial: _revealSerial);
+  }
+
   void unlock(T stored) {
     if (isUnlocked) return;
     _toldChangedCardIds = const {};
@@ -70,6 +116,9 @@ class RecordEditController<T> extends ChangeNotifier {
     _dropSession(session);
     _openCardIds.clear();
     _addedCardIds.clear();
+    _invalidFields.clear();
+    _refusedForInvalidInput = false;
+    _revealRequest = null;
     _saveError = null;
     _isSaving = false;
     notifyListeners();
@@ -84,10 +133,16 @@ class RecordEditController<T> extends ChangeNotifier {
   }
 
   /// Closes [cardId]. A card that came from the Add strip and was given no
-  /// change goes back to the strip.
+  /// change goes back to the strip. A card with unreadable input stays open
+  /// and is asked to show itself instead ([revealRequest]).
   void closeCard(String cardId) {
     final session = _session;
     if (session == null) return;
+    if (_invalidFields.containsKey(cardId)) {
+      _requestReveal(cardId);
+      notifyListeners();
+      return;
+    }
     final wasOpen = _openCardIds.remove(cardId);
     final wasAdded =
         !session.changedCardIds.contains(cardId) &&
@@ -144,11 +199,19 @@ class RecordEditController<T> extends ChangeNotifier {
   }
 
   /// Writes the sitting and locks. False when nothing was saved: the page
-  /// was locked, a save was already running, or the write failed (see
-  /// [saveError]); a failed save leaves the sitting exactly as it was.
+  /// was locked, a save was already running, a card holds unreadable input
+  /// (see [refusedForInvalidInput]), or the write failed (see [saveError]).
+  /// A save that did not happen leaves the sitting exactly as it was.
   Future<bool> save() async {
     final session = _session;
     if (session == null || _isSaving) return false;
+    _refusedForInvalidInput = false;
+    if (_invalidFields.isNotEmpty) {
+      _refusedForInvalidInput = true;
+      _requestReveal(_invalidFields.keys.first);
+      notifyListeners();
+      return false;
+    }
     if (!session.isDirty) {
       lock();
       return true;

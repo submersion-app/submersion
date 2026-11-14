@@ -9945,6 +9945,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudieron guardar los cambios. No se realizó ningún cambio.';
 
   @override
+  String get recordEdit_fixInvalid =>
+      'Algunos valores no se pueden leer. Corrígelos antes de guardar.';
+
+  @override
   String get settings_manage_setupAssistant => 'Asistente de configuración';
 
   @override

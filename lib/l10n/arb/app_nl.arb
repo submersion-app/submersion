@@ -3256,6 +3256,7 @@
   "recordEdit_unsavedChanges": "Niet-opgeslagen wijzigingen",
   "recordEdit_hiddenCard": "{card}, verborgen",
   "recordEdit_saveFailed": "Kon de wijzigingen niet opslaan. Er is niets gewijzigd.",
+  "recordEdit_fixInvalid": "Sommige waarden kunnen niet worden gelezen. Corrigeer ze voordat je opslaat.",
   "siteMatchReview_title": "Stekken koppelen",
   "siteMatchReview_diveNumber": "Duik #{number}",
   "siteMatchReview_empty": "Niets om te koppelen.",
