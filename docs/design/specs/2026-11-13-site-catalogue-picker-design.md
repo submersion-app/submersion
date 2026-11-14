@@ -251,7 +251,13 @@ over the local cache database and a fake for tests:
 
 - `near(point, radius, limit)`: sites within the radius, nearest first.
 - `search(query, areaFirst, limit)`: sites whose `search_text` matches every
-  word of the query, those within the area first, then by name.
+  word of the query, those within the area first, then by name. A query that
+  names a country in any language ("Thaïlande", "Ägypten", or the start of
+  such a name) also finds the sites carrying that country's code, ranked as
+  place matches. This carries issue #4520's fix over from the bundled list
+  the catalogue replaces, using the same `countryCodesMatching` recognizer
+  as the search of the diver's own sites. The query is read as a country
+  only as a whole: "blue hole égypte" names none.
 - `byId(id)`.
 - `allWithCoordinates()`: for the map overlay, until slice 2 replaces it.
 - A readiness signal.
@@ -496,7 +502,9 @@ most worth checking:
 - An adopted site carries the catalogue's English country name even when the
   diver's place-name language is another one. Its sea is named in that
   language when it is adopted, as the geocoder names it for the diver's
-  other sites; searching the catalogue by sea still takes the English name.
+  other sites; searching the catalogue by sea, region or island still takes
+  the name the catalogue holds (English for seas). Only a country is found
+  by its name in another language.
 - A fresh-water site whose record carries no water type and no site type,
   and which lies within the sea table's 4 km shore allowance of tidal
   water, is given that sea: at least seven lakes beside the Elbe, the Weser

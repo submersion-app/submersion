@@ -142,7 +142,7 @@ Use the sort icon to order by name, rating, difficulty, max depth, dive count, o
 
 ## Importing sites
 
-Choose **Import** from the overflow menu on the Sites list. Type a site name, a place (a country, region or island) or a sea, or choose a quick-search chip (Caribbean, Red Sea, Thailand, Indonesia, Maldives, Philippines). Results appear in two sections:
+Choose **Import** from the overflow menu on the Sites list. Type a site name, a place (a country in any language, a region or an island) or a sea, or choose a quick-search chip (Caribbean, Red Sea, Thailand, Indonesia, Maldives, Philippines). Results appear in two sections:
 
 - **My Sites**: matches from your own site database, shown with a "Saved" badge. Tapping one opens its detail page.
 - **Import from Database**: results from the built-in site catalogue, up to 200 at a time; a note says when there are more, and a more specific search shows them. Tap a result card to read what the catalogue holds for the site (where it is, site types, entry, depth, hazards, description, website and source), then tap **Import to My Sites**. A site you have already added shows **Already Imported**, in this session or any later one.
@@ -160,7 +160,7 @@ Wherever you choose a site (on a dive, a planned dive, or a trip day), the same 
 When you choose a site for a dive, the sheet also offers sites from the built-in catalogue, so a site you have not logged before rarely needs typing in:
 
 - **More sites nearby** lists built-in sites within 50 km (31 mi) of the dive. It shows the first five, with **Show all** for the rest.
-- Typing two or more characters adds a **Built-in sites** section with matches from the whole catalogue. The search matches a site's name, its country, region or island, and its sea ("Red Sea"). Sites whose own name matches come first, then sites matched by place or sea; within each, those in the dive's area lead.
+- Typing two or more characters adds a **Built-in sites** section with matches from the whole catalogue. The search matches a site's name, its country, region or island, and its sea ("Red Sea"). A country can be typed in any language: "Thaïlande" and "Ägypten" find the sites of Thailand and Egypt. Sites whose own name matches come first, then sites matched by place or sea; within each, those in the dive's area lead.
 
 Tap a built-in site to add it to your sites and select it in one step. It arrives with the catalogue's details, and the dive takes the site's entry method and water type as it does for any site. Tap the **Site details** button on a row to read about a site before you pick it.
 

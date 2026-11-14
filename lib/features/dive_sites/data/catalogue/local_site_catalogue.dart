@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
@@ -63,14 +64,23 @@ class LocalSiteCatalogue implements SiteCatalogue {
     ).split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
     if (words.isEmpty) return const [];
 
-    Expression<bool> matches($SiteCatalogueEntriesTable t) => words
-        .map<Expression<bool>>(
-          (word) => t.searchText.like(
-            '%${_escapeLike(word)}%',
-            escapeChar: _likeEscape,
-          ),
-        )
-        .reduce((a, b) => a & b);
+    // The catalogue names countries in English, and a diver types the name
+    // their own language gives one: a query that names a country, in any
+    // language, also finds the sites carrying that country's code (#4520).
+    final countryCodes = countryCodesMatching(query);
+
+    Expression<bool> matches($SiteCatalogueEntriesTable t) {
+      final everyWord = words
+          .map<Expression<bool>>(
+            (word) => t.searchText.like(
+              '%${_escapeLike(word)}%',
+              escapeChar: _likeEscape,
+            ),
+          )
+          .reduce((a, b) => a & b);
+      if (countryCodes.isEmpty) return everyWord;
+      return everyWord | t.countryCode.isIn(countryCodes);
+    }
 
     // The dive's area: every match in it, read whole so the box's corners
     // can be cut by a real distance.
@@ -113,8 +123,8 @@ class LocalSiteCatalogue implements SiteCatalogue {
         if (!areaIds.contains(row.id)) row,
     ];
 
-    // Sites the diver named come before sites that are only in a place or
-    // a sea of that name; within each, the dive's area leads.
+    // Sites the diver named come before sites that are only in a place, a
+    // sea or a country of that name; within each, the dive's area leads.
     bool byName(SiteCatalogueRow row) => _nameMatches(row.searchText, words);
     return [
       ...inArea.where(byName),

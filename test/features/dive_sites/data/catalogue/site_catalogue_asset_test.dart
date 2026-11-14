@@ -200,11 +200,8 @@ void main() {
     expect((revision: kSiteCatalogueImportRevision, seaTable: hash), pinned);
   });
 
-  test('the shipped catalogue is found by island and by sea', () async {
-    // What a diver types, and what the import page's Red Sea and Caribbean
-    // chips search for. Before the island and the sea names these found
-    // 0, 1 and 64 sites (the 64 only because Bonaire's country reads
-    // "Caribbean Netherlands").
+  /// The shipped file, imported as the app imports it.
+  Future<LocalSiteCatalogue> shippedCatalogue() async {
     final db = LocalCacheDatabase(
       NativeDatabase.memory(setup: registerAppSqlFunctions),
     );
@@ -213,7 +210,15 @@ void main() {
       database: db,
       bundle: _FileBundle(),
     ).importIfChanged();
-    final catalogue = LocalSiteCatalogue(database: db);
+    return LocalSiteCatalogue(database: db);
+  }
+
+  test('the shipped catalogue is found by island and by sea', () async {
+    // What a diver types, and what the import page's Red Sea and Caribbean
+    // chips search for. Before the island and the sea names these found
+    // 0, 1 and 64 sites (the 64 only because Bonaire's country reads
+    // "Caribbean Netherlands").
+    final catalogue = await shippedCatalogue();
 
     final bonaire = await catalogue.search('bonaire', limit: 1000);
     expect(bonaire.length, greaterThan(50));
@@ -242,5 +247,38 @@ void main() {
           .map((s) => s.bodyOfWater),
       everyElement(isNull),
     );
+  });
+
+  group('the shipped catalogue is found by a country named in another '
+      'language', () {
+    // Issue #4520's countries, each as a diver who does not write English
+    // types it. The catalogue holds the English name only.
+    for (final (query, code) in [
+      ('Thaïlande', 'TH'),
+      ('Ägypten', 'EG'),
+      ('Allemagne', 'DE'),
+      ('Suiza', 'CH'),
+      ('Maldivas', 'MV'),
+      ('Grecia', 'GR'),
+      ('Espagne', 'ES'),
+      ('Italien', 'IT'),
+    ]) {
+      test('"$query" lists that country\'s sites', () async {
+        final catalogue = await shippedCatalogue();
+
+        final found = await catalogue.search(query, limit: 5000);
+
+        final inCountry = sites.where((s) => s['country_code'] == code).length;
+        expect(inCountry, greaterThan(0));
+        expect(found.where((s) => s.countryCode == code), hasLength(inCountry));
+        // Anything else is a site named with the word itself.
+        expect(
+          found
+              .where((s) => s.countryCode != code)
+              .map((s) => normalize(s.name)),
+          everyElement(contains(normalize(query))),
+        );
+      });
+    }
   });
 }

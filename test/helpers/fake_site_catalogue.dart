@@ -1,3 +1,4 @@
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
@@ -58,9 +59,14 @@ class FakeSiteCatalogue implements SiteCatalogue {
     ).split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
     if (words.isEmpty) return const [];
 
+    // A query that names a country, in any language, also finds the sites
+    // carrying that country's code.
+    final countryCodes = countryCodesMatching(query);
     final matches = [
       for (final site in sites)
-        if (words.every(catalogueSearchText(site).contains)) site,
+        if (words.every(catalogueSearchText(site).contains) ||
+            countryCodes.contains(site.countryCode))
+          site,
     ]..sort(_byName);
     bool inArea(CatalogueSite site) =>
         areaFirst != null &&

@@ -127,6 +127,24 @@ void main() {
   List<String> idsOf(List<CatalogueSite> sites) =>
       sites.map((s) => s.id).toList();
 
+  /// A catalogue of just [sites], for a test that needs its own.
+  Future<LocalSiteCatalogue> catalogueOf(List<Object?> sites) async {
+    final db = LocalCacheDatabase(
+      NativeDatabase.memory(setup: registerAppSqlFunctions),
+    );
+    addTearDown(db.close);
+    await SiteCatalogueImporter(
+      database: db,
+      bundle: _Bundle(
+        jsonEncode({
+          'metadata': {'format': 2, 'sources': <String, Object?>{}},
+          'sites': sites,
+        }),
+      ),
+    ).importIfChanged();
+    return LocalSiteCatalogue(database: db);
+  }
+
   group('near', () {
     test('returns sites inside the radius, nearest first', () async {
       final sites = await catalogue.near(_saltPier, radiusMeters: 50000);
@@ -273,23 +291,6 @@ void main() {
         'body_of_water': ?sea,
       };
 
-      Future<LocalSiteCatalogue> catalogueOf(List<Object?> sites) async {
-        final db = LocalCacheDatabase(
-          NativeDatabase.memory(setup: registerAppSqlFunctions),
-        );
-        addTearDown(db.close);
-        await SiteCatalogueImporter(
-          database: db,
-          bundle: _Bundle(
-            jsonEncode({
-              'metadata': {'format': 2, 'sources': <String, Object?>{}},
-              'sites': sites,
-            }),
-          ),
-        ).importIfChanged();
-        return LocalSiteCatalogue(database: db);
-      }
-
       test(
         'a site matched by name comes before one matched by place',
         () async {
@@ -366,6 +367,79 @@ void main() {
           'abu',
           'yanbu',
         ]);
+      });
+    });
+
+    group('a country named in another language', () {
+      // The catalogue names countries in English. A diver types the name
+      // their own language gives the country, so a query that names a
+      // country finds the sites carrying that country's code (#4520).
+      Map<String, Object?> inCountry(
+        String id,
+        String name,
+        String code,
+        String country, {
+        double? lat,
+        double? lon,
+      }) => {
+        ..._site(id, name, lat: lat, lon: lon, country: country),
+        'country_code': code,
+      };
+
+      late LocalSiteCatalogue countries;
+      setUp(() async {
+        countries = await catalogueOf([
+          inCountry('th', 'Sail Rock', 'TH', 'Thailand'),
+          inCountry('eg', 'Ras Mohammed', 'EG', 'Egypt', lat: 27.7, lon: 34.2),
+          inCountry('dahab', 'The Canyon', 'EG', 'Egypt', lat: 28.5, lon: 34.5),
+          inCountry('ch', 'Lac Leman', 'CH', 'Switzerland'),
+          inCountry('fr', 'Egypte Express', 'FR', 'France'),
+          // No code: only its own words can find it.
+          _site('uncoded', 'Thai Wall'),
+        ]);
+      });
+
+      test('finds the sites of a country by its name in the diver\'s '
+          'language', () async {
+        expect(idsOf(await countries.search('Thaïlande')), ['th']);
+        expect(idsOf(await countries.search('ประเทศไทย')), ['th']);
+        expect(idsOf(await countries.search('Schweiz')), ['ch']);
+      });
+
+      test('finds them while the name is still being typed', () async {
+        // Not "Thaïl": folded, that is already part of "thailand".
+        expect(idsOf(await countries.search('Ägypt')), ['eg', 'dahab']);
+      });
+
+      test('still finds a country by the name the catalogue holds', () async {
+        expect(idsOf(await countries.search('Switzerland')), ['ch']);
+      });
+
+      test('a site named for the word comes before the country\'s '
+          'sites', () async {
+        expect(idsOf(await countries.search('Égypte')), ['fr', 'eg', 'dahab']);
+      });
+
+      test('the dive\'s area leads among the country\'s sites', () async {
+        const dahab = GeoPoint(28.5, 34.5);
+
+        expect(idsOf(await countries.search('Ägypten', areaFirst: dahab)), [
+          'dahab',
+          'eg',
+        ]);
+      });
+
+      test('a site with no country code is found by its own words '
+          'only', () async {
+        expect(idsOf(await countries.search('thai')), ['uncoded', 'th']);
+        expect(
+          idsOf(await countries.search('Thaïlande')),
+          isNot(contains('uncoded')),
+        );
+      });
+
+      test('a query that names no country finds no country\'s sites', () async {
+        expect(await countries.search('Atlantis'), isEmpty);
       });
     });
 
