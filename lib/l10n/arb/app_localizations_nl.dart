@@ -63749,6 +63749,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'Geen loodvoorinstellingen';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Geen loodvoorinstellingen meer om toe te voegen';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'Totaal $weight';
   }

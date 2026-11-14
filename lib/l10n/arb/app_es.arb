@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "Lastre",
   "equipment_setEdit_weights_add": "Añadir ajuste de lastre",
   "equipment_setEdit_weights_empty": "Sin ajustes de lastre",
+  "equipment_setEdit_weights_noneAvailable": "No hay más ajustes de lastre que añadir",
   "equipment_setEdit_weights_total": "Total {weight}",
   "equipment_setEdit_tanks_title": "Botellas",
   "equipment_setEdit_tanks_add": "Añadir configuración de botellas",

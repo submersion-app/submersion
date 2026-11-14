@@ -64141,6 +64141,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'Nessun preset di zavorra';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Nessun altro preset di zavorra da aggiungere';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'Totale $weight';
   }

@@ -63152,6 +63152,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'No weight presets';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'No more weight presets to add';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'Total $weight';
   }

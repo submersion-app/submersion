@@ -253,6 +253,31 @@ void main() {
     expect(reported.single.weightPresetIds, ['b6', 'p6']);
   });
 
+  // An entry the lists cannot show (its preset is hidden, or not loaded)
+  // is still part of the set: a reorder moves the rows around it.
+  testWidgets('reordering keeps an entry that is not shown', (tester) async {
+    final reported = await pump(
+      tester,
+      const SetBundleListValues(weightPresetIds: ['gone', 'p6', 'b6']),
+    );
+    final list = tester.widget<ReorderableListView>(
+      find.byKey(const Key('set-bundle-list-presets')),
+    );
+    list.onReorderItem!(0, 1);
+    expect(reported.single.weightPresetIds, ['gone', 'b6', 'p6']);
+  });
+
+  testWidgets('with every preset on the set, the picker says there are '
+      'none left', (tester) async {
+    await pump(
+      tester,
+      const SetBundleListValues(weightPresetIds: ['p6', 'b6']),
+    );
+    await tester.tap(find.byKey(const Key('set-bundle-add-presets')));
+    await tester.pumpAndSettle();
+    expect(find.text('No more weight presets to add'), findsOneWidget);
+  });
+
   testWidgets('lead with no gear shows the no-gear note', (tester) async {
     await pump(
       tester,

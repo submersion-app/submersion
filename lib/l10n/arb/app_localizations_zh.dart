@@ -60141,6 +60141,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_weights_empty => '没有配重预设';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable => '没有更多可添加的配重预设';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return '合计 $weight';
   }

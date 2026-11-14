@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "משקולות",
   "equipment_setEdit_weights_add": "הוספת תצורת משקולות",
   "equipment_setEdit_weights_empty": "אין תצורות משקולות",
+  "equipment_setEdit_weights_noneAvailable": "אין תצורות משקולות נוספות להוספה",
   "equipment_setEdit_weights_total": "סה\"כ {weight}",
   "equipment_setEdit_tanks_title": "מכלים",
   "equipment_setEdit_tanks_add": "הוספת תצורת מכלים",

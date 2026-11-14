@@ -150,7 +150,7 @@ class SetBundleSections extends ConsumerWidget {
               : null,
           addLabel: l10n.equipment_setEdit_weights_add,
           emptyText: l10n.equipment_setEdit_weights_empty,
-          noOptionsText: l10n.equipment_setEdit_weights_empty,
+          noOptionsText: l10n.equipment_setEdit_weights_noneAvailable,
           icon: Icons.fitness_center,
           entries: [
             for (final id in values.weightPresetIds)
@@ -302,12 +302,19 @@ class _Section extends StatelessWidget {
     if (picked != null) onChanged([...ids, picked]);
   }
 
-  /// [newIndex] is where the row lands once it has left [oldIndex].
+  /// [newIndex] is where the row lands once it has left [oldIndex]. Only
+  /// the rows shown move: an entry the list cannot show (its target is
+  /// hidden or not loaded) keeps its place, and stays in the set.
   void _reorder(int oldIndex, int newIndex) {
     final shown = [for (final e in entries) e.id];
     final moved = shown.removeAt(oldIndex);
     shown.insert(newIndex, moved);
-    onChanged(shown);
+    final visible = shown.toSet();
+    final next = shown.iterator;
+    onChanged([
+      for (final id in ids)
+        if (visible.contains(id) && next.moveNext()) next.current else id,
+    ]);
   }
 
   @override

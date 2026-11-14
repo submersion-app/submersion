@@ -64007,6 +64007,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'Keine Bleivorlagen';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Keine weiteren Bleivorlagen zum Hinzufügen';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'Gesamt $weight';
   }

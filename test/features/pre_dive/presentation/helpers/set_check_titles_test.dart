@@ -71,6 +71,27 @@ void main() {
     expect(titles.last, isNot(startsWith('·')));
   });
 
+  test('a cylinder with no label and no size is named by its mix', () {
+    final titles = setCheckTitles(
+      l,
+      pounds,
+      SetBundle(
+        setId: 's',
+        cylinders: [
+          CylinderConfigItem(
+            id: 'c',
+            configId: 'cfg',
+            tankRole: TankRole.backGas,
+            o2Percent: 32,
+            createdAt: t,
+            updatedAt: t,
+          ),
+        ],
+      ),
+    );
+    expect(titles, ['EAN32']);
+  });
+
   test('a bundle with neither gives no checks', () {
     expect(
       setCheckTitles(l, pounds, const SetBundle(setId: 's', gearIds: ['g'])),

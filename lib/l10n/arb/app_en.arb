@@ -37299,6 +37299,8 @@
   "@equipment_setEdit_weights_add": {"description": "Button on the equipment set editor that adds a weight preset to this set."},
   "equipment_setEdit_weights_empty": "No weight presets",
   "@equipment_setEdit_weights_empty": {"description": "Shown on the equipment set editor when the set has no weight presets."},
+  "equipment_setEdit_weights_noneAvailable": "No more weight presets to add",
+  "@equipment_setEdit_weights_noneAvailable": {"description": "Shown in the picker when every weight preset is already on the equipment set."},
   "equipment_setEdit_weights_total": "Total {weight}",
   "@equipment_setEdit_weights_total": {"description": "Total lead of the weight presets on an equipment set. {weight} is formatted in the diver's unit.", "placeholders": {"weight": {"type": "String"}}},
   "equipment_setEdit_tanks_title": "Tanks",

@@ -64120,6 +64120,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Nenhuma predefinição de lastro';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Não há mais predefinições de lastro para adicionar';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'Total $weight';
   }

@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "Ólom",
   "equipment_setEdit_weights_add": "Ólomsablon hozzáadása",
   "equipment_setEdit_weights_empty": "Nincs ólomsablon",
+  "equipment_setEdit_weights_noneAvailable": "Nincs több hozzáadható ólomsablon",
   "equipment_setEdit_weights_total": "Összesen {weight}",
   "equipment_setEdit_tanks_title": "Palackok",
   "equipment_setEdit_tanks_add": "Palackkonfiguráció hozzáadása",

@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "Lood",
   "equipment_setEdit_weights_add": "Loodvoorinstelling toevoegen",
   "equipment_setEdit_weights_empty": "Geen loodvoorinstellingen",
+  "equipment_setEdit_weights_noneAvailable": "Geen loodvoorinstellingen meer om toe te voegen",
   "equipment_setEdit_weights_total": "Totaal {weight}",
   "equipment_setEdit_tanks_title": "Flessen",
   "equipment_setEdit_tanks_add": "Flesconfiguratie toevoegen",

@@ -63791,6 +63791,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'Nincs ólomsablon';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Nincs több hozzáadható ólomsablon';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'Összesen $weight';
   }

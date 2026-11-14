@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "Lest",
   "equipment_setEdit_weights_add": "Ajouter un préréglage de lest",
   "equipment_setEdit_weights_empty": "Aucun préréglage de lest",
+  "equipment_setEdit_weights_noneAvailable": "Aucun autre préréglage de lest à ajouter",
   "equipment_setEdit_weights_total": "Total {weight}",
   "equipment_setEdit_tanks_title": "Blocs",
   "equipment_setEdit_tanks_add": "Ajouter une configuration de blocs",

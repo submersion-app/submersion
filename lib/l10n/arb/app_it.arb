@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "Zavorra",
   "equipment_setEdit_weights_add": "Aggiungi preset di zavorra",
   "equipment_setEdit_weights_empty": "Nessun preset di zavorra",
+  "equipment_setEdit_weights_noneAvailable": "Nessun altro preset di zavorra da aggiungere",
   "equipment_setEdit_weights_total": "Totale {weight}",
   "equipment_setEdit_tanks_title": "Bombole",
   "equipment_setEdit_tanks_add": "Aggiungi configurazione bombole",

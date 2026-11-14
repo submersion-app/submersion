@@ -62827,6 +62827,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'אין תצורות משקולות';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'אין תצורות משקולות נוספות להוספה';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'סה\"כ $weight';
   }

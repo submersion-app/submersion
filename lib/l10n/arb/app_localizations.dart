@@ -100729,6 +100729,12 @@ abstract class AppLocalizations {
   /// **'No weight presets'**
   String get equipment_setEdit_weights_empty;
 
+  /// Shown in the picker when every weight preset is already on the equipment set.
+  ///
+  /// In en, this message translates to:
+  /// **'No more weight presets to add'**
+  String get equipment_setEdit_weights_noneAvailable;
+
   /// Total lead of the weight presets on an equipment set. {weight} is formatted in the diver's unit.
   ///
   /// In en, this message translates to:

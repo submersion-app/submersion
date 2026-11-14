@@ -24,12 +24,14 @@ List<String> setCheckTitles(
     ),
   for (final cylinder in bundle.cylinders)
     [
-      switch (cylinder.label?.trim()) {
+      // A cylinder with neither a label nor a size is named by its mix.
+      ?switch (cylinder.label?.trim()) {
         final label? when label.isNotEmpty => label,
-        _ => units.formatTankVolume(
+        _ when cylinder.volumeL != null => units.formatTankVolume(
           cylinder.volumeL,
           cylinder.workingPressureBar,
         ),
+        _ => null,
       },
       GasMix(o2: cylinder.o2Percent, he: cylinder.hePercent).name,
     ].join(' · '),

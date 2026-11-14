@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "الأثقال",
   "equipment_setEdit_weights_add": "إضافة إعداد أثقال",
   "equipment_setEdit_weights_empty": "لا توجد إعدادات أثقال",
+  "equipment_setEdit_weights_noneAvailable": "لا توجد إعدادات أثقال أخرى لإضافتها",
   "equipment_setEdit_weights_total": "الإجمالي {weight}",
   "equipment_setEdit_tanks_title": "الأسطوانات",
   "equipment_setEdit_tanks_add": "إضافة تهيئة أسطوانات",

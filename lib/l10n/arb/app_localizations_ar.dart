@@ -65057,6 +65057,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'لا توجد إعدادات أثقال';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'لا توجد إعدادات أثقال أخرى لإضافتها';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'الإجمالي $weight';
   }

@@ -64282,6 +64282,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'Aucun préréglage de lest';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Aucun autre préréglage de lest à ajouter';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'Total $weight';
   }

@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "Lastro",
   "equipment_setEdit_weights_add": "Adicionar predefinição de lastro",
   "equipment_setEdit_weights_empty": "Nenhuma predefinição de lastro",
+  "equipment_setEdit_weights_noneAvailable": "Não há mais predefinições de lastro para adicionar",
   "equipment_setEdit_weights_total": "Total {weight}",
   "equipment_setEdit_tanks_title": "Garrafas",
   "equipment_setEdit_tanks_add": "Adicionar configuração de garrafas",

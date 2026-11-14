@@ -18956,6 +18956,7 @@
   "equipment_setEdit_weights_title": "Blei",
   "equipment_setEdit_weights_add": "Bleivorlage hinzufügen",
   "equipment_setEdit_weights_empty": "Keine Bleivorlagen",
+  "equipment_setEdit_weights_noneAvailable": "Keine weiteren Bleivorlagen zum Hinzufügen",
   "equipment_setEdit_weights_total": "Gesamt {weight}",
   "equipment_setEdit_tanks_title": "Flaschen",
   "equipment_setEdit_tanks_add": "Flaschenkonfiguration hinzufügen",

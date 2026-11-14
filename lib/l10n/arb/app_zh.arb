@@ -18831,6 +18831,7 @@
   "equipment_setEdit_weights_title": "配重",
   "equipment_setEdit_weights_add": "添加配重预设",
   "equipment_setEdit_weights_empty": "没有配重预设",
+  "equipment_setEdit_weights_noneAvailable": "没有更多可添加的配重预设",
   "equipment_setEdit_weights_total": "合计 {weight}",
   "equipment_setEdit_tanks_title": "气瓶",
   "equipment_setEdit_tanks_add": "添加气瓶配置",

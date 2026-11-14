@@ -64183,6 +64183,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_setEdit_weights_empty => 'Sin ajustes de lastre';
 
   @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'No hay más ajustes de lastre que añadir';
+
+  @override
   String equipment_setEdit_weights_total(String weight) {
     return 'Total $weight';
   }
