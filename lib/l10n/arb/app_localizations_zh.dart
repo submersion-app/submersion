@@ -7445,27 +7445,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes 分钟';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return '停留 $depth · $minutes 分钟';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => '拖动以浏览';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => '悬停以浏览';
-
-  @override
   String get diveLog_pinnedStrip_semantics => '潜水剖面图，拖动以移动光标';
 
   @override

@@ -7675,27 +7675,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes דק׳';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'עצירה $depth · $minutes דק׳';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'גרור כדי לדפדף';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'רחף כדי לדפדף';
-
-  @override
   String get diveLog_pinnedStrip_semantics =>
       'פרופיל הצלילה, גרור כדי להזיז את הסמן';
 

@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_profile_strip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile/pinned_strip_geometry.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -321,6 +322,9 @@ void main() {
     expect(find.byType(PinnedProfileStrip), findsOneWidget);
     final overlayTop = tester.getTopLeft(find.byType(PinnedProfileOverlay)).dy;
     final section = tester.getTopLeft(find.byType(DiveSafetySummarySection)).dy;
-    expect(section - overlayTop, greaterThanOrEqualTo(56 - 0.5));
+    expect(
+      section - overlayTop,
+      greaterThanOrEqualTo(kPinnedStripHeight - 0.5),
+    );
   });
 }

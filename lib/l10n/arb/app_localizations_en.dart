@@ -7721,27 +7721,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Stop $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Drag to scrub';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Hover to scrub';
-
-  @override
   String get diveLog_pinnedStrip_semantics =>
       'Dive profile, scrub to move the cursor';
 
