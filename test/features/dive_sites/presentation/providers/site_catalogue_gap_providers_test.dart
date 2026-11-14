@@ -40,10 +40,15 @@ class _Service extends CatalogueGapService {
 
   List<CataloguePair> pairs = const [];
   final asked = <String?>[];
+  final cancelChecks = <bool Function()>[];
 
   @override
-  Future<List<CataloguePair>> findPairs({required String? diverId}) async {
+  Future<List<CataloguePair>> findPairs({
+    required String? diverId,
+    bool Function()? isCancelled,
+  }) async {
     asked.add(diverId);
+    if (isCancelled != null) cancelChecks.add(isCancelled);
     return pairs;
   }
 }
@@ -237,6 +242,21 @@ void main() {
 
       expect(pairs, hasLength(1));
       expect(service.asked, hasLength(2));
+    });
+
+    test('a search a newer one has replaced is told to stop', () async {
+      final c = live();
+      final sub = c.listen(catalogueGapPairsProvider, (_, _) {});
+      addTearDown(sub.close);
+      await c.read(catalogueGapPairsProvider.future);
+      final first = service.cancelChecks.single;
+      expect(first(), isFalse);
+
+      c.read(siteCatalogueRevisionProvider.notifier).state++;
+      await c.read(catalogueGapPairsProvider.future);
+
+      expect(first(), isTrue);
+      expect(service.cancelChecks.last(), isFalse);
     });
 
     test('asks again when a site changes', () async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -64,11 +66,15 @@ class _Service extends CatalogueGapService {
   final declined = <String>[];
   Object? failure;
 
+  /// When set, an apply waits for it.
+  Completer<void>? gate;
+
   @override
   Future<CatalogueApplyResult> apply(
     List<CatalogueApplyRequest> requests, {
     required String? diverId,
   }) async {
+    await gate?.future;
     if (failure != null) throw failure!;
     applied.addAll(requests);
     return const CatalogueApplyResult(linked: 1, filled: 1);
@@ -93,6 +99,9 @@ void main() {
   late _Service service;
   late ProviderContainer container;
 
+  /// How many times the pairs have been looked for.
+  var searches = 0;
+
   Future<void> pump(
     WidgetTester tester,
     DiveSite site, {
@@ -111,9 +120,10 @@ void main() {
         validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
         catalogueGapServiceProvider.overrideWithValue(service),
         _pairs.overrideWith((ref) => pairs),
-        catalogueGapPairsProvider.overrideWith(
-          (ref) async => ref.watch(_pairs),
-        ),
+        catalogueGapPairsProvider.overrideWith((ref) async {
+          searches++;
+          return ref.watch(_pairs);
+        }),
       ],
     );
     addTearDown(container.dispose);
@@ -223,6 +233,33 @@ void main() {
     expect(service.applied, isEmpty);
     expect(service.notSame, isEmpty);
     expect(find.text('Review'), findsOneWidget);
+  });
+
+  testWidgets('an apply still under way when the page goes is finished '
+      'without complaint', (tester) async {
+    await pump(tester, _unlinkedSite, pairs: [_nearby]);
+    service.gate = Completer<void>();
+
+    await tester.tap(find.text('Review'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Fill in (1)'));
+    await tester.pumpAndSettle();
+    // The diver moves on: the site's page leaves the screen.
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: Scaffold(body: Text('elsewhere'))),
+      ),
+    );
+    service.gate!.complete();
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(service.applied.single.pair.site.id, 's1');
+    // The pairs are looked for again, as after any apply.
+    final before = searches;
+    await container.read(catalogueGapPairsProvider.future);
+    expect(searches, before + 1);
   });
 
   testWidgets('a failed apply says so', (tester) async {

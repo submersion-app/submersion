@@ -267,6 +267,25 @@ void main() {
       expect((await stored()).catalogueId, 'r1');
     });
 
+    test('a site linked to the record is filled though an older site '
+        'is linked to it too', () async {
+      // Two devices each adopted the record before they synced.
+      await seedBare(id: 'older', link: 'r1');
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+      await seedBare(link: 'r1');
+
+      final write = await fills.applyFill(
+        siteId: 's1',
+        record: _record,
+        fields: {CatalogueGapField.depth},
+        actingDiverId: 'd1',
+      );
+
+      expect(write.outcome, CatalogueFillOutcome.applied);
+      expect(write.filled, {CatalogueGapField.depth});
+      expect((await stored()).maxDepth, 32);
+    });
+
     test('a site linked to another record is left alone', () async {
       await seedBare(link: 'other');
 

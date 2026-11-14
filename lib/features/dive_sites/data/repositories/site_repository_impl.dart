@@ -10,8 +10,6 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
-import 'package:submersion/core/query/compiler/sql_templates.dart'
-    show escapeLike;
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
@@ -23,6 +21,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_parent_links
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_catalogue_claims.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_children.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_links.dart';
@@ -30,7 +29,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_classificati
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
-import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
+import 'package:submersion/features/dive_sites/domain/services/catalogue_merge_claims.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_merge.dart';
 import 'package:submersion/features/divers/data/repositories/item_shares_repository.dart';
@@ -156,67 +155,16 @@ class SiteRepository {
   }
 
   /// The site of [diverId] that claims the built-in catalogue record
-  /// [catalogueId], or null. With no [diverId], a site that has no diver.
-  ///
-  /// In order: the diver's own site adopted from the record; a site of a
-  /// shared library the diver belongs to that is linked to it; one of
-  /// either that stands for it since a merge. The oldest wins within each
-  /// step, so every caller agrees on one.
+  /// [catalogueId], or null: the one adopted from it, or one that stands
+  /// for it since a merge. See [SiteCatalogueClaims.claimant].
   Future<domain.DiveSite?> getSiteByCatalogueId(
     String catalogueId, {
     String? diverId,
   }) async {
     try {
-      Expression<bool> own($DiveSitesTable t) =>
-          diverId == null ? t.diverId.isNull() : t.diverId.equals(diverId);
-      Expression<bool> inALibraryOfTheirs($DiveSitesTable t) {
-        final memberships = _db.sharedLibraryMemberships;
-        return t.sharedLibraryId.isInQuery(
-          _db.selectOnly(memberships)
-            ..addColumns([memberships.libraryId])
-            ..where(memberships.diverId.equals(diverId!)),
-        );
-      }
-
-      Future<List<DiveSite>> oldestFirst(
-        Expression<bool> Function($DiveSitesTable t) filter, {
-        int? limit,
-      }) {
-        final query = _db.select(_db.diveSites)
-          ..where(filter)
-          ..orderBy([
-            (t) => OrderingTerm.asc(t.createdAt),
-            (t) => OrderingTerm.asc(t.id),
-          ]);
-        if (limit != null) query.limit(limit);
-        return query.get();
-      }
-
-      final scopes = <Expression<bool> Function($DiveSitesTable t)>[
-        own,
-        if (diverId != null) inALibraryOfTheirs,
-      ];
-      for (final scope in scopes) {
-        final linked = await oldestFirst(
-          (t) => t.catalogueId.equals(catalogueId) & scope(t),
-          limit: 1,
-        );
-        if (linked.isNotEmpty) return _mapRowToSite(linked.first);
-      }
-      // The id as it sits in the stored JSON narrows the rows read; the
-      // decoded answers decide. A LIKE alone would take `osm_node_1` for
-      // part of `osm_node_12`, and its `_` for any character.
-      final needle = '%"${escapeLike(catalogueId)}"%';
-      for (final scope in scopes) {
-        final rows = await oldestFirst(
-          (t) => t.catalogueAnswers.like(needle, escapeChar: r'\') & scope(t),
-        );
-        for (final row in rows) {
-          final site = _mapRowToSite(row);
-          if (site.catalogueAnswers.also.contains(catalogueId)) return site;
-        }
-      }
-      return null;
+      return await SiteCatalogueClaims(
+        _db,
+      ).claimant(catalogueId, diverId: diverId);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get site by catalogue id: $catalogueId',
@@ -1102,11 +1050,15 @@ class SiteRepository {
       // merge page builds [mergedSite] from its form, which knows nothing
       // of them. The survivor keeps its own link, else takes the first
       // merged site's, and stands for every other record merged in.
-      final linkedSurvivor = _withMergedCatalogueClaims(
-        guardedSurvivor,
-        originalSurvivor: originalSurvivor,
-        duplicateIds: duplicateIds,
-        deletedSites: deletedSites,
+      final deletedById = {for (final site in deletedSites) site.id: site};
+      final claims = mergedCatalogueClaims(
+        survivor: originalSurvivor,
+        mergedAway: [for (final id in duplicateIds) ?deletedById[id]],
+      );
+      final linkedSurvivor = guardedSurvivor.copyWith(
+        catalogueId: claims.link,
+        clearCatalogueId: claims.link == null,
+        catalogueAnswers: claims.answers,
       );
 
       final affectedDives = await (_db.select(
@@ -1312,6 +1264,8 @@ class SiteRepository {
       _log.info(
         'Undoing merge: restoring ${snapshot.deletedSites.length} sites',
       );
+      // The survivor as the merge left it, to see what the undo changes.
+      final merged = await getSiteById(snapshot.originalSurvivor.id);
 
       await _db.transaction(() async {
         // 1. Restore the survivor to its original state
@@ -1511,6 +1465,20 @@ class SiteRepository {
         }
       });
 
+      // A library survivor's claims are also kept for the profile; what
+      // the merge put there is taken back, or the next copy-back would
+      // return it to the row.
+      final original = snapshot.originalSurvivor;
+      if (original.isLibrarySite &&
+          merged != null &&
+          (merged.catalogueId != original.catalogueId ||
+              merged.catalogueAnswers != original.catalogueAnswers)) {
+        await _libraryStamper.keepCatalogue(
+          original.id,
+          catalogueId: original.catalogueId,
+          answers: original.catalogueAnswers,
+        );
+      }
       SyncEventBus.notifyLocalChange();
       _log.info('Undo merge complete');
     } catch (e, stackTrace) {
@@ -1761,45 +1729,6 @@ class SiteRepository {
 
   static String _placeholders(List<String> ids) =>
       List.filled(ids.length, '?').join(', ');
-
-  /// [survivor] carrying the catalogue claims a merge leaves it with.
-  ///
-  /// The link is its stored one, else the first non-null link among
-  /// [deletedSites] taken in [duplicateIds] order, else none. Every other
-  /// record the merged sites were linked to or stood for becomes one the
-  /// survivor stands for, so none of them is offered to the diver again.
-  /// "Not this site" answers are united, less whatever the survivor now
-  /// claims; details turned down are kept for the surviving link only.
-  domain.DiveSite _withMergedCatalogueClaims(
-    domain.DiveSite survivor, {
-    required domain.DiveSite originalSurvivor,
-    required List<String> duplicateIds,
-    required List<domain.DiveSite> deletedSites,
-  }) {
-    final linkBySite = {
-      for (final site in deletedSites) site.id: site.catalogueId,
-    };
-    final link =
-        originalSurvivor.catalogueId ??
-        duplicateIds.map((id) => linkBySite[id]).nonNulls.firstOrNull;
-    final merged = [originalSurvivor, ...deletedSites];
-    final also = linkedCatalogueIds(merged)..remove(link);
-    final before = originalSurvivor.catalogueAnswers;
-    final answers = before.copyWith(
-      also: also,
-      notSame: {for (final site in merged) ...site.catalogueAnswers.notSame}
-        ..removeAll({?link, ...also}),
-      declined: {
-        if (link != null && before.declined.containsKey(link))
-          link: before.declined[link]!,
-      },
-    );
-    return survivor.copyWith(
-      catalogueId: link,
-      clearCatalogueId: link == null,
-      catalogueAnswers: answers,
-    );
-  }
 
   Future<void> _updateSiteRow(domain.DiveSite site, int now) async {
     await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id))).write(

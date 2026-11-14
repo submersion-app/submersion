@@ -126,6 +126,28 @@ void main() {
       expect(kept.rating, 4);
     });
 
+    test("another profile's notes on the row are not taken up", () async {
+      await member('d1');
+      await diver('d2');
+      await member('d2', memberId: 'm2');
+      await librarySite();
+      // d1's private notes: on the row, and in d1's own record.
+      await SharedLibraryStore().putSiteNotes(
+        diverId: 'd1',
+        siteId: 's',
+        notes: 'd1 keeps this to themselves',
+        rating: 5,
+      );
+      await applyLibrarySiteNotes(DatabaseService.instance.database);
+
+      await put('d2', link: 'r1', answers: null);
+
+      final kept = (await record('d2'))!;
+      expect(kept.link, 'r1');
+      expect(kept.notes, '');
+      expect(kept.rating, isNull);
+    });
+
     test('the record is marked for personal sync', () async {
       await member('d1');
       await librarySite();
@@ -439,6 +461,43 @@ void main() {
     final kept = (await record('d1'))!;
     expect(kept.link, 'r1');
     expect(SiteCatalogueAnswers.decode(kept.answers).also, {'r2'});
+  });
+
+  test('undoing that merge takes the claims back out of the record', () async {
+    await member('d1');
+    await SiteRepository().createSite(
+      const DiveSite(
+        id: 's',
+        name: 'Thistlegorm',
+        sharedLibraryId: 'L',
+        catalogueId: 'r1',
+      ),
+    );
+    await SiteRepository().createSite(
+      const DiveSite(
+        id: 'twin',
+        name: 'SS Thistlegorm',
+        sharedLibraryId: 'L',
+        catalogueId: 'r2',
+      ),
+    );
+    final snapshot = await SiteRepository().mergeSites(
+      mergedSite: const DiveSite(
+        id: 's',
+        name: 'Thistlegorm',
+        sharedLibraryId: 'L',
+      ),
+      siteIds: ['s', 'twin'],
+      actingDiverId: 'd1',
+    );
+
+    await SiteRepository().undoMerge(snapshot!);
+    // As the next sync would: what the profile keeps is copied to the row.
+    await applyLibrarySiteNotes(DatabaseService.instance.database);
+
+    final site = (await SiteRepository().getSiteById('s'))!;
+    expect(site.catalogueId, 'r1');
+    expect(site.catalogueAnswers, SiteCatalogueAnswers.empty);
   });
 
   group('library paths that rewrite a row', () {

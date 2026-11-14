@@ -1,8 +1,10 @@
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_gap_service.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -40,8 +42,7 @@ String catalogueGapFieldValue(
   AppLocalizations l10n,
 ) => switch (field) {
   CatalogueGapField.position => switch (record.location) {
-    final at? =>
-      '${at.latitude.toStringAsFixed(4)}, ${at.longitude.toStringAsFixed(4)}',
+    final at? => catalogueCoordinatesText(at),
     null => '',
   },
   CatalogueGapField.depth => catalogueDepthRange(record, units) ?? '',
@@ -57,6 +58,28 @@ String catalogueGapFieldValue(
   CatalogueGapField.hazards => record.hazards?.trim() ?? '',
   CatalogueGapField.description => record.description?.trim() ?? '',
 };
+
+/// A position as latitude and longitude, to about ten metres.
+String catalogueCoordinatesText(GeoPoint at) =>
+    '${at.latitude.toStringAsFixed(4)}, ${at.longitude.toStringAsFixed(4)}';
+
+/// What to tell the diver after pairs were applied: how many sites were
+/// linked and how many had details filled, and how many could not be
+/// applied when any could not.
+///
+/// The one place these strings are filled in: their generated methods take
+/// the placeholders in alphabetical order (filled before linked), which is
+/// not the order they are read in.
+String catalogueApplyResultMessage(
+  CatalogueApplyResult result,
+  AppLocalizations l10n,
+) => result.notApplied == 0
+    ? l10n.diveSites_gapReview_applied(result.filled, result.linked)
+    : l10n.diveSites_gapReview_appliedSome(
+        result.notApplied,
+        result.filled,
+        result.linked,
+      );
 
 /// The fields a list row only names. Their values are long, or mean
 /// little on one line; the comparison shows them in full.

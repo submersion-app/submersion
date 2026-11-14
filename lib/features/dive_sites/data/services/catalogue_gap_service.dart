@@ -104,21 +104,36 @@ class CatalogueGapService {
   /// though a record it is linked to counts as claimed. One catalogue read
   /// per site: its record when linked, the records around it when it has a
   /// position, the records of its name when it has none.
-  Future<List<CataloguePair>> findPairs({required String? diverId}) async {
+  ///
+  /// [isCancelled] lets the caller give up on a search a newer one has
+  /// replaced: it is asked before each site's read, and a cancelled search
+  /// answers with no pairs, which the caller throws away.
+  Future<List<CataloguePair>> findPairs({
+    required String? diverId,
+    bool Function()? isCancelled,
+  }) async {
     final all = await _sites.getAllSites(diverId: diverId);
-    final taking = <DiveSite>[
-      for (final site in all)
-        if (site.isLibrarySite
-            ? await _stamper.mayEdit(site.id, actingDiverId: diverId)
-            : site.diverId == diverId)
-          site,
-    ];
+    // Who may edit depends on the library and the diver, not on the site:
+    // asked once per library, however many sites it holds.
+    final editable = <String, bool>{};
+    final taking = <DiveSite>[];
+    for (final site in all) {
+      final libraryId = site.sharedLibraryId;
+      final takesPart = libraryId == null
+          ? site.diverId == diverId
+          : editable[libraryId] ??= await _stamper.mayEdit(
+              site.id,
+              actingDiverId: diverId,
+            );
+      if (takesPart) taking.add(site);
+    }
     if (taking.isEmpty) return const [];
 
     final linked = <String, CatalogueSite>{};
     final near = <String, List<CatalogueSite>>{};
     final named = <String, List<CatalogueSite>>{};
     for (final site in taking) {
+      if (isCancelled?.call() ?? false) return const [];
       final link = site.catalogueId;
       final location = site.location;
       if (link != null) {

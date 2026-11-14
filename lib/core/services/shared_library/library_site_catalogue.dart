@@ -11,9 +11,14 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 ///
 /// A library site's own row never enters personal sync, and the link and
 /// answers are one profile's view of the site, so they travel the way that
-/// profile's private notes and rating do. A profile with no record yet
-/// gets one that starts from the notes and rating on the row: an empty
-/// record would otherwise be copied back over them.
+/// profile's private notes and rating do.
+///
+/// A profile with no record yet gets one. Where no profile has a record
+/// for the site, it starts from the notes and rating on the row, which
+/// nothing else holds: an empty record would be copied back over them.
+/// Where another profile has one, the row shows that profile's private
+/// notes, and the new record starts empty: they are not this profile's
+/// to carry.
 Future<void> putLibrarySiteCatalogue(
   AppDatabase db,
   SyncRepository sync, {
@@ -29,9 +34,16 @@ Future<void> putLibrarySiteCatalogue(
       db.librarySiteNotes,
     )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (existing == null) {
-      final site = await (db.select(
-        db.diveSites,
-      )..where((t) => t.id.equals(siteId))).getSingleOrNull();
+      final others =
+          await (db.select(db.librarySiteNotes)
+                ..where((t) => t.siteId.equals(siteId))
+                ..limit(1))
+              .get();
+      final site = others.isNotEmpty
+          ? null
+          : await (db.select(
+              db.diveSites,
+            )..where((t) => t.id.equals(siteId))).getSingleOrNull();
       await db
           .into(db.librarySiteNotes)
           .insert(

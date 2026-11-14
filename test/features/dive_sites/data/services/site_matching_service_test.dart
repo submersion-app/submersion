@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_sites/data/services/catalogue_adoption_
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_match_sensitivity.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -175,6 +176,51 @@ void main() {
   });
 
   group('catalogue candidates', () {
+    group('a record a merged site stands for', () {
+      DiveSite survivorAt(GeoPoint where) => DiveSite(
+        id: 's-survivor',
+        name: 'Thistlegorm',
+        location: where,
+        catalogueId: 'osm_1',
+        catalogueAnswers: const SiteCatalogueAnswers(also: {'osm_3'}),
+      );
+      final folded = CatalogueSite(
+        id: 'osm_3',
+        name: 'SS Thistlegorm',
+        location: _eastMeters(20),
+        source: 'osm',
+      );
+
+      test('is offered when that site is out of range of the dive', () async {
+        // The survivor sits at its own record, far from this one. Without
+        // the record the dive would have no candidate at all; applying it
+        // links the dive to the survivor, not to a new site.
+        when(
+          sites.getAllSites(diverId: anyNamed('diverId')),
+        ).thenAnswer((_) async => [survivorAt(_eastMeters(50000))]);
+        catalogue.sites = [folded];
+
+        final proposals = await service().computeProposals([
+          _diveAt('d1', const GeoPoint(0, 0)),
+        ]);
+
+        expect(proposals.single.candidates.map((c) => c.id), ['osm_3']);
+      });
+
+      test('is not offered beside that site when it is in range', () async {
+        when(
+          sites.getAllSites(diverId: anyNamed('diverId')),
+        ).thenAnswer((_) async => [survivorAt(_eastMeters(400))]);
+        catalogue.sites = [folded];
+
+        final proposals = await service().computeProposals([
+          _diveAt('d1', const GeoPoint(0, 0)),
+        ]);
+
+        expect(proposals.single.candidates.map((c) => c.id), ['s-survivor']);
+      });
+    });
+
     test('an adopted site is not also offered as its catalogue twin', () async {
       // 400 m from the dive: outside the inner radius, so catalogue sites
       // compete, and the adopted site's own record would be a second card.

@@ -90,13 +90,26 @@ List<CataloguePair> pairSitesWithCatalogue({
   // Unlinked sites with a position: what lies within reach of each, a dive
   // site record before a wreck or reef record, then the nearer.
   final located = <DiveSite, ({List<_Reach> sameName, List<_Reach> any})>{};
+  // Sites whose own record, same name and within reach, another of the
+  // diver's sites already has: the diver holds this place twice.
+  final ownRecordClaimed = <DiveSite>{};
   for (final site in sites) {
     final siteAt = site.location;
     if (site.catalogueId != null || siteAt == null) continue;
+    final nearRecords = candidates.near[site.id] ?? const <CatalogueSite>[];
+    if (nearRecords.any(
+      (record) =>
+          claimed.contains(record.id) &&
+          record.location != null &&
+          distanceMeters(siteAt, record.location!) <=
+              kCataloguePairRadiusMeters &&
+          catalogueNamesEqual(site.name, record.name),
+    )) {
+      ownRecordClaimed.add(site);
+    }
     final reach =
         <_Reach>[
-            for (final record
-                in candidates.near[site.id] ?? const <CatalogueSite>[])
+            for (final record in nearRecords)
               if (record.location != null && open(site, record))
                 (
                   record: record,
@@ -136,11 +149,13 @@ List<CataloguePair> pairSitesWithCatalogue({
     for (final entry in located.entries) entry.key: entry.value.sameName,
   }, CataloguePairKind.sure);
   // A site that has an equal-named record within reach is that record's
-  // or nobody's: when a nearer site took it, the site is not handed a
-  // neighbour under another name instead.
+  // or nobody's: when a nearer site took it, or another of the diver's
+  // sites already has it, the site is not handed a neighbour under
+  // another name instead.
   settle({
     for (final entry in located.entries)
-      if (entry.value.sameName.isEmpty) entry.key: entry.value.any,
+      if (entry.value.sameName.isEmpty && !ownRecordClaimed.contains(entry.key))
+        entry.key: entry.value.any,
   }, CataloguePairKind.nearby);
 
   // Unlinked sites without a position: exactly one record of the name, in

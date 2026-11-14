@@ -31,17 +31,8 @@ class CatalogueGapReviewPage extends ConsumerWidget {
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
 
-    void report(CatalogueApplyResult result) => say(
-      // The generated methods take their placeholders in alphabetical
-      // order: filled before linked.
-      result.notApplied == 0
-          ? l10n.diveSites_gapReview_applied(result.filled, result.linked)
-          : l10n.diveSites_gapReview_appliedSome(
-              result.notApplied,
-              result.filled,
-              result.linked,
-            ),
-    );
+    void report(CatalogueApplyResult result) =>
+        say(catalogueApplyResultMessage(result, l10n));
 
     Future<void> applyTicked() async {
       try {

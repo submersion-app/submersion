@@ -12705,7 +12705,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String diveSites_gapReview_nearby(Object distance, Object name) {
-    return '$distance מ\"$name\"';
+    return '$distance מ-\"$name\"';
   }
 
   @override

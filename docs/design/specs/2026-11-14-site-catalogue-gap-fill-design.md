@@ -537,6 +537,20 @@ otherwise. Each is the builder's, not the maintainer's.
   position, as a nearby pair, and never by name.
 - **A site whose equal-named record went to a nearer site** gets no pair
   at all in that run. It is not handed a neighbour under another name.
+- **A site whose own record another of the diver's sites already has**
+  (the diver holds one place twice) gets no pair either, for the same
+  reason.
+- **A site already linked to a record is filled even when an older site
+  holds the same link** (two devices adopted the record before they
+  synced). Only a site about to be linked can be beaten to a record.
+- **GPS matching still offers a record a merged site stands for** when
+  that site is out of range of the dive; choosing it links the dive to
+  the site. It is left out only when the site itself is in range.
+- **A profile's new record for a library site starts empty** when another
+  profile already has one: the row then shows that profile's private
+  notes, which are not copied.
+- **A search for pairs that a newer one has replaced stops** at its next
+  catalogue read, so a burst of site writes costs one full search.
 - **The copy-back for library sites never clears.** It takes the newest
   record that holds a link, and separately the newest that holds answers.
   A cleared value cannot be told from one never set, so undoing a merge of

@@ -57,10 +57,13 @@ class _Stamper extends LibraryEditStamper {
   _Stamper(this.editable);
 
   final bool editable;
+  int mayEditCalls = 0;
 
   @override
-  Future<bool> mayEdit(String siteId, {String? actingDiverId}) async =>
-      editable;
+  Future<bool> mayEdit(String siteId, {String? actingDiverId}) async {
+    mayEditCalls++;
+    return editable;
+  }
 
   @override
   Future<void> stamp(
@@ -242,6 +245,45 @@ void main() {
         expect(readOnly, isEmpty);
       },
     );
+
+    test('who may edit a library is asked once, not once per site', () async {
+      await db.customStatement(
+        'INSERT INTO shared_library_memberships (id, diver_id, library_id, '
+        'member_id, display_name, library_name, backend_kind, created_at, '
+        "updated_at) VALUES ('ms', 'd1', 'L', 'm', 'd1', 'Club', 's3', 1, 1)",
+      );
+      for (final id in ['a', 'b', 'c']) {
+        await sites.createSite(
+          DiveSite(
+            id: id,
+            name: 'Reef $id',
+            location: const GeoPoint(1, 1),
+            sharedLibraryId: 'L',
+          ),
+        );
+      }
+      final stamper = _Stamper(true);
+
+      await service(stamper: stamper).findPairs(diverId: 'd1');
+
+      expect(stamper.mayEditCalls, 1);
+    });
+
+    test('a search that has been superseded stops reading', () async {
+      for (final id in ['a', 'b', 'c', 'd']) {
+        await mine(id, 'Reef $id', at: _pier40m);
+      }
+      var asked = 0;
+
+      final found = await service().findPairs(
+        diverId: 'd1',
+        // Superseded after the second site has been read.
+        isCancelled: () => ++asked > 2,
+      );
+
+      expect(found, isEmpty);
+      expect(catalogue.nearCalls, 2);
+    });
 
     test('an empty catalogue gives no pairs and no error', () async {
       catalogue.sites = [];

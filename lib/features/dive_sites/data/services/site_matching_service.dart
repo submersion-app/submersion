@@ -12,7 +12,6 @@ import 'package:submersion/features/dive_sites/domain/matching/match_thresholds.
 import 'package:submersion/features/dive_sites/domain/matching/site_match_outcome.dart';
 import 'package:submersion/features/dive_sites/domain/matching/site_matcher.dart';
 import 'package:submersion/features/dive_sites/domain/repositories/site_catalogue.dart';
-import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/services/photo_gps_point_selector.dart';
 
@@ -235,10 +234,24 @@ class SiteMatchingService {
       }
       // A catalogue site the diver already adopted is among their own
       // sites above: offering its record too would show the site twice.
-      final adopted = linkedCatalogueIds(_userSites);
+      final adopted = {for (final site in _userSites) ?site.catalogueId};
+      // A record a site stands for since a merge may lie well away from
+      // that site. It is left out only when the site itself is in range
+      // to be chosen; otherwise it stays a candidate, and choosing it
+      // links the dive to that site.
+      final standingFor = {
+        for (final site in _userSites)
+          for (final id in site.catalogueAnswers.also) id: site,
+      };
       for (final b in bundled) {
         final location = b.location;
         if (location == null || adopted.contains(b.id)) continue;
+        final stands = standingFor[b.id];
+        if (stands != null &&
+            distanceMeters(point, stands.location!) <=
+                thresholds.outerRadiusMeters) {
+          continue;
+        }
         refs[b.id] = _CandidateRef.bundled(b);
         candidates.add(
           MatchCandidate(

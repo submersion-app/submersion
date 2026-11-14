@@ -56,10 +56,16 @@ final catalogueGapPairsProvider = FutureProvider<List<CataloguePair>>((
   final sites = ref.watch(siteRepositoryProvider);
   final classification = ref.watch(siteClassificationRepositoryProvider);
   final service = ref.watch(catalogueGapServiceProvider);
+  // A search reads the catalogue once per site. When a change replaces it
+  // with a newer one, it is told to stop: a burst of site writes (a file
+  // import, a bulk lookup) then costs one read per write and one full
+  // search at the end, not a full search per write.
+  var superseded = false;
+  ref.onDispose(() => superseded = true);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   ref.invalidateSelfWhen(sites.watchSitesChanges());
   ref.invalidateSelfWhen(classification.watchChanges());
-  return service.findPairs(diverId: diverId);
+  return service.findPairs(diverId: diverId, isCancelled: () => superseded);
 });
 
 /// The pair for one site, or null: none, or the pairs are not found yet.

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/data/services/catalogue_gap_service.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/catalogue_gap_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_gap_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_comparison_sheet.dart';
@@ -57,6 +58,10 @@ class SiteCatalogueOfferLine extends ConsumerWidget {
 }
 
 /// Opens the comparison for [pair] and does what the diver chose there.
+///
+/// Everything after the sheet goes through the provider container, not
+/// this widget: the diver may leave the site's page while a write is under
+/// way, and the write and what follows it must still finish.
 Future<void> _review(
   BuildContext context,
   WidgetRef ref,
@@ -64,35 +69,23 @@ Future<void> _review(
 ) async {
   final l10n = context.l10n;
   final messenger = ScaffoldMessenger.of(context);
+  final container = ProviderScope.containerOf(context, listen: false);
   final result = await showCatalogueGapComparison(context, pair: pair);
   // Closed without acting: nothing to remember outside the review list.
   if (result == null || result is ComparisonKept) return;
 
-  final service = ref.read(catalogueGapServiceProvider);
+  final service = container.read(catalogueGapServiceProvider);
   try {
-    final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+    final diverId = await container.read(
+      validatedCurrentDiverIdProvider.future,
+    );
     switch (result) {
       case ComparisonApply(:final fields):
         final applied = await service.apply([
           CatalogueApplyRequest(pair, fields),
         ], diverId: diverId);
-        // The generated methods take their placeholders in alphabetical
-        // order: filled before linked.
         messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              applied.notApplied == 0
-                  ? l10n.diveSites_gapReview_applied(
-                      applied.filled,
-                      applied.linked,
-                    )
-                  : l10n.diveSites_gapReview_appliedSome(
-                      applied.notApplied,
-                      applied.filled,
-                      applied.linked,
-                    ),
-            ),
-          ),
+          SnackBar(content: Text(catalogueApplyResultMessage(applied, l10n))),
         );
       case ComparisonNotSame():
         await service.answerNotSame(pair, diverId: diverId);
@@ -103,8 +96,8 @@ Future<void> _review(
     }
     // The pairs are found again by their own change ticks; the site list
     // some screens hold in memory is told here.
-    ref.invalidate(catalogueGapPairsProvider);
-    ref.invalidate(siteListNotifierProvider);
+    container.invalidate(catalogueGapPairsProvider);
+    container.invalidate(siteListNotifierProvider);
   } catch (_) {
     // The service has logged it.
     messenger.showSnackBar(

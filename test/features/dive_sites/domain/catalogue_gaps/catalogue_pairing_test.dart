@@ -412,6 +412,24 @@ void main() {
       );
     });
 
+    test('a site whose own record another site has is not handed a '
+        'neighbour', () {
+      // The diver has this place twice; the other copy is the linked one.
+      expect(
+        _pair(
+          [_site('s1', 'Salt Pier')],
+          near: {
+            's1': [
+              _record('r1', 'Salt Pier'),
+              _record('r2', 'Salt Pier North', at: _north100m),
+            ],
+          },
+          claimed: {'r1'},
+        ),
+        isEmpty,
+      );
+    });
+
     test('a record the site said it is not', () {
       expect(
         _pair(

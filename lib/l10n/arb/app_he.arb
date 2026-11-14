@@ -3892,7 +3892,7 @@
   "diveSites_gapReview_apply": "החל ({count})",
   "diveSites_gapReview_adds": "מוסיף: {items}",
   "diveSites_gapReview_addsLink": "קישור",
-  "diveSites_gapReview_nearby": "{distance} מ\"{name}\"",
+  "diveSites_gapReview_nearby": "{distance} מ-\"{name}\"",
   "diveSites_gapReview_named": "ללא מיקום. \"{name}\", {place}",
   "diveSites_gapReview_namedNoPlace": "ללא מיקום. \"{name}\"",
   "diveSites_gapReview_compare": "השוואה לרשומה המובנית",

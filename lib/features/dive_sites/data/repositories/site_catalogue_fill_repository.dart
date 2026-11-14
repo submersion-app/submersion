@@ -119,10 +119,16 @@ class SiteCatalogueFillRepository {
         if (site.catalogueId != null && site.catalogueId != record.id) {
           return const CatalogueFillWrite(CatalogueFillOutcome.siteChanged);
         }
-        final claimant = await _sites.getSiteByCatalogueId(
-          record.id,
-          diverId: site.diverId ?? actingDiverId,
-        );
+        // Only a site about to be linked can be beaten to the record. One
+        // already linked to it keeps its claim, also when an older site
+        // holds the same link (two devices adopted the record before they
+        // synced): both are the diver's, and both may be filled.
+        final claimant = site.catalogueId == null
+            ? await _sites.getSiteByCatalogueId(
+                record.id,
+                diverId: site.diverId ?? actingDiverId,
+              )
+            : null;
         if (claimant != null && claimant.id != siteId) {
           return const CatalogueFillWrite(
             CatalogueFillOutcome.claimedElsewhere,

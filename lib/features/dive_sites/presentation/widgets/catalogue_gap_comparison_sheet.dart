@@ -4,7 +4,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_gap_display.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
@@ -82,17 +81,17 @@ class _Comparison extends ConsumerStatefulWidget {
 }
 
 class _ComparisonState extends ConsumerState<_Comparison> {
-  late final Set<CatalogueGapField> _fields = {...widget.initialFields};
+  late Set<CatalogueGapField> _fields = widget.initialFields;
 
+  /// A new set each time: the one handed out before is never changed.
   void _toggle(CatalogueGapField field) {
     setState(() {
-      if (!_fields.remove(field)) _fields.add(field);
+      _fields = _fields.contains(field)
+          ? _fields.difference({field})
+          : {..._fields, field};
     });
-    widget.onFieldsChanged({..._fields});
+    widget.onFieldsChanged(_fields);
   }
-
-  static String _coordinates(GeoPoint at) =>
-      '${at.latitude.toStringAsFixed(4)}, ${at.longitude.toStringAsFixed(4)}';
 
   @override
   Widget build(BuildContext context) {
@@ -212,8 +211,8 @@ class _ComparisonState extends ConsumerState<_Comparison> {
           if (siteAt != null && recordAt != null)
             kept(
               l10n.diveSites_detail_location_gpsCoordinates,
-              _coordinates(siteAt),
-              _coordinates(recordAt),
+              catalogueCoordinatesText(siteAt),
+              catalogueCoordinatesText(recordAt),
               distance == null
                   ? l10n.diveSites_gapCompare_staysYours
                   : '${l10n.diveSites_gapCompare_staysYours} · '
@@ -241,9 +240,8 @@ class _ComparisonState extends ConsumerState<_Comparison> {
                 ),
                 FilledButton(
                   onPressed: canApply
-                      ? () => Navigator.of(
-                          context,
-                        ).pop(ComparisonApply({..._fields}))
+                      ? () =>
+                            Navigator.of(context).pop(ComparisonApply(_fields))
                       : null,
                   child: Text(primary),
                 ),

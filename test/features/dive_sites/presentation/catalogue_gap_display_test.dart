@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_gap_service.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_gap_field.dart';
 import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_pair.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
@@ -130,6 +131,35 @@ void main() {
         expect(catalogueGapFieldValue(field, bare, metric, l10n), '');
       }
     });
+  });
+
+  group('the message after applying', () {
+    test('says how many sites were linked and how many filled', () {
+      expect(
+        catalogueApplyResultMessage(
+          const CatalogueApplyResult(linked: 3, filled: 1),
+          l10n,
+        ),
+        'Sites linked: 3. Sites with details filled: 1.',
+      );
+    });
+
+    test('adds how many could not be applied', () {
+      expect(
+        catalogueApplyResultMessage(
+          const CatalogueApplyResult(linked: 3, filled: 1, notApplied: 2),
+          l10n,
+        ),
+        'Sites linked: 3. Sites with details filled: 1. Not applied: 2.',
+      );
+    });
+  });
+
+  test('coordinates are written to four decimal places', () {
+    expect(
+      catalogueCoordinatesText(const GeoPoint(27.81416, -33.9)),
+      '27.8142, -33.9000',
+    );
   });
 
   test('every field has a label', () {
