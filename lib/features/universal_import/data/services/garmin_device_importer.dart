@@ -130,8 +130,15 @@ class GarminDeviceImporter {
     required void Function(String dirPath) onTempDir,
   }) async {
     onProgress(const GarminImportProgress(GarminImportPhase.lookingForWatch));
-    final devices = await _detector.detect();
-    if (devices.isEmpty) return const GarminNotConnected();
+    final found = await _detector.scan();
+    final devices = found.devices;
+    if (devices.isEmpty) {
+      // No watch to read, and the MTP listing itself failed: that failure
+      // is the answer, not "no Garmin connected".
+      final failure = found.mtpFailure;
+      if (failure != null) Error.throwWithStackTrace(failure.$1, failure.$2);
+      return const GarminNotConnected();
+    }
     final device = await _deviceFor(request.computerId, devices);
     final serial = device.serialNumber;
 

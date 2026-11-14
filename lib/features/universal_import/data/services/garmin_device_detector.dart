@@ -78,6 +78,13 @@ final class GarminMtpWatch extends GarminDevice {
   final String? serialNumber;
 }
 
+/// What [GarminDeviceDetector.scan] found: the connected Garmins, and the
+/// error and stack trace the MTP listing failed with, if it failed.
+typedef GarminScan = ({
+  List<GarminDevice> devices,
+  (Object, StackTrace)? mtpFailure,
+});
+
 /// Detects Garmin dive computers attached by cable.
 ///
 /// This is desktop-only: mobile platforms cannot mount a watch as a drive.
@@ -110,31 +117,53 @@ class GarminDeviceDetector {
   /// Every connected Garmin: mounted volumes that look like one (a
   /// non-empty `GARMIN/Activity` folder beside `GARMIN/GarminDevice.xml`)
   /// first, then MTP watches.
-  Future<List<GarminDevice>> detect() async {
+  Future<List<GarminDevice>> detect() async => (await scan()).devices;
+
+  /// [detect], together with the failure of the MTP listing if it failed.
+  ///
+  /// That failure never hides a watch mounted as a drive, so it is not
+  /// thrown. A caller that found no device at all can use it to say why
+  /// (another app holds the watch, Windows could not list its devices)
+  /// instead of reporting that nothing is connected.
+  Future<GarminScan> scan() async {
     // Started together: neither scan needs the other, and each can take a
     // moment (drive letters with no media, a watch waking over MTP).
     final volumes = _detectVolumes();
-    final watches = _detectMtpWatches();
-    return [...await volumes, ...await watches];
+    final mtp = _detectMtpWatches();
+    // The volume scan is awaited first: it is the one that can throw, and
+    // its error must reach the caller, not surface unhandled while the MTP
+    // listing (which never throws) is still being waited on.
+    final mounted = await volumes;
+    final watches = await mtp;
+    return (
+      devices: [...mounted, ...watches.watches],
+      mtpFailure: watches.failure,
+    );
   }
 
-  Future<List<GarminMtpWatch>> _detectMtpWatches() async {
+  Future<({List<GarminMtpWatch> watches, (Object, StackTrace)? failure})>
+  _detectMtpWatches() async {
     final source = mtpSource;
-    if (source == null) return const [];
+    if (source == null) {
+      return (watches: const <GarminMtpWatch>[], failure: null);
+    }
     try {
       final devices = await source.listDevices();
-      return [
-        for (final device in devices)
-          GarminMtpWatch(
-            deviceId: device.id,
-            displayName: device.friendlyName,
-            serialNumber: unitIdFromMtpSerial(device.serialNumber),
-          ),
-      ];
-    } catch (e) {
+      return (
+        watches: [
+          for (final device in devices)
+            GarminMtpWatch(
+              deviceId: device.id,
+              displayName: device.friendlyName,
+              serialNumber: unitIdFromMtpSerial(device.serialNumber),
+            ),
+        ],
+        failure: null,
+      );
+    } catch (error, stackTrace) {
       // An MTP failure must not hide a watch mounted as a drive.
-      _log.warning('Listing Garmin MTP devices failed: $e');
-      return const [];
+      _log.warning('Listing Garmin MTP devices failed: $error');
+      return (watches: const <GarminMtpWatch>[], failure: (error, stackTrace));
     }
   }
 

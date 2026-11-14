@@ -435,6 +435,44 @@ void main() {
     expect(notifier.state.garminProgress, isNull);
   });
 
+  group('when Windows cannot list its portable devices', () {
+    // With no watch found, the listing failure is the news: saying "no
+    // Garmin connected" would send the diver to check a cable that is fine.
+    test('says the device is busy', () async {
+      final (:notifier, progress: _) = await notifierFor(
+        FakeGarminMtpSource(
+          listError: PlatformException(code: 'busy', message: 'in use'),
+        ),
+      );
+
+      await notifier.importFromGarminDevice();
+
+      expect(notifier.state.error, _en.universalImport_error_garminBusy);
+      expect(notifier.state.isLoading, isFalse);
+      expect(notifier.state.garminProgress, isNull);
+    });
+
+    test('reports any other failure with its message', () async {
+      final (:notifier, progress: _) = await notifierFor(
+        FakeGarminMtpSource(
+          listError: PlatformException(
+            code: 'ioError',
+            message: 'Creating the device manager failed (0x80040154)',
+          ),
+        ),
+      );
+
+      await notifier.importFromGarminDevice();
+
+      expect(
+        notifier.state.error,
+        _en.universalImport_error_garminReadFailed(
+          'Creating the device manager failed (0x80040154)',
+        ),
+      );
+    });
+  });
+
   test('reports a watch unplugged before its files were listed', () async {
     final (:notifier, progress: _) = await notifierFor(
       FakeGarminMtpSource(

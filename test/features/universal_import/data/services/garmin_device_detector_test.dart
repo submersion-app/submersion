@@ -251,6 +251,41 @@ void main() {
       expect(devices.single, isA<GarminVolume>());
     });
 
+    test('a scan keeps the MTP failure beside the volumes it found', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+      final failure = PlatformException(code: 'busy');
+      final found = await detectorFor([
+        vol,
+      ], mtpSource: FakeGarminMtpSource(listError: failure)).scan();
+
+      expect(found.devices.single, isA<GarminVolume>());
+      expect(found.mtpFailure?.$1, same(failure));
+    });
+
+    test(
+      'a scan that found nothing still says the MTP listing failed',
+      () async {
+        final failure = PlatformException(code: 'ioError');
+        final found = await detectorFor(
+          const [],
+          mtpSource: FakeGarminMtpSource(listError: failure),
+        ).scan();
+
+        expect(found.devices, isEmpty);
+        expect(found.mtpFailure?.$1, same(failure));
+      },
+    );
+
+    test('a scan with nothing wrong reports no failure', () async {
+      final found = await detectorFor(
+        const [],
+        mtpSource: FakeGarminMtpSource(devices: [fakeGarminWatch()]),
+      ).scan();
+
+      expect(found.devices, hasLength(1));
+      expect(found.mtpFailure, isNull);
+    });
+
     test('without an MTP source only volumes are scanned', () async {
       final devices = await detectorFor(const []).detect();
       expect(devices, isEmpty);
