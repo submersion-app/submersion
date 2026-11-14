@@ -144,7 +144,9 @@ class BuoyancyBalanceBar extends StatelessWidget {
     // so a part appearing or vanishing does not rescale its neighbours.
     final available =
         halfWidth - _gap * (TwinBalancePartKind.values.length - 1);
-    if (available <= 0) return const [];
+    // Narrower than one segment's minimum, there is nothing sensible to draw
+    // (and clamping to a minimum above the maximum would throw).
+    if (available < _minSegmentWidth) return const [];
     final scale = scaleKg > 0 ? scaleKg : 1.0;
     var widths = [
       for (final p in ordered)

@@ -166,6 +166,16 @@ void main() {
     ]);
   });
 
+  testWidgets('a bar squeezed to almost nothing draws no segments', (
+    tester,
+  ) async {
+    // 21 px leaves under 2 px of usable half width: less than one segment's
+    // minimum, which used to make the width clamp throw.
+    await _pump(tester, _balance(), width: 21);
+    expect(tester.takeException(), isNot(isA<ArgumentError>()));
+    expect(_segment(TwinBalancePartKind.lead), findsNothing);
+  });
+
   testWidgets('right to left keeps each caption over its own half', (
     tester,
   ) async {
