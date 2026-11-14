@@ -193,8 +193,9 @@ class ReparseService {
       // computer delete leaves on a download's: the edit's synced mark tells
       // them apart, live or demoted (issue #4386), and for a series written
       // before the mark, liveEditIds, the rule a resync keeps an edit by,
-      // reads it off the generation demoted beneath it. An edit that lost its
-      // source is kept too, whoever re-parses (issue #4529).
+      // reads it off the generation demoted beneath it, and _keptEdits off a
+      // recording left live beside it. An edit that lost its source is kept
+      // too, whoever re-parses (issue #4529).
       // Read once: nothing below writes a series before the replace.
       final series = await _profileSeries.getIdentitiesForDive(diveId);
       final keptEdits = _keptEdits(
