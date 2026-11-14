@@ -27,6 +27,7 @@ import 'package:submersion/core/utils/dive_rating_scale.dart';
 import 'package:submersion/core/utils/off_isolate.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
 
 /// Handles comprehensive UDDF import including all application data.
@@ -1687,7 +1688,9 @@ class UddfFullImportService {
       final mediaTimeOffset = int.tryParse(
         UddfImportParsers.getElementText(afterElement, 'mediatimeoffset') ?? '',
       );
-      if (mediaTimeOffset != null) {
+      // A value no camera could be out by is a damaged file, not a shift.
+      if (mediaTimeOffset != null &&
+          DiveMediaClock.isValidOffset(mediaTimeOffset)) {
         diveData['mediaTimeOffsetSeconds'] = mediaTimeOffset;
       }
 

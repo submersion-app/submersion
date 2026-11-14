@@ -237,16 +237,13 @@ class _SetTimeButton extends ConsumerWidget {
       label: Text(context.l10n.media_timeInDive_setAction),
       onPressed: () async {
         final pinner = ref.read(mediaTimePinnerProvider);
-        final settings = ref.read(settingsProvider);
-        final automatic = await pinner.automaticTimeFor(item);
-        if (!context.mounted) return;
         final choice = await showSetMediaTimeDialog(
           context,
           profile: profile,
           initialElapsedSeconds: initialElapsedSeconds,
           isPinned: item.manualElapsedSeconds != null,
-          settings: settings,
-          automatic: automatic,
+          settings: ref.read(settingsProvider),
+          automatic: pinner.automaticTimeFor(item),
         );
         if (choice == null || !context.mounted) return;
         await pinner.apply(item, choice);

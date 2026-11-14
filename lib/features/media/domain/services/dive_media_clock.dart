@@ -25,6 +25,16 @@ class DiveMediaClock {
     offsetSeconds: offsetSeconds,
   );
 
+  /// The largest shift a dive holds, either way: a century, which covers a
+  /// camera reset to its factory date and keeps a corrupt value from
+  /// overflowing the arithmetic it feeds.
+  static const int maxOffsetSeconds = 100 * 366 * 24 * 60 * 60;
+
+  /// Whether [seconds] is a shift a dive can hold. Compared both ways
+  /// rather than by magnitude: the smallest integer has no positive twin.
+  static bool isValidOffset(int seconds) =>
+      seconds >= -maxOffsetSeconds && seconds <= maxOffsetSeconds;
+
   /// The instant the dive's profile counts from.
   final DateTime start;
 

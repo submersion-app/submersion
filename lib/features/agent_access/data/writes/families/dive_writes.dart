@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_servic
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
 import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -72,9 +73,12 @@ class DiveWrites extends WritableEntry {
     'excluded_from_stats': const FieldCodec.flag(),
     'excluded_from_gas_stats': const FieldCodec.flag(),
     // Seconds added to each photo's capture time before it is placed on the
-    // dive (issue #4539); 0 is no shift. A day either way covers a camera
-    // left on another date.
-    'media_time_offset_s': const FieldCodec.integer(min: -86400, max: 86400),
+    // dive (issue #4539); 0 is no shift. The bound is the one the app
+    // itself holds a shift to.
+    'media_time_offset_s': const FieldCodec.integer(
+      min: -DiveMediaClock.maxOffsetSeconds,
+      max: DiveMediaClock.maxOffsetSeconds,
+    ),
     'dive_operator': _text,
     'boat_name': _text,
     'boat_captain': _text,

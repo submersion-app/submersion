@@ -84,6 +84,16 @@ void main() {
     expect(dive['mediaTimeOffsetSeconds'], isNull);
   });
 
+  // No camera is out by this much; taken as a shift it would overflow the
+  // arithmetic that places the dive's media.
+  test('a value past the largest shift a dive holds is ignored', () async {
+    final dive = await restore(
+      '<mediatimeoffset>9000000000000000000</mediatimeoffset>',
+    );
+
+    expect(dive['mediaTimeOffsetSeconds'], isNull);
+  });
+
   test('a value that is not a whole number is ignored', () async {
     final dive = await restore('<mediatimeoffset>soon</mediatimeoffset>');
 

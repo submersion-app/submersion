@@ -266,8 +266,6 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     List<DiveProfilePoint> profile,
   ) async {
     final pinner = ref.read(mediaTimePinnerProvider);
-    final automatic = await pinner.automaticTimeFor(item);
-    if (!mounted) return;
     final choice = await showSetMediaTimeDialog(
       context,
       profile: profile,
@@ -277,7 +275,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       ),
       isPinned: item.manualElapsedSeconds != null,
       settings: ref.read(settingsProvider),
-      automatic: automatic,
+      automatic: pinner.automaticTimeFor(item),
     );
     if (choice == null || !mounted) return;
     await pinner.apply(item, choice);

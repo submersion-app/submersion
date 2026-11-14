@@ -67,6 +67,34 @@ void main() {
     });
   });
 
+  group('DiveMediaClock.isValidOffset', () {
+    test('holds a camera a decade out, either way', () {
+      const decade = 10 * 365 * 24 * 60 * 60;
+
+      expect(DiveMediaClock.isValidOffset(0), isTrue);
+      expect(DiveMediaClock.isValidOffset(-decade), isTrue);
+      expect(DiveMediaClock.isValidOffset(decade), isTrue);
+      expect(
+        DiveMediaClock.isValidOffset(DiveMediaClock.maxOffsetSeconds),
+        isTrue,
+      );
+    });
+
+    test('refuses anything past a century', () {
+      expect(
+        DiveMediaClock.isValidOffset(DiveMediaClock.maxOffsetSeconds + 1),
+        isFalse,
+      );
+      expect(
+        DiveMediaClock.isValidOffset(-DiveMediaClock.maxOffsetSeconds - 1),
+        isFalse,
+      );
+      // The smallest integer is its own magnitude, so a check by size alone
+      // would let it through.
+      expect(DiveMediaClock.isValidOffset(-9223372036854775808), isFalse);
+    });
+  });
+
   group('DiveMediaClock.onDiveClock', () {
     test('returns the capture time when the dive has no shift', () {
       final clock = DiveMediaClock.of(

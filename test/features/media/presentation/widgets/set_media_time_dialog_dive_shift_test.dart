@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -23,6 +25,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     required MediaAutomaticTime? automatic,
+    Future<MediaAutomaticTime?>? automaticFuture,
     int initialElapsedSeconds = 600,
   }) async {
     result = null;
@@ -42,7 +45,7 @@ void main() {
                     initialElapsedSeconds: initialElapsedSeconds,
                     isPinned: false,
                     settings: const AppSettings(),
-                    automatic: automatic,
+                    automatic: automaticFuture ?? Future.value(automatic),
                   );
                 },
                 child: const Text('open'),
@@ -76,6 +79,38 @@ void main() {
 
     expect(shiftSwitch(), findsNothing);
     expect(find.text('Remove shift'), findsNothing);
+  });
+
+  // Reading the automatic place loads the dive. The dialog opens on the tap
+  // and gains the shift when the read lands, so the button is never dead
+  // long enough to be tapped twice.
+  testWidgets('opens before the automatic place is known', (tester) async {
+    final pending = Completer<MediaAutomaticTime?>();
+    await pump(tester, automatic: null, automaticFuture: pending.future);
+
+    expect(find.byType(SetMediaTimeDialog), findsOneWidget);
+    expect(shiftSwitch(), findsNothing);
+
+    pending.complete((elapsedSeconds: 600, diveShiftSeconds: 0));
+    await tester.pumpAndSettle();
+
+    expect(shiftSwitch(), findsOneWidget);
+  });
+
+  testWidgets('a read that fails leaves the dialog a pin only', (tester) async {
+    final pending = Completer<MediaAutomaticTime?>();
+    await pump(tester, automatic: null, automaticFuture: pending.future);
+
+    pending.completeError(StateError('unreadable series'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SetMediaTimeDialog), findsOneWidget);
+    expect(shiftSwitch(), findsNothing);
+
+    await tester.enterText(find.byType(TextField), '8:33');
+    await save(tester);
+
+    expect(result, isA<MediaTimePinned>());
   });
 
   testWidgets('offers the shift, off, for an item placed by capture time', (

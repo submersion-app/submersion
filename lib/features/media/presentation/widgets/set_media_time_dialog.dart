@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -21,17 +23,20 @@ export 'package:submersion/features/media/presentation/helpers/media_time_choice
 /// position when it is inside the dive, or 0. [isPinned] offers the Reset
 /// action, which only means something when a pin exists.
 ///
-/// [automatic] is where the item sits by its capture time, with the shift
-/// its dive already applies (issue #4539). Given one, the dialog offers to
-/// move every photo and video on the dive by as much as this item moves;
-/// null (no capture-time place to measure from) leaves the dialog a pin only.
+/// [automatic] resolves to where the item sits by its capture time, with the
+/// shift its dive already applies (issue #4539). Once it has one, the dialog
+/// offers to move every photo and video on the dive by as much as this item
+/// moves; null (no capture-time place to measure from) leaves the dialog a
+/// pin only. It is a future so the dialog opens on the tap: reading it means
+/// loading the dive, and waiting for that first would leave the button dead
+/// long enough to be tapped twice.
 Future<MediaTimeChoice?> showSetMediaTimeDialog(
   BuildContext context, {
   required List<DiveProfilePoint> profile,
   required int initialElapsedSeconds,
   required bool isPinned,
   required AppSettings settings,
-  MediaAutomaticTime? automatic,
+  Future<MediaAutomaticTime?>? automatic,
 }) {
   return showDialog<MediaTimeChoice>(
     context: context,
@@ -63,9 +68,9 @@ class SetMediaTimeDialog extends StatefulWidget {
   final bool isPinned;
   final AppSettings settings;
 
-  /// Where the item sits by capture time and the shift its dive applies;
-  /// null hides the dive-wide shift.
-  final MediaAutomaticTime? automatic;
+  /// Resolves to where the item sits by capture time and the shift its dive
+  /// applies; the dive-wide shift stays hidden until it has a value.
+  final Future<MediaAutomaticTime?>? automatic;
 
   @override
   State<SetMediaTimeDialog> createState() => _SetMediaTimeDialogState();
@@ -85,6 +90,27 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
 
   /// Whether Save moves every item on the dive instead of pinning this one.
   bool _shiftAll = false;
+
+  /// What [SetMediaTimeDialog.automatic] resolved to, once it has.
+  MediaAutomaticTime? _automatic;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadAutomatic());
+  }
+
+  Future<void> _loadAutomatic() async {
+    MediaAutomaticTime? automatic;
+    try {
+      automatic = await widget.automatic;
+    } on Object {
+      // No shift to offer; the pin needs none of this.
+      return;
+    }
+    if (!mounted || automatic == null) return;
+    setState(() => _automatic = automatic);
+  }
 
   @override
   void dispose() {
@@ -120,7 +146,7 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
       setState(() => _invalid = true);
       return;
     }
-    final automatic = widget.automatic;
+    final automatic = _automatic;
     Navigator.of(context).pop(
       _shiftAll && automatic != null
           // The dive's shift is already in the automatic place, so the new
@@ -154,7 +180,7 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final max = formatElapsedMmSs(_maxSeconds);
-    final automatic = widget.automatic;
+    final automatic = _automatic;
     final preview = _enrichment.calculateEnrichmentAtElapsed(
       profile: widget.profile,
       elapsedSeconds: _seconds,
