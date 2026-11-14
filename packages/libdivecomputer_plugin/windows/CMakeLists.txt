@@ -160,6 +160,9 @@ add_library(${PLUGIN_NAME} SHARED
     usbhid_enumerator.cc
     usbhid_io_stream.cc
     dive_computer_api.g.cc
+    garmin_mtp_api.g.cc
+    garmin_mtp_host_api_impl.cc
+    wpd_reader.cc
     ${WRAPPER_DIR}/libdc_wrapper.c
     ${WRAPPER_DIR}/libdc_download.c
 )
@@ -193,7 +196,11 @@ target_include_directories(${PLUGIN_NAME} PRIVATE
 # for the Scubapro G2 and Suunto EON Steel families (issue #1271). It ships in
 # the Windows SDK, so it needs no package. Ws2_32.lib is Winsock, behind
 # libdivecomputer's Bluetooth Classic RFCOMM socket (issue #4094).
+# PortableDeviceGuids.lib holds the Windows Portable Devices CLSIDs and
+# property keys behind the Garmin MTP reader (issue #4223); OleAut32.lib
+# converts the dates it reports. Both ship in the Windows SDK too.
 target_link_libraries(${PLUGIN_NAME} PRIVATE
     flutter flutter_wrapper_plugin divecomputer
     WindowsApp.lib SetupAPI.lib hid.lib Ws2_32.lib
+    PortableDeviceGuids.lib Ole32.lib OleAut32.lib
 )

@@ -53,6 +53,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_sites/presentation/pages/site_edit_page.dart';
 import 'package:submersion/core/router/shortcut_locations.dart';
+import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/leave_running_import_dialog.dart';
 import 'package:submersion/features/table_editor/presentation/pages/table_editor_page.dart';
 
@@ -228,6 +229,76 @@ void main() {
       expect(planning.initialSection, TripEditSection.planning);
       expect(build('/trips/t1/edit').initialSection, isNull);
     });
+  });
+
+  group('universal import wizard (#4223)', () {
+    final garminLocation =
+        UniversalImportWizardRoute.garminDeviceImportLocationFor(
+          computerId: 'c1',
+          readAll: true,
+        );
+
+    Future<UniversalImportWizardRoute Function(String)> builderFor(
+      WidgetTester tester,
+    ) async {
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+      return (location) =>
+          _findRouteByName(
+                router.configuration.routes,
+                'universalImport',
+              )!.builder!(
+                capturedContext,
+                GoRouterState(
+                  router.configuration,
+                  uri: Uri.parse(location),
+                  matchedLocation: Uri.parse(location).path,
+                  fullPath: '/transfer/import-wizard',
+                  pathParameters: const {},
+                  pageKey: ValueKey(location),
+                ),
+              )
+              as UniversalImportWizardRoute;
+    }
+
+    testWidgets(
+      'on desktop opens straight into the Garmin download the URL asks for',
+      (tester) async {
+        final build = await builderFor(tester);
+
+        final garmin = build(garminLocation);
+        expect(garmin.garminImport?.computerId, 'c1');
+        expect(garmin.garminImport?.readAll, isTrue);
+        expect(build('/transfer/import-wizard').garminImport, isNull);
+      },
+      variant: const TargetPlatformVariant({
+        TargetPlatform.windows,
+        TargetPlatform.macOS,
+        TargetPlatform.linux,
+      }),
+    );
+
+    testWidgets(
+      'on a phone a Garmin location opens the plain file import',
+      (tester) async {
+        final build = await builderFor(tester);
+
+        expect(build(garminLocation).garminImport, isNull);
+      },
+      variant: const TargetPlatformVariant({
+        TargetPlatform.android,
+        TargetPlatform.iOS,
+      }),
+    );
   });
 
   group('buddy card preview (#3728)', () {

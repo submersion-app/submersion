@@ -36132,6 +36132,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'No dives were found on the connected Garmin device.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'The Garmin device is in use by another app. Close Garmin Express and try again.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'The additional file could not be opened: $details';
   }
@@ -36149,6 +36153,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'Detecting...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'Reading watch files ($copied of $total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch =>
+      'Looking for the watch...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return 'Scanning $device activity...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'Checking for dives ($checked of $total)...';
+  }
+
+  @override
+  String get universalImport_info_garminNoNewDives =>
+      'No new dives on the watch since your last download.';
+
+  @override
+  String get universalImport_action_garminDownloadAll => 'Download All Again';
 
   @override
   String get universalImport_label_duplicate => 'Duplicate';
@@ -36633,6 +36663,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'Garmin watch (Descent, Fenix, Epix...)';
+
+  @override
   String diveComputer_discovery_usbModelCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -36863,6 +36897,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'Garmin watches are not downloaded here. Import their dives from $importPath or $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'Garmin watches are not downloaded over Bluetooth. Connect one by cable and choose Garmin in the USB list, or import their dives from $importPath or $cloudPath.';
   }
 
   @override
@@ -52889,6 +52931,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Import from File';
 
   @override
+  String get importWizard_dc_downloadFromWatch => 'Download from Watch';
+
+  @override
   String get importWizard_dc_knownComputer => 'Known Computer';
 
   @override
@@ -52908,6 +52953,24 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'Your watch is connected. Submersion can download its dives straight from it, or you can import FIT files you\'ve already copied.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Download dives from $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Connect $name to download its dives';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Connect the watch by USB, then choose Download Dives again, or import FIT files you\'ve already copied.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

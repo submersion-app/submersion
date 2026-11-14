@@ -57585,6 +57585,12 @@ abstract class AppLocalizations {
   /// **'No dives were found on the connected Garmin device.'**
   String get universalImport_error_garminNoDives;
 
+  /// Error shown when a Garmin watch connected over MTP is held by another app, such as Garmin Express
+  ///
+  /// In en, this message translates to:
+  /// **'The Garmin device is in use by another app. Close Garmin Express and try again.'**
+  String get universalImport_error_garminBusy;
+
   /// Error shown when the optional additional (profile) file could not be opened
   ///
   /// In en, this message translates to:
@@ -57614,6 +57620,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Detecting...'**
   String get universalImport_label_detecting;
+
+  /// Progress label while activity files are copied off a Garmin watch connected over MTP
+  ///
+  /// In en, this message translates to:
+  /// **'Reading watch files ({copied} of {total})...'**
+  String universalImport_label_readingWatchFiles(int copied, int total);
+
+  /// Progress label while Submersion looks for a connected Garmin watch
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for the watch...'**
+  String get universalImport_label_lookingForWatch;
+
+  /// Progress label while the activity folder of a Garmin watch connected over MTP is scanned; device is the watch's name
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning {device} activity...'**
+  String universalImport_label_scanningWatchActivity(String device);
+
+  /// Progress label while a Garmin watch's activity files are checked to find the dives among them
+  ///
+  /// In en, this message translates to:
+  /// **'Checking for dives ({checked} of {total})...'**
+  String universalImport_label_checkingForDives(int checked, int total);
+
+  /// Shown on the Import page when a Garmin download finds no dives after the ones already downloaded
+  ///
+  /// In en, this message translates to:
+  /// **'No new dives on the watch since your last download.'**
+  String get universalImport_info_garminNoNewDives;
+
+  /// Button next to universalImport_info_garminNoNewDives: reads every activity on the Garmin watch again, including ones already downloaded or skipped
+  ///
+  /// In en, this message translates to:
+  /// **'Download All Again'**
+  String get universalImport_action_garminDownloadAll;
 
   /// Badge label for a probable duplicate entity
   ///
@@ -58425,6 +58467,12 @@ abstract class AppLocalizations {
   /// **'No devices matching \"{query}\"'**
   String diveComputer_discovery_usbNoResults(String query);
 
+  /// The single Garmin entry in the USB list of Connect New Computer (Windows); picking it imports the watch's FIT files
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watch (Descent, Fenix, Epix...)'**
+  String get diveComputer_discovery_garminWatchEntry;
+
   /// Model count beside a manufacturer's foldable heading in the USB list of Connect New Computer
   ///
   /// In en, this message translates to:
@@ -58769,6 +58817,15 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Garmin watches are not downloaded here. Import their dives from {importPath} or {cloudPath}.'**
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath);
+
+  /// Help note on the Dive Computers page on Windows, where a Garmin watch can be picked from the USB list of Connect New Computer
+  ///
+  /// In en, this message translates to:
+  /// **'Garmin watches are not downloaded over Bluetooth. Connect one by cable and choose Garmin in the USB list, or import their dives from {importPath} or {cloudPath}.'**
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  );
 
   /// No description provided for @diveComputer_list_helpTip1.
   ///
@@ -84467,6 +84524,12 @@ abstract class AppLocalizations {
   /// **'Import from File'**
   String get importWizard_dc_importFromFile;
 
+  /// Button on a saved Garmin's download screen that imports the dives straight from the connected watch
+  ///
+  /// In en, this message translates to:
+  /// **'Download from Watch'**
+  String get importWizard_dc_downloadFromWatch;
+
   /// No description provided for @importWizard_dc_knownComputer.
   ///
   /// In en, this message translates to:
@@ -84496,6 +84559,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Garmin watches store dives as FIT files instead of offering a direct download. Connect the watch by USB, copy the files from its GARMIN/Activity folder, then import them.'**
   String get importWizard_dc_noDirectDownloadGarminBody;
+
+  /// Body of a saved Garmin's download screen when the watch is connected and can be imported directly
+  ///
+  /// In en, this message translates to:
+  /// **'Your watch is connected. Submersion can download its dives straight from it, or you can import FIT files you\'ve already copied.'**
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody;
+
+  /// Title of a saved Garmin's download screen while its watch is connected; name is the computer
+  ///
+  /// In en, this message translates to:
+  /// **'Download dives from {name}'**
+  String importWizard_dc_downloadFromGarminTitle(String name);
+
+  /// Title of a saved Garmin's download screen when no watch is connected, on a platform that reads watches directly (Windows); name is the computer
+  ///
+  /// In en, this message translates to:
+  /// **'Connect {name} to download its dives'**
+  String importWizard_dc_connectGarminTitle(String name);
+
+  /// Body of a saved Garmin's download screen when no watch is connected, on a platform that reads watches directly (Windows). Names the Download Dives button (diveComputer_detail_downloadDivesButton)
+  ///
+  /// In en, this message translates to:
+  /// **'Connect the watch by USB, then choose Download Dives again, or import FIT files you\'ve already copied.'**
+  String get importWizard_dc_garminUnpluggedBody;
 
   /// Download step title when a saved Bluetooth computer with no address on this device was not found by a scan for its make and model.
   ///

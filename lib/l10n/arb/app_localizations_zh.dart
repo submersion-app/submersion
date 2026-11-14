@@ -34558,6 +34558,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_error_garminNoDives => '已连接的 Garmin 设备上未找到潜水记录。';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'Garmin 设备正被其他应用占用。请关闭 Garmin Express 后重试。';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return '无法打开附加文件：$details';
   }
@@ -34575,6 +34579,30 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => '检测中...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return '正在读取手表文件（$copied/$total）...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch => '正在查找手表...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return '正在扫描 $device 的活动...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return '正在查找潜水记录（$checked/$total）...';
+  }
+
+  @override
+  String get universalImport_info_garminNoNewDives => '自上次下载以来，手表上没有新的潜水记录。';
+
+  @override
+  String get universalImport_action_garminDownloadAll => '全部重新下载';
 
   @override
   String get universalImport_label_duplicate => '重复';
@@ -35039,6 +35067,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'Garmin 手表（Descent、Fenix、Epix...）';
+
+  @override
   String diveComputer_discovery_usbModelCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -35260,6 +35292,14 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'Garmin 手表不在此处下载。请通过 $importPath 或 $cloudPath 导入其潜水记录。';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'Garmin 手表不通过蓝牙下载。请用数据线连接手表并在 USB 列表中选择 Garmin，或通过 $importPath 或 $cloudPath 导入其潜水记录。';
   }
 
   @override
@@ -50404,6 +50444,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_dc_importFromFile => '从文件导入';
 
   @override
+  String get importWizard_dc_downloadFromWatch => '从手表下载';
+
+  @override
   String get importWizard_dc_knownComputer => '已知潜水电脑';
 
   @override
@@ -50422,6 +50465,24 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Garmin 手表将潜水记录存储为 FIT 文件，不提供直接下载。请通过 USB 连接手表，从其 GARMIN/Activity 文件夹复制文件，然后导入。';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      '你的手表已连接。Submersion 可以直接从手表下载潜水记录，你也可以导入已复制的 FIT 文件。';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return '从 $name 下载潜水记录';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return '连接 $name 以下载潜水记录';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      '通过 USB 连接手表，然后再次选择“下载潜水记录”，或导入已复制的 FIT 文件。';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

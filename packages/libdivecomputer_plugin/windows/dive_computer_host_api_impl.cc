@@ -55,6 +55,12 @@ DiveComputerHostApiImpl::DiveComputerHostApiImpl(
         flutter_api_.get(), [this](std::function<void()> task) {
             PostToPlatformThread(std::move(task));
         });
+    garmin_mtp_ = std::make_unique<garmin_mtp::GarminMtpHostApiImpl>(
+        [this](std::function<void()> task) {
+            PostToPlatformThread(std::move(task));
+        });
+    garmin_mtp::GarminMtpHostApi::SetUp(messenger, garmin_mtp_.get());
+
     if (!dispatch_window_) {
         NativeLogger::Error("APP",
                             "Could not create the dispatch window; callbacks "
@@ -75,6 +81,8 @@ DiveComputerHostApiImpl::~DiveComputerHostApiImpl() {
     // BLE scanner revokes its watcher handlers.
     ble_scanner_.reset();
     serial_scanner_.reset();
+    // Joins the MTP worker, which posts its replies the same way.
+    garmin_mtp_.reset();
     if (download_thread_.joinable()) {
         download_thread_.join();
     }

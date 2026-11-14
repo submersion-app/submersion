@@ -1,12 +1,17 @@
 // Verifies Garmin USB detection against a temporary directory tree that
 // mimics one or more mounted volumes: a device is recognised by a non-empty
-// GARMIN/Activity folder, regardless of the volume's name.
+// GARMIN/Activity folder beside GARMIN/GarminDevice.xml, regardless of the
+// volume's name. A fake MTP source
+// stands in for watches that connect over MTP instead (issue #4223).
 
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/services.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
+
+import 'fake_garmin_mtp_source.dart';
 
 void main() {
   late Directory tmp;
@@ -20,14 +25,22 @@ void main() {
   });
 
   /// Create `<tmp>/<volume>/GARMIN/Activity` and drop [fitNames] into it (plus
-  /// any [otherNames] non-FIT files). Returns the volume root path.
+  /// any [otherNames] non-FIT files). Every Garmin also writes
+  /// `GARMIN/GarminDevice.xml`, here [deviceXml] (none when null). Returns the
+  /// volume root path.
   Future<String> makeVolume(
     String volume, {
     List<String> fitNames = const [],
     List<String> otherNames = const [],
+    String? deviceXml = '<Device></Device>',
   }) async {
     final activity = Directory(p.join(tmp.path, volume, 'GARMIN', 'Activity'));
     await activity.create(recursive: true);
+    if (deviceXml != null) {
+      await File(
+        p.join(tmp.path, volume, 'GARMIN', 'GarminDevice.xml'),
+      ).writeAsString(deviceXml);
+    }
     for (final name in fitNames) {
       await File(p.join(activity.path, name)).writeAsBytes([0, 1, 2, 3]);
     }
@@ -37,11 +50,18 @@ void main() {
     return p.join(tmp.path, volume);
   }
 
-  GarminDeviceDetector detectorFor(List<String> volumeRoots) {
+  GarminDeviceDetector detectorFor(
+    List<String> volumeRoots, {
+    FakeGarminMtpSource? mtpSource,
+  }) {
     return GarminDeviceDetector(
       volumeRoots: () => [for (final r in volumeRoots) Directory(r)],
+      mtpSource: mtpSource,
     );
   }
+
+  Iterable<GarminVolume> volumesIn(List<GarminDevice> devices) =>
+      devices.whereType<GarminVolume>();
 
   test('detects a volume with a non-empty GARMIN/Activity folder', () async {
     final vol = await makeVolume(
@@ -53,9 +73,50 @@ void main() {
     final devices = await detectorFor([vol]).detect();
 
     expect(devices, hasLength(1));
-    expect(devices.single.volumeName, 'GARMIN');
-    expect(devices.single.fitFileCount, 2);
-    expect(devices.single.activityDirPath, p.join(vol, 'GARMIN', 'Activity'));
+    final volume = devices.single as GarminVolume;
+    expect(volume.volumeName, 'GARMIN');
+    expect(volume.displayName, 'GARMIN');
+    expect(volume.fitFileCount, 2);
+    expect(volume.activityDirPath, p.join(vol, 'GARMIN', 'Activity'));
+  });
+
+  group('serial number of a mounted volume (issue #4223)', () {
+    test('comes from GARMIN/GarminDevice.xml', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+      await File(p.join(vol, 'GARMIN', 'GarminDevice.xml')).writeAsString(
+        '<?xml version="1.0"?>\n'
+        '<Device xmlns="http://www.garmin.com/xmlschemas/GarminDevice/v2">\n'
+        '  <Model><PartNumber>006-B4518-00</PartNumber></Model>\n'
+        '  <Id> 3456789012 </Id>\n'
+        '</Device>\n',
+      );
+
+      final devices = await detectorFor([vol]).detect();
+
+      expect(devices.single.serialNumber, '3456789012');
+    });
+
+    test('is null when the file has no unit ID', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+
+      final devices = await detectorFor([vol]).detect();
+
+      expect(devices.single.serialNumber, isNull);
+    });
+  });
+
+  test('ignores a GARMIN/Activity folder without GarminDevice.xml', () async {
+    // FIT files copied off a watch by hand, such as D:\GARMIN\Activity: a
+    // folder, not a connected watch.
+    final vol = await makeVolume(
+      'D',
+      fitNames: ['2026-11-01-10-00-00.fit'],
+      deviceXml: null,
+    );
+
+    final devices = await detectorFor([vol]).detect();
+
+    expect(devices, isEmpty);
   });
 
   test('recognises the device regardless of the volume name', () async {
@@ -64,7 +125,7 @@ void main() {
     final devices = await detectorFor([vol]).detect();
 
     expect(devices, hasLength(1));
-    expect(devices.single.volumeName, 'MY_WATCH');
+    expect((devices.single as GarminVolume).volumeName, 'MY_WATCH');
   });
 
   test('ignores a volume without a GARMIN/Activity folder', () async {
@@ -93,7 +154,10 @@ void main() {
 
     final devices = await detectorFor([a, b, plain.path]).detect();
 
-    expect(devices.map((d) => d.volumeName), containsAll(['A', 'B']));
+    expect(
+      volumesIn(devices).map((d) => d.volumeName),
+      containsAll(['A', 'B']),
+    );
     expect(devices, hasLength(2));
   });
 
@@ -115,5 +179,116 @@ void main() {
       p.join(tmp.path, 'does', 'not', 'exist'),
     );
     expect(files, isEmpty);
+  });
+
+  test('one rule says what a FIT file is', () {
+    expect(GarminDeviceDetector.isFitFileName('2026-11-01-10-22-31.fit'), true);
+    expect(GarminDeviceDetector.isFitFileName('A1B23456.FIT'), true);
+    expect(
+      GarminDeviceDetector.isFitFileName(p.join('GARMIN', 'Activity', 'a.fit')),
+      true,
+    );
+    expect(GarminDeviceDetector.isFitFileName('a.fit.txt'), false);
+    expect(GarminDeviceDetector.isFitFileName('notes.txt'), false);
+    // A bare extension is a hidden file with no name, not an activity.
+    expect(GarminDeviceDetector.isFitFileName('.fit'), false);
+  });
+
+  group('MTP watches', () {
+    test('lists a Garmin watch the MTP source reports', () async {
+      final watch = fakeGarminWatch(name: 'Descent G2', serial: '123');
+      final devices = await detectorFor(
+        const [],
+        mtpSource: FakeGarminMtpSource(devices: [watch]),
+      ).detect();
+
+      expect(devices, hasLength(1));
+      final mtp = devices.single as GarminMtpWatch;
+      expect(mtp.deviceId, watch.id);
+      expect(mtp.displayName, 'Descent G2');
+      expect(mtp.serialNumber, '123');
+    });
+
+    test('reads the hex serial MTP reports as the decimal unit ID', () async {
+      // Windows reports a Descent G2 unit ID 3339091223 as 0000c7067d17;
+      // the FIT files and the saved computer hold the decimal form.
+      Future<String?> serialOf(String reported) async {
+        final devices = await detectorFor(
+          const [],
+          mtpSource: FakeGarminMtpSource(
+            devices: [fakeGarminWatch(serial: reported)],
+          ),
+        ).detect();
+        return devices.single.serialNumber;
+      }
+
+      expect(await serialOf('0000c7067d17'), '3339091223');
+      expect(await serialOf('0000C7067D17'), '3339091223');
+      // Anything else is passed on as it came.
+      expect(await serialOf('3339091223'), '3339091223');
+      expect(await serialOf('ABC-123'), 'ABC-123');
+    });
+
+    test('lists mounted volumes ahead of MTP watches', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+      final devices = await detectorFor([
+        vol,
+      ], mtpSource: FakeGarminMtpSource(devices: [fakeGarminWatch()])).detect();
+
+      expect(devices.map((d) => d.runtimeType), [GarminVolume, GarminMtpWatch]);
+    });
+
+    test('a failing MTP source still lists the mounted volumes', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+      final devices = await detectorFor(
+        [vol],
+        mtpSource: FakeGarminMtpSource(
+          listError: PlatformException(code: 'ioError'),
+        ),
+      ).detect();
+
+      expect(devices, hasLength(1));
+      expect(devices.single, isA<GarminVolume>());
+    });
+
+    test('a scan keeps the MTP failure beside the volumes it found', () async {
+      final vol = await makeVolume('GARMIN', fitNames: ['1.fit']);
+      final failure = PlatformException(code: 'busy');
+      final found = await detectorFor([
+        vol,
+      ], mtpSource: FakeGarminMtpSource(listError: failure)).scan();
+
+      expect(found.devices.single, isA<GarminVolume>());
+      expect(found.mtpFailure?.$1, same(failure));
+    });
+
+    test(
+      'a scan that found nothing still says the MTP listing failed',
+      () async {
+        final failure = PlatformException(code: 'ioError');
+        final found = await detectorFor(
+          const [],
+          mtpSource: FakeGarminMtpSource(listError: failure),
+        ).scan();
+
+        expect(found.devices, isEmpty);
+        expect(found.mtpFailure?.$1, same(failure));
+      },
+    );
+
+    test('a scan with nothing wrong reports no failure', () async {
+      final found = await detectorFor(
+        const [],
+        mtpSource: FakeGarminMtpSource(devices: [fakeGarminWatch()]),
+      ).scan();
+
+      expect(found.devices, hasLength(1));
+      expect(found.mtpFailure, isNull);
+    });
+
+    test('without an MTP source only volumes are scanned', () async {
+      final devices = await detectorFor(const []).detect();
+      expect(devices, isEmpty);
+    });
   });
 }

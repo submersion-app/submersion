@@ -1,0 +1,48 @@
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
+import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart';
+
+import 'package:submersion/core/platform/host_platform.dart';
+
+/// Reads a Garmin watch that connects over MTP instead of mounting as a
+/// drive, such as the Descent G2 (issue #4223).
+///
+/// Windows only: the plugin implements it with Windows Portable Devices, and
+/// no other platform registers the channel. Failures are
+/// `PlatformException`s with code `notFound`, `busy` or `ioError`.
+abstract interface class GarminMtpSource {
+  /// Whether this platform reads Garmin watches over MTP: Windows, where the
+  /// plugin has the reader. The one check for it, so the USB list entry, the
+  /// help note and the download screen cannot disagree.
+  static bool get isSupportedPlatform =>
+      !HostPlatform.isWeb && defaultTargetPlatform == TargetPlatform.windows;
+
+  /// Connected portable devices with Garmin's USB vendor ID.
+  Future<List<GarminMtpDevice>> listDevices();
+
+  /// Every file directly under the watch's GARMIN/Activity folder.
+  Future<List<GarminMtpFile>> listActivityFiles(String deviceId);
+
+  Future<Uint8List> readFile(String deviceId, String objectId);
+}
+
+/// [GarminMtpSource] over the plugin's Pigeon API.
+class PigeonGarminMtpSource implements GarminMtpSource {
+  PigeonGarminMtpSource([GarminMtpHostApi? api])
+    : _api = api ?? GarminMtpHostApi();
+
+  final GarminMtpHostApi _api;
+
+  @override
+  Future<List<GarminMtpDevice>> listDevices() => _api.listDevices();
+
+  @override
+  Future<List<GarminMtpFile>> listActivityFiles(String deviceId) =>
+      _api.listActivityFiles(deviceId);
+
+  @override
+  Future<Uint8List> readFile(String deviceId, String objectId) =>
+      _api.readFile(deviceId, objectId);
+}
