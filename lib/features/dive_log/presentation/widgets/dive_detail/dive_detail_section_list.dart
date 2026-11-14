@@ -138,16 +138,20 @@ class DiveDetailSectionList extends ConsumerWidget {
 
       final pair = layout.pairsSections ? diveDetailSectionPairFor(id) : null;
       if (pair != null && visibleIds.contains(pair.partnerOf(id)!)) {
-        final cards = _buildPairCards(pair, ref);
+        final cards = _buildPairCards(pair, ref, open);
         if (cards != null) {
           _addSectionGap(children, layout);
+          // Each side is framed like a card on a row of its own, so a card
+          // with an editor gains its pencil and opens where it sits.
+          Widget? left(Widget? card) => _framed(pair.left, card, open);
+          Widget? right(Widget? card) => _framed(pair.right, card, open);
           children.add(
             ResponsiveSectionPair(
               key: ValueKey('diveSectionPair_${pair.left.name}'),
-              first: cards.first,
-              second: cards.second,
-              stackedFirst: cards.stackedFirst,
-              stackedSecond: cards.stackedSecond,
+              first: left(cards.first)!,
+              second: right(cards.second)!,
+              stackedFirst: left(cards.stackedFirst),
+              stackedSecond: right(cards.stackedSecond),
               minRowWidth: pair.minRowWidth,
               stackGap: layout.sectionGap,
               stretch: pair.stretch,
@@ -457,7 +461,15 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// itself: Conditions, Gas consumption by segment, Tide, Buoyancy and
   /// Signatures all self-erase when empty, so without these checks a pair
   /// could put a blank column beside a half-width card.
-  _PairCards? _buildPairCards(DiveDetailSectionPair pair, WidgetRef ref) {
+  ///
+  /// A card counts as present while its editor is [open], whatever it has
+  /// to show: a card must not change place, and lose what is being typed
+  /// into it, because its first value arrived.
+  _PairCards? _buildPairCards(
+    DiveDetailSectionPair pair,
+    WidgetRef ref,
+    Set<String> open,
+  ) {
     switch (pair.left) {
       case DiveDetailSectionId.decoStatus:
         if (dive.profile.isEmpty) return null;
@@ -483,10 +495,17 @@ class DiveDetailSectionList extends ConsumerWidget {
         );
 
       case DiveDetailSectionId.details:
-        if (!watchHasEnvironmentData(ref, dive)) return null;
+        final hasEnvironment = watchHasEnvironmentData(ref, dive);
+        final environmentOpen = open.contains(
+          DiveDetailSectionId.environment.name,
+        );
+        if (!hasEnvironment && !environmentOpen) return null;
         return _PairCards(
           DiveDetailsSection(dive: dive),
-          DiveEnvironmentSection(dive: dive),
+          // Open with nothing to show yet: its frame draws the editor.
+          hasEnvironment
+              ? DiveEnvironmentSection(dive: dive)
+              : const SizedBox.shrink(),
         );
 
       case DiveDetailSectionId.surfaceGps:

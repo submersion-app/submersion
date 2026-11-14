@@ -8,14 +8,20 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
 import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 
 import '../../../../../helpers/mock_providers.dart';
@@ -360,6 +366,186 @@ void main() {
       expect(find.byType(MarkdownNotesField), findsNothing);
       expect(find.text('Calm'), findsNothing, reason: 'folded again');
       expect(settings.expandedCalls, isEmpty);
+    });
+  });
+
+  // On a wide page Details and Environment share a row, and only when
+  // Environment has something to show. A card must not move, or lose what
+  // is being typed into it, while its editor is open.
+  group('cards side by side', () {
+    final plain = Dive(id: 'dive-1', dateTime: DateTime(2024, 6, 1, 10));
+    final logged = plain.copyWith(airTemp: 21);
+    const pair = [DiveDetailSectionId.details, DiveDetailSectionId.environment];
+
+    Future<void> pumpWide(
+      WidgetTester tester,
+      Dive dive, {
+      RecordEditController<Dive>? controller,
+      List<DiveDetailSectionId> visible = pair,
+    }) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 1600);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        harness(
+          dive: dive,
+          settings: _RecordingSettings(_settings(visible)),
+          controller: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    AppLocalizations l10nOf(WidgetTester tester) =>
+        AppLocalizations.of(tester.element(find.byType(Scaffold)));
+
+    Finder fieldOf(String label) => find.descendant(
+      of: find.widgetWithText(FormRow, label),
+      matching: find.byType(TextFormField),
+    );
+
+    bool hasFocus(WidgetTester tester, Finder field) => tester
+        .widget<EditableText>(
+          find.descendant(of: field, matching: find.byType(EditableText)),
+        )
+        .focusNode
+        .hasFocus;
+
+    final details = find.byType(DiveDetailsSection);
+    final environmentFrame = find.byWidgetPredicate(
+      (w) => w is RecordCardFrame<Dive> && w.card.id == 'environment',
+    );
+
+    void expectBesideDetails(WidgetTester tester, Finder card) {
+      final left = tester.getRect(details);
+      final right = tester.getRect(card);
+      expect(right.top, left.top, reason: 'on the same row as Details');
+      expect(right.left, greaterThan(left.right - 1));
+    }
+
+    testWidgets('locked: the pair reads as before, with no pencil', (
+      tester,
+    ) async {
+      await pumpWide(tester, logged);
+
+      expectBesideDetails(tester, find.byType(DiveEnvironmentSection));
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    });
+
+    testWidgets(
+      'unlocked: a paired card gains a pencil and opens in its slot',
+      (tester) async {
+        final controller = controllerOver(logged);
+        await pumpWide(tester, logged, controller: controller);
+        expect(find.byTooltip('Edit Environment'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Edit Environment'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(DiveEnvironmentCardEditor), findsOneWidget);
+        expectBesideDetails(tester, environmentFrame);
+      },
+    );
+
+    testWidgets('an empty Environment card opened from the strip sits beside '
+        'Details at once', (tester) async {
+      final controller = controllerOver(plain);
+      await pumpWide(tester, plain, controller: controller);
+      expect(environmentFrame, findsNothing);
+
+      controller.addCard('environment');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveEnvironmentCardEditor), findsOneWidget);
+      expectBesideDetails(tester, environmentFrame);
+    });
+
+    testWidgets('typing its first value does not rebuild the editor', (
+      tester,
+    ) async {
+      final controller = controllerOver(plain);
+      await pumpWide(tester, plain, controller: controller);
+      controller.addCard('environment');
+      await tester.pumpAndSettle();
+      final editor = find.byType(DiveEnvironmentCardEditor);
+      final before = tester.state(editor);
+      final label = l10nOf(tester).diveLog_edit_label_airTemp;
+
+      await tester.tap(find.text(label));
+      await tester.pump();
+      await tester.enterText(fieldOf(label), '2');
+      // The page shows the working copy, which now has something logged.
+      await tester.pumpWidget(
+        harness(
+          dive: controller.session!.working,
+          settings: _RecordingSettings(_settings(pair)),
+          controller: controller,
+        ),
+      );
+      await tester.pump();
+
+      expect(controller.session!.working.airTemp, 2);
+      expect(identical(tester.state(editor), before), isTrue);
+      expect(hasFocus(tester, fieldOf(label)), isTrue);
+      expectBesideDetails(tester, environmentFrame);
+    });
+
+    testWidgets('closed again with nothing in it, Details has the row to '
+        'itself', (tester) async {
+      final controller = controllerOver(plain);
+      await pumpWide(tester, plain, controller: controller);
+      final alone = tester.getSize(details).width;
+      controller.addCard('environment');
+      await tester.pumpAndSettle();
+      expect(tester.getSize(details).width, lessThan(alone));
+
+      controller.closeCard('environment');
+      await tester.pumpAndSettle();
+
+      expect(environmentFrame, findsNothing);
+      expect(tester.getSize(details).width, alone);
+    });
+
+    // The single-card path: Altitude is on the page only above sea level.
+    testWidgets('typing the first altitude does not rebuild its editor', (
+      tester,
+    ) async {
+      final controller = controllerOver(plain);
+      await pumpWide(
+        tester,
+        plain,
+        controller: controller,
+        visible: const [
+          DiveDetailSectionId.details,
+          DiveDetailSectionId.altitude,
+        ],
+      );
+      controller.addCard('altitude');
+      await tester.pumpAndSettle();
+      final editor = find.byType(DiveAltitudeCardEditor);
+      final before = tester.state(editor);
+      final label = l10nOf(tester).diveLog_edit_label_altitude;
+
+      await tester.tap(find.text(label));
+      await tester.pump();
+      await tester.enterText(fieldOf(label), '12');
+      await tester.pumpWidget(
+        harness(
+          dive: controller.session!.working,
+          settings: _RecordingSettings(
+            _settings(const [
+              DiveDetailSectionId.details,
+              DiveDetailSectionId.altitude,
+            ]),
+          ),
+          controller: controller,
+        ),
+      );
+      await tester.pump();
+
+      expect(controller.session!.working.altitude, 12);
+      expect(identical(tester.state(editor), before), isTrue);
+      expect(hasFocus(tester, fieldOf(label)), isTrue);
     });
   });
 }
