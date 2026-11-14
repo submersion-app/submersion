@@ -370,6 +370,30 @@ void main() {
     });
   });
 
+  testWidgets('shades heavy and buoyant in the balance bar colours', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: _ChartHost()),
+      ),
+    );
+    final scheme = Theme.of(tester.element(find.byType(LineChart))).colorScheme;
+    final bar = tester
+        .widget<LineChart>(find.byType(LineChart))
+        .data
+        .lineBarsData
+        .single;
+    // Below the line down to zero is the buoyant region; above it up to zero
+    // is the heavy one. Heavy is not an error, so it does not borrow red.
+    expect(bar.belowBarData.color!.withValues(alpha: 1), scheme.primary);
+    expect(bar.aboveBarData.color!.withValues(alpha: 1), scheme.tertiary);
+    expect(bar.aboveBarData.color!.withValues(alpha: 1), isNot(scheme.error));
+  });
+
   testWidgets('the time axis spans every sample, whatever their order', (
     tester,
   ) async {

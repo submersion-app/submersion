@@ -25,7 +25,8 @@ class BuoyancyChartMarker {
 }
 
 /// Net-buoyancy-versus-time line chart. Buoyant (positive) fill above the
-/// zero line, heavy (negative) fill below it.
+/// zero line, heavy (negative) fill below it, in the two hues of the balance
+/// bar that sits under it.
 ///
 /// It can follow the dive profile's cursor both ways (issue #4423):
 /// [cursorSeconds] draws a marker at that moment, and [onCursorSeconds]
@@ -127,7 +128,10 @@ class BuoyancyChart extends StatelessWidget {
 
     final theme = Theme.of(context);
     final buoyant = theme.colorScheme.primary;
-    final heavy = theme.colorScheme.error;
+    // The hues of the balance bar under the chart: tertiary for what pulls
+    // the diver down, primary for what holds them up. Being heavy is not an
+    // error, so it does not borrow the error colour.
+    final heavy = theme.colorScheme.tertiary;
     final markerStyle = TextStyle(
       color: theme.colorScheme.onSurfaceVariant,
       fontSize: _markerLabelSize,
@@ -303,13 +307,13 @@ class BuoyancyChart extends StatelessWidget {
                     show: true,
                     applyCutOffY: true,
                     cutOffY: 0,
-                    color: buoyant.withValues(alpha: 0.12),
+                    color: buoyant.withValues(alpha: 0.16),
                   ),
                   aboveBarData: BarAreaData(
                     show: true,
                     applyCutOffY: true,
                     cutOffY: 0,
-                    color: heavy.withValues(alpha: 0.12),
+                    color: heavy.withValues(alpha: 0.16),
                   ),
                 ),
               ],

@@ -86,6 +86,9 @@ profile both ways), with these changes:
   line with a thin dashed rule up to its label at the top of the plot. If the
   Deepest label would collide with another label it is dropped and its dot
   stays.
+- The heavy region is shaded in the tertiary hue and the buoyant region in
+  the primary hue, matching the balance bar below. It was the theme's error
+  red, which read as a fault and went brown on dark cards.
 - The touch tooltip is removed. The readout and the bar now say what it said,
   without covering the line.
 - With no cursor, the cursor line rests on the final stop.
