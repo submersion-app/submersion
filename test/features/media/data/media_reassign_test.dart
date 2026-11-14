@@ -134,6 +134,7 @@ void main() {
           ],
         ),
         loadMediaForDive: repo.getMediaForDive,
+        loadPrimarySourceEntry: (_) async => null,
         saveEnrichments: repo.saveEnrichments,
       );
 
