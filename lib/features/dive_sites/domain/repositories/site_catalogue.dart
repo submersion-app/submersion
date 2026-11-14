@@ -29,8 +29,8 @@ abstract interface class SiteCatalogue {
   });
 
   /// The sites in [bounds], for a map: at most [limit], dive sites first,
-  /// then the register records nearest the middle of the box. `truncated`
-  /// says the box held more.
+  /// then register records, each kind nearest the middle of the box first.
+  /// `truncated` says the box held more.
   Future<CatalogueBoundsResult> inBounds(
     CatalogueBounds bounds, {
     int limit = 1500,

@@ -87,9 +87,13 @@ class LocalSiteCatalogue implements SiteCatalogue {
         _ofKind(t, kind, _inBounds(t, bounds));
 
     // One more than the limit is asked for, to learn that there was more.
+    // Nearest the middle first, as for the register records below: with no
+    // order a full view keeps whatever the index lists first, its
+    // southernmost sites.
     final sites =
         await (db.select(db.siteCatalogueEntries)
               ..where((t) => inside(t, CatalogueKind.site))
+              ..orderBy([(t) => OrderingTerm.asc(_farFrom(bounds.center))])
               ..limit(limit + 1))
             .get();
     if (sites.length > limit) {

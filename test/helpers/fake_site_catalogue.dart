@@ -82,15 +82,15 @@ class FakeSiteCatalogue implements SiteCatalogue {
           site,
     ];
     final center = bounds.center;
+    int nearestFirst(CatalogueSite a, CatalogueSite b) => distanceMeters(
+      center,
+      a.location!,
+    ).compareTo(distanceMeters(center, b.location!));
     final ordered = [
-      ...inside.where((site) => site.kind == CatalogueKind.site),
+      ...inside.where((site) => site.kind == CatalogueKind.site).toList()
+        ..sort(nearestFirst),
       ...inside.where((site) => site.kind == CatalogueKind.register).toList()
-        ..sort(
-          (a, b) => distanceMeters(
-            center,
-            a.location!,
-          ).compareTo(distanceMeters(center, b.location!)),
-        ),
+        ..sort(nearestFirst),
     ];
     return (
       sites: ordered.take(limit).toList(),
