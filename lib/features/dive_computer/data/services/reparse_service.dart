@@ -879,8 +879,10 @@ class ReparseService {
   /// source has a series on its computer's strand, demoted beneath or, on a
   /// dive re-parsed before #3189, live beside, the one with no computer is
   /// the edit. Alone, it is the recording, orphaned. Where a computer
-  /// delete took the recording's computer too, the pair is alike in every
-  /// column ([ProfileSeriesRepository.liveTwinIdsOf]) and both are kept.
+  /// delete took the recording's computer too,
+  /// [ProfileSeriesRepository.liveTwinIdsOf] names what is kept: both when
+  /// both are unmarked, so alike in every column, and the unmarked one alone
+  /// when the recording is marked as a parse.
   ///
   /// One shape stays unreadable: an unmarked orphan live over a duplicate a
   /// re-parse already wrote beneath it is an edit over its generation in
