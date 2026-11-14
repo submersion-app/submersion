@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -198,6 +199,22 @@ void main() {
       await repo.setMediaTimeOffsetSeconds('d1', 0);
 
       expect(await hlc(), before);
+    });
+
+    // The backup importer and an agent hold a shift to the same bound, so
+    // the writer cannot store one a restore would drop.
+    test('refuses a shift no camera could be out by', () async {
+      await insertDive('d1');
+
+      await expectLater(
+        repo.setMediaTimeOffsetSeconds(
+          'd1',
+          DiveMediaClock.maxOffsetSeconds + 1,
+        ),
+        throwsArgumentError,
+      );
+
+      expect((await repo.getDiveById('d1'))!.mediaTimeOffsetSeconds, 0);
     });
 
     test('saving the dive leaves the shift alone', () async {

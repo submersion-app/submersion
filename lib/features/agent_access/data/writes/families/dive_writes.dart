@@ -147,7 +147,11 @@ class DiveWrites extends WritableEntry {
       'visibility: a band (visibility), a measurement (visibility_m) or a '
       'range (visibility_min_m, '
       'visibility_max_m, either end open), and setting one clears the '
-      'others. A create without dive_number takes the next free number.';
+      'others. A create without dive_number takes the next free number. '
+      'media_time_offset_s is the seconds added to each photo\'s capture '
+      'time before it is placed on the dive: negative when the camera\'s '
+      'clock ran ahead of the dive computer, 0 for none. Media pinned with '
+      'manual_elapsed_s stays where it was pinned.';
 
   @override
   Set<String> get requiredOnCreate => const {'date_time'};

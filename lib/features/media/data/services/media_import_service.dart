@@ -247,10 +247,9 @@ class MediaImportService {
     // One read for the whole pick; a dive with no profile places nothing.
     final clock = dive.profile.isEmpty || newAssets.isEmpty
         ? null
-        : DiveMediaClock.of(
-            diveStart: dive.effectiveEntryTime,
-            primarySourceEntry: await _primarySourceEntry?.call(dive.id),
-            offsetSeconds: dive.mediaTimeOffsetSeconds,
+        : DiveMediaClock.forDive(
+            dive,
+            primarySourceEntry: await _readPrimarySourceEntry(dive.id),
           );
     for (final asset in newAssets) {
       try {
@@ -475,6 +474,25 @@ class MediaImportService {
     );
   }
 
+  /// The dive's primary source entry, or null when it cannot be read.
+  ///
+  /// Placing a photo is secondary to linking it. A read that fails costs the
+  /// seconds the entry would have restored, which the next backfill puts
+  /// back, and never the import itself.
+  Future<DateTime?> _readPrimarySourceEntry(String diveId) async {
+    try {
+      return await _primarySourceEntry?.call(diveId);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read primary source entry for dive $diveId; '
+        'placing its new media from the dive start',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
+
   MediaEnrichment? _calculateEnrichment({
     required AssetInfo asset,
     required Dive dive,
@@ -490,8 +508,8 @@ class MediaImportService {
 
     final result = _enrichmentService.calculateEnrichment(
       profile: profile,
-      diveStartTime: clock.start,
-      photoTime: clock.onDiveClock(asset.createDateTime),
+      diveStartTime: clock.countsFrom,
+      photoTime: asset.createDateTime,
     );
 
     // Don't save enrichment if we couldn't calculate depth

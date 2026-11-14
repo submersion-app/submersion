@@ -121,20 +121,27 @@ void main() {
     });
   });
 
-  test('a dive with no media reads no source entry', () async {
-    var reads = 0;
+  // Every dive that is opened runs this, and most have no media: the check
+  // for media comes before the dive, profile and all, is read.
+  test('a dive with no media reads neither the dive nor its source', () async {
+    var diveLoads = 0;
+    var sourceReads = 0;
     final enricher = DiveMediaEnricher(
-      loadDive: (_) async => _dive(),
+      loadDive: (_) async {
+        diveLoads++;
+        return _dive();
+      },
       loadMediaForDive: (_) async => const [],
       loadPrimarySourceEntry: (_) async {
-        reads++;
+        sourceReads++;
         return _computerEntry;
       },
       saveEnrichments: (_) async {},
     );
 
     expect(await enricher.enrichMissingForDive('d1'), 0);
-    expect(reads, 0);
+    expect(diveLoads, 0);
+    expect(sourceReads, 0);
   });
 
   group('automaticTimeFor', () {

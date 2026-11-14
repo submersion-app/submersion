@@ -412,6 +412,33 @@ void main() {
     });
   });
 
+  // The secondary's media moves to the target, so the correction for the
+  // camera that took it has to come along (issue #4539).
+  group('the media time shift (#4539)', () {
+    test('is adopted from a secondary, whose media moves here', () {
+      final fill = fillOf(row('t'), [
+        row('s1'),
+        row('s2').copyWith(mediaTimeOffsetSeconds: -47),
+      ]);
+
+      expect(filled(fill, 'media_time_offset_seconds'), -47);
+    });
+
+    test("leaves the target's own shift alone", () {
+      final fill = fillOf(row('t').copyWith(mediaTimeOffsetSeconds: 30), [
+        row('s').copyWith(mediaTimeOffsetSeconds: -47),
+      ]);
+
+      expect(fill.containsKey('media_time_offset_seconds'), isFalse);
+    });
+
+    test('fills nothing when no secondary has one', () {
+      final fill = fillOf(row('t'), [row('s')]);
+
+      expect(fill.containsKey('media_time_offset_seconds'), isFalse);
+    });
+  });
+
   // A column added to the dives table must be classified here before it
   // ships: either filled by consolidation or listed with the reason it is
   // not. Otherwise a new dive field is silently dropped when its dive is

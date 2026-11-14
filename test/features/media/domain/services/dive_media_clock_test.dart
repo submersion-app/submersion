@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 
 void main() {
@@ -95,32 +96,60 @@ void main() {
     });
   });
 
-  group('DiveMediaClock.onDiveClock', () {
-    test('returns the capture time when the dive has no shift', () {
+  group('DiveMediaClock.countsFrom', () {
+    test('is the start when the dive has no shift', () {
       final clock = DiveMediaClock.of(
         diveStart: DateTime.utc(2026, 5, 6, 9, 4),
         primarySourceEntry: null,
       );
 
-      expect(
-        clock.onDiveClock(DateTime.utc(2026, 5, 6, 9, 9, 31)),
-        DateTime.utc(2026, 5, 6, 9, 9, 31),
-      );
+      expect(clock.countsFrom, DateTime.utc(2026, 5, 6, 9, 4));
     });
 
     // A camera running 47 seconds ahead of the dive computer stamps a shot
-    // 47 seconds late; a shift of -47 puts it back.
-    test('moves the capture time by the dive shift', () {
+    // 47 seconds late, so its times count from 47 seconds after the start.
+    test('moves the other way by the dive shift', () {
       final clock = DiveMediaClock.of(
         diveStart: DateTime.utc(2026, 5, 6, 9, 4),
         primarySourceEntry: null,
         offsetSeconds: -47,
       );
 
+      expect(clock.countsFrom, DateTime.utc(2026, 5, 6, 9, 4, 47));
       expect(
-        clock.onDiveClock(DateTime.utc(2026, 5, 6, 9, 9, 31)),
-        DateTime.utc(2026, 5, 6, 9, 8, 44),
+        DateTime.utc(2026, 5, 6, 9, 9, 31).difference(clock.countsFrom),
+        const Duration(minutes: 4, seconds: 44),
       );
+    });
+
+    // A shift past the bound is a damaged row; counting from it would
+    // overflow, so the dive's media is placed unshifted.
+    test('ignores a shift a dive cannot hold', () {
+      final clock = DiveMediaClock.of(
+        diveStart: DateTime.utc(2026, 5, 6, 9, 4),
+        primarySourceEntry: null,
+        offsetSeconds: 9000000000000000000,
+      );
+
+      expect(clock.offsetSeconds, 0);
+      expect(clock.countsFrom, DateTime.utc(2026, 5, 6, 9, 4));
+    });
+  });
+
+  group('DiveMediaClock.forDive', () {
+    test("reads the dive's start and shift", () {
+      final clock = DiveMediaClock.forDive(
+        Dive(
+          id: 'd1',
+          dateTime: DateTime.utc(2026, 5, 6, 9),
+          entryTime: DateTime.utc(2026, 5, 6, 9, 4),
+          mediaTimeOffsetSeconds: -47,
+        ),
+        primarySourceEntry: DateTime.utc(2026, 5, 6, 9, 4, 39),
+      );
+
+      expect(clock.start, DateTime.utc(2026, 5, 6, 9, 4, 39));
+      expect(clock.offsetSeconds, -47);
     });
   });
 }

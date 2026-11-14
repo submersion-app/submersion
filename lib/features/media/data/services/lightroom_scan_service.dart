@@ -321,10 +321,9 @@ class LightroomScanService {
     if (dive == null || dive.profile.isEmpty) return null;
     return (
       profile: dive.profile,
-      clock: DiveMediaClock.of(
-        diveStart: dive.effectiveEntryTime,
+      clock: DiveMediaClock.forDive(
+        dive,
         primarySourceEntry: await _diveRepository.getPrimarySourceEntry(diveId),
-        offsetSeconds: dive.mediaTimeOffsetSeconds,
       ),
     );
   }
@@ -364,11 +363,10 @@ class LightroomScanService {
         ? _placementFor(diveId)
         : placements.putIfAbsent(diveId, () => _placementFor(diveId)));
     if (placement != null) {
-      final clock = placement.clock;
       final result = _enrichmentService.calculateEnrichment(
         profile: placement.profile,
-        diveStartTime: clock.start,
-        photoTime: clock.onDiveClock(asset.captureDate!),
+        diveStartTime: placement.clock.countsFrom,
+        photoTime: asset.captureDate!,
       );
       if (result.depthMeters != null ||
           result.matchConfidence != domain.MatchConfidence.noProfile) {

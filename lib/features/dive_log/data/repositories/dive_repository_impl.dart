@@ -108,6 +108,7 @@ import 'package:submersion/features/equipment/domain/entities/set_history_rewrit
 import 'package:submersion/features/equipment/domain/services/components_index.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
@@ -1136,7 +1137,18 @@ class DiveRepository {
   ///
   /// A dive that already has this shift is left untouched, so saving the
   /// same value again ships no row to other devices.
+  ///
+  /// Throws [ArgumentError] for a shift past [DiveMediaClock.maxOffsetSeconds]:
+  /// the backup importer and an agent hold to that bound, and a value stored
+  /// beyond it would be dropped by the next restore.
   Future<void> setMediaTimeOffsetSeconds(String diveId, int seconds) async {
+    if (!DiveMediaClock.isValidOffset(seconds)) {
+      throw ArgumentError.value(
+        seconds,
+        'seconds',
+        'a media time shift is at most a century either way',
+      );
+    }
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       final changed =

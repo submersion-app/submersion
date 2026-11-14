@@ -7,8 +7,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/domain/entities/media_dive_window.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/media/presentation/helpers/elapsed_time_format.dart';
 import 'package:submersion/features/media/presentation/helpers/media_time_choice.dart';
+import 'package:submersion/features/media/presentation/utils/capture_time_offset_format.dart';
 import 'package:submersion/features/media/presentation/widgets/mini_dive_profile_overlay.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -94,6 +96,9 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
   /// What [SetMediaTimeDialog.automatic] resolved to, once it has.
   MediaAutomaticTime? _automatic;
 
+  /// Whether the diver has typed in the field or moved the slider.
+  bool _touched = false;
+
   @override
   void initState() {
     super.initState();
@@ -109,7 +114,29 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
       return;
     }
     if (!mounted || automatic == null) return;
-    setState(() => _automatic = automatic);
+    final place = automatic.elapsedSeconds;
+    setState(() {
+      _automatic = automatic;
+      // The dialog opened on the stored position, which lags the dive's
+      // clock until the dive's media is placed again. An item the diver has
+      // neither pinned nor moved starts from where it sits now, so the shift
+      // switch offers no move they did not make.
+      if (!_touched && !widget.isPinned && _inRange(place)) {
+        _seconds = place;
+        _controller.text = formatElapsedMmSs(place);
+      }
+    });
+  }
+
+  /// The dive's whole shift if the item moves to [seconds], or null when
+  /// that is more than a dive holds: an item with no real capture time, not
+  /// a camera whose clock is out.
+  int? _shiftAt(MediaAutomaticTime automatic, int seconds) {
+    // The dive's shift is already in the automatic place, so the new shift
+    // is the old one plus how far this item moves from there.
+    final shift =
+        automatic.diveShiftSeconds + seconds - automatic.elapsedSeconds;
+    return DiveMediaClock.isValidOffset(shift) ? shift : null;
   }
 
   @override
@@ -121,6 +148,7 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
   bool _inRange(int seconds) => seconds >= 0 && seconds <= _maxSeconds;
 
   void _onFieldChanged(String text) {
+    _touched = true;
     final parsed = parseElapsedMmSs(text);
     // The slider and preview follow only a usable value; the field keeps
     // whatever is being typed so a half-entered time is not fought.
@@ -134,6 +162,7 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
   void _onSliderChanged(double value) {
     final seconds = value.round();
     setState(() {
+      _touched = true;
       _seconds = seconds;
       _invalid = false;
       _controller.text = formatElapsedMmSs(seconds);
@@ -147,14 +176,11 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
       return;
     }
     final automatic = _automatic;
+    final shift = _shiftAll && automatic != null
+        ? _shiftAt(automatic, parsed)
+        : null;
     Navigator.of(context).pop(
-      _shiftAll && automatic != null
-          // The dive's shift is already in the automatic place, so the new
-          // shift is the old one plus how far this item moved from there.
-          ? MediaTimeDiveShifted(
-              automatic.diveShiftSeconds + parsed - automatic.elapsedSeconds,
-            )
-          : MediaTimePinned(parsed),
+      shift != null ? MediaTimeDiveShifted(shift) : MediaTimePinned(parsed),
     );
   }
 
@@ -162,7 +188,7 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
   String _shiftSummary(AppLocalizations l10n, MediaAutomaticTime automatic) {
     final moved = _seconds - automatic.elapsedSeconds;
     if (moved == 0) return l10n.media_timeInDive_shiftAllHint;
-    final amount = formatElapsedMmSs(moved.abs());
+    final amount = formatShiftMagnitude(moved);
     return moved < 0
         ? l10n.media_timeInDive_shiftAllEarlier(amount)
         : l10n.media_timeInDive_shiftAllLater(amount);
@@ -170,7 +196,7 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
 
   /// The shift the dive already has, in words.
   String _diveShiftLabel(AppLocalizations l10n, int shiftSeconds) {
-    final amount = formatElapsedMmSs(shiftSeconds.abs());
+    final amount = formatShiftMagnitude(shiftSeconds);
     return shiftSeconds < 0
         ? l10n.media_timeInDive_diveShiftEarlier(amount)
         : l10n.media_timeInDive_diveShiftLater(amount);
@@ -181,6 +207,7 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
     final l10n = context.l10n;
     final max = formatElapsedMmSs(_maxSeconds);
     final automatic = _automatic;
+    final canShift = automatic != null && _shiftAt(automatic, _seconds) != null;
     final preview = _enrichment.calculateEnrichmentAtElapsed(
       profile: widget.profile,
       elapsedSeconds: _seconds,
@@ -235,8 +262,10 @@ class _SetMediaTimeDialogState extends State<SetMediaTimeDialog> {
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.media_timeInDive_shiftAll),
               subtitle: Text(_shiftSummary(l10n, automatic)),
-              value: _shiftAll,
-              onChanged: (value) => setState(() => _shiftAll = value),
+              value: _shiftAll && canShift,
+              onChanged: canShift
+                  ? (value) => setState(() => _shiftAll = value)
+                  : null,
             ),
             if (automatic.diveShiftSeconds != 0)
               Row(

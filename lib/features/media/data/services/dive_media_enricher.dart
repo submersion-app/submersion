@@ -65,12 +65,12 @@ class DiveMediaEnricher {
   /// Returns the number of rows written (0 means nothing changed, so callers
   /// can skip a refresh).
   Future<int> enrichMissingForDive(String diveId) async {
+    // Most dives have no media, and this runs on every dive that is opened:
+    // the cheap read comes first, before the dive and its whole profile.
+    final media = await loadMediaForDive(diveId);
+    if (media.isEmpty) return 0;
     final dive = await loadDive(diveId);
     if (dive == null || dive.profile.isEmpty) return 0;
-
-    final media = await loadMediaForDive(diveId);
-    // Most dives have no media, and this runs on every dive that is opened.
-    if (media.isEmpty) return 0;
     final clock = await _clockFor(dive);
     final toSave = <MediaEnrichment>[];
     for (final item in media) {
@@ -143,10 +143,9 @@ class DiveMediaEnricher {
     );
   }
 
-  Future<DiveMediaClock> _clockFor(Dive dive) async => DiveMediaClock.of(
-    diveStart: dive.effectiveEntryTime,
+  Future<DiveMediaClock> _clockFor(Dive dive) async => DiveMediaClock.forDive(
+    dive,
     primarySourceEntry: await loadPrimarySourceEntry(dive.id),
-    offsetSeconds: dive.mediaTimeOffsetSeconds,
   );
 
   EnrichmentResult _automatic(
@@ -155,8 +154,8 @@ class DiveMediaEnricher {
     MediaItem item,
   ) => enrichmentService.calculateEnrichment(
     profile: dive.profile,
-    diveStartTime: clock.start,
-    photoTime: clock.onDiveClock(item.takenAt),
+    diveStartTime: clock.countsFrom,
+    photoTime: item.takenAt,
   );
 
   /// Whether [existing] already records exactly what [result] computes for

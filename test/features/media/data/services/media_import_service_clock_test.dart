@@ -77,6 +77,17 @@ void main() {
     expect(enrichment.depthMeters, 18);
   });
 
+  // Placing a photo is secondary to linking it: a source entry that cannot
+  // be read costs the seconds it would have restored, not the import.
+  test('a source entry that cannot be read does not stop the import', () async {
+    final enrichment = await importWith(
+      (_) async => throw StateError('database is locked'),
+    );
+
+    expect(enrichment.elapsedSeconds, 1830);
+    verify(repository.createMedia(any)).called(1);
+  });
+
   test('counts from the dive start when it is given no source', () async {
     final enrichment = await importWith(null);
 

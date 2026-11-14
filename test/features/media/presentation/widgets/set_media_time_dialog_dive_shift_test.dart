@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -27,6 +28,7 @@ void main() {
     required MediaAutomaticTime? automatic,
     Future<MediaAutomaticTime?>? automaticFuture,
     int initialElapsedSeconds = 600,
+    bool isPinned = false,
   }) async {
     result = null;
     await tester.pumpWidget(
@@ -43,7 +45,7 @@ void main() {
                     context,
                     profile: _profile,
                     initialElapsedSeconds: initialElapsedSeconds,
-                    isPinned: false,
+                    isPinned: isPinned,
                     settings: const AppSettings(),
                     automatic: automaticFuture ?? Future.value(automatic),
                   );
@@ -106,6 +108,90 @@ void main() {
 
     expect(find.byType(SetMediaTimeDialog), findsOneWidget);
     expect(shiftSwitch(), findsNothing);
+
+    await tester.enterText(find.byType(TextField), '8:33');
+    await save(tester);
+
+    expect(result, isA<MediaTimePinned>());
+  });
+
+  String fieldText(WidgetTester tester) =>
+      tester.widget<TextField>(find.byType(TextField)).controller!.text;
+
+  // The dialog opens on the stored position, which lags the dive's clock
+  // until the dive's media is placed again. Left there, turning the switch
+  // on would shift the whole dive by that lag without the diver choosing to.
+  testWidgets('opens on the automatic place when the stored one lags it', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      automatic: (elapsedSeconds: 513, diveShiftSeconds: 0),
+      initialElapsedSeconds: 552,
+    );
+
+    expect(fieldText(tester), '8:33');
+    await turnShiftOn(tester);
+    await save(tester);
+
+    expect((result! as MediaTimeDiveShifted).shiftSeconds, 0);
+  });
+
+  testWidgets('keeps a pinned item on its pin', (tester) async {
+    await pump(
+      tester,
+      automatic: (elapsedSeconds: 513, diveShiftSeconds: 0),
+      initialElapsedSeconds: 900,
+      isPinned: true,
+    );
+
+    expect(fieldText(tester), '15:00');
+  });
+
+  testWidgets('keeps a time typed before the automatic place arrived', (
+    tester,
+  ) async {
+    final pending = Completer<MediaAutomaticTime?>();
+    await pump(tester, automatic: null, automaticFuture: pending.future);
+
+    await tester.enterText(find.byType(TextField), '7:00');
+    pending.complete((elapsedSeconds: 513, diveShiftSeconds: 0));
+    await tester.pumpAndSettle();
+
+    expect(fieldText(tester), '7:00');
+  });
+
+  // An automatic place before the dive cannot be shown in the field, which
+  // holds moments in the dive; the dialog stays on the start.
+  testWidgets('stays put when the automatic place is outside the dive', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      automatic: (elapsedSeconds: -21000, diveShiftSeconds: 0),
+      initialElapsedSeconds: 600,
+    );
+
+    expect(fieldText(tester), '10:00');
+    // A camera six hours behind reads as hours, not as 360 minutes.
+    expect(
+      find.text('Every photo and video on this dive moves 6h 00m later'),
+      findsOneWidget,
+    );
+  });
+
+  // A shift past what a dive holds is an item with no real capture time,
+  // not a camera clock. The dialog offers the pin only.
+  testWidgets('offers no shift a dive could not hold', (tester) async {
+    await pump(
+      tester,
+      automatic: (
+        elapsedSeconds: -DiveMediaClock.maxOffsetSeconds - 3600,
+        diveShiftSeconds: 0,
+      ),
+    );
+
+    expect(tester.widget<SwitchListTile>(shiftSwitch()).onChanged, isNull);
 
     await tester.enterText(find.byType(TextField), '8:33');
     await save(tester);

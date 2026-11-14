@@ -17,6 +17,9 @@ enum _Holds {
   /// True, for a non-null flag defaulting to false. A secondary can only
   /// raise the flag, never clear it.
   flag,
+
+  /// Not 0, for a non-null number defaulting to 0.
+  nonZero,
 }
 
 /// Columns a consolidation copies together, from a single secondary.
@@ -137,6 +140,10 @@ const List<_FillGroup> _groups = [
   // A switch list the diver edited stays theirs on the merged dive (issue
   // #32): a re-parse of either source then leaves the switches alone.
   _FillGroup(['gas_switches_edited'], holds: _Holds.flag),
+  // A secondary's media moves to the target, and the shift that corrects
+  // the camera has to move with it (issue #4539). Both dives were read
+  // against wall clocks the merge lines up, so the value carries as it is.
+  _FillGroup(['media_time_offset_seconds'], holds: _Holds.nonZero),
 ];
 
 /// Every dives column a consolidation leaves as the target has it, and why.
@@ -184,9 +191,6 @@ const Map<String, String> consolidationUnfilledColumns = {
   'site_suggestion_dismissed_at':
       "the diver's answer to the target's own "
       'site suggestion',
-  'media_time_offset_seconds':
-      "the camera's clock against the target's own computer; a secondary's "
-      'was measured against a different clock',
 };
 
 /// Every dives column a consolidation can fill.
@@ -256,5 +260,6 @@ bool _held(
     _Holds.all => alsoHeld || columns.every((v) => v != null),
     _Holds.text => columns.any((v) => (v as String).trim().isNotEmpty),
     _Holds.flag => columns.any((v) => v == true),
+    _Holds.nonZero => columns.any((v) => v != null && v != 0),
   };
 }
