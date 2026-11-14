@@ -77,10 +77,19 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
 
   Future<void> _saveAndReport() async {
     final messenger = ScaffoldMessenger.of(context);
-    final failed = context.l10n.recordEdit_saveFailed;
+    final l10n = context.l10n;
     final saved = await editController.save();
-    if (saved || !mounted || editController.saveError == null) return;
-    messenger.showSnackBar(SnackBar(content: Text(failed)));
+    if (saved || !mounted) return;
+    // Refused for a field that holds text which is not a value: the card is
+    // scrolled into view and its field says what is wrong with it.
+    if (editController.refusedForInvalidInput) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.recordEdit_fixInvalid)),
+      );
+      return;
+    }
+    if (editController.saveError == null) return;
+    messenger.showSnackBar(SnackBar(content: Text(l10n.recordEdit_saveFailed)));
   }
 
   /// The lock in the locked page's top bar.

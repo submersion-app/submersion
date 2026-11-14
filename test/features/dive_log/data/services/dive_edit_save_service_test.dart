@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/data/services/dive_edit_save_servic
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -225,6 +226,31 @@ void main() {
     final reverted = await stored();
     expect(reverted.notes, 'Calm');
     expect(reverted.tags.map((tag) => tag.id).toSet(), {'wreck', 'night'});
+  });
+
+  // The dive's writer stores every column it is handed, so a value the diver
+  // emptied reaches storage only if the field hands it a null.
+  test('a cleared altitude is stored as null', () async {
+    await dives.updateDive(
+      (await stored()).copyWith(altitude: 900, surfacePressure: 0.9),
+    );
+    await changeLog.settleAll();
+    await clearLog(db);
+    expect((await stored()).altitude, 900);
+
+    await service.save(
+      diveId: 'dive',
+      apply: (dive) => diveAltitudeField.write(dive, null),
+      changedCardIds: ['altitude'],
+    );
+
+    final saved = await stored();
+    expect(saved.altitude, isNull);
+    expect(saved.surfacePressure, 0.9);
+    final events = await logEvents(db);
+    expect(await logFields(db, events.single['id']! as int), {
+      'altitude': (900.0, null),
+    });
   });
 
   // A sitting can owe a write to another record: the altitude a lookup
