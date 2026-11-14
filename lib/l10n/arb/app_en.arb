@@ -798,7 +798,7 @@
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
   "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver",
   "equipment_setEdit_figureSwitch_title": "Show diver figure",
-  "equipment_setEdit_historyAsk": "Apply the changes to those dives as well, or only from now on?",
+  "equipment_setEdit_historyAsk": "Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.",
   "equipment_setEdit_historyOnDives": "{count, plural, =1{This set is on 1 logged dive.} other{This set is on {count} logged dives.}}",
   "equipment_color_red": "Red",
   "equipment_color_orange": "Orange",
@@ -3336,6 +3336,22 @@
     }
   },
   "diveLog_gear_removeSet": "Remove set from this dive",
+  "diveLog_gear_removeSetTitle": "Remove set from this dive?",
+  "@diveLog_gear_removeSetTitle": {
+    "description": "Title of the question asked when a set chip is removed from a dive's gear (issue #4500)"
+  },
+  "diveLog_gear_removeSetBody": "Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?",
+  "@diveLog_gear_removeSetBody": {
+    "description": "Body of that question: remove the set's gear too, or keep the gear and only unlink the set"
+  },
+  "diveLog_gear_removeSetKeepGear": "Keep gear",
+  "@diveLog_gear_removeSetKeepGear": {
+    "description": "Button that keeps the gear on the dive and only unlinks the set"
+  },
+  "diveLog_gear_removeSetRemoveGear": "Remove gear",
+  "@diveLog_gear_removeSetRemoveGear": {
+    "description": "Button that removes the gear the set added from the dive"
+  },
   "diveLog_gear_unknownSet": "Set",
   "diveLog_health_after15": "After 15 min",
   "diveLog_health_after5": "After 5 min",
@@ -4601,11 +4617,40 @@
       }
     }
   },
+  "diveLog_deco_groupFast": "Fast, blood-rich tissue",
+  "@diveLog_deco_groupFast": {
+    "description": "Speed group of tissue compartments 1-5, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_groupMedium": "Medium, muscle and skin",
+  "@diveLog_deco_groupMedium": {
+    "description": "Speed group of tissue compartments 6-10, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_groupSlow": "Slow, fat and bone",
+  "@diveLog_deco_groupSlow": {
+    "description": "Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_heatMapSemantics": "Heat map of compartments {first} to {last}, fast at the top and slow at the bottom",
+  "@diveLog_deco_heatMapSemantics": {
+    "description": "Screen reader description of the tissue heat map rows",
+    "placeholders": {
+      "first": {"type": "int"},
+      "last": {"type": "int"}
+    }
+  },
+  "diveLog_deco_heatMapTimedSemantics": "Heat map of compartments {first} to {last}, fast at the top and slow at the bottom, from {start} to {end} of the dive",
+  "@diveLog_deco_heatMapTimedSemantics": {
+    "description": "Screen reader description of the tissue heat map rows and the dive time it covers; start and end read like \"0 min\"",
+    "placeholders": {
+      "first": {"type": "int"},
+      "last": {"type": "int"},
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
   "diveLog_deco_metricLoad": "Load",
   "diveLog_deco_gasOngassing": "Ongassing",
   "diveLog_deco_gasOffgassing": "Offgassing",
   "diveLog_deco_gasEquilibrium": "Equilibrium",
-  "diveLog_deco_heatMapRows": "Rows: fast (top) to slow (bottom)",
   "diveLog_deco_surfaceLevel": "Surface level",
   "diveLog_deco_mValue": "M-value",
   "diveLog_deco_tooltipCompartment": "Compartment {number}",
@@ -4689,11 +4734,6 @@
   "diveLog_detail_button_rangeAnalysis": "Range Stats",
   "diveLog_detail_captureSignature": "Capture Instructor Signature",
   "diveLog_detail_collapsed_atTime": "{timestamp}",
-  "diveLog_pinnedStrip_ndl": "NDL {minutes} min",
-  "diveLog_pinnedStrip_stop": "Stop {depth} · {minutes} min",
-  "diveLog_pinnedStrip_ppO2": "ppO2 {value}",
-  "diveLog_pinnedStrip_hintDrag": "Drag to scrub",
-  "diveLog_pinnedStrip_hintHover": "Hover to scrub",
   "diveLog_pinnedStrip_semantics": "Dive profile, scrub to move the cursor",
   "diveLog_detail_customFieldCount": "{count, plural, =1{1 field} other{{count} fields}}",
   "@diveLog_detail_customFieldCount": {
@@ -25361,11 +25401,17 @@
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
   "equipment_edit_invalidFocalLength": "Use 60 or 15-45",
   "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
-  "insights_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
-  "insights_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
-  "insights_progression_divesBySuitThickness_empty": "No dives with a wetsuit or drysuit linked",
-  "insights_progression_divesBySuitThickness_error": "Could not load suit thickness data",
-  "insights_progression_divesBySuitThickness_unknown": "Unknown",
+  "insights_progression_divesBySuitType_title": "Dives by Suit Type",
+  "insights_progression_divesBySuitType_subtitle": "Exposure suit type, thickness and style across your dives",
+  "insights_progression_divesBySuitType_empty": "No dives with a wetsuit or drysuit linked",
+  "insights_progression_divesBySuitType_error": "Could not load suit type data",
+  "insights_suitType_wetsuitThicknessStyle": "Wetsuit · {thickness} mm {style}",
+  "insights_suitType_wetsuitThickness": "Wetsuit · {thickness} mm",
+  "insights_suitType_wetsuitStyle": "Wetsuit · {style}",
+  "insights_suitType_style_full": "full",
+  "insights_suitType_style_shorty": "shorty",
+  "insights_suitType_style_twoPiece": "two-piece",
+  "insights_suitType_style_semiDry": "semi-dry",
   "diveLog_filter_sectionSuitThickness": "Suit thickness (mm)",
   "diveLog_filter_sectionGearAttributes": "Gear attributes",
   "diveLog_filter_gearCategory": "Gear category",
@@ -29601,7 +29647,7 @@
   "insights_conditions_entryMethod_semanticLabel": "Bar chart. Entry methods. {description}",
   "insights_conditions_visibility_semanticLabel": "Pie chart. Visibility distribution. {description}",
   "insights_conditions_waterType_semanticLabel": "Pie chart. Water type distribution. {description}",
-  "insights_progression_divesBySuitThickness_semanticLabel": "Bar chart. Dives by suit thickness. {description}",
+  "insights_progression_divesBySuitType_semanticLabel": "Bar chart. Dives by suit type. {description}",
   "insights_progression_divesPerYear_countInYear": "{count, plural, =1{1 dive in {year}} other{{count} dives in {year}}}",
   "insights_progression_divesPerYear_semanticLabel": "Bar chart. Dives per year. {description}",
   "insights_records_unavailable": "Records unavailable",
@@ -30125,12 +30171,43 @@
       }
     }
   },
-  "@insights_progression_divesBySuitThickness_semanticLabel": {
-    "description": "Screen-reader summary of the dives-by-suit-thickness bar chart",
+  "@insights_suitType_wetsuitThicknessStyle": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its thickness in mm and its style word",
+    "placeholders": {
+      "thickness": {
+        "type": "String",
+        "example": "5"
+      },
+      "style": {
+        "type": "String",
+        "example": "full"
+      }
+    }
+  },
+  "@insights_suitType_wetsuitThickness": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its thickness in mm and no style",
+    "placeholders": {
+      "thickness": {
+        "type": "String",
+        "example": "5"
+      }
+    }
+  },
+  "@insights_suitType_wetsuitStyle": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its style word and no thickness",
+    "placeholders": {
+      "style": {
+        "type": "String",
+        "example": "shorty"
+      }
+    }
+  },
+  "@insights_progression_divesBySuitType_semanticLabel": {
+    "description": "Screen-reader summary of the dives-by-suit-type bar chart",
     "placeholders": {
       "description": {
         "type": "String",
-        "example": "5 mm: 12"
+        "example": "Wetsuit · 5 mm full: 12, Drysuit: 3"
       }
     }
   },
@@ -36745,7 +36822,7 @@
   "info_term_surfaceInterval_label": "Surface interval",
   "info_term_surfaceInterval_body": "Time on the surface between two dives. Tissues keep releasing gas during it, so a longer interval carries less into the next dive.",
   "info_term_tissueCompartment_label": "Tissue compartments",
-  "info_term_tissueCompartment_body": "The model's 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.",
+  "info_term_tissueCompartment_body": "The model's 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones limit long and repeat dives; the tissue names are rough examples, not anatomy.",
   "info_term_leadingCompartment_label": "Leading compartment",
   "info_term_leadingCompartment_body": "The compartment closest to its limit right now. It sets the ceiling and changes during the dive.",
   "info_term_tissueLoad_label": "Load",

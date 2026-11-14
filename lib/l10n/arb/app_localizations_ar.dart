@@ -1483,7 +1483,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+      'تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟ خيار «من الآن فصاعدًا» يُبقي معداتها ويفك ارتباط الطقم بها.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5561,6 +5561,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_gear_removeSet => 'إزالة الطقم من هذه الغطسة';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'إزالة الطقم من هذه الغطسة؟';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'هل تريد إزالة المعدات التي أضافها هذا الطقم أيضًا، أم إبقاء المعدات في الغطسة وفك ارتباط الطقم فقط؟';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'إبقاء المعدات';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'إزالة المعدات';
+
+  @override
   String get diveLog_gear_unknownSet => 'طقم';
 
   @override
@@ -7792,6 +7805,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'سريعة، أنسجة غنية بالدم';
+
+  @override
+  String get diveLog_deco_groupMedium => 'متوسطة، العضلات والجلد';
+
+  @override
+  String get diveLog_deco_groupSlow => 'بطيئة، الدهون والعظام';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'الخريطة الحرارية للحجرات من $first إلى $last، السريعة في الأعلى والبطيئة في الأسفل';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'الخريطة الحرارية للحجرات من $first إلى $last، السريعة في الأعلى والبطيئة في الأسفل، من $start إلى $end من الغوصة';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'الحمل';
 
   @override
@@ -7802,10 +7839,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'توازن';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'الصفوف: من السريعة (أعلى) إلى البطيئة (أسفل)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'مستوى السطح';
@@ -7922,27 +7955,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'عند $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes د';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'توقف $depth · $minutes د';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'اسحب للتنقل';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'مرر المؤشر للتنقل';
 
   @override
   String get diveLog_pinnedStrip_semantics => 'مخطط الغطسة، اسحب لتحريك المؤشر';
@@ -42514,23 +42526,50 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل عنوان ويب، مثل shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'الغطسات حسب سماكة البدلة';
+  String get insights_progression_divesBySuitType_title =>
+      'الغطسات حسب نوع البدلة';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'السماكة الأساسية لبدلة الغطس عبر غطساتك';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'نوع بدلة الغطس وسماكتها وطرازها عبر غطساتك';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'لا توجد غطسات مرتبطة ببدلة غوص أو بدلة جافة';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'تعذر تحميل بيانات سماكة البدلة';
+  String get insights_progression_divesBySuitType_error =>
+      'تعذر تحميل بيانات نوع البدلة';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'غير معروف';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'بدلة غوص · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'بدلة غوص · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'بدلة غوص · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'كاملة';
+
+  @override
+  String get insights_suitType_style_shorty => 'شورتي';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'قطعتان';
+
+  @override
+  String get insights_suitType_style_semiDry => 'شبه جافة';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
@@ -52196,10 +52235,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'مخطط أعمدة. الغوصات حسب سماكة البدلة. $description';
+    return 'مخطط أعمدة. الغوصات حسب نوع البدلة. $description';
   }
 
   @override
@@ -63660,7 +63699,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'الأنسجة الستة عشر الافتراضية في النموذج، يمتص كل منها الغاز ويطلقه بسرعته الخاصة. تمثل السريعة الأنسجة الغنية بالدم والبطيئة الدهون والعظام.';
+      'الأنسجة الستة عشر الافتراضية في النموذج، يمتص كل منها الغاز ويطلقه بسرعته الخاصة: 1-5 سريعة (مثل الأنسجة الغنية بالدم كالدماغ)، و6-10 متوسطة (مثل العضلات والجلد)، و11-16 بطيئة (مثل الدهون والعظام). تحدّ السريعة من الغوصات القصيرة العميقة والبطيئة من الغوصات الطويلة والمتكررة؛ أسماء الأنسجة أمثلة تقريبية وليست تشريحًا.';
 
   @override
   String get info_term_leadingCompartment_label => 'الحجيرة القائدة';

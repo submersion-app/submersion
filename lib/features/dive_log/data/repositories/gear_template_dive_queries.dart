@@ -23,14 +23,19 @@ class GearTemplateDiveQueries {
   Future<List<String>> diveIdsWithAssembly(
     String assemblyId, {
     required bool alsoLogged,
-  }) => _diveIdsCarrying(_gearColumn, assemblyId, alsoLogged: alsoLogged);
+  }) => _diveIdsCarrying(_gearColumn, assemblyId, where: _scope(alsoLogged));
 
   /// Dives with a gear row set [setId] put there, planned ones and logged
   /// ones with [alsoLogged].
   Future<List<String>> diveIdsWithSet(
     String setId, {
     required bool alsoLogged,
-  }) => _diveIdsCarrying(_setColumn, setId, alsoLogged: alsoLogged);
+  }) => _diveIdsCarrying(_setColumn, setId, where: _scope(alsoLogged));
+
+  /// Logged dives with a gear row set [setId] put there, the ones a member
+  /// change kept as they were (issue #4500).
+  Future<List<String>> loggedDiveIdsWithSet(String setId) =>
+      _diveIdsCarrying(_setColumn, setId, where: ' AND d.is_planned = 0');
 
   /// How many [planned] (or logged) dives carry [assemblyId].
   Future<int> countWithAssembly(String assemblyId, {required bool planned}) =>
@@ -40,21 +45,26 @@ class GearTemplateDiveQueries {
   Future<int> countWithSet(String setId, {required bool planned}) =>
       _countDivesCarrying(_setColumn, setId, planned: planned);
 
-  /// Dives with a gear row whose [column] is [id]: planned ones, and logged
-  /// ones too with [alsoLogged]. Every diver's, as a template is shared.
+  /// The dive filter for a rewrite: planned dives, or every dive with
+  /// [alsoLogged].
+  static String _scope(bool alsoLogged) =>
+      alsoLogged ? '' : ' AND d.is_planned = 1';
+
+  /// Dives with a gear row whose [column] is [id], narrowed by [where], a
+  /// fixed SQL fragment on `d` (never user input). Every diver's, as a
+  /// template is shared.
   // stats-scope-exempt: picks the dives a gear template change rewrites;
   // a dive left out of statistics still carries the gear
   Future<List<String>> _diveIdsCarrying(
     String column,
     String id, {
-    required bool alsoLogged,
+    required String where,
   }) async {
     final rows = await _db
         .customSelect(
           'SELECT DISTINCT de.dive_id AS id FROM dive_equipment de '
           'JOIN dives d ON d.id = de.dive_id '
-          'WHERE de.$column = ?1'
-          '${alsoLogged ? '' : ' AND d.is_planned = 1'}',
+          'WHERE de.$column = ?1$where',
           variables: [Variable.withString(id)],
           readsFrom: {_db.diveEquipment, _db.dives},
         )

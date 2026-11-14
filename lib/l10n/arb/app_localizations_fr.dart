@@ -1442,7 +1442,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ?';
+      'Appliquer les modifications à ces plongées aussi, ou seulement à partir de maintenant ? « À partir de maintenant » garde leur équipement et les dissocie de l\'ensemble.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5484,6 +5484,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Retirer l\'ensemble de cette plongée';
 
   @override
+  String get diveLog_gear_removeSetTitle =>
+      'Retirer l\'ensemble de cette plongée ?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Retirer aussi l\'équipement ajouté par cet ensemble, ou garder l\'équipement sur la plongée et seulement dissocier l\'ensemble ?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Garder l\'équipement';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Retirer l\'équipement';
+
+  @override
   String get diveLog_gear_unknownSet => 'Ensemble';
 
   @override
@@ -7696,6 +7710,30 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Rapide, tissus très irrigués';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Moyen, muscles et peau';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Lent, graisse et os';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Carte de chaleur des compartiments $first à $last, les rapides en haut et les lents en bas';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Carte de chaleur des compartiments $first à $last, les rapides en haut et les lents en bas, de $start à $end de la plongée';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Charge';
 
   @override
@@ -7706,9 +7744,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Équilibre';
-
-  @override
-  String get diveLog_deco_heatMapRows => 'Lignes : rapide (haut) à lent (bas)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Niveau de surface';
@@ -7823,27 +7858,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'À $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Palier $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Glissez pour parcourir';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Survolez pour parcourir';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -42079,23 +42093,50 @@ class AppLocalizationsFr extends AppLocalizations {
       'Saisissez une adresse web, par ex. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Plongées par épaisseur de combinaison';
+  String get insights_progression_divesBySuitType_title =>
+      'Plongées par type de combinaison';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Épaisseur principale de la combinaison sur vos plongées';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Type, épaisseur et coupe de la combinaison sur vos plongées';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Aucune plongée liée à une combinaison humide ou étanche';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Impossible de charger les données d\'épaisseur';
+  String get insights_progression_divesBySuitType_error =>
+      'Impossible de charger les données de type de combinaison';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Inconnue';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Combinaison · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Combinaison · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Combinaison · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'intégrale';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'deux pièces';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semi-étanche';
 
   @override
   String get diveLog_filter_sectionSuitThickness =>
@@ -51605,10 +51646,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Diagramme en barres. Plongées par épaisseur de combinaison. $description';
+    return 'Diagramme en barres. Plongées par type de combinaison. $description';
   }
 
   @override
@@ -62882,7 +62923,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Les 16 tissus fictifs du modèle, qui absorbent et libèrent le gaz chacun à son rythme. Les rapides représentent les tissus très irrigués, les lents la graisse et les os.';
+      'Les 16 tissus fictifs du modèle, qui absorbent et libèrent le gaz chacun à son rythme : 1-5 sont rapides (comme les tissus très irrigués, par exemple le cerveau), 6-10 moyens (comme les muscles et la peau) et 11-16 lents (comme la graisse et les os). Les rapides limitent les plongées courtes et profondes, les lents les plongées longues et successives ; les noms de tissus sont des exemples approximatifs, pas de l\'anatomie.';
 
   @override
   String get info_term_leadingCompartment_label => 'Compartiment directeur';

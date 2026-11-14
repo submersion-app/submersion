@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/features/dive_3d/presentation/pages/dive_3d_page.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -71,12 +72,6 @@ class DiveTissueLoadingSection extends ConsumerWidget {
   }
 }
 
-String _formatTimestamp(int seconds) {
-  final minutes = seconds ~/ 60;
-  final secs = seconds % 60;
-  return '$minutes:${secs.toString().padLeft(2, '0')}';
-}
-
 /// The three cards the deco/tissue panel is made of, or null when the dive
 /// has no usable profile analysis.
 ///
@@ -131,7 +126,7 @@ _decoPanelCards(
   final String? timeSubtitle =
       selectedPointIndex != null && selectedPointIndex < chartProfile.length
       ? context.l10n.diveLog_detail_collapsed_atTime(
-          _formatTimestamp(chartProfile[selectedPointIndex].timestamp),
+          formatMinutesSeconds(chartProfile[selectedPointIndex].timestamp),
         )
       : null;
 
@@ -190,6 +185,9 @@ _decoPanelCards(
       decoStatuses: analysis.decoStatuses,
       selectedIndex: selectedPointIndex,
       subtitle: timeSubtitle,
+      // The times this analysis's deco statuses were computed at, so a
+      // retained analysis keeps its own clock while the profile changes.
+      profileTimestamps: analysis.sampleTimestamps,
       expandVisualization: expand,
       onHeatMapHover: (index) {
         ref.read(profileTrackingIndexProvider(dive.id).notifier).state = index;

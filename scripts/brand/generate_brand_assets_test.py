@@ -20,6 +20,7 @@ sys.path.insert(0, HERE)
 from PIL import Image, ImageChops, ImageFilter, ImageStat  # noqa: E402
 
 import generate_brand_assets as gen  # noqa: E402
+import layout  # noqa: E402
 import presets  # noqa: E402
 from generate_icon import build_wave_arrow_mask  # noqa: E402
 from mark import create_mark, render_glyph  # noqa: E402
@@ -172,10 +173,12 @@ class RenderTest(unittest.TestCase):
         self.assertIsNone(
             ImageChops.difference(dark.crop(icon_strip), light.crop(icon_strip)).getbbox()
         )
-        text_half = (dark.width // 2, 0, dark.width, dark.height)
+        # The right quarter holds only name and slogan ink: the red rule,
+        # whose dark red would read as text here, ends under the "b" of "Sub".
+        text_end = (dark.width * 3 // 4, 0, dark.width, dark.height)
         # Darkest opaque text pixel is navy in one and near-white in the other.
-        self.assertLess(darkest_opaque_luminance(dark.crop(text_half)), 90)
-        self.assertGreater(darkest_opaque_luminance(light.crop(text_half)), 200)
+        self.assertLess(darkest_opaque_luminance(dark.crop(text_end)), 90)
+        self.assertGreater(darkest_opaque_luminance(light.crop(text_end)), 200)
 
     def test_red_rule_appears_in_lockup_but_not_wordmark(self):
         def red_text_pixels(img):
@@ -189,6 +192,33 @@ class RenderTest(unittest.TestCase):
 
         self.assertGreater(red_text_pixels(self.images["lockup-dark"]), 0)
         self.assertEqual(red_text_pixels(self.images["wordmark-dark"]), 0)
+
+    def test_red_rule_runs_under_sub_in_real_ink(self):
+        # Regression (#4489): measured on the rendered pixels, with the real
+        # font, the rule's red ink starts at the "S" and ends with the "b".
+        for name in ("github-social", "reddit-banner", "square"):
+            with self.subTest(preset=name):
+                preset = presets.find(name)
+                lay = gen.compute_layout(
+                    preset.width,
+                    preset.height,
+                    presets.safe_insets(preset),
+                    preset.layout,
+                    preset.show_slogan,
+                    gen.measure,
+                    preset.icon_ratio,
+                )
+                img = self.images[name].convert("RGB")
+                row = round(lay.rule.center_y)
+
+                def is_red(x):
+                    r, g, b = img.getpixel((x, row))
+                    return r > 150 and g < 60 and b < 60
+
+                red = [x for x in range(img.width) if is_red(x)]
+                sub_w, _ = gen.measure(layout.RULE_SPAN, "name", lay.name_px)
+                self.assertAlmostEqual(min(red), lay.name.x, delta=1.5)
+                self.assertAlmostEqual(max(red) + 1, lay.name.x + sub_w, delta=1.5)
 
 
 class WavesTest(unittest.TestCase):

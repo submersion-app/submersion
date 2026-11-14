@@ -1440,7 +1440,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Aplicar as alterações também a esses mergulhos, ou só a partir de agora?';
+      'Aplicar as alterações também a esses mergulhos, ou só a partir de agora? «A partir de agora» mantém o equipamento e desvincula o conjunto desses mergulhos.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5472,6 +5472,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Remover o conjunto deste mergulho';
 
   @override
+  String get diveLog_gear_removeSetTitle =>
+      'Remover o conjunto deste mergulho?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Remover também o equipamento que este conjunto adicionou, ou manter o equipamento no mergulho e apenas desvincular o conjunto?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Manter equipamento';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Remover equipamento';
+
+  @override
   String get diveLog_gear_unknownSet => 'Conjunto';
 
   @override
@@ -7676,6 +7690,30 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Rápido, tecido muito irrigado';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Médio, músculo e pele';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Lento, gordura e osso';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Mapa de calor dos compartimentos $first a $last, os rápidos em cima e os lentos em baixo';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Mapa de calor dos compartimentos $first a $last, os rápidos em cima e os lentos em baixo, de $start a $end do mergulho';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Carga';
 
   @override
@@ -7686,9 +7724,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Equilíbrio';
-
-  @override
-  String get diveLog_deco_heatMapRows => 'Linhas: rápido (topo) a lento (base)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Nível de superfície';
@@ -7803,27 +7838,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'Às $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Parada $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Arraste para navegar';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Passe o cursor para navegar';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -41935,24 +41949,50 @@ class AppLocalizationsPt extends AppLocalizations {
       'Introduza um endereço web, p. ex. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Mergulhos por espessura da roupa';
+  String get insights_progression_divesBySuitType_title =>
+      'Mergulhos por tipo de roupa';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Espessura principal da roupa nos seus mergulhos';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Tipo, espessura e modelo da roupa nos seus mergulhos';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Nenhum mergulho vinculado a roupa de neoprene ou roupa seca';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Não foi possível carregar os dados de espessura';
+  String get insights_progression_divesBySuitType_error =>
+      'Não foi possível carregar os dados do tipo de roupa';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown =>
-      'Desconhecida';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Roupa de Neoprene · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Roupa de Neoprene · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Roupa de Neoprene · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'inteira';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'duas peças';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semisseca';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Espessura da roupa (mm)';
@@ -51472,10 +51512,10 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Gráfico de barras. Mergulhos por espessura da roupa. $description';
+    return 'Gráfico de barras. Mergulhos por tipo de roupa. $description';
   }
 
   @override
@@ -62718,7 +62758,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Os 16 tecidos imaginários do modelo, que absorvem e libertam gás cada um ao seu ritmo. Os rápidos representam tecido muito irrigado e os lentos gordura e osso.';
+      'Os 16 tecidos imaginários do modelo, que absorvem e libertam gás cada um ao seu ritmo: 1-5 são rápidos (como o tecido muito irrigado, por exemplo o cérebro), 6-10 médios (como músculo e pele) e 11-16 lentos (como gordura e osso). Os rápidos limitam os mergulhos curtos e profundos e os lentos os longos e sucessivos; os nomes dos tecidos são exemplos aproximados, não anatomia.';
 
   @override
   String get info_term_leadingCompartment_label => 'Compartimento dominante';

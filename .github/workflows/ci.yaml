@@ -1697,7 +1697,8 @@ jobs:
 
       - name: Build macOS (no-sandbox for distribution)
         run: |
-          # Configure ad-hoc signing for CI (no developer certificate available)
+          # Xcode builds with ad-hoc signing (no provisioning profile here); the
+          # next step re-signs the bundle with the no-sandbox entitlements.
           # Must modify project.pbxproj directly - xcconfig can't override target-level settings
           sed -i '' \
             -e 's/CODE_SIGN_IDENTITY = ".*"/CODE_SIGN_IDENTITY = "-"/g' \
@@ -1709,10 +1710,68 @@ jobs:
           # Build with Flutter
           flutter build macos --release "${{ env.DART_DEFINES }}" "--dart-define=GOOGLE_DRIVE_CLIENT_SECRET=${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}"
 
-          # Re-sign with ad-hoc signature and no-sandbox entitlements
-          codesign --force --deep --sign - \
+      # Sign with the Apple Development certificate so testers are not asked
+      # for the keychain password on every new build (issue #4516). This build
+      # has no keychain access group, so secrets live in the legacy file-based
+      # keychain, whose items trust the code that created them through an ACL
+      # and a partition list. An ad-hoc signature (or a self-signed one) maps
+      # to `cdhash:<hash>`, new with every build, so each build re-prompts once
+      # per stored item. An Apple-issued certificate maps to the stable
+      # `teamid:` partition, so "Always Allow" lasts across builds.
+      # The certificate lives only in this step's environment, away from the
+      # build tooling above. Fork PRs get no secrets and keep ad-hoc signing,
+      # and so do Dependabot PRs (they only see Dependabot secrets).
+      # Third-party build code ran in earlier steps and can write to
+      # $GITHUB_PATH and $GITHUB_ENV, which shape every later step. So this
+      # step starts an absolute /bin/bash, ignores BASH_ENV, and resets PATH
+      # to system directories before running anything, so a tool planted
+      # earlier never runs with the certificate in its environment.
+      - name: Sign macOS app
+        shell: /bin/bash --noprofile --norc -e -o pipefail {0}
+        env:
+          BASH_ENV: ''
+          APPLE_DEVELOPMENT_CERTIFICATE_BASE64: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64 }}
+          APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD }}
+        run: |
+          export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+          APP=build/macos/Build/Products/Release/submersion.app
+          IDENTITY=-
+          if [ -n "$APPLE_DEVELOPMENT_CERTIFICATE_BASE64" ]; then
+            KEYCHAIN_PATH="$RUNNER_TEMP/test-signing.keychain-db"
+            KEYCHAIN_PASSWORD=$(openssl rand -hex 16)
+            CERT_PATH="$RUNNER_TEMP/apple_development.p12"
+            echo -n "$APPLE_DEVELOPMENT_CERTIFICATE_BASE64" | base64 --decode -o "$CERT_PATH"
+            security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+            security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+            security import "$CERT_PATH" -P "$APPLE_DEVELOPMENT_CERTIFICATE_PASSWORD" \
+              -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+            rm -f "$CERT_PATH"
+            security set-key-partition-list -S apple-tool:,apple:,codesign: -s \
+              -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH" > /dev/null
+            # Prepend the signing keychain, keeping the runner's own (they
+            # hold the Apple intermediates codesign embeds in the signature).
+            # Splitting is intended: one argument per listed keychain path.
+            # shellcheck disable=SC2046
+            security list-keychains -d user -s "$KEYCHAIN_PATH" \
+              $(security list-keychains -d user | tr -d '"')
+            # Sign by SHA-1 so a second matching identity cannot make the
+            # name ambiguous.
+            IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN_PATH" \
+              | awk '/Apple Development/ { print $2; exit }')
+            if [ -z "$IDENTITY" ]; then
+              echo "::error::APPLE_DEVELOPMENT_CERTIFICATE_BASE64 holds no Apple Development signing identity"
+              exit 1
+            fi
+          else
+            echo "::notice::No signing secrets (fork PR): signing ad hoc, so each build of this app re-prompts for keychain access"
+          fi
+
+          codesign --force --deep --sign "$IDENTITY" \
             --entitlements macos/Runner/ReleaseNoSandbox.entitlements \
-            build/macos/Build/Products/Release/submersion.app
+            "$APP"
+          codesign --verify --deep --strict "$APP"
+          codesign -dv "$APP" 2>&1 | grep -E '^(Authority|TeamIdentifier|Signature)='
 
       # gen_snapshot emits App.framework's exported symbols in address order, which
       # macOS 11's dyld cannot resolve by binary search -- the app then segfaults on
@@ -1745,6 +1804,10 @@ jobs:
           name: macos-build
           path: build/macos/Build/Products/Release/submersion-macos.zip
           retention-days: 7
+
+      - name: Remove signing keychain
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/test-signing.keychain-db" 2>/dev/null || true
 
   build-android:
     name: Build Android

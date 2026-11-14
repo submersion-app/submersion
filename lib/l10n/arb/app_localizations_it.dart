@@ -1444,7 +1444,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi?';
+      'Applicare le modifiche anche a quelle immersioni o solo da ora in poi? «Da ora in poi» mantiene la loro attrezzatura e le scollega dal set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5469,6 +5469,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Rimuovi il set da questa immersione';
 
   @override
+  String get diveLog_gear_removeSetTitle =>
+      'Rimuovere il set da questa immersione?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Rimuovere anche l\'attrezzatura aggiunta da questo set, o mantenere l\'attrezzatura nell\'immersione e scollegare solo il set?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Mantieni attrezzatura';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Rimuovi attrezzatura';
+
+  @override
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
@@ -7675,6 +7689,30 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Veloce, tessuti molto irrorati';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Medio, muscoli e pelle';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Lento, grasso e ossa';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Mappa di calore dei compartimenti da $first a $last, quelli veloci in alto e quelli lenti in basso';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Mappa di calore dei compartimenti da $first a $last, quelli veloci in alto e quelli lenti in basso, da $start a $end dell\'immersione';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Carico';
 
   @override
@@ -7685,10 +7723,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Equilibrio';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Righe: veloce (in alto) a lento (in basso)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Livello in superficie';
@@ -7802,27 +7836,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'A $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Sosta $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Trascina per scorrere';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Passa sopra per scorrere';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -41964,23 +41977,50 @@ class AppLocalizationsIt extends AppLocalizations {
       'Inserisci un indirizzo web, es. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Immersioni per spessore della muta';
+  String get insights_progression_divesBySuitType_title =>
+      'Immersioni per tipo di muta';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Spessore principale della muta nelle tue immersioni';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Tipo, spessore e modello della muta nelle tue immersioni';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Nessuna immersione collegata a una muta umida o stagna';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Impossibile caricare i dati sullo spessore';
+  String get insights_progression_divesBySuitType_error =>
+      'Impossibile caricare i dati sul tipo di muta';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Sconosciuto';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Muta · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Muta · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Muta · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'intera';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'due pezzi';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semistagna';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Spessore della muta (mm)';
@@ -51498,10 +51538,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Grafico a barre. Immersioni per spessore della muta. $description';
+    return 'Grafico a barre. Immersioni per tipo di muta. $description';
   }
 
   @override
@@ -62741,7 +62781,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'I 16 tessuti immaginari del modello, che assorbono e rilasciano gas ciascuno con la propria velocità. Quelli veloci rappresentano i tessuti molto irrorati, quelli lenti grasso e ossa.';
+      'I 16 tessuti immaginari del modello, che assorbono e rilasciano gas ciascuno con la propria velocità: 1-5 sono veloci (come i tessuti molto irrorati, per esempio il cervello), 6-10 medi (come muscoli e pelle) e 11-16 lenti (come grasso e ossa). Quelli veloci limitano le immersioni brevi e profonde, quelli lenti le immersioni lunghe e ripetitive; i nomi dei tessuti sono esempi indicativi, non anatomia.';
 
   @override
   String get info_term_leadingCompartment_label => 'Compartimento guida';

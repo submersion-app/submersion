@@ -1428,7 +1428,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Apply the changes to those dives as well, or only from now on?';
+      'Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5386,6 +5386,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Remove set from this dive';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'Remove set from this dive?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Keep gear';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Remove gear';
+
+  @override
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
@@ -7559,6 +7572,30 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Fast, blood-rich tissue';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Medium, muscle and skin';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Slow, fat and bone';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Heat map of compartments $first to $last, fast at the top and slow at the bottom';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Heat map of compartments $first to $last, fast at the top and slow at the bottom, from $start to $end of the dive';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Load';
 
   @override
@@ -7569,9 +7606,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Equilibrium';
-
-  @override
-  String get diveLog_deco_heatMapRows => 'Rows: fast (top) to slow (bottom)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Surface level';
@@ -7685,27 +7719,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return '$timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Stop $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Drag to scrub';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Hover to scrub';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -41258,23 +41271,49 @@ class AppLocalizationsEn extends AppLocalizations {
       'Enter a web address, e.g. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Dives by Suit Thickness';
+  String get insights_progression_divesBySuitType_title => 'Dives by Suit Type';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Exposure suit primary thickness across your dives';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Exposure suit type, thickness and style across your dives';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'No dives with a wetsuit or drysuit linked';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Could not load suit thickness data';
+  String get insights_progression_divesBySuitType_error =>
+      'Could not load suit type data';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Unknown';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Wetsuit · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Wetsuit · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Wetsuit · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'full';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'two-piece';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semi-dry';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Suit thickness (mm)';
@@ -50715,10 +50754,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Bar chart. Dives by suit thickness. $description';
+    return 'Bar chart. Dives by suit type. $description';
   }
 
   @override
@@ -61757,7 +61796,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.';
+      'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones limit long and repeat dives; the tissue names are rough examples, not anatomy.';
 
   @override
   String get info_term_leadingCompartment_label => 'Leading compartment';

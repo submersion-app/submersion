@@ -1420,7 +1420,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו?';
+      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו? „מעכשיו“ משאיר את הציוד שלהן ומנתק מהן את הסט.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5350,6 +5350,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_gear_removeSet => 'הסרת הסט מהצלילה הזו';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'להסיר את הסט מהצלילה הזו?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'להסיר גם את הציוד שהסט הוסיף, או להשאיר את הציוד בצלילה ולנתק רק את הסט?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'השארת הציוד';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'הסרת הציוד';
+
+  @override
   String get diveLog_gear_unknownSet => 'סט';
 
   @override
@@ -7513,6 +7526,30 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'מהירה, רקמה עשירה בדם';
+
+  @override
+  String get diveLog_deco_groupMedium => 'בינונית, שריר ועור';
+
+  @override
+  String get diveLog_deco_groupSlow => 'איטית, שומן ועצם';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'מפת חום של התאים $first עד $last, המהירים למעלה והאיטיים למטה';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'מפת חום של התאים $first עד $last, המהירים למעלה והאיטיים למטה, מ-$start עד $end של הצלילה';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'עומס';
 
   @override
@@ -7523,10 +7560,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'שיווי משקל';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'שורות: מהירים (למעלה) עד איטיים (למטה)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'רמת פני המים';
@@ -7640,27 +7673,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'ב-$timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes דק׳';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'עצירה $depth · $minutes דק׳';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'גרור כדי לדפדף';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'רחף כדי לדפדף';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -40937,23 +40949,50 @@ class AppLocalizationsHe extends AppLocalizations {
       'הזן כתובת אינטרנט, למשל shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'צלילות לפי עובי חליפה';
+  String get insights_progression_divesBySuitType_title =>
+      'צלילות לפי סוג חליפה';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'העובי העיקרי של חליפת הצלילה על פני הצלילות';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'סוג, עובי וגזרה של חליפת הצלילה על פני הצלילות';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'לא ניתן לטעון נתוני עובי חליפה';
+  String get insights_progression_divesBySuitType_error =>
+      'לא ניתן לטעון נתוני סוג חליפה';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'לא ידוע';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'חליפת צלילה · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'חליפת צלילה · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'חליפת צלילה · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'מלאה';
+
+  @override
+  String get insights_suitType_style_shorty => 'שורטי';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'שני חלקים';
+
+  @override
+  String get insights_suitType_style_semiDry => 'חצי יבשה';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
@@ -50380,10 +50419,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'תרשים עמודות. צלילות לפי עובי חליפה. $description';
+    return 'תרשים עמודות. צלילות לפי סוג חליפה. $description';
   }
 
   @override
@@ -61435,7 +61474,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      '16 הרקמות הדמיוניות של המודל, שכל אחת סופגת ומשחררת גז בקצב משלה. המהירות מייצגות רקמה עשירה בדם והאיטיות שומן ועצם.';
+      '16 הרקמות הדמיוניות של המודל, שכל אחת סופגת ומשחררת גז בקצב משלה: 1-5 מהירות (כמו רקמה עשירה בדם, למשל המוח), 6-10 בינוניות (כמו שריר ועור) ו-11-16 איטיות (כמו שומן ועצם). המהירות מגבילות צלילות קצרות ועמוקות והאיטיות צלילות ארוכות וחוזרות; שמות הרקמות הם דוגמאות גסות, לא אנטומיה.';
 
   @override
   String get info_term_leadingCompartment_label => 'התא המוביל';

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/insights/presentation/formatters/suit_type_label.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 import 'package:submersion/features/insights/presentation/open_chart_dives.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -45,7 +44,7 @@ class InsightsProgressionPage extends ConsumerWidget {
           const SizedBox(height: 16),
           _buildDivesPerYearSection(context, ref),
           const SizedBox(height: 16),
-          _buildDivesBySuitThicknessSection(context, ref),
+          _buildDivesBySuitTypeSection(context, ref),
           const SizedBox(height: 16),
           _buildCumulativeSection(context, ref),
         ],
@@ -176,57 +175,24 @@ class InsightsProgressionPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildDivesBySuitThicknessSection(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
-    final thicknessAsync = ref.watch(divesBySuitThicknessProvider);
-
-    // Space before the unit ("5 mm"), matching the attribute formatter and
-    // the rest of the app's thickness rendering.
-    String label(double mm) =>
-        mm == mm.roundToDouble() ? '${mm.toStringAsFixed(0)} mm' : '$mm mm';
+  Widget _buildDivesBySuitTypeSection(BuildContext context, WidgetRef ref) {
+    final suitsAsync = ref.watch(divesBySuitTypeProvider);
 
     return StatSectionCard(
-      title: context.l10n.insights_progression_divesBySuitThickness_title,
-      subtitle: context.l10n.insights_progression_divesBySuitThickness_subtitle,
-      child: thicknessAsync.when(
+      title: context.l10n.insights_progression_divesBySuitType_title,
+      subtitle: context.l10n.insights_progression_divesBySuitType_subtitle,
+      child: suitsAsync.when(
         data: (stats) {
-          // Thickness bars ascending, then the suits a thickness cannot
-          // place (issue #1824). Empty buckets are left off the chart.
-          final rows = [
-            for (final d in stats.byThickness)
-              (
-                label: label(d.mm),
-                count: d.count,
-                bucket: 'mm',
-                mm: d.mm as double?,
-              ),
-            if (stats.unknownThicknessCount > 0)
-              (
-                label: context
-                    .l10n
-                    .insights_progression_divesBySuitThickness_unknown,
-                count: stats.unknownThicknessCount,
-                bucket: 'unknown',
-                mm: null,
-              ),
-            if (stats.drysuitCount > 0)
-              (
-                label: EquipmentType.drysuit.localizedName(context.l10n),
-                count: stats.drysuitCount,
-                bucket: 'drysuit',
-                mm: null,
-              ),
-          ];
+          // One bar per wetsuit thickness and style, then the drysuit, in
+          // the order the repository sorts them (issue #4490).
           final chartData = [
-            for (final r in rows) (label: r.label, count: r.count),
+            for (final s in stats)
+              (label: suitTypeLabel(s.type, context.l10n), count: s.count),
           ];
           if (chartData.isEmpty) {
             return StatEmptyState(
               icon: Icons.bar_chart,
-              message:
-                  context.l10n.insights_progression_divesBySuitThickness_empty,
+              message: context.l10n.insights_progression_divesBySuitType_empty,
             );
           }
           // Locale-neutral label:count pairs so the screen-reader summary
@@ -236,7 +202,7 @@ class InsightsProgressionPage extends ConsumerWidget {
               .join(', ');
           return Semantics(
             label: context.l10n
-                .insights_progression_divesBySuitThickness_semanticLabel(
+                .insights_progression_divesBySuitType_semanticLabel(
                   description,
                 ),
             child: CategoryBarChart(
@@ -245,14 +211,11 @@ class InsightsProgressionPage extends ConsumerWidget {
               onOpenBar: (index) => openChartDives(
                 context,
                 ref,
-                chart: context
-                    .l10n
-                    .insights_progression_divesBySuitThickness_title,
-                row: rows[index].label,
+                chart: context.l10n.insights_progression_divesBySuitType_title,
+                row: chartData[index].label,
                 load: (repository, diverId, scope) =>
-                    repository.getSuitThicknessDiveIds(
-                      bucket: rows[index].bucket,
-                      mm: rows[index].mm,
+                    repository.getSuitTypeDiveIds(
+                      type: stats[index].type,
                       diverId: diverId,
                       filter: scope,
                     ),
@@ -266,7 +229,7 @@ class InsightsProgressionPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.insights_progression_divesBySuitThickness_error,
+          message: context.l10n.insights_progression_divesBySuitType_error,
         ),
       ),
     );

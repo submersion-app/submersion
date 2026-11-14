@@ -1433,7 +1433,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?';
+      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu? ‘Vanaf nu’ behoudt hun uitrusting en verbreekt de koppeling met de set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5437,6 +5437,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Set van deze duik verwijderen';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'Set van deze duik verwijderen?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Ook de uitrusting verwijderen die deze set heeft toegevoegd, of de uitrusting bij de duik houden en alleen de koppeling met de set verbreken?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Uitrusting behouden';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Uitrusting verwijderen';
+
+  @override
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
@@ -7626,6 +7639,30 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Snel, goed doorbloed weefsel';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Gemiddeld, spier en huid';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Langzaam, vet en bot';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Heatmap van compartimenten $first tot $last, snelle bovenaan en trage onderaan';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Heatmap van compartimenten $first tot $last, snelle bovenaan en trage onderaan, van $start tot $end van de duik';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Belading';
 
   @override
@@ -7636,10 +7673,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Evenwicht';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Rijen: snel (boven) tot langzaam (onder)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Oppervlakteniveau';
@@ -7754,27 +7787,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'Om $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Stop $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Sleep om te verschuiven';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Beweeg erover om te verschuiven';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -41684,23 +41696,49 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voer een webadres in, bijv. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Duiken per pakdikte';
+  String get insights_progression_divesBySuitType_title => 'Duiken per paktype';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Primaire pakdikte over je duiken';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Type, dikte en model van je pak over je duiken';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Geen duiken met een gekoppeld wetsuit of droogpak';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Kan pakdiktegegevens niet laden';
+  String get insights_progression_divesBySuitType_error =>
+      'Kan paktypegegevens niet laden';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Onbekend';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Wetsuit · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Wetsuit · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Wetsuit · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'volledig';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'tweedelig';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semi-droog';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Pakdikte (mm)';
@@ -51160,10 +51198,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Staafdiagram. Duiken per pakdikte. $description';
+    return 'Staafdiagram. Duiken per paktype. $description';
   }
 
   @override
@@ -62354,7 +62392,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'De 16 denkbeeldige weefsels van het model, die elk in hun eigen tempo gas opnemen en afgeven. Snelle staan voor goed doorbloed weefsel, trage voor vet en bot.';
+      'De 16 denkbeeldige weefsels van het model, die elk in hun eigen tempo gas opnemen en afgeven: 1-5 zijn snel (zoals goed doorbloed weefsel, bijvoorbeeld de hersenen), 6-10 gemiddeld (zoals spier en huid) en 11-16 langzaam (zoals vet en bot). Snelle begrenzen korte, diepe duiken en trage lange en herhalingsduiken; de weefselnamen zijn ruwe voorbeelden, geen anatomie.';
 
   @override
   String get info_term_leadingCompartment_label => 'Leidend compartiment';

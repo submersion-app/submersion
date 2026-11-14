@@ -11,8 +11,9 @@ import 'package:submersion/features/equipment/presentation/widgets/assembly_hist
 
 /// Saves an edited [set] and returns the step that replays its member
 /// changes on the dives that carry it (issue #4283): planned dives always,
-/// logged ones when the diver asks for that. [loaded] is the set as the
-/// editor opened it.
+/// logged ones when the diver asks for that. Logged dives the diver keeps
+/// as they were stop naming the set instead (issue #4500). [loaded] is the
+/// set as the editor opened it.
 ///
 /// Asks before anything is written, so a cancel saves nothing; returns null
 /// then. Asks only when the members differ from [loaded] and a logged dive
@@ -42,13 +43,13 @@ Future<Future<void> Function()?> saveSetWithHistory(
     for (final id in diff.added) SetItemAdded(id),
     for (final id in diff.removed) SetItemRemoved(id),
   ];
+  final alsoLogged = choice == AssemblyHistoryChoice.alsoPast;
   return () async {
     if (rewrites.isEmpty) return;
-    await dives.rewriteSetOnDives(
-      set.id,
-      rewrites,
-      alsoLogged: choice == AssemblyHistoryChoice.alsoPast,
-    );
+    await dives.rewriteSetOnDives(set.id, rewrites, alsoLogged: alsoLogged);
+    // A logged dive kept as it was no longer matches the set, so it stops
+    // naming it and keeps the gear as its own (issue #4500).
+    if (!alsoLogged) await dives.unlinkSetFromLoggedDives(set.id);
   };
 }
 

@@ -278,6 +278,10 @@ final exempt = <String, String>{
   ])
     method:
         'an inner step of another write, run by the repository an agent write calls',
+  'lib/features/dive_log/data/repositories/dive_repository_impl.dart:unlinkSetFromLoggedDives':
+      'the set editor\'s "From now on" answer: logged dives keep their gear '
+      'and stop naming the set (issue #4500); an agent\'s set edit leaves '
+      'logged dives alone (issue #4283)',
   // Planned dives.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',

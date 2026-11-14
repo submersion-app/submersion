@@ -1440,7 +1440,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora?';
+      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora? «A partir de ahora» mantiene su equipo y desvincula el conjunto de ellas.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5469,10 +5469,24 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLog_gear_removeSet => 'Quitar el equipo de esta inmersión';
+  String get diveLog_gear_removeSet => 'Quitar el conjunto de esta inmersión';
 
   @override
-  String get diveLog_gear_unknownSet => 'Equipo';
+  String get diveLog_gear_removeSetTitle =>
+      '¿Quitar el conjunto de esta inmersión?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      '¿Quitar también el equipo que añadió este conjunto, o mantener el equipo en la inmersión y solo desvincular el conjunto?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Mantener equipo';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Quitar equipo';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Conjunto';
 
   @override
   String get diveLog_health_after15 => 'Después de 15 min';
@@ -7676,6 +7690,30 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Rápido, tejido muy irrigado';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Medio, músculo y piel';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Lento, grasa y hueso';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Mapa de calor de los compartimentos $first a $last, los rápidos arriba y los lentos abajo';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Mapa de calor de los compartimentos $first a $last, los rápidos arriba y los lentos abajo, de $start a $end de la inmersión';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Carga';
 
   @override
@@ -7686,10 +7724,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Equilibrio';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Filas: rápido (arriba) a lento (abajo)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Nivel de superficie';
@@ -7803,27 +7837,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'A las $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Parada $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Arrastra para recorrer';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Pasa el cursor para recorrer';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -41990,23 +42003,50 @@ class AppLocalizationsEs extends AppLocalizations {
       'Introduce una dirección web, p. ej. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Inmersiones por grosor del traje';
+  String get insights_progression_divesBySuitType_title =>
+      'Inmersiones por tipo de traje';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Grosor principal del traje en tus inmersiones';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Tipo, grosor y corte del traje en tus inmersiones';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'No hay inmersiones con un traje de neopreno o traje seco vinculado';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'No se pudieron cargar los datos de grosor del traje';
+  String get insights_progression_divesBySuitType_error =>
+      'No se pudieron cargar los datos del tipo de traje';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Desconocido';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Traje de neopreno · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Traje de neopreno · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Traje de neopreno · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'completo';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'de dos piezas';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semiseco';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Grosor del traje (mm)';
@@ -51519,10 +51559,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Gráfico de barras. Inmersiones por grosor del traje. $description';
+    return 'Gráfico de barras. Inmersiones por tipo de traje. $description';
   }
 
   @override
@@ -62784,7 +62824,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Los 16 tejidos imaginarios del modelo, que absorben y liberan gas cada uno a su ritmo. Los rápidos representan tejido muy irrigado y los lentos grasa y hueso.';
+      'Los 16 tejidos imaginarios del modelo, que absorben y liberan gas cada uno a su ritmo: 1-5 son rápidos (como el tejido muy irrigado, por ejemplo el cerebro), 6-10 medios (como músculo y piel) y 11-16 lentos (como grasa y hueso). Los rápidos limitan las inmersiones cortas y profundas y los lentos las largas y sucesivas; los nombres de tejidos son ejemplos aproximados, no anatomía.';
 
   @override
   String get info_term_leadingCompartment_label => 'Compartimento dominante';

@@ -9,24 +9,31 @@ const _gasTypeSql = '''
   END
 ''';
 
-/// A suit's bucket on the thickness chart, over [_suitJoinsSql].
-const _suitBucketSql = '''
-  CASE
-    WHEN e.type = 'drysuit' THEN 'drysuit'
-    WHEN ea.value_num IS NULL THEN 'unknown'
-    ELSE 'mm'
-  END
-''';
-
-const _suitJoinsSql = '''
+/// A dive's exposure suits with their curated thickness (`ea`) and style
+/// (`es`), for the Suit Type chart and the Focus "Suit" factor (#4490). Both
+/// attribute joins are LEFT JOINs limited to wetsuits, so a suit missing
+/// either still reaches a bucket and a drysuit reads neither. Read the style
+/// as `TRIM(es.value_text)`, so a padded value from a sync or an import
+/// lands in the same bucket as the catalog key.
+const _suitJoinsSql =
+    '''
   JOIN dive_equipment de ON de.dive_id = d.id
   JOIN equipment e ON e.id = de.equipment_id
     AND e.type IN ('wetsuit', 'drysuit')
+  $_suitAttributeJoinsSql
+''';
+
+const _suitAttributeJoinsSql = '''
   LEFT JOIN equipment_attributes ea ON ea.equipment_id = e.id
     AND e.type = 'wetsuit'
     AND ea.attr_key = 'thickness_mm'
     AND ea.is_custom = 0
     AND ea.value_num IS NOT NULL
+  LEFT JOIN equipment_attributes es ON es.equipment_id = e.id
+    AND e.type = 'wetsuit'
+    AND es.attr_key = 'suit_style'
+    AND es.is_custom = 0
+    AND TRIM(es.value_text) <> ''
 ''';
 
 /// What `_focusBuddyKey` reads from a dive. Binds [DiveRole.soloId] first.
@@ -160,24 +167,24 @@ mixin InsightsChartDives {
     );
   }
 
-  /// The dives counted under one bar of the suit thickness chart. [bucket]
-  /// is `mm`, with its [mm], `unknown` or `drysuit`.
-  Future<List<String>> getSuitThicknessDiveIds({
-    required String bucket,
-    double? mm,
+  /// The dives counted under one bar of the Suit Type chart.
+  Future<List<String>> getSuitTypeDiveIds({
+    required SuitType type,
     String? diverId,
     DiveFilterState filter = const DiveFilterState(),
   }) {
     final df = _diveFilter(filter, alias: 'd');
+    // IS rather than = so a missing thickness or style matches NULL.
     return _diveIds(
       '''
       SELECT DISTINCT d.id AS id FROM dives d
       $_suitJoinsSql
-      WHERE $_suitBucketSql = ?
-        ${mm != null ? 'AND ea.value_num = ?' : ''}
+      WHERE (e.type = 'drysuit') = ?
+        AND ea.value_num IS ?
+        AND TRIM(es.value_text) IS ?
         ${_diverClause(diverId)} ${df.clause}
       ''',
-      [bucket, ?mm, ?diverId, ...df.params],
+      [type.isDrysuit ? 1 : 0, type.mm, type.style, ?diverId, ...df.params],
     );
   }
 

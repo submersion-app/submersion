@@ -180,6 +180,30 @@ void main() {
       );
       expect(await updatedAtOf('p'), before);
     });
+
+    test(
+      'unlinking keeps the logged gear but forgets the set (#4500)',
+      () async {
+        final plannedBefore = await updatedAtOf('p');
+        final otherBefore = await updatedAtOf('c');
+        final touched = await repo.unlinkSetFromLoggedDives('winter');
+
+        expect(touched, ['a']);
+        final rows = await rowsOf('a');
+        expect(rows.keys, unorderedEquals(['bcd', 'reg', 'mask']));
+        expect(rows.values.map((r) => r.viaSetId), everyElement(isNull));
+        // The planned dive keeps following the set; a dive without it is
+        // left alone, not re-stamped.
+        expect((await rowsOf('p'))['bcd']!.viaSetId, 'winter');
+        expect(await updatedAtOf('p'), plannedBefore);
+        expect(await updatedAtOf('c'), otherBefore);
+        expect(await repo.countLoggedDivesWithSet('winter'), 0);
+      },
+    );
+
+    test('unlinking a set no logged dive carries touches nothing', () async {
+      expect(await repo.unlinkSetFromLoggedDives('summer'), isEmpty);
+    });
   });
 
   group('assemblies', () {

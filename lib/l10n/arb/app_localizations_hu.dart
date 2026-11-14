@@ -1441,7 +1441,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól?';
+      'A változásokat azokra a merülésekre is alkalmazza, vagy csak mostantól? A „Mostantól” megtartja a felszerelésüket, és megszünteti a kapcsolatukat a készlettel.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5451,6 +5451,20 @@ class AppLocalizationsHu extends AppLocalizations {
       'Készlet eltávolítása erről a merülésről';
 
   @override
+  String get diveLog_gear_removeSetTitle =>
+      'Eltávolítod a készletet erről a merülésről?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'A készlet által hozzáadott felszerelést is eltávolítod, vagy a felszerelés a merülésen marad, és csak a készlet kapcsolatát bontod?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Felszerelés megtartása';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Felszerelés eltávolítása';
+
+  @override
   String get diveLog_gear_unknownSet => 'Készlet';
 
   @override
@@ -7657,6 +7671,30 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Gyors, jól vérellátott szövet';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Közepes, izom és bőr';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Lassú, zsír és csont';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'A(z) $first-$last. kamra hőtérképe, a gyorsak felül, a lassúak alul';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'A(z) $first-$last. kamra hőtérképe, a gyorsak felül, a lassúak alul, a merülés $start és $end közötti szakaszán';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Terhelés';
 
   @override
@@ -7667,10 +7705,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Egyensúly';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Sorok: gyors (fent) és lassú (lent) között';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Felszíni szint';
@@ -7784,27 +7818,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return '$timestamp időpontban';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes perc';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Megálló $depth · $minutes perc';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Húzd a végiggörgetéshez';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Vidd fölé a végiggörgetéshez';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -41730,23 +41743,50 @@ class AppLocalizationsHu extends AppLocalizations {
       'Adjon meg egy webcímet, pl. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Merülések ruhavastagság szerint';
+  String get insights_progression_divesBySuitType_title =>
+      'Merülések ruhatípus szerint';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'A ruha fő vastagsága a merüléseid során';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'A ruha típusa, vastagsága és fazonja a merüléseid során';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Nincs neoprén- vagy szárazruhához kapcsolt merülés';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Nem sikerült betölteni a vastagsági adatokat';
+  String get insights_progression_divesBySuitType_error =>
+      'Nem sikerült betölteni a ruhatípus adatait';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Ismeretlen';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Neoprén ruha · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Neoprén ruha · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Neoprén ruha · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'egész';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'kétrészes';
+
+  @override
+  String get insights_suitType_style_semiDry => 'félszáraz';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Ruhavastagság (mm)';
@@ -51217,10 +51257,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Oszlopdiagram. Merülések ruhavastagság szerint. $description';
+    return 'Oszlopdiagram. Merülések ruhatípus szerint. $description';
   }
 
   @override
@@ -62393,7 +62433,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt. A gyorsak a jól vérellátott szöveteket, a lassúak a zsírt és a csontot jelképezik.';
+      'A modell 16 elképzelt szövete, amelyek mind a saját ütemükben vesznek fel és adnak le gázt: az 1-5-ösek gyorsak (mint a jól vérellátott szövet, például az agy), a 6-10-esek közepesek (mint az izom és a bőr), a 11-16-osak lassúak (mint a zsír és a csont). A gyorsak a rövid, mély merüléseket, a lassúak a hosszú és ismételt merüléseket korlátozzák; a szövetnevek csak durva példák, nem anatómia.';
 
   @override
   String get info_term_leadingCompartment_label => 'Vezető kompartment';

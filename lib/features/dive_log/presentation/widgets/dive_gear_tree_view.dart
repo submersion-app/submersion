@@ -311,7 +311,8 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
 }
 
 /// The sets applied to the dive, one chip each. With [onRemove] the chip
-/// carries the delete control that drops the set's gear from the dive.
+/// carries a delete control; the caller decides what removing the set does
+/// to its gear (the edit page asks, issue #4500).
 class _SetChips extends StatelessWidget {
   /// Set id to the name shown, in the order the sets were applied.
   final Map<String, String> names;

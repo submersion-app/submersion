@@ -2219,7 +2219,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_setEdit_historyAsk.
   ///
   /// In en, this message translates to:
-  /// **'Apply the changes to those dives as well, or only from now on?'**
+  /// **'Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.'**
   String get equipment_setEdit_historyAsk;
 
   /// No description provided for @equipment_setEdit_historyOnDives.
@@ -8514,6 +8514,30 @@ abstract class AppLocalizations {
   /// **'Remove set from this dive'**
   String get diveLog_gear_removeSet;
 
+  /// Title of the question asked when a set chip is removed from a dive's gear (issue #4500)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove set from this dive?'**
+  String get diveLog_gear_removeSetTitle;
+
+  /// Body of that question: remove the set's gear too, or keep the gear and only unlink the set
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?'**
+  String get diveLog_gear_removeSetBody;
+
+  /// Button that keeps the gear on the dive and only unlinks the set
+  ///
+  /// In en, this message translates to:
+  /// **'Keep gear'**
+  String get diveLog_gear_removeSetKeepGear;
+
+  /// Button that removes the gear the set added from the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove gear'**
+  String get diveLog_gear_removeSetRemoveGear;
+
   /// No description provided for @diveLog_gear_unknownSet.
   ///
   /// In en, this message translates to:
@@ -12037,6 +12061,41 @@ abstract class AppLocalizations {
   /// **'Compartment: #{number}'**
   String diveLog_deco_compartmentOther(int number);
 
+  /// Speed group of tissue compartments 1-5, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Fast, blood-rich tissue'**
+  String get diveLog_deco_groupFast;
+
+  /// Speed group of tissue compartments 6-10, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Medium, muscle and skin'**
+  String get diveLog_deco_groupMedium;
+
+  /// Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Slow, fat and bone'**
+  String get diveLog_deco_groupSlow;
+
+  /// Screen reader description of the tissue heat map rows
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map of compartments {first} to {last}, fast at the top and slow at the bottom'**
+  String diveLog_deco_heatMapSemantics(int first, int last);
+
+  /// Screen reader description of the tissue heat map rows and the dive time it covers; start and end read like "0 min"
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map of compartments {first} to {last}, fast at the top and slow at the bottom, from {start} to {end} of the dive'**
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  );
+
   /// No description provided for @diveLog_deco_metricLoad.
   ///
   /// In en, this message translates to:
@@ -12060,12 +12119,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equilibrium'**
   String get diveLog_deco_gasEquilibrium;
-
-  /// No description provided for @diveLog_deco_heatMapRows.
-  ///
-  /// In en, this message translates to:
-  /// **'Rows: fast (top) to slow (bottom)'**
-  String get diveLog_deco_heatMapRows;
 
   /// No description provided for @diveLog_deco_surfaceLevel.
   ///
@@ -12234,36 +12287,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{timestamp}'**
   String diveLog_detail_collapsed_atTime(Object timestamp);
-
-  /// No description provided for @diveLog_pinnedStrip_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL {minutes} min'**
-  String diveLog_pinnedStrip_ndl(Object minutes);
-
-  /// No description provided for @diveLog_pinnedStrip_stop.
-  ///
-  /// In en, this message translates to:
-  /// **'Stop {depth} · {minutes} min'**
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes);
-
-  /// No description provided for @diveLog_pinnedStrip_ppO2.
-  ///
-  /// In en, this message translates to:
-  /// **'ppO2 {value}'**
-  String diveLog_pinnedStrip_ppO2(Object value);
-
-  /// No description provided for @diveLog_pinnedStrip_hintDrag.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag to scrub'**
-  String get diveLog_pinnedStrip_hintDrag;
-
-  /// No description provided for @diveLog_pinnedStrip_hintHover.
-  ///
-  /// In en, this message translates to:
-  /// **'Hover to scrub'**
-  String get diveLog_pinnedStrip_hintHover;
 
   /// No description provided for @diveLog_pinnedStrip_semantics.
   ///
@@ -66065,35 +66088,74 @@ abstract class AppLocalizations {
   /// **'Enter a web address, e.g. shop.example.com'**
   String get equipment_edit_invalidWebLink;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_title.
+  /// No description provided for @insights_progression_divesBySuitType_title.
   ///
   /// In en, this message translates to:
-  /// **'Dives by Suit Thickness'**
-  String get insights_progression_divesBySuitThickness_title;
+  /// **'Dives by Suit Type'**
+  String get insights_progression_divesBySuitType_title;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_subtitle.
+  /// No description provided for @insights_progression_divesBySuitType_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Exposure suit primary thickness across your dives'**
-  String get insights_progression_divesBySuitThickness_subtitle;
+  /// **'Exposure suit type, thickness and style across your dives'**
+  String get insights_progression_divesBySuitType_subtitle;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_empty.
+  /// No description provided for @insights_progression_divesBySuitType_empty.
   ///
   /// In en, this message translates to:
   /// **'No dives with a wetsuit or drysuit linked'**
-  String get insights_progression_divesBySuitThickness_empty;
+  String get insights_progression_divesBySuitType_empty;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_error.
+  /// No description provided for @insights_progression_divesBySuitType_error.
   ///
   /// In en, this message translates to:
-  /// **'Could not load suit thickness data'**
-  String get insights_progression_divesBySuitThickness_error;
+  /// **'Could not load suit type data'**
+  String get insights_progression_divesBySuitType_error;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_unknown.
+  /// A wetsuit bar on the Insights Suit Type chart with its thickness in mm and its style word
   ///
   /// In en, this message translates to:
-  /// **'Unknown'**
-  String get insights_progression_divesBySuitThickness_unknown;
+  /// **'Wetsuit · {thickness} mm {style}'**
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  );
+
+  /// A wetsuit bar on the Insights Suit Type chart with its thickness in mm and no style
+  ///
+  /// In en, this message translates to:
+  /// **'Wetsuit · {thickness} mm'**
+  String insights_suitType_wetsuitThickness(String thickness);
+
+  /// A wetsuit bar on the Insights Suit Type chart with its style word and no thickness
+  ///
+  /// In en, this message translates to:
+  /// **'Wetsuit · {style}'**
+  String insights_suitType_wetsuitStyle(String style);
+
+  /// No description provided for @insights_suitType_style_full.
+  ///
+  /// In en, this message translates to:
+  /// **'full'**
+  String get insights_suitType_style_full;
+
+  /// No description provided for @insights_suitType_style_shorty.
+  ///
+  /// In en, this message translates to:
+  /// **'shorty'**
+  String get insights_suitType_style_shorty;
+
+  /// No description provided for @insights_suitType_style_twoPiece.
+  ///
+  /// In en, this message translates to:
+  /// **'two-piece'**
+  String get insights_suitType_style_twoPiece;
+
+  /// No description provided for @insights_suitType_style_semiDry.
+  ///
+  /// In en, this message translates to:
+  /// **'semi-dry'**
+  String get insights_suitType_style_semiDry;
 
   /// No description provided for @diveLog_filter_sectionSuitThickness.
   ///
@@ -81416,13 +81478,11 @@ abstract class AppLocalizations {
   /// **'Pie chart. Water type distribution. {description}'**
   String insights_conditions_waterType_semanticLabel(String description);
 
-  /// Screen-reader summary of the dives-by-suit-thickness bar chart
+  /// Screen-reader summary of the dives-by-suit-type bar chart
   ///
   /// In en, this message translates to:
-  /// **'Bar chart. Dives by suit thickness. {description}'**
-  String insights_progression_divesBySuitThickness_semanticLabel(
-    String description,
-  );
+  /// **'Bar chart. Dives by suit type. {description}'**
+  String insights_progression_divesBySuitType_semanticLabel(String description);
 
   /// One entry of the dives-per-year screen-reader summary
   ///
@@ -98500,7 +98560,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_tissueCompartment_body.
   ///
   /// In en, this message translates to:
-  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.'**
+  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones limit long and repeat dives; the tissue names are rough examples, not anatomy.'**
   String get info_term_tissueCompartment_body;
 
   /// No description provided for @info_term_leadingCompartment_label.

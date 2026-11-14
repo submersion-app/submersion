@@ -1378,7 +1378,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
 
   @override
-  String get equipment_setEdit_historyAsk => '也将这些更改应用到这些潜水，还是仅从现在起？';
+  String get equipment_setEdit_historyAsk =>
+      '也将这些更改应用到这些潜水，还是仅从现在起？ “从现在起”会保留其装备，并解除它们与套装的关联。';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5168,6 +5169,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_gear_removeSet => '从本次潜水移除套装';
 
   @override
+  String get diveLog_gear_removeSetTitle => '从本次潜水移除套装？';
+
+  @override
+  String get diveLog_gear_removeSetBody => '同时移除此套装添加的装备，还是保留潜水中的装备、只解除与套装的关联？';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => '保留装备';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => '移除装备';
+
+  @override
   String get diveLog_gear_unknownSet => '套装';
 
   @override
@@ -7284,6 +7297,30 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => '快速，血流丰富的组织';
+
+  @override
+  String get diveLog_deco_groupMedium => '中速，肌肉和皮肤';
+
+  @override
+  String get diveLog_deco_groupSlow => '慢速，脂肪和骨骼';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return '隔间 $first 至 $last 的热力图，快速在上，慢速在下';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return '隔间 $first 至 $last 的热力图，快速在上，慢速在下，覆盖潜水的 $start 至 $end';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => '负荷';
 
   @override
@@ -7294,9 +7331,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => '平衡';
-
-  @override
-  String get diveLog_deco_heatMapRows => '行：快速（上）到慢速（下）';
 
   @override
   String get diveLog_deco_surfaceLevel => '水面水平';
@@ -7409,27 +7443,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return '$timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes 分钟';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return '停留 $depth · $minutes 分钟';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => '拖动以浏览';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => '悬停以浏览';
 
   @override
   String get diveLog_pinnedStrip_semantics => '潜水剖面图，拖动以移动光标';
@@ -39477,20 +39490,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_invalidWebLink => '请输入网址，例如 shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title => '按潜水服厚度统计';
+  String get insights_progression_divesBySuitType_title => '按潜水服类型统计';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      '您潜水时所穿潜水服的主要厚度';
+  String get insights_progression_divesBySuitType_subtitle =>
+      '您潜水时所穿潜水服的类型、厚度和款式';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty => '没有关联湿衣或干衣的潜水';
+  String get insights_progression_divesBySuitType_empty => '没有关联湿衣或干衣的潜水';
 
   @override
-  String get insights_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
+  String get insights_progression_divesBySuitType_error => '无法加载潜水服类型数据';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => '未知';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return '湿衣 · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return '湿衣 · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return '湿衣 · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => '全身';
+
+  @override
+  String get insights_suitType_style_shorty => '短款';
+
+  @override
+  String get insights_suitType_style_twoPiece => '两件式';
+
+  @override
+  String get insights_suitType_style_semiDry => '半干式';
 
   @override
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
@@ -48361,10 +48401,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return '柱状图。按潜水服厚度统计的潜水次数。$description';
+    return '柱状图。按潜水服类型统计的潜水次数。$description';
   }
 
   @override
@@ -58889,7 +58929,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      '模型中的 16 个假想组织，各自以不同速度吸收和释放气体。快组织代表血流丰富的组织，慢组织代表脂肪和骨骼。';
+      '模型中的 16 个假想组织，各自以不同速度吸收和释放气体：1-5 为快速（如血流丰富的组织，例如大脑），6-10 为中速（如肌肉和皮肤），11-16 为慢速（如脂肪和骨骼）。快组织限制短而深的潜水，慢组织限制长时间和重复潜水；这些组织名称只是粗略示例，并非解剖对应。';
 
   @override
   String get info_term_leadingCompartment_label => '主导舱室';

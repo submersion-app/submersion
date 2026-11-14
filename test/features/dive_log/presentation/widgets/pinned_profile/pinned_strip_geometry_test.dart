@@ -5,7 +5,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pinned_profile
 void main() {
   // A 456 px card. The squash takes the first kSquashRange px of its
   // scroll-out; the hand-over to the strip takes the remaining
-  // 456 - kSquashRange - 56 px.
+  // 456 - kSquashRange - kPinnedStripHeight px.
   Rect cardAt(double top) => Rect.fromLTWH(16, top, 368, 456);
 
   group('squashDepth', () {
@@ -65,14 +65,17 @@ void main() {
     test('runs over the rest of the scroll-out, linearly', () {
       expect(
         condenseProgress(
-          card: cardAt(-(kSquashRange + (456 - kSquashRange - 56) / 2)),
+          card: cardAt(
+            -(kSquashRange + (456 - kSquashRange - kPinnedStripHeight) / 2),
+          ),
         ),
         closeTo(0.5, 1e-9),
       );
     });
 
     test('is 1 once the card bottom reaches the strip', () {
-      expect(condenseProgress(card: cardAt(-400)), 1);
+      // The card's bottom meets the strip's.
+      expect(condenseProgress(card: cardAt(-(456 - kPinnedStripHeight))), 1);
       expect(condenseProgress(card: cardAt(-900)), 1);
     });
 
@@ -81,15 +84,21 @@ void main() {
     test('can start later, once the plot reaches the top', () {
       const start = kSquashRange + 60;
       expect(condenseProgress(card: cardAt(-start), start: start), 0);
-      // Halfway through the 456 - start - 56 px of hand-over.
+      // Halfway through the 456 - start - kPinnedStripHeight px of hand-over.
       expect(
         condenseProgress(
-          card: cardAt(-(start + (456 - start - 56) / 2)),
+          card: cardAt(-(start + (456 - start - kPinnedStripHeight) / 2)),
           start: start,
         ),
         closeTo(0.5, 1e-9),
       );
-      expect(condenseProgress(card: cardAt(-400), start: start), 1);
+      expect(
+        condenseProgress(
+          card: cardAt(-(456 - kPinnedStripHeight)),
+          start: start,
+        ),
+        1,
+      );
     });
   });
 
@@ -121,11 +130,11 @@ void main() {
     // of view; the full chart must be gone by then, so no data leaves the
     // view, and the strip carries the line on.
     test('is where the plot reaches the top, as a share of the hand-over', () {
-      // Starts 30 px in, plot at the top 150 px in, 456 - 30 - 56 = 370 px
+      // Starts 30 px in, plot at the top 150 px in, 456 - 30 - kPinnedStripHeight px
       // of hand-over: the fade takes the first 120 of them.
       expect(
         condenseFadeEnd(start: 30, plotAtTop: 150, cardHeight: 456),
-        closeTo(120 / 370, 1e-9),
+        closeTo(120 / (456 - 30 - kPinnedStripHeight), 1e-9),
       );
     });
 

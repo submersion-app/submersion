@@ -1441,7 +1441,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Die Änderungen auch dort übernehmen oder nur ab jetzt?';
+      'Die Änderungen auch dort übernehmen oder nur ab jetzt? „Ab jetzt“ behält ihre Ausrüstung und löst die Verknüpfung mit dem Set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5467,6 +5467,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Set von diesem Tauchgang entfernen';
 
   @override
+  String get diveLog_gear_removeSetTitle =>
+      'Set von diesem Tauchgang entfernen?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Auch die Ausrüstung entfernen, die dieses Set hinzugefügt hat, oder die Ausrüstung beim Tauchgang behalten und nur die Verknüpfung mit dem Set lösen?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Ausrüstung behalten';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Ausrüstung entfernen';
+
+  @override
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
@@ -7676,6 +7690,30 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Schnell, gut durchblutetes Gewebe';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Mittel, Muskeln und Haut';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Langsam, Fett und Knochen';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Heatmap der Kompartimente $first bis $last, schnelle oben und langsame unten';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Heatmap der Kompartimente $first bis $last, schnelle oben und langsame unten, von $start bis $end des Tauchgangs';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Belastung';
 
   @override
@@ -7686,10 +7724,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Gleichgewicht';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Zeilen: schnell (oben) bis langsam (unten)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Oberflächenniveau';
@@ -7804,27 +7838,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'Um $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Stopp $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Zum Durchsuchen ziehen';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Zum Durchsuchen darüberfahren';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -41874,23 +41887,50 @@ class AppLocalizationsDe extends AppLocalizations {
       'Webadresse eingeben, z.B. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Tauchgänge nach Anzugdicke';
+  String get insights_progression_divesBySuitType_title =>
+      'Tauchgänge nach Anzugtyp';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Primäre Anzugdicke über deine Tauchgänge';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Anzugtyp, -dicke und -schnitt über deine Tauchgänge';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Keine Tauchgänge mit verknüpftem Neopren- oder Trockentauchanzug';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Anzugdicken-Daten konnten nicht geladen werden';
+  String get insights_progression_divesBySuitType_error =>
+      'Anzugtyp-Daten konnten nicht geladen werden';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Unbekannt';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Neoprenanzug · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Neoprenanzug · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Neoprenanzug · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'lang';
+
+  @override
+  String get insights_suitType_style_shorty => 'Shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'zweiteilig';
+
+  @override
+  String get insights_suitType_style_semiDry => 'halbtrocken';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Anzugdicke (mm)';
@@ -51377,10 +51417,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Balkendiagramm. Tauchgänge nach Anzugdicke. $description';
+    return 'Balkendiagramm. Tauchgänge nach Anzugtyp. $description';
   }
 
   @override
@@ -62610,7 +62650,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Die 16 gedachten Gewebe des Modells, die Gas jeweils in eigenem Tempo aufnehmen und abgeben. Schnelle stehen für gut durchblutetes Gewebe, langsame für Fett und Knochen.';
+      'Die 16 gedachten Gewebe des Modells, die Gas jeweils in eigenem Tempo aufnehmen und abgeben: 1-5 sind schnell (etwa gut durchblutetes Gewebe wie das Gehirn), 6-10 mittel (etwa Muskeln und Haut) und 11-16 langsam (etwa Fett und Knochen). Schnelle begrenzen kurze, tiefe Tauchgänge, langsame lange und Wiederholungstauchgänge; die Gewebenamen sind grobe Beispiele, keine Anatomie.';
 
   @override
   String get info_term_leadingCompartment_label => 'Führendes Kompartiment';
