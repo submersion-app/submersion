@@ -153,11 +153,15 @@ extension _SetBundleApplying on _DiveEditPageState {
     // cylinders whole, gas included: the merge below never writes a mix
     // onto a matched tank, and the starter's air is nobody's choice. A tank
     // a scan or a cylinder tag prefilled is the diver's data and merges.
+    // The starter stands in for the diver's main gas, so it only gives way
+    // to a set that brings one: a set with just a stage or a deco cylinder
+    // adds it beside the starter.
     final untouchedStarter =
         !_tanksDirty &&
         !_firstTankPrefilled &&
         !widget.isEditing &&
-        _tanks.length == 1;
+        _tanks.length == 1 &&
+        bringsMainSupply(bundle.cylinders);
     var result = adapter.apply(
       tanks: untouchedStarter ? const <DiveTank>[] : _tanks,
       items: bundle.cylinders,

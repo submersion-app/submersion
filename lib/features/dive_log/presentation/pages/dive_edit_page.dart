@@ -208,6 +208,7 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/cylinder_configs/domain/services/main_supply.dart';
 import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
 import 'package:submersion/features/equipment/domain/services/set_bundle_form_plan.dart';
 import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';

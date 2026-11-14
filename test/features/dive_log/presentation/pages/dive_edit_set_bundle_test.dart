@@ -292,6 +292,40 @@ void main() {
     expect(await gearOn(dive.id), isEmpty);
   });
 
+  // The starter tank stands in for the diver's main gas. A set that brings
+  // only a stage or a deco cylinder has not said what that is, so the
+  // starter stays and the cylinder goes on beside it.
+  testWidgets('on a new dive a set with only a deco cylinder keeps the '
+      'starter tank', (tester) async {
+    final configs = CylinderConfigRepository();
+    final deco = await configs.createConfig(diverId: diverId, name: 'Deco 50');
+    await configs.saveItems(deco, [
+      CylinderConfigItem(
+        id: '',
+        configId: deco,
+        tankRole: TankRole.deco,
+        volumeL: 5.7,
+        workingPressureBar: 207,
+        o2Percent: 50,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ]);
+    await sets.createSet(
+      set('stage', 'Stage kit', gear: ['bp'], configs: [deco]),
+    );
+    await pumpEditor(tester);
+
+    await useSet(tester, 'Stage kit');
+    await save(tester);
+
+    final all = await dives.getAllDives(diverId: diverId);
+    final dive = (await dives.getDiveById(all.single.id))!;
+    expect(dive.tanks.map((t) => t.role), [TankRole.backGas, TankRole.deco]);
+    expect(dive.tanks.first.gasMix.o2, 21);
+    expect(dive.tanks.last.gasMix.o2, 50);
+  });
+
   group('a new dive with a default set', () {
     setUp(() async {
       await sets.createSet(

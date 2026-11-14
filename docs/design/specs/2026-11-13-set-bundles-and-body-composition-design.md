@@ -205,8 +205,12 @@ then computer-linked sets by name; in a bulk edit or rule, the order listed.
 **Starter tank.** A new dive in the editor is seeded with one starter tank
 (default size, air). While that tank is the only one and has not been edited,
 a set's cylinders replace it, gas included, on a pick and on the default or
-location match. A set with no cylinders leaves it alone. The same holds for a
-new plan that still holds only its default plan tank.
+location match, provided the set brings a main supply: back gas, a twin set,
+a sidemount pair, or a rebreather's diluent and oxygen. The starter stands in
+for the diver's main gas, so a set that carries only a stage, deco, bailout
+or pony cylinder leaves it where it is and adds its own beside it. A set with
+no cylinders leaves it alone. The same holds for a new plan that still holds
+only its default plan tank.
 
 Removing a set from a dive removes or keeps its gear, exactly as today.
 Weights and tanks stay.

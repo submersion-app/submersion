@@ -30,6 +30,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_reposito
 import 'package:submersion/features/planner/domain/services/plan_breathing_tanks.dart';
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
+import 'package:submersion/features/cylinder_configs/domain/services/main_supply.dart';
 
 const _uuid = Uuid();
 
@@ -491,11 +492,14 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
   /// Adds the cylinders an equipment set carries (issue #4525), each as a
   /// plan tank with its gas, the way a saved cylinder is added.
   ///
-  /// A plan that still holds only its untouched default tank gives it up:
-  /// the set says what the diver is carrying. A cylinder the plan already
-  /// has (same role, size, pressure and mix) is not added again, and one
-  /// that is not breathing gas never joins a plan (issue #4243). When
-  /// nothing would change the plan is left as it is, unsaved flag included.
+  /// A plan that still holds only its untouched default tank gives it up
+  /// to a set that brings a main supply: the set says what the diver is
+  /// carrying. A set with only a stage or a deco cylinder adds it beside
+  /// the default tank, which stands in for the main gas. A cylinder the
+  /// plan already has (same role, size, pressure and mix) is not added
+  /// again, and one that is not breathing gas never joins a plan (issue
+  /// #4243). When nothing would change the plan is left as it is, unsaved
+  /// flag included.
   void addSetCylinders(List<CylinderConfigItem> items) {
     final breathing = [
       for (final item in items)
@@ -505,7 +509,8 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     const adapter = DiveTankConfigAdapter();
     final onlyDefault =
         state.tanks.length == 1 &&
-        state.tanks.single == defaultPlanTank(id: state.tanks.single.id);
+        state.tanks.single == defaultPlanTank(id: state.tanks.single.id) &&
+        bringsMainSupply(breathing);
     final tanks = onlyDefault ? <DiveTank>[] : [...state.tanks];
     var added = false;
     for (final item in breathing) {

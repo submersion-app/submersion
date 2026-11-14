@@ -71,6 +71,39 @@ void main() {
     },
   );
 
+  // The default tank stands in for the diver's main gas. A set that brings
+  // only a stage or a deco cylinder has not said what that is.
+  test('a set with no main cylinder leaves the default tank and adds '
+      'beside it', () async {
+    final container = await makeContainer();
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+    final starter = container.read(divePlanNotifierProvider).tanks.single;
+
+    notifier.addSetCylinders([
+      cylinder('d', role: TankRole.deco, volume: 5.7, o2: 50),
+    ]);
+
+    final tanks = container.read(divePlanNotifierProvider).tanks;
+    expect(tanks.first, starter);
+    expect(tanks.map((x) => x.role), [TankRole.backGas, TankRole.deco]);
+  });
+
+  test('a sidemount pair is main gas and takes the default tank\'s '
+      'place', () async {
+    final container = await makeContainer();
+    final notifier = container.read(divePlanNotifierProvider.notifier);
+
+    notifier.addSetCylinders([
+      cylinder('l', role: TankRole.sidemountLeft),
+      cylinder('r', role: TankRole.sidemountRight),
+    ]);
+
+    expect(container.read(divePlanNotifierProvider).tanks.map((x) => x.role), [
+      TankRole.sidemountLeft,
+      TankRole.sidemountRight,
+    ]);
+  });
+
   test('a default tank the diver changed is kept', () async {
     final container = await makeContainer();
     final notifier = container.read(divePlanNotifierProvider.notifier);
