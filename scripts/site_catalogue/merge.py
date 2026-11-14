@@ -71,6 +71,10 @@ SOURCE_STEPS = {
     "wikidata_wrecks": src_wikidata.wreck_records,
 }
 
+# New Jersey's metadata: read from the cache, shipped beside the catalogue.
+NJDEP_METADATA_FILE = src_reefs.NJDEP_METADATA_CACHE_FILE
+NJDEP_METADATA_SHIPPED = "site_catalogue_njdep_metadata.xml"
+
 _ORIGIN = "_origin"
 _CURATED = "curated"
 # How many ids of each kind the report lists before it only counts.
@@ -281,6 +285,17 @@ def main(argv=None, *, places=None, curated=None) -> int:
         snapshots[key] = snapshot["rows"]
         fetched.append(snapshot["fetched_at"])
 
+    # NJDEP's agreement: its data is not redistributed without its metadata.
+    ships_new_jersey = "njdep" in snapshots and not arguments.open_only
+    metadata = arguments.cache / NJDEP_METADATA_FILE
+    if ships_new_jersey and not metadata.exists():
+        print(
+            f"New Jersey's metadata ({metadata}) is missing: its records may "
+            "not ship without it. Run src_reefs.fetch_njdep again, or name "
+            "njdep with --without."
+        )
+        return 2
+
     if places is None:
         answers = [
             row.get("geocoded")
@@ -303,6 +318,11 @@ def main(argv=None, *, places=None, curated=None) -> int:
     write_catalogue(
         arguments.out, catalogue, max(fetched), open_only=arguments.open_only
     )
+    shipped_metadata = arguments.out / NJDEP_METADATA_SHIPPED
+    if ships_new_jersey:
+        shipped_metadata.write_bytes(metadata.read_bytes())
+    elif shipped_metadata.exists():
+        shipped_metadata.unlink()
     _print_report(
         report,
         None if old_ids is None else id_changes(old_ids, {r["id"] for r in catalogue}),

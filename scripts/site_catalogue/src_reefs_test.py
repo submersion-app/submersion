@@ -234,6 +234,33 @@ class NjdepTest(unittest.TestCase):
         self.assertEqual(len(self.records), 6)
 
 
+class NjdepMetadataTest(unittest.TestCase):
+    def test_the_fetch_saves_the_layer_s_metadata_beside_its_snapshot(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(
+                src_reefs, "http_get", return_value=b"<metadata/>"
+            ) as get:
+                path = src_reefs.save_njdep_metadata(Path(tmp))
+            self.assertEqual(path, Path(tmp) / "njdep_metadata.xml")
+            self.assertEqual(path.read_bytes(), b"<metadata/>")
+            self.assertEqual(get.call_args.args[0], src_reefs.NJDEP_METADATA_URL)
+
+    def test_an_empty_answer_is_not_saved_as_the_metadata(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(src_reefs, "http_get", return_value=b" "):
+                with self.assertRaises(ValueError):
+                    src_reefs.save_njdep_metadata(Path(tmp))
+            self.assertFalse((Path(tmp) / "njdep_metadata.xml").exists())
+
+
 class NcDmfTest(unittest.TestCase):
     def setUp(self):
         self.rows = src_reefs.arcgis_rows(_sample("nc_dmf.json"))

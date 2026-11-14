@@ -39,6 +39,7 @@ for _path in (_HERE, os.path.dirname(_HERE)):
 import records as rec  # noqa: E402
 from grouping import group_by_name, mean_position  # noqa: E402
 from snapshots import (  # noqa: E402
+    CACHE_DIR,
     http_get,
     require_fields,
     write_snapshot,
@@ -61,6 +62,10 @@ NJDEP_METADATA_URL = (
     "https://www.arcgis.com/sharing/rest/content/items/"
     "862307fcb54b4f70a6bdb9915d4c149f/info/metadata/metadata.xml"
 )
+# New Jersey's metadata for its layer, as saved beside the snapshot. Its
+# agreement requires the metadata to travel with the data, so the merge
+# ships this file with the catalogue.
+NJDEP_METADATA_CACHE_FILE = "njdep_metadata.xml"
 NC_DMF_URL = (
     "https://services2.arcgis.com/kCu40SDxsCGcuUWO/arcgis/rest/services/"
     "DMF_ReefGuide/FeatureServer/0"
@@ -550,9 +555,21 @@ def fetch_federal():
     return write_snapshot("noaa_reefs", FEDERAL_URL, rows)
 
 
+def save_njdep_metadata(cache=CACHE_DIR):
+    """Downloads NJDEP's metadata document for the layer into the cache."""
+    body = http_get(NJDEP_METADATA_URL)
+    if not body.strip():
+        raise ValueError("njdep: the metadata document came back empty")
+    cache.mkdir(parents=True, exist_ok=True)
+    path = cache / NJDEP_METADATA_CACHE_FILE
+    path.write_bytes(body)
+    return path
+
+
 def fetch_njdep():
     rows = _arcgis_pages(NJDEP_URL, "json", 2000)
     require_fields(rows[0], ("UNIQUE_ID", "REEF_SITE", "NAME", "TYPE", "MATERIAL", "YEAR_DEPLOYED"), "njdep")
+    save_njdep_metadata()
     return write_snapshot("njdep", NJDEP_URL, rows)
 
 

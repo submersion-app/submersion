@@ -334,6 +334,10 @@ class MainTest(unittest.TestCase):
                     snapshots.write_snapshot(
                         key, "https://example.org", rows, self.cache
                     )
+            if self.with_metadata:
+                (self.cache / merge.NJDEP_METADATA_FILE).write_text(
+                    "<metadata>NJDEP</metadata>", encoding="utf-8"
+                )
         output = io.StringIO()
         with redirect_stdout(output):
             code = merge.main(
@@ -346,6 +350,7 @@ class MainTest(unittest.TestCase):
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self._tmp.cleanup)
+        self.with_metadata = True
 
     def _doc(self):
         return json.loads((self.out / "site_catalogue.json").read_text("utf-8"))
@@ -396,6 +401,38 @@ class MainTest(unittest.TestCase):
             any(site["source"] in fmt.OWN_TERMS_SOURCES for site in doc["sites"])
         )
         self.assertNotIn("njdep", doc["metadata"]["sources"])
+
+    def test_new_jersey_s_metadata_travels_with_its_records(self):
+        code, _ = self._run()
+        self.assertEqual(code, 0)
+        shipped = self.out / "site_catalogue_njdep_metadata.xml"
+        self.assertEqual(
+            shipped.read_text(encoding="utf-8"), "<metadata>NJDEP</metadata>"
+        )
+
+    def test_new_jersey_does_not_ship_without_its_metadata(self):
+        # NJDEP's agreement: its data may not be redistributed without all
+        # the metadata provided.
+        self.with_metadata = False
+        code, output = self._run()
+        self.assertEqual(code, 2)
+        self.assertIn("metadata", output)
+        self.assertFalse((self.out / "site_catalogue.json").exists())
+
+    def test_without_new_jersey_no_metadata_is_needed_or_shipped(self):
+        self.with_metadata = False
+        code, _ = self._run("--without", "njdep", leave_out=("njdep",))
+        self.assertEqual(code, 0)
+        self.assertFalse(
+            (self.out / "site_catalogue_njdep_metadata.xml").exists()
+        )
+
+    def test_the_open_only_catalogue_ships_no_new_jersey_metadata(self):
+        code, _ = self._run("--open-only")
+        self.assertEqual(code, 0)
+        self.assertFalse(
+            (self.out / "site_catalogue_njdep_metadata.xml").exists()
+        )
 
     def test_ids_gone_and_new_are_reported_against_the_file_replaced(self):
         self._run()
