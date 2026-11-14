@@ -85,11 +85,21 @@ mixin MediaFullscreenMixin<T extends StatefulWidget> on State<T> {
   /// [fullscreenControlsTimeout] unless another tap restarts the clock.
   void revealFullscreenControls({required bool autoHide}) {
     _controlsTimer?.cancel();
-    setState(() => _controlsVisible = true);
+    _controlsTimer = null;
+    // A mouse move reveals on every event: rebuild only when they appear.
+    if (!_controlsVisible) setState(() => _controlsVisible = true);
     if (!autoHide) return;
     _controlsTimer = Timer(fullscreenControlsTimeout, () {
+      _controlsTimer = null;
       if (mounted) setState(() => _controlsVisible = false);
     });
+  }
+
+  /// Hides the fullscreen controls now, cancelling any clock.
+  void hideFullscreenControls() {
+    _controlsTimer?.cancel();
+    _controlsTimer = null;
+    if (_controlsVisible) setState(() => _controlsVisible = false);
   }
 
   /// A tap on a photo in fullscreen: reveals the controls, or hides them
@@ -99,8 +109,7 @@ mixin MediaFullscreenMixin<T extends StatefulWidget> on State<T> {
       revealFullscreenControls(autoHide: true);
       return;
     }
-    _controlsTimer?.cancel();
-    setState(() => _controlsVisible = false);
+    hideFullscreenControls();
   }
 
   /// Leaves fullscreen when there is nothing left on screen to tap, such as

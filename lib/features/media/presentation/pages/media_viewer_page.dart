@@ -49,10 +49,11 @@ import 'package:submersion/features/media/presentation/widgets/people_tags/media
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_editor.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/people_tag_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/people_tags/video_people_layer.dart';
-import 'package:submersion/features/media/presentation/widgets/people_tags/video_tag_marks.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_caption.dart';
 import 'package:submersion/features/media/presentation/widgets/media_viewer_toolbar.dart';
 import 'package:submersion/features/media/presentation/widgets/video_color_filter.dart';
+import 'package:submersion/features/media/presentation/widgets/video_controls_auto_hide.dart';
+import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
 import 'package:submersion/features/media/presentation/helpers/color_pick_white.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/color_adjust_viewer_mixin.dart';
 import 'package:submersion/features/media/presentation/widgets/color_adjust/pick_white_hint.dart';
@@ -118,6 +119,7 @@ class MediaViewerPage extends ConsumerStatefulWidget {
 class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
     with
         MediaFullscreenMixin<MediaViewerPage>,
+        VideoControlsAutoHideMixin<MediaViewerPage>,
         ColorAdjustViewerMixin<MediaViewerPage>,
         PeopleTagViewerMixin<MediaViewerPage> {
   /// The pageable subset of [MediaViewerPage.mediaList].
@@ -142,6 +144,12 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
   int _navTargetIndex = 0;
 
   bool _showOverlay = true;
+
+  @override
+  bool get videoOverlayShown => _showOverlay;
+
+  @override
+  void setVideoOverlayShown(bool shown) => setState(() => _showOverlay = shown);
 
   /// "Pick white" answered by a tap at [at] on the page: the photo's pixels
   /// (with its correction off for a frame), or a paused video's frame drawn
@@ -213,11 +221,13 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       // while the tree is locked (viewer teardown, page eviction). Drop the
       // dead controller immediately so nothing reads it, but defer the
       // rebuild to the next frame.
-      _videoControllers.remove(mediaId);
+      final released = _videoControllers.remove(mediaId);
+      if (released != null) unwatchVideoPlayState(released);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) setState(() {});
       });
     } else {
+      watchVideoPlayState(controller);
       setState(() => _videoControllers[mediaId] = controller);
     }
   }
@@ -334,6 +344,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
       revealFullscreenControls(autoHide: !show);
       return;
     }
+    cancelVideoOverlayClock();
     setState(() => _showOverlay = show);
   }
 
@@ -612,6 +623,9 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                         if (isFullscreen && fullscreenControlsVisible) {
                           revealFullscreenControls(autoHide: true);
                         }
+                        // A mouse-move clock left by a video is not the
+                        // next page's to act on.
+                        cancelVideoOverlayClock();
                       },
                       showOverlay: isFullscreen
                           ? fullscreenControlsVisible
@@ -619,6 +633,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                       fullscreen: isFullscreen,
                       onFullscreenTap: toggleFullscreenControls,
                       onSetOverlay: _onSetOverlay,
+                      onVideoHoldChanged: videoHoldChanged,
                       onVideoControllerChanged: _onVideoControllerChanged,
                       currentIndex: currentIndex,
                       people: peopleSession,
@@ -638,9 +653,10 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                               ? null
                               : isFullscreen
                               ? toggleFullscreenControls
-                              : () => setState(
-                                  () => _showOverlay = !_showOverlay,
-                                ),
+                              : () {
+                                  cancelVideoOverlayClock();
+                                  setState(() => _showOverlay = !_showOverlay);
+                                },
                           onTapUp: pickingWhite
                               ? (details) => _pickWhiteAt(
                                   currentItem,
@@ -864,6 +880,17 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
               ),
             );
 
+            // A mouse move brings a video's controls up, and they go again
+            // once it rests or leaves the window while the video plays.
+            final videoOnScreen = currentItem.isVideo
+                ? _videoControllers[currentItem.id]
+                : null;
+            final hoverViewer = MouseRegion(
+              onHover: (_) => videoPointerMoved(videoOnScreen),
+              onExit: (_) => videoPointerLeft(videoOnScreen),
+              child: viewer,
+            );
+
             // Keyboard nav has to wrap the whole viewer to see its key events.
             // Built as a local above rather than nested inline so the tree it
             // wraps stays where it is.
@@ -878,7 +905,7 @@ class _MediaViewerPageState extends ConsumerState<MediaViewerPage>
                     !currentItem.isVideo ||
                     _videoControllers[currentItem.id] != null,
                 onPickWhite: () => _startPickingWhite(currentItem),
-                child: viewer,
+                child: hoverViewer,
               ),
             );
           },
@@ -1077,6 +1104,11 @@ class _PhotoGallery extends ConsumerWidget {
   /// its own to report play/pause.
   final VoidCallback onFullscreenTap;
   final ValueChanged<bool> onSetOverlay;
+
+  /// A video's controls bar asks for its controls to be held up, or lets
+  /// them go.
+  final void Function(VideoPlayerController video, bool held)
+  onVideoHoldChanged;
   final void Function(String mediaId, VideoPlayerController? controller)
   onVideoControllerChanged;
   final int currentIndex;
@@ -1092,6 +1124,7 @@ class _PhotoGallery extends ConsumerWidget {
     required this.fullscreen,
     required this.onFullscreenTap,
     required this.onSetOverlay,
+    required this.onVideoHoldChanged,
     required this.onVideoControllerChanged,
     required this.currentIndex,
     required this.people,
@@ -1144,6 +1177,7 @@ class _PhotoGallery extends ConsumerWidget {
               showOverlay: showOverlay,
               fullscreen: fullscreen,
               onSetOverlay: onSetOverlay,
+              onHoldChanged: onVideoHoldChanged,
               onControllerChanged: onVideoControllerChanged,
               people: people,
             ),
@@ -1329,6 +1363,10 @@ class _VideoItem extends ConsumerStatefulWidget {
   final bool fullscreen;
   final ValueChanged<bool> onSetOverlay;
 
+  /// The controls bar asks for the controls to be held up (a scrub, or the
+  /// mouse on it), or lets them go.
+  final void Function(VideoPlayerController video, bool held) onHoldChanged;
+
   /// Reports the live controller (or null on dispose) so the page can drive
   /// page-level overlays from playback position.
   final void Function(String mediaId, VideoPlayerController? controller)
@@ -1343,6 +1381,7 @@ class _VideoItem extends ConsumerStatefulWidget {
     required this.showOverlay,
     this.fullscreen = false,
     required this.onSetOverlay,
+    required this.onHoldChanged,
     required this.onControllerChanged,
     required this.people,
   });
@@ -1644,23 +1683,30 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
             showOverlay: widget.showOverlay,
           ),
 
-          // Play/pause button overlay (center) - visual indicator only when paused
-          if (!controller.value.isPlaying &&
-              (!widget.fullscreen || widget.showOverlay))
-            IgnorePointer(
-              child: Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.5),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.play_arrow,
-                  color: Colors.white,
-                  size: 48,
-                ),
-              ),
+          // Play/pause button overlay (center) - visual indicator only when
+          // paused. It follows the player itself: the player reports its
+          // state on its own schedule, and nothing else rebuilds this page
+          // when it does, so a read at build time could leave it stuck.
+          if (!widget.fullscreen || widget.showOverlay)
+            ValueListenableBuilder<VideoPlayerValue>(
+              valueListenable: controller,
+              builder: (context, value, _) => value.isPlaying
+                  ? const SizedBox.shrink()
+                  : IgnorePointer(
+                      child: Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 48,
+                        ),
+                      ),
+                    ),
             ),
 
           // Video controls overlay (bottom). Not in tag mode: the video stays
@@ -1674,176 +1720,16 @@ class _VideoItemState extends ConsumerState<_VideoItem> {
               bottom: widget.fullscreen
                   ? MediaQuery.paddingOf(context).bottom + 24
                   : 160,
-              child: _VideoControlsOverlay(
+              child: VideoControlsBar(
                 controller: controller,
                 mediaId: widget.item.id,
+                // The controls hide 3 s after a reveal: hold them up while
+                // scrubbing or under the mouse, so the bar is not pulled from
+                // under the pointer, then restart the clock only if the video
+                // plays on.
+                onHoldChanged: (held) => widget.onHoldChanged(controller, held),
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Video playback controls with tap-to-seek progress bar and time display.
-///
-/// Uses tap-to-seek instead of drag-to-seek to avoid gesture conflicts
-/// with the PageView's horizontal swipe navigation.
-class _VideoControlsOverlay extends StatefulWidget {
-  final VideoPlayerController controller;
-
-  /// The video, whose tagged moments are marked on the bar (issue #1745).
-  final String mediaId;
-
-  const _VideoControlsOverlay({
-    required this.controller,
-    required this.mediaId,
-  });
-
-  @override
-  State<_VideoControlsOverlay> createState() => _VideoControlsOverlayState();
-}
-
-class _VideoControlsOverlayState extends State<_VideoControlsOverlay> {
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_onVideoUpdate);
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onVideoUpdate);
-    super.dispose();
-  }
-
-  void _onVideoUpdate() {
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  String _formatDuration(Duration duration) {
-    final minutes = duration.inMinutes;
-    final seconds = duration.inSeconds % 60;
-    return '$minutes:${seconds.toString().padLeft(2, '0')}';
-  }
-
-  void _seekToPosition(double tapX, double totalWidth) {
-    if (totalWidth <= 0) return;
-
-    final progress = (tapX / totalWidth).clamp(0.0, 1.0);
-    final duration = widget.controller.value.duration;
-    final newPosition = Duration(
-      milliseconds: (progress * duration.inMilliseconds).toInt(),
-    );
-    widget.controller.seekTo(newPosition);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final position = widget.controller.value.position;
-    final duration = widget.controller.value.duration;
-    final progress = duration.inMilliseconds > 0
-        ? (position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)
-        : 0.0;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          // Current time
-          SizedBox(
-            width: 48,
-            child: Text(
-              _formatDuration(position),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          // Tap-to-seek progress bar
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Semantics(
-                  label: context.l10n.media_photoViewer_seekVideoLabel,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTapDown: (details) {
-                      _seekToPosition(
-                        details.localPosition.dx,
-                        constraints.maxWidth,
-                      );
-                    },
-                    child: SizedBox(
-                      height: 40, // Larger touch target
-                      child: Center(
-                        child: Stack(
-                          children: [
-                            // Background track
-                            Container(
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            // Progress track
-                            FractionallySizedBox(
-                              widthFactor: progress,
-                              child: Container(
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                              ),
-                            ),
-                            // Tagged moments (issue #1745)
-                            VideoTagMarks(
-                              mediaId: widget.mediaId,
-                              duration: duration,
-                              width: constraints.maxWidth,
-                            ),
-                            // Thumb indicator
-                            Positioned(
-                              left: (constraints.maxWidth * progress) - 8,
-                              top: -6,
-                              child: Container(
-                                width: 16,
-                                height: 16,
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          // Total time
-          SizedBox(
-            width: 48,
-            child: Text(
-              _formatDuration(duration),
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12,
-                fontFeatures: [const FontFeature.tabularFigures()],
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
         ],
       ),
     );
