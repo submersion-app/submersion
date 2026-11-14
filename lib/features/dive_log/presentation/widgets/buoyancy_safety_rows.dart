@@ -14,11 +14,17 @@ class BuoyancySafetyRows extends StatelessWidget {
   final UnitFormatter units;
   final double? wingLiftCapacityKg;
 
+  /// Whether the dive has any lead recorded. Without it the ditchable row
+  /// states its figure and passes no verdict: "you can ditch nothing" would
+  /// be a warning about missing data, not about the dive.
+  final bool leadRecorded;
+
   const BuoyancySafetyRows({
     super.key,
     required this.outputs,
     required this.units,
     this.wingLiftCapacityKg,
+    this.leadRecorded = true,
   });
 
   @override
@@ -60,10 +66,16 @@ class BuoyancySafetyRows extends StatelessWidget {
           key: 'safety-ditchable',
           label: l10n.buoyancy_minDitchable,
           value: units.formatWeight(o.minDitchableKg),
-          qualifier: ditchCovered
+          qualifier: !leadRecorded
+              ? null
+              : ditchCovered
               ? l10n.buoyancy_ditchCovered(droppable)
               : l10n.buoyancy_ditchShort(droppable),
-          state: ditchCovered ? _RowState.pass : _RowState.warn,
+          state: !leadRecorded
+              ? _RowState.neutral
+              : ditchCovered
+              ? _RowState.pass
+              : _RowState.warn,
         ),
         if (o.drysuitGasLiters > 0)
           _row(

@@ -149,6 +149,10 @@ Replaces the six tiles. Each row is an icon, a figure and a short qualifier.
 | Min ditchable weight | droppable lead covers it | it does not | n/a |
 | Drysuit gas added | n/a | n/a | shown when above zero |
 
+With no lead recorded, the ditchable row is neutral and gives its figure
+alone. "You can ditch nothing" would be a warning about missing data, and the
+no-lead hint already says what is missing.
+
 Start, End and Swing tiles are gone: the chart and the gas note cover them.
 
 ### 4. Hints

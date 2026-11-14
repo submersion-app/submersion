@@ -13,6 +13,7 @@ Future<void> _pump(
   WidgetTester tester,
   TwinOutputs outputs, {
   double? wing,
+  bool leadRecorded = true,
   double width = 800,
   AppSettings settings = const AppSettings(),
 }) async {
@@ -28,6 +29,7 @@ Future<void> _pump(
           outputs: outputs,
           units: UnitFormatter(settings),
           wingLiftCapacityKg: wing,
+          leadRecorded: leadRecorded,
         ),
       ),
     ),
@@ -104,6 +106,25 @@ void main() {
       );
       expect(find.text('you can ditch only 2.0 kg'), findsOneWidget);
       expect(_icon(tester, 'safety-ditchable'), Icons.warning_amber_rounded);
+    });
+  });
+
+  group('ditchable weight with no lead recorded', () {
+    testWidgets('is neutral: missing data is not a verdict', (tester) async {
+      await _pump(
+        tester,
+        buoyancyOutcome(
+          leadKg: 0,
+          minDitchableKg: 5.0,
+          droppableLeadKg: 0,
+        ).outputs,
+        leadRecorded: false,
+      );
+      expect(find.text('Min ditchable weight'), findsOneWidget);
+      expect(find.text('5.0 kg'), findsOneWidget);
+      expect(find.textContaining('you can ditch'), findsNothing);
+      expect(_icon(tester, 'safety-ditchable'), Icons.info_outline);
+      expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
     });
   });
 

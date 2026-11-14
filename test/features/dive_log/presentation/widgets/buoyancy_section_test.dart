@@ -84,6 +84,18 @@ void main() {
     expect(find.textContaining('No lead recorded'), findsOneWidget);
   });
 
+  testWidgets('with no lead recorded the ditchable row does not warn', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      buoyancyOutcome(leadKg: 0.0, droppableLeadKg: 0.0, minDitchableKg: 5.0),
+    );
+    expect(find.textContaining('No lead recorded'), findsOneWidget);
+    expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
+    expect(find.textContaining('you can ditch'), findsNothing);
+  });
+
   testWidgets('no lead hint is absent once lead is known', (tester) async {
     await _pump(tester, buoyancyOutcome());
     expect(find.textContaining('No lead recorded'), findsNothing);

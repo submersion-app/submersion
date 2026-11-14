@@ -143,6 +143,7 @@ class BuoyancySection extends ConsumerWidget {
               outputs: o,
               units: units,
               wingLiftCapacityKg: outcome.wingLiftCapacityKg,
+              leadRecorded: outcome.result.input.leadKg > 0,
             ),
             ..._hints(context, outcome),
           ],
