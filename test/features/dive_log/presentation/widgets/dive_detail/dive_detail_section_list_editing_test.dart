@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.d
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -254,6 +255,29 @@ void main() {
     expect(settings.expandedCalls, isEmpty);
   });
 
+  // A card brought in from the strip, emptied and closed has nothing to
+  // show. It must leave no gap behind; the strip offers it again.
+  testWidgets('an added card emptied and closed draws nothing', (tester) async {
+    final settings = _RecordingSettings(
+      _settings(const [DiveDetailSectionId.notes]),
+    );
+    final controller = controllerOver(dive)..addCard('tags');
+    controller.session!.set(diveTagsField, const <Tag>[]);
+    controller.closeCard('tags');
+
+    await tester.pumpWidget(
+      harness(
+        dive: controller.session!.working,
+        settings: settings,
+        controller: controller,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(controller.addedCardIds, {'tags'});
+    expect(_section(DiveDetailSectionId.tags), findsNothing);
+  });
+
   group('list layout', () {
     final folded = _settings(const [
       DiveDetailSectionId.tags,
@@ -288,6 +312,28 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(settings.expandedCalls, [(DiveDetailSectionId.notes, true)]);
+    });
+
+    testWidgets('a folded section with changes shows the dot on its row', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
+      final controller = controllerOver(dive);
+      controller.session!.set(diveNotesField, 'Changed');
+
+      await tester.pumpWidget(
+        harness(
+          dive: controller.session!.working,
+          settings: _RecordingSettings(folded),
+          controller: controller,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MarkdownNotesField), findsNothing);
+      expect(find.bySemanticsLabel(RegExp('Unsaved changes')), findsOneWidget);
+
+      semantics.dispose();
     });
 
     testWidgets('the pencil opens a folded section without saving the unfold', (

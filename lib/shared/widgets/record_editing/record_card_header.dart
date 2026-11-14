@@ -46,6 +46,26 @@ class RecordCardFrameScope extends InheritedWidget {
       (data == null) != (oldWidget.data == null);
 }
 
+/// The dot that marks a card with changes not yet saved.
+class RecordChangedDot extends StatelessWidget {
+  const RecordChangedDot({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: context.l10n.recordEdit_unsavedChanges,
+      child: Container(
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          color: StatusColors.of(context).warn.accent,
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
+  }
+}
+
 /// The title row of a card on a record page: one size for every card.
 ///
 /// Locked, it draws the title and [trailing] and nothing else. Unlocked, it
@@ -84,17 +104,7 @@ class RecordCardHeader extends StatelessWidget {
             Flexible(child: titleText),
             if (frame.isChanged) ...[
               const SizedBox(width: 8),
-              Semantics(
-                label: l10n.recordEdit_unsavedChanges,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: StatusColors.of(context).warn.accent,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
+              const RecordChangedDot(),
             ],
           ],
         ),

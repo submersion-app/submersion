@@ -1,11 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart' hide Dive, Tag;
+import 'package:submersion/core/constants/app_enums.dart';
+import 'package:submersion/core/database/database.dart'
+    hide Dive, DiveCustomField, DiveWeight, Tag;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
 import 'package:submersion/features/change_log/data/repositories/change_log_repository.dart';
 import 'package:submersion/features/change_log/data/services/change_log_revert_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_edit_save_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
@@ -21,8 +25,10 @@ void main() {
   late Tag wreck;
   late Tag night;
   final changeLog = ChangeLogRepository();
-  final dives = DiveRepository();
   final tags = TagRepository();
+  // Built per test: a repository made for an earlier test's database must
+  // not be reused on this one.
+  late DiveRepository dives;
   final epoch = DateTime.fromMillisecondsSinceEpoch(0);
 
   Future<Dive> stored() async => (await dives.getDiveById('dive'))!;
@@ -38,6 +44,7 @@ void main() {
   setUp(() async {
     db = await setUpTestDatabase();
     addTearDown(SyncCoordinator.reset);
+    dives = DiveRepository();
     service = DiveEditSaveService(dives);
     await insertDiver(db, 'me');
     await insertDive(db, 'dive', diverId: 'me', notes: 'Calm');
@@ -69,8 +76,27 @@ void main() {
       (await stored()).copyWith(
         diveTypeIds: const ['shore'],
         tags: [wreck, night],
+        weights: const [
+          DiveWeight(
+            id: 'weight',
+            diveId: 'dive',
+            weightType: WeightType.belt,
+            amountKg: 4,
+          ),
+        ],
+        customFields: const [
+          DiveCustomField(id: 'field', key: 'Boat', value: 'Aggressor'),
+        ],
       ),
     );
+    // The children really are there, so the tests below prove the writers
+    // for each of them leave an untouched row alone.
+    final seeded = await stored();
+    expect(seeded.tanks, hasLength(1));
+    expect(seeded.weights, hasLength(1));
+    expect(seeded.customFields, hasLength(1));
+    expect(seeded.tags, hasLength(2));
+    expect(seeded.diveTypeIds, ['shore']);
     await changeLog.settleAll();
     await clearLog(db);
     await db.customStatement('DELETE FROM change_log_operations');

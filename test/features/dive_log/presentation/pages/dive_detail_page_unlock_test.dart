@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,6 +14,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_edit_sa
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_form_block.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
@@ -65,31 +68,44 @@ void main() {
     bool unlockEditing = true,
     bool embedded = false,
     Size size = const Size(700, 1000),
+    Dive? stored,
+    Set<DiveDetailSectionId> visible = const {
+      DiveDetailSectionId.tags,
+      DiveDetailSectionId.notes,
+    },
+    Completer<void>? reloadGate,
+    String initialLocation = '/home/dive',
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
     addTearDown(tester.view.reset);
 
-    final save = _FakeSave(dive);
+    final save = _FakeSave(stored ?? dive);
+    var loads = 0;
     final overrides = await getBaseOverrides(
       settingsNotifier: MockSettingsNotifier(
         AppSettings(
           hasAcceptedPlanningDisclaimer: true,
           diveDetailSections: [
             for (final id in DiveDetailSectionId.values)
-              DiveDetailSectionConfig(
-                id: id,
-                visible:
-                    id == DiveDetailSectionId.tags ||
-                    id == DiveDetailSectionId.notes,
-              ),
+              DiveDetailSectionConfig(id: id, visible: visible.contains(id)),
           ],
         ),
       ),
     );
     final router = GoRouter(
-      initialLocation: '/home/dive',
+      initialLocation: initialLocation,
       routes: [
+        // The dive as a root page, the way a deep link opens it.
+        GoRoute(
+          path: '/root-dive',
+          builder: (context, state) =>
+              DiveDetailPage(diveId: dive.id, unlockEditing: unlockEditing),
+        ),
+        GoRoute(
+          path: '/dives',
+          builder: (context, state) => const Scaffold(body: Text('PANE')),
+        ),
         GoRoute(
           path: '/home',
           builder: (context, state) => const Scaffold(body: Text('HOME')),
@@ -118,7 +134,12 @@ void main() {
           ...overrides,
           // Reads the fake's dive, so a save shows on the page as it would
           // from the database.
-          diveProvider(dive.id).overrideWith((ref) async => save.stored),
+          diveProvider(dive.id).overrideWith((ref) async {
+            // Every load after the first waits on [reloadGate], so a test
+            // can look at the page before the saved dive is read back.
+            if (++loads > 1 && reloadGate != null) await reloadGate.future;
+            return save.stored;
+          }),
           diveDataSourcesProvider(
             dive.id,
           ).overrideWith((ref) async => <DiveDataSource>[]),
@@ -390,6 +411,122 @@ void main() {
     expect(find.text('Calm'), findsNothing);
     expect(find.text('Cancel'), findsOneWidget, reason: 'still unlocked');
     expect(find.byType(TagFormBlock), findsOneWidget, reason: 'card kept');
+
+    // The diver's own change is kept, and the save writes only that card
+    // on top of the dive as it is stored now.
+    final night = Tag(
+      id: 'night',
+      name: 'Night',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+    tester.widget<TagFormBlock>(find.byType(TagFormBlock)).onTagsChanged([
+      night,
+    ]);
+    await settle(tester);
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    final call = page.save.calls.single;
+    expect(call.cards, ['tags']);
+    expect(call.merged.notes, 'From another device');
+    expect(call.merged.tags.map((tag) => tag.id), ['night']);
+  });
+
+  Finder notesField() => find.descendant(
+    of: find.byType(MarkdownNotesField),
+    matching: find.byType(TextField),
+  );
+
+  // The page binds the arrow keys to the previous and next dive. Inside an
+  // editor they belong to the text.
+  testWidgets('the arrow keys move the caret inside an editor', (tester) async {
+    await pumpPage(tester);
+    await unlock(tester);
+    await openNotes(tester);
+    await tester.tap(notesField());
+    await settle(tester);
+    final text = tester.widget<TextField>(notesField()).controller!;
+    text.selection = const TextSelection.collapsed(offset: 3);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+    await settle(tester);
+
+    expect(text.selection.baseOffset, 2);
+  });
+
+  testWidgets('saved values show at once, before the dive is read back', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    await pumpPage(tester, reloadGate: gate);
+    await unlock(tester);
+    await openNotes(tester);
+    await tester.enterText(notesField(), 'Calm, then current');
+    await settle(tester);
+
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    // Locked again, and the reload is still waiting.
+    expect(find.byTooltip('Unlock to edit'), findsOneWidget);
+    expect(find.text('Calm, then current'), findsOneWidget);
+    expect(find.text('Calm'), findsNothing);
+
+    gate.complete();
+    await settle(tester);
+    expect(find.text('Calm, then current'), findsOneWidget);
+  });
+
+  testWidgets('a hidden card emptied and closed is offered again', (
+    tester,
+  ) async {
+    final wreck = Tag(
+      id: 'wreck',
+      name: 'Wreck',
+      createdAt: DateTime(2024),
+      updatedAt: DateTime(2024),
+    );
+    await pumpPage(
+      tester,
+      stored: dive.copyWith(tags: [wreck]),
+      visible: const {DiveDetailSectionId.notes},
+    );
+    await unlock(tester);
+    await tester.tap(find.byKey(const ValueKey('addStrip_tags')));
+    await settle(tester);
+
+    tester
+        .widget<TagFormBlock>(find.byType(TagFormBlock))
+        .onTagsChanged(const []);
+    await settle(tester);
+    await tester.tap(find.text('Done'));
+    await settle(tester);
+
+    expect(find.byType(TagFormBlock), findsNothing);
+    expect(
+      find.byKey(const ValueKey('addStrip_tags')),
+      findsOneWidget,
+      reason: 'the card shows nothing now, so the strip must reach it',
+    );
+    expect(action(tester, 'Save').onPressed, isNotNull);
+  });
+
+  // A dive opened as a root page moves into the list pane when the window
+  // is wide enough. Mid-sitting that would drop the changes unasked.
+  testWidgets('widening the window does not end a sitting', (tester) async {
+    final page = await pumpPage(tester, initialLocation: '/root-dive');
+    await unlock(tester);
+    await openNotes(tester);
+    await tester.enterText(notesField(), 'Something else');
+    await settle(tester);
+
+    tester.view.physicalSize = const Size(1400, 1000);
+    await settle(tester);
+
+    expect(location(page.router), '/root-dive');
+    expect(find.text('Cancel'), findsOneWidget);
+    expect(find.text('Something else'), findsOneWidget);
   });
 
   testWidgets('the arrow keys change dive only while locked', (tester) async {

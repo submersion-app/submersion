@@ -400,6 +400,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     // say, stays put: the redirect's go() would erase the page under it
     // and its back arrow (#764, #3292).
     if (!_hasRedirected &&
+        !isSittingOpen &&
         shouldRedirectToMasterDetail(
           context,
           embedded: widget.embedded,
@@ -459,6 +460,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         }
         return _DiveShortcuts(
           diveId: dive.id,
+          enabled: !isSittingOpen,
           onNavigate: _navigateToDive,
           child: _buildContent(context, dive),
         );
@@ -504,8 +506,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final layout = ref.watch(
       settingsProvider.select((s) => s.diveDetailLayout),
     );
-    // During a sitting the cards show the diver's working copy.
-    final shown = _editController?.session?.working ?? dive;
+    final shown = shownDive(dive);
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -745,9 +746,14 @@ class _DiveShortcuts extends ConsumerWidget {
     required this.diveId,
     required this.onNavigate,
     required this.child,
+    this.enabled = true,
   });
 
   final String diveId;
+
+  /// Off during an editing sitting, when the arrow keys belong to the text
+  /// being typed: a binding here would swallow them before a field saw them.
+  final bool enabled;
   final void Function(String neighborId) onNavigate;
   final Widget child;
 
@@ -755,16 +761,18 @@ class _DiveShortcuts extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final neighbors = ref.watch(diveNeighborsProvider(diveId));
     return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
-          final id = neighbors.previousId;
-          if (id != null) onNavigate(id);
-        },
-        const SingleActivator(LogicalKeyboardKey.arrowRight): () {
-          final id = neighbors.nextId;
-          if (id != null) onNavigate(id);
-        },
-      },
+      bindings: !enabled
+          ? const {}
+          : {
+              const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
+                final id = neighbors.previousId;
+                if (id != null) onNavigate(id);
+              },
+              const SingleActivator(LogicalKeyboardKey.arrowRight): () {
+                final id = neighbors.nextId;
+                if (id != null) onNavigate(id);
+              },
+            },
       child: Focus(child: child),
     );
   }
