@@ -2611,6 +2611,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Hacer copia';
 
   @override
+  String get backup_note_keep_title => 'Conservar esta copia';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Las copias ancladas nunca se eliminan automáticamente';
+
+  @override
   String get backup_delete_dialog_cancel => 'Cancelar';
 
   @override
@@ -2795,6 +2802,32 @@ class AppLocalizationsEs extends AppLocalizations {
       'Las copias más antiguas se eliminan automáticamente';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Las copias nunca se eliminan automáticamente';
+
+  @override
+  String get backup_retention_keepAll => 'Conservar todas';
+
+  @override
+  String get backup_retention_custom => 'Número personalizado…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Personalizado: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => '¿Cuántas copias conservar?';
+
+  @override
+  String get backup_retention_custom_label => 'Número de copias';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Introduce un número del 1 al $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Contar las copias de todos los dispositivos';
 
@@ -2806,6 +2839,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'La carpeta en la nube conserva las últimas $count copias de seguridad de todos los dispositivos. Las copias ancladas se conservan. También se conserva la copia más reciente de cada dispositivo, salvo que tenga más de 6 meses. Si otros dispositivos también lo usan, gana el número más pequeño. Actualiza primero la app en todos los dispositivos para que se vean sus copias ancladas.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Conservar todas está activado, así que este dispositivo no elimina copias de la carpeta en la nube. Las copias ancladas se conservan.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -60807,6 +60844,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Conservar todas las copias';
+
+  @override
   String get settings_backups_folder => 'Carpeta de copias en este dispositivo';
 
   @override
@@ -61688,6 +61728,18 @@ class AppLocalizationsEs extends AppLocalizations {
     int count,
   ) {
     return '$frequency, mientras Submersion está abierto. Se guardan aquí las últimas $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Aquí se guardan todas las copias.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, mientras Submersion está abierto. Aquí se guardan todas las copias.';
   }
 
   @override

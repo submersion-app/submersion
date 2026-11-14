@@ -5,8 +5,8 @@ import 'package:submersion/core/utils/byte_format.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/cross_device_retention_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_actions.dart';
-import 'package:submersion/features/backup/presentation/widgets/backup_choice_dialog.dart';
 import 'package:submersion/features/backup/presentation/widgets/backup_encryption_section.dart';
+import 'package:submersion/features/backup/presentation/widgets/backup_retention_dialog.dart';
 import 'package:submersion/features/backup/presentation/widgets/cross_device_retention_actions.dart';
 import 'package:submersion/features/backup/presentation/widgets/quarantined_databases_section.dart';
 import 'package:submersion/features/settings/presentation/widgets/settings_section_helpers.dart';
@@ -19,8 +19,6 @@ import 'package:submersion/shared/widgets/tile_subtitle_action.dart';
 /// set-aside databases.
 class BackupAdvancedSection extends ConsumerWidget {
   const BackupAdvancedSection({super.key});
-
-  static const retentionChoices = [5, 10, 15, 20, 30];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,15 +43,16 @@ class BackupAdvancedSection extends ConsumerWidget {
           // A new number waits until a cross-device change in flight ends.
           enabled: !ref.watch(crossDeviceRetentionBusyProvider),
           leading: const Icon(Icons.layers_outlined),
-          title: Text(l10n.settings_backups_keepLast(settings.retentionCount)),
+          title: Text(
+            settings.keepsAll
+                ? l10n.settings_backups_keepAll
+                : l10n.settings_backups_keepLast(settings.retentionCount),
+          ),
           subtitle: const _RetentionSubtitle(),
           onTap: () async {
-            final picked = await showBackupChoiceDialog(
+            final picked = await showBackupRetentionDialog(
               context,
-              title: l10n.backup_schedule_retention,
-              values: retentionChoices,
               selected: settings.retentionCount,
-              label: (n) => '$n',
             );
             if (picked != null && context.mounted) {
               await changeRetentionCount(context, ref, picked);
@@ -122,7 +121,14 @@ class _RetentionSubtitle extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final history = ref.watch(backupHistoryProvider).value;
-    final explanation = Text(l10n.backup_schedule_retention_subtitle);
+    final keepsAll = ref.watch(
+      backupSettingsProvider.select((s) => s.keepsAll),
+    );
+    final explanation = Text(
+      keepsAll
+          ? l10n.backup_schedule_retention_keepAll_subtitle
+          : l10n.backup_schedule_retention_subtitle,
+    );
     // With the switch on the number governs the cloud folder, so the cost
     // shown is the folder's: the rows its listing showed (issue #3503).
     final acrossDevices =
@@ -168,16 +174,18 @@ class _CrossDeviceRetentionTile extends ConsumerWidget {
     final l10n = context.l10n;
     final on = ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
     final busy = ref.watch(crossDeviceRetentionBusyProvider);
-    final keep = ref.watch(
-      backupSettingsProvider.select((s) => s.retentionCount),
+    final (keepsAll, keep) = ref.watch(
+      backupSettingsProvider.select((s) => (s.keepsAll, s.retentionCount)),
     );
     return SwitchListTile(
       secondary: const Icon(Icons.devices_outlined),
       title: Text(l10n.backup_retention_allDevices_title),
       subtitle: Text(
-        on
-            ? l10n.backup_retention_allDevices_on(keep)
-            : l10n.backup_retention_allDevices_off,
+        !on
+            ? l10n.backup_retention_allDevices_off
+            : keepsAll
+            ? l10n.backup_retention_allDevices_onKeepAll
+            : l10n.backup_retention_allDevices_on(keep),
       ),
       value: on,
       onChanged: busy

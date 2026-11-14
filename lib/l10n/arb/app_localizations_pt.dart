@@ -2610,6 +2610,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Fazer backup';
 
   @override
+  String get backup_note_keep_title => 'Manter este backup';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Os backups fixados nunca são removidos automaticamente';
+
+  @override
   String get backup_delete_dialog_cancel => 'Cancelar';
 
   @override
@@ -2793,6 +2800,32 @@ class AppLocalizationsPt extends AppLocalizations {
       'Backups mais antigos são removidos automaticamente';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Os backups nunca são removidos automaticamente';
+
+  @override
+  String get backup_retention_keepAll => 'Manter todos';
+
+  @override
+  String get backup_retention_custom => 'Número personalizado…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Personalizado: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Quantos backups manter?';
+
+  @override
+  String get backup_retention_custom_label => 'Número de backups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Insira um número de 1 a $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Contar backups de todos os dispositivos';
 
@@ -2804,6 +2837,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'A pasta na nuvem mantém os últimos $count backups de todos os dispositivos. Os backups fixados são mantidos. O backup mais recente de cada dispositivo também é mantido, a menos que tenha mais de 6 meses. Se outros dispositivos também usarem isto, vale o número mais pequeno. Atualize primeiro a app em todos os dispositivos para que os backups fixados neles sejam vistos.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Manter todos está ativado, por isso este dispositivo não remove backups da pasta na nuvem. Os backups fixados são mantidos.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -60743,6 +60780,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Manter todos os backups';
+
+  @override
   String get settings_backups_folder => 'Pasta de backup neste dispositivo';
 
   @override
@@ -61625,6 +61665,18 @@ class AppLocalizationsPt extends AppLocalizations {
     int count,
   ) {
     return '$frequency, enquanto o Submersion está aberto. As últimas $count ficam guardadas aqui.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Todos os backups ficam guardados aqui.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, enquanto o Submersion está aberto. Todos os backups ficam guardados aqui.';
   }
 
   @override

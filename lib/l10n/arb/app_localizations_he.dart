@@ -2573,6 +2573,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_note_dialog_confirm => 'גבה';
 
   @override
+  String get backup_note_keep_title => 'שמור גיבוי זה';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'גיבויים מוצמדים לעולם אינם מוסרים אוטומטית';
+
+  @override
   String get backup_delete_dialog_cancel => 'ביטול';
 
   @override
@@ -2749,6 +2756,32 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבויים ישנים יותר מוסרים אוטומטית';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'גיבויים לעולם אינם מוסרים אוטומטית';
+
+  @override
+  String get backup_retention_keepAll => 'שמור הכול';
+
+  @override
+  String get backup_retention_custom => 'מספר מותאם אישית…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'מותאם אישית: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'כמה גיבויים לשמור?';
+
+  @override
+  String get backup_retention_custom_label => 'מספר הגיבויים';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'הזן מספר בין 1 ל-$max';
+  }
+
+  @override
   String get backup_retention_allDevices_title => 'ספירת גיבויים מכל המכשירים';
 
   @override
@@ -2759,6 +2792,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'תיקיית הענן שומרת את $count הגיבויים האחרונים מכל המכשירים. גיבויים מוצמדים נשמרים. גם הגיבוי האחרון של כל מכשיר נשמר, אלא אם הוא בן יותר מ־6 חודשים. אם גם מכשירים אחרים משתמשים בזה, המספר הקטן ביותר קובע. עדכנו קודם את האפליקציה בכל המכשירים כדי שההצמדות שלהם ייראו.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'האפשרות \'שמור הכול\' פעילה, ולכן מכשיר זה אינו מסיר גיבויים מתיקיית הענן. גיבויים מוצמדים נשמרים.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -59495,6 +59532,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'שמירת כל הגיבויים';
+
+  @override
   String get settings_backups_folder => 'תיקיית הגיבוי במכשיר הזה';
 
   @override
@@ -60367,6 +60407,18 @@ class AppLocalizationsHe extends AppLocalizations {
     int count,
   ) {
     return '$frequency, כל עוד Submersion פתוח. $count האחרונים נשמרים כאן.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. כל הגיבויים נשמרים כאן.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, כל עוד Submersion פתוח. כל הגיבויים נשמרים כאן.';
   }
 
   @override

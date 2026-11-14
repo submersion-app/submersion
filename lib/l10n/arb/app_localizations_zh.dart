@@ -2483,6 +2483,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_note_dialog_confirm => '备份';
 
   @override
+  String get backup_note_keep_title => '保留此备份';
+
+  @override
+  String get backup_note_keep_subtitle => '已置顶的备份永远不会被自动删除';
+
+  @override
   String get backup_delete_dialog_cancel => '取消';
 
   @override
@@ -2651,6 +2657,31 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backup_schedule_retention_subtitle => '旧备份将自动删除';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle => '备份永远不会被自动删除';
+
+  @override
+  String get backup_retention_keepAll => '全部保留';
+
+  @override
+  String get backup_retention_custom => '自定义数量…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return '自定义：$count';
+  }
+
+  @override
+  String get backup_retention_custom_title => '保留多少个备份？';
+
+  @override
+  String get backup_retention_custom_label => '备份数量';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return '请输入 1 到 $max 之间的数字';
+  }
+
+  @override
   String get backup_retention_allDevices_title => '统计所有设备的备份';
 
   @override
@@ -2660,6 +2691,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return '云文件夹保留所有设备最近的 $count 个备份。已置顶的备份会被保留。 每台设备最新的备份也会保留，除非已超过 6 个月。如果其他设备也开启此项，以最小的数字为准。请先在所有设备上更新应用，以便识别它们置顶的备份。';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      '已开启全部保留，因此此设备不会从云文件夹中删除任何备份。已置顶的备份会被保留。';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -57045,6 +57080,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => '保留全部备份';
+
+  @override
   String get settings_backups_folder => '此设备上的备份文件夹';
 
   @override
@@ -57865,6 +57903,18 @@ class AppLocalizationsZh extends AppLocalizations {
     int count,
   ) {
     return '$frequency，在 Submersion 打开时进行。此处保留最近 $count 份。';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency。此处保留所有备份。';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency，在 Submersion 打开时进行。此处保留所有备份。';
   }
 
   @override

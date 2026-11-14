@@ -20,6 +20,39 @@ void main() {
       expect(copied.backupLocation, '/new/path');
     });
 
+    group('keepsAll (issue #4535)', () {
+      test('is false for any count a diver can type', () {
+        expect(const BackupSettings(retentionCount: 10).keepsAll, isFalse);
+        expect(
+          const BackupSettings(
+            retentionCount: BackupSettings.maxCustomRetentionCount,
+          ).keepsAll,
+          isFalse,
+        );
+      });
+
+      test('is true for the sentinel and anything above the maximum', () {
+        expect(
+          const BackupSettings(
+            retentionCount: BackupSettings.keepAllRetentionCount,
+          ).keepsAll,
+          isTrue,
+        );
+        expect(
+          const BackupSettings(
+            retentionCount: BackupSettings.maxCustomRetentionCount + 1,
+          ).keepsAll,
+          isTrue,
+        );
+      });
+
+      test('the sentinel is a huge positive count, never 0', () {
+        // An older build reads it as a count: it must keep everything.
+        expect(BackupSettings.keepAllRetentionCount, 1 << 30);
+        expect(BackupSettings.maxCustomRetentionCount, 9999);
+      });
+    });
+
     test('includes backupLocation in Equatable props', () {
       const a = BackupSettings(backupLocation: '/path/a');
       const b = BackupSettings(backupLocation: '/path/b');

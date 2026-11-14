@@ -769,6 +769,7 @@ class _RecordingRestoreService extends BackupService {
   Future<BackupRecord> performBackup({
     bool isAutomatic = false,
     String? note,
+    bool pin = false,
   }) async {
     calls.add('performBackup');
     backedUpNote = note;

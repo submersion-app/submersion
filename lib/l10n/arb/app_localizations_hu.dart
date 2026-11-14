@@ -2604,6 +2604,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Mentés';
 
   @override
+  String get backup_note_keep_title => 'A mentés megtartása';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'A rögzített mentések soha nem kerülnek automatikusan eltávolításra';
+
+  @override
   String get backup_delete_dialog_cancel => 'Mégse';
 
   @override
@@ -2786,6 +2793,32 @@ class AppLocalizationsHu extends AppLocalizations {
       'A régebbi mentések automatikusan eltávolításra kerülnek';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'A mentések soha nem kerülnek automatikusan eltávolításra';
+
+  @override
+  String get backup_retention_keepAll => 'Összes megtartása';
+
+  @override
+  String get backup_retention_custom => 'Egyéni szám…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Egyéni: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Hány mentést tartson meg?';
+
+  @override
+  String get backup_retention_custom_label => 'Mentések száma';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Adjon meg egy számot 1 és $max között';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Az összes eszköz mentéseinek számolása';
 
@@ -2797,6 +2830,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Minden eszköz legutóbbi mentése is megmarad, hacsak nem régebbi 6 hónapnál. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Az Összes megtartása be van kapcsolva, így ez az eszköz nem távolít el mentést a felhőmappából. A rögzített mentések megmaradnak.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -60445,6 +60482,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Összes mentés megtartása';
+
+  @override
   String get settings_backups_folder => 'Mentési mappa ezen az eszközön';
 
   @override
@@ -61313,6 +61353,18 @@ class AppLocalizationsHu extends AppLocalizations {
     int count,
   ) {
     return '$frequency, amíg a Submersion meg van nyitva. Itt marad meg az utolsó $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Itt minden mentés megmarad.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, amíg a Submersion meg van nyitva. Itt minden mentés megmarad.';
   }
 
   @override
