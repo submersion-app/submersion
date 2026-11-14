@@ -11,6 +11,10 @@ class DiverWeightEntry extends Equatable {
   final DateTime measuredAt;
   final double weightKg;
   final double? heightCm;
+
+  /// Measured body fat as a percentage, 3 to 60 (issue #4525). Null when
+  /// not measured: the weight prediction then estimates it.
+  final double? bodyFatPercent;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -20,6 +24,7 @@ class DiverWeightEntry extends Equatable {
     required this.measuredAt,
     required this.weightKg,
     this.heightCm,
+    this.bodyFatPercent,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -30,6 +35,7 @@ class DiverWeightEntry extends Equatable {
     DateTime? measuredAt,
     double? weightKg,
     double? heightCm,
+    double? bodyFatPercent,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -39,6 +45,7 @@ class DiverWeightEntry extends Equatable {
       measuredAt: measuredAt ?? this.measuredAt,
       weightKg: weightKg ?? this.weightKg,
       heightCm: heightCm ?? this.heightCm,
+      bodyFatPercent: bodyFatPercent ?? this.bodyFatPercent,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -51,6 +58,7 @@ class DiverWeightEntry extends Equatable {
     measuredAt,
     weightKg,
     heightCm,
+    bodyFatPercent,
     createdAt,
     updatedAt,
   ];

@@ -34,6 +34,9 @@ Map<String, Object?> diverRecordDocument(Diver d) => {
   'prior_dive_count': d.priorDiveCount,
   'prior_dive_time_s': d.priorDiveTimeSeconds,
   'diving_since_date': calendarDate(d.divingSince),
+  // Used only to estimate body fat for the weight prediction (issue #4525).
+  'sex': d.sex?.name,
+  'birth_year': d.birthYear,
 };
 
 Map<String, Object?> _contact(EmergencyContact c) => {

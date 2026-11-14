@@ -104,4 +104,37 @@ void main() {
       }
     },
   );
+
+  test('sex and birth year are written, read back and cleared '
+      '(issue #4525)', () async {
+    final id = (await h.run([
+      createOp('divers', {'name': 'Ana', 'sex': 'female', 'birth_year': 1984}),
+    ])).created.single.id;
+    final created = (await h.one('divers', id))!;
+    expect(created['sex'], 'female');
+    expect(created['birth_year'], 1984);
+
+    await h.run([
+      updateOp('divers', id, {'name': 'Ana B'}),
+    ]);
+    expect((await h.one('divers', id))!['sex'], 'female');
+
+    await h.run([
+      updateOp('divers', id, {'sex': null, 'birth_year': null}),
+    ]);
+    final cleared = (await h.one('divers', id))!;
+    expect(cleared['sex'], isNull);
+    expect(cleared['birth_year'], isNull);
+  });
+
+  test('a birth year ahead of today, or an unknown sex, is refused', () async {
+    final plan = await h.preview([
+      createOp('divers', {
+        'name': 'Ana',
+        'birth_year': DateTime.now().year + 1,
+      }),
+      createOp('divers', {'name': 'Ben', 'sex': 'other'}),
+    ]);
+    expect(plan.items.every((i) => i.block != null), isTrue);
+  });
 }

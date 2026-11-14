@@ -163,6 +163,7 @@ Map<String, Object?> weightEntryDocument(DiverWeightEntry e) => {
   'measured_at': instant(e.measuredAt),
   'weight_kg': e.weightKg,
   'height_cm': e.heightCm,
+  'body_fat_percent': e.bodyFatPercent,
 };
 
 Map<String, Object?> preDiveSessionDocument(PreDiveSession s) => {
