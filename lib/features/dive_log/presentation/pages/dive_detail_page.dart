@@ -643,7 +643,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
                   .toggleFavorite(diveId);
             },
           ),
-        if (editingOffered) lockButton(dive),
+        if (editingOffered) lockButton(shown),
         IconButton(
           icon: const Icon(Icons.edit),
           tooltip: context.l10n.diveLog_detail_tooltip_editDive,

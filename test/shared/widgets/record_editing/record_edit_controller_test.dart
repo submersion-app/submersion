@@ -354,6 +354,33 @@ void main() {
       await saving;
     });
 
+    // lock() discards a sitting. While its write is running that would
+    // leave the write going with nothing tracking it, and let a new sitting
+    // start underneath it.
+    test('the sitting cannot be locked, nor another started', () async {
+      final gate = Completer<void>();
+      final controller = _controller(onSave: (_) => gate.future)
+        ..unlock(const _Rec(notes: 'a'));
+      controller.session!.set(_notes, 'b');
+      final saving = controller.save();
+      var told = 0;
+      controller.addListener(() => told++);
+
+      controller
+        ..lock()
+        ..unlock(const _Rec(notes: 'z'));
+
+      expect(controller.isUnlocked, isTrue);
+      expect(controller.isSaving, isTrue);
+      expect(controller.session!.valueOf(_notes), 'b');
+      expect(told, 0);
+
+      gate.complete();
+      expect(await saving, isTrue);
+      expect(controller.isUnlocked, isFalse);
+      expect(controller.isSaving, isFalse);
+    });
+
     test('a save that fails gives the sitting back, editable', () async {
       final controller =
           _controller(onSave: (_) async => throw StateError('no'))
