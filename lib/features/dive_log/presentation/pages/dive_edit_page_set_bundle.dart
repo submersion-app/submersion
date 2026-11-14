@@ -122,9 +122,13 @@ extension _SetBundleApplying on _DiveEditPageState {
     const adapter = DiveTankConfigAdapter();
     // A new dive still holding its untouched starter tank takes the set's
     // cylinders whole, gas included: the merge below never writes a mix
-    // onto a matched tank, and the starter's air is nobody's choice.
+    // onto a matched tank, and the starter's air is nobody's choice. A tank
+    // a scan or a cylinder tag prefilled is the diver's data and merges.
     final untouchedStarter =
-        !_tanksDirty && !widget.isEditing && _tanks.length == 1;
+        !_tanksDirty &&
+        !_firstTankPrefilled &&
+        !widget.isEditing &&
+        _tanks.length == 1;
     var result = adapter.apply(
       tanks: untouchedStarter ? const <DiveTank>[] : _tanks,
       items: bundle.cylinders,

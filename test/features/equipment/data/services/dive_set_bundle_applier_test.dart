@@ -381,6 +381,26 @@ void main() {
       ]);
     });
 
+    test('alsoSetIds names sets that landed without leaving a tag', () async {
+      await set('zeta', name: 'Zeta', gear: ['bp'], presets: ['belt8']);
+      await set('alpha', name: 'Alpha', gear: ['bp'], presets: ['pockets6']);
+      await gearOn('dive1', 'bp', 'zeta');
+      await applier.applyTagged(
+        diveId: 'dive1',
+        alsoSetIds: const ['alpha', 'zeta'],
+      );
+      final rows =
+          await (db.select(db.diveWeights)
+                ..where((w) => w.diveId.equals('dive1'))
+                ..orderBy([(w) => OrderingTerm.asc(w.rowId)]))
+              .get();
+      // Alpha (named first), then Zeta once: named and tagged.
+      expect(rows.map((r) => r.amountKg), [
+        closeTo(2.72, 1e-9),
+        closeTo(3.63, 1e-9),
+      ]);
+    });
+
     test('with retagAbsorbed an included set\'s gear takes the outer '
         'set\'s tag', () async {
       await set('rig', gear: ['bp', 'reg'], presets: ['belt8']);

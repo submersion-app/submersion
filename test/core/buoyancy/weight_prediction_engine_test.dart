@@ -542,6 +542,46 @@ void main() {
       expect(term.kg, closeTo(-80 * 0.2 * 5.4 / 100, 1e-9));
     });
 
+    // A new diver has sex and birth year on the profile but no saved body
+    // weight; the planner brings weight and height on the rig. Nothing was
+    // subtracted, so the term is free to use what the profile knows.
+    test('with no dives the model keeps age and sex for a rig that brings '
+        'the body', () {
+      final model = fitBody(
+        bodyWeightKg: null,
+        heightCm: null,
+        ageYears: 51,
+        sex: DiverSex.female,
+        dives: 0,
+      );
+      expect(model.ageYears, 51);
+      expect(model.sex, DiverSex.female);
+      final term = model
+          .predict(
+            const RigSpec(
+              gear: [suit, bcd],
+              tanks: [al80Spec],
+              waterType: WaterType.salt,
+              bodyWeightKg: 70,
+              heightCm: 165,
+            ),
+          )
+          .terms
+          .singleWhere((t) => t.label == 'bmi');
+      expect(
+        term.kg,
+        closeTo(
+          BodyComposition.leadTermKg(
+            bodyMassKg: 70,
+            heightCm: 165,
+            ageYears: 51,
+            sex: DiverSex.female,
+          ),
+          1e-9,
+        ),
+      );
+    });
+
     test('a fit without a real body weight subtracts nothing and keeps no '
         'body inputs', () {
       final model = fitBody(

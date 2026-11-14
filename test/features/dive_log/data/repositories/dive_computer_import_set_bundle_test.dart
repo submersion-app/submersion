@@ -128,8 +128,11 @@ void main() {
     }
   }
 
-  Future<String> download({List<TankData>? tanks}) => repository.importProfile(
-    computerId: 'perdix',
+  Future<String> download({
+    List<TankData>? tanks,
+    String computerId = 'perdix',
+  }) => repository.importProfile(
+    computerId: computerId,
     profileStartTime: DateTime(2026, 7, 4, 10, 0),
     points: points,
     durationSeconds: 2400,
@@ -238,5 +241,78 @@ void main() {
     expect(again, diveId);
     expect(await tanksOf(diveId), hasLength(1));
     expect(await weightsOf(diveId), hasLength(1));
+  });
+
+  // A computer-linked set whose gear the default set already put on the
+  // dive leaves no tag of its own; its lead still lands with it.
+  test('a computer-linked set applies its weights when the default set '
+      'already holds its gear', () async {
+    await db
+        .into(db.equipmentSetItems)
+        .insert(
+          EquipmentSetItemsCompanion.insert(setId: 'def', equipmentId: 'pc'),
+        );
+    await set(
+      'comp',
+      gear: ['pc'],
+      presetId: 'pockets6',
+      presetKg: 2.72,
+      autoApply: true,
+    );
+    final diveId = await download();
+    expect(await weightsOf(diveId), [closeTo(2.72, 1e-9), closeTo(3.63, 1e-9)]);
+  });
+
+  // A second computer's reading merging onto a dive that is already
+  // logged (the same computer again stops at the re-download guard).
+  group('a second computer downloading onto a dive that already exists', () {
+    setUp(() async {
+      await gear('pc2', 'computer');
+      await db
+          .into(db.diveComputers)
+          .insert(
+            DiveComputersCompanion.insert(
+              id: 'teric',
+              name: 'Teric',
+              equipmentId: const Value('pc2'),
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+    });
+
+    Future<String> downloadedThenCleared() async {
+      final diveId = await download();
+      // The diver removed the lead: the rows, and the dive's own total.
+      await (db.delete(
+        db.diveWeights,
+      )..where((w) => w.diveId.equals(diveId))).go();
+      await db.customStatement(
+        'UPDATE dives SET weight_amount = NULL WHERE id = ?',
+        [diveId],
+      );
+      return diveId;
+    }
+
+    // The sets already on the dive are history: only a set that lands in
+    // this download brings its lead.
+    test('does not re-apply a set that did not land in it', () async {
+      final diveId = await downloadedThenCleared();
+      expect(await download(computerId: 'teric'), diveId);
+      expect(await weightsOf(diveId), isEmpty);
+    });
+
+    test('applies the computer-linked set that lands in it', () async {
+      final diveId = await downloadedThenCleared();
+      await set(
+        'comp',
+        gear: ['pc2'],
+        presetId: 'pockets6',
+        presetKg: 2.72,
+        autoApply: true,
+      );
+      expect(await download(computerId: 'teric'), diveId);
+      expect(await weightsOf(diveId), [closeTo(2.72, 1e-9)]);
+    });
   });
 }

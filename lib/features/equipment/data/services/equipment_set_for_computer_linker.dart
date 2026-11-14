@@ -58,22 +58,29 @@ class EquipmentSetForComputerLinker {
   /// another diver built around that same computer would silently attach
   /// its unrelated gear to this diver's dive. A dive with no diver (owner-
   /// less) is skipped entirely rather than crossing diver scopes.
-  Future<bool> linkComputerSetsForDive({required String diveId}) async {
-    if (DatabaseService.instance.databaseOrNull == null) return false;
+  Future<bool> linkComputerSetsForDive({required String diveId}) async =>
+      (await linkComputerSets(diveId: diveId)).isNotEmpty;
+
+  /// [linkComputerSetsForDive], returning the ids of the sets it applied,
+  /// by name. A set whose gear was already on the dive under another set's
+  /// tag leaves no tag of its own, so the caller that goes on to apply what
+  /// the sets carry besides gear (issue #4525) needs them named.
+  Future<List<String>> linkComputerSets({required String diveId}) async {
+    if (DatabaseService.instance.databaseOrNull == null) return const [];
     // Declared outside the try so a failure partway through the loop below
     // still reports (and notifies sync about) whichever sets already wrote
     // successfully, instead of masking a real DB change as "nothing happened".
-    var appliedAny = false;
+    final applied = <String>[];
     try {
       final computerEquipmentIds = await _gearLinker
           .gearTwinEquipmentIdsForDive(diveId);
-      if (computerEquipmentIds.isEmpty) return false;
+      if (computerEquipmentIds.isEmpty) return applied;
 
       final dive = await (_db.select(
         _db.dives,
       )..where((t) => t.id.equals(diveId))).getSingleOrNull();
       final diverId = dive?.diverId;
-      if (diverId == null) return false;
+      if (diverId == null) return applied;
 
       // One query for "opted-in sets, owned by this diver, that contain
       // one of these computers" rather than a set-membership lookup
@@ -85,14 +92,15 @@ class EquipmentSetForComputerLinker {
       ];
       final rows = await _db
           .customSelect(
-            'SELECT DISTINCT s.id FROM equipment_sets s '
+            'SELECT DISTINCT s.id, s.name FROM equipment_sets s '
             'WHERE s.auto_apply_on_computer_import = 1 '
             'AND s.diver_id = ? AND ('
             'EXISTS (SELECT 1 FROM equipment_set_items i '
             'WHERE i.set_id = s.id AND i.equipment_id IN ($placeholders)) '
             'OR EXISTS (SELECT 1 FROM equipment_set_includes inc '
             'JOIN equipment_set_items i ON i.set_id = inc.included_set_id '
-            'WHERE inc.set_id = s.id AND i.equipment_id IN ($placeholders)))',
+            'WHERE inc.set_id = s.id AND i.equipment_id IN ($placeholders))) '
+            'ORDER BY s.name COLLATE NOCASE, s.id',
             variables: [Variable<String>(diverId), ...computers, ...computers],
             readsFrom: {
               _db.equipmentSets,
@@ -101,8 +109,8 @@ class EquipmentSetForComputerLinker {
             },
           )
           .get();
-      final setIds = rows.map((row) => row.read<String>('id')).toSet();
-      if (setIds.isEmpty) return false;
+      final setIds = [for (final row in rows) row.read<String>('id')];
+      if (setIds.isEmpty) return applied;
 
       for (final setId in setIds) {
         // A member no longer shared with this diver stays in the set but is
@@ -117,20 +125,19 @@ class EquipmentSetForComputerLinker {
           setEquipmentIds,
           viaSetId: setId,
         );
-        appliedAny = true;
+        applied.add(setId);
       }
-      return appliedAny;
+      return applied;
     } catch (_) {
-      // Best-effort: never let this fail the dive operation. appliedAny may
-      // already be true if an earlier set in the loop wrote successfully
-      // before a later one threw; report that partial success rather than
-      // masking it as false.
-      return appliedAny;
+      // Best-effort: never let this fail the dive operation. A set earlier
+      // in the loop may have written before a later one threw; report that
+      // partial success rather than masking it as nothing.
+      return applied;
     } finally {
       // Runs once regardless of which path returned, so a partial success
       // followed by a thrown exception still notifies sync about the sets
       // that did get written.
-      if (appliedAny) SyncEventBus.notifyLocalChange();
+      if (applied.isNotEmpty) SyncEventBus.notifyLocalChange();
     }
   }
 }

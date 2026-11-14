@@ -109,14 +109,14 @@ class HealthDiveWriter {
     // default and geofenced sets.
     await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
     // Every equipment set that lists this computer as a member (#1020).
-    await EquipmentSetForComputerLinker().linkComputerSetsForDive(
-      diveId: dive.id,
-    );
+    final computerSetIds = await EquipmentSetForComputerLinker()
+        .linkComputerSets(diveId: dive.id);
     // What those sets carry besides gear (issue #4525): weights only
     // where the dive has none, and never a cylinder beside its own.
     await DiveSetBundleApplier().applyTagged(
       diveId: dive.id,
       leadSetId: defaultSetId,
+      alsoSetIds: computerSetIds,
       retagAbsorbed: true,
     );
     return dive;

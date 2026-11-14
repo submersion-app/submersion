@@ -346,6 +346,10 @@ const Map<String, ChangeLogParent> changeLogParents = {
     rootTable: 'equipment_sets',
     column: 'set_id',
   ),
+  'equipment_set_weight_presets': ChangeLogParent(
+    rootTable: 'equipment_sets',
+    column: 'set_id',
+  ),
   'equipment_shares': ChangeLogParent(
     rootTable: 'equipment',
     column: 'equipment_id',

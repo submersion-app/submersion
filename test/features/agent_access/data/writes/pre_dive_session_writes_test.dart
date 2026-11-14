@@ -1,9 +1,22 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/core/database/database.dart' hide Dive;
+import 'package:submersion/core/database/database.dart'
+    hide
+        Dive,
+        EquipmentSet,
+        PreDiveChecklistTemplate,
+        PreDiveChecklistTemplateItem;
 import 'package:submersion/core/services/sync/sync_coordinator.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
+import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../records/record_harness.dart' show kDiverA;
 import 'child_write_harness.dart';
 
 /// Pre-dive checklist runs, as the start sheet and the runner keep them.
@@ -135,5 +148,77 @@ void main() {
     await h.run([state(ids[0], 'done')]);
     await h.run([state(ids[1], 'done')]);
     expect((await h.one('pre_dive_session_items', ids[1]))!['state'], 'done');
+  });
+
+  // A set applies its own gear and that of the sets it includes (issue
+  // #4525). A checklist that left the included set's regulator out would
+  // read as complete while the life-support gear went unchecked.
+  test('a session from a set that includes another checks the gear of '
+      'both', () async {
+    final now = DateTime(2026, 11, 1);
+    final equipment = EquipmentRepository();
+    for (final (id, name) in [('reg', 'Regulator'), ('cam', 'Camera')]) {
+      await equipment.createEquipment(
+        EquipmentItem(
+          id: id,
+          diverId: kDiverA,
+          name: name,
+          type: EquipmentType.other,
+        ),
+        notify: false,
+      );
+    }
+    final sets = EquipmentSetRepository();
+    await sets.createSet(
+      EquipmentSet(
+        id: 'rig',
+        diverId: kDiverA,
+        name: 'Rig',
+        equipmentIds: const ['reg'],
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await sets.createSet(
+      EquipmentSet(
+        id: 'camrig',
+        diverId: kDiverA,
+        name: 'Rig + camera',
+        equipmentIds: const ['cam'],
+        includedSetIds: const ['rig'],
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    final templates = PreDiveTemplateRepository();
+    final tpl = await templates.createTemplate(
+      PreDiveChecklistTemplate(
+        id: '',
+        diverId: kDiverA,
+        name: 'With gear',
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    await templates.saveItems(tpl.id, [
+      PreDiveChecklistTemplateItem(
+        id: '',
+        templateId: tpl.id,
+        title: 'Gear',
+        itemType: PreDiveItemType.equipmentSet,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    ]);
+
+    final session = await make('pre_dive_sessions', {
+      'template_id': tpl.id,
+      'equipment_set_id': 'camrig',
+    });
+    final titles = {
+      for (final id in await items(session))
+        (await h.one('pre_dive_session_items', id))!['title'],
+    };
+    expect(titles, {'Regulator', 'Camera'});
   });
 }

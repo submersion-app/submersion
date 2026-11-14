@@ -1656,9 +1656,11 @@ class DiveComputerRepository {
 
       final diveId = matchedDiveId ?? _uuid.v4();
       final isNewDive = matchedDiveId == null;
-      // The set the defaulter chose for a new dive. Its weights and
-      // cylinders wait until the computer's own tanks are written.
+      // The set the defaulter chose for a new dive, and the sets linked to
+      // this computer. Their weights and cylinders wait until the
+      // computer's own tanks are written.
       String? defaultSetId;
+      var computerSetIds = const <String>[];
 
       // A bottom time the source reported, bounded by the runtime so it
       // cannot come out longer than the dive (issue #1642).
@@ -1817,7 +1819,7 @@ class DiveComputerRepository {
         // Apply every equipment set that lists this computer as a member
         // (issue #1020), e.g. a CCR rig set that bundles the controller with
         // drysuit and tec fins. Additive, independent of the defaulter above.
-        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+        computerSetIds = await EquipmentSetForComputerLinker().linkComputerSets(
           diveId: diveId,
         );
 
@@ -2185,6 +2187,7 @@ class DiveComputerRepository {
         await DiveSetBundleApplier().applyTagged(
           diveId: diveId,
           leadSetId: defaultSetId,
+          alsoSetIds: computerSetIds,
           retagAbsorbed: true,
         );
       }
@@ -2469,13 +2472,14 @@ class DiveComputerRepository {
         await DiveComputerGearLinker().linkComputerGearForDive(diveId: diveId);
         // Apply every equipment set that lists this computer as a member
         // (issue #1020). Additive, independent of the defaulter above.
-        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+        final landed = await EquipmentSetForComputerLinker().linkComputerSets(
           diveId: diveId,
         );
         // Their weights and cylinders too, where the dive has none (issue
-        // #4525). The dive already existed, so its set tags are left as
-        // they are.
-        await DiveSetBundleApplier().applyTagged(diveId: diveId);
+        // #4525). Only the sets that land with this reading: the sets the
+        // dive already carried are its history, and re-applying one would
+        // add lead the diver never logged to a dive made long ago.
+        await DiveSetBundleApplier().apply(diveId: diveId, setIds: landed);
       }
 
       // Note: Computer stats (incrementDiveCount, updateLastDownload) are

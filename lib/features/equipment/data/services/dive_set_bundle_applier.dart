@@ -93,7 +93,9 @@ class DiveSetBundleApplier {
 
   /// [apply] for the sets whose gear the dive carries: [leadSetId] first
   /// (the default or location set, which may have no gear and so no tag),
-  /// then the tagged sets by name.
+  /// then [alsoSetIds] in the order given (sets that landed without
+  /// leaving a tag, because their gear was already on the dive under
+  /// another set's), then the tagged sets by name.
   ///
   /// With [retagAbsorbed], gear tagged with a set that another of them
   /// includes takes the outer set's tag, so a dive just created shows one
@@ -101,6 +103,7 @@ class DiveSetBundleApplier {
   Future<SetBundleApplied> applyTagged({
     required String diveId,
     String? leadSetId,
+    List<String> alsoSetIds = const [],
     bool retagAbsorbed = false,
     bool notify = true,
   }) async {
@@ -116,11 +119,11 @@ class DiveSetBundleApplier {
             readsFrom: {_db.diveEquipment, _db.equipmentSets},
           )
           .get();
-      final setIds = <String>[
+      final setIds = <String>{
         ?leadSetId,
-        for (final row in tagged)
-          if (row.read<String>('id') != leadSetId) row.read<String>('id'),
-      ];
+        ...alsoSetIds,
+        for (final row in tagged) row.read<String>('id'),
+      }.toList();
       if (setIds.isEmpty) return _nothingApplied;
       if (retagAbsorbed) await _retagAbsorbed(diveId, setIds);
       return await apply(diveId: diveId, setIds: setIds, notify: notify);

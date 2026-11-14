@@ -523,6 +523,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
 
+  /// Whether a prefill (a scanned log page, a cylinder tag) wrote the first
+  /// tank. [_tanksDirty] cannot say so: a prefill that only gives a mix or
+  /// pressures leaves it clear so the default preset can still load. A set's
+  /// cylinders must not replace that tank as if it were the untouched
+  /// starter (issue #4525).
+  bool _firstTankPrefilled = false;
+
   /// Part of every tank row's key, bumped when a configuration rewrites
   /// cylinders in place. A tank editor reads its text fields once, so an
   /// editor left open would keep the old size and write it back on the next
@@ -987,6 +994,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           t.material != null) {
         _tanksDirty = true;
       }
+      _firstTankPrefilled = true;
       _loadedTankIds = {..._loadedTankIds, _tanks.first.id};
     } else if (p.startPressureBar != null ||
         p.endPressureBar != null ||
@@ -1010,6 +1018,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         ),
         ..._tanks.skip(1),
       ];
+      _firstTankPrefilled = true;
       _loadedTankIds = {..._loadedTankIds, _tanks.first.id};
     }
   }

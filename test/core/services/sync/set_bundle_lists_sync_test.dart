@@ -111,6 +111,50 @@ void main() {
       expect(exported.map((r) => r['id']), ['r1']);
     });
 
+    // Two devices that each add the same target to the same set mint their
+    // own row id for one pair; the pair is unique, so an upsert keyed on the
+    // id alone fails the whole batch. Lowest id wins on both sides.
+    test('$type: a peer row for a pair held under a higher id replaces '
+        'it', () async {
+      await serializer.upsertRecord(type, row(type, id: 'r9'));
+      await serializer.upsertRecord(type, row(type, id: 'r1', sortOrder: 3));
+      expect(await serializer.recordIdsFor(type), {'r1'});
+      expect((await serializer.fetchRecord(type, 'r1'))!['sortOrder'], 3);
+    });
+
+    test('$type: a peer row for a pair held under a lower id is '
+        'skipped', () async {
+      await serializer.upsertRecord(type, row(type, id: 'r1', sortOrder: 3));
+      await serializer.upsertRecord(type, row(type, id: 'r9'));
+      expect(await serializer.recordIdsFor(type), {'r1'});
+      expect((await serializer.fetchRecord(type, 'r1'))!['sortOrder'], 3);
+    });
+
+    test('$type: a batch carrying one pair twice, over a local copy, '
+        'settles on the lowest id', () async {
+      await serializer.upsertRecord(type, row(type, id: 'r5'));
+      await serializer.upsertRecords(type, [
+        row(type, id: 'r7'),
+        row(type, id: 'r2', sortOrder: 4),
+      ]);
+      expect(await serializer.recordIdsFor(type), {'r2'});
+      expect((await serializer.fetchRecord(type, 'r2'))!['sortOrder'], 4);
+    });
+
+    test('$type: a batch whose pair is held under a lower id changes '
+        'nothing', () async {
+      await serializer.upsertRecord(type, row(type, id: 'r1', sortOrder: 3));
+      await serializer.upsertRecords(type, [row(type, id: 'r9')]);
+      expect(await serializer.recordIdsFor(type), {'r1'});
+    });
+
+    test('$type: the same id again updates its order', () async {
+      await serializer.upsertRecord(type, row(type));
+      await serializer.upsertRecord(type, row(type, sortOrder: 5));
+      await serializer.upsertRecords(type, [row(type, sortOrder: 6)]);
+      expect((await serializer.fetchRecord(type, 'r1'))!['sortOrder'], 6);
+    });
+
     test('$type: is a parent-gated child with no updatedAt', () {
       expect(SyncDataSerializer.parentGatedChildEntities, contains(type));
       expect(SyncService.entityHasUpdatedAt[type], isFalse);

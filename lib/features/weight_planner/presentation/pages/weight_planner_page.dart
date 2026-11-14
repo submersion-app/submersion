@@ -505,12 +505,19 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
     final showSave =
         enteredKg != null && (weightDiffers || heightDiffers || bodyFatDiffers);
     final bodyProfile = ref.watch(diverBodyProfileProvider).valueOrNull;
-    final bodyFatEstimate = BodyComposition.displayEstimate(
-      weightKg: enteredKg,
-      heightCm: enteredHeight,
-      ageYears: bodyProfile?.ageYears,
-      sex: bodyProfile?.sex,
-    );
+    // A blank field falls back to the body fat the model was fitted with,
+    // when there is one: the estimate is then not what a blank means, and
+    // is not shown as if it were.
+    final blankMeansProfile =
+        _bodyFatController.text.trim().isEmpty && model?.bodyFatPercent != null;
+    final bodyFatEstimate = blankMeansProfile
+        ? null
+        : BodyComposition.displayEstimate(
+            weightKg: enteredKg,
+            heightCm: enteredHeight,
+            ageYears: bodyProfile?.ageYears,
+            sex: bodyProfile?.sex,
+          );
     final bmi = enteredKg == null
         ? null
         : BodyComposition.bmi(weightKg: enteredKg, heightCm: enteredHeight);

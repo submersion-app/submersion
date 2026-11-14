@@ -5066,6 +5066,84 @@ class SyncDataSerializer {
     });
   }
 
+  /// The three lists an equipment set carries besides gear (v363, issue
+  /// #4525), as entity type to (table, column naming what the set lists).
+  static const Map<String, (String, String)> _setBundleListTables = {
+    'equipmentSetIncludes': ('equipment_set_includes', 'included_set_id'),
+    'equipmentSetWeightPresets': ('equipment_set_weight_presets', 'preset_id'),
+    'equipmentSetCylinderConfigs': (
+      'equipment_set_cylinder_configs',
+      'config_id',
+    ),
+  };
+
+  /// Applies incoming rows of one of [_setBundleListTables].
+  ///
+  /// A row has its own uuid and a unique (set, target) pair, so two devices
+  /// that each add the same preset to the same set mint two ids for one
+  /// pair, and an upsert keyed on the id alone would fail the whole batch on
+  /// the pair's unique index. The pair is first settled on the lowest id, as
+  /// [_reconcileJunctionIds] does for every such junction. The insert then
+  /// updates a row arriving again under its own id, which is how a reorder
+  /// travels, and does nothing for a pair this device still holds under a
+  /// lower id: the peer drops its copy when this device's row reaches it.
+  Future<void> _applySetBundleListRows(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    final (table, targetColumn) = _setBundleListTables[entityType]!;
+    final targetField = switch (entityType) {
+      'equipmentSetIncludes' => 'includedSetId',
+      'equipmentSetWeightPresets' => 'presetId',
+      _ => 'configId',
+    };
+    final rows = _lowestIdPerPair(
+      records,
+      (r) => (
+        parent: r['setId'] as String,
+        child: r[targetField] as String,
+        id: r['id'] as String,
+      ),
+    );
+    await _reconcileJunctionIds(
+      table,
+      parentColumn: 'set_id',
+      childColumn: targetColumn,
+      pairs: [
+        for (final r in rows)
+          (
+            parent: r['setId'] as String,
+            child: r[targetField] as String,
+            id: r['id'] as String,
+          ),
+      ],
+    );
+    await _db.batch((batch) {
+      for (final r in rows) {
+        batch.customStatement(
+          'INSERT INTO $table '
+          '(id, set_id, $targetColumn, sort_order, created_at, hlc) '
+          'VALUES (?, ?, ?, ?, ?, ?) '
+          'ON CONFLICT(id) DO UPDATE SET '
+          'set_id = excluded.set_id, '
+          '$targetColumn = excluded.$targetColumn, '
+          'sort_order = excluded.sort_order, '
+          'created_at = excluded.created_at, '
+          'hlc = excluded.hlc '
+          'ON CONFLICT DO NOTHING',
+          [
+            r['id'],
+            r['setId'],
+            r[targetField],
+            (r['sortOrder'] as num?)?.toInt() ?? 0,
+            (r['createdAt'] as num).toInt(),
+            r['hlc'],
+          ],
+        );
+      }
+    });
+  }
+
   /// [rows] reduced to one entry per natural pair, the LOWEST id winning.
   ///
   /// One payload can carry two rows that mean the same pair: [_withTagAlias]
@@ -6175,21 +6253,9 @@ class SyncDataSerializer {
             .insertOnConflictUpdate(WeightPresetEntryRow.fromJson(data));
         return;
       case 'equipmentSetIncludes':
-        await _db
-            .into(_db.equipmentSetIncludes)
-            .insertOnConflictUpdate(EquipmentSetIncludeRow.fromJson(data));
-        return;
       case 'equipmentSetWeightPresets':
-        await _db
-            .into(_db.equipmentSetWeightPresets)
-            .insertOnConflictUpdate(EquipmentSetWeightPresetRow.fromJson(data));
-        return;
       case 'equipmentSetCylinderConfigs':
-        await _db
-            .into(_db.equipmentSetCylinderConfigs)
-            .insertOnConflictUpdate(
-              EquipmentSetCylinderConfigRow.fromJson(data),
-            );
+        await _applySetBundleListRows(entityType, [data]);
         return;
       case 'diveComputers':
         await _db
@@ -7863,32 +7929,9 @@ class SyncDataSerializer {
         );
         return;
       case 'equipmentSetIncludes':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.equipmentSetIncludes,
-            records.map((r) => EquipmentSetIncludeRow.fromJson(r)).toList(),
-          ),
-        );
-        return;
       case 'equipmentSetWeightPresets':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.equipmentSetWeightPresets,
-            records
-                .map((r) => EquipmentSetWeightPresetRow.fromJson(r))
-                .toList(),
-          ),
-        );
-        return;
       case 'equipmentSetCylinderConfigs':
-        await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.equipmentSetCylinderConfigs,
-            records
-                .map((r) => EquipmentSetCylinderConfigRow.fromJson(r))
-                .toList(),
-          ),
-        );
+        await _applySetBundleListRows(entityType, records);
         return;
       case 'diveComputers':
         await _db.batch(

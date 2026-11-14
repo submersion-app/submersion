@@ -3267,14 +3267,14 @@ class UddfEntityImporter {
       await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
       // Apply every equipment set that lists this computer as a member
       // (issue #1020). Additive, independent of the defaulter above.
-      await EquipmentSetForComputerLinker().linkComputerSetsForDive(
-        diveId: dive.id,
-      );
+      final computerSetIds = await EquipmentSetForComputerLinker()
+          .linkComputerSets(diveId: dive.id);
       // What those sets carry besides gear (issue #4525): weights only
       // where the dive has none, and never a cylinder beside its own.
       await DiveSetBundleApplier().applyTagged(
         diveId: dive.id,
         leadSetId: defaultSetId,
+        alsoSetIds: computerSetIds,
         retagAbsorbed: true,
       );
       importedDiveIds.add(diveId);

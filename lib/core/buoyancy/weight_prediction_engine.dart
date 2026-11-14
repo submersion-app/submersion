@@ -300,8 +300,13 @@ class WeightPredictionEngine {
       bodyWeightKg: bodyWeightKg,
       heightCm: fitHeightCm,
       bodyFatPercent: subtractsBodyComposition ? fitBodyFatPercent : null,
-      ageYears: subtractsBodyComposition ? ageYears : null,
-      sex: subtractsBodyComposition ? sex : null,
+      // Age and sex describe the diver, not a measurement: with no dives
+      // nothing was subtracted, so predict may use them for a body the rig
+      // brings (a new diver trying the planner before saving a weight).
+      ageYears: subtractsBodyComposition || supportingDives == 0
+          ? ageYears
+          : null,
+      sex: subtractsBodyComposition || supportingDives == 0 ? sex : null,
     );
   }
 
@@ -386,8 +391,9 @@ class FittedWeightModel {
   /// subtracted a body-composition term; the fallback for rigs that omit it.
   final double? heightCm;
 
-  /// Body fat, age and sex the model was fitted with, kept on the same
-  /// terms as [heightCm]: [predict] adds back what the fit subtracted.
+  /// Body fat, age and sex the model was fitted with. Body fat is kept on
+  /// the same terms as [heightCm]: [predict] adds back what the fit
+  /// subtracted. Age and sex are also kept when the fit had no dives.
   final double? bodyFatPercent;
   final int? ageYears;
   final DiverSex? sex;

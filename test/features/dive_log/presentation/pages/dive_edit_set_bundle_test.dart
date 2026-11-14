@@ -8,6 +8,7 @@ import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_
 import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -123,7 +124,11 @@ void main() {
     }
   }
 
-  Future<void> pumpEditor(WidgetTester tester, {String? diveId}) async {
+  Future<void> pumpEditor(
+    WidgetTester tester, {
+    String? diveId,
+    DivePrefill? prefill,
+  }) async {
     tester.view.physicalSize = const Size(1000, 6000);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -144,7 +149,13 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: DiveEditPage(diveId: diveId, embedded: true)),
+          home: Scaffold(
+            body: DiveEditPage(
+              diveId: diveId,
+              embedded: true,
+              prefill: prefill,
+            ),
+          ),
         ),
       ),
     );
@@ -311,6 +322,51 @@ void main() {
       expect(dive.tanks.single.gasMix.o2, 32);
       expect(dive.tanks.single.volume, closeTo(11.1, 1e-9));
       expect(await gearOn(dive.id), {'bp': 'rig', 'reg': 'rig'});
+    });
+
+    // A scanned log page or a cylinder tag fills the first tank before the
+    // default set lands; that tank is the diver's data, not a starter.
+    testWidgets('a tank prefilled from a scan keeps its gas and pressures', (
+      tester,
+    ) async {
+      await pumpEditor(
+        tester,
+        prefill: const DivePrefill(
+          startPressureBar: 200,
+          endPressureBar: 50,
+          o2Percent: 36,
+        ),
+      );
+      await save(tester);
+
+      final dive = await savedDive();
+      expect(dive.tanks, hasLength(1));
+      expect(dive.tanks.single.gasMix.o2, 36);
+      expect(dive.tanks.single.startPressure, 200);
+      expect(dive.tanks.single.endPressure, 50);
+      // The set still brings its gear and lead.
+      expect(dive.weights.single.amountKg, closeTo(3.63, 1e-9));
+      expect(await gearOn(dive.id), {'bp': 'rig', 'reg': 'rig'});
+    });
+
+    testWidgets('a tank prefilled from a cylinder tag keeps its mix and '
+        'passport', (tester) async {
+      await pumpEditor(
+        tester,
+        prefill: const DivePrefill(
+          tank: DiveTank(
+            id: 'tag',
+            gasMix: GasMix(o2: 28),
+            passportId: 'pass-1',
+          ),
+        ),
+      );
+      await save(tester);
+
+      final dive = await savedDive();
+      expect(dive.tanks, hasLength(1));
+      expect(dive.tanks.single.gasMix.o2, 28);
+      expect(dive.tanks.single.passportId, 'pass-1');
     });
 
     testWidgets('picking a set that includes it shows one set and replaces '

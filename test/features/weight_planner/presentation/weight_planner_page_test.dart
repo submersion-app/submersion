@@ -463,6 +463,24 @@ void main() {
       expect(find.text('Estimated: about 24%'), findsOneWidget);
     });
 
+    // Cleared, the field falls back to the body fat on the profile, not to
+    // the estimate, so the estimate is not offered as what a blank means.
+    testWidgets('clearing a field the profile filled hides the estimate', (
+      tester,
+    ) async {
+      await pumpPage(
+        tester,
+        latestHeight: 175.0,
+        latestBodyFat: 22.5,
+        bodyProfile: (sex: DiverSex.male, ageYears: 40),
+      );
+      expect(find.text('Estimated: about 24%'), findsOneWidget);
+
+      await tester.enterText(bodyFatField(), '');
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Estimated: about'), findsNothing);
+    });
+
     testWidgets('no estimate shows without sex and age', (tester) async {
       await pumpPage(tester, latestHeight: 175.0);
       expect(find.textContaining('Estimated: about'), findsNothing);
