@@ -343,9 +343,7 @@ void main() {
 
     // A curve shorter than the profile has no value past its end, so the
     // last stop is not held on to a sample the curve does not reach (review).
-    testWidgets('a stop is not held past the end of its curve', (
-      tester,
-    ) async {
+    testWidgets('a stop is not held past the end of its curve', (tester) async {
       await pumpPainter(tester, painter(morph: 1, decoStopCurve: [6]));
       // Halfway from 60 s to 600 s, at 3 m: only inside a stop held on to
       // the profile's second sample.
