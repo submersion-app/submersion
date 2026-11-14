@@ -276,6 +276,28 @@ void main() {
     expect(sets[newDiveId], ['diveGuide', 'diveMaster']);
   });
 
+  // Issue #4539: the shift corrects the camera against the computer the
+  // dive keeps. The split dive runs on another clock and takes no media.
+  test('a split dive starts with no media time shift', () async {
+    await insertDive('dive-1', computerId: 'dc-a');
+    await insertSource('src-a', 'dive-1', 'dc-a', isPrimary: true);
+    await insertSource('src-b', 'dive-1', 'dc-b', isPrimary: false);
+    await insertProfileSeriesRow('dive-1', 'dc-a', isPrimary: true);
+    await insertProfileSeriesRow('dive-1', 'dc-b', isPrimary: false);
+    await repository.setMediaTimeOffsetSeconds('dive-1', -47);
+
+    final newDiveId = await service.split(diveId: 'dive-1', sourceId: 'src-b');
+
+    expect(
+      (await repository.getDiveById('dive-1'))!.mediaTimeOffsetSeconds,
+      -47,
+    );
+    expect(
+      (await repository.getDiveById(newDiveId))!.mediaTimeOffsetSeconds,
+      0,
+    );
+  });
+
   test('splitting the primary promotes the remaining source', () async {
     await insertDive('dive-1', computerId: 'dc-a');
     await insertSource(

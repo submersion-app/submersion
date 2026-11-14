@@ -46,6 +46,7 @@ Map<String, Object?> diveDocument(Dive dive) {
     'is_favorite': dive.isFavorite,
     'excluded_from_stats': dive.excludedFromStats,
     'excluded_from_gas_stats': dive.excludedFromGasStats,
+    'media_time_offset_s': dive.mediaTimeOffsetSeconds,
     'entry_location': _point(dive.entryLocation),
     'exit_location': _point(dive.exitLocation),
     'site': site == null

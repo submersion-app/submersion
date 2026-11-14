@@ -117,7 +117,7 @@ Chosen by the maintainer on 2026-11-14.
 ## Constraints
 
 - **Main database.** Schema version 364 when this was written; the
-  column shipped as version 367, after main took 365 and 366. Tables in
+  column shipped as version 368, after main took 365, 366 and 367. Tables in
   `lib/core/database/tables/`, rungs in `lib/core/database/migrations/`;
   nothing is added to `database.dart`. The new column takes the next
   version; renumber at merge time if main has moved. `before_open.dart` is

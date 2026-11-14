@@ -206,13 +206,21 @@ extension RungsFromV340 on AppDatabase {
     if (from < 366) await _assertDefaultShowCounterdiffusionColumn();
     if (from < 366) await reportProgress();
 
-    // v367: dive_sites.catalogue_answers, what a diver has settled about
+    // v367: dives.media_time_offset_seconds, the correction for a camera
+    // whose clock disagrees with the dive computer's (issue #4539). Column
+    // only, defaulted to 0, so the compatibility floor does not move.
+    // Re-asserted in beforeOpen. Renumbered from 366, which main took for
+    // #4530.
+    if (from < 367) await _assertDiveMediaTimeOffsetColumn();
+    if (from < 367) await reportProgress();
+
+    // v368: dive_sites.catalogue_answers, what a diver has settled about
     // built-in catalogue records for a site, and the link and answers a
     // profile keeps for a shared library site in library_site_notes.
     // Nullable, with nothing to backfill, so the floor does not move. The
-    // columns are re-asserted in beforeOpen. Renumbered from 365, which
-    // main took for #4537.
-    if (from < 367) await _assertSiteCatalogueAnswersColumns();
-    if (from < 367) await reportProgress();
+    // columns are re-asserted in beforeOpen. Renumbered twice: main took 365
+    // for #4537 and 367 for #4539.
+    if (from < 368) await _assertSiteCatalogueAnswersColumns();
+    if (from < 368) await reportProgress();
   }
 }
