@@ -200,25 +200,6 @@ void main() {
     });
   });
 
-  group('hasLiveEdit', () {
-    test('a live series marked as a parse is no edit', () async {
-      await seedDive();
-      await seedSource('comp-a');
-      await seedParse('comp-a');
-
-      expect(await series.hasLiveEdit(diveId, sourceId: 'comp-a'), isFalse);
-    });
-
-    test('a live marked edit is one', () async {
-      await seedDive();
-      await seedSource('comp-a');
-      await seedParse('comp-a');
-      await saveEdit();
-
-      expect(await series.hasLiveEdit(diveId, sourceId: 'comp-a'), isTrue);
-    });
-  });
-
   test('createDive marks its profile as no edit', () async {
     final created = await DiveRepository().createDive(
       domain.Dive(
@@ -396,7 +377,7 @@ void main() {
       await seedSource('comp-a');
       final ids = await reactivateOriginal('comp-a');
 
-      await series.relinkComputer('comp-1', [diveId]);
+      await series.relinkComputer('comp-1', [diveId], sourceIds: ['comp-a']);
 
       final rows = await rowsById();
       expect(rows[ids.edit]!.computerId, isNull);

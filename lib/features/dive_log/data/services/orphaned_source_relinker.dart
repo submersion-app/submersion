@@ -173,14 +173,21 @@ class OrphanedSourceRelinker {
       await _tankSeries.relinkSources(computerId, chunk, now: now);
     }
 
-    // Profiles carry no serial snapshot of their own, so they follow only
-    // where the dive's computer attribution is unambiguous. The sync bus is
-    // left to the caller, which notifies once its transaction commits.
-    final diveIds = {for (final o in orphans) o.source.diveId}.toList();
-    for (final chunk in seriesIdChunks(diveIds)) {
+    // A profile series that names its source follows it exactly, as the
+    // tanks do (issue #4529). One with no source carries no serial snapshot
+    // of its own, so it follows only where the dive's computer attribution
+    // is unambiguous. The source ids of the dives in a chunk ride along
+    // with it. The sync bus is left to the caller, which notifies once its
+    // transaction commits.
+    final sourcesByDive = <String, List<String>>{};
+    for (final o in orphans) {
+      (sourcesByDive[o.source.diveId] ??= []).add(o.source.id);
+    }
+    for (final chunk in seriesIdChunks(sourcesByDive.keys.toList())) {
       await _profileSeries.relinkComputer(
         computerId,
         chunk,
+        sourceIds: [for (final diveId in chunk) ...sourcesByDive[diveId]!],
         now: now,
         notify: false,
       );
