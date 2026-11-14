@@ -188,29 +188,22 @@ class ReparseService {
       ];
 
       // A manual edit stays, and a live one stays the live generation of its
-      // source, the fresh parse landing beneath it. The edit names no
-      // computer, so it sits off the strand of a source that has one, and
-      // hasLiveEdit says whether it is there. A source with no computer
-      // shares the edit's null strand, where a file import's own series has
-      // the same shape: the edit's synced mark tells them apart, live or
-      // demoted (issue #4386), and for a series written before the mark,
-      // liveEditIds, the rule a resync keeps an edit by, reads it off the
-      // generation demoted beneath it. An edit that lost its source is kept
-      // too, whoever re-parses.
-      final keptEdits = await _keptEdits(
-        diveId,
+      // source, the fresh parse landing beneath it. The edit names its source
+      // and no computer, the shape a file import's own series has, and a
+      // computer delete leaves on a download's: the edit's synced mark tells
+      // them apart, live or demoted (issue #4386), and for a series written
+      // before the mark, liveEditIds, the rule a resync keeps an edit by,
+      // reads it off the generation demoted beneath it. An edit that lost its
+      // source is kept too, whoever re-parses (issue #4529).
+      // Read once: nothing below writes a series before the replace.
+      final series = await _profileSeries.getIdentitiesForDive(diveId);
+      final keptEdits = _keptEdits(
+        series,
         sourceRow.id,
         sourceRow.computerId,
         sources,
       );
-      final beneathEdit =
-          sourceRow.isPrimary &&
-          (keptEdits.anyLive ||
-              (sourceRow.computerId != null &&
-                  await _profileSeries.hasLiveEdit(
-                    diveId,
-                    sourceId: sourceRow.id,
-                  )));
+      final beneathEdit = sourceRow.isPrimary && keptEdits.anyLive;
       final isMultiSource = sourceRows.length > 1;
       final ownsStrand = sourceOwnsProfileStrand(sourceRow, sourceRows);
 
@@ -256,6 +249,7 @@ class ReparseService {
           computerId: computerId,
           sourceId: sourceRow.id,
           sources: sources,
+          series: series,
           keptEdits: keptEdits.ids,
           liveEditKept: keptEdits.anyLive,
           parsed: parsed,
@@ -788,19 +782,20 @@ class ReparseService {
   /// [timeOffset] shifts every re-inserted sample onto the dive's timeline;
   /// see the note at the call site (issue #1177).
   ///
-  /// Replaces only the series this source owns on its own computer strand,
-  /// read by [seriesSourceOwnerAmong] over [sources]: those with its
-  /// `source_id`, plus a row with no source when this is the one source on
-  /// its non-null computer or on the dive. A series another source wrote, or
-  /// one that could be either's, is never touched. Matching on `computer_id`
-  /// alone took every other null-computer source's series with it, a file
-  /// import's primary among them (issue #4367). [keptEdits] are the manual
-  /// edits on this source's strand, its own and, on the null strand, any
-  /// with no source, which stay, live or demoted (issue #4386);
+  /// Replaces only the series this source owns, read by [_ownsSeries]: those
+  /// with its `source_id`, whatever computer a delete left them (issue
+  /// #4529), plus a row with no source on its own computer strand when this
+  /// is the one source on its non-null computer or on the dive. A series
+  /// another source wrote, or one that could be either's, is never touched.
+  /// Matching on `computer_id` alone took every other null-computer source's
+  /// series with it, a file import's primary among them (issue #4367).
+  /// [keptEdits] are the manual edits this source owns and any with no
+  /// source or computer, which stay, live or demoted (issue #4386);
   /// [liveEditKept] says one of them is the live series, so the fresh parse
-  /// lands beneath it.
+  /// lands beneath it. [series] are the dive's series as read before.
   Future<void> _replaceDiveProfiles({
     required String diveId,
+    required List<ProfileSeriesIdentity> series,
     required String? computerId,
     required String sourceId,
     required List<({String id, String? computerId})> sources,
@@ -812,7 +807,7 @@ class ReparseService {
     required int timeOffset,
   }) async {
     final replaced = [
-      for (final s in await _profileSeries.getIdentitiesForDive(diveId))
+      for (final s in series)
         if (!keptEdits.contains(s.id) &&
             _ownsSeries(
               s,
@@ -845,51 +840,54 @@ class ReparseService {
     }
   }
 
-  /// Whether [sourceId] owns series [s] on [computerId]'s strand: by
-  /// [seriesSourceOwnerAmong] over [sources], or, for a series with no
-  /// source, by being the dive's one source, which is the only author such a
-  /// series can have (issue #4367).
+  /// Whether [sourceId] owns series [s]. A series that names a source is
+  /// that source's whatever computer it carries: a computer delete strips
+  /// the computer and leaves the source, so a series the relink did not give
+  /// its computer back is still this source's, and a fresh parse beside it
+  /// would leave the dive two series of one source (issue #4529). A series
+  /// with no source belongs, on [computerId]'s strand, to the one source of
+  /// that computer by [seriesSourceOwnerAmong], or to the dive's one source,
+  /// the only author such a series can have (issue #4367).
   static bool _ownsSeries(
     ProfileSeriesIdentity s, {
     required String sourceId,
     required String? computerId,
     required List<({String id, String? computerId})> sources,
-  }) =>
-      s.computerId == computerId &&
-      (seriesSourceOwnerAmong(
-                sourceId: s.sourceId,
-                computerId: s.computerId,
-                sources: sources,
-              ) ==
-              sourceId ||
-          (s.sourceId == null && sources.length == 1));
+  }) {
+    if (s.sourceId != null) return s.sourceId == sourceId;
+    return s.computerId == computerId &&
+        (seriesSourceOwnerAmong(
+                  sourceId: null,
+                  computerId: s.computerId,
+                  sources: sources,
+                ) ==
+                sourceId ||
+            sources.length == 1);
+  }
 
-  /// The manual edits on [computerId]'s strand that a re-parse of
-  /// [sourceId] keeps, and whether one of them is live: those it owns and,
-  /// on the null strand, those with no source at all. `clearSource` strips
-  /// the source of an edit that outlives its row; on a dive with two sources
-  /// nobody owns it, so it is never deleted, and a fresh parse inserted live
-  /// beside it would leave the dive two live profiles. A series marked as an
-  /// edit counts, live or demoted (issue #4386). On the null strand an
+  /// The manual edits that a re-parse of [sourceId] keeps, and whether one
+  /// of them is live: those it owns and those with no source or computer at
+  /// all. `clearSource` strips the source of an edit that outlives its row,
+  /// a removed primary file import among them; nobody owns that edit, so it
+  /// is never deleted, and a fresh parse inserted live beside it would leave
+  /// the dive two live profiles, whichever source re-parses (issue #4529).
+  /// A series marked as an edit counts, live or demoted (issue #4386). An
   /// unmarked live series counts too when
   /// [ProfileSeriesRepository.liveEditIdsOf] reads it as one by its shape
-  /// (issue #3189).
-  Future<({Set<String> ids, bool anyLive})> _keptEdits(
-    String diveId,
+  /// (issue #3189): an edit of a source with a computer names that source
+  /// and no computer, the shape a computer delete leaves on its recording
+  /// too, and only the generation demoted beneath tells them apart.
+  static ({Set<String> ids, bool anyLive}) _keptEdits(
+    List<ProfileSeriesIdentity> series,
     String sourceId,
     String? computerId,
     List<({String id, String? computerId})> sources,
-  ) async {
-    final series = await _profileSeries.getIdentitiesForDive(diveId);
-    final byShape = computerId == null
-        ? ProfileSeriesRepository.liveEditIdsOf(series)
-        : const <String>{};
+  ) {
+    final byShape = ProfileSeriesRepository.liveEditIdsOf(series);
     final edits = [
       for (final s in series)
         if ((s.isEdit == true || byShape.contains(s.id)) &&
-            ((computerId == null &&
-                    s.computerId == null &&
-                    s.sourceId == null) ||
+            ((s.computerId == null && s.sourceId == null) ||
                 _ownsSeries(
                   s,
                   sourceId: sourceId,
