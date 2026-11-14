@@ -19,6 +19,8 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/core/deco/gas_switch/gas_switch_efficiency.dart';
 import 'package:submersion/core/utils/minutes_seconds.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/gas_calculators/presentation/providers/icd_calculator_providers.dart'
+    show icdWarningsEnabledProvider;
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/services/gas_usage_segments_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart'
@@ -69,6 +71,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_event_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_highlight_range.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/counterdiffusion_overlay.dart';
+import 'package:submersion/features/dive_log/domain/entities/counterdiffusion_analysis.dart';
 import 'package:submersion/core/ui/trackpad_zoom_recognizer.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/profile_event_label.dart';
 
@@ -557,6 +561,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Late and missed gas switches to shade (#2939); null hides the overlay.
   final GasSwitchEfficiency? gasSwitchEfficiency;
 
+  /// Isobaric counterdiffusion bands and rule-of-fifths switch markers
+  /// (#4530); null hides the overlay.
+  final CounterdiffusionAnalysis? counterdiffusion;
+
   /// Gas time remaining curve in seconds; a null sample is a blank (the
   /// line breaks there rather than dropping to zero)
   final List<int?>? gtrCurve;
@@ -894,6 +902,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.meanDepthCurve,
     this.ttsCurve,
     this.gasSwitchEfficiency,
+    this.counterdiffusion,
     this.gtrCurve,
     this.cnsCurve,
     this.otuCurve,
@@ -997,6 +1006,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showTts = false;
   bool _showGtr = false;
   bool _showLateGasSwitches = true;
+  bool _showCounterdiffusion = false;
+  bool _counterdiffusionShowAll = false;
+  bool _icdWarningsEnabled = true;
   bool _showCns = false;
   bool _showOtu = false;
 
@@ -2802,6 +2814,26 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
+    // Counterdiffusion span under the cursor (#4530).
+    final counterdiffusion = _showCounterdiffusion
+        ? counterdiffusionTooltip(
+            widget.counterdiffusion,
+            point.timestamp,
+            showAll: _counterdiffusionShowAll,
+            l10n: l10n,
+            scheme: Theme.of(context).colorScheme,
+          )
+        : null;
+    if (counterdiffusion != null) {
+      rows.add(
+        TooltipRow(
+          label: counterdiffusion.label,
+          value: counterdiffusion.value,
+          bulletColor: counterdiffusion.bulletColor,
+        ),
+      );
+    }
+
     // Marker info (if touching near a marker)
     if (widget.markers != null && widget.markers!.isNotEmpty) {
       final timestamp = point.timestamp;
@@ -3008,6 +3040,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showPressureMarkersLocal = false;
     _showGasSwitchMarkers = true;
     _showLateGasSwitches = false;
+    _showCounterdiffusion = false;
     _showPhotoMarkers = false;
     _showNdl = false;
     _showPpO2 = false;
@@ -3074,6 +3107,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final profileMetricColors = ref.watch(
       settingsProvider.select((s) => s.profileMetricColors),
     );
+    // The ICD warnings setting is the master switch for the rule-of-fifths
+    // switch markers, as it is for the ICD calculator (#4530): read through
+    // the calculator's own provider so both follow it the same way.
+    _icdWarningsEnabled = ref.watch(icdWarningsEnabledProvider);
     _palette = ProfileMetricPalette(
       overrides: profileMetricColors,
       temperatureAuto: Theme.of(context).colorScheme.tertiary,
@@ -3113,6 +3150,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showPressureMarkersLocal = legendState.showPressureMarkers;
     _showGasSwitchMarkers = legendState.showGasSwitchMarkers;
     _showLateGasSwitches = legendState.showLateGasSwitches;
+    _showCounterdiffusion = legendState.showCounterdiffusion;
+    _counterdiffusionShowAll = legendState.counterdiffusionShowAll;
     _showPhotoMarkers = legendState.showPhotoMarkers;
     // Must be synced before _metricBand() is read for the cache signatures
     // (see _syncBarSignatures), or a mode flip would key bars on the outgoing
@@ -3200,6 +3239,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           widget.gasSwitches != null && widget.gasSwitches!.isNotEmpty,
       hasLateGasSwitches:
           widget.gasSwitchEfficiency?.windows.isNotEmpty ?? false,
+      hasCounterdiffusion: widget.counterdiffusion?.heliumPresent ?? false,
       hasPhotoMarkers:
           widget.photoMarkers != null && widget.photoMarkers!.isNotEmpty,
       hasMultiTankPressure: _hasMultiTankPressure,
@@ -4671,6 +4711,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   highlightSpan,
                   widget.highlightRange?.color,
                 ),
+                if (_showCounterdiffusion)
+                  ...icdSwitchMarkerLines(
+                    widget.counterdiffusion,
+                    warningsEnabled: _icdWarningsEnabled,
+                    scheme: colorScheme,
+                    visibleMinX: visibleMinX,
+                    visibleMaxX: visibleMaxX,
+                  ),
                 if (widget.events != null && (_showEvents || _showAnnotations))
                   ..._buildEventVerticalLines(
                     colorScheme,
@@ -7397,6 +7445,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ),
         );
       }
+    }
+    // Isobaric counterdiffusion (#4530): between the late switches and the
+    // O2 cell runs, so a selected finding still paints over it.
+    if (_showCounterdiffusion) {
+      annotations.addAll(
+        counterdiffusionBands(
+          widget.counterdiffusion,
+          showAll: _counterdiffusionShowAll,
+          scheme: Theme.of(context).colorScheme,
+          visibleMinX: visibleMinX,
+          visibleMaxX: visibleMaxX,
+        ),
+      );
     }
     if (_showO2Cells) {
       for (final range in widget.secondaryRanges) {

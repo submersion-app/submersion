@@ -8934,6 +8934,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => '延迟换气';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => '逆向扩散';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => '全部';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => '逆向扩散 (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => '反向交换';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => '气体切换';
 
   @override
@@ -21289,6 +21309,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => '我已了解';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      '剖面显示等压逆向扩散';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer => '已接受计划提示';
 
   @override
@@ -21639,6 +21663,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => '延迟换气';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion => '等压逆向扩散';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return '等压逆向扩散持续 $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      '一次换气违反了五分之一规则';
 
   @override
   String get safetySettings_rule_highSurfaceGf => '出水时梯度因子过高';
@@ -22173,6 +22209,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => '上升限制';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion => '等压逆向扩散';
 
   @override
   String get settings_appearance_metric_events => '事件';
@@ -27364,7 +27403,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      '在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器中显示根据五分之一法则得出的评估。';
+      '在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器和潜水曲线的逆向扩散图层中显示根据五分之一法则得出的评估。';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS 计算';
@@ -59233,6 +59272,13 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       '当氮上升快于氦下降时，换气可在深度不变的情况下增加组织中的惰性气体总量。常用的五分之一规则将氮的增幅限制在氦降幅的五分之一以内。';
+
+  @override
+  String get info_term_counterdiffusionProfile_label => '潜水曲线上的逆向扩散';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      '在潜水曲线上，橙色条带标出隔室所含惰性气体已多于吸入量、却仍明显吸收气体的时段。在 Bühlmann 模型中氦排出快于氮进入，因此从三混气换到高氧时很少出现条带；换气处的虚线则显示五分之一规则。';
 
   @override
   String get info_term_hypercapnia_label => '高碳酸血症';

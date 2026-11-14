@@ -3130,6 +3130,19 @@
   "diveLog_legend_label_computedEvents": "Berechnete Ereignisse",
   "diveLog_legend_label_gasDensity": "Gasdichte",
   "diveLog_legend_label_lateGasSwitches": "Späte Gaswechsel",
+  "diveLog_legend_label_counterdiffusion": "Gegendiffusion",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "Alle",
+  "diveLog_tooltip_counterdiffusion_icd": "Gegendiffusion (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Gegenläufiger Austausch",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Gaswechsel",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Herzfrequenz",
@@ -6683,6 +6696,7 @@
   "planning_disclaimer_dialog_title": "Hinweis zu den Planungswerkzeugen",
   "planning_disclaimer_dialog_body": "Die Werkzeuge in diesem Bereich dienen ausschließlich der Planung. Sie ersetzen weder deine Tauchausbildung noch deinen Tauchcomputer. Überprüfe jede Berechnung selbst, bevor du sie für eine Sicherheitsentscheidung verwendest.",
   "planning_disclaimer_dialog_confirm": "Verstanden",
+  "settings_conflict_field_defaultShowCounterdiffusion": "Profil zeigt isobare Gegendiffusion",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planungs-Hinweis bestätigt",
   "planning_section_tools": "Werkzeuge",
   "planning_summary_prompt": "Wähle ein Werkzeug zum Starten",
@@ -6734,6 +6748,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "Ein schmales, scrubbares Profil oben in den Tauchgangsdetails behalten",
   "settings_appearance_metric_ceiling": "Ceiling",
   "settings_appearance_metric_cns": "CNS% (O2-Toxizität)",
+  "settings_appearance_metric_counterdiffusion": "Isobare Gegendiffusion",
   "settings_appearance_metric_events": "Ereignisse",
   "settings_appearance_metric_estimatedTankPressure": "Geschätzter Flaschendruck",
   "settings_appearance_metric_gasDensity": "Gasdichte",
@@ -8414,7 +8429,7 @@
   "settings_decompression_endLimit_dialog_title": "END-Grenze",
   "settings_decompression_header_icd": "Isobare Gegendiffusion",
   "settings_decompression_icdWarnings": "Vor ICD-Risiko warnen",
-  "settings_decompression_icdWarnings_subtitle": "Zeigt im ICD-Rechner eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.",
+  "settings_decompression_icdWarnings_subtitle": "Zeigt im ICD-Rechner und in der Gegendiffusionsanzeige des Tauchprofils eine Bewertung nach der Fünftel-Regel beim Wechsel von einem heliumreicheren zu einem stickstoffreicheren Gas.",
   "settings_decompression_cnsMethodTitle": "CNS-Berechnung",
   "settings_decompression_cnsMethodClassic": "NOAA-Tabelle, gestuft (klassisch)",
   "settings_decompression_cnsMethodClassicDesc": "Berechnet jedes 0,1-bar-Band mit dem strengeren Rand. Submersions ursprüngliche Methode.",
@@ -12460,6 +12475,16 @@
   "safetySettings_rule_omittedSafetyStop": "Ausgelassene Sicherheitsstopps",
   "safetySettings_rule_sawtoothProfile": "Sägezahnprofile",
   "safetySettings_rule_lateGasSwitch": "Später Gaswechsel",
+  "safetySettings_rule_isobaricCounterdiffusion": "Isobare Gegendiffusion",
+  "safetyReview_isobaricCounterdiffusion_title": "Isobare Gegendiffusion während {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "Ein Gaswechsel verletzte die Fünftelregel",
   "safetySettings_rule_highSurfaceGf": "Hoher Gradientenfaktor beim Auftauchen",
   "safetySettings_analyzeAll": "Alle Tauchgänge analysieren",
   "safetySettings_analyzeAll_subtitle": "Sicherheitsüberprüfung für alle noch nicht analysierten Tauchgänge mit Profil ausführen",
@@ -18598,6 +18623,8 @@
   "info_term_salinity_body": "Salzwasser ist dichter als Süßwasser, deshalb entspricht derselbe Druck im Meer einer etwas geringeren Tiefe. Tauchcomputer rechnen damit Druck in Tiefe um.",
   "info_term_isobaricCounterdiffusion_label": "ICD (isobare Gegendiffusion)",
   "info_term_isobaricCounterdiffusion_body": "Ein Gaswechsel kann das gesamte Inertgas im Gewebe ohne Tiefenänderung erhöhen, wenn Stickstoff schneller steigt als Helium fällt. Die übliche Prüfung, die Fünftelregel, begrenzt den Stickstoffanstieg auf ein Fünftel des Heliumrückgangs.",
+  "info_term_counterdiffusionProfile_label": "Gegendiffusion im Tauchprofil",
+  "info_term_counterdiffusionProfile_body": "Im Tauchprofil markiert ein oranges Band, wo ein Kompartiment bereits mehr Inertgas enthält, als eingeatmet wird, und trotzdem spürbar aufsättigt. Im Bühlmann-Modell fließt Helium schneller ab, als Stickstoff einströmt, daher zeigt ein Wechsel von Trimix auf Nitrox selten ein Band; die gestrichelte Linie am Wechsel zeigt stattdessen die Fünftelregel.",
   "info_term_hypercapnia_label": "Hyperkapnie",
   "info_term_hypercapnia_body": "Eine Anreicherung von Kohlendioxid im Körper. Dichtes Gas und schwere Arbeit machen sie wahrscheinlicher.",
   "info_term_turnPressure_label": "Umkehrdruck",

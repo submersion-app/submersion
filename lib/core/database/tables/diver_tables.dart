@@ -496,6 +496,10 @@ class DiverSettings extends Table {
   // v161: default visibility for the per-cell O2 mV traces (issue #1235).
   BoolColumn get defaultShowO2CellMv =>
       boolean().withDefault(const Constant(false))();
+  // v364: default visibility for the isobaric counterdiffusion overlay on the
+  // dive profile (issue #4530).
+  BoolColumn get defaultShowCounterdiffusion =>
+      boolean().withDefault(const Constant(false))();
   // v163: whether synthesized ("(est.)") tank pressure lines are drawn on the
   // profile chart at all (issue #731). Defaults to true, preserving the
   // behavior estimates shipped with. Ignored for coverage for the reason

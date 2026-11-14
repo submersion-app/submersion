@@ -9422,6 +9422,26 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Cambios de gas tardíos';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Contradifusión';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Todo';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Contradifusión (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Intercambio opuesto';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Cambios de gas';
 
   @override
@@ -22386,6 +22406,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Entendido';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'El perfil muestra la contradifusión isobárica';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Aviso de planificación aceptado';
 
@@ -22763,6 +22787,19 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Cambio de gas tardío';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Contradifusión isobárica';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Contradifusión isobárica durante $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Un cambio de gas incumplió la regla de los quintos';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23346,6 +23383,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Techo';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Contradifusión isobárica';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';
@@ -29013,7 +29054,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Muestra una evaluación según la regla del quinto en la calculadora ICD al cambiar de un gas más rico en helio a uno más rico en nitrógeno.';
+      'Muestra una evaluación según la regla del quinto en la calculadora ICD y en la capa de contradifusión del perfil al cambiar de un gas más rico en helio a uno más rico en nitrógeno.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Cálculo de CNS';
@@ -63143,6 +63184,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Un cambio de gas puede subir el gas inerte total en los tejidos sin cambiar de profundidad cuando el nitrógeno sube más rápido de lo que baja el helio. La comprobación habitual, la regla de los quintos, limita la subida de nitrógeno a un quinto de la bajada de helio.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Contradifusión en el perfil';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'En el perfil, una banda naranja marca dónde un compartimento ya contiene más gas inerte del que se respira y, pese a ello, sigue absorbiendo gas de forma apreciable. En el modelo de Buhlmann el helio sale más rápido de lo que entra el nitrógeno, así que un cambio de trimix a nitrox rara vez muestra una banda; la línea discontinua en el cambio muestra en su lugar la regla de los quintos.';
 
   @override
   String get info_term_hypercapnia_label => 'Hipercapnia';

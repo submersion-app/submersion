@@ -136,6 +136,21 @@ void main() {
     expect(container.read(settingsProvider).o2CellUnit, O2CellUnit.millivolts);
   });
 
+  test('a synced change keeps the device-local counterdiffusion choice '
+      '(issue #4530)', () async {
+    await container
+        .read(settingsProvider.notifier)
+        .setCounterdiffusionShowAll(true);
+    final prefs = container.read(sharedPreferencesProvider);
+    expect(prefs.getBool(SettingsKeys.counterdiffusionShowAll), isTrue);
+
+    await applyPeerRow(diverA, (row) => row.copyWith(gfHigh: 70));
+    await pumpEventQueue();
+
+    expect(container.read(settingsProvider).gfHigh, 70);
+    expect(container.read(settingsProvider).counterdiffusionShowAll, isTrue);
+  });
+
   test('a synced pSCR ratio and viewport choice show on this device '
       '(issue #2948)', () async {
     await applyPeerRow(

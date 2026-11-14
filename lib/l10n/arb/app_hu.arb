@@ -2981,6 +2981,19 @@
   "diveLog_legend_label_computedEvents": "Számított események",
   "diveLog_legend_label_gasDensity": "Gáz sűrűség",
   "diveLog_legend_label_lateGasSwitches": "Késői gázváltások",
+  "diveLog_legend_label_counterdiffusion": "Ellendiffúzió",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "Mind",
+  "diveLog_tooltip_counterdiffusion_icd": "Ellendiffúzió (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Ellentétes csere",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Gázcserélések",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Pulzus",
@@ -6427,6 +6440,7 @@
   "planning_disclaimer_dialog_title": "Tervezőeszközök figyelmeztetése",
   "planning_disclaimer_dialog_body": "Az ebben a részben található eszközök kizárólag tervezési célokat szolgálnak. Nem helyettesítik a merülési képzést vagy a merülőkomputert. Mindig ellenőrizze saját maga az összes számítást, mielőtt biztonsági döntéshez használná.",
   "planning_disclaimer_dialog_confirm": "Megértettem",
+  "settings_conflict_field_defaultShowCounterdiffusion": "A profil mutatja az izobár ellendiffúziót",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Tervezési figyelmeztetés elfogadva",
   "planning_section_tools": "Eszközök",
   "planning_summary_prompt": "Válassz egy eszközt a kezdéshez",
@@ -6478,6 +6492,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "Keskeny, végiggörgethető profil a merülés részleteinek tetején",
   "settings_appearance_metric_ceiling": "Plafon",
   "settings_appearance_metric_cns": "CNS% (O2 toxicitás)",
+  "settings_appearance_metric_counterdiffusion": "Izobár ellendiffúzió",
   "settings_appearance_metric_events": "Események",
   "settings_appearance_metric_estimatedTankPressure": "Becsült palacknyomás",
   "settings_appearance_metric_gasDensity": "Gáz sűrűség",
@@ -8153,7 +8168,7 @@
   "settings_decompression_endLimit_dialog_title": "END határ",
   "settings_decompression_header_icd": "Izobár ellendiffúzió",
   "settings_decompression_icdWarnings": "Figyelmeztetés ICD-kockázatra",
-  "settings_decompression_icdWarnings_subtitle": "Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.",
+  "settings_decompression_icdWarnings_subtitle": "Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban és a profil ellendiffúziós rétegén, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.",
   "settings_decompression_cnsMethodTitle": "CNS-számítás",
   "settings_decompression_cnsMethodClassic": "NOAA-táblázat, lépcsős (klasszikus)",
   "settings_decompression_cnsMethodClassicDesc": "Minden 0,1 bar-os sávot a szigorúbb szélén számol. A Submersion eredeti módszere.",
@@ -12313,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "Kihagyott biztonsági megállók",
   "safetySettings_rule_sawtoothProfile": "Fűrészfog-profilok",
   "safetySettings_rule_lateGasSwitch": "Késői gázváltás",
+  "safetySettings_rule_isobaricCounterdiffusion": "Izobár ellendiffúzió",
+  "safetyReview_isobaricCounterdiffusion_title": "Izobár ellendiffúzió {duration} hosszan",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "Egy gázváltás megsértette az ötödszabályt",
   "safetySettings_rule_highSurfaceGf": "Magas gradiens faktor felszínre érkezéskor",
   "safetySettings_analyzeAll": "Összes merülés elemzése",
   "safetySettings_analyzeAll_subtitle": "A biztonsági áttekintés futtatása minden olyan profillal rendelkező merülésen, amely még nincs elemezve",
@@ -18473,6 +18498,8 @@
   "info_term_salinity_body": "A sós víz sűrűbb az édesvíznél, ezért ugyanaz a nyomás tengerben kicsit kisebb mélységnek felel meg. A komputerek ezzel számítják a nyomásból a mélységet.",
   "info_term_isobaricCounterdiffusion_label": "ICD (izobár ellendiffúzió)",
   "info_term_isobaricCounterdiffusion_body": "Gázváltás mélységváltozás nélkül is növelheti a szövetek teljes inertgáz-tartalmát, ha a nitrogén gyorsabban nő, mint ahogy a hélium csökken. A szokásos ellenőrzés, az ötödszabály, a nitrogén növekedését a héliumcsökkenés egyötödére korlátozza.",
+  "info_term_counterdiffusionProfile_label": "Ellendiffúzió a profilon",
+  "info_term_counterdiffusionProfile_body": "A merülési profilon narancssárga sáv jelzi, ahol egy kompartment már több inert gázt tartalmaz, mint amennyit belélegzünk, és mégis érezhetően telítődik. A Bühlmann-modellben a hélium gyorsabban távozik, mint ahogy a nitrogén belép, ezért a trimixről nitroxra váltás ritkán mutat sávot; a váltásnál lévő szaggatott vonal helyette az ötödszabályt mutatja.",
   "info_term_hypercapnia_label": "Hiperkapnia",
   "info_term_hypercapnia_body": "Szén-dioxid felhalmozódása a szervezetben. Sűrű gáz és nehéz munka valószínűbbé teszi.",
   "info_term_turnPressure_label": "Visszafordulási nyomás",

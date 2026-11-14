@@ -212,6 +212,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_defaultShowMeanDepth,
     FieldKind.boolean,
   ),
+  'defaultShowCounterdiffusion': ConflictField(
+    (l) => l.settings_conflict_field_defaultShowCounterdiffusion,
+    FieldKind.boolean,
+  ),
   'defaultShowO2CellMv': ConflictField(
     (l) => l.settings_conflict_field_defaultShowO2CellMv,
     FieldKind.boolean,

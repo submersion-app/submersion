@@ -98,6 +98,10 @@ class ProfileLegendConfig {
 
   /// The dive has late or missed gas switch windows to shade (#2939).
   final bool hasLateGasSwitches;
+
+  /// Helium is breathed or held in the tissues, so the counterdiffusion
+  /// overlay has something to show (#4530).
+  final bool hasCounterdiffusion;
   final bool hasPhotoMarkers;
   final bool hasMultiTankPressure;
   final bool hasGasData;
@@ -159,6 +163,7 @@ class ProfileLegendConfig {
     this.hasPressureMarkers = false,
     this.hasGasSwitches = false,
     this.hasLateGasSwitches = false,
+    this.hasCounterdiffusion = false,
     this.hasPhotoMarkers = false,
     this.hasMultiTankPressure = false,
     this.hasGasData = false,
@@ -201,6 +206,7 @@ class ProfileLegendConfig {
       hasPressureMarkers ||
       hasGasSwitches ||
       hasLateGasSwitches ||
+      hasCounterdiffusion ||
       hasPhotoMarkers ||
       hasTankListSection ||
       hasGasData ||

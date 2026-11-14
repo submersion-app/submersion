@@ -3104,6 +3104,19 @@
   "diveLog_legend_label_computedEvents": "الأحداث المحسوبة",
   "diveLog_legend_label_gasDensity": "كثافة الغاز",
   "diveLog_legend_label_lateGasSwitches": "تبديلات الغاز المتأخرة",
+  "diveLog_legend_label_counterdiffusion": "الانتشار العكسي",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "الكل",
+  "diveLog_tooltip_counterdiffusion_icd": "انتشار عكسي (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "تبادل متعاكس",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "تبديلات الغاز",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "معدل نبض القلب",
@@ -6550,6 +6563,7 @@
   "planning_disclaimer_dialog_title": "تنبيه أدوات التخطيط",
   "planning_disclaimer_dialog_body": "الأدوات في هذا القسم هي لأغراض التخطيط فقط. لا تحل محل تدريبك على الغوص أو حاسوب الغوص الخاص بك. تحقق دائمًا من كل حساب بنفسك قبل استخدامه في قرار متعلق بالسلامة.",
   "planning_disclaimer_dialog_confirm": "فهمت",
+  "settings_conflict_field_defaultShowCounterdiffusion": "الملف يعرض الانتشار العكسي متساوي الضغط",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "تم قبول تنبيه التخطيط",
   "planning_section_tools": "أدوات",
   "planning_summary_prompt": "اختر أداة للبدء",
@@ -6601,6 +6615,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "إبقاء مخطط رفيع قابل للتمرير أعلى تفاصيل الغطسة",
   "settings_appearance_metric_ceiling": "السقف",
   "settings_appearance_metric_cns": "CNS% (سمية الأكسجين)",
+  "settings_appearance_metric_counterdiffusion": "الانتشار العكسي متساوي الضغط",
   "settings_appearance_metric_events": "الأحداث",
   "settings_appearance_metric_estimatedTankPressure": "ضغط الأسطوانة المقدر",
   "settings_appearance_metric_gasDensity": "كثافة الغاز",
@@ -8276,7 +8291,7 @@
   "settings_decompression_endLimit_dialog_title": "حد END",
   "settings_decompression_header_icd": "الانتشار المعاكس متساوي الضغط",
   "settings_decompression_icdWarnings": "التحذير من خطر ICD",
-  "settings_decompression_icdWarnings_subtitle": "يعرض في حاسبة ICD تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.",
+  "settings_decompression_icdWarnings_subtitle": "يعرض في حاسبة ICD وفي طبقة الانتشار العكسي في مخطط الغوص تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.",
   "settings_decompression_cnsMethodTitle": "حساب الـ CNS",
   "settings_decompression_cnsMethodClassic": "جدول NOAA، متدرّج (كلاسيكي)",
   "settings_decompression_cnsMethodClassicDesc": "يحسب كل نطاق 0.1 bar عند حدّه الأكثر صرامة. الطريقة الأصلية في Submersion.",
@@ -12313,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "توقفات السلامة المُغفلة",
   "safetySettings_rule_sawtoothProfile": "ملفات بنمط سن المنشار",
   "safetySettings_rule_lateGasSwitch": "تبديل غاز متأخر",
+  "safetySettings_rule_isobaricCounterdiffusion": "الانتشار العكسي متساوي الضغط",
+  "safetyReview_isobaricCounterdiffusion_title": "انتشار عكسي متساوي الضغط لمدة {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "خالف تبديل غاز قاعدة الأخماس",
   "safetySettings_rule_highSurfaceGf": "عامل تدرج مرتفع عند الصعود",
   "safetySettings_analyzeAll": "تحليل جميع الغطسات",
   "safetySettings_analyzeAll_subtitle": "تشغيل مراجعة السلامة على كل غطسة ذات ملف لم تُحلل بعد",
@@ -18473,6 +18498,8 @@
   "info_term_salinity_body": "الماء المالح أكثف من العذب، لذا يُقرأ الضغط نفسه في البحر كعمق أقل قليلًا. تستخدمه الحواسيب لتحويل الضغط إلى عمق.",
   "info_term_isobaricCounterdiffusion_label": "ICD (الانتشار العكسي متساوي الضغط)",
   "info_term_isobaricCounterdiffusion_body": "قد يرفع تبديل الغاز إجمالي الغاز الخامل في الأنسجة دون تغير العمق عندما يرتفع النيتروجين أسرع مما ينخفض الهيليوم. الفحص الشائع، قاعدة الأخماس، يحد ارتفاع النيتروجين بخمس انخفاض الهيليوم.",
+  "info_term_counterdiffusionProfile_label": "الانتشار العكسي في مخطط الغوص",
+  "info_term_counterdiffusionProfile_body": "في مخطط الغوص يحدد شريط برتقالي المواضع التي يحمل فيها نسيج غازًا خاملًا أكثر مما يُستنشق ومع ذلك يمتص الغاز بشكل ملحوظ. في نموذج بولمان يخرج الهيليوم أسرع مما يدخل النيتروجين، لذا نادرًا ما يُظهر التبديل من التريمكس إلى النيتروكس شريطًا؛ ويُظهر الخط المتقطع عند التبديل قاعدة الأخماس بدلًا من ذلك.",
   "info_term_hypercapnia_label": "فرط ثاني أكسيد الكربون",
   "info_term_hypercapnia_body": "تراكم ثاني أكسيد الكربون في الجسم. يزيد الغاز الكثيف والجهد الشديد من احتماله.",
   "info_term_turnPressure_label": "ضغط الالتفاف",

@@ -322,7 +322,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 363;
+  static const int currentSchemaVersion = 364;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1679,6 +1679,10 @@ class AppDatabase extends _$AppDatabase {
     // was adopted from. Nullable, nothing to backfill, so the floor does
     // not move. Renumbered from 362, which main took for #4461.
     363,
+    // v364: diver_settings.default_show_counterdiffusion, the default
+    // visibility of the isobaric counterdiffusion overlay on the dive profile
+    // (issue #4530). Additive and defaulted off; the floor does not move.
+    364,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

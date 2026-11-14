@@ -47,6 +47,15 @@ String safetyFindingTitle(
           : l10n.safetyReview_lateGasSwitch_title(
               value == null ? unknown : _formatSeconds(value.round()),
             ),
+    // A rule-of-fifths violation is an instant at the switch; a tissue-model
+    // span reports how long the tissues counterdiffused.
+    SafetyRuleId.isobaricCounterdiffusion =>
+      finding.startTimestamp != null &&
+              finding.startTimestamp == finding.endTimestamp
+          ? l10n.safetyReview_isobaricCounterdiffusion_switch_title
+          : l10n.safetyReview_isobaricCounterdiffusion_title(
+              _durationOf(finding),
+            ),
   };
 }
 
@@ -65,6 +74,8 @@ String safetyRuleLabel(SafetyRuleId rule, AppLocalizations l10n) {
     SafetyRuleId.sawtoothProfile => l10n.safetySettings_rule_sawtoothProfile,
     SafetyRuleId.highSurfaceGf => l10n.safetySettings_rule_highSurfaceGf,
     SafetyRuleId.lateGasSwitch => l10n.safetySettings_rule_lateGasSwitch,
+    SafetyRuleId.isobaricCounterdiffusion =>
+      l10n.safetySettings_rule_isobaricCounterdiffusion,
   };
 }
 

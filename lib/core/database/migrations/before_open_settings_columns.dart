@@ -53,5 +53,9 @@ extension BeforeOpenSettingsColumns on AppDatabase {
 
     // v360 backstop: diver_settings.show_country_flags (issue #4426).
     await _assertShowCountryFlagsColumn();
+
+    // v364 backstop: diver_settings.default_show_counterdiffusion (issue
+    // #4530).
+    await _assertDefaultShowCounterdiffusionColumn();
   }
 }

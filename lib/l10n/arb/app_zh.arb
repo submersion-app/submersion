@@ -3217,6 +3217,19 @@
   "diveLog_legend_label_computedEvents": "计算的事件",
   "diveLog_legend_label_gasDensity": "气体密度",
   "diveLog_legend_label_lateGasSwitches": "延迟换气",
+  "diveLog_legend_label_counterdiffusion": "逆向扩散",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "全部",
+  "diveLog_tooltip_counterdiffusion_icd": "逆向扩散 (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "反向交换",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "气体切换",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "心率",
@@ -6701,6 +6714,7 @@
   "planning_disclaimer_dialog_title": "计划工具提示",
   "planning_disclaimer_dialog_body": "此区域中的工具仅供计划参考。它们不能替代您的潜水训练或潜水电脑。在将计算结果用于安全决策之前,请务必自行验证每一项计算。",
   "planning_disclaimer_dialog_confirm": "我已了解",
+  "settings_conflict_field_defaultShowCounterdiffusion": "剖面显示等压逆向扩散",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "已接受计划提示",
   "planning_section_tools": "工具",
   "planning_summary_prompt": "选择一个工具开始",
@@ -6752,6 +6766,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "在潜水详情顶部保留一条可拖动的窄剖面图",
   "settings_appearance_metric_ceiling": "上升限制",
   "settings_appearance_metric_cns": "中枢神经系统% (O2 毒性)",
+  "settings_appearance_metric_counterdiffusion": "等压逆向扩散",
   "settings_appearance_metric_events": "事件",
   "settings_appearance_metric_estimatedTankPressure": "估算气瓶压力",
   "settings_appearance_metric_gasDensity": "气体密度",
@@ -8441,7 +8456,7 @@
   "settings_decompression_endLimit_dialog_title": "END 限制",
   "settings_decompression_header_icd": "等压逆向扩散",
   "settings_decompression_icdWarnings": "ICD风险警告",
-  "settings_decompression_icdWarnings_subtitle": "在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器中显示根据五分之一法则得出的评估。",
+  "settings_decompression_icdWarnings_subtitle": "在从氦气含量较高的气体切换到氮气含量较高的气体时,在ICD计算器和潜水曲线的逆向扩散图层中显示根据五分之一法则得出的评估。",
   "settings_decompression_cnsMethodTitle": "CNS 计算",
   "settings_decompression_cnsMethodClassic": "NOAA 表格，分级（经典）",
   "settings_decompression_cnsMethodClassicDesc": "在每个 0.1 bar 区间按其更严格的边缘计算。Submersion 最初采用的方法。",
@@ -12313,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "省略的安全停留",
   "safetySettings_rule_sawtoothProfile": "锯齿形剖面",
   "safetySettings_rule_lateGasSwitch": "延迟换气",
+  "safetySettings_rule_isobaricCounterdiffusion": "等压逆向扩散",
+  "safetyReview_isobaricCounterdiffusion_title": "等压逆向扩散持续 {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "一次换气违反了五分之一规则",
   "safetySettings_rule_highSurfaceGf": "出水时梯度因子过高",
   "safetySettings_analyzeAll": "分析所有潜水",
   "safetySettings_analyzeAll_subtitle": "对所有具有剖面且尚未分析的潜水运行安全回顾",
@@ -18473,6 +18498,8 @@
   "info_term_salinity_body": "海水比淡水密度大，因此同样的压力在海中对应稍浅的深度。潜水电脑据此把压力换算成深度。",
   "info_term_isobaricCounterdiffusion_label": "ICD（等压逆向扩散）",
   "info_term_isobaricCounterdiffusion_body": "当氮上升快于氦下降时，换气可在深度不变的情况下增加组织中的惰性气体总量。常用的五分之一规则将氮的增幅限制在氦降幅的五分之一以内。",
+  "info_term_counterdiffusionProfile_label": "潜水曲线上的逆向扩散",
+  "info_term_counterdiffusionProfile_body": "在潜水曲线上，橙色条带标出隔室所含惰性气体已多于吸入量、却仍明显吸收气体的时段。在 Bühlmann 模型中氦排出快于氮进入，因此从三混气换到高氧时很少出现条带；换气处的虚线则显示五分之一规则。",
   "info_term_hypercapnia_label": "高碳酸血症",
   "info_term_hypercapnia_body": "体内二氧化碳积聚。气体密度高和用力大会使其更容易发生。",
   "info_term_turnPressure_label": "折返压力",

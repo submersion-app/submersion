@@ -5547,6 +5547,19 @@
   "diveLog_legend_label_computedEvents": "Computed events",
   "diveLog_legend_label_gasDensity": "Gas Density",
   "diveLog_legend_label_lateGasSwitches": "Late gas switches",
+  "diveLog_legend_label_counterdiffusion": "Counterdiffusion",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "All",
+  "diveLog_tooltip_counterdiffusion_icd": "Counterdiffusion (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Opposing exchange",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Gas Switches",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Heart Rate",
@@ -14208,6 +14221,7 @@
   "planning_disclaimer_dialog_title": "Planning Tools Disclaimer",
   "planning_disclaimer_dialog_body": "The tools in this section are for planning purposes only. They do not replace your dive training or your dive computer. Always verify every calculation yourself before using it for a safety decision.",
   "planning_disclaimer_dialog_confirm": "I Understand",
+  "settings_conflict_field_defaultShowCounterdiffusion": "Profile shows isobaric counterdiffusion",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planning disclaimer accepted",
   "planning_section_tools": "Tools",
   "planning_summary_prompt": "Select a tool to get started",
@@ -14447,6 +14461,16 @@
   "safetySettings_rule_omittedSafetyStop": "Omitted safety stops",
   "safetySettings_rule_sawtoothProfile": "Sawtooth profiles",
   "safetySettings_rule_lateGasSwitch": "Late gas switch",
+  "safetySettings_rule_isobaricCounterdiffusion": "Isobaric counterdiffusion",
+  "safetyReview_isobaricCounterdiffusion_title": "Isobaric counterdiffusion for {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "A gas switch broke the rule of fifths",
   "safetySettings_rule_highSurfaceGf": "High surfacing gradient factor",
   "safetySettings_analyzeAll": "Analyze all dives",
   "safetySettings_analyzeAll_subtitle": "Run the safety review over every dive with a profile that has not been analyzed yet",
@@ -14771,6 +14795,7 @@
   "settings_appearance_pinProfileOnScroll": "Pin profile when scrolling",
   "settings_appearance_pinProfileOnScroll_subtitle": "Keep a thin, scrubbable profile at the top of dive details",
   "settings_appearance_metric_ceiling": "Ceiling",
+  "settings_appearance_metric_counterdiffusion": "Isobaric counterdiffusion",
   "settings_appearance_metric_events": "Events",
   "settings_appearance_metric_estimatedTankPressure": "Estimated Tank Pressure",
   "@settings_appearance_metric_estimatedTankPressure": {
@@ -16858,7 +16883,7 @@
   "settings_decompression_endLimit_dialog_title": "END Limit",
   "settings_decompression_header_icd": "Isobaric Counterdiffusion",
   "settings_decompression_icdWarnings": "Warn on ICD risk",
-  "settings_decompression_icdWarnings_subtitle": "Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.",
+  "settings_decompression_icdWarnings_subtitle": "Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile's counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.",
   "settings_decompression_cnsMethodTitle": "CNS calculation",
   "settings_decompression_cnsMethodClassic": "NOAA table, stepped (classic)",
   "settings_decompression_cnsMethodClassicDesc": "Charges each 0.1 bar band at its harsher edge. Submersion's original method.",
@@ -37095,6 +37120,8 @@
   "info_term_salinity_body": "Salt water is denser than fresh water, so the same pressure reads as a slightly shallower depth in the sea. Computers use it to turn pressure into depth.",
   "info_term_isobaricCounterdiffusion_label": "ICD (isobaric counterdiffusion)",
   "info_term_isobaricCounterdiffusion_body": "A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.",
+  "info_term_counterdiffusionProfile_label": "Counterdiffusion on the profile",
+  "info_term_counterdiffusionProfile_body": "On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.",
   "info_term_hypercapnia_label": "Hypercapnia",
   "info_term_hypercapnia_body": "A build-up of carbon dioxide in the body. Dense gas and hard work make it more likely.",
   "info_term_turnPressure_label": "Turn pressure",

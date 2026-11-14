@@ -31,8 +31,16 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowO2CellMv: value);
 
   @override
+  Future<void> setDefaultShowCounterdiffusion(bool value) async =>
+      state = state.copyWith(defaultShowCounterdiffusion: value);
+
+  @override
   Future<void> setO2CellUnit(O2CellUnit value) async =>
       state = state.copyWith(o2CellUnit: value);
+
+  @override
+  Future<void> setCounterdiffusionShowAll(bool value) async =>
+      state = state.copyWith(counterdiffusionShowAll: value);
 
   @override
   Future<void> setDefaultShowEstimatedTankPressure(bool value) async =>
@@ -156,6 +164,28 @@ void main() {
     await tester.pumpAndSettle();
 
     final tile = find.widgetWithText(SwitchListTile, 'O2 cells');
+    await tester.dragUntilVisible(
+      tile,
+      find.byType(Scrollable),
+      const Offset(0, -200),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isFalse);
+
+    await tester.tap(tile);
+    await tester.pumpAndSettle();
+    expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+  });
+
+  testWidgets('toggles isobaric counterdiffusion default', (tester) async {
+    // Issue #4530: the overlay is off until the diver turns it on here.
+    await tester.pumpWidget(buildPage(_StubSettingsNotifier()));
+    await tester.pumpAndSettle();
+
+    final tile = find.widgetWithText(
+      SwitchListTile,
+      'Isobaric counterdiffusion',
+    );
     await tester.dragUntilVisible(
       tile,
       find.byType(Scrollable),

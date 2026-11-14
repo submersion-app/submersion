@@ -89,6 +89,7 @@ part 'helpers/document_migrations.dart';
 part 'helpers/equipment_migrations.dart';
 part 'helpers/equipment_collapsed_groups_migrations.dart';
 part 'helpers/country_flags_migrations.dart';
+part 'helpers/counterdiffusion_migrations.dart';
 part 'helpers/site_country_code_migrations.dart';
 part 'helpers/site_catalogue_id_migrations.dart';
 part 'helpers/equipment_condition_migrations.dart';

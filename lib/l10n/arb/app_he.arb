@@ -2981,6 +2981,19 @@
   "diveLog_legend_label_computedEvents": "אירועים מחושבים",
   "diveLog_legend_label_gasDensity": "צפיפות גז",
   "diveLog_legend_label_lateGasSwitches": "החלפות גז מאוחרות",
+  "diveLog_legend_label_counterdiffusion": "דיפוזיה נגדית",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "הכול",
+  "diveLog_tooltip_counterdiffusion_icd": "דיפוזיה נגדית (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "חילוף מנוגד",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "החלפות גז",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "קצב לב",
@@ -6427,6 +6440,7 @@
   "planning_disclaimer_dialog_title": "אזהרת כלי התכנון",
   "planning_disclaimer_dialog_body": "הכלים באזור זה מיועדים למטרות תכנון בלבד. הם אינם מחליפים את הכשרת הצלילה שלך או את מחשב הצלילה שלך. תמיד אמת כל חישוב בעצמך לפני שתשתמש בו להחלטת בטיחות.",
   "planning_disclaimer_dialog_confirm": "הבנתי",
+  "settings_conflict_field_defaultShowCounterdiffusion": "הפרופיל מציג דיפוזיה נגדית איזוברית",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "אזהרת תכנון אושרה",
   "planning_section_tools": "כלים",
   "planning_summary_prompt": "בחר כלי כדי להתחיל",
@@ -6605,6 +6619,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "השארת פרופיל צר וניתן לגרירה בראש פרטי הצלילה",
   "settings_appearance_metric_ceiling": "תקרה",
   "settings_appearance_metric_cns": "CNS% (רעילות חמצן)",
+  "settings_appearance_metric_counterdiffusion": "דיפוזיה נגדית איזוברית",
   "settings_appearance_metric_events": "אירועים",
   "settings_appearance_metric_estimatedTankPressure": "לחץ בלון משוער",
   "settings_appearance_metric_gasDensity": "צפיפות גז",
@@ -8280,7 +8295,7 @@
   "settings_decompression_endLimit_dialog_title": "מגבלת END",
   "settings_decompression_header_icd": "דיפוזיה הפכית איזובארית",
   "settings_decompression_icdWarnings": "הזהר מסיכון ICD",
-  "settings_decompression_icdWarnings_subtitle": "מציג במחשבון ה-ICD הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.",
+  "settings_decompression_icdWarnings_subtitle": "מציג במחשבון ה-ICD ובשכבת הדיפוזיה הנגדית בפרופיל הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.",
   "settings_decompression_cnsMethodTitle": "חישוב CNS",
   "settings_decompression_cnsMethodClassic": "טבלת NOAA, מדורגת (קלאסי)",
   "settings_decompression_cnsMethodClassicDesc": "מחשב כל תחום של 0.1 bar לפי הקצה המחמיר שלו. השיטה המקורית של Submersion.",
@@ -12313,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "עצירות בטיחות שהושמטו",
   "safetySettings_rule_sawtoothProfile": "פרופילי שן מסור",
   "safetySettings_rule_lateGasSwitch": "החלפת גז מאוחרת",
+  "safetySettings_rule_isobaricCounterdiffusion": "דיפוזיה נגדית איזוברית",
+  "safetyReview_isobaricCounterdiffusion_title": "דיפוזיה נגדית איזוברית במשך {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "החלפת גז הפרה את כלל החמישיות",
   "safetySettings_rule_highSurfaceGf": "פקטור גרדיאנט גבוה בעלייה לפני השטח",
   "safetySettings_analyzeAll": "נתח את כל הצלילות",
   "safetySettings_analyzeAll_subtitle": "הרצת סקירת הבטיחות על כל צלילה עם פרופיל שטרם נותחה",
@@ -18473,6 +18498,8 @@
   "info_term_salinity_body": "מים מלוחים צפופים ממים מתוקים, ולכן אותו לחץ מתאים בים לעומק רדוד מעט יותר. מחשבי צלילה משתמשים בזה כדי להמיר לחץ לעומק.",
   "info_term_isobaricCounterdiffusion_label": "ICD (דיפוזיה נגדית איזוברית)",
   "info_term_isobaricCounterdiffusion_body": "החלפת גז יכולה להעלות את סך הגז האינרטי ברקמות בלי שינוי עומק כשהחנקן עולה מהר יותר משההליום יורד. הבדיקה המקובלת, כלל החמישיות, מגבילה את עליית החנקן לחמישית מירידת ההליום.",
+  "info_term_counterdiffusionProfile_label": "דיפוזיה נגדית בפרופיל",
+  "info_term_counterdiffusionProfile_body": "בפרופיל הצלילה פס כתום מסמן היכן מדור מכיל כבר יותר גז אינרטי ממה שנשאף ועדיין קולט גז באופן מורגש. במודל בולמן ההליום יוצא מהר יותר משהחנקן נכנס, ולכן מעבר מטרימיקס לניטרוקס מראה פס לעתים רחוקות; הקו המקווקו במעבר מראה במקום זאת את כלל החמישיות.",
   "info_term_hypercapnia_label": "היפרקפניה",
   "info_term_hypercapnia_body": "הצטברות של פחמן דו-חמצני בגוף. גז צפוף ומאמץ קשה מגבירים את הסיכוי לה.",
   "info_term_turnPressure_label": "לחץ חזרה",

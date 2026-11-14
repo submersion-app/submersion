@@ -315,6 +315,42 @@ void main() {
     },
   );
 
+  test('applies a pre-v364 diver_settings payload missing '
+      'defaultShowCounterdiffusion', () async {
+    await db.customStatement('PRAGMA foreign_keys = OFF');
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.diverSettings)
+        .insert(
+          DiverSettingsCompanion.insert(
+            id: 'ds-icd',
+            diverId: 'diver-icd',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    final exported = await serializer.fetchRecord('diverSettings', 'ds-icd');
+    expect(exported, isNotNull);
+
+    // A peer still on v363 exports no defaultShowCounterdiffusion. The
+    // column is NOT NULL, so an unseeded import would throw in
+    // DiverSetting.fromJson.
+    final legacy = Map<String, dynamic>.from(exported!)
+      ..remove('defaultShowCounterdiffusion');
+
+    await (db.delete(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-icd'))).go();
+
+    await serializer.upsertRecord('diverSettings', legacy);
+
+    final row = await (db.select(
+      db.diverSettings,
+    )..where((t) => t.id.equals('ds-icd'))).getSingle();
+    expect(row.defaultShowCounterdiffusion, isFalse);
+  });
+
   test(
     'applies a pre-v163 diver_settings payload missing the estimate default',
     () async {

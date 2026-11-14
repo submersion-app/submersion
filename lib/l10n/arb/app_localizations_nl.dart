@@ -9360,6 +9360,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Late gaswissels';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Tegendiffusie';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Alles';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Tegendiffusie (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing =>
+      'Tegengestelde uitwisseling';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gaswisselingen';
 
   @override
@@ -22256,6 +22277,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Begrepen';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Profiel toont isobare tegendiffusie';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planningswaarschuwing geaccepteerd';
 
@@ -22628,6 +22653,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Late gaswissel';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobare tegendiffusie';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobare tegendiffusie gedurende $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Een gaswissel brak de vijfderegel';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23205,6 +23243,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Plafond';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Isobare tegendiffusie';
 
   @override
   String get settings_appearance_metric_events => 'Gebeurtenissen';
@@ -28811,7 +28853,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Toont in de ICD-rekenmachine een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.';
+      'Toont in de ICD-rekenmachine en in de tegendiffusielaag van het profiel een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-berekening';
@@ -62711,6 +62753,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Tegendiffusie op het profiel';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnie';

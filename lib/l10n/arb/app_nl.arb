@@ -3104,6 +3104,19 @@
   "diveLog_legend_label_computedEvents": "Berekende gebeurtenissen",
   "diveLog_legend_label_gasDensity": "Gasdichtheid",
   "diveLog_legend_label_lateGasSwitches": "Late gaswissels",
+  "diveLog_legend_label_counterdiffusion": "Tegendiffusie",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "Alles",
+  "diveLog_tooltip_counterdiffusion_icd": "Tegendiffusie (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Tegengestelde uitwisseling",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Gaswisselingen",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Hartslag",
@@ -6550,6 +6563,7 @@
   "planning_disclaimer_dialog_title": "Waarschuwing planningstools",
   "planning_disclaimer_dialog_body": "De tools in dit gedeelte zijn alleen voor planningsdoeleinden. Ze vervangen niet je duikopleiding of je duikcomputer. Controleer altijd elke berekening zelf voordat je deze gebruikt voor een veiligheidsbeslissing.",
   "planning_disclaimer_dialog_confirm": "Begrepen",
+  "settings_conflict_field_defaultShowCounterdiffusion": "Profiel toont isobare tegendiffusie",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Planningswaarschuwing geaccepteerd",
   "planning_section_tools": "Gereedschappen",
   "planning_summary_prompt": "Kies een hulpmiddel om te beginnen",
@@ -6601,6 +6615,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "Houd een smal, verschuifbaar profiel bovenaan de duikdetails",
   "settings_appearance_metric_ceiling": "Plafond",
   "settings_appearance_metric_cns": "CNS% (O2-toxiciteit)",
+  "settings_appearance_metric_counterdiffusion": "Isobare tegendiffusie",
   "settings_appearance_metric_events": "Gebeurtenissen",
   "settings_appearance_metric_estimatedTankPressure": "Geschatte flesdruk",
   "settings_appearance_metric_gasDensity": "Gasdichtheid",
@@ -8276,7 +8291,7 @@
   "settings_decompression_endLimit_dialog_title": "END-limiet",
   "settings_decompression_header_icd": "Isobare tegendiffusie",
   "settings_decompression_icdWarnings": "Waarschuwen bij ICD-risico",
-  "settings_decompression_icdWarnings_subtitle": "Toont in de ICD-rekenmachine een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.",
+  "settings_decompression_icdWarnings_subtitle": "Toont in de ICD-rekenmachine en in de tegendiffusielaag van het profiel een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.",
   "settings_decompression_cnsMethodTitle": "CNS-berekening",
   "settings_decompression_cnsMethodClassic": "NOAA-tabel, getrapt (klassiek)",
   "settings_decompression_cnsMethodClassicDesc": "Rekent elke band van 0,1 bar af op de strengere rand. Oorspronkelijke methode van Submersion.",
@@ -12313,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "Overgeslagen veiligheidsstops",
   "safetySettings_rule_sawtoothProfile": "Zaagtandprofielen",
   "safetySettings_rule_lateGasSwitch": "Late gaswissel",
+  "safetySettings_rule_isobaricCounterdiffusion": "Isobare tegendiffusie",
+  "safetyReview_isobaricCounterdiffusion_title": "Isobare tegendiffusie gedurende {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "Een gaswissel brak de vijfderegel",
   "safetySettings_rule_highSurfaceGf": "Hoge gradiëntfactor bij opduiken",
   "safetySettings_analyzeAll": "Alle duiken analyseren",
   "safetySettings_analyzeAll_subtitle": "Voer de veiligheidscontrole uit op alle duiken met een profiel die nog niet geanalyseerd zijn",
@@ -18473,6 +18498,8 @@
   "info_term_salinity_body": "Zout water is dichter dan zoet water, dus dezelfde druk komt in zee overeen met een iets ondiepere diepte. Duikcomputers gebruiken dit om druk in diepte om te rekenen.",
   "info_term_isobaricCounterdiffusion_label": "ICD (isobare tegendiffusie)",
   "info_term_isobaricCounterdiffusion_body": "Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling.",
+  "info_term_counterdiffusionProfile_label": "Tegendiffusie op het profiel",
+  "info_term_counterdiffusionProfile_body": "Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.",
   "info_term_hypercapnia_label": "Hypercapnie",
   "info_term_hypercapnia_body": "Een ophoping van koolstofdioxide in het lichaam. Dicht gas en zwaar werk maken die waarschijnlijker.",
   "info_term_turnPressure_label": "Keerdruk",

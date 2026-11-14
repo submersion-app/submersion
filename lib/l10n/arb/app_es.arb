@@ -3104,6 +3104,19 @@
   "diveLog_legend_label_computedEvents": "Eventos calculados",
   "diveLog_legend_label_gasDensity": "Densidad del gas",
   "diveLog_legend_label_lateGasSwitches": "Cambios de gas tardíos",
+  "diveLog_legend_label_counterdiffusion": "Contradifusión",
+  "diveLog_counterdiffusion_segment_icd": "ICD",
+  "diveLog_counterdiffusion_segment_all": "Todo",
+  "diveLog_tooltip_counterdiffusion_icd": "Contradifusión (ICD)",
+  "diveLog_tooltip_counterdiffusion_opposing": "Intercambio opuesto",
+  "diveLog_tooltip_counterdiffusion_compartments": "#{list}",
+  "@diveLog_tooltip_counterdiffusion_compartments": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "diveLog_legend_label_gasSwitches": "Cambios de gas",
   "diveLog_legend_label_gfPercent": "GF%",
   "diveLog_legend_label_heartRate": "Frecuencia cardíaca",
@@ -6550,6 +6563,7 @@
   "planning_disclaimer_dialog_title": "Aviso de las herramientas de planificación",
   "planning_disclaimer_dialog_body": "Las herramientas de esta sección son solo para fines de planificación. No sustituyen tu formación de buceo ni tu computadora de buceo. Verifica siempre cada cálculo por tu cuenta antes de usarlo para una decisión de seguridad.",
   "planning_disclaimer_dialog_confirm": "Entendido",
+  "settings_conflict_field_defaultShowCounterdiffusion": "El perfil muestra la contradifusión isobárica",
   "settings_conflict_field_hasAcceptedPlanningDisclaimer": "Aviso de planificación aceptado",
   "planning_section_tools": "Herramientas",
   "planning_summary_prompt": "Selecciona una herramienta para empezar",
@@ -6601,6 +6615,7 @@
   "settings_appearance_pinProfileOnScroll_subtitle": "Mantener un perfil estrecho y desplazable arriba en los detalles de la inmersión",
   "settings_appearance_metric_ceiling": "Techo",
   "settings_appearance_metric_cns": "CNS% (Toxicidad de O2)",
+  "settings_appearance_metric_counterdiffusion": "Contradifusión isobárica",
   "settings_appearance_metric_events": "Eventos",
   "settings_appearance_metric_estimatedTankPressure": "Presión estimada del tanque",
   "settings_appearance_metric_gasDensity": "Densidad del gas",
@@ -8276,7 +8291,7 @@
   "settings_decompression_endLimit_dialog_title": "Límite END",
   "settings_decompression_header_icd": "Contradifusión isobárica",
   "settings_decompression_icdWarnings": "Avisar de riesgo de ICD",
-  "settings_decompression_icdWarnings_subtitle": "Muestra una evaluación según la regla del quinto en la calculadora ICD al cambiar de un gas más rico en helio a uno más rico en nitrógeno.",
+  "settings_decompression_icdWarnings_subtitle": "Muestra una evaluación según la regla del quinto en la calculadora ICD y en la capa de contradifusión del perfil al cambiar de un gas más rico en helio a uno más rico en nitrógeno.",
   "settings_decompression_cnsMethodTitle": "Cálculo de CNS",
   "settings_decompression_cnsMethodClassic": "Tabla NOAA, escalonada (clásico)",
   "settings_decompression_cnsMethodClassicDesc": "Calcula cada banda de 0,1 bar en su extremo más estricto. Método original de Submersion.",
@@ -12313,6 +12328,16 @@
   "safetySettings_rule_omittedSafetyStop": "Paradas de seguridad omitidas",
   "safetySettings_rule_sawtoothProfile": "Perfiles en dientes de sierra",
   "safetySettings_rule_lateGasSwitch": "Cambio de gas tardío",
+  "safetySettings_rule_isobaricCounterdiffusion": "Contradifusión isobárica",
+  "safetyReview_isobaricCounterdiffusion_title": "Contradifusión isobárica durante {duration}",
+  "@safetyReview_isobaricCounterdiffusion_title": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "safetyReview_isobaricCounterdiffusion_switch_title": "Un cambio de gas incumplió la regla de los quintos",
   "safetySettings_rule_highSurfaceGf": "Factor de gradiente alto al salir a superficie",
   "safetySettings_analyzeAll": "Analizar todas las inmersiones",
   "safetySettings_analyzeAll_subtitle": "Ejecutar la revisión de seguridad en todas las inmersiones con perfil que aún no se hayan analizado",
@@ -18473,6 +18498,8 @@
   "info_term_salinity_body": "El agua salada es más densa que la dulce, así que la misma presión equivale en el mar a una profundidad algo menor. Los ordenadores la usan para pasar de presión a profundidad.",
   "info_term_isobaricCounterdiffusion_label": "ICD (contradifusión isobárica)",
   "info_term_isobaricCounterdiffusion_body": "Un cambio de gas puede subir el gas inerte total en los tejidos sin cambiar de profundidad cuando el nitrógeno sube más rápido de lo que baja el helio. La comprobación habitual, la regla de los quintos, limita la subida de nitrógeno a un quinto de la bajada de helio.",
+  "info_term_counterdiffusionProfile_label": "Contradifusión en el perfil",
+  "info_term_counterdiffusionProfile_body": "En el perfil, una banda naranja marca dónde un compartimento ya contiene más gas inerte del que se respira y, pese a ello, sigue absorbiendo gas de forma apreciable. En el modelo de Buhlmann el helio sale más rápido de lo que entra el nitrógeno, así que un cambio de trimix a nitrox rara vez muestra una banda; la línea discontinua en el cambio muestra en su lugar la regla de los quintos.",
   "info_term_hypercapnia_label": "Hipercapnia",
   "info_term_hypercapnia_body": "Una acumulación de dióxido de carbono en el cuerpo. El gas denso y el esfuerzo intenso la hacen más probable.",
   "info_term_turnPressure_label": "Presión de retorno",

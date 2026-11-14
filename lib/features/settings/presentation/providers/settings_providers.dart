@@ -157,6 +157,10 @@ class SettingsKeys {
   // SharedPreferences rather than per-diver in the DB).
   static const String o2CellUnit = 'o2_cell_unit';
 
+  // Whether the isobaric counterdiffusion overlay shows every range or only
+  // the flagged ones (device-local viewing preference, issue #4530).
+  static const String counterdiffusionShowAll = 'counterdiffusion_show_all';
+
   // Perdix-style media overlay preferences (device-local, stored directly in
   // SharedPreferences rather than per-diver in the DB).
   static const String perdixOverlayEnabled = 'perdix_overlay_enabled';
@@ -631,6 +635,10 @@ class AppSettings implements UnitFormatterSettings {
   /// Default visibility for the per-cell O2 mV traces on the dive profile
   final bool defaultShowO2CellMv;
 
+  /// Default visibility for the isobaric counterdiffusion overlay on the dive
+  /// profile (issue #4530)
+  final bool defaultShowCounterdiffusion;
+
   /// Whether synthesized ("(est.)") tank pressure lines are drawn on the dive
   /// profile at all. Off means the estimate is never built, so no legend chip,
   /// tooltip row, or chart-options entry appears for it (issue #731).
@@ -754,6 +762,10 @@ class AppSettings implements UnitFormatterSettings {
   /// and the raw cell output. The two are the same measurement one calibration
   /// constant apart, so only one is drawn.
   final O2CellUnit o2CellUnit;
+
+  /// Whether the isobaric counterdiffusion overlay draws every range rather
+  /// than only the flagged ones. Device-local (issue #4530).
+  final bool counterdiffusionShowAll;
 
   /// Perdix-style media overlay: shown over photos/videos when enabled.
   /// Device-local, not per-diver.
@@ -920,6 +932,7 @@ class AppSettings implements UnitFormatterSettings {
     this.defaultShowPhotoMarkers = true,
     this.defaultShowGasTimeline = false,
     this.defaultShowO2CellMv = false,
+    this.defaultShowCounterdiffusion = false,
     this.defaultShowEstimatedTankPressure = true,
     this.defaultShowAscentRateLine = false,
     // Notification defaults
@@ -972,6 +985,7 @@ class AppSettings implements UnitFormatterSettings {
     this.hiddenHomeCards = const <String>{},
     this.profileMetricsFollowViewport = false,
     this.o2CellUnit = O2CellUnit.ppO2,
+    this.counterdiffusionShowAll = false,
     this.perdixOverlayEnabled = false,
     this.perdixOverlayX,
     this.perdixOverlayY,
@@ -1154,6 +1168,7 @@ class AppSettings implements UnitFormatterSettings {
     bool? defaultShowPhotoMarkers,
     bool? defaultShowGasTimeline,
     bool? defaultShowO2CellMv,
+    bool? defaultShowCounterdiffusion,
     bool? defaultShowEstimatedTankPressure,
     bool? defaultShowAscentRateLine,
     bool? notificationsEnabled,
@@ -1211,6 +1226,7 @@ class AppSettings implements UnitFormatterSettings {
     Set<String>? hiddenHomeCards,
     bool? profileMetricsFollowViewport,
     O2CellUnit? o2CellUnit,
+    bool? counterdiffusionShowAll,
     bool? perdixOverlayEnabled,
     double? perdixOverlayX,
     double? perdixOverlayY,
@@ -1393,6 +1409,8 @@ class AppSettings implements UnitFormatterSettings {
       defaultShowGasTimeline:
           defaultShowGasTimeline ?? this.defaultShowGasTimeline,
       defaultShowO2CellMv: defaultShowO2CellMv ?? this.defaultShowO2CellMv,
+      defaultShowCounterdiffusion:
+          defaultShowCounterdiffusion ?? this.defaultShowCounterdiffusion,
       defaultShowEstimatedTankPressure:
           defaultShowEstimatedTankPressure ??
           this.defaultShowEstimatedTankPressure,
@@ -1480,6 +1498,8 @@ class AppSettings implements UnitFormatterSettings {
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
       o2CellUnit: o2CellUnit ?? this.o2CellUnit,
+      counterdiffusionShowAll:
+          counterdiffusionShowAll ?? this.counterdiffusionShowAll,
       perdixOverlayEnabled: perdixOverlayEnabled ?? this.perdixOverlayEnabled,
       perdixOverlayX: perdixOverlayX ?? this.perdixOverlayX,
       perdixOverlayY: perdixOverlayY ?? this.perdixOverlayY,
@@ -1743,6 +1763,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     homeCardOrder: state.homeCardOrder,
     hiddenHomeCards: state.hiddenHomeCards,
     o2CellUnit: state.o2CellUnit,
+    counterdiffusionShowAll: state.counterdiffusionShowAll,
     perdixOverlayEnabled: state.perdixOverlayEnabled,
     perdixOverlayX: state.perdixOverlayX,
     perdixOverlayY: state.perdixOverlayY,
@@ -1810,6 +1831,8 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       (u) => u.name == prefs.getString(SettingsKeys.o2CellUnit),
       orElse: () => O2CellUnit.ppO2,
     );
+    final counterdiffusionShowAll =
+        prefs.getBool(SettingsKeys.counterdiffusionShowAll) ?? false;
     final perdixOverlayEnabled =
         prefs.getBool(SettingsKeys.perdixOverlayEnabled) ?? false;
     final perdixOverlayX = prefs.getDouble(SettingsKeys.perdixOverlayX);
@@ -1832,6 +1855,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         pscrRatio: pscrRatioPref ?? 100.0,
         profileMetricsFollowViewport: followViewportPref ?? false,
         o2CellUnit: o2CellUnit,
+        counterdiffusionShowAll: counterdiffusionShowAll,
         perdixOverlayEnabled: perdixOverlayEnabled,
         perdixOverlayX: perdixOverlayX,
         perdixOverlayY: perdixOverlayY,
@@ -1900,6 +1924,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       homeCardOrder: homeCardOrder,
       hiddenHomeCards: hiddenHomeCards,
       o2CellUnit: o2CellUnit,
+      counterdiffusionShowAll: counterdiffusionShowAll,
       perdixOverlayEnabled: perdixOverlayEnabled,
       perdixOverlayX: perdixOverlayX,
       perdixOverlayY: perdixOverlayY,
@@ -1983,6 +2008,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           state.hiddenHomeCards.toList()..sort(),
         );
         await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
+        await prefs.setBool(
+          SettingsKeys.counterdiffusionShowAll,
+          state.counterdiffusionShowAll,
+        );
         await prefs.setBool(
           SettingsKeys.perdixOverlayEnabled,
           state.perdixOverlayEnabled,
@@ -3136,6 +3165,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   Future<void> setDefaultShowO2CellMv(bool value) =>
       _update((s) => s.copyWith(defaultShowO2CellMv: value));
 
+  Future<void> setDefaultShowCounterdiffusion(bool value) =>
+      _update((s) => s.copyWith(defaultShowCounterdiffusion: value));
+
   Future<void> setDefaultShowEstimatedTankPressure(bool value) =>
       _update((s) => s.copyWith(defaultShowEstimatedTankPressure: value));
 
@@ -3241,6 +3273,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setO2CellUnit(O2CellUnit value) =>
       _update((s) => s.copyWith(o2CellUnit: value));
+
+  Future<void> setCounterdiffusionShowAll(bool value) =>
+      _update((s) => s.copyWith(counterdiffusionShowAll: value));
 
   Future<void> setPerdixOverlayEnabled(bool value) =>
       _update((s) => s.copyWith(perdixOverlayEnabled: value));

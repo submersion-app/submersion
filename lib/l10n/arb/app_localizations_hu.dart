@@ -9398,6 +9398,26 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Késői gázváltások';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Ellendiffúzió';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Mind';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Ellendiffúzió (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Ellentétes csere';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gázcserélések';
 
   @override
@@ -22324,6 +22344,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Megértettem';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'A profil mutatja az izobár ellendiffúziót';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Tervezési figyelmeztetés elfogadva';
 
@@ -22700,6 +22724,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Késői gázváltás';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Izobár ellendiffúzió';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Izobár ellendiffúzió $duration hosszan';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Egy gázváltás megsértette az ötödszabályt';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23279,6 +23316,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Plafon';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Izobár ellendiffúzió';
 
   @override
   String get settings_appearance_metric_events => 'Események';
@@ -28865,7 +28906,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.';
+      'Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban és a profil ellendiffúziós rétegén, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-számítás';
@@ -62752,6 +62793,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Gázváltás mélységváltozás nélkül is növelheti a szövetek teljes inertgáz-tartalmát, ha a nitrogén gyorsabban nő, mint ahogy a hélium csökken. A szokásos ellenőrzés, az ötödszabály, a nitrogén növekedését a héliumcsökkenés egyötödére korlátozza.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Ellendiffúzió a profilon';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'A merülési profilon narancssárga sáv jelzi, ahol egy kompartment már több inert gázt tartalmaz, mint amennyit belélegzünk, és mégis érezhetően telítődik. A Bühlmann-modellben a hélium gyorsabban távozik, mint ahogy a nitrogén belép, ezért a trimixről nitroxra váltás ritkán mutat sávot; a váltásnál lévő szaggatott vonal helyette az ötödszabályt mutatja.';
 
   @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';
