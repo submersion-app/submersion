@@ -1526,6 +1526,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get equipment_color_recent => 'Legutóbbiak';
+
+  @override
   String get equipment_color_none => 'Nincs';
 
   @override
@@ -25091,6 +25094,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Összecsukott felszereléscsoportok';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Legutóbbi felszerelésszínek';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>

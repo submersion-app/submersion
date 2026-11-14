@@ -1464,6 +1464,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get equipment_color_recent => '最近使用';
+
+  @override
   String get equipment_color_none => '无';
 
   @override
@@ -23857,6 +23860,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_equipmentCollapsedGroups => '已折叠的装备分组';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors => '最近使用的装备颜色';
 
   @override
   String get settings_conflict_field_listArrangementHlc => '列表排列记录';

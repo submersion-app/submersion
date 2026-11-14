@@ -1505,6 +1505,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get equipment_color_recent => 'אחרונים';
+
+  @override
   String get equipment_color_none => 'ללא';
 
   @override
@@ -24597,6 +24600,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'קבוצות ציוד מקופלות';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'צבעי ציוד אחרונים';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';

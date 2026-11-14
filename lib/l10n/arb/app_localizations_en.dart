@@ -1513,6 +1513,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get equipment_color_recent => 'Recent';
+
+  @override
   String get equipment_color_none => 'None';
 
   @override
@@ -24787,6 +24790,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Equipment folded groups';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Recent equipment colors';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>

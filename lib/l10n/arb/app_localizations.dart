@@ -2366,6 +2366,12 @@ abstract class AppLocalizations {
   /// **'{name} ({code})'**
   String equipment_color_customName(String name, String code);
 
+  /// Heading for the custom item colours the diver used recently, in the colour sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get equipment_color_recent;
+
   /// No description provided for @equipment_color_none.
   ///
   /// In en, this message translates to:
@@ -39667,6 +39673,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment folded groups'**
   String get settings_conflict_field_equipmentCollapsedGroups;
+
+  /// Label for the custom equipment colours the diver picked recently, in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Recent equipment colors'**
+  String get settings_conflict_field_recentEquipmentColors;
 
   /// Label for a saved list arrangement in a sync conflict
   ///

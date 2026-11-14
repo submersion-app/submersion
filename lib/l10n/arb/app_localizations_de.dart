@@ -1526,6 +1526,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get equipment_color_recent => 'Zuletzt verwendet';
+
+  @override
   String get equipment_color_none => 'Keine';
 
   @override
@@ -25138,6 +25141,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'Eingeklappte Ausrüstungsgruppen';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Zuletzt verwendete Ausrüstungsfarben';
 
   @override
   String get settings_conflict_field_listArrangementHlc =>

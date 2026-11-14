@@ -147,6 +147,24 @@ void main() {
     expect((await stored()).listArrangements.equipmentCollapsedGroups, '[]');
   });
 
+  test(
+    'updateRecentEquipmentColors saves the remembered colours as JSON '
+    '(#4537)',
+    () async {
+      final notifier = await loaded();
+      await notifier.updateRecentEquipmentColors(
+        (current) => ['#FF6A00', ...current],
+      );
+      await notifier.updateRecentEquipmentColors(
+        (current) => ['#0A3D91', ...current],
+      );
+      expect(
+        (await stored()).listArrangements.recentEquipmentColors,
+        '["#0A3D91","#FF6A00"]',
+      );
+    },
+  );
+
   test('a list save leaves the device-local preferences alone', () async {
     // A sort is one of the most frequent taps in the app; it saves one
     // diver-settings column and has no business rewriting every

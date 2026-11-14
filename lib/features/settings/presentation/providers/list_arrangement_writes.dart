@@ -5,6 +5,7 @@ import 'package:submersion/features/certifications/presentation/utils/certificat
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_fold_keys.dart';
+import 'package:submersion/features/equipment/presentation/utils/recent_equipment_colors.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/domain/list_arrangements.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -84,6 +85,20 @@ extension ListArrangementWrites on SettingsNotifier {
     (a) => a.copyWith(
       equipmentCollapsedGroups: encodeFoldKeys(
         change(decodeFoldKeys(a.equipmentCollapsedGroups)),
+      ),
+    ),
+  );
+
+  /// Applies [change] to the diver's remembered custom gear colours (issue
+  /// #4537). Like the folded keys, the change runs against the saved list
+  /// once settings have loaded, so a colour picked during the load adds to
+  /// it rather than replacing it.
+  Future<void> updateRecentEquipmentColors(
+    List<String> Function(List<String> current) change,
+  ) => updateListArrangements(
+    (a) => a.copyWith(
+      recentEquipmentColors: encodeRecentEquipmentColors(
+        change(decodeRecentEquipmentColors(a.recentEquipmentColors)),
       ),
     ),
   );

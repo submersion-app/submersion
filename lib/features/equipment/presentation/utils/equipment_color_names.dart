@@ -3,23 +3,10 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 
 import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
-import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Black and White, which the tag palette lacks because a tag chip in either
-/// cannot keep its text readable on every theme, while most dive gear is one
-/// or the other (issue #2627). Black is a near-black so the figure's shade
-/// and outline, which darken the item colour, still show.
-const String equipmentColorBlack = '#1C1C1E';
-const String equipmentColorWhite = '#FFFFFF';
-
-/// The colours the item colour sheet offers: the tag palette, then Black
-/// and White.
-const List<String> equipmentColorPalette = [
-  ...TagColors.predefined,
-  equipmentColorBlack,
-  equipmentColorWhite,
-];
+export 'package:submersion/features/equipment/domain/constants/equipment_colors.dart'
+    show equipmentColorBlack, equipmentColorPalette, equipmentColorWhite;
 
 /// The name a diver and a screen reader know an item colour by: the
 /// palette colour's localized name, or for any other `#RRGGBB` (a custom

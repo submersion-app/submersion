@@ -411,6 +411,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_equipmentCollapsedGroups,
     FieldKind.opaque,
   ),
+  'recentEquipmentColors': ConflictField(
+    (l) => l.settings_conflict_field_recentEquipmentColors,
+    FieldKind.opaque,
+  ),
   'listArrangementHlc': ConflictField(
     (l) => l.settings_conflict_field_listArrangementHlc,
     FieldKind.opaque,

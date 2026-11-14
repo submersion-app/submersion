@@ -1571,6 +1571,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get equipment_color_recent => 'الأخيرة';
+
+  @override
   String get equipment_color_none => 'بلا';
 
   @override
@@ -25536,6 +25539,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_equipmentCollapsedGroups =>
       'مجموعات المعدات المطوية';
+
+  @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'ألوان المعدات الأخيرة';
 
   @override
   String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';

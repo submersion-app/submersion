@@ -824,6 +824,8 @@
   "equipment_color_white": "White",
   "equipment_color_customName": "{name} ({code})",
   "@equipment_color_customName": {"description": "A custom item colour: its nearest named colour, then its code", "placeholders": {"name": {"type": "String"}, "code": {"type": "String"}}},
+  "equipment_color_recent": "Recent",
+  "@equipment_color_recent": {"description": "Heading for the custom item colours the diver used recently, in the colour sheet"},
   "equipment_color_none": "None",
   "equipment_color_sheetTitle": "Choose a color",
   "equipment_setEdit_geofencesTitle": "Geofences",
@@ -15570,6 +15572,10 @@
   "settings_conflict_field_equipmentCollapsedGroups": "Equipment folded groups",
   "@settings_conflict_field_equipmentCollapsedGroups": {
     "description": "Label for the Equipment page's saved folded groups in a sync conflict"
+  },
+  "settings_conflict_field_recentEquipmentColors": "Recent equipment colors",
+  "@settings_conflict_field_recentEquipmentColors": {
+    "description": "Label for the custom equipment colours the diver picked recently, in a sync conflict"
   },
   "settings_conflict_field_listArrangementHlc": "List arrangement record",
   "@settings_conflict_field_listArrangementHlc": {

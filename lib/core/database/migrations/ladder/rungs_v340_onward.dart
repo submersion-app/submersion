@@ -180,5 +180,11 @@ extension RungsFromV340 on AppDatabase {
     // Renumbered from 362, which main took for #4461.
     if (from < 363) await _assertSiteCatalogueIdColumn();
     if (from < 363) await reportProgress();
+
+    // v364: diver_settings.recent_equipment_colors, the custom colours the
+    // diver picked for their gear (issue #4537). Nullable, no backfill.
+    // Re-asserted in beforeOpen.
+    if (from < 364) await _assertRecentEquipmentColorsColumn();
+    if (from < 364) await reportProgress();
   }
 }
