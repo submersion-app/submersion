@@ -2,9 +2,19 @@ import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
-/// The catalogue records [userSites] were adopted from.
+/// How near a catalogue record must lie to one of the diver's sites to be
+/// taken for the same place: the distance at which an unlinked site hides
+/// a record, and at which a site is paired with one.
+const double kCataloguePairRadiusMeters = 150;
+
+/// The catalogue records [userSites] claim: the one each was adopted from,
+/// and the ones it also stands for because a merge folded a site adopted
+/// from them into it.
 Set<String> linkedCatalogueIds(Iterable<DiveSite> userSites) => {
-  for (final site in userSites) ?site.catalogueId,
+  for (final site in userSites) ...[
+    ?site.catalogueId,
+    ...site.catalogueAnswers.also,
+  ],
 };
 
 /// The catalogue [sites] worth offering to a diver who has [userSites], in
@@ -12,8 +22,8 @@ Set<String> linkedCatalogueIds(Iterable<DiveSite> userSites) => {
 ///
 /// Two rules hide a record:
 ///
-/// - **By link.** One of the diver's sites was adopted from it. A linked
-///   site hides only its own record.
+/// - **By link.** One of the diver's sites was adopted from it, or stands
+///   for it after a merge. A linked site hides only the records it claims.
 /// - **By position** (when [byPosition]). One of the diver's *unlinked*
 ///   sites lies within [radiusMeters] of it: a site made by hand, or
 ///   adopted before sites carried a link, that is very likely the same
@@ -29,7 +39,7 @@ List<CatalogueSite> offerableCatalogueSites(
   List<CatalogueSite> sites,
   List<DiveSite> userSites, {
   required bool byPosition,
-  double radiusMeters = 150,
+  double radiusMeters = kCataloguePairRadiusMeters,
 }) {
   final linked = linkedCatalogueIds(userSites);
   final near = byPosition

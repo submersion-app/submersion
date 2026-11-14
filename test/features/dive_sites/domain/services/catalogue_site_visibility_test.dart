@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_catalogue_answers.dart';
 import 'package:submersion/features/dive_sites/domain/services/catalogue_site_visibility.dart';
 
 /// About 111 m per 0.001 degree of latitude.
@@ -190,5 +191,45 @@ void main() {
       ]),
       {'east', 'west'},
     );
+  });
+
+  test('linkedCatalogueIds counts the records a site also stands for', () {
+    expect(
+      linkedCatalogueIds(const [
+        DiveSite(
+          id: 's1',
+          name: 'A',
+          catalogueId: 'east',
+          catalogueAnswers: SiteCatalogueAnswers(
+            also: {'west'},
+            notSame: {'north'},
+          ),
+        ),
+      ]),
+      {'east', 'west'},
+    );
+  });
+
+  test('a record a merge folded into another site is hidden by link', () {
+    const survivor = DiveSite(
+      id: 's1',
+      name: 'Barracuda',
+      // Far from both records: only the claim can hide them.
+      location: GeoPoint(40, 10),
+      catalogueId: 'east',
+      catalogueAnswers: SiteCatalogueAnswers(also: {'west'}),
+    );
+
+    final offered = offerableCatalogueSites(
+      const [_east, _west, _unlocated],
+      const [survivor],
+      byPosition: false,
+    );
+
+    expect(_ids(offered), ['nowhere']);
+  });
+
+  test('the pairing distance is the hiding distance', () {
+    expect(kCataloguePairRadiusMeters, 150);
   });
 }
