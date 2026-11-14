@@ -10,7 +10,20 @@ class EquipmentSet extends Equatable {
   final String name;
   final String description;
   final List<String> equipmentIds;
-  final List<EquipmentItem>? items; // Populated when fetched with items
+
+  /// Populated when fetched with items: the set's EFFECTIVE gear, its own
+  /// plus that of the sets it includes. [equipmentIds] stays the set's own.
+  final List<EquipmentItem>? items;
+
+  /// Other sets this set includes, in order (issue #4525). One level: a
+  /// set that includes sets is never itself included.
+  final List<String> includedSetIds;
+
+  /// Weight presets applied with the set's gear, in order.
+  final List<String> weightPresetIds;
+
+  /// Cylinder configurations applied with the set's gear, in order.
+  final List<String> cylinderConfigIds;
   final bool isDefault;
 
   /// Whether this set is auto-applied to a dive whose computer is a member
@@ -31,6 +44,9 @@ class EquipmentSet extends Equatable {
     this.description = '',
     this.equipmentIds = const [],
     this.items,
+    this.includedSetIds = const [],
+    this.weightPresetIds = const [],
+    this.cylinderConfigIds = const [],
     this.isDefault = false,
     this.autoApplyOnComputerImport = false,
     this.showFigure = true,
@@ -54,6 +70,9 @@ class EquipmentSet extends Equatable {
     String? description,
     List<String>? equipmentIds,
     List<EquipmentItem>? items,
+    List<String>? includedSetIds,
+    List<String>? weightPresetIds,
+    List<String>? cylinderConfigIds,
     bool? isDefault,
     bool? autoApplyOnComputerImport,
     bool? showFigure,
@@ -68,6 +87,9 @@ class EquipmentSet extends Equatable {
       description: description ?? this.description,
       equipmentIds: equipmentIds ?? this.equipmentIds,
       items: items ?? this.items,
+      includedSetIds: includedSetIds ?? this.includedSetIds,
+      weightPresetIds: weightPresetIds ?? this.weightPresetIds,
+      cylinderConfigIds: cylinderConfigIds ?? this.cylinderConfigIds,
       isDefault: isDefault ?? this.isDefault,
       autoApplyOnComputerImport:
           autoApplyOnComputerImport ?? this.autoApplyOnComputerImport,
@@ -85,6 +107,9 @@ class EquipmentSet extends Equatable {
     name,
     description,
     equipmentIds,
+    includedSetIds,
+    weightPresetIds,
+    cylinderConfigIds,
     isDefault,
     autoApplyOnComputerImport,
     showFigure,
