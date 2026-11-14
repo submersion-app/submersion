@@ -174,16 +174,18 @@ class _CrossDeviceRetentionTile extends ConsumerWidget {
     final l10n = context.l10n;
     final on = ref.watch(crossDeviceRetentionActiveProvider).value ?? false;
     final busy = ref.watch(crossDeviceRetentionBusyProvider);
-    final settings = ref.watch(backupSettingsProvider);
+    final (keepsAll, keep) = ref.watch(
+      backupSettingsProvider.select((s) => (s.keepsAll, s.retentionCount)),
+    );
     return SwitchListTile(
       secondary: const Icon(Icons.devices_outlined),
       title: Text(l10n.backup_retention_allDevices_title),
       subtitle: Text(
         !on
             ? l10n.backup_retention_allDevices_off
-            : settings.keepsAll
+            : keepsAll
             ? l10n.backup_retention_allDevices_onKeepAll
-            : l10n.backup_retention_allDevices_on(settings.retentionCount),
+            : l10n.backup_retention_allDevices_on(keep),
       ),
       value: on,
       onChanged: busy

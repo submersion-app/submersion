@@ -31,7 +31,7 @@ Future<int?> showBackupRetentionDialog(
   BuildContext context, {
   required int selected,
 }) async {
-  final keepsAll = BackupSettings(retentionCount: selected).keepsAll;
+  final keepsAll = BackupSettings.countKeepsAll(selected);
   final custom = !keepsAll && !backupRetentionChoices.contains(selected);
   final pick = await showDialog<_Pick>(
     context: context,

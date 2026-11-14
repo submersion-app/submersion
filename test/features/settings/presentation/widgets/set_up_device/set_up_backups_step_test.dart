@@ -149,6 +149,20 @@ void main() {
     );
   });
 
+  testWidgets('on a computer, Keep all says every backup is kept while open', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      chosen: _drive,
+      prefs: {'backup_retention_count': BackupSettings.keepAllRetentionCount},
+    );
+    expect(
+      find.text('Weekly, while Submersion is open. Every backup is kept here.'),
+      findsOneWidget,
+    );
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
   testWidgets('Next with the sync account turns backups on, the copy '
       'following sync, and keeps the schedule', (tester) async {
     await pump(

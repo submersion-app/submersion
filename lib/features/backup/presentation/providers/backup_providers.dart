@@ -182,10 +182,10 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     }
   }
 
-  /// Perform a manual backup, with the diver's optional [note].
-  /// Backs up now. With [pin], the new backup is pinned right after it is
-  /// made, so no later prune removes it (issue #4535); the prune inside the
-  /// backup itself never reaches the newest record.
+  /// Perform a manual backup, with the diver's optional [note]. With [pin],
+  /// the new backup is pinned right after it is made, so no later prune
+  /// removes it (issue #4535); the prune inside the backup itself never
+  /// reaches the newest record.
   Future<void> performBackup({String? note, bool pin = false}) async {
     if (state.status == BackupOperationStatus.inProgress) return;
 

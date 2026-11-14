@@ -170,7 +170,10 @@ class BackupSettings extends Equatable {
   }
 
   /// Whether automatic removal is off: every backup is kept.
-  bool get keepsAll => retentionCount > maxCustomRetentionCount;
+  bool get keepsAll => countKeepsAll(retentionCount);
+
+  /// Whether a stored retention [count] means Keep all.
+  static bool countKeepsAll(int count) => count > maxCustomRetentionCount;
 
   /// Whether a backup is due based on lastBackupTime and frequency
   bool get isBackupDue {
