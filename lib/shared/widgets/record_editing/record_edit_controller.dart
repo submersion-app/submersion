@@ -21,7 +21,8 @@ typedef RecordSave<T> = Future<void> Function(EditSession<T> session);
 /// that already has one: a page listening here must not rebuild on every
 /// keystroke, and an open card's editor listens to [session] for every
 /// value. A card that is not open shows the page's copy of the record, so a
-/// change to it from elsewhere (a rule that spans cards) does notify.
+/// change to what it shows (a rule that spans cards, or a value it shows
+/// that an open card owns) does notify.
 class RecordEditController<T> extends ChangeNotifier {
   RecordEditController({required this.onSave});
 
@@ -36,9 +37,11 @@ class RecordEditController<T> extends ChangeNotifier {
   /// The cards that had changes when listeners were last told.
   Set<String> _toldChangedCardIds = const {};
 
-  /// Each changed card's [EditSession.revisionOf] when listeners were last
-  /// told, or when the card was last opened or closed.
+  /// Each card's [EditSession.revisionOf] when listeners were last told, or
+  /// when the card was last opened or closed.
   Map<String, int> _toldRevisions = {};
+
+  T? _layoutRecord;
 
   /// Fields holding text that cannot be read as a value, by card id, in the
   /// order each card first got one.
@@ -67,6 +70,16 @@ class RecordEditController<T> extends ChangeNotifier {
 
   /// Cards brought in from the Add strip during this sitting.
   Set<String> get addedCardIds => Set.unmodifiable(_addedCardIds);
+
+  /// The record the page lays itself out from while a card is open: the
+  /// working record as it was when the first card opened. Null while every
+  /// card is closed, when the page follows the working record.
+  ///
+  /// Which cards a page shows, and where, depends on what the record holds,
+  /// and typing changes that. A card that appeared above an open editor
+  /// would push it down the page under the diver's hands, so cards come and
+  /// go only once the last editor has closed.
+  T? get layoutRecord => _layoutRecord;
 
   /// Cards holding input that cannot be read as a value, such as `1.2.3` in
   /// a number field. Such text never reaches the [session], so a card that
@@ -139,9 +152,16 @@ class RecordEditController<T> extends ChangeNotifier {
     _invalidFields.clear();
     _refusedForInvalidInput = false;
     _revealRequest = null;
+    _layoutRecord = null;
     _saveError = null;
     _isSaving = false;
     notifyListeners();
+  }
+
+  /// Fixes the page's layout as the first card opens. Call before the card
+  /// is added to the open ones.
+  void _holdLayoutFor(EditSession<T> session) {
+    if (_openCardIds.isEmpty) _layoutRecord = session.working;
   }
 
   /// Opens [cardId]'s editor. Like every change to the cards, it is
@@ -149,7 +169,9 @@ class RecordEditController<T> extends ChangeNotifier {
   void openCard(String cardId) {
     final session = _session;
     if (session == null || _isSaving) return;
-    if (!_openCardIds.add(cardId)) return;
+    if (_openCardIds.contains(cardId)) return;
+    _holdLayoutFor(session);
+    _openCardIds.add(cardId);
     _toldRevisions[cardId] = session.revisionOf(cardId);
     notifyListeners();
   }
@@ -170,6 +192,8 @@ class RecordEditController<T> extends ChangeNotifier {
         !session.changedCardIds.contains(cardId) &&
         _addedCardIds.remove(cardId);
     if (!wasOpen && !wasAdded) return;
+    // With the last editor closed the page follows the record again.
+    if (_openCardIds.isEmpty) _layoutRecord = null;
     // What was typed while it was open is drawn by this notification.
     _toldRevisions[cardId] = session.revisionOf(cardId);
     notifyListeners();
@@ -181,9 +205,12 @@ class RecordEditController<T> extends ChangeNotifier {
   void addCard(String cardId) {
     final session = _session;
     if (session == null || _isSaving) return;
-    final added = _addedCardIds.add(cardId);
-    final opened = _openCardIds.add(cardId);
-    if (!added && !opened) return;
+    if (_addedCardIds.contains(cardId) && _openCardIds.contains(cardId)) {
+      return;
+    }
+    _holdLayoutFor(session);
+    _addedCardIds.add(cardId);
+    _openCardIds.add(cardId);
     _toldRevisions[cardId] = session.revisionOf(cardId);
     _requestReveal(cardId);
     notifyListeners();
@@ -205,22 +232,25 @@ class RecordEditController<T> extends ChangeNotifier {
     if (session == null) return;
     final changed = session.changedCardIds;
     final setMoved = !setEquals(changed, _toldChangedCardIds);
-    // A card that is not open changed again: nothing else will redraw it.
-    final closedCardMoved = changed.any(
+    // What a card that is not open shows has moved: its own value changed
+    // by a rule, or a value it shows that another card owns. Nothing else
+    // will redraw it.
+    final closedCardMoved = session.revisedCardIds.any(
       (id) =>
           !_openCardIds.contains(id) &&
-          session.revisionOf(id) != _toldRevisions[id],
+          session.revisionOf(id) != (_toldRevisions[id] ?? 0),
     );
     if (!setMoved && !closedCardMoved) return;
     _rememberTold(session);
     notifyListeners();
   }
 
-  /// Records what listeners are about to be told about the changed cards.
+  /// Records what listeners are about to be told about the cards.
   void _rememberTold(EditSession<T> session) {
-    final changed = session.changedCardIds;
-    _toldChangedCardIds = changed;
-    _toldRevisions = {for (final id in changed) id: session.revisionOf(id)};
+    _toldChangedCardIds = session.changedCardIds;
+    _toldRevisions = {
+      for (final id in session.revisedCardIds) id: session.revisionOf(id),
+    };
   }
 
   /// Writes the sitting and locks. False when nothing was saved: the page

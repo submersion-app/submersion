@@ -48,9 +48,13 @@ class EditSession<T> extends ChangeNotifier {
   };
 
   /// How many times [set] has changed or cleared a pending value of a field
-  /// [cardId] owns. It only ever goes up, so a listener that remembers it
-  /// can tell that a card's values moved without comparing them.
+  /// [cardId] owns or shows ([EditField.alsoShownOn]). It only ever goes up,
+  /// so a listener that remembers it can tell that what a card shows has
+  /// moved without comparing values.
   int revisionOf(String cardId) => _revisions[cardId] ?? 0;
+
+  /// The cards whose [revisionOf] has moved in this sitting.
+  Set<String> get revisedCardIds => _revisions.keys.toSet();
 
   /// The pending value of [field], or the stored one when it is unchanged.
   V valueOf<V>(EditField<T, V> field) {
@@ -68,7 +72,7 @@ class EditSession<T> extends ChangeNotifier {
     if (field.same(value, field.read(_stored))) {
       if (current == null) return;
       _pending.remove(field.id);
-      _changed(field.cardId);
+      _changed(field);
       return;
     }
     if (current != null && field.same(value, current.value as V)) return;
@@ -78,11 +82,13 @@ class EditSession<T> extends ChangeNotifier {
       apply: (record) => field.write(record, value),
       matches: (record) => field.same(value, field.read(record)),
     );
-    _changed(field.cardId);
+    _changed(field);
   }
 
-  void _changed(String cardId) {
-    _revisions[cardId] = revisionOf(cardId) + 1;
+  void _changed(EditField<T, Object?> field) {
+    for (final cardId in {field.cardId, ...field.alsoShownOn}) {
+      _revisions[cardId] = revisionOf(cardId) + 1;
+    }
     notifyListeners();
   }
 

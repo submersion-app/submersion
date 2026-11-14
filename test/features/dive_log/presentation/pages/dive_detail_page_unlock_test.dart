@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_edit_sa
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_altitude_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_nav_buttons.dart';
@@ -984,6 +985,69 @@ void main() {
       expect(saved.merged.surfacePressure, 0.9);
       expect(saved.merged.humidity, 70);
       expect(saved.cards, unorderedEquals(['altitude', 'environment']));
+    });
+
+    // Surface pressure is edited on the Altitude card and shown on the
+    // Environment card as well, where it also counts as something to show.
+    group('a value one card owns and another shows', () {
+      // One column, with Environment above Altitude in the page's order.
+
+      testWidgets('typing it does not bring the other card in above the '
+          'editor', (tester) async {
+        await pumpPage(
+          tester,
+          visible: cards,
+          size: tall,
+          stored: dive.copyWith(altitude: 1200),
+        );
+        await unlock(tester);
+        await tester.tap(find.byTooltip('Edit Altitude Dive'));
+        await settle(tester);
+        final editor = find.byType(DiveAltitudeCardEditor);
+        final top = tester.getTopLeft(editor).dy;
+        expect(find.byType(DiveEnvironmentSection), findsNothing);
+
+        await typeIn(
+          tester,
+          l10nOf(tester).diveLog_edit_label_surfacePressure,
+          '9',
+        );
+
+        expect(find.byType(DiveEnvironmentSection), findsNothing);
+        expect(tester.getTopLeft(editor).dy, top);
+        expect(find.byKey(addEnvironment), findsOneWidget);
+
+        // Cards come and go once the editor is closed.
+        await tester.tap(find.text('Done'));
+        await settle(tester);
+
+        expect(find.byType(DiveEnvironmentSection), findsOneWidget);
+        expect(find.byKey(addEnvironment), findsNothing);
+      });
+
+      testWidgets('the other card shows it as it is typed', (tester) async {
+        await pumpPage(
+          tester,
+          visible: cards,
+          size: tall,
+          stored: dive.copyWith(altitude: 1200, airTemp: 20),
+        );
+        await unlock(tester);
+        await tester.tap(find.byTooltip('Edit Altitude Dive'));
+        await settle(tester);
+        final label = l10nOf(tester).diveLog_edit_label_surfacePressure;
+        Finder onEnvironment(String text) => find.descendant(
+          of: find.byType(DiveEnvironmentSection),
+          matching: find.text(text),
+        );
+
+        await typeIn(tester, label, '9');
+        await tester.enterText(fieldOf(label), '900');
+        await settle(tester);
+
+        expect(onEnvironment('900 mbar'), findsOneWidget);
+        expect(onEnvironment('9 mbar'), findsNothing);
+      });
     });
 
     // Typing the first value into an empty card changes whether the page

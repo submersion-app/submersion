@@ -118,10 +118,14 @@ class RecordCardHeader extends StatelessWidget {
         child: Row(
           children: [
             Flexible(child: titleText),
-            if (frame.isChanged) ...[
-              const SizedBox(width: 8),
-              const RecordChangedDot(),
-            ],
+            const SizedBox(width: 8),
+            // The dot's place is kept while there is none, so that its
+            // arrival on the first keystroke cannot wrap the title and
+            // push the open editor down a line.
+            SizedBox.square(
+              dimension: 8,
+              child: frame.isChanged ? const RecordChangedDot() : null,
+            ),
           ],
         ),
       ),

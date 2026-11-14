@@ -8,10 +8,12 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_actions.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_analysis_retention.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_altitude_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_details_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_environment_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_section_list.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_card_editor.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_altitude_fields.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_environment_card_editor.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -545,6 +547,40 @@ void main() {
 
       expect(environmentFrame, findsNothing);
       expect(tester.getSize(details).width, alone);
+    });
+
+    // A lookup started from the Environment card can set the altitude,
+    // which the Altitude card owns. That card waits for the editor to close.
+    testWidgets('a card a rule filled does not come in while another is '
+        'open', (tester) async {
+      const visible = [
+        DiveDetailSectionId.altitude,
+        DiveDetailSectionId.environment,
+      ];
+      final controller = controllerOver(plain);
+      await pumpWide(tester, plain, controller: controller, visible: visible);
+      controller.addCard('environment');
+      await tester.pumpAndSettle();
+      final editor = find.byType(DiveEnvironmentCardEditor);
+      final top = tester.getTopLeft(editor).dy;
+
+      controller.session!.set(diveAltitudeField, 1200.0);
+      await tester.pumpWidget(
+        harness(
+          dive: controller.session!.working,
+          settings: _RecordingSettings(_settings(visible)),
+          controller: controller,
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(DiveAltitudeSection), findsNothing);
+      expect(tester.getTopLeft(editor).dy, top);
+
+      controller.closeCard('environment');
+      await tester.pumpAndSettle();
+
+      expect(find.byType(DiveAltitudeSection), findsOneWidget);
     });
 
     // The single-card path: Altitude is on the page only above sea level.

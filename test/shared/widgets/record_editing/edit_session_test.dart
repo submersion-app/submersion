@@ -301,6 +301,25 @@ void main() {
     expect(session.valueOf(_notes), 'c');
     expect(told, 1);
   });
+  // A value can show on a card that does not own it: surface pressure is
+  // edited on the Altitude card and shown on Environment too.
+  test('a field shown on another card moves that card as well', () {
+    final shared = EditField<_Rec, int>(
+      id: 'shared',
+      cardId: 'details',
+      alsoShownOn: const {'summary'},
+      read: (r) => r.depth,
+      write: (r, v) => r.copyWith(depth: v),
+    );
+    final session = EditSession(const _Rec())..set(shared, 4);
+
+    expect(session.revisionOf('details'), 1);
+    expect(session.revisionOf('summary'), 1);
+    expect(session.revisedCardIds, {'details', 'summary'});
+    // Showing a value is not owning it: the change is still Details'.
+    expect(session.changedCardIds, {'details'});
+  });
+
   test('revisionOf is counted per card', () {
     final session = EditSession(const _Rec(notes: 'a'))
       ..set(_notes, 'b')

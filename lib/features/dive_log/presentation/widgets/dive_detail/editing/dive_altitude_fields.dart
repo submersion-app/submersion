@@ -21,6 +21,7 @@ final diveAltitudeField = EditField<Dive, double?>(
 final diveSurfacePressureField = EditField<Dive, double?>(
   id: 'surfacePressure',
   cardId: DiveDetailSectionId.altitude.name,
+  alsoShownOn: {DiveDetailSectionId.environment.name},
   read: (dive) => dive.surfacePressure,
   write: (dive, value) => dive.copyWith(
     surfacePressure: value,

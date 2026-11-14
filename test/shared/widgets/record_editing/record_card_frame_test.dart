@@ -387,6 +387,47 @@ void main() {
       expect(find.text('Done'), findsOneWidget);
     });
 
+    // The first keystroke in an open card marks it changed. If the dot then
+    // took room from the title, a title that only just fitted would wrap,
+    // and everything in the card would jump down a line under the diver.
+    testWidgets('the dot arriving does not reflow the title', (tester) async {
+      Widget at(RecordCardFrameData data) => MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topLeft,
+            // Wide enough for the title beside Done, with nothing to spare.
+            child: SizedBox(
+              width: 300,
+              child: RecordCardFrameScope(
+                data: data,
+                child: const RecordCardHeader(title: 'Altitude Dive'),
+              ),
+            ),
+          ),
+        ),
+      );
+      RecordCardFrameData open({required bool isChanged}) =>
+          RecordCardFrameData(
+            isOpen: true,
+            isChanged: isChanged,
+            onOpen: () {},
+            onDone: () {},
+          );
+
+      await tester.pumpWidget(at(open(isChanged: false)));
+      final clean = tester.getRect(find.text('Altitude Dive'));
+      final height = tester.getSize(find.byType(RecordCardHeader)).height;
+
+      await tester.pumpWidget(at(open(isChanged: true)));
+
+      expect(find.byType(RecordChangedDot), findsOneWidget);
+      expect(tester.getRect(find.text('Altitude Dive')), clean);
+      expect(tester.getSize(find.byType(RecordCardHeader)).height, height);
+    });
+
     testWidgets('a header with none keeps its title at the left edge', (
       tester,
     ) async {

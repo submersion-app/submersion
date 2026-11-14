@@ -367,6 +367,97 @@ void main() {
     expect(controller.session, isNull);
   });
 
+  // A card that is not open shows the page's copy of the record. If it
+  // shows a value another card owns, typing there has to redraw it.
+  group('a value shown on a card that does not own it', () {
+    final shared = EditField<_Rec, int>(
+      id: 'shared',
+      cardId: 'details',
+      alsoShownOn: const {'summary'},
+      read: (r) => r.depth,
+      write: (r, v) => r.copyWith(depth: v),
+    );
+
+    test('typing it notifies while the card that shows it is closed', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('details');
+      var told = 0;
+      controller.addListener(() => told++);
+
+      controller.session!.set(shared, 1);
+      controller.session!.set(shared, 12);
+      controller.session!.set(shared, 123);
+
+      expect(told, 3);
+    });
+
+    test('with both cards open nothing is owed to the page', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('details')
+        ..openCard('summary');
+      controller.session!.set(shared, 1);
+      var told = 0;
+      controller.addListener(() => told++);
+
+      controller.session!.set(shared, 12);
+
+      expect(told, 0);
+    });
+  });
+
+  // Which cards the page shows depends on what the record holds. Typing can
+  // change that, and a card must not appear above an editor and push it
+  // down the page. So the page lays itself out from the record as it was
+  // when the first card opened, until every card is closed again.
+  group('the record the page is laid out from', () {
+    test('is none while no card is open', () {
+      final controller = _controller()..unlock(const _Rec(notes: 'a'));
+      controller.session!.set(_notes, 'b');
+
+      expect(controller.layoutRecord, isNull);
+    });
+
+    test('is the working record as the first card opened', () {
+      final controller = _controller()..unlock(const _Rec(notes: 'a'));
+      controller.session!.set(_notes, 'b');
+
+      controller.openCard('notes');
+      controller.session!
+        ..set(_notes, 'c')
+        ..set(_depth, 9);
+
+      expect(controller.layoutRecord, const _Rec(notes: 'b'));
+    });
+
+    test('is kept while any card stays open, and dropped with the last', () {
+      final controller = _controller()
+        ..unlock(const _Rec())
+        ..openCard('notes');
+      controller.session!.set(_notes, 'b');
+
+      controller.openCard('details');
+      expect(controller.layoutRecord, const _Rec(), reason: 'not retaken');
+
+      controller.closeCard('notes');
+      expect(controller.layoutRecord, const _Rec());
+
+      controller.closeCard('details');
+      expect(controller.layoutRecord, isNull);
+    });
+
+    test('is taken for a card added from the strip, and dropped on lock', () {
+      final controller = _controller()..unlock(const _Rec(notes: 'a'));
+
+      controller.addCard('tags');
+      expect(controller.layoutRecord, const _Rec(notes: 'a'));
+
+      controller.lock();
+      expect(controller.layoutRecord, isNull);
+    });
+  });
+
   // Text that is not a value ('1.2.3') never reaches the session, so the
   // controller is told about it and keeps the card that holds it open.
   group('unreadable input', () {

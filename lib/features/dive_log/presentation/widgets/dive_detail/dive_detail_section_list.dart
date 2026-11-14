@@ -113,6 +113,11 @@ class DiveDetailSectionList extends ConsumerWidget {
     final edit = RecordEditScope.maybeOf<Dive>(context);
     final added = edit?.addedCardIds ?? const <String>{};
     final open = edit?.openCardIds ?? const <String>{};
+    // While a card is being edited, which cards are on the page is decided
+    // from the dive as it was when the first editor opened: a card that
+    // gained something to show must not appear above an editor and push it
+    // down the page. The cards still draw the dive as it is now.
+    final presence = edit?.layoutRecord ?? dive;
 
     // Visible sections in configured order, minus gauge-hidden ones.
     final visible = [
@@ -138,7 +143,7 @@ class DiveDetailSectionList extends ConsumerWidget {
 
       final pair = layout.pairsSections ? diveDetailSectionPairFor(id) : null;
       if (pair != null && visibleIds.contains(pair.partnerOf(id)!)) {
-        final cards = _buildPairCards(pair, ref, open);
+        final cards = _buildPairCards(pair, ref, open, presence);
         if (cards != null) {
           _addSectionGap(children, layout);
           // Each side is framed like a card on a row of its own, so a card
@@ -166,7 +171,11 @@ class DiveDetailSectionList extends ConsumerWidget {
         // A folded row wants no gap above its content or itself: each row
         // draws its own divider, and the content starts flush under the
         // header.
-        final content = _framed(id, _sectionContent(ref, id, 0), open);
+        final content = _framed(
+          id,
+          _sectionContent(ref, id, 0, presence),
+          open,
+        );
         if (content == null) continue;
         children.add(
           _foldSection(
@@ -189,6 +198,7 @@ class DiveDetailSectionList extends ConsumerWidget {
           ref,
           id,
           selfSpacing && children.isNotEmpty ? layout.sectionGap : 0,
+          presence,
         ),
         open,
       );
@@ -216,10 +226,15 @@ class DiveDetailSectionList extends ConsumerWidget {
   /// [_selfSpacingSections], which only learn whether they have anything to
   /// show after build; they take [topGap], the gap to put above themselves,
   /// and collapse to nothing when empty.
+  ///
+  /// [presence] is the dive the cards that can be edited in place decide
+  /// their presence from; they draw [dive]. The two differ only while an
+  /// editor is open (see `RecordEditController.layoutRecord`).
   Widget? _sectionContent(
     WidgetRef ref,
     DiveDetailSectionId id,
     double topGap,
+    Dive presence,
   ) {
     switch (id) {
       case DiveDetailSectionId.profile:
@@ -264,16 +279,16 @@ class DiveDetailSectionList extends ConsumerWidget {
       case DiveDetailSectionId.details:
         return DiveDetailsSection(dive: dive);
       case DiveDetailSectionId.environment:
-        if (!watchHasEnvironmentData(ref, dive)) return null;
+        if (!watchHasEnvironmentData(ref, presence)) return null;
         return DiveEnvironmentSection(dive: dive);
       case DiveDetailSectionId.altitude:
-        if (dive.altitude == null || dive.altitude! <= 0) {
+        if (presence.altitude == null || presence.altitude! <= 0) {
           // Safety phase 2: the site is at altitude but the dive was not
           // altitude-adjusted: surface an informational note instead of
           // silently hiding the section.
           if (needsAltitudeAdjustmentFlag(
-            diveAltitude: dive.altitude,
-            siteAltitude: dive.site?.altitude,
+            diveAltitude: presence.altitude,
+            siteAltitude: presence.site?.altitude,
           )) {
             return DiveAltitudeMismatchNote(dive: dive);
           }
@@ -330,7 +345,7 @@ class DiveDetailSectionList extends ConsumerWidget {
           onHoverMedia: mediaHoverCursorHandler(ref.container, dive),
         );
       case DiveDetailSectionId.tags:
-        if (dive.tags.isEmpty) return null;
+        if (presence.tags.isEmpty) return null;
         return DiveTagsSection(dive: dive);
       case DiveDetailSectionId.notes:
         return DiveNotesSection(
@@ -469,6 +484,7 @@ class DiveDetailSectionList extends ConsumerWidget {
     DiveDetailSectionPair pair,
     WidgetRef ref,
     Set<String> open,
+    Dive presence,
   ) {
     switch (pair.left) {
       case DiveDetailSectionId.decoStatus:
@@ -495,7 +511,7 @@ class DiveDetailSectionList extends ConsumerWidget {
         );
 
       case DiveDetailSectionId.details:
-        final hasEnvironment = watchHasEnvironmentData(ref, dive);
+        final hasEnvironment = watchHasEnvironmentData(ref, presence);
         final environmentOpen = open.contains(
           DiveDetailSectionId.environment.name,
         );

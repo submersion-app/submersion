@@ -110,12 +110,15 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
     final l10n = context.l10n;
     final added = editController.addedCardIds;
     final open = editController.openCardIds;
+    // As the section list does: while an editor is open the cards on the
+    // page, and so the chips here, stay as they were when it opened.
+    final presence = editController.layoutRecord ?? working;
     return [
       for (final section in sections)
         if (diveEditCards[section.id] case final card?)
           if (!open.contains(card.id) &&
               !(working.isGauge && section.id.hiddenInGaugeMode) &&
-              (!diveCardIsShown(ref, section.id, working) ||
+              (!diveCardIsShown(ref, section.id, presence) ||
                   (!section.visible && !added.contains(card.id))))
             AddStripEntry(
               cardId: card.id,
