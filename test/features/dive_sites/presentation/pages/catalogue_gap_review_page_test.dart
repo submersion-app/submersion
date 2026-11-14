@@ -107,6 +107,21 @@ class _Service extends CatalogueGapService {
   Completer<void>? gate;
   Object? failure;
 
+  final notSame = <String>[];
+  final declined = <String>[];
+
+  @override
+  Future<void> answerNotSame(
+    CataloguePair pair, {
+    required String? diverId,
+  }) async => notSame.add(pair.site.id);
+
+  @override
+  Future<void> declineAll(
+    CataloguePair pair, {
+    required String? diverId,
+  }) async => declined.add(pair.site.id);
+
   @override
   Future<CatalogueApplyResult> apply(
     List<CatalogueApplyRequest> requests, {
@@ -335,6 +350,99 @@ void main() {
 
     expect(ticked(tester, 'Salt Pier'), isTrue);
     expect(ticked(tester, 'Thistlegorm'), isFalse);
+  });
+
+  group('the comparison', () {
+    Future<void> openRow(WidgetTester tester, String siteName) async {
+      await tester.tap(find.text(siteName));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('opens from a row with every offered field ticked', (
+      tester,
+    ) async {
+      await pump(tester, pairs: [_saltPier]);
+
+      await openRow(tester, 'Salt Pier');
+
+      expect(find.text('Fill in (2)'), findsOneWidget);
+      expect(find.byType(CheckboxListTile), findsNWidgets(2));
+    });
+
+    testWidgets('a choice made there and closed is what the row applies', (
+      tester,
+    ) async {
+      await pump(tester, pairs: [_saltPier]);
+      await openRow(tester, 'Salt Pier');
+      await tester.tap(find.text('Site types'));
+      await tester.pump();
+      // Dismissed, not applied.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+      expect(service.applied, isEmpty);
+
+      await tester.tap(find.text('Apply (1)'));
+      await tester.pumpAndSettle();
+
+      expect(service.applied.single.single.fields, {CatalogueGapField.depth});
+    });
+
+    testWidgets('the choice is still there when the row is opened again', (
+      tester,
+    ) async {
+      await pump(tester, pairs: [_saltPier]);
+      await openRow(tester, 'Salt Pier');
+      await tester.tap(find.text('Site types'));
+      await tester.pump();
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      await openRow(tester, 'Salt Pier');
+
+      expect(find.text('Fill in (1)'), findsOneWidget);
+    });
+
+    testWidgets('its button applies that one pair at once', (tester) async {
+      await pump(tester, pairs: [_saltPier, _thistlegorm]);
+      service.result = const CatalogueApplyResult(linked: 1, filled: 1);
+
+      await openRow(tester, 'Thistlegorm');
+      await tester.tap(find.text('Fill in (1)'));
+      await tester.pumpAndSettle();
+
+      final request = service.applied.single.single;
+      expect(request.pair.site.id, 'wreck');
+      expect(request.fields, {CatalogueGapField.depth});
+      expect(
+        find.text('Sites linked: 1. Sites with details filled: 1.'),
+        findsOneWidget,
+      );
+      expect(find.byType(CatalogueGapReviewPage), findsOneWidget);
+    });
+
+    testWidgets('"Not the same site" is remembered', (tester) async {
+      await pump(tester, pairs: [_thistlegorm]);
+
+      await openRow(tester, 'Thistlegorm');
+      await tester.tap(find.text('Not the same site'));
+      await tester.pumpAndSettle();
+
+      expect(service.notSame, ['wreck']);
+      expect(service.applied, isEmpty);
+    });
+
+    testWidgets('"No thanks" on a linked site turns the details down', (
+      tester,
+    ) async {
+      await pump(tester, pairs: [_hooker]);
+
+      await openRow(tester, 'Hilma Hooker');
+      await tester.tap(find.text('No thanks'));
+      await tester.pumpAndSettle();
+
+      expect(service.declined, ['hooker']);
+      expect(service.applied, isEmpty);
+    });
   });
 
   testWidgets('with nothing to offer the page says so', (tester) async {

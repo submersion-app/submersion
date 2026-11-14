@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/catalogue_gaps/catalogue_p
 import 'package:submersion/features/dive_sites/presentation/catalogue_gap_display.dart';
 import 'package:submersion/features/dive_sites/presentation/catalogue_site_display.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/catalogue_gap_review_notifier.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/catalogue_gap_comparison_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -53,6 +54,31 @@ class CatalogueGapReviewPage extends ConsumerWidget {
       }
     }
 
+    Future<void> openComparison(CataloguePair pair) async {
+      final result = await showCatalogueGapComparison(
+        context,
+        pair: pair,
+        initialFields: ref.read(catalogueGapReviewProvider).fieldsFor(pair),
+      );
+      try {
+        switch (result) {
+          case ComparisonKept(:final fields):
+            notifier.setFields(pair.site.id, fields);
+          case ComparisonApply(:final fields):
+            final applied = await notifier.applyOne(pair, fields);
+            if (applied != null && context.mounted) report(applied);
+          case ComparisonNotSame():
+            await notifier.notSame(pair);
+          case ComparisonNoThanks():
+            await notifier.noThanks(pair);
+          case null:
+            break;
+        }
+      } catch (_) {
+        if (context.mounted) say(l10n.diveSites_gapReview_error);
+      }
+    }
+
     final same = [
       for (final pair in state.pairs)
         if (pair.preTicked) pair,
@@ -80,7 +106,7 @@ class CatalogueGapReviewPage extends ConsumerWidget {
             units: units,
             enabled: !state.isApplying,
             onToggle: () => notifier.toggle(pair.site.id),
-            onOpen: () {},
+            onOpen: () => openComparison(pair),
           ),
       ],
     ];
