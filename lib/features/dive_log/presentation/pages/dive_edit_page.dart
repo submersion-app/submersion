@@ -206,10 +206,15 @@ import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_field.dart';
 import 'package:submersion/features/dive_log/domain/services/multi_cylinder_consumption.dart';
+import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
+import 'package:submersion/features/equipment/domain/services/set_bundle_form_plan.dart';
+import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/set_weights_choice_dialog.dart';
 
 part 'dive_edit_page_annotations.dart';
 part 'dive_edit_page_gas_switches.dart';
 part 'dive_edit_page_linked_times.dart';
+part 'dive_edit_page_set_bundle.dart';
 
 const _createNewDiveCenterSentinel = '__create_new_dive_center__';
 const _createNewTripSentinel = '__create_new_trip__';
@@ -511,6 +516,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   bool _gasSwitchesDirty = false;
 
   void _updateGasSwitches(VoidCallback mutate) => setState(mutate);
+
+  /// The setState seam for dive_edit_page_set_bundle.dart.
+  void _applyBundleChange(VoidCallback change) => setState(change);
   final _uuid = const Uuid();
   TankPresetEntity? _defaultPreset;
   bool _tanksDirty = false;
@@ -4373,11 +4381,18 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         sets: inputs.sets,
         geofences: inputs.geofences,
       );
-      final items = best?.items ?? const [];
+      final items = best?.items ?? const <EquipmentItem>[];
       // Re-check emptiness after the await: the diver may have manually added
       // gear while the provider resolved, and auto-apply must never overwrite.
-      if (items.isEmpty || !mounted || _selectedEquipment.isNotEmpty) return;
-      await _addGear(items, viaSetId: best!.id, markDirty: false);
+      // A set with no gear of its own may still carry weights or tanks
+      // (issue #4525).
+      if (best == null ||
+          (items.isEmpty && !best.carriesBeyondGear) ||
+          !mounted ||
+          _selectedEquipment.isNotEmpty) {
+        return;
+      }
+      await _useSet(best, items, auto: true);
     } catch (_) {
       // Equipment sets unavailable; skip best-effort auto-apply.
     }
@@ -4405,9 +4420,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           sets: inputs.sets,
           geofences: inputs.geofences,
         );
-        final items = best?.items ?? const [];
-        if (items.isNotEmpty && _selectedEquipment.isEmpty) {
-          await _addGear(items, viaSetId: best!.id, markDirty: false);
+        final items = best?.items ?? const <EquipmentItem>[];
+        if (best != null &&
+            (items.isNotEmpty || best.carriesBeyondGear) &&
+            _selectedEquipment.isEmpty) {
+          await _useSet(best, items, auto: true);
         }
         return;
       }
@@ -4472,7 +4489,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
               onApply: () {
                 final suggestion = _geofenceSuggestion!;
                 setState(() => _geofenceSuggestion = null);
-                _addGear(suggestion.items ?? const [], viaSetId: suggestion.id);
+                _useSet(suggestion, suggestion.items ?? const [], auto: false);
               },
               onDismiss: () => setState(() {
                 _dismissedSuggestionSetIds.add(_geofenceSuggestion!.id);
@@ -4767,7 +4784,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           scrollController: scrollController,
           onSetSelected: (set, items) {
             Navigator.of(context).pop();
-            _addGear(items, viaSetId: set.id);
+            _useSet(set, items, auto: false);
           },
         ),
       ),

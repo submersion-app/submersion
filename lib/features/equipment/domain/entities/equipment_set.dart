@@ -55,6 +55,13 @@ class EquipmentSet extends Equatable {
     required this.updatedAt,
   });
 
+  /// Whether the set applies anything besides its own gear: other sets,
+  /// weights or tanks (issue #4525).
+  bool get carriesBeyondGear =>
+      includedSetIds.isNotEmpty ||
+      weightPresetIds.isNotEmpty ||
+      cylinderConfigIds.isNotEmpty;
+
   /// Number of items in this set
   int get itemCount => equipmentIds.length;
 
