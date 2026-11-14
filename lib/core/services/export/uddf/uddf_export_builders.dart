@@ -1378,6 +1378,20 @@ class UddfExportBuilders {
                             },
                           );
                         }
+                        // The sets this one includes (issue #4525), in
+                        // order. Its weight presets and cylinder
+                        // configurations are not in this file, so they do
+                        // not travel.
+                        if (set.includedSetIds.isNotEmpty) {
+                          builder.element(
+                            'includes',
+                            nest: () {
+                              for (final setId in set.includedSetIds) {
+                                builder.element('setref', nest: 'set_$setId');
+                              }
+                            },
+                          );
+                        }
                       },
                     );
                   }

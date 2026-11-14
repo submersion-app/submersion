@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/app/app_exit_guard.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
@@ -201,6 +202,101 @@ void main() {
     expect(notifier.added!.name, 'Carlos Charlie');
     expect(notifier.added!.id, isNotEmpty);
     expect(notifier.updated, isNull);
+  });
+
+  group('sex and birth year (issue #4525)', () {
+    Future<void> pickSex(WidgetTester tester, String option) async {
+      await tester.tap(find.byKey(const Key('personalInfo_sex')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(option).last);
+      await tester.pumpAndSettle();
+    }
+
+    Finder birthYear() => find.widgetWithText(TextFormField, 'Birth year');
+
+    testWidgets('both save to the diver', (tester) async {
+      final notifier = await pump(tester, makeDiver());
+      expect(
+        find.text(
+          'Used only to estimate body composition for weight '
+          'prediction.',
+        ),
+        findsOneWidget,
+      );
+
+      await pickSex(tester, 'Female');
+      await tester.enterText(birthYear(), '1984');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.updated!.sex, DiverSex.female);
+      expect(notifier.updated!.birthYear, 1984);
+    });
+
+    testWidgets('the fields show what the diver has', (tester) async {
+      final notifier = await pump(
+        tester,
+        makeDiver().copyWith(sex: DiverSex.male, birthYear: 1980),
+      );
+      expect(find.text('Male'), findsOneWidget);
+      expect(find.text('1980'), findsOneWidget);
+
+      // Saved untouched, they stay as they were.
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(notifier.updated!.sex, DiverSex.male);
+      expect(notifier.updated!.birthYear, 1980);
+    });
+
+    testWidgets('clearing both saves nulls', (tester) async {
+      final notifier = await pump(
+        tester,
+        makeDiver().copyWith(sex: DiverSex.male, birthYear: 1980),
+      );
+
+      await pickSex(tester, 'Not set');
+      await tester.enterText(birthYear(), '');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.updated, isNotNull);
+      expect(notifier.updated!.sex, isNull);
+      expect(notifier.updated!.birthYear, isNull);
+    });
+
+    testWidgets('a birth year outside 1900 to this year is rejected', (
+      tester,
+    ) async {
+      final notifier = await pump(tester, makeDiver());
+      final thisYear = DateTime.now().year;
+
+      for (final bad in ['${thisYear + 1}', '1899']) {
+        await tester.enterText(birthYear(), bad);
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Enter a year from 1900 to $thisYear'),
+          findsOneWidget,
+        );
+      }
+      expect(notifier.updated, isNull);
+    });
+
+    testWidgets('a new diver is created with them', (tester) async {
+      final notifier = await pump(tester, makeDiver(), isNewDiver: true);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Name *'),
+        'Carlos Charlie',
+      );
+      await pickSex(tester, 'Male');
+      await tester.enterText(birthYear(), '1990');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(notifier.added!.sex, DiverSex.male);
+      expect(notifier.added!.birthYear, 1990);
+    });
   });
 
   // A page underneath may hold unsaved work, which a switch would drop (#3422).

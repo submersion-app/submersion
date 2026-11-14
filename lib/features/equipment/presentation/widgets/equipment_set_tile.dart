@@ -6,6 +6,9 @@ import 'package:submersion/core/text/markdown/notes_plain_text.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
+import 'package:submersion/features/equipment/presentation/widgets/set_bundle_sections.dart';
+import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 
 /// An equipment set's row: its name, default badge, item count and
 /// description.
@@ -23,7 +26,22 @@ class EquipmentSetTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemCountText = set.itemCount == 1
+    // What the set applies: its own gear plus that of included sets, and
+    // any lead and cylinders it carries (issue #4525). Until that loads, or
+    // for a set with nothing, the row falls back to its own gear count.
+    final summary = ref.watch(setBundleSummaryProvider(set.id)).valueOrNull;
+    final bundleText = summary == null
+        ? ''
+        : setBundleSummaryText(
+            context.l10n,
+            (kg) => ref.watch(unitFormatterProvider).formatWeight(kg),
+            gearCount: summary.gearCount,
+            leadKg: summary.leadKg,
+            cylinderCount: summary.cylinderCount,
+          );
+    final itemCountText = bundleText.isNotEmpty
+        ? bundleText
+        : set.itemCount == 1
         ? context.l10n.equipment_sets_itemCountSingular(set.itemCount)
         : context.l10n.equipment_sets_itemCountPlural(set.itemCount);
     // The count leads the description on one line rather than sitting
@@ -34,7 +52,7 @@ class EquipmentSetTile extends ConsumerWidget {
     ).replaceAll('\n', ' ');
     final subtitleText = description.isEmpty
         ? itemCountText
-        : set.itemCount > 0
+        : set.itemCount > 0 || bundleText.isNotEmpty
         ? '$itemCountText · $description'
         : description;
     return Semantics(

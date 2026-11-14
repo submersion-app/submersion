@@ -292,6 +292,12 @@ class WeightPresetRepository {
       final entryRows = await (_db.select(
         _db.weightPresetEntries,
       )..where((t) => t.presetId.equals(id))).get();
+      // The equipment sets that carried this preset (issue #4525): the link
+      // rows cascade with it and need their own tombstones, like the
+      // entries.
+      final setLinks = await (_db.select(
+        _db.equipmentSetWeightPresets,
+      )..where((t) => t.presetId.equals(id))).get();
 
       await (_db.delete(_db.weightPresets)..where((t) => t.id.equals(id))).go();
 
@@ -303,6 +309,12 @@ class WeightPresetRepository {
         await _syncRepository.logDeletion(
           entityType: 'weightPresetEntries',
           recordId: e.id,
+        );
+      }
+      for (final link in setLinks) {
+        await _syncRepository.logDeletion(
+          entityType: 'equipmentSetWeightPresets',
+          recordId: link.id,
         );
       }
     });

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/rules/data/services/rule_set_bundle_changes.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/bulk_edit/bulk_edit_field_set.dart';
@@ -60,6 +61,41 @@ describeRuleChange(
     );
   }
   if (c.subject == RuleSubject.dives) {
+    // What a set the run added carried besides gear (issue #4525): the
+    // lead as a total, the cylinders as a count.
+    if (c.field == RuleSetBundleChanges.weightsField) {
+      String total(Object? list) {
+        final rows = (list as List?) ?? const [];
+        if (rows.isEmpty) return l.rules_value_empty;
+        final kg = rows.fold<double>(
+          0,
+          (sum, w) => sum + (((w as Map)['kg'] as num?) ?? 0),
+        );
+        return u.formatWeight(kg);
+      }
+
+      return (
+        field: l.rules_change_weights,
+        before: total(c.before),
+        after: total(c.after),
+        appended: null,
+      );
+    }
+    if (c.field == RuleSetBundleChanges.tanksField) {
+      String count(Object? list) {
+        final rows = (list as List?) ?? const [];
+        return rows.isEmpty
+            ? l.rules_value_empty
+            : l.equipment_sets_cylinderCount(rows.length);
+      }
+
+      return (
+        field: l.rules_change_tanks,
+        before: count(c.before),
+        after: count(c.after),
+        appended: null,
+      );
+    }
     final collection = DiveCollection.values.asNameMap()[c.field];
     if (collection != null) {
       final subject = diveCollectionSubject(collection);

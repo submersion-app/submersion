@@ -352,6 +352,9 @@ class SyncData {
   final List<Map<String, dynamic>> tankPresets;
   final List<Map<String, dynamic>> weightPresets;
   final List<Map<String, dynamic>> weightPresetEntries;
+  final List<Map<String, dynamic>> equipmentSetIncludes;
+  final List<Map<String, dynamic>> equipmentSetWeightPresets;
+  final List<Map<String, dynamic>> equipmentSetCylinderConfigs;
   final List<Map<String, dynamic>> diveComputers;
   final List<Map<String, dynamic>> transmitters;
   final List<Map<String, dynamic>> cylinderFills;
@@ -502,6 +505,9 @@ class SyncData {
     this.tankPresets = const [],
     this.weightPresets = const [],
     this.weightPresetEntries = const [],
+    this.equipmentSetIncludes = const [],
+    this.equipmentSetWeightPresets = const [],
+    this.equipmentSetCylinderConfigs = const [],
     this.diveComputers = const [],
     this.transmitters = const [],
     this.cylinderFills = const [],
@@ -640,6 +646,9 @@ class SyncData {
     'tankPresets': tankPresets,
     'weightPresets': weightPresets,
     'weightPresetEntries': weightPresetEntries,
+    'equipmentSetIncludes': equipmentSetIncludes,
+    'equipmentSetWeightPresets': equipmentSetWeightPresets,
+    'equipmentSetCylinderConfigs': equipmentSetCylinderConfigs,
     'diveComputers': diveComputers,
     'transmitters': transmitters,
     'cylinderFills': cylinderFills,
@@ -791,6 +800,11 @@ class SyncData {
       tankPresets: _parseList(json['tankPresets']),
       weightPresets: _parseList(json['weightPresets']),
       weightPresetEntries: _parseList(json['weightPresetEntries']),
+      equipmentSetIncludes: _parseList(json['equipmentSetIncludes']),
+      equipmentSetWeightPresets: _parseList(json['equipmentSetWeightPresets']),
+      equipmentSetCylinderConfigs: _parseList(
+        json['equipmentSetCylinderConfigs'],
+      ),
       diveComputers: _parseList(json['diveComputers']),
       transmitters: _parseList(json['transmitters']),
       cylinderFills: _parseList(json['cylinderFills']),
@@ -1424,6 +1438,24 @@ class SyncDataSerializer {
       blob: false,
       full: null,
     ),
+    (
+      key: 'equipmentSetIncludes',
+      table: _db.equipmentSetIncludes,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'equipmentSetWeightPresets',
+      table: _db.equipmentSetWeightPresets,
+      blob: false,
+      full: null,
+    ),
+    (
+      key: 'equipmentSetCylinderConfigs',
+      table: _db.equipmentSetCylinderConfigs,
+      blob: false,
+      full: null,
+    ),
     (key: 'diveComputers', table: _db.diveComputers, blob: false, full: null),
     (key: 'transmitters', table: _db.transmitters, blob: false, full: null),
     (key: 'cylinderFills', table: _db.cylinderFills, blob: false, full: null),
@@ -2016,6 +2048,9 @@ class SyncDataSerializer {
     'siteShares',
     'equipmentOwnershipEvents',
     'weightPresetEntries',
+    'equipmentSetIncludes',
+    'equipmentSetWeightPresets',
+    'equipmentSetCylinderConfigs',
     'equipmentLocationMoves',
     'diveCenterGearNotes',
     'tideRecords',
@@ -2255,6 +2290,9 @@ class SyncDataSerializer {
     'diveDiveTypes': 'dive_dive_types',
     'diveCourses': 'dive_courses',
     'weightPresetEntries': 'weight_preset_entries',
+    'equipmentSetIncludes': 'equipment_set_includes',
+    'equipmentSetWeightPresets': 'equipment_set_weight_presets',
+    'equipmentSetCylinderConfigs': 'equipment_set_cylinder_configs',
     'diveCenterGearNotes': 'dive_center_gear_notes',
     'tideRecords': 'tide_records',
     'diveHealthRecords': 'dive_health_records',
@@ -2856,6 +2894,30 @@ class SyncDataSerializer {
         () async => _withPendingChildren(
           'weightPresetEntries',
           await _exportWeightPresetEntries(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      equipmentSetIncludes: await _safeExport(
+        'equipmentSetIncludes',
+        () async => _withPendingChildren(
+          'equipmentSetIncludes',
+          await _exportEquipmentSetIncludes(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      equipmentSetWeightPresets: await _safeExport(
+        'equipmentSetWeightPresets',
+        () async => _withPendingChildren(
+          'equipmentSetWeightPresets',
+          await _exportEquipmentSetWeightPresets(hlcSince),
+          pendingChildren,
+        ),
+      ),
+      equipmentSetCylinderConfigs: await _safeExport(
+        'equipmentSetCylinderConfigs',
+        () async => _withPendingChildren(
+          'equipmentSetCylinderConfigs',
+          await _exportEquipmentSetCylinderConfigs(hlcSince),
           pendingChildren,
         ),
       ),
@@ -3916,6 +3978,21 @@ class SyncDataSerializer {
           _db.weightPresetEntries,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'equipmentSetIncludes':
+        final row = await (_db.select(
+          _db.equipmentSetIncludes,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'equipmentSetWeightPresets':
+        final row = await (_db.select(
+          _db.equipmentSetWeightPresets,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'equipmentSetCylinderConfigs':
+        final row = await (_db.select(
+          _db.equipmentSetCylinderConfigs,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'diveComputers':
         final row = await (_db.select(
           _db.diveComputers,
@@ -4460,6 +4537,21 @@ class SyncDataSerializer {
           _db.weightPresetEntries,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentSetIncludes':
+        final rows = await (_db.select(
+          _db.equipmentSetIncludes,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentSetWeightPresets':
+        final rows = await (_db.select(
+          _db.equipmentSetWeightPresets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'equipmentSetCylinderConfigs':
+        final rows = await (_db.select(
+          _db.equipmentSetCylinderConfigs,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'diveComputers':
         final rows = await (_db.select(
           _db.diveComputers,
@@ -4972,6 +5064,88 @@ class SyncDataSerializer {
         );
       }
     });
+  }
+
+  /// The three lists an equipment set carries besides gear (v364, issue
+  /// #4525), as entity type to (table, column naming what the set lists).
+  static const Map<String, (String, String)> _setBundleListTables = {
+    'equipmentSetIncludes': ('equipment_set_includes', 'included_set_id'),
+    'equipmentSetWeightPresets': ('equipment_set_weight_presets', 'preset_id'),
+    'equipmentSetCylinderConfigs': (
+      'equipment_set_cylinder_configs',
+      'config_id',
+    ),
+  };
+
+  /// Applies incoming rows of one of [_setBundleListTables].
+  ///
+  /// A row has its own uuid and a unique (set, target) pair, so two devices
+  /// that each add the same preset to the same set mint two ids for one
+  /// pair, and an upsert keyed on the id alone would fail the whole batch on
+  /// the pair's unique index. The pair is first settled on the lowest id, as
+  /// [_reconcileJunctionIds] does for every such junction. The insert then
+  /// updates a row arriving again under its own id, which is how a reorder
+  /// travels, and does nothing for a pair this device still holds under a
+  /// lower id: the peer drops its copy when this device's row reaches it.
+  Future<void> _applySetBundleListRows(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async {
+    final (table, targetColumn) = _setBundleListTables[entityType]!;
+    final targetField = switch (entityType) {
+      'equipmentSetIncludes' => 'includedSetId',
+      'equipmentSetWeightPresets' => 'presetId',
+      _ => 'configId',
+    };
+    final rows = _lowestIdPerPair(
+      records,
+      (r) => (
+        parent: r['setId'] as String,
+        child: r[targetField] as String,
+        id: r['id'] as String,
+      ),
+    );
+    await _reconcileJunctionIds(
+      table,
+      parentColumn: 'set_id',
+      childColumn: targetColumn,
+      pairs: [
+        for (final r in rows)
+          (
+            parent: r['setId'] as String,
+            child: r[targetField] as String,
+            id: r['id'] as String,
+          ),
+      ],
+    );
+    await _db.batch((batch) {
+      for (final r in rows) {
+        batch.customStatement(
+          'INSERT INTO $table '
+          '(id, set_id, $targetColumn, sort_order, created_at, hlc) '
+          'VALUES (?, ?, ?, ?, ?, ?) '
+          'ON CONFLICT(id) DO UPDATE SET '
+          'set_id = excluded.set_id, '
+          '$targetColumn = excluded.$targetColumn, '
+          'sort_order = excluded.sort_order, '
+          'created_at = excluded.created_at, '
+          'hlc = excluded.hlc '
+          'ON CONFLICT DO NOTHING',
+          [
+            r['id'],
+            r['setId'],
+            r[targetField],
+            (r['sortOrder'] as num?)?.toInt() ?? 0,
+            (r['createdAt'] as num).toInt(),
+            r['hlc'],
+          ],
+        );
+      }
+    });
+    // A raw statement tells no watcher; the set pages refresh from these.
+    if (rows.isNotEmpty) {
+      _db.notifyUpdates({TableUpdate.onTable(_tableNamed(table))});
+    }
   }
 
   /// [rows] reduced to one entry per natural pair, the LOWEST id winning.
@@ -6081,6 +6255,11 @@ class SyncDataSerializer {
         await _db
             .into(_db.weightPresetEntries)
             .insertOnConflictUpdate(WeightPresetEntryRow.fromJson(data));
+        return;
+      case 'equipmentSetIncludes':
+      case 'equipmentSetWeightPresets':
+      case 'equipmentSetCylinderConfigs':
+        await _applySetBundleListRows(entityType, [data]);
         return;
       case 'diveComputers':
         await _db
@@ -7753,6 +7932,11 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'equipmentSetIncludes':
+      case 'equipmentSetWeightPresets':
+      case 'equipmentSetCylinderConfigs':
+        await _applySetBundleListRows(entityType, records);
+        return;
       case 'diveComputers':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -8407,6 +8591,18 @@ class SyncDataSerializer {
         return plain(_db.weightPresets, _db.weightPresets.id);
       case 'weightPresetEntries':
         return plain(_db.weightPresetEntries, _db.weightPresetEntries.id);
+      case 'equipmentSetIncludes':
+        return plain(_db.equipmentSetIncludes, _db.equipmentSetIncludes.id);
+      case 'equipmentSetWeightPresets':
+        return plain(
+          _db.equipmentSetWeightPresets,
+          _db.equipmentSetWeightPresets.id,
+        );
+      case 'equipmentSetCylinderConfigs':
+        return plain(
+          _db.equipmentSetCylinderConfigs,
+          _db.equipmentSetCylinderConfigs.id,
+        );
       case 'diveComputers':
         return plain(_db.diveComputers, _db.diveComputers.id);
       case 'diveComputerConnections':
@@ -8953,6 +9149,12 @@ class SyncDataSerializer {
         return _db.weightPresets;
       case 'weightPresetEntries':
         return _db.weightPresetEntries;
+      case 'equipmentSetIncludes':
+        return _db.equipmentSetIncludes;
+      case 'equipmentSetWeightPresets':
+        return _db.equipmentSetWeightPresets;
+      case 'equipmentSetCylinderConfigs':
+        return _db.equipmentSetCylinderConfigs;
       case 'diveComputers':
         return _db.diveComputers;
       case 'diveComputerConnections':
@@ -9598,6 +9800,21 @@ class SyncDataSerializer {
       case 'weightPresetEntries':
         await (_db.delete(
           _db.weightPresetEntries,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentSetIncludes':
+        await (_db.delete(
+          _db.equipmentSetIncludes,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentSetWeightPresets':
+        await (_db.delete(
+          _db.equipmentSetWeightPresets,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'equipmentSetCylinderConfigs':
+        await (_db.delete(
+          _db.equipmentSetCylinderConfigs,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'diveComputers':
@@ -11003,6 +11220,68 @@ class SyncDataSerializer {
     }
     final rows = await _db.select(_db.weightPresetEntries).get();
     return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// What a set carries besides gear (issue #4525). Like the set's items,
+  /// an incremental export re-sends the whole list of every set whose hlc
+  /// moved; a row edited on its own reaches peers through its pending mark.
+  Future<List<Map<String, dynamic>>> _exportEquipmentSetIncludes(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final ids = await _setIdsModifiedSince(hlcSince);
+      if (ids.isEmpty) return [];
+      final rows = await (_db.select(
+        _db.equipmentSetIncludes,
+      )..where((t) => t.setId.isIn(ids))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.equipmentSetIncludes).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// What a set carries besides gear (issue #4525). Like the set's items,
+  /// an incremental export re-sends the whole list of every set whose hlc
+  /// moved; a row edited on its own reaches peers through its pending mark.
+  Future<List<Map<String, dynamic>>> _exportEquipmentSetWeightPresets(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final ids = await _setIdsModifiedSince(hlcSince);
+      if (ids.isEmpty) return [];
+      final rows = await (_db.select(
+        _db.equipmentSetWeightPresets,
+      )..where((t) => t.setId.isIn(ids))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.equipmentSetWeightPresets).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// What a set carries besides gear (issue #4525). Like the set's items,
+  /// an incremental export re-sends the whole list of every set whose hlc
+  /// moved; a row edited on its own reaches peers through its pending mark.
+  Future<List<Map<String, dynamic>>> _exportEquipmentSetCylinderConfigs(
+    String? hlcSince,
+  ) async {
+    if (hlcSince != null) {
+      final ids = await _setIdsModifiedSince(hlcSince);
+      if (ids.isEmpty) return [];
+      final rows = await (_db.select(
+        _db.equipmentSetCylinderConfigs,
+      )..where((t) => t.setId.isIn(ids))).get();
+      return rows.map((r) => r.toJson()).toList();
+    }
+    final rows = await _db.select(_db.equipmentSetCylinderConfigs).get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  /// Ids of the equipment sets whose clock moved past [hlcSince].
+  Future<Set<String>> _setIdsModifiedSince(String hlcSince) async {
+    final modified = await (_db.select(
+      _db.equipmentSets,
+    )..where((t) => t.hlc.isBiggerThanValue(hlcSince))).get();
+    return modified.map((s) => s.id).toSet();
   }
 
   Future<List<Map<String, dynamic>>> _exportDiveComputers(

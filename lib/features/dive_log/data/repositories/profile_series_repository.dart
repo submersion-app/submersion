@@ -713,31 +713,10 @@ class ProfileSeriesRepository {
     now: now,
   );
 
-  /// True when [sourceId] owns a live manual edit of [diveId]: a primary
-  /// series with no computer. An unattributed series never counts: a merge's
-  /// synthetic surface fill has that shape too, and is no edit.
-  Future<bool> hasLiveEdit(String diveId, {required String sourceId}) async {
-    final rows =
-        await (_db.selectOnly(_db.diveProfileSeries)
-              ..addColumns([_db.diveProfileSeries.id])
-              ..where(
-                _db.diveProfileSeries.diveId.equals(diveId) &
-                    _db.diveProfileSeries.isPrimary.equals(true) &
-                    _db.diveProfileSeries.computerId.isNull() &
-                    _db.diveProfileSeries.sourceId.equals(sourceId) &
-                    // A series marked as a parse is none, whatever its
-                    // shape (issue #4386).
-                    (_db.diveProfileSeries.isEdit.isNull() |
-                        _db.diveProfileSeries.isEdit.equals(true)),
-              )
-              ..limit(1))
-            .get();
-    return rows.isNotEmpty;
-  }
-
-  /// The live series of [diveId] that are manual edits, for a source that may
-  /// have no computer. [hasLiveEdit] cannot serve there: a file import's own
-  /// series is primary with no computer too.
+  /// The live series of [diveId] that are manual edits. An edit is live with
+  /// no computer, the shape a file import's own series has, and one a
+  /// computer delete leaves on a download's (issue #4529), so neither the
+  /// computer nor the source alone can tell it apart.
   ///
   /// A series written since schema v357 says what it is in `is_edit`, which
   /// syncs (issue #4386); that answer is final either way. Only a series
@@ -749,9 +728,9 @@ class ProfileSeriesRepository {
   /// with a second computer below an unedited file. History would name an
   /// edit outright, but it does not sync, so a peer holds the edit without it.
   ///
-  /// A live series with no source counts whatever lies beneath it, where
-  /// [hasLiveEdit] refuses it: `clearSource` strips the source of an edit
-  /// that outlives its row, and a resync deletes what this does not name. The
+  /// A live series with no source counts whatever lies beneath it:
+  /// `clearSource` strips the source of an edit that outlives its row, and a
+  /// resync or re-parse deletes what this does not name. The
   /// price is that a merge's surface fill can read as an edit here, which
   /// only makes a dive's depths come from the samples it shows.
   Future<Set<String>> liveEditIds(String diveId) async =>
@@ -1119,11 +1098,17 @@ class ProfileSeriesRepository {
   );
 
   /// A recreated computer takes back the null-computer series of [diveIds]
-  /// whose only computer source is the one being relinked (the legacy
-  /// `dive_profiles` relink, series twin).
+  /// that it recorded. A series that names one of [sourceIds], the sources
+  /// being relinked, is theirs exactly, as a tank is, however many computers
+  /// read the dive (issue #4529). One that names no source is taken only
+  /// where the dive's one computer source is the one being relinked (the
+  /// legacy `dive_profiles` relink, series twin). One that names another
+  /// source is that source's and never taken.
   ///
   /// A series that is primary while the same dive also carries a demoted one
-  /// is left alone. That is the shape `saveEditedProfile` writes, and the
+  /// of the same source, or one with no source on either side, is left
+  /// alone. A second computer's demoted download says nothing. That is the
+  /// shape `saveEditedProfile` writes, and the
   /// primary half of it is the user's manual correction, which carries a null
   /// computer on purpose rather than because a computer delete stripped one.
   /// Stamping it would hand the edit to the next reparse of the dive, whose
@@ -1148,11 +1133,24 @@ class ProfileSeriesRepository {
   Future<int> relinkComputer(
     String computerId,
     List<String> diveIds, {
+    required List<String> sourceIds,
     int? now,
     bool notify = true,
   }) {
     if (diveIds.isEmpty) return Future.value(0);
     final sibling = _db.alias(_db.diveProfileSeries, 'demoted_sibling');
+    Expression<bool> unattributedOfSoleComputerSource(
+      $DiveProfileSeriesTable t,
+    ) =>
+        t.sourceId.isNull() &
+        t.diveId.isInQuery(
+          _db.selectOnly(_db.diveDataSources)
+            ..addColumns([_db.diveDataSources.diveId])
+            ..where(_db.diveDataSources.sourceFormat.equals('dive_computer'))
+            ..groupBy([
+              _db.diveDataSources.diveId,
+            ], having: _db.diveDataSources.id.count().equals(1)),
+        );
     return _setComputer(
       computerId,
       (t) =>
@@ -1161,15 +1159,14 @@ class ProfileSeriesRepository {
           // unmarked rows written before v357.
           (t.isEdit.isNull() | t.isEdit.equals(false)) &
           t.diveId.isIn(diveIds) &
-          t.diveId.isInQuery(
-            _db.selectOnly(_db.diveDataSources)
-              ..addColumns([_db.diveDataSources.diveId])
-              ..where(_db.diveDataSources.sourceFormat.equals('dive_computer'))
-              ..groupBy([
-                _db.diveDataSources.diveId,
-              ], having: _db.diveDataSources.id.count().equals(1)),
-          ) &
+          (sourceIds.isEmpty
+              ? unattributedOfSoleComputerSource(t)
+              : t.sourceId.isIn(sourceIds) |
+                    unattributedOfSoleComputerSource(t)) &
           (t.isPrimary.equals(false) |
+              // A series marked as a parse is none, whatever lies beneath
+              // it: the mark is final, as liveEditIdsOf reads it.
+              t.isEdit.equals(false) |
               notExistsQuery(
                 _db.selectOnly(sibling)
                   ..addColumns([sibling.id])
@@ -1180,7 +1177,15 @@ class ProfileSeriesRepository {
                         // series superseded, so it does not make that series
                         // an edit (issue #4386).
                         (sibling.isEdit.isNull() |
-                            sibling.isEdit.equals(false)),
+                            sibling.isEdit.equals(false)) &
+                        // Nor is another source's series: a second
+                        // computer's download lies demoted beneath every
+                        // live recording of a dive two computers read
+                        // (issue #4529). The rule liveEditIdsOf reads an
+                        // edit by.
+                        (t.sourceId.isNull() |
+                            sibling.sourceId.isNull() |
+                            sibling.sourceId.equalsExp(t.sourceId)),
                   ),
               )),
       now: now,

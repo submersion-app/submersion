@@ -20,6 +20,7 @@ import 'package:submersion/core/database/tables/equipment_condition_tables.dart'
 import 'package:submersion/core/database/tables/document_tables.dart';
 import 'package:submersion/core/database/tables/equipment_location_tables.dart';
 import 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
+import 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart';
 import 'package:submersion/core/database/tables/equipment_tables.dart';
 import 'package:submersion/core/database/tables/marine_life_tables.dart';
 import 'package:submersion/core/database/tables/media_people_tables.dart';
@@ -59,6 +60,7 @@ export 'package:submersion/core/database/tables/equipment_condition_tables.dart'
 export 'package:submersion/core/database/tables/document_tables.dart';
 export 'package:submersion/core/database/tables/equipment_location_tables.dart';
 export 'package:submersion/core/database/tables/equipment_service_status_tables.dart';
+export 'package:submersion/core/database/tables/equipment_set_bundle_tables.dart';
 export 'package:submersion/core/database/tables/equipment_tables.dart';
 export 'package:submersion/core/database/tables/marine_life_tables.dart';
 export 'package:submersion/core/database/tables/media_people_tables.dart';
@@ -116,6 +118,10 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EquipmentSets,
     EquipmentSetItems,
     EquipmentSetGeofences,
+    // What a set carries besides gear (v364, issue #4525)
+    EquipmentSetIncludes,
+    EquipmentSetWeightPresets,
+    EquipmentSetCylinderConfigs,
     QualityFindings,
     EquipmentAttributes,
     EquipmentComponents,
@@ -1679,9 +1685,14 @@ class AppDatabase extends _$AppDatabase {
     // was adopted from. Nullable, nothing to backfill, so the floor does
     // not move. Renumbered from 362, which main took for #4461.
     363,
+    // v364: the three equipment-set junction tables and the nullable body
+    // composition columns on divers and their weight entries (issue #4525).
+    // New tables and nullable columns, so the floor does not move.
+    // Renumbered from 363, which main took for the site catalogue id.
+    364,
     // v366: equipment_attributes.value_unit, the unit an item's own number
     // reads in (issue #4534). Nullable, no backfill, so the floor does not
-    // move. Numbered 366: open work claims 364 and 365.
+    // move. Numbered 366: open work claims 365.
     366,
   ];
 

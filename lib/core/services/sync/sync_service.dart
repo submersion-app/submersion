@@ -1846,6 +1846,21 @@ class SyncService {
             hasUpdatedAt: false,
           ),
           (
+            type: 'equipmentSetIncludes',
+            records: data.equipmentSetIncludes,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'equipmentSetWeightPresets',
+            records: data.equipmentSetWeightPresets,
+            hasUpdatedAt: false,
+          ),
+          (
+            type: 'equipmentSetCylinderConfigs',
+            records: data.equipmentSetCylinderConfigs,
+            hasUpdatedAt: false,
+          ),
+          (
             type: 'diveComputers',
             records: data.diveComputers,
             hasUpdatedAt: true,
@@ -3100,6 +3115,9 @@ class SyncService {
     'tankPresets': true,
     'weightPresets': true,
     'weightPresetEntries': false,
+    'equipmentSetIncludes': false,
+    'equipmentSetWeightPresets': false,
+    'equipmentSetCylinderConfigs': false,
     'diveComputers': true,
     'diveComputerConnections': true,
     'sharedLibraryMemberships': true,
@@ -3784,6 +3802,18 @@ class SyncService {
     ],
     'weightPresetEntries': [
       (field: 'presetId', parent: 'weightPresets', nullable: false),
+    ],
+    'equipmentSetIncludes': [
+      (field: 'setId', parent: 'equipmentSets', nullable: false),
+      (field: 'includedSetId', parent: 'equipmentSets', nullable: false),
+    ],
+    'equipmentSetWeightPresets': [
+      (field: 'setId', parent: 'equipmentSets', nullable: false),
+      (field: 'presetId', parent: 'weightPresets', nullable: false),
+    ],
+    'equipmentSetCylinderConfigs': [
+      (field: 'setId', parent: 'equipmentSets', nullable: false),
+      (field: 'configId', parent: 'cylinderConfigs', nullable: false),
     ],
     'equipmentSetGeofences': [
       (field: 'setId', parent: 'equipmentSets', nullable: false),
