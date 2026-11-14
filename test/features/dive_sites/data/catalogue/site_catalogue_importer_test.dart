@@ -11,6 +11,7 @@ import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_importer.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_parser.dart';
 import 'package:submersion/features/dive_sites/data/catalogue/site_catalogue_row_mapper.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 
 /// Serves the catalogue assets, and the sea table when a test gives one,
 /// from memory, and counts each read.
@@ -140,6 +141,29 @@ void main() {
     expect(jsonDecode(row.read<String>('type_ids')), ['reef']);
     expect(jsonDecode(row.read<String>('entry_methods')), ['boat']);
     expect(row.read<double>('latitude'), 21.1);
+  });
+
+  test('a register record is stored and read back as one', () async {
+    final db = LocalCacheDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final bundle = _Bundle(
+      catalogue: _catalogue([
+        _site('ukho_1', 'HMS Exeter', {
+          'kind': 'register',
+          'lat': 1.0,
+          'lon': 2.0,
+        }),
+        _site('osm_node_1', 'Salt Pier'),
+      ]),
+      version: 'v1',
+    );
+
+    await SiteCatalogueImporter(database: db, bundle: bundle).importIfChanged();
+
+    final rows = await db.select(db.siteCatalogueEntries).get();
+    final byId = {for (final row in rows) row.id: catalogueSiteFromRow(row)};
+    expect(byId['ukho_1']!.kind, CatalogueKind.register);
+    expect(byId['osm_node_1']!.kind, CatalogueKind.site);
   });
 
   test('the same version imports nothing', () async {

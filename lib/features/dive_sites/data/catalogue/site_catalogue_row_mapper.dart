@@ -88,6 +88,7 @@ SiteCatalogueEntriesCompanion catalogueSiteToRow(CatalogueSite site) =>
       source: site.source,
       sourceRef: Value(site.sourceRef),
       trust: Value(site.trust.name),
+      kind: Value(site.kind.name),
     );
 
 /// The catalogue site a local cache row holds.
@@ -118,6 +119,7 @@ CatalogueSite catalogueSiteFromRow(SiteCatalogueRow row) => CatalogueSite(
   source: row.source,
   sourceRef: row.sourceRef,
   trust: catalogueTrustByName[row.trust] ?? CatalogueTrust.verified,
+  kind: catalogueKindsByName[row.kind] ?? CatalogueKind.site,
 );
 
 /// The stored form of the catalogue's sources.
