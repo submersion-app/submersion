@@ -37070,6 +37070,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Modelle',
+      one: '$count Modell',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_discovery_usbSearchHint =>
       'Nach Hersteller oder Modell suchen...';
 

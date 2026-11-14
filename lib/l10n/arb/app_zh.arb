@@ -2292,6 +2292,7 @@
   "diveComputer_discovery_unknownDeviceDescription": "此设备不在我们的设备库中。我们将尝试连接，但下载可能无法正常工作。",
   "diveComputer_discovery_usbInstructions": "通过 USB 线连接您的潜水电脑，然后在下方选择。",
   "diveComputer_discovery_usbNoResults": "未找到与「{query}」匹配的设备",
+  "diveComputer_discovery_usbModelCount": "{count, plural, other{{count} 个型号}}",
   "diveComputer_discovery_usbSearchHint": "按制造商或型号搜索...",
   "diveComputer_downloadStep_cancel": "取消",
   "diveComputer_downloadStep_cancelled": "下载已取消",

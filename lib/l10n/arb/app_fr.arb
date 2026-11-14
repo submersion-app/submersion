@@ -2205,6 +2205,7 @@
   "diveComputer_discovery_unknownDeviceDescription": "Cet appareil n'est pas dans notre bibliothèque. Nous tenterons de nous connecter, mais le téléchargement pourrait ne pas fonctionner.",
   "diveComputer_discovery_usbInstructions": "Connectez votre ordinateur de plongée par câble USB, puis sélectionnez-le ci-dessous.",
   "diveComputer_discovery_usbNoResults": "Aucun appareil correspondant à \"{query}\"",
+  "diveComputer_discovery_usbModelCount": "{count, plural, one{{count} modèle} other{{count} modèles}}",
   "diveComputer_discovery_usbSearchHint": "Rechercher par fabricant ou modèle...",
   "diveComputer_downloadStep_cancel": "Annuler",
   "diveComputer_downloadStep_cancelled": "Téléchargement annulé",
