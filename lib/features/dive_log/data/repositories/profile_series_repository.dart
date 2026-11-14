@@ -1164,6 +1164,9 @@ class ProfileSeriesRepository {
               : t.sourceId.isIn(sourceIds) |
                     unattributedOfSoleComputerSource(t)) &
           (t.isPrimary.equals(false) |
+              // A series marked as a parse is none, whatever lies beneath
+              // it: the mark is final, as liveEditIdsOf reads it.
+              t.isEdit.equals(false) |
               notExistsQuery(
                 _db.selectOnly(sibling)
                   ..addColumns([sibling.id])

@@ -236,6 +236,38 @@ void main() {
       expect(computerOf(file), isNull);
     });
 
+    test('relinkComputer takes a live series marked as a parse whatever lies '
+        'beneath it', () async {
+      // The mark is final (issue #4386): only an unmarked live series is
+      // read as an edit by the generation demoted beneath it.
+      await insertComputerDataSource('d-mine');
+      final live = await profileSeries.insertSeries(
+        diveId: 'd-mine',
+        isPrimary: true,
+        isEdit: false,
+        samples: one,
+        now: 1000,
+      );
+      final older = await profileSeries.insertSeries(
+        diveId: 'd-mine',
+        isPrimary: false,
+        samples: one,
+        now: 500,
+      );
+      expect(
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine'],
+          sourceIds: const [],
+          now: 2000,
+        ),
+        2,
+      );
+      final rows = await profileSeries.getRowsForDives(['d-mine']);
+      expect(rows.firstWhere((r) => r.id == live).computerId, 'comp-a');
+      expect(rows.firstWhere((r) => r.id == older).computerId, 'comp-a');
+    });
+
     test('relinkComputer leaves a user-edited series unattributed and takes '
         'back the demoted original', () async {
       // The state a re-added computer finds on a dive the user edited before
