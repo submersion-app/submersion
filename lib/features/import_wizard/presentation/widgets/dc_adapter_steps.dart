@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 export 'package:submersion/features/import_wizard/presentation/widgets/dc_adapter_download_step.dart';
@@ -26,6 +28,10 @@ class DcAdapterScanStep extends ConsumerWidget {
         ref.read(dcAdapterScanCanAdvanceProvider.notifier).state = false;
         ref.read(dcAdapterScanCanAdvanceProvider.notifier).state = true;
       },
+      // A Garmin has no libdivecomputer download: its dives come in through
+      // the file import, which reads the watch itself (issue #4223).
+      onGarminWatchSelected: () =>
+          context.push(UniversalImportWizardRoute.garminDeviceImportLocation),
     );
   }
 }

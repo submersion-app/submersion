@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/garmin_watch_usb_entry.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/usb_manufacturer_group.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
@@ -16,7 +17,16 @@ import 'package:submersion/l10n/l10n_extension.dart';
 class ScanStepWidget extends ConsumerStatefulWidget {
   final void Function(DiscoveredDevice device) onDeviceSelected;
 
-  const ScanStepWidget({super.key, required this.onDeviceSelected});
+  /// Called when the Garmin entry in the USB list is picked; with none,
+  /// there is no Garmin entry. The entry is offered on Windows only
+  /// ([GarminWatchUsbEntry.isOffered], issue #4223).
+  final VoidCallback? onGarminWatchSelected;
+
+  const ScanStepWidget({
+    super.key,
+    required this.onDeviceSelected,
+    this.onGarminWatchSelected,
+  });
 
   /// Whether this platform can download over a USB cable. iOS has no USB
   /// host, so every model in the USB tab would fail there (issue #2837).
@@ -113,7 +123,10 @@ class _ScanStepWidgetState extends ConsumerState<ScanStepWidget>
             controller: tabController,
             children: [
               _BluetoothScanTab(onDeviceSelected: widget.onDeviceSelected),
-              _UsbDevicesTab(onDeviceSelected: widget.onDeviceSelected),
+              _UsbDevicesTab(
+                onDeviceSelected: widget.onDeviceSelected,
+                onGarminWatchSelected: widget.onGarminWatchSelected,
+              ),
             ],
           ),
         ),
@@ -305,8 +318,12 @@ class _BluetoothScanTab extends ConsumerWidget {
 /// Tab for USB device selection.
 class _UsbDevicesTab extends ConsumerStatefulWidget {
   final void Function(DiscoveredDevice device) onDeviceSelected;
+  final VoidCallback? onGarminWatchSelected;
 
-  const _UsbDevicesTab({required this.onDeviceSelected});
+  const _UsbDevicesTab({
+    required this.onDeviceSelected,
+    this.onGarminWatchSelected,
+  });
 
   @override
   ConsumerState<_UsbDevicesTab> createState() => _UsbDevicesTabState();
@@ -396,7 +413,15 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
           context.l10n.diveComputer_download_errorWithMessage(error.toString()),
         ),
       ),
-      data: (usbDevicesByManufacturer) {
+      data: (libdcDevicesByManufacturer) {
+        final usbDevicesByManufacturer =
+            widget.onGarminWatchSelected != null &&
+                GarminWatchUsbEntry.isOffered
+            ? GarminWatchUsbEntry.addTo(
+                libdcDevicesByManufacturer,
+                label: context.l10n.diveComputer_discovery_garminWatchEntry,
+              )
+            : libdcDevicesByManufacturer;
         if (usbDevicesByManufacturer.isEmpty) {
           return Center(
             child: Text(
@@ -544,6 +569,11 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                     isExpanded: _isExpanded(manufacturer),
                     onToggle: () => _toggle(manufacturer),
                     onModelSelected: (model) {
+                      // Garmin is imported, never downloaded.
+                      if (GarminWatchUsbEntry.isEntry(model)) {
+                        widget.onGarminWatchSelected?.call();
+                        return;
+                      }
                       final discoveredDevice = DiscoveredDevice(
                         id: model.id,
                         name: model.fullName,

@@ -36522,6 +36522,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Er zijn geen duiken gevonden op het verbonden Garmin-apparaat.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'Het Garmin-apparaat wordt door een andere app gebruikt. Sluit Garmin Express en probeer het opnieuw.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'Het extra bestand kon niet worden geopend: $details';
   }
@@ -36539,6 +36543,32 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'Detecteren...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'Horlogebestanden lezen ($copied van $total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch => 'Horloge zoeken...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return 'Activiteiten van $device scannen...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'Zoeken naar duiken ($checked van $total)...';
+  }
+
+  @override
+  String get universalImport_info_garminNoNewDives =>
+      'Geen nieuwe duiken op het horloge sinds je laatste download.';
+
+  @override
+  String get universalImport_action_garminDownloadAll =>
+      'Alles opnieuw downloaden';
 
   @override
   String get universalImport_label_duplicate => 'Duplicaat';
@@ -37031,6 +37061,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'Garmin-horloge (Descent, Fenix, Epix...)';
+
+  @override
   String diveComputer_discovery_usbModelCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37265,6 +37299,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'Garmin-horloges worden hier niet gedownload. Importeer hun duiken via $importPath of $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'Garmin-horloges worden niet via Bluetooth gedownload. Sluit er een aan met een kabel en kies Garmin in de USB-lijst, of importeer hun duiken via $importPath of $cloudPath.';
   }
 
   @override
@@ -53397,6 +53439,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importeren uit bestand';
 
   @override
+  String get importWizard_dc_downloadFromWatch => 'Downloaden van horloge';
+
+  @override
   String get importWizard_dc_knownComputer => 'Bekende computer';
 
   @override
@@ -53416,6 +53461,24 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Garmin-horloges slaan duiken op als FIT-bestanden in plaats van een directe download te bieden. Sluit het horloge via USB aan, kopieer de bestanden uit de map GARMIN/Activity en importeer ze daarna.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'Je horloge is verbonden. Submersion kan de duiken er rechtstreeks van downloaden, of je importeert FIT-bestanden die je al hebt gekopieerd.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Duiken downloaden van $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Verbind $name om de duiken te downloaden';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Verbind het horloge via USB en kies opnieuw \'Duiken downloaden\', of importeer FIT-bestanden die je al hebt gekopieerd.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {

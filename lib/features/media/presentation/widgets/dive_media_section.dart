@@ -17,6 +17,7 @@ import 'package:submersion/features/media/presentation/pages/photo_viewer_page.d
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/lightroom_suggestions_row.dart';
 import 'package:submersion/features/media/presentation/widgets/media_grid.dart';
+import 'package:submersion/features/media/presentation/widgets/media_hover_region.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
 import 'package:submersion/shared/selection/selectable_list_scope.dart';
@@ -63,6 +64,13 @@ class DiveMediaSection extends ConsumerStatefulWidget {
   /// photo viewer).
   final void Function(MediaItem)? onOpenDocument;
 
+  /// Invoked with the item when a mouse pointer enters its thumbnail, and
+  /// with null when the pointer leaves the item last reported (issue #4524).
+  /// Every item reported is followed by a null before the next item, and a
+  /// leave for any other item is not reported, so the last call always
+  /// names what is under the pointer now. Touch never hovers.
+  final void Function(MediaItem? item)? onHoverMedia;
+
   const DiveMediaSection({
     super.key,
     required this.diveId,
@@ -70,6 +78,7 @@ class DiveMediaSection extends ConsumerStatefulWidget {
     this.onScanPressed,
     this.onAddDocumentPressed,
     this.onOpenDocument,
+    this.onHoverMedia,
   });
 
   @override
@@ -92,6 +101,40 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
   /// Media ids whose enrichment backfill we've already kicked off, so the
   /// post-frame trigger fires once per item rather than on every rebuild.
   final Set<String> _enrichAttempted = {};
+
+  /// The item last reported through [DiveMediaSection.onHoverMedia], and the
+  /// callback it was reported to. Not build state: nothing here draws
+  /// differently for them.
+  String? _hoveredMediaId;
+  void Function(MediaItem? item)? _hoverReportedTo;
+
+  /// Passes a thumbnail's hover on, dropping a leave that is not for the
+  /// item last reported. A removed thumbnail reports its leave after the
+  /// frame ([MediaHoverRegion]), by which time its neighbour may already
+  /// have reported an enter; that late leave must not clear the neighbour.
+  ///
+  /// The leave goes to the callback that was told about the enter. By the
+  /// time a late leave arrives this State may have been handed another
+  /// dive's callback (the page reuses it from dive to dive), and telling
+  /// that one would leave the first dive marked for good.
+  void _onTileHover(MediaItem item, bool hovered) {
+    if (hovered) {
+      // Another thumbnail still marked hovered has not reported its leave
+      // yet (it is the late one). Close it now, so every callback told
+      // about an enter hears the leave that ends it.
+      if (_hoveredMediaId != null && _hoveredMediaId != item.id) {
+        _hoverReportedTo?.call(null);
+      }
+      _hoveredMediaId = item.id;
+      _hoverReportedTo = widget.onHoverMedia;
+      _hoverReportedTo?.call(item);
+    } else if (_hoveredMediaId == item.id) {
+      final reportedTo = _hoverReportedTo;
+      _hoveredMediaId = null;
+      _hoverReportedTo = null;
+      reportedTo?.call(null);
+    }
+  }
 
   @override
   void dispose() {
@@ -527,16 +570,6 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                   ),
-                  // coverage:ignore-start
-                  // The itemBuilder closure only fires when the dive has
-                  // media; this widget has no tests that render media (the
-                  // suite would need a populated DB + asset resolver
-                  // pipeline), so the closure is unreachable from
-                  // flutter_test. The right-click context menu wired via
-                  // `onSecondaryTapDown` is also desktop-only — touchscreens
-                  // never fire it, and `flutter_test` lacks a trackpad
-                  // driver. Both are exercised by manual desktop smoke
-                  // tests.
                   itemBuilder: (context, item, isSelected) {
                     final thumbnail = MediaThumbnailTile(
                       item: item,
@@ -546,14 +579,27 @@ class _DiveMediaSectionState extends ConsumerState<DiveMediaSection> {
                       semanticsLabel:
                           context.l10n.media_diveMediaSection_thumbnailLabel,
                     );
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onSecondaryTapDown: (details) =>
-                          _showLocalFileContextMenu(context, item, details),
-                      child: thumbnail,
+                    return MediaHoverRegion(
+                      // By item, not by grid slot: the grid keys its cells by
+                      // index, so when an item is unlinked its neighbour takes
+                      // over the same cell, and without this the cell would
+                      // stay "hovered" for the item that left.
+                      key: ValueKey(item.id),
+                      onHoverChanged: (hovered) => _onTileHover(item, hovered),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        // coverage:ignore-start
+                        // The right-click context menu is desktop-only:
+                        // touchscreens never fire it and no test drives a
+                        // secondary tap here. It is exercised by manual
+                        // desktop smoke tests.
+                        onSecondaryTapDown: (details) =>
+                            _showLocalFileContextMenu(context, item, details),
+                        // coverage:ignore-end
+                        child: thumbnail,
+                      ),
                     );
                   },
-                  // coverage:ignore-end
                 );
               },
               loading: () => const SizedBox(

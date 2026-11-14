@@ -17,10 +17,12 @@ import 'package:submersion/features/dive_computer/presentation/widgets/download_
 import 'package:submersion/features/dive_computer/presentation/widgets/scan_step_widget.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/presentation/pages/universal_import_wizard_route.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_another_unit_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_known_computer_not_found_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_direct_download_view.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/dc_no_new_dives_view.dart';
+import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class DcAdapterDownloadStep extends ConsumerStatefulWidget {
@@ -463,6 +465,8 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
       return DcNoDirectDownloadView(
         computer: computer,
         onImportFromFile: () => context.push('/transfer/import-wizard'),
+        readsConnectedWatches: ref.watch(garminMtpSourceProvider) != null,
+        onDownloadFromWatch: _connectedGarminImport(computer),
         onDone: () => context.pop(),
       );
     }
@@ -683,6 +687,27 @@ class _DcAdapterDownloadStepState extends ConsumerState<DcAdapterDownloadStep> {
         ref.read(dcAdapterDownloadCanAdvanceProvider.notifier).state = true;
       }
     });
+  }
+
+  /// With a Garmin connected, a saved Garmin's dives can be imported
+  /// straight from it (issue #4223): mounted as a drive on any desktop, or
+  /// over MTP on Windows. Null otherwise, which keeps the file import as the
+  /// only way in.
+  ///
+  /// Not limited to Windows: a mounted watch follows the same download
+  /// marker everywhere, which puts "Re-import all dives" on its page, and
+  /// that button has to lead somewhere that can read every activity.
+  VoidCallback? _connectedGarminImport(DiveComputer computer) {
+    if (computer.manufacturer?.trim().toLowerCase() != 'garmin') return null;
+    final watches = ref.watch(garminDevicesProvider).valueOrNull ?? const [];
+    if (watches.isEmpty) return null;
+    // Its own marker, or every activity for "Re-import all dives".
+    return () => context.push(
+      UniversalImportWizardRoute.garminDeviceImportLocationFor(
+        computerId: computer.id,
+        readAll: widget.adapter.forceFullDownload,
+      ),
+    );
   }
 }
 

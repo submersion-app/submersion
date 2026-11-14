@@ -36872,6 +36872,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune plongée n\'a été trouvée sur l\'appareil Garmin connecté.';
 
   @override
+  String get universalImport_error_garminBusy =>
+      'L\'appareil Garmin est utilisé par une autre application. Fermez Garmin Express et réessayez.';
+
+  @override
   String universalImport_error_additionalFilePickFailed(String details) {
     return 'Le fichier supplémentaire n\'a pas pu être ouvert : $details';
   }
@@ -36889,6 +36893,32 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_label_detecting => 'Détection...';
+
+  @override
+  String universalImport_label_readingWatchFiles(int copied, int total) {
+    return 'Lecture des fichiers de la montre ($copied sur $total)...';
+  }
+
+  @override
+  String get universalImport_label_lookingForWatch =>
+      'Recherche de la montre...';
+
+  @override
+  String universalImport_label_scanningWatchActivity(String device) {
+    return 'Analyse des activités de $device...';
+  }
+
+  @override
+  String universalImport_label_checkingForDives(int checked, int total) {
+    return 'Recherche des plongées ($checked sur $total)...';
+  }
+
+  @override
+  String get universalImport_info_garminNoNewDives =>
+      'Aucune nouvelle plongée sur la montre depuis votre dernier téléchargement.';
+
+  @override
+  String get universalImport_action_garminDownloadAll => 'Tout retélécharger';
 
   @override
   String get universalImport_label_duplicate => 'Doublon';
@@ -37386,6 +37416,10 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get diveComputer_discovery_garminWatchEntry =>
+      'Montre Garmin (Descent, Fenix, Epix...)';
+
+  @override
   String diveComputer_discovery_usbModelCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -37622,6 +37656,14 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String diveComputer_list_helpGarminNote(String importPath, String cloudPath) {
     return 'Les montres Garmin ne se téléchargent pas ici. Importez leurs plongées depuis $importPath ou $cloudPath.';
+  }
+
+  @override
+  String diveComputer_list_helpGarminNoteWindows(
+    String importPath,
+    String cloudPath,
+  ) {
+    return 'Les montres Garmin ne se téléchargent pas par Bluetooth. Branchez-en une par câble et choisissez Garmin dans la liste USB, ou importez leurs plongées depuis $importPath ou $cloudPath.';
   }
 
   @override
@@ -53852,6 +53894,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get importWizard_dc_importFromFile => 'Importer depuis un fichier';
 
   @override
+  String get importWizard_dc_downloadFromWatch =>
+      'Télécharger depuis la montre';
+
+  @override
   String get importWizard_dc_knownComputer => 'Ordinateur connu';
 
   @override
@@ -53871,6 +53917,24 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get importWizard_dc_noDirectDownloadGarminBody =>
       'Les montres Garmin enregistrent les plongées sous forme de fichiers FIT au lieu de proposer un téléchargement direct. Connectez la montre en USB, copiez les fichiers de son dossier GARMIN/Activity, puis importez-les.';
+
+  @override
+  String get importWizard_dc_noDirectDownloadGarminConnectedBody =>
+      'Votre montre est connectée. Submersion peut télécharger ses plongées directement, ou vous pouvez importer des fichiers FIT déjà copiés.';
+
+  @override
+  String importWizard_dc_downloadFromGarminTitle(String name) {
+    return 'Télécharger les plongées de $name';
+  }
+
+  @override
+  String importWizard_dc_connectGarminTitle(String name) {
+    return 'Connectez $name pour télécharger ses plongées';
+  }
+
+  @override
+  String get importWizard_dc_garminUnpluggedBody =>
+      'Connectez la montre en USB, puis choisissez à nouveau « Télécharger les plongées », ou importez des fichiers FIT déjà copiés.';
 
   @override
   String importWizard_dc_notFoundNearby(String name) {
