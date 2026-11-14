@@ -188,6 +188,9 @@ this feature reads cubic feet as gas capacity the AL80 would show as about
   is idempotent: a repaired row is under the threshold.
 - **Guarding:** the rung checks the column exists before touching it, like
   the other value-rewriting rungs.
+- **Skipped rung:** the beforeOpen backstop that adds a missing `value_unit`
+  column also runs the repair, since a database stamped at the version by a
+  colliding build skipped both.
 - **Rows entered on purpose since v368** (decided at code review): a save of
   a cylinder volume above the line stamps `value_unit = liters`, and the
   repair only touches rows with no `value_unit`, so a large bank cylinder

@@ -8,6 +8,18 @@ extension AttributeUnitMigrations on AppDatabase {
   Future<void> _assertAttributeValueUnitColumn() =>
       _addColumnIfMissing('equipment_attributes', 'value_unit', 'TEXT');
 
+  /// The beforeOpen backstop: a database stamped at or past v368 by a build
+  /// that never ran this rung (a colliding schema claim, a restore) gets the
+  /// column and, since it then also missed the repair, the repair too. A
+  /// database that has the column already ran both, so it is left alone.
+  Future<void> _healAttributeValueUnitColumn() async {
+    final skipped =
+        await _tableExists('equipment_attributes') &&
+        !await _columnExists('equipment_attributes', 'value_unit');
+    await _assertAttributeValueUnitColumn();
+    if (skipped) await _repairCylinderVolumeCubicFeet();
+  }
+
   /// v368: [repairCylinderVolumeCubicFeet] (issue #4534). Guarded on the
   /// tables, as the other helpers are, for migration fixtures that build
   /// only part of the schema.

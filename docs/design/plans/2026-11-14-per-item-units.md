@@ -4,7 +4,7 @@
 
 **Goal:** Let every unit-bearing equipment number carry its own unit (a psi gauge for a metric diver), saved in a new `equipment_attributes.value_unit` column, with cylinder cubic feet meaning gas capacity everywhere and old mis-saved cylinder volumes repaired.
 
-**Architecture:** Storage stays canonical metric in `value_num`; `value_unit` only says which unit the item's own spec reads in. One pure helper module resolves "the unit in force" for a row and converts to and from it; the form, the detail page, the passport readers and the CSV all go through it. A v366 rung adds the column and repairs cylinder volumes, and the same repair repeats after each sync apply.
+**Architecture:** Storage stays canonical metric in `value_num`; `value_unit` only says which unit the item's own spec reads in. One pure helper module resolves "the unit in force" for a row and converts to and from it; the form, the detail page, the passport readers and the CSV all go through it. A v368 rung adds the column and repairs cylinder volumes, and the same repair repeats after each sync apply.
 
 **Tech Stack:** Flutter, Drift (SQLite), Riverpod, the repo's sync serializer and MCP agent-access layer.
 
@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Schema version **366** (main is at 363; open PRs #4532 and #4542 claim 364 and 365, and local worktrees claim both). Re-check open PRs before pushing and renumber if taken.
+- Schema version **368**: planned as 366, renumbered at merge after main took 364 to 367. Re-check open PRs before pushing and renumber if taken.
 - `value_unit` stored values: `bar`, `psi`, `dual`, `kilograms`, `pounds`, `liters`, `cubicFeet`, `meters`, `feet`. `NULL` means follow the diver's settings. Unknown or mismatched values read as `NULL`.
 - `dual` is valid only on `gauge_max_pressure_bar`.
 - No picker, and always litres, on `diluent_cylinder_l` and `o2_cylinder_l`. No picker on `thicknessMm`, `durationH`, `none`.
@@ -66,16 +66,16 @@
 ### Task 2: `value_unit` column, entity and repository
 
 **Files:**
-- Modify: `lib/core/database/tables/equipment_tables.dart` (EquipmentAttributes), `lib/core/database/database.dart:325` (version 366), `lib/core/database/migrations/ladder/rungs_v340_onward.dart`, `lib/core/database/migrations/before_open_child_columns.dart`
+- Modify: `lib/core/database/tables/equipment_tables.dart` (EquipmentAttributes), `lib/core/database/database.dart:325` (version 368), `lib/core/database/migrations/ladder/rungs_v340_onward.dart`, `lib/core/database/migrations/before_open_child_columns.dart`
 - Create: `lib/core/database/migrations/helpers/attribute_unit_migrations.dart` (part file, like `site_catalogue_id_migrations.dart`)
 - Modify: `lib/features/equipment/domain/entities/equipment_attribute.dart`, `lib/features/equipment/data/repositories/equipment_repository_impl.dart` (`_mapAttributeRow`, `saveAttributes`), `lib/features/dive_log/data/repositories/dive_repository_impl.dart:10600`
 - Regenerate: `lib/features/agent_access/data/resources/sql_column_notes.generated.dart` via `dart run tool/generate_sql_column_notes.dart`
-- Test: `test/core/database/migration_v366_attribute_unit_test.dart`, `test/features/equipment/data/repositories/equipment_attribute_unit_test.dart`
+- Test: `test/core/database/migration_v368_attribute_unit_test.dart`, `test/features/equipment/data/repositories/equipment_attribute_unit_test.dart`
 
 **Interfaces:**
 - Produces: `EquipmentAttribute.valueUnit` (`String?`, in props, `curated(...)` param, `copyWith(valueUnit:, clearValueUnit:)`); `bool get hasContent => hasValue || valueUnit != null`; `_assertAttributeValueUnitColumn()` extension method.
 
-- [ ] **Step 1: Write failing tests**, modelled on `migration_v363_site_catalogue_id_test.dart`: v366 in `migrationVersions`, floor below 366; upgrading from 365 adds `value_unit` and leaves rows NULL. Repository: saving a curated `gauge_max_pressure_bar` with `valueNum: 275.79, valueUnit: 'psi'` reads back with `valueUnit == 'psi'`; saving one with `valueUnit: 'psi'` and no number keeps the row; changing only the unit counts as a change (row re-stamped, marked pending).
+- [ ] **Step 1: Write failing tests**, modelled on `migration_v363_site_catalogue_id_test.dart`: v368 in `migrationVersions`, floor below 368; upgrading from 367 adds `value_unit` and leaves rows NULL. Repository: saving a curated `gauge_max_pressure_bar` with `valueNum: 275.79, valueUnit: 'psi'` reads back with `valueUnit == 'psi'`; saving one with `valueUnit: 'psi'` and no number keeps the row; changing only the unit counts as a change (row re-stamped, marked pending).
 - [ ] **Step 2: Run** both tests; expect FAIL.
 - [ ] **Step 3: Implement.** Column `TextColumn get valueUnit => text().nullable()();` with a `///` doc comment (the column notes generator reads it). Rung comment states nullable, no backfill, floor unchanged, re-asserted in beforeOpen. `saveAttributes` filters on `hasContent` and compares `valueUnit` in `unchanged`. Run `dart run build_runner build --delete-conflicting-outputs` unfiltered (never `--build-filter`).
 - [ ] **Step 4: Run** the two tests plus `test/core/database/` migration tests matching `migration_v36*`; expect PASS.
@@ -155,8 +155,8 @@
 
 **Files:**
 - Create: `lib/core/database/cylinder_volume_repair.dart`
-- Modify: `lib/core/database/migrations/helpers/attribute_unit_migrations.dart` (`_repairCylinderVolumeCubicFeet`, guarded by `_columnExists('equipment_attributes', 'value_num')`), `rungs_v340_onward.dart` (v366, after the column), `lib/core/database/change_log/change_log_rewrites.dart` (`'equipment_attributes.value_num': 366`, no value repair, since the rewrite depends on the key and item type), `lib/core/services/sync/sync_service.dart` (`_repairLegacyPeerRows`, notify `equipmentAttributes` when > 0)
-- Test: `test/core/database/migration_v366_cylinder_volume_test.dart`, `test/core/services/sync/legacy_cylinder_volume_sync_test.dart`
+- Modify: `lib/core/database/migrations/helpers/attribute_unit_migrations.dart` (`_repairCylinderVolumeCubicFeet`, guarded by `_columnExists('equipment_attributes', 'value_num')`), `rungs_v340_onward.dart` (v368, after the column), `lib/core/database/change_log/change_log_rewrites.dart` (`'equipment_attributes.value_num': 368`, no value repair, since the rewrite depends on the key and item type), `lib/core/services/sync/sync_service.dart` (`_repairLegacyPeerRows`, notify `equipmentAttributes` when > 0)
+- Test: `test/core/database/migration_v368_cylinder_volume_test.dart`, `test/core/services/sync/legacy_cylinder_volume_sync_test.dart`
 
 **Interfaces:**
 - Produces: `Future<int> repairCylinderVolumeCubicFeet(DatabaseConnectionUser db)`: selects curated `volume_l` rows above 80 on `equipment.type = 'tank'` with the item's `working_pressure_bar`, writes `volumeLitersFromCapacity(value_num / 28.3168, wp)` by id, stamps nothing, returns the count.

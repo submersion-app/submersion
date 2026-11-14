@@ -91,7 +91,8 @@ extension BeforeOpenChildColumns on AppDatabase {
     // weight-entry read selects the whole row.
     await _assertBodyCompositionColumns();
     // v368: equipment_attributes.value_unit (issue #4534). Every attribute
-    // read selects the whole row.
-    await _assertAttributeValueUnitColumn();
+    // read selects the whole row. A database that skipped the rung also
+    // skipped its cylinder volume repair, so healing the column runs it.
+    await _healAttributeValueUnitColumn();
   }
 }

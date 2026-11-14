@@ -10,9 +10,9 @@ import 'package:submersion/core/database/database.dart';
 /// figure typed and stores it as rated gas capacity at the item's working
 /// pressure (200 bar assumed without one). Nothing is stamped.
 void main() {
-  NativeDatabase dbAt367() => NativeDatabase.memory(
+  NativeDatabase dbAt367({int version = 367}) => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 367');
+      rawDb.execute('PRAGMA user_version = $version');
       rawDb.execute(
         'CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY, '
         'name TEXT NOT NULL, type TEXT NOT NULL)',
@@ -100,4 +100,17 @@ void main() {
     expect(await repairCylinderVolumeCubicFeet(db), 0);
     expect(await litres(db, 'twelve'), 100);
   });
+
+  test(
+    'a database stamped 368 that never ran the rung is repaired on open',
+    () async {
+      // Another build that claimed 368 for something else stamps the
+      // version without this column or this repair; the backstop heals both.
+      final db = AppDatabase(dbAt367(version: 368));
+      addTearDown(db.close);
+
+      expect(await litres(db, 'al80'), 11.1);
+      expect(await litres(db, 'twelve'), 12);
+    },
+  );
 }
