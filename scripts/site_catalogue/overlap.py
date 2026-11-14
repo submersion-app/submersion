@@ -8,8 +8,8 @@ whatever they are called.
 
 The record that survives is the one from the source that is most about
 diving, then the register that fixes positions best (`RANK`). It keeps its
-own id, name and position, and takes a depth, a type, a description or a
-hazard from the record it replaced only where its own is empty.
+own id, name and position, and takes a depth, its types, a description or
+a hazard from the record it replaced only where its own is empty.
 
 Two things never happen:
 
@@ -63,6 +63,12 @@ _HELD = frozenset({("osm", "site"), ("curated", "site")})
 _TAKEN = ("description", "hazards")
 
 _CELL = 0.05
+# The grid's columns go round the world: 180 E and 180 W are neighbours.
+_COLUMNS = round(360 / _CELL)
+
+
+def _column(lon: float) -> int:
+    return math.floor(lon / _CELL) % _COLUMNS
 
 
 def _key(record: dict) -> tuple[str, str]:
@@ -116,9 +122,8 @@ def _take(survivor: dict, loser: dict) -> None:
         and loser["min_depth"] < survivor["max_depth"]
     ):
         survivor["min_depth"] = loser["min_depth"]
-    for type_id in loser["types"]:
-        if type_id not in survivor["types"]:
-            survivor["types"].append(type_id)
+    if not survivor["types"]:
+        survivor["types"].extend(loser["types"])
     for field in _TAKEN:
         if not survivor[field] and loser[field]:
             survivor[field] = loser[field]
@@ -128,13 +133,13 @@ def _cells(record: dict):
     """The grid cells a record's match could be filed under: its own and
     every neighbour within reach, wider in longitude towards the poles."""
     row = math.floor(record["lat"] / _CELL)
-    column = math.floor(record["lon"] / _CELL)
+    column = _column(record["lon"])
     reach = int(
         math.ceil(1 / max(math.cos(math.radians(min(abs(record["lat"]) + 1, 89))), 0.02))
     )
     for d_row in (-1, 0, 1):
         for d_column in range(-reach, reach + 1):
-            yield row + d_row, column + d_column
+            yield row + d_row, (column + d_column) % _COLUMNS
 
 
 def resolve(
@@ -171,14 +176,21 @@ def resolve(
                     break
         if match is not None:
             dropped[(label(record), label(match))] += 1
-            if not _own_terms(record) and not _own_terms(match):
+            # Nothing passes to or from an own-terms record, and a curated
+            # site that steps aside for OpenStreetMap gives nothing, as it
+            # never has.
+            if not (
+                _own_terms(record)
+                or _own_terms(match)
+                or (_key(record) in _HELD and _key(match) in _HELD)
+            ):
                 _take(match, record)
             continue
         kept = dict(record, types=list(record["types"]))
         survivors.append(kept)
         if kept["lat"] is not None and kept["lon"] is not None:
             grid.setdefault(
-                (math.floor(kept["lat"] / _CELL), math.floor(kept["lon"] / _CELL)),
+                (math.floor(kept["lat"] / _CELL), _column(kept["lon"])),
                 [],
             ).append(kept)
     return survivors, dropped

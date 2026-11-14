@@ -217,9 +217,32 @@ class TakingTest(unittest.TestCase):
         self.assertEqual(survivor["lat"], 50.0)
         self.assertEqual(survivor["max_depth"], 55.0)
         self.assertEqual(survivor["min_depth"], 40.0)
-        self.assertEqual(survivor["types"], ["reef", "wreck"])
+        # A type it has stands: the other's is not added to it.
+        self.assertEqual(survivor["types"], ["reef"])
         self.assertEqual(survivor["description"], "A fine dive.")
         self.assertEqual(survivor["hazards"], "Restricted area.")
+
+    def test_a_survivor_with_no_type_takes_the_other_s(self):
+        osm = _site("osm", "osm_node_1", "Exeter")
+        ukho = _r("ukho", "ukho_1", "HMS EXETER", north=300)
+        kept, _ = overlap.resolve([ukho, osm])
+        self.assertEqual(kept[0]["types"], ["wreck"])
+
+    def test_a_curated_site_that_steps_aside_gives_nothing(self):
+        # That rule is older than the registers and stays as it was: the
+        # OpenStreetMap record ships as OpenStreetMap wrote it.
+        osm = _site("osm", "osm_node_1", "Hilma Hooker")
+        curated = _site(
+            "curated", "curated_a", "Hilma Hooker", north=400,
+            types=("wreck",), max_depth=30.0, description="A drug runner.",
+        )
+        kept, dropped = overlap.resolve([curated, osm])
+        self.assertEqual(dict(dropped), {("curated", "osm"): 1})
+        survivor = kept[0]
+        self.assertEqual(survivor["id"], "osm_node_1")
+        self.assertIsNone(survivor["max_depth"])
+        self.assertIsNone(survivor["description"])
+        self.assertEqual(survivor["types"], [])
 
     def test_a_depth_the_survivor_has_is_never_overwritten(self):
         kept, _ = overlap.resolve([
@@ -281,6 +304,19 @@ class OwnTermsTest(unittest.TestCase):
 
 
 class ScaleTest(unittest.TestCase):
+    def test_a_match_is_found_across_the_antimeridian(self):
+        def wreck(source, record_id, lon):
+            return rec.working(
+                id=record_id, name="Tui Tai", lat=-17.0, lon=lon,
+                source=source, kind="register", types=("wreck",),
+            )
+
+        # 85 metres apart, on either side of 180 degrees.
+        kept, _ = overlap.resolve(
+            [wreck("ukho", "ukho_1", 179.9996), wreck("awois", "awois_1", -179.9996)]
+        )
+        self.assertEqual(_ids(kept), ["ukho_1"])
+
     def test_a_match_is_found_at_high_latitude_and_across_cells(self):
         def at(source, record_id, lat, lon):
             return rec.working(

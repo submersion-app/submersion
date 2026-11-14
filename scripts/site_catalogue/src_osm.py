@@ -74,6 +74,10 @@ _BUSINESS_NAME = re.compile(
     re.IGNORECASE,
 )
 
+# The way into the water, named for the dive centre beside it
+# ("Taucheinstieg Ost Tauchzentrum Geiseltal"): a place to dive.
+_ENTRY_NAME = re.compile(r"einstieg", re.IGNORECASE)
+
 _FRESH_WATER = frozenset(
     {"lake", "pond", "reservoir", "quarry", "river", "basin", "oxbow"}
 )
@@ -100,6 +104,8 @@ def is_business(tags: dict, name: str) -> bool:
         return True
     if tags.get("leisure") in _BUSINESS_LEISURE:
         return True
+    if _ENTRY_NAME.search(name or ""):
+        return False
     return _BUSINESS_NAME.search(name or "") is not None
 
 

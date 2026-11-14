@@ -69,6 +69,19 @@ class BusinessTest(unittest.TestCase):
             )
         )
 
+    def test_an_entry_point_named_for_its_dive_centre_is_a_site(self):
+        # German lakes name the way in after the centre beside it.
+        for name in (
+            "Taucheinstieg Ost Tauchzentrum Geiseltal",
+            "Ehemaliger Einstieg der Tauchbasis Oasis in den Sundhäuser See",
+        ):
+            self.assertFalse(
+                src_osm.is_business({"sport": "scuba_diving"}, name), name
+            )
+        self.assertTrue(
+            src_osm.is_business({"sport": "scuba_diving"}, "Tauchzentrum Geiseltal")
+        )
+
     def test_a_place_the_sport_is_practised_is_not_a_business(self):
         # OpenStreetMap tags the place a sport happens leisure=pitch, and
         # Dutch dive spots are mapped that way; a pool tagged for scuba is

@@ -161,5 +161,20 @@ class CatalogueOutputTest(unittest.TestCase):
         )
 
 
+@unittest.skipUnless(_HAS_DEPS, "the harvester's dependencies are not installed")
+class ClientNameTest(unittest.TestCase):
+    def test_overpass_is_asked_under_the_generic_client_name(self):
+        # The Overpass library sends Python's default client name unless
+        # it is handed a request that carries one.
+        harvester = dive_site_harvester.DiveSiteHarvester()
+        request = harvester.api.url
+        self.assertEqual(
+            request.full_url, dive_site_harvester.OVERPASS_ENDPOINT
+        )
+        self.assertEqual(
+            request.get_header("User-agent"), "dive-site-harvester/1.0"
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

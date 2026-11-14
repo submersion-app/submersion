@@ -20,6 +20,7 @@ import json
 import logging
 import os
 import time
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -523,7 +524,14 @@ class DiveSiteHarvester:
     """Main harvester class with checkpointing and rate limiting."""
 
     def __init__(self):
-        self.api = overpy.Overpass(url=OVERPASS_ENDPOINT)
+        # The library sends Python's default client name unless the URL is
+        # a request that carries one.
+        self.api = overpy.Overpass(
+            url=urllib.request.Request(
+                OVERPASS_ENDPOINT,
+                headers={"User-Agent": NOMINATIM_USER_AGENT},
+            )
+        )
         self.last_request_time: float | None = None
         self.all_sites: list[dict] = []
         self.seen_ids: set[tuple[str, int]] = set()  # (osm_type, osm_id)

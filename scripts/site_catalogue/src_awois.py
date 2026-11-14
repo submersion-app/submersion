@@ -75,6 +75,10 @@ def _depth(row: dict) -> float | None:
     if value is None or value <= 0:
         return None
     unit = row["SOUNDING_TYPE"].lower()
+    if "wire" in unit:
+        # A wire-drag clearance: the depth a wire passed at untouched. The
+        # wreck lies deeper than that by an amount no one states.
+        return None
     if "feet" in unit:
         return rec.feet(value)
     if "fathom" in unit:

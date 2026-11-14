@@ -80,6 +80,14 @@ NJDEP_METADATA_SHIPPED = "site_catalogue_njdep_metadata.xml"
 # museums, so their wrecks must lie in water by the offline boundaries.
 _LAND_GATED = frozenset({"osm_wrecks", "wikidata_wrecks"})
 
+# The wreck registers. Three or more of one register's wrecks filed on one
+# point are an area (a scuttled flotilla, a harbour's hulks), not three
+# positions; a reef program does place several structures at one point.
+_WRECK_REGISTERS = frozenset(
+    {"ukho", "awois", "nms_ie", "osm_wrecks", "wikidata_wrecks"}
+)
+_SHARED_POSITION_MIN = 3
+
 _ORIGIN = "_origin"
 _CURATED = "curated"
 # How many ids of each kind the report lists before it only counts.
@@ -198,7 +206,27 @@ def _gated(key: str, formed: list[dict], dropped, places) -> list[dict]:
         seen.add(record["id"])
         record[_ORIGIN] = key
         kept.append(record)
-    return kept
+    if key not in _WRECK_REGISTERS:
+        return kept
+
+    def point(record):
+        return round(record["lat"], 5), round(record["lon"], 5)
+
+    names: dict[tuple, set[str]] = {}
+    for record in kept:
+        if record["kind"] == "register":
+            names.setdefault(point(record), set()).add(rec.fold_name(record["name"]))
+    crowded = {
+        where for where, found in names.items()
+        if len(found) >= _SHARED_POSITION_MIN
+    }
+    alone = []
+    for record in kept:
+        if record["kind"] == "register" and point(record) in crowded:
+            dropped["shared_position"] += 1
+        else:
+            alone.append(record)
+    return alone
 
 
 def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dict]:
@@ -319,9 +347,19 @@ def main(argv=None, *, places=None, curated=None) -> int:
         "--open-only", action="store_true",
         help="write the ODbL database alone, without the own-terms sources",
     )
-    parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument(
+        "--out", type=Path, default=None,
+        help=f"where to write (default {DEFAULT_OUT}; required with --open-only)",
+    )
     parser.add_argument("--cache", type=Path, default=CACHE_DIR)
     arguments = parser.parse_args(argv)
+    if arguments.open_only and arguments.out is None:
+        # The default is the catalogue the app ships, with New Jersey's
+        # metadata beside it: the ODbL extract must not replace them.
+        print("--open-only needs --out: it would replace the shipped catalogue.")
+        return 2
+    if arguments.out is None:
+        arguments.out = DEFAULT_OUT
 
     snapshots: dict[str, list[dict]] = {}
     fetched: list[str] = []

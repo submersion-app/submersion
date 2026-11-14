@@ -162,8 +162,9 @@ def _record(row: dict) -> tuple[dict | None, str | None]:
         and not row["position_method"]
     ):
         return None, "coarse_position"
-    charted = rec.number(row["water_depth"])
-    least = rec.number(row["depth"])
+    # A depth of zero is the register's blank.
+    charted = rec.number(row["water_depth"]) or None
+    least = rec.number(row["depth"]) or None
     depth = charted if charted is not None else least
     if depth is None:
         return None, "no_depth"

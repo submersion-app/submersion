@@ -1,7 +1,7 @@
 # Site catalogue: open-register expansion (slice 2)
 
 Date: 2026-11-14
-Status: approved 2026-11-14; first harvest shipped 20,997 records (see
+Status: approved 2026-11-14; first harvest shipped 20,932 records (see
 "Result of the first harvest")
 Program: `2026-11-13-site-catalogue-program.md`
 Issue: #4514
@@ -184,26 +184,26 @@ exact total only after the harvest is final.
 
 ### Result of the first harvest (2026-11-14)
 
-The harvest wrote 20,997 records: 3,928 dive site records and 17,069
+The harvest wrote 20,932 records: 3,931 dive site records and 17,001
 register records.
 
 | Source | Expected | Written | Why it differs |
 |---|---|---|---|
-| OpenStreetMap dive sites | 3,400 | 3,468 | |
+| OpenStreetMap dive sites | 3,400 | 3,471 | |
 | Curated | 55 | 55 | |
-| UKHO Global Wrecks | 8,300 | 8,156 | |
+| UKHO Global Wrecks | 8,300 | 8,133 | |
 | Florida FWC reefs | 3,200 | 3,528 | The prototype matched names more loosely and merged more deployments |
 | Other states' reefs, federal file | 2,300 | 2,297 | |
-| OpenStreetMap wrecks | 1,050 | 843 | Wrecks that show at low tide are dropped too; 39 were named only "wreck" in another language; 109 lie on dry land |
-| Wikidata | 1,170 | 1,033 | 34 wrecks lie on dry land |
+| OpenStreetMap wrecks | 1,050 | 840 | Wrecks that show at low tide are dropped too; 39 were named only "wreck" in another language; 109 lie on dry land |
+| Wikidata | 1,170 | 998 | 34 wrecks lie on dry land; 34 share a point with two or more others |
 | New Jersey reefs | 600 | 615 | |
-| NOAA AWOIS | 560 | 471 | The register writes "Wreck - Visible"; 61 such rows and 87 reported removed are gated |
+| NOAA AWOIS | 560 | 464 | The register writes "Wreck - Visible"; 61 such rows and 87 reported removed are gated |
 | Ireland wreck inventory | 500 | 349 | 140 are the same wreck as a UKHO record, which is kept; 90 positions are whole minutes written in decimals |
 | Florida Keys moorings | 92 | 96 | |
 | North Carolina reefs | 55 | 55 | |
 | Hawaii, Texas reefs | 45 | 31 | 20 Hawaii rows are corner markers of a reef area, not structures |
 
-Of the 3,667 ids shipped before, 334 are gone, all from OpenStreetMap: 260
+Of the 3,667 ids shipped before, 331 are gone, all from OpenStreetMap: 257
 are businesses, 71 are no longer in OpenStreetMap and 3 have lost their
 name. No curated id is gone. 283 dive sites that had no position now have
 one.
@@ -223,6 +223,19 @@ draw; the hydrographic registers are not asked. An Irish position in whole
 minutes is coarse whoever it is credited to (24 scuttled U-boats shared
 one). No record ships at 0, 0 or outside the globe, whatever a register
 writes.
+
+And from the review's smaller findings: three or more wrecks that one
+wreck register files on one exact point are an area, not three positions,
+and are left out (64 records; reef programs are not asked, since they do
+place several structures at one point). A UKHO depth of zero is no depth.
+An AWOIS wire-drag clearance is not a depth. Folding also drops "HMHS",
+spelled-out prefixes ("H.M.H.S."), the word for a wreck in German,
+Spanish and Italian, and "No." before a hull number. A name with
+"einstieg" in it is a way into the water, not the dive centre it is named
+for. In section 5, a curated site that steps aside for OpenStreetMap gives
+it nothing, and a survivor's own types stand. In section 10, a register
+record is not picked on its own when a dive site lies within the
+separation margin behind it, even outside the inner radius.
 
 At 28,369 records (the larger, rejected set), on a desktop in a debug build:
 import took 268 ms to parse and name seas and 269 ms to insert (72 ms and

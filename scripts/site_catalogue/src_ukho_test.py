@@ -109,6 +109,17 @@ class RecordTest(unittest.TestCase):
     def setUp(self):
         self.rows = _rows()
 
+    def test_a_charted_depth_of_zero_is_no_depth(self):
+        # The register writes 0 where it has no figure: the least depth
+        # over the wreck stands in, as it does for a blank.
+        row = dict(self.rows["9438"], water_depth="0", depth="25")
+        record, reason = _one(row)
+        self.assertIsNone(reason)
+        self.assertEqual(record["max_depth"], 25.0)
+        self.assertIsNone(record["min_depth"])
+        row = dict(self.rows["9438"], water_depth="0", depth="0")
+        self.assertEqual(_one(row)[1], "no_depth")
+
     def test_a_surveyed_wreck(self):
         record, _ = _one(self.rows["9438"])
         self.assertEqual(record["id"], "ukho_9438")

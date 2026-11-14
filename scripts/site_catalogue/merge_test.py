@@ -345,6 +345,46 @@ class PositionGateTest(unittest.TestCase):
         self.assertNotIn("lon", site)
 
 
+class SharedPositionTest(unittest.TestCase):
+    @staticmethod
+    def _wreck(number, label, lat=55.1234, lon=-6.4321):
+        return dict(item=f"Q9{number}", label=label, lat=lat, lon=lon,
+                    precision=1e-6, globe="http://www.wikidata.org/entity/Q2")
+
+    def test_three_wrecks_on_one_point_are_an_area_not_three_wrecks(self):
+        # A scuttled flotilla filed on one position: no one of them is
+        # where the register says.
+        snapshots_ = _snapshots()
+        snapshots_["wikidata_wrecks"] += [
+            self._wreck(1, "SMS V43"), self._wreck(2, "SMS V46"),
+            self._wreck(3, "SMS S132"),
+        ]
+        records, report = _build(snapshots_)
+        ids = {r["id"] for r in records}
+        self.assertFalse(ids & {"wikidata_Q91", "wikidata_Q92", "wikidata_Q93"})
+        self.assertEqual(
+            report["wikidata_wrecks"]["dropped"]["shared_position"], 3
+        )
+
+    def test_two_wrecks_on_one_point_stay(self):
+        # A collision, or one wreck lying on another.
+        snapshots_ = _snapshots()
+        snapshots_["wikidata_wrecks"] += [
+            self._wreck(1, "Andrea"), self._wreck(2, "Stockholm Bow"),
+        ]
+        records, report = _build(snapshots_)
+        ids = {r["id"] for r in records}
+        self.assertTrue({"wikidata_Q91", "wikidata_Q92"} <= ids)
+        self.assertNotIn("shared_position", report["wikidata_wrecks"]["dropped"])
+
+    def test_reef_structures_on_one_point_stay(self):
+        # A reef program places several structures at one published point.
+        snapshots_ = _snapshots()
+        records, report = _build(snapshots_)
+        for key in ("fwc", "njdep", "noaa_reefs", "nc_dmf", "fknms"):
+            self.assertNotIn("shared_position", report[key]["dropped"], key)
+
+
 class OverlapInTheMergeTest(unittest.TestCase):
     def test_a_wreck_two_sources_list_ships_once_with_the_gap_filled(self):
         snapshots_ = _snapshots()
@@ -493,6 +533,20 @@ class MainTest(unittest.TestCase):
         self.assertFalse(
             (self.out / "site_catalogue_njdep_metadata.xml").exists()
         )
+
+    def test_open_only_needs_somewhere_of_its_own_to_write(self):
+        # Without --out it would replace the catalogue the app ships and
+        # delete New Jersey's metadata beside it.
+        self._run()
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = merge.main(
+                ["--cache", str(self.cache), "--open-only"],
+                places=_Places(),
+                curated=_CURATED,
+            )
+        self.assertEqual(code, 2)
+        self.assertIn("--out", output.getvalue())
 
     def test_the_open_only_catalogue_ships_no_new_jersey_metadata(self):
         code, _ = self._run("--open-only")

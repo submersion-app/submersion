@@ -37,12 +37,17 @@ _KEEP_UPPER = frozenset(SHIP_PREFIXES) | {
 _FOLD_PREFIXES = tuple(
     sorted(
         [prefix.lower() for prefix in SHIP_PREFIXES]
-        + ["s s", "m v", "f v", "the", "wreck of the", "wreck of", "wreck",
-           "epave", "wrak"],
+        + ["hmhs", "the", "wreck of the", "wreck of", "wreck", "epave",
+           "wrak", "wrack", "schiffswrack", "naufragio", "pecio", "relitto",
+           "vrak"],
         key=len,
         reverse=True,
     )
 )
+
+# Single letters at the front of a name, as a spelled-out prefix leaves
+# them once its dots are gone.
+_INITIALS = re.compile(r"((?:[a-z] ){1,4}[a-z]) ")
 
 # Dropped from the end of a folded name.
 _FOLD_SUFFIXES = ("shipwreck", "wreck", "reef")
@@ -94,6 +99,12 @@ def fold_name(name: str) -> str:
     """
     text = re.sub(r"\(.*?\)", " ", _ascii(name).lower())
     words = re.sub(r"[^a-z0-9]+", " ", text).strip()
+    # "H.M.H.S." and "S.S." are their prefixes spelled out.
+    initials = _INITIALS.match(words)
+    if initials and initials.group(1).replace(" ", "") in _FOLD_PREFIXES:
+        words = initials.group(1).replace(" ", "") + words[initials.end(1):]
+    # "No. 8" and "8" number the same hull.
+    words = re.sub(r"\bno (?=\d)", "", words)
     changed = True
     while changed:
         changed = False

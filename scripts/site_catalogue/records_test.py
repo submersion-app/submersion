@@ -33,6 +33,21 @@ class FoldNameTest(unittest.TestCase):
     def test_accents_and_a_leading_wreck_word_are_dropped(self):
         self.assertEqual(records.fold_name("Épave du Liban"), "du liban")
         self.assertEqual(records.fold_name("Wreck of the Rhone"), "rhone")
+        # One source's two records of one wreck, written two ways.
+        self.assertEqual(records.fold_name("H.M.H.S. Britannic"), "britannic")
+        self.assertEqual(records.fold_name("H.M.S. Hood"), "hood")
+        self.assertEqual(
+            records.fold_name("Naufragio ARA San Juan"),
+            records.fold_name("ARA San Juan"),
+        )
+        self.assertEqual(
+            records.fold_name("Schiffswrack West Star"), "west star"
+        )
+        self.assertEqual(
+            records.fold_name("Arco No. 8"), records.fold_name("Arco 8")
+        )
+        # A name that only begins with initials is not a prefix.
+        self.assertEqual(records.fold_name("A B Seas"), "a b seas")
 
     def test_a_trailing_reef_or_wreck_is_dropped(self):
         self.assertEqual(records.fold_name("Molasses Reef"), "molasses")

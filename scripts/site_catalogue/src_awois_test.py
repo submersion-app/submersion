@@ -97,10 +97,12 @@ class RecordTest(unittest.TestCase):
         # A depth with no stated unit says too little to use.
         row = dict(self.rows["10358"], SOUNDING_TYPE="")
         self.assertIsNone(_one(row)[0]["max_depth"])
+        # A wire-drag clearance is the depth a wire was drawn at without
+        # touching anything: the wreck lies deeper, by an unstated amount.
         row = dict(
             self.rows["10358"], SOUNDING_TYPE="Wire-drag clearance, feet"
         )
-        self.assertEqual(_one(row)[0]["max_depth"], 6.4)
+        self.assertIsNone(_one(row)[0]["max_depth"])
 
 
 if __name__ == "__main__":
