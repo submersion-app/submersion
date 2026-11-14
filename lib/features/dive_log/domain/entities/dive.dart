@@ -205,8 +205,8 @@ class Dive extends Equatable {
 
   /// Seconds added to each photo's capture time before it is placed on this
   /// dive (issue #4539): negative for a camera running ahead of the dive
-  /// computer, positive for one behind. Set only from the media viewer's
-  /// Set-time dialog; saving a dive never rewrites it. Carried by the UDDF
+  /// computer, positive for one behind. Written on its own, by the Set-time
+  /// dialog or an agent; saving a dive never rewrites it. Carried by the UDDF
   /// backup so a restored dive keeps its media where the diver put it.
   final int mediaTimeOffsetSeconds;
   final List<Tag> tags;

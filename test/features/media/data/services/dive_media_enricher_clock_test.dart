@@ -121,6 +121,22 @@ void main() {
     });
   });
 
+  test('a dive with no media reads no source entry', () async {
+    var reads = 0;
+    final enricher = DiveMediaEnricher(
+      loadDive: (_) async => _dive(),
+      loadMediaForDive: (_) async => const [],
+      loadPrimarySourceEntry: (_) async {
+        reads++;
+        return _computerEntry;
+      },
+      saveEnrichments: (_) async {},
+    );
+
+    expect(await enricher.enrichMissingForDive('d1'), 0);
+    expect(reads, 0);
+  });
+
   group('automaticTimeFor', () {
     test("is the item's place by capture time, with the dive shift", () async {
       final item = _media(takenAt: DateTime.utc(2026, 5, 6, 9, 9, 39));

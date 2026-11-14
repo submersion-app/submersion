@@ -173,6 +173,33 @@ void main() {
       );
     });
 
+    Future<String?> hlc() async =>
+        (await db
+                .customSelect("SELECT hlc FROM dives WHERE id = 'd1'")
+                .getSingle())
+            .readNullable<String>('hlc');
+
+    // The dive row carries its own clock: stamping it for a value it
+    // already holds ships a no-op to every device.
+    test('the shift a dive already has is not written again', () async {
+      await insertDive('d1');
+      await repo.setMediaTimeOffsetSeconds('d1', -47);
+      final stamped = await hlc();
+
+      await repo.setMediaTimeOffsetSeconds('d1', -47);
+
+      expect(await hlc(), stamped);
+    });
+
+    test('a dive with no shift is not stamped for a shift of 0', () async {
+      await insertDive('d1');
+      final before = await hlc();
+
+      await repo.setMediaTimeOffsetSeconds('d1', 0);
+
+      expect(await hlc(), before);
+    });
+
     test('saving the dive leaves the shift alone', () async {
       await insertDive('d1');
       await repo.setMediaTimeOffsetSeconds('d1', -47);

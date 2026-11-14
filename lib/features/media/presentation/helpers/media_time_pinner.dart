@@ -1,3 +1,4 @@
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -25,10 +26,25 @@ class MediaTimePinner {
   /// (`DiveRepository.setMediaTimeOffsetSeconds`).
   final Future<void> Function(String diveId, int seconds) setDiveShift;
 
+  static final _log = LoggerService.forClass(MediaTimePinner);
+
   /// What the Set-time dialog needs to offer a dive-wide shift for [item];
   /// null when the item has no place by capture time to shift from.
-  Future<MediaAutomaticTime?> automaticTimeFor(MediaItem item) =>
-      enricher.automaticTimeFor(item);
+  ///
+  /// A dive that will not load costs the shift, not the dialog: the diver
+  /// can still pin the item, which needs only the profile they are shown.
+  Future<MediaAutomaticTime?> automaticTimeFor(MediaItem item) async {
+    try {
+      return await enricher.automaticTimeFor(item);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to read the automatic time of media: ${item.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return null;
+    }
+  }
 
   Future<void> apply(MediaItem item, MediaTimeChoice choice) async {
     final diveId = item.diveId;

@@ -1133,15 +1133,25 @@ class DiveRepository {
   /// on [diveId] (issue #4539); 0 removes the shift. Single-column update,
   /// synced the way [setSiteSuggestionDismissed] is. Placing the media again
   /// is the caller's job: this only records the correction.
+  ///
+  /// A dive that already has this shift is left untouched, so saving the
+  /// same value again ships no row to other devices.
   Future<void> setMediaTimeOffsetSeconds(String diveId, int seconds) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-        DivesCompanion(
-          mediaTimeOffsetSeconds: Value(seconds),
-          updatedAt: Value(now),
-        ),
-      );
+      final changed =
+          await (_db.update(_db.dives)..where(
+                (t) =>
+                    t.id.equals(diveId) &
+                    t.mediaTimeOffsetSeconds.equals(seconds).not(),
+              ))
+              .write(
+                DivesCompanion(
+                  mediaTimeOffsetSeconds: Value(seconds),
+                  updatedAt: Value(now),
+                ),
+              );
+      if (changed == 0) return;
       await _syncRepository.markRecordPending(
         entityType: 'dives',
         recordId: diveId,
@@ -1166,25 +1176,34 @@ class DiveRepository {
   /// form gave it at whole minutes. A primary sitting some seconds along the
   /// timeline began that long after its zero, so the offset is taken off.
   Future<DateTime?> getPrimarySourceEntry(String diveId) async {
-    final row =
-        await (_db.select(_db.diveDataSources)
-              ..where(
-                (t) =>
-                    t.diveId.equals(diveId) &
-                    t.isPrimary.equals(true) &
-                    t.entryTime.isNotNull(),
-              )
-              ..orderBy([
-                (t) => OrderingTerm.asc(t.entryTime),
-                (t) => OrderingTerm.asc(t.id),
-              ])
-              ..limit(1))
-            .getSingleOrNull();
-    final entry = row?.entryTime;
-    if (row == null || entry == null) return null;
-    return entry.toUtc().subtract(
-      Duration(seconds: row.timeOffsetSeconds ?? 0),
-    );
+    try {
+      final row =
+          await (_db.select(_db.diveDataSources)
+                ..where(
+                  (t) =>
+                      t.diveId.equals(diveId) &
+                      t.isPrimary.equals(true) &
+                      t.entryTime.isNotNull(),
+                )
+                ..orderBy([
+                  (t) => OrderingTerm.asc(t.entryTime),
+                  (t) => OrderingTerm.asc(t.id),
+                ])
+                ..limit(1))
+              .getSingleOrNull();
+      final entry = row?.entryTime;
+      if (row == null || entry == null) return null;
+      return entry.toUtc().subtract(
+        Duration(seconds: row.timeOffsetSeconds ?? 0),
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get primary source entry for dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// Ids bound per [getDivesMissingEntryGps] query: one variable each, well

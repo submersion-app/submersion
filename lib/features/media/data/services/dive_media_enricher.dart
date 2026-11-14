@@ -68,8 +68,10 @@ class DiveMediaEnricher {
     final dive = await loadDive(diveId);
     if (dive == null || dive.profile.isEmpty) return 0;
 
-    final clock = await _clockFor(dive);
     final media = await loadMediaForDive(diveId);
+    // Most dives have no media, and this runs on every dive that is opened.
+    if (media.isEmpty) return 0;
+    final clock = await _clockFor(dive);
     final toSave = <MediaEnrichment>[];
     for (final item in media) {
       // Signatures are attached to a dive but not moments within it, and the

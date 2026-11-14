@@ -5,6 +5,8 @@ import 'package:submersion/features/agent_access/data/records/record_repositorie
 import 'package:submersion/features/agent_access/data/writes/families/dive_writes.dart';
 import 'package:submersion/features/agent_access/data/writes/writable_entity.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
+import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
+import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
 import '../records/record_harness.dart';
@@ -162,6 +164,48 @@ void main() {
     for (final MapEntry(:key, :value) in samples.entries) {
       expect(doc[key], value, reason: key);
     }
+  });
+
+  // Issue #4539: the shift moves the dive's media at once, so a read after
+  // the write shows the depth the shift gives.
+  test('media_time_offset_s places the dive\'s media again', () async {
+    await ProfileSeriesRepository().insertSeries(
+      diveId: 'd1',
+      samples: const [
+        ProfileSample(timestamp: 0, depth: 0),
+        ProfileSample(timestamp: 600, depth: 20),
+        ProfileSample(timestamp: 660, depth: 22),
+        ProfileSample(timestamp: 1200, depth: 0),
+      ],
+    );
+    await db
+        .into(db.media)
+        .insert(
+          MediaCompanion.insert(
+            id: 'm1',
+            filePath: 'm1.jpg',
+            // Stamped 11 minutes in by a camera running a minute ahead.
+            takenAt: const Value(seededClock + 660000),
+            createdAt: t,
+            updatedAt: t,
+            diveId: const Value('d1'),
+          ),
+        );
+
+    await writes.update(
+      'd1',
+      kDiverA,
+      const RecordUpdate(values: {'media_time_offset_s': -60}),
+    );
+
+    final placed = await db
+        .customSelect(
+          "SELECT elapsed_seconds, depth_meters FROM media_enrichment "
+          "WHERE media_id = 'm1'",
+        )
+        .getSingle();
+    expect(placed.read<int>('elapsed_seconds'), 600);
+    expect(placed.read<double>('depth_meters'), 20);
   });
 
   group('surface_interval_s (#4333)', () {

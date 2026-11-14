@@ -137,6 +137,23 @@ void main() {
     expect((await fetch(item)).manualElapsedSeconds, 900);
   });
 
+  // A dive that will not load costs the shift, not the dialog.
+  test('automaticTimeFor is null when the dive cannot be read', () async {
+    final item = await linkedItem('a', DateTime.utc(2026, 1, 1, 10, 6));
+    final failing = MediaTimePinner(
+      repository: repository,
+      setDiveShift: dives.setMediaTimeOffsetSeconds,
+      enricher: DiveMediaEnricher(
+        loadDive: (_) async => throw StateError('unreadable series'),
+        loadMediaForDive: repository.getMediaForDive,
+        loadPrimarySourceEntry: (_) async => null,
+        saveEnrichments: repository.saveEnrichments,
+      ),
+    );
+
+    expect(await failing.automaticTimeFor(item), isNull);
+  });
+
   test('automaticTimeFor reads the enricher', () async {
     final item = await linkedItem('a', DateTime.utc(2026, 1, 1, 10, 6));
     await pinner.apply(item, const MediaTimeDiveShifted(-60));

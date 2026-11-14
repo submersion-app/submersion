@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_site_snap.da
 import 'package:submersion/features/dive_log/data/services/bulk_dive_edit_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/bulk_edit_request.dart';
 import 'package:submersion/features/dive_log/domain/services/annotation_links.dart';
+import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_link_repository.dart';
@@ -498,9 +499,16 @@ class DiveWrites extends WritableEntry {
       await _annotations.reconcile(diveId: id, notes: notes);
     }
     // Its own writer, as in the app: a dive save never rewrites the shift.
-    // The media is placed again the next time the dive's media is opened.
+    // The media is placed again at once, so a read after the write shows
+    // the depths the shift gives.
     if (update.values['media_time_offset_s'] case final int shift) {
       await _r.dives.setMediaTimeOffsetSeconds(id, shift);
+      await DiveMediaEnricher(
+        loadDive: _r.dives.getDiveById,
+        loadMediaForDive: _r.media.getMediaForDive,
+        saveEnrichments: _r.media.saveEnrichments,
+        loadPrimarySourceEntry: _r.dives.getPrimarySourceEntry,
+      ).enrichMissingForDive(id);
     }
     if (update.values.containsKey('buddy_roles')) {
       await setBuddyRoles(_r, id, update.values['buddy_roles']);
