@@ -12143,6 +12143,7 @@
   "equipment_edit_addCustomField": "Añadir campo personalizado",
   "attr_flagYes": "Sí",
   "attr_flagNo": "No",
+  "attr_unitDual": "Ambas",
   "attr_figurePosition_automatic": "Automática",
   "equipment_edit_invalidThickness": "Usa 5, 5/4 o 7/5/3",
   "equipment_edit_invalidFocalLength": "Usa 60 o 15-45",

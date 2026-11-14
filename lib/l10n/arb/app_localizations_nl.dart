@@ -41825,6 +41825,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attr_flagNo => 'Nee';
 
   @override
+  String get attr_unitDual => 'Beide';
+
+  @override
   String get attr_figurePosition_automatic => 'Automatisch';
 
   @override

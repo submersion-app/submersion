@@ -42078,6 +42078,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get attr_flagNo => 'Não';
 
   @override
+  String get attr_unitDual => 'Ambas';
+
+  @override
   String get attr_figurePosition_automatic => 'Automática';
 
   @override

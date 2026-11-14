@@ -12143,6 +12143,7 @@
   "equipment_edit_addCustomField": "הוספת שדה מותאם אישית",
   "attr_flagYes": "כן",
   "attr_flagNo": "לא",
+  "attr_unitDual": "שתיהן",
   "attr_figurePosition_automatic": "אוטומטי",
   "equipment_edit_invalidThickness": "השתמשו ב-5, 5/4 או 7/5/3",
   "equipment_edit_invalidFocalLength": "השתמשו ב-60 או 15-45",
