@@ -2591,6 +2591,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Back-up maken';
 
   @override
+  String get backup_note_keep_title => 'Deze back-up bewaren';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Vastgemaakte back-ups worden nooit automatisch verwijderd';
+
+  @override
   String get backup_delete_dialog_cancel => 'Annuleren';
 
   @override
@@ -2771,6 +2778,32 @@ class AppLocalizationsNl extends AppLocalizations {
       'Oudere back-ups worden automatisch verwijderd';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Back-ups worden nooit automatisch verwijderd';
+
+  @override
+  String get backup_retention_keepAll => 'Alles bewaren';
+
+  @override
+  String get backup_retention_custom => 'Aangepast aantal…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Aangepast: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Hoeveel back-ups bewaren?';
+
+  @override
+  String get backup_retention_custom_label => 'Aantal back-ups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Voer een getal van 1 tot $max in';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Back-ups van alle apparaten meetellen';
 
@@ -2782,6 +2815,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Ook de nieuwste back-up van elk apparaat blijft bewaard, tenzij die ouder is dan 6 maanden. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Alles bewaren staat aan, dus dit apparaat verwijdert geen back-ups uit de cloudmap. Vastgemaakte back-ups blijven bewaard.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -54479,6 +54516,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdNotPinned(String size) {
+    return 'Back-up gemaakt: $size. Vastmaken is niet gelukt; maak hem vast vanuit de geschiedenis.';
+  }
+
+  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Back-up gemaakt: $size. Deze is alleen op dit apparaat opgeslagen: voer je wachtwoordzin voor versleuteling in om back-ups naar de cloud te uploaden.';
   }
@@ -60275,6 +60317,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Alle back-ups bewaren';
+
+  @override
   String get settings_backups_folder => 'Back-upmap op dit apparaat';
 
   @override
@@ -61156,6 +61201,18 @@ class AppLocalizationsNl extends AppLocalizations {
     int count,
   ) {
     return '$frequency, zolang Submersion open is. De laatste $count worden hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Elke back-up wordt hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, zolang Submersion open is. Elke back-up wordt hier bewaard.';
   }
 
   @override

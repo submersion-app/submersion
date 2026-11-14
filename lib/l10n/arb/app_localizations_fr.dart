@@ -2611,6 +2611,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Sauvegarder';
 
   @override
+  String get backup_note_keep_title => 'Conserver cette sauvegarde';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Les sauvegardes épinglées ne sont jamais supprimées automatiquement';
+
+  @override
   String get backup_delete_dialog_cancel => 'Annuler';
 
   @override
@@ -2794,6 +2801,33 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les anciennes sauvegardes sont supprimées automatiquement';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Les sauvegardes ne sont jamais supprimées automatiquement';
+
+  @override
+  String get backup_retention_keepAll => 'Tout conserver';
+
+  @override
+  String get backup_retention_custom => 'Nombre personnalisé…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Personnalisé : $count';
+  }
+
+  @override
+  String get backup_retention_custom_title =>
+      'Combien de sauvegardes conserver ?';
+
+  @override
+  String get backup_retention_custom_label => 'Nombre de sauvegardes';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Saisissez un nombre de 1 à $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Compter les sauvegardes de tous les appareils';
 
@@ -2805,6 +2839,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'Le dossier cloud conserve les $count dernières sauvegardes de tous les appareils. Les sauvegardes épinglées sont conservées. La sauvegarde la plus récente de chaque appareil est aussi conservée, sauf si elle a plus de 6 mois. Si d\'autres appareils utilisent aussi ce réglage, le plus petit nombre l\'emporte. Mettez d\'abord l\'app à jour sur tous les appareils pour que leurs épingles soient prises en compte.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Tout conserver est activé : cet appareil ne supprime donc aucune sauvegarde du dossier cloud. Les sauvegardes épinglées sont conservées.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -54950,6 +54988,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdNotPinned(String size) {
+    return 'Sauvegarde créée : $size. Elle n\'a pas pu être épinglée ; épinglez-la depuis l\'historique.';
+  }
+
+  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Sauvegarde créée : $size. Elle a été enregistrée uniquement sur cet appareil : saisissez votre phrase secrète de chiffrement pour envoyer les sauvegardes dans le cloud.';
   }
@@ -60785,6 +60828,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Conserver toutes les sauvegardes';
+
+  @override
   String get settings_backups_folder =>
       'Dossier de sauvegarde sur cet appareil';
 
@@ -61675,6 +61721,18 @@ class AppLocalizationsFr extends AppLocalizations {
     int count,
   ) {
     return '$frequency, tant que Submersion est ouvert. Les $count dernières sont conservées ici.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Toutes les sauvegardes sont conservées ici.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, tant que Submersion est ouvert. Toutes les sauvegardes sont conservées ici.';
   }
 
   @override

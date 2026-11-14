@@ -77,4 +77,45 @@ void main() {
     final field = tester.widget<TextField>(find.byType(TextField));
     expect(field.maxLength, 200);
   });
+  group('Keep this backup (issue #4535)', () {
+    Finder keep() => find.widgetWithText(SwitchListTile, 'Keep this backup');
+
+    testWidgets('is off by default, so the backup is not pinned', (
+      tester,
+    ) async {
+      final result = await open(tester);
+      expect(tester.widget<SwitchListTile>(keep()).value, isFalse);
+      expect(
+        find.text('Pinned backups are never removed automatically'),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Back Up'));
+      await tester.pumpAndSettle();
+      expect(result()!.pin, isFalse);
+    });
+
+    testWidgets('turned on, the backup is pinned with its note', (
+      tester,
+    ) async {
+      final result = await open(tester);
+      await tester.enterText(find.byType(TextField), 'Before the import');
+      await tester.tap(keep());
+      await tester.pump();
+      expect(tester.widget<SwitchListTile>(keep()).value, isTrue);
+      await tester.tap(find.text('Back Up'));
+      await tester.pumpAndSettle();
+      expect(result()!.pin, isTrue);
+      expect(result()!.note, 'Before the import');
+    });
+
+    testWidgets('Enter in the note keeps the switch', (tester) async {
+      final result = await open(tester);
+      await tester.tap(keep());
+      await tester.pump();
+      await tester.enterText(find.byType(TextField), 'Quick');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(result()!.pin, isTrue);
+    });
+  });
 }

@@ -22,6 +22,7 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
+import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_copy_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/quarantined_database_providers.dart';
@@ -343,6 +344,64 @@ void main() {
     expect(has(name), isTrue);
   });
 
+  group('Keep all (issue #4535)', () {
+    const keepAll = BackupSettings.keepAllRetentionCount;
+
+    testWidgets('the tile says every backup is kept', (tester) async {
+      await pump(tester, initial: {'backup_retention_count': keepAll});
+      expect(find.text('Keep all backups'), findsOneWidget);
+      expect(
+        find.text('Backups are never removed automatically'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('$keepAll'), findsNothing);
+    });
+
+    testWidgets('choosing Keep all saves it', (tester) async {
+      await pump(tester);
+      await tester.tap(find.text('Keep the last 5 backups'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Keep all'));
+      await tester.pumpAndSettle();
+      expect(BackupPreferences(prefs).getSettings().keepsAll, isTrue);
+      expect(find.text('Keep all backups'), findsOneWidget);
+    });
+
+    testWidgets('a typed count is saved and shown', (tester) async {
+      await pump(tester);
+      await tester.tap(find.text('Keep the last 5 backups'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Custom number…'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), '365');
+      await tester.pump();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      expect(BackupPreferences(prefs).getSettings().retentionCount, 365);
+      expect(find.text('Keep the last 365 backups'), findsOneWidget);
+    });
+
+    testWidgets('the all-devices switch, on, says nothing is removed', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        initial: {
+          'backup_retention_count': keepAll,
+          'backup_retention_all_devices_account': 'acct',
+        },
+      );
+      expect(isOn(tester), isTrue);
+      expect(
+        find.text(
+          'Keep all is on, so this device removes no backups from the cloud '
+          'folder. Pinned backups are kept.',
+        ),
+        findsOneWidget,
+      );
+    });
+  });
+
   group('with backups to remove', () {
     late List<String> names;
     setUp(() => names = [for (var d = 2; d <= 8; d++) seed(d)]);
@@ -433,6 +492,26 @@ void main() {
       await tester.pumpAndSettle();
       expect(BackupPreferences(prefs).getSettings().retentionCount, 5);
       expect(has(names.last), isFalse);
+    });
+
+    testWidgets('going from Keep all to a number asks first', (tester) async {
+      await pump(
+        tester,
+        initial: {
+          'backup_retention_count': BackupSettings.keepAllRetentionCount,
+          'backup_retention_all_devices_account': 'acct',
+        },
+      );
+      await tester.tap(find.text('Keep all backups'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('5').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Remove 2 backups?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(BackupPreferences(prefs).getSettings().keepsAll, isTrue);
+      expect(names.every(has), isTrue);
     });
 
     testWidgets('raising Keep needs no dialog', (tester) async {

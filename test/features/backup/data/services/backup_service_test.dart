@@ -694,6 +694,31 @@ void main() {
         expect(ids, isNot(contains('r1')));
       });
 
+      test('keep all removes nothing (issue #4535)', () async {
+        for (var i = 0; i < 12; i++) {
+          await preferences.addRecord(
+            BackupRecord(
+              id: 'r$i',
+              filename: 'backup_$i.db',
+              timestamp: DateTime(2025, 6, i + 1),
+              sizeBytes: 1000,
+              location: BackupLocation.local,
+              diveCount: 5,
+              siteCount: 2,
+            ),
+          );
+        }
+
+        final service = BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+        );
+
+        await service.pruneOldBackups(BackupSettings.keepAllRetentionCount);
+
+        expect(preferences.getHistory(), hasLength(12));
+      });
+
       test('deletes cloud files during pruning', () async {
         for (var i = 0; i < 3; i++) {
           await preferences.addRecord(

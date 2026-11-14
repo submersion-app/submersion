@@ -2603,6 +2603,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Sichern';
 
   @override
+  String get backup_note_keep_title => 'Diese Sicherung behalten';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Angeheftete Sicherungen werden nie automatisch entfernt';
+
+  @override
   String get backup_delete_dialog_cancel => 'Abbrechen';
 
   @override
@@ -2783,6 +2790,32 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ältere Sicherungen werden automatisch entfernt';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Sicherungen werden nie automatisch entfernt';
+
+  @override
+  String get backup_retention_keepAll => 'Alle behalten';
+
+  @override
+  String get backup_retention_custom => 'Eigene Anzahl…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Eigene: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Wie viele Sicherungen behalten?';
+
+  @override
+  String get backup_retention_custom_label => 'Anzahl der Sicherungen';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Eine Zahl von 1 bis $max eingeben';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Sicherungen aller Geräte zählen';
 
@@ -2794,6 +2827,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'Der Cloud-Ordner behält die letzten $count Sicherungen aller Geräte. Angeheftete Sicherungen bleiben erhalten. Die neueste Sicherung jedes Geräts bleibt ebenfalls erhalten, sofern sie nicht älter als 6 Monate ist. Nutzen auch andere Geräte diese Einstellung, gilt die kleinste Zahl. Aktualisiere zuerst die App auf allen Geräten, damit deren angeheftete Sicherungen erkannt werden.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      '„Alle behalten“ ist aktiv, daher entfernt dieses Gerät keine Sicherungen aus dem Cloud-Ordner. Angeheftete Sicherungen bleiben erhalten.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -54697,6 +54734,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String backup_operation_createdNotPinned(String size) {
+    return 'Sicherung erstellt: $size. Das Anheften hat nicht geklappt; hefte sie im Verlauf an.';
+  }
+
+  @override
   String backup_operation_createdLocalOnlyLocked(String size) {
     return 'Sicherung erstellt: $size. Sie wurde nur auf diesem Gerät gespeichert: Verschlüsselungs-Passphrase eingeben, um Sicherungen in die Cloud hochzuladen.';
   }
@@ -60525,6 +60567,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Alle Sicherungen behalten';
+
+  @override
   String get settings_backups_folder => 'Sicherungsordner auf diesem Gerät';
 
   @override
@@ -61409,6 +61454,18 @@ class AppLocalizationsDe extends AppLocalizations {
     int count,
   ) {
     return '$frequency, solange Submersion geöffnet ist. Die letzten $count werden hier aufbewahrt.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Jede Sicherung wird hier aufbewahrt.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, solange Submersion geöffnet ist. Jede Sicherung wird hier aufbewahrt.';
   }
 
   @override

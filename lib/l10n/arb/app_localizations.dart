@@ -4030,6 +4030,18 @@ abstract class AppLocalizations {
   /// **'Back Up'**
   String get backup_note_dialog_confirm;
 
+  /// Back up now dialog: switch that pins the new backup
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this backup'**
+  String get backup_note_keep_title;
+
+  /// Back up now dialog: subtitle of the Keep this backup switch
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned backups are never removed automatically'**
+  String get backup_note_keep_subtitle;
+
   /// No description provided for @backup_delete_dialog_cancel.
   ///
   /// In en, this message translates to:
@@ -4336,6 +4348,48 @@ abstract class AppLocalizations {
   /// **'Older backups are automatically removed'**
   String get backup_schedule_retention_subtitle;
 
+  /// Advanced: Keep tile subtitle when every backup is kept (issue #4535)
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are never removed automatically'**
+  String get backup_schedule_retention_keepAll_subtitle;
+
+  /// Keep backups picker: the row that turns automatic removal off
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all'**
+  String get backup_retention_keepAll;
+
+  /// Keep backups picker: the row that opens a number field
+  ///
+  /// In en, this message translates to:
+  /// **'Custom number…'**
+  String get backup_retention_custom;
+
+  /// Keep backups picker: the custom row when the current count is a typed one
+  ///
+  /// In en, this message translates to:
+  /// **'Custom: {count}'**
+  String backup_retention_customCurrent(int count);
+
+  /// Title of the dialog for typing a backup count
+  ///
+  /// In en, this message translates to:
+  /// **'Keep how many backups?'**
+  String get backup_retention_custom_title;
+
+  /// Label of the number field in the custom backup count dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Number of backups'**
+  String get backup_retention_custom_label;
+
+  /// Error under the custom backup count field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number from 1 to {max}'**
+  String backup_retention_custom_error(int max);
+
   /// No description provided for @backup_retention_allDevices_title.
   ///
   /// In en, this message translates to:
@@ -4353,6 +4407,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
   String backup_retention_allDevices_on(int count);
+
+  /// Count backups from all devices, on, while Keep all is chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.'**
+  String get backup_retention_allDevices_onKeepAll;
 
   /// No description provided for @backup_retention_cloudFootprint.
   ///
@@ -86167,6 +86227,12 @@ abstract class AppLocalizations {
   /// **'Backup created: {size}'**
   String backup_operation_created(String size);
 
+  /// Shown when the backup was made but pinning it failed
+  ///
+  /// In en, this message translates to:
+  /// **'Backup created: {size}. It could not be pinned, so pin it from the history.'**
+  String backup_operation_createdNotPinned(String size);
+
   /// No description provided for @backup_operation_createdLocalOnlyLocked.
   ///
   /// In en, this message translates to:
@@ -95569,6 +95635,12 @@ abstract class AppLocalizations {
   /// **'Keep the last {count} backups'**
   String settings_backups_keepLast(int count);
 
+  /// Advanced: Keep tile title when every backup is kept (issue #4535)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all backups'**
+  String get settings_backups_keepAll;
+
   /// Advanced: the folder on this device that backups are written to
   ///
   /// In en, this message translates to:
@@ -96630,6 +96702,20 @@ abstract class AppLocalizations {
   String settings_setUpDevice_backups_autoDetailDesktop(
     String frequency,
     int count,
+  );
+
+  /// Subtitle of Back up automatically in step 3 when every backup is kept; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}. Every backup is kept here.'**
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency);
+
+  /// Subtitle of Back up automatically in step 3 on a computer when every backup is kept; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}, while Submersion is open. Every backup is kept here.'**
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
   );
 
   /// Step 3 switch: also copy each backup to an account
