@@ -19,6 +19,11 @@ const double cylinderVolumeRepairThresholdLiters = 80;
 /// the rest of the app reads cubic feet. A repaired volume is under the
 /// threshold, so running this again changes nothing.
 ///
+/// A row with a `value_unit` was saved by a build that knows cubic feet
+/// mean gas capacity, so it is never touched: a cylinder above the line
+/// saved since v366 is stamped `liters` (`EquipmentRepository.saveAttributes`)
+/// and stays as entered when the repair repeats after a sync apply.
+///
 /// The sync stamp (`updated_at`, `hlc`) does not move: every device runs this
 /// same rewrite, and a row that arrives later from a peer below v366 is
 /// repaired after the apply (`SyncService._repairLegacyPeerRows`).
@@ -38,6 +43,7 @@ Future<int> repairCylinderVolumeCubicFeet(DatabaseConnectionUser db) async {
         'FROM equipment_attributes v '
         'JOIN equipment e ON e.id = v.equipment_id '
         "WHERE v.attr_key = 'volume_l' AND v.is_custom = 0 "
+        'AND v.value_unit IS NULL '
         "AND e.type = 'tank' AND v.value_num > ?",
         variables: [
           const Variable<double>(cylinderVolumeRepairThresholdLiters),

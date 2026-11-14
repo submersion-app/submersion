@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 
@@ -63,5 +64,22 @@ void main() {
     await repository.saveAttributes(gaugeId, [range(bar: 300)]);
 
     expect((await readRange())?.valueUnit, isNull);
+  });
+
+  test('a cylinder volume above the repair line is saved as litres', () async {
+    final tankId = (await repository.createEquipment(
+      const EquipmentItem(id: '', name: 'Bank', type: EquipmentType.tank),
+    )).id;
+    await repository.saveAttributes(tankId, [
+      EquipmentAttribute.curated(
+        equipmentId: tankId,
+        key: EquipmentAttrKeys.volumeL,
+        valueNum: 100,
+      ),
+    ]);
+
+    final saved = (await repository.getAttributesForEquipment(tankId)).single;
+    expect(saved.valueNum, 100);
+    expect(saved.valueUnit, 'liters');
   });
 }

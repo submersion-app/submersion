@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/data/visibility/visibility_filter.dart';
+import 'package:submersion/core/database/cylinder_volume_repair.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_source_stamp.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
@@ -2097,6 +2099,15 @@ class EquipmentRepository {
       return a.copyWith(
         equipmentId: equipmentId,
         id: EquipmentAttribute.curatedId(equipmentId, a.key),
+        // A cylinder this large was entered on purpose, never typed as water
+        // cubic feet: the stamp keeps the v366 repair, which repeats after
+        // every sync apply, away from it (issue #4534).
+        valueUnit:
+            a.valueUnit ??
+            (a.key == EquipmentAttrKeys.volumeL &&
+                    (a.valueNum ?? 0) > cylinderVolumeRepairThresholdLiters
+                ? VolumeUnit.liters.name
+                : null),
       );
     }).toList();
 

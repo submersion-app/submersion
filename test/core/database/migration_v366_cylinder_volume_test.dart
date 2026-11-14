@@ -88,4 +88,16 @@ void main() {
     expect(row.read<String>('hlc'), 'h1');
     expect(await repairCylinderVolumeCubicFeet(db), 0);
   });
+
+  test('a volume saved with a unit since v366 is never repaired', () async {
+    final db = AppDatabase(dbAt365());
+    addTearDown(db.close);
+    await db.customStatement(
+      "UPDATE equipment_attributes SET value_num = 100, value_unit = 'liters' "
+      "WHERE id = 'twelve_volume_l'",
+    );
+
+    expect(await repairCylinderVolumeCubicFeet(db), 0);
+    expect(await litres(db, 'twelve'), 100);
+  });
 }
