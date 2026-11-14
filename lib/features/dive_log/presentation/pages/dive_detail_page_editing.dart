@@ -106,7 +106,7 @@ mixin _DiveDetailPageEditing on ConsumerState<DiveDetailPage> {
         if (diveEditCards[section.id] case final card?)
           if (!open.contains(card.id) &&
               !(working.isGauge && section.id.hiddenInGaugeMode) &&
-              (card.isEmpty(working) ||
+              (!diveCardIsShown(ref, section.id, working) ||
                   (!section.visible && !added.contains(card.id))))
             AddStripEntry(
               cardId: card.id,
