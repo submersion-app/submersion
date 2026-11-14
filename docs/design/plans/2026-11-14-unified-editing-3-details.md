@@ -98,7 +98,7 @@ The spec says no `dive_edit_*` test is dropped without a replacement. The form a
 6. **A failed trip stretch fails the save** (difference 7).
 7. **Dive mode, average depth and the calculated rows stay in the open editor as rows that cannot be typed in.** Dive mode and average depth are edited on the Tanks card and the header block.
 8. **The imported buddy and dive master text is read-only.** The form does not edit it either.
-9. **A reorder of dive types or courses is a change.** The first one is the representative, stored in its own column.
+9. **A reorder of dive types is a change; a reorder of courses is not.** The first dive type is the representative, and their order is stored. Courses are stored as a set, and the writer picks the representative course itself (the earliest to start), so their order is nothing the diver can save.
 10. **After a save that set a new visibility, the device remembers that input mode for the next new dive**, as the form does.
 11. **No new strings.** Every label is one the form or the read card already has. The statistics row reuses `diveLog_edit_group_statistics`, `diveLog_edit_summary_excluded` and `diveLog_edit_summary_gasExcluded`.
 12. **Tide and Signatures follow the layout record.** Adding a first course, or switching to fresh water, changes those cards when the last editor closes, not while Details is open.
@@ -330,7 +330,7 @@ final EditField<Dive, DiveCenter?> diveCenterField;          // 'diveCenter', eq
 final EditField<Dive, String?> diveOperatorField;            // 'diveOperator'
 final EditField<Dive, String?> diveBoatNameField;            // 'boatName'
 final EditField<Dive, String?> diveBoatCaptainField;         // 'boatCaptain'
-final EditField<Dive, List<String>> diveCourseIdsField;      // 'courseIds', equals: listEquals
+final EditField<Dive, List<String>> diveCourseIdsField;      // 'courseIds', equals: the same set
 final EditField<Dive, StoredVisibility> diveVisibilityField; // 'visibility'
 final EditField<Dive, WaterType?> diveWaterTypeField;        // 'waterType', alsoShownOn: {'environment'}
 final EditField<Dive, bool> diveExcludedFromStatsField;      // 'excludedFromStats'
@@ -385,7 +385,7 @@ test('dive types: the same ids in the same order are not a change; another order
   s.set(diveTypeIdsField, <String>['night', 'wreck']);
   expect(s.isDirty, isTrue);
 });
-test('courses compare the same way', ...);
+test('courses compare as a set: another order is not a change', ...);
 
 group('visibility', () {
   test('reads a measurement, a range and a bucket', ...);
@@ -499,7 +499,8 @@ test('a tank linked to the old trip\'s cylinder loses the link when the trip cha
   expect((await stored()).tanks.single.tripCylinderId, isNull);
 });
 test('dive types and courses are written with the dive', () async {
-  // apply sets diveTypeIds ['wreck', 'night'] and courseIds ['c2', 'c1']: read back in that order.
+  // apply sets diveTypeIds ['wreck', 'night']: read back in that order. courseIds ['c2', 'c1']
+  // are read back as the writer orders them (by start date, then name).
 });
 test('a cleared visibility, water type, dive center and operator are stored as null', ...);
 ```

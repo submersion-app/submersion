@@ -198,14 +198,25 @@ void main() {
       expect(session.isDirty, isFalse);
     });
 
-    test('another order is a change', () {
+    // The writer stores the set and picks the representative course itself,
+    // so an order is nothing the diver can save.
+    test('another order is not a change', () {
       final session = EditSession<Dive>(bare.copyWith(courseIds: ['c1', 'c2']));
       addTearDown(session.dispose);
 
       session.set(diveCourseIdsField, <String>['c2', 'c1']);
 
+      expect(session.isDirty, isFalse);
+    });
+
+    test('a course added or dropped is a change', () {
+      final session = EditSession<Dive>(bare.copyWith(courseIds: ['c1', 'c2']));
+      addTearDown(session.dispose);
+
+      session.set(diveCourseIdsField, <String>['c1', 'c2', 'c3']);
       expect(session.isDirty, isTrue);
-      expect(session.working.courseId, 'c2');
+      session.set(diveCourseIdsField, <String>['c1']);
+      expect(session.isDirty, isTrue);
     });
 
     test('an empty list clears them', () {

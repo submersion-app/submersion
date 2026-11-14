@@ -92,15 +92,20 @@ final diveBoatCaptainField = EditField<Dive, String?>(
   equals: _sameWords,
 );
 
-/// The training courses the dive counts toward. As with the dive types, the
-/// first is the representative one, so their order is part of the value.
+/// The training courses the dive counts toward. Unlike the dive types,
+/// their order carries no meaning: what is stored is the set, and the
+/// writer picks the representative course itself (the earliest to start).
+/// The same courses in another order are not a change.
 final diveCourseIdsField = EditField<Dive, List<String>>(
   id: 'courseIds',
   cardId: _card,
   read: (dive) => dive.courseIds,
   write: (dive, ids) => dive.copyWith(courseIds: List.unmodifiable(ids)),
-  equals: listEquals,
+  equals: _sameIds,
 );
+
+bool _sameIds(List<String> a, List<String> b) =>
+    setEquals(a.toSet(), b.toSet());
 
 /// The dive's visibility: at most one of a measured distance, a range, or
 /// an old bucket. The three are stored in four columns and are one value
