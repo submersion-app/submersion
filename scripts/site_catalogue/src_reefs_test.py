@@ -234,6 +234,39 @@ class NjdepTest(unittest.TestCase):
         self.assertEqual(len(self.records), 6)
 
 
+class MalformedRowsTest(unittest.TestCase):
+    def test_a_new_jersey_row_without_a_number_is_dropped_not_fatal(self):
+        rows = src_reefs.arcgis_rows(_sample("njdep.json"))
+        broken = [dict(rows[0], UNIQUE_ID=None), dict(rows[0], UNIQUE_ID="UNKNOWN")]
+        records, dropped = src_reefs.njdep_records(rows + broken)
+        expected, _ = src_reefs.njdep_records(rows)
+        self.assertEqual(len(records), len(expected))
+        self.assertEqual(dropped["no_id"], 2)
+
+    def test_a_north_carolina_reef_number_may_arrive_as_a_number(self):
+        rows = src_reefs.arcgis_rows(_sample("nc_dmf.json"))
+        numbered = dict(rows[0], REEF__=160, REEF_NAME="")
+        records, _ = src_reefs.nc_dmf_records([numbered])
+        self.assertEqual(len(records), 1)
+
+    def test_paging_stops_at_an_empty_page_not_a_short_one(self):
+        # A server whose page limit is under the size asked for answers
+        # with short pages: stopping at the first would cut the layer short.
+        from unittest import mock
+
+        def page(numbers):
+            return json.dumps({"features": [
+                {"attributes": {"N": n}, "geometry": {"x": 1.0, "y": 2.0}}
+                for n in numbers
+            ]}).encode()
+
+        pages = [page([1, 2]), page([3, 4]), page([5]), page([])]
+        with mock.patch.object(src_reefs, "http_get", side_effect=pages), \
+                mock.patch.object(src_reefs.time, "sleep"):
+            rows = src_reefs._arcgis_pages("https://example.invalid/0", "json", 2000)
+        self.assertEqual([row["N"] for row in rows], [1, 2, 3, 4, 5])
+
+
 class NjdepMetadataTest(unittest.TestCase):
     def test_the_fetch_saves_the_layer_s_metadata_beside_its_snapshot(self):
         import tempfile

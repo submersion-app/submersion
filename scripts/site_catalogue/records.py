@@ -210,9 +210,11 @@ def number(raw) -> float | None:
     if raw is None:
         return None
     try:
-        return float(str(raw).strip())
+        value = float(str(raw).strip())
     except ValueError:
         return None
+    # "nan" and "inf" parse, and are no more a number than "UNKNOWN".
+    return value if math.isfinite(value) else None
 
 
 def fact_line(what: str | None, verb: str, when) -> str | None:

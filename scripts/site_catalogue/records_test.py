@@ -141,7 +141,7 @@ class UnitsTest(unittest.TestCase):
     def test_number_reads_what_a_register_writes(self):
         self.assertEqual(records.number("12.5"), 12.5)
         self.assertEqual(records.number(" 7 "), 7.0)
-        for raw in ("", None, "UNKNOWN", "n/a", "N"):
+        for raw in ("", None, "UNKNOWN", "n/a", "N", "nan", "inf"):
             self.assertIsNone(records.number(raw), raw)
 
 

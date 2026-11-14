@@ -259,6 +259,28 @@ class PlaceTest(unittest.TestCase):
         self.assertIs(index.place(45, 5), first)
 
 
+class DryLandTest(unittest.TestCase):
+    """Where a wreck cannot be under water: inside a country, outside every
+    lake, and well away from any coast, border or shore."""
+
+    def test_far_inland_is_dry(self):
+        self.assertTrue(_places().on_dry_land(45, 5))
+
+    def test_the_sea_is_not(self):
+        self.assertFalse(_places().on_dry_land(39.9, 5))
+        self.assertFalse(_places().on_dry_land(20, -40))
+
+    def test_a_lake_is_not(self):
+        self.assertFalse(_places().on_dry_land(46.2, 6.5))
+
+    def test_the_coarse_boundaries_get_a_margin(self):
+        # Two kilometres inside the coast, and two outside a lake's shore:
+        # the boundaries are drawn at 1:10m, and a harbour or a bay falls
+        # on the wrong side of them.
+        self.assertFalse(_places().on_dry_land(40.02, 5))
+        self.assertFalse(_places().on_dry_land(46.52, 6.5))
+
+
 class SettleTest(unittest.TestCase):
     def test_a_territory_wins_over_its_parent_state(self):
         place = _places().settle(("FR", "France", None), -17.5, -149.5)

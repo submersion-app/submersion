@@ -373,6 +373,11 @@ def njdep_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
             dropped["no_position"] += 1
             continue
         reef = f"{site} Reef"
+        number = rec.number(row.get("UNIQUE_ID"))
+        if number is None:
+            # The id is the deployment's number: without one there is none.
+            dropped["no_id"] += 1
+            continue
         items.append(
             dict(
                 # Material carries its reef in the name; a vessel or a
@@ -381,7 +386,7 @@ def njdep_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
                 locality=reef,
                 lat=row["_lat"],
                 lon=row["_lon"],
-                id=int(row["UNIQUE_ID"]),
+                id=int(number),
                 kind=(row.get("TYPE") or "").strip(),
                 year=_year(row.get("YEAR_DEPLOYED")),
             )
@@ -421,7 +426,7 @@ def nc_dmf_records(rows: list[dict]) -> tuple[list[dict], collections.Counter]:
     dropped = collections.Counter()
     records = []
     for row in rows:
-        number = (row.get("REEF__") or "").strip()
+        number = str(row.get("REEF__") or "").strip()
         if not number:
             dropped["no_name"] += 1
             continue
@@ -518,10 +523,12 @@ def _arcgis_pages(url: str, fmt: str, page_size: int) -> list[dict]:
         if "error" in doc:
             raise RuntimeError(f"{url} answered {doc['error']}")
         page = geojson_rows(doc) if fmt == "geojson" else arcgis_rows(doc)
-        rows.extend(page)
-        if len(page) < page_size:
+        # Until a page comes back empty: a server whose own limit is under
+        # [page_size] answers with short pages that are not the last.
+        if not page:
             return rows
-        offset += page_size
+        rows.extend(page)
+        offset += len(page)
         time.sleep(1)
 
 

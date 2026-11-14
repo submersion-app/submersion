@@ -98,11 +98,15 @@ class _Places:
     """Stands in for the offline lookup: one answer everywhere, except the
     positions a test names."""
 
-    def __init__(self, default=None, special=None):
+    def __init__(self, default=None, special=None, dry=()):
         self.default = default or Place(
             "GB", "United Kingdom", "Kent", None, False, True
         )
         self.special = special or {}
+        self.dry = set(dry)
+
+    def on_dry_land(self, lat, lon):
+        return (round(lat, 1), round(lon, 1)) in self.dry
 
     def place(self, lat, lon):
         return self.special.get((round(lat, 1), round(lon, 1)), self.default)
@@ -281,6 +285,66 @@ class BuildTest(unittest.TestCase):
         self.assertFalse(any(r["source"] == "ukho" for r in records))
 
 
+def _osm_wreck(number, name, lat, lon):
+    return dict(type="node", id=number, lat=lat, lon=lon,
+                tags={"name": name, "historic": "wreck"})
+
+
+class PositionGateTest(unittest.TestCase):
+    def test_a_wreck_on_dry_land_is_not_a_dive(self):
+        # OpenStreetMap's historic=wreck and Wikidata's shipwrecks include
+        # crashed aircraft on mountains and hulls in museums.
+        snapshots_ = _snapshots()
+        snapshots_["osm_wrecks"].append(
+            _osm_wreck(901, "Flight 901 wreckage", -77.42, 167.46)
+        )
+        records, report = _build(
+            snapshots_, places=_Places(dry={(-77.4, 167.5), (57.6, -1.8)})
+        )
+        ids = {r["id"] for r in records}
+        self.assertNotIn("osm_node_901", ids)
+        self.assertEqual(report["osm_wrecks"]["dropped"]["on_land"], 1)
+        # Wikidata's HMS Erne, at a position the lookup calls dry.
+        self.assertNotIn("wikidata_Q1", ids)
+        self.assertEqual(report["wikidata_wrecks"]["dropped"]["on_land"], 1)
+
+    def test_a_hydrographic_register_is_not_asked(self):
+        # A surveyed wreck is in water whatever the coarse boundaries say:
+        # the registers chart rivers and harbours.
+        records, report = _build(places=_Places(dry={(53.0, 1.2)}))
+        self.assertIn("ukho_9438", {r["id"] for r in records})
+        self.assertNotIn("on_land", report["ukho"]["dropped"])
+
+    def test_a_position_of_zero_zero_or_off_the_globe_never_ships(self):
+        snapshots_ = _snapshots()
+        snapshots_["osm_wrecks"] += [
+            _osm_wreck(902, "Null Island Trawler", 0.0, 0.0),
+            _osm_wreck(903, "Too Far North", 95.0, 10.0),
+            _osm_wreck(904, "Too Far West", 10.0, -200.0),
+        ]
+        records, report = _build(snapshots_)
+        ids = {r["id"] for r in records}
+        self.assertFalse(ids & {"osm_node_902", "osm_node_903", "osm_node_904"})
+        self.assertEqual(report["osm_wrecks"]["dropped"]["bad_position"], 3)
+        line = report["osm_wrecks"]
+        self.assertEqual(
+            line["read"], sum(line["dropped"].values()) + line["formed"]
+        )
+
+    def test_a_dive_site_with_a_bad_position_keeps_its_name(self):
+        # A dive site a diver may hold stays findable by name.
+        snapshots_ = _snapshots()
+        element = dict(snapshots_["osm_sites"][0], lat=0.0, lon=0.0)
+        element.pop("center", None)
+        snapshots_["osm_sites"][0] = element
+        records, _ = _build(snapshots_)
+        site = {r["id"]: r for r in records}[
+            f"osm_{element['type']}_{element['id']}"
+        ]
+        self.assertNotIn("lat", site)
+        self.assertNotIn("lon", site)
+
+
 class OverlapInTheMergeTest(unittest.TestCase):
     def test_a_wreck_two_sources_list_ships_once_with_the_gap_filled(self):
         snapshots_ = _snapshots()
@@ -294,6 +358,9 @@ class OverlapInTheMergeTest(unittest.TestCase):
         self.assertIn("ukho_9438", ids)
         self.assertNotIn("wikidata_Q1", ids)
         self.assertEqual(report["wikidata_wrecks"]["overlap"], 1)
+        # The report says which source each record was lost to.
+        self.assertEqual(report["wikidata_wrecks"]["lost_to"], {"ukho": 1})
+        self.assertEqual(report["ukho"]["lost_to"], {})
 
     def test_an_own_terms_record_on_a_curated_wreck_is_left_out(self):
         curated = [dict(_CURATED[0], name="Laita", latitude=38.8447,

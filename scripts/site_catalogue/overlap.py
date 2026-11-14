@@ -137,9 +137,12 @@ def _cells(record: dict):
             yield row + d_row, column + d_column
 
 
-def resolve(records: list[dict]) -> tuple[list[dict], collections.Counter]:
+def resolve(
+    records: list[dict], label=lambda record: record["source"]
+) -> tuple[list[dict], collections.Counter]:
     """The records that ship, and how many each source lost to which:
-    a count per (loser source, winner source).
+    a count per (loser, winner), each named by [label] (its source unless
+    the caller counts by something finer).
 
     The answer does not depend on the order of [records], and the input
     records are not changed.
@@ -167,7 +170,7 @@ def resolve(records: list[dict]) -> tuple[list[dict], collections.Counter]:
                 if match is not None:
                     break
         if match is not None:
-            dropped[(record["source"], match["source"])] += 1
+            dropped[(label(record), label(match))] += 1
             if not _own_terms(record) and not _own_terms(match):
                 _take(match, record)
             continue

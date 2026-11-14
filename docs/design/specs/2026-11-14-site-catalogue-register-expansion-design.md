@@ -1,7 +1,7 @@
 # Site catalogue: open-register expansion (slice 2)
 
 Date: 2026-11-14
-Status: approved 2026-11-14; first harvest shipped 21,218 records (see
+Status: approved 2026-11-14; first harvest shipped 20,997 records (see
 "Result of the first harvest")
 Program: `2026-11-13-site-catalogue-program.md`
 Issue: #4514
@@ -184,7 +184,7 @@ exact total only after the harvest is final.
 
 ### Result of the first harvest (2026-11-14)
 
-The harvest wrote 21,218 records: 3,928 dive site records and 17,290
+The harvest wrote 20,997 records: 3,928 dive site records and 17,069
 register records.
 
 | Source | Expected | Written | Why it differs |
@@ -194,11 +194,11 @@ register records.
 | UKHO Global Wrecks | 8,300 | 8,156 | |
 | Florida FWC reefs | 3,200 | 3,528 | The prototype matched names more loosely and merged more deployments |
 | Other states' reefs, federal file | 2,300 | 2,297 | |
-| OpenStreetMap wrecks | 1,050 | 947 | Wrecks that show at low tide are dropped too; 39 were named only "wreck" in another language |
-| Wikidata | 1,170 | 1,064 | |
+| OpenStreetMap wrecks | 1,050 | 843 | Wrecks that show at low tide are dropped too; 39 were named only "wreck" in another language; 109 lie on dry land |
+| Wikidata | 1,170 | 1,033 | 34 wrecks lie on dry land |
 | New Jersey reefs | 600 | 615 | |
 | NOAA AWOIS | 560 | 471 | The register writes "Wreck - Visible"; 61 such rows and 87 reported removed are gated |
-| Ireland wreck inventory | 500 | 435 | 154 are the same wreck as a UKHO record, which is kept |
+| Ireland wreck inventory | 500 | 349 | 140 are the same wreck as a UKHO record, which is kept; 90 positions are whole minutes written in decimals |
 | Florida Keys moorings | 92 | 96 | |
 | North Carolina reefs | 55 | 55 | |
 | Hawaii, Texas reefs | 45 | 31 | 20 Hawaii rows are corner markers of a reef area, not structures |
@@ -213,6 +213,16 @@ register row that repeats an id ships once; a name of a single letter or
 digit is a placeholder; the corner markers of a reef area are not
 structures; and the word for a wreck alone, in any language OpenStreetMap is
 mapped in ("Wrack", "Naufragio", "Épave"), is a placeholder.
+
+Rules added after the whole-branch review: a wreck from OpenStreetMap or
+Wikidata ships only when it does not lie on dry land by the offline
+boundaries (inside a country, outside every lake, more than 5 km from any
+coast, border or shore), which leaves out crashed aircraft on mountains
+and hulls in museums, and with them wrecks in rivers the boundaries do not
+draw; the hydrographic registers are not asked. An Irish position in whole
+minutes is coarse whoever it is credited to (24 scuttled U-boats shared
+one). No record ships at 0, 0 or outside the globe, whatever a register
+writes.
 
 At 28,369 records (the larger, rejected set), on a desktop in a debug build:
 import took 268 ms to parse and name seas and 269 ms to insert (72 ms and

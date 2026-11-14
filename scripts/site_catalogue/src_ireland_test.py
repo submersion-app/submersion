@@ -80,6 +80,18 @@ class RecordTest(unittest.TestCase):
     def setUp(self):
         self.rows = _rows()
 
+    def test_a_position_in_whole_minutes_is_coarse_whoever_it_is_credited_to(self):
+        # 24 U-boats share 56 10 N, 10 05 W, credited to the UKHO: the
+        # scuttling area, written in decimals.
+        row = dict(self.rows["W00248"], **{
+            "Wreck Name": "U-1002", "Wreck No": "W10150",
+            "DD_Lat": "56.16667", "DD_Long": "-10.08333",
+            "Source of Co-ordinate": "UKHO",
+        })
+        records, dropped = src_ireland.records([row])
+        self.assertEqual(records, [])
+        self.assertEqual(dropped["coarse_position"], 1)
+
     def test_a_surveyed_wreck(self):
         record, _ = _one(self.rows["W00248"])
         self.assertEqual(record["id"], "ie_W00248")

@@ -3,7 +3,7 @@
 # Install with: pip install -r scripts/requirements.txt
 # Or create a venv: python -m venv scripts/.venv && source scripts/.venv/bin/activate && pip install -r scripts/requirements.txt
 
-# dive_site_harvester.py - OSM dive centre scraper
+# dive_site_harvester.py: OSM dive centre scraper
 # (scripts/site_catalogue/, which builds the site catalogue, needs no
 # packages: it runs on the standard library)
 overpy>=0.6

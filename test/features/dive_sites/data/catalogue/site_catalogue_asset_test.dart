@@ -107,7 +107,7 @@ void main() {
     final sources = (doc['metadata'] as Map<String, dynamic>)['sources'] as Map;
     final ids = <String>{};
 
-    expect(sites, hasLength(21218));
+    expect(sites, hasLength(20997));
     for (final site in sites) {
       final id = site['id'] as String;
       expect(ids.add(id), isTrue, reason: 'duplicate id $id');
@@ -145,7 +145,7 @@ void main() {
       }
     }
     final registers = sites.where((s) => s['kind'] == 'register').length;
-    expect(registers, 17290);
+    expect(registers, 17069);
     expect(sites.length - registers, 3928);
   });
 
@@ -174,6 +174,31 @@ void main() {
     };
 
     expect(sites.map((s) => s['id']).toSet().intersection(businesses), isEmpty);
+  });
+
+  test('nothing ships at 0, 0 or off the globe', () {
+    for (final site in sites) {
+      final lat = site['lat'] as num?;
+      final lon = site['lon'] as num?;
+      if (lat == null || lon == null) continue;
+      final id = site['id'] as String;
+      expect(lat, inInclusiveRange(-90, 90), reason: id);
+      expect(lon, inInclusiveRange(-180, 180), reason: id);
+      expect(lat == 0 && lon == 0, isFalse, reason: id);
+    }
+  });
+
+  test('wrecks on dry land are not offered as dives', () {
+    // OpenStreetMap's and Wikidata's wrecks include aircraft on mountains
+    // and hulls in museums: each of these shipped before the land gate.
+    const onLand = {
+      'Fairchild C-82', // inland Alaska
+      'SS Sultana', // under an Arkansas field
+      'Haithabu 1', // a museum ship
+      'liberator B-24', // the Julian Alps
+    };
+
+    expect(sites.map((s) => s['name']).toSet().intersection(onLand), isEmpty);
   });
 
   test('register depths are ones a diver can reach', () {
@@ -302,7 +327,7 @@ void main() {
       const CatalogueBounds(south: -90, west: -180, north: 90, east: 180),
       limit: 1000000,
     );
-    expect(located.sites, hasLength(21218));
+    expect(located.sites, hasLength(20997));
     expect(located.truncated, isFalse);
     // Salt Pier, by name and by place.
     final found = await catalogue.search('salt pier');

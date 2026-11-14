@@ -75,6 +75,11 @@ SOURCE_STEPS = {
 NJDEP_METADATA_FILE = src_reefs.NJDEP_METADATA_CACHE_FILE
 NJDEP_METADATA_SHIPPED = "site_catalogue_njdep_metadata.xml"
 
+# The sources that are not hydrographic: OpenStreetMap's historic=wreck
+# and Wikidata's shipwrecks include aircraft on mountains and hulls in
+# museums, so their wrecks must lie in water by the offline boundaries.
+_LAND_GATED = frozenset({"osm_wrecks", "wikidata_wrecks"})
+
 _ORIGIN = "_origin"
 _CURATED = "curated"
 # How many ids of each kind the report lists before it only counts.
@@ -153,6 +158,49 @@ def _catalogue_record(record: dict, places, curated_countries: dict) -> dict:
     )
 
 
+def _on_the_globe(record: dict) -> bool:
+    """Whether a record's position is one: in range, and not the 0, 0 a
+    register writes for a wreck it cannot place."""
+    lat, lon = record["lat"], record["lon"]
+    return (
+        isinstance(lat, (int, float))
+        and isinstance(lon, (int, float))
+        and -90 <= lat <= 90
+        and -180 <= lon <= 180
+        and not (lat == 0 and lon == 0)
+    )
+
+
+def _gated(key: str, formed: list[dict], dropped, places) -> list[dict]:
+    """A source's records after the checks every source gets: an id ships
+    once, a position is on the globe, and a wreck from a source that is
+    not hydrographic lies in water."""
+    seen: set[str] = set()
+    kept = []
+    for record in formed:
+        # A register can list one id on two rows. The first stands.
+        if record["id"] in seen:
+            dropped["duplicate_id"] += 1
+            continue
+        if record["lat"] is not None and not _on_the_globe(record):
+            if record["kind"] == "register":
+                dropped["bad_position"] += 1
+                continue
+            # A dive site a diver may hold stays findable by name.
+            record = dict(record, lat=None, lon=None)
+        if (
+            key in _LAND_GATED
+            and record["lat"] is not None
+            and places.on_dry_land(record["lat"], record["lon"])
+        ):
+            dropped["on_land"] += 1
+            continue
+        seen.add(record["id"])
+        record[_ORIGIN] = key
+        kept.append(record)
+    return kept
+
+
 def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dict]:
     """The catalogue's records, and a report of what became of each
     source's rows.
@@ -160,23 +208,14 @@ def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dic
     [snapshots] maps a snapshot key to its rows. A key that is absent is a
     source left out. The report maps each key (and "curated") to its rows
     `read`, the rows each gate `dropped`, the records `formed`, those lost
-    to `overlap` with another source, and those `written`.
+    to `overlap` with another source (and `lost_to` which), and those
+    `written`.
     """
     working: list[dict] = []
     report: dict[str, dict] = {}
     for key in sorted(snapshots):
         formed, dropped = SOURCE_STEPS[key](snapshots[key])
-        # A register can list one id on two rows. The first stands.
-        seen: set[str] = set()
-        unique = []
-        for record in formed:
-            if record["id"] in seen:
-                dropped["duplicate_id"] += 1
-                continue
-            seen.add(record["id"])
-            record[_ORIGIN] = key
-            unique.append(record)
-        formed = unique
+        formed = _gated(key, formed, dropped, places)
         working.extend(formed)
         report[key] = {
             "read": len(snapshots[key]),
@@ -189,13 +228,18 @@ def build(snapshots: dict, curated: list[dict], places) -> tuple[list[dict], dic
         working.append(record)
     report[_CURATED] = {"read": len(curated), "dropped": {}, "formed": len(curated)}
 
-    survivors, _ = resolve(working)
+    survivors, lost = resolve(working, label=lambda record: record[_ORIGIN])
     written: dict[str, int] = {}
     for record in survivors:
         written[record[_ORIGIN]] = written.get(record[_ORIGIN], 0) + 1
     for key, line in report.items():
         line["written"] = written.get(key, 0)
         line["overlap"] = line["formed"] - line["written"]
+        line["lost_to"] = {
+            winner: count
+            for (loser, winner), count in sorted(lost.items())
+            if loser == key
+        }
 
     curated_countries = {entry["id"]: entry.get("country") for entry in curated}
     return (
@@ -232,6 +276,13 @@ def _print_report(report: dict, changes: dict | None) -> None:
         )
     print(f"{'total':17}{'':>8}{'':>8}{'':>9}"
           f"{sum(line['written'] for line in report.values()):>9}")
+    print("\nLost to another source's record of the same site:")
+    for key, line in report.items():
+        if line["lost_to"]:
+            winners = ", ".join(
+                f"{winner} {count}" for winner, count in line["lost_to"].items()
+            )
+            print(f"  {key}: {winners}")
     if changes is None:
         print("\nNo catalogue to compare with: every id is new.")
         return

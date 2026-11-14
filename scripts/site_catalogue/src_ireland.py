@@ -71,6 +71,13 @@ def _decimals(text: str) -> int:
     return len(text.split(".", 1)[1]) if "." in text else 0
 
 
+def _whole_minutes(value: float) -> bool:
+    """Whether a decimal coordinate is a whole minute of arc written out
+    ("56.16667" is 56 degrees 10 minutes)."""
+    minutes = abs(value) * 60
+    return abs(minutes - round(minutes)) < 1e-3
+
+
 def _record(row: dict) -> tuple[dict | None, str | None]:
     name = _TYPE_SUFFIX.sub("", row["Wreck Name"])
     if rec.is_placeholder(name):
@@ -85,6 +92,10 @@ def _record(row: dict) -> tuple[dict | None, str | None]:
     if not source:
         return None, "unstated_source"
     if min(_decimals(row["DD_Lat"]), _decimals(row["DD_Long"])) < MIN_DECIMALS:
+        return None, "coarse_position"
+    # A reported position, whoever it is credited to: the inventory files
+    # 24 scuttled U-boats on one whole-minute point.
+    if _whole_minutes(latitude) and _whole_minutes(longitude):
         return None, "coarse_position"
     classification = row["Classification"]
     return (

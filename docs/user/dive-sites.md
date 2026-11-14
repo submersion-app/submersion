@@ -171,7 +171,7 @@ Tap a built-in site to add it to your sites and select it in one step. It arrive
 
 A built-in site you have already added is no longer offered, and neither is one that sits within 150 m (490 ft) of a site you created yourself.
 
-When a dive's GPS position lies beside both a built-in dive site and a charted wreck, the suggested site is the dive site; the wreck is still on the list to choose.
+When a dive's GPS position is within auto-match distance of both a built-in dive site and a charted wreck, the dive site is the one selected; the wreck is still on the list to choose. Further out the list runs nearest first, whichever kind is nearest.
 
 ### Area memory
 
@@ -186,7 +186,7 @@ The built-in catalogue holds two kinds of record:
 - **Dive sites**: places people dive, from OpenStreetMap, the Florida Keys National Marine Sanctuary's mooring buoys, Wikidata and a small list researched for Submersion.
 - **Charted wrecks and artificial reefs**: records from registers of what lies on the seabed. Wrecks come from the UK Hydrographic Office, NOAA, Ireland's National Monuments Service, OpenStreetMap and Wikidata; reefs from the reef programs of Florida, New Jersey, North Carolina and other US states.
 
-A register record is a charted position, not a dive guide: its position and depth are the register's own, and nothing says the wreck is worth diving or open to divers. Only wrecks that stay under water in 2 to 60 m (7 to 197 ft), with a position the register stands behind, are included. Where a register notes a restriction or a protection, it is shown as the site's hazards; check before you dive.
+A register record is a charted position, not a dive guide: its position and depth are the register's own, and nothing says the wreck is worth diving or open to divers. A wreck is included only with a position its register stands behind, and never when its register says it shows above water, lies deeper than 60 m (197 ft), or is closed to divers. Not every register states a depth, so a record with no depth can lie deeper. Wrecks from OpenStreetMap and Wikidata are also left out when they lie on dry land (a crashed aircraft on a hillside, a hull in a museum). Where a register notes a restriction or a protection, it is shown as the site's hazards; check before you dive.
 
 The catalogue contains information from OpenStreetMap, which is made available under the Open Database License (ODbL). Every source and its licence is on the licenses page (**Settings > About > Open Source Licenses**, under **Dive site data**), and a site you added from the catalogue shows its source at the top of its page. The data is not for navigation.
 

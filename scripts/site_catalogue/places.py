@@ -58,6 +58,10 @@ MAX_REGION_KM = 50.0
 # How far off a territory's shore an OpenStreetMap dive site still counts
 # as in it, when the geocoder filed the site under the parent state.
 TERRITORY_REACH_KM = 25.0
+# How far inside a country, and from any lake, a point must be before it is
+# called dry land. The boundaries are drawn at 1:10m: a harbour, an estuary
+# or a bay falls on the wrong side of them by a few kilometres.
+DRY_LAND_KM = 5.0
 
 # Natural Earth's own subdivision codes for the islands the catalogue
 # names (ISO writes these BQ-BO, BQ-SA, BQ-SE).
@@ -409,6 +413,20 @@ class Places:
             island=island,
             fresh=self._lakes.containing(lat, lon) is not None,
             at_sea=at_sea,
+        )
+
+    def on_dry_land(self, lat: float, lon: float) -> bool:
+        """Whether nothing at (lat, lon) can be under water: the point is
+        inside a country, outside every lake, and more than `DRY_LAND_KM`
+        from any coast, border or lake shore. Rivers and small lakes are
+        not on the map, so a wreck in one reads as dry."""
+        if self._units.containing(lat, lon) is None:
+            return False
+        if self._lakes.containing(lat, lon) is not None:
+            return False
+        return (
+            self._units.nearest(lat, lon, DRY_LAND_KM) is None
+            and self._lakes.nearest(lat, lon, DRY_LAND_KM) is None
         )
 
     def place(self, lat: float, lon: float) -> Place:
