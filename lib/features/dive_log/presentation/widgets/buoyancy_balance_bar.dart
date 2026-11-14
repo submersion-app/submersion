@@ -53,9 +53,12 @@ class BuoyancyBalanceBar extends StatelessWidget {
         final halfWidth = (constraints.maxWidth - _ruleWidth) / 2;
         final down = _layout(context, balance.down, halfWidth, labelStyle);
         final up = _layout(context, balance.up, halfWidth, labelStyle);
+        // In the bar's own reading order, so an entry can be matched to its
+        // segment by position: down side from the outer edge in, then up side
+        // from the centre out.
         final legend = [
-          for (final s in [...down, ...up])
-            if (!s.labelFits) s,
+          for (final s in [...down.reversed, ...up])
+            if (s.inBar != s.label) s,
         ];
 
         return Column(
@@ -109,6 +112,7 @@ class BuoyancyBalanceBar extends StatelessWidget {
             if (legend.isNotEmpty) ...[
               const SizedBox(height: 6),
               Wrap(
+                key: const ValueKey('balance-legend'),
                 spacing: 12,
                 runSpacing: 4,
                 children: [
@@ -158,23 +162,38 @@ class BuoyancyBalanceBar extends StatelessWidget {
     return [
       for (var i = 0; i < ordered.length; i++)
         () {
+          final name = _name(l10n, ordered[i].kind);
           final label = l10n.buoyancy_partLabel(
-            _name(l10n, ordered[i].kind),
+            name,
             units.formatWeight(ordered[i].kg.abs()),
           );
-          final painter = TextPainter(
-            text: TextSpan(text: label, style: labelStyle),
-            textDirection: direction,
-            textScaler: scaler,
-            maxLines: 1,
-          )..layout();
-          final fits = painter.width + _labelPadding * 2 <= widths[i];
-          painter.dispose();
+          bool fits(String text) {
+            final painter = TextPainter(
+              text: TextSpan(text: text, style: labelStyle),
+              textDirection: direction,
+              textScaler: scaler,
+              maxLines: 1,
+            )..layout();
+            final width = painter.width;
+            painter.dispose();
+            return width + _labelPadding * 2 <= widths[i];
+          }
+
+          // The whole label when there is room, else the name alone so the
+          // segment can still be told apart, else nothing.
+          final String? inBar;
+          if (fits(label)) {
+            inBar = label;
+          } else if (fits(name)) {
+            inBar = name;
+          } else {
+            inBar = null;
+          }
           return _Segment(
             part: ordered[i],
             width: widths[i],
             label: label,
-            labelFits: fits,
+            inBar: inBar,
           );
         }(),
     ];
@@ -204,16 +223,16 @@ class BuoyancyBalanceBar extends StatelessWidget {
           width: segment.width,
           height: _segmentHeight,
           alignment: AlignmentDirectional.centerStart,
-          padding: segment.labelFits
+          padding: segment.inBar != null
               ? const EdgeInsets.symmetric(horizontal: _labelPadding)
               : EdgeInsets.zero,
           decoration: BoxDecoration(
             color: fill,
             borderRadius: BorderRadius.circular(4),
           ),
-          child: segment.labelFits
+          child: segment.inBar != null
               ? Text(
-                  segment.label,
+                  segment.inBar!,
                   maxLines: 1,
                   softWrap: false,
                   overflow: TextOverflow.clip,
@@ -268,12 +287,18 @@ class BuoyancyBalanceBar extends StatelessWidget {
 class _Segment {
   final TwinBalancePart part;
   final double width;
+
+  /// The part's name and figure.
   final String label;
-  final bool labelFits;
+
+  /// What the segment has room to show: [label], the name alone, or nothing.
+  /// Anything short of [label] sends the part to the legend.
+  final String? inBar;
+
   const _Segment({
     required this.part,
     required this.width,
     required this.label,
-    required this.labelFits,
+    required this.inBar,
   });
 }

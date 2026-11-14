@@ -129,6 +129,43 @@ void main() {
     );
   });
 
+  testWidgets('a mid-width segment keeps its name and lists the figure', (
+    tester,
+  ) async {
+    // At 400 px the lead segment is about 95 px: room for "Lead", not for
+    // "Lead 6.0 kg".
+    await _pump(tester, _balance(), width: 400);
+    final lead = _segment(TwinBalancePartKind.lead);
+    expect(
+      find.descendant(of: lead, matching: find.text('Lead')),
+      findsOneWidget,
+    );
+    expect(find.text('Lead 6.0 kg'), findsOneWidget);
+    expect(
+      find.descendant(of: lead, matching: find.text('Lead 6.0 kg')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('the legend reads in the same order as the bar', (tester) async {
+    await _pump(tester, _balance(), width: 300);
+    final legend = find.byKey(const ValueKey('balance-legend'));
+    final labels = [
+      for (final text in tester.widgetList<Text>(
+        find.descendant(of: legend, matching: find.byType(Text)),
+      ))
+        text.data,
+    ];
+    // Down side from the outer edge in, then up side from the centre out.
+    expect(labels, [
+      'Cylinders 2.0 kg',
+      'Gear 1.0 kg',
+      'Lead 6.0 kg',
+      'Body 5.0 kg',
+      'Suit 3.0 kg',
+    ]);
+  });
+
   testWidgets('right to left keeps each caption over its own half', (
     tester,
   ) async {
