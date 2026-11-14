@@ -22,7 +22,7 @@ void main() {
   ) async {
     final presets = TankPresets.all.map(TankPresetEntity.fromBuiltIn).toList();
     var next = Completer<List<TankPresetEntity>>()..complete(presets);
-    final controllers = List.generate(4, (_) => TextEditingController());
+    final controllers = List.generate(5, (_) => TextEditingController());
     addTearDown(() {
       for (final c in controllers) {
         c.dispose();
@@ -56,6 +56,7 @@ void main() {
                 heightCmController: controllers[1],
                 heightFeetController: controllers[2],
                 heightInchesController: controllers[3],
+                bodyFatController: controllers[4],
                 units: const UnitFormatter(AppSettings()),
                 showSaveBodyWeight: false,
                 onGearAdded: (_) {},

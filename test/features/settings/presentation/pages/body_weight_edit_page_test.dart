@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_weight_entry_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/body_weight_edit_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -29,13 +31,17 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    DiverBodyProfile bodyProfile = (sex: null, ageYears: null),
+  }) async {
     final base = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
         overrides: [
           ...base,
           validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
+          diverBodyProfileProvider.overrideWith((ref) async => bodyProfile),
         ],
         child: const BodyWeightEditPage(),
       ),
@@ -173,5 +179,132 @@ void main() {
 
     expect(find.text('Not recorded'), findsOneWidget);
     expect(await repository.getEntriesForDiver(diverId), isEmpty);
+  });
+
+  group('body fat (issue #4525)', () {
+    Future<void> openDialog(WidgetTester tester) async {
+      await tester.tap(find.text('Add measurement'));
+      await tester.pumpAndSettle();
+    }
+
+    Finder field(String label) => find.widgetWithText(TextField, label);
+
+    Future<List<DiverWeightEntry>> saved() =>
+        DiverWeightEntryRepository().getEntriesForDiver(diverId);
+
+    testWidgets('saving with a body fat stores it', (tester) async {
+      await pumpPage(tester);
+      await openDialog(tester);
+      await tester.enterText(field('Weight (kg)'), '80');
+      await tester.enterText(field('Body fat (%)'), '22.5');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect((await saved()).single.bodyFatPercent, 22.5);
+      expect(find.textContaining('22.5% body fat'), findsOneWidget);
+    });
+
+    testWidgets('leaving it blank stores none', (tester) async {
+      await pumpPage(tester);
+      await openDialog(tester);
+      await tester.enterText(field('Weight (kg)'), '80');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect((await saved()).single.bodyFatPercent, isNull);
+      expect(find.textContaining('body fat'), findsNothing);
+    });
+
+    testWidgets('a value outside 3 to 60 is rejected', (tester) async {
+      await pumpPage(tester);
+      await openDialog(tester);
+      await tester.enterText(field('Weight (kg)'), '80');
+      for (final bad in ['2', '75']) {
+        await tester.enterText(field('Body fat (%)'), bad);
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(find.text('Enter a value from 3 to 60'), findsOneWidget);
+        expect(find.text('Save'), findsOneWidget, reason: 'dialog still open');
+      }
+      expect(await saved(), isEmpty);
+    });
+
+    testWidgets('the estimate shows once weight, height, sex and birth year '
+        'are known', (tester) async {
+      await pumpPage(tester, bodyProfile: (sex: DiverSex.male, ageYears: 40));
+      await openDialog(tester);
+      expect(find.textContaining('Estimated: about'), findsNothing);
+
+      await tester.enterText(field('Weight (kg)'), '80');
+      await tester.enterText(field('Height (cm)'), '175');
+      await tester.pumpAndSettle();
+      // 1.20 * 26.12 + 0.23 * 40 - 10.8 - 5.4 = 24.3
+      expect(find.text('Estimated: about 24%'), findsOneWidget);
+      expect(find.textContaining('Add sex and birth year'), findsNothing);
+    });
+
+    testWidgets('the estimate falls back to the last recorded height', (
+      tester,
+    ) async {
+      final at = DateTime(2026, 6, 1);
+      await DiverWeightEntryRepository().createEntry(
+        DiverWeightEntry(
+          id: '',
+          diverId: diverId,
+          measuredAt: at,
+          weightKg: 90,
+          heightCm: 175,
+          createdAt: at,
+          updatedAt: at,
+        ),
+      );
+      await pumpPage(tester, bodyProfile: (sex: DiverSex.male, ageYears: 40));
+      await openDialog(tester);
+      await tester.enterText(field('Weight (kg)'), '80');
+      await tester.pumpAndSettle();
+      expect(find.text('Estimated: about 24%'), findsOneWidget);
+    });
+
+    testWidgets('without sex or birth year a hint says where to add them', (
+      tester,
+    ) async {
+      await pumpPage(tester, bodyProfile: (sex: DiverSex.male, ageYears: null));
+      await openDialog(tester);
+      await tester.enterText(field('Weight (kg)'), '80');
+      await tester.enterText(field('Height (cm)'), '175');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Add sex and birth year under Personal info to see an estimate.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.textContaining('Estimated: about'), findsNothing);
+    });
+
+    testWidgets('the list shows body fat only on entries that have it', (
+      tester,
+    ) async {
+      final repository = DiverWeightEntryRepository();
+      for (final (day, fat) in [(1, 20.0), (2, null)]) {
+        final at = DateTime(2026, 6, day);
+        await repository.createEntry(
+          DiverWeightEntry(
+            id: '',
+            diverId: diverId,
+            measuredAt: at,
+            weightKg: 80,
+            heightCm: 180,
+            bodyFatPercent: fat,
+            createdAt: at,
+            updatedAt: at,
+          ),
+        );
+      }
+      await pumpPage(tester);
+      expect(find.textContaining('20% body fat'), findsOneWidget);
+      expect(find.textContaining('180 cm'), findsNWidgets(2));
+    });
   });
 }

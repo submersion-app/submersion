@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:submersion/core/buoyancy/body_composition.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -28,6 +29,12 @@ class RigComposer extends ConsumerWidget {
   final TextEditingController heightCmController;
   final TextEditingController heightFeetController;
   final TextEditingController heightInchesController;
+  final TextEditingController bodyFatController;
+
+  /// The body fat the prediction assumes when the field is left blank, as
+  /// a whole percentage; null hides the readout (the profile lacks the sex
+  /// or birth year that makes it worth showing).
+  final int? bodyFatEstimate;
 
   /// BMI derived from the entered weight and height; null hides the readout.
   final double? bmi;
@@ -61,6 +68,8 @@ class RigComposer extends ConsumerWidget {
     required this.heightCmController,
     required this.heightFeetController,
     required this.heightInchesController,
+    required this.bodyFatController,
+    this.bodyFatEstimate,
     this.bmi,
     required this.units,
     required this.showSaveBodyWeight,
@@ -283,6 +292,20 @@ class RigComposer extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             _heightFields(context),
+            const SizedBox(height: 12),
+            NumberField(
+              controller: bodyFatController,
+              decoration: InputDecoration(
+                labelText: context.l10n.bodyWeight_bodyFatLabel,
+                helperText: bodyFatEstimate == null
+                    ? null
+                    : context.l10n.bodyWeight_bodyFatEstimate(bodyFatEstimate!),
+              ),
+              check: (value) => BodyComposition.isPlausibleBodyFat(value)
+                  ? null
+                  : context.l10n.bodyWeight_bodyFatRange,
+              onChanged: (_) => onChanged(),
+            ),
             if (bmi != null)
               Padding(
                 padding: const EdgeInsets.only(top: 4),

@@ -52,7 +52,7 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     final presets = TankPresets.all.map(TankPresetEntity.fromBuiltIn).toList();
-    final controllers = List.generate(4, (_) => TextEditingController());
+    final controllers = List.generate(5, (_) => TextEditingController());
     addTearDown(() {
       for (final c in controllers) {
         c.dispose();
@@ -93,6 +93,7 @@ void main() {
                 heightCmController: controllers[1],
                 heightFeetController: controllers[2],
                 heightInchesController: controllers[3],
+                bodyFatController: controllers[4],
                 units: const UnitFormatter(AppSettings()),
                 showSaveBodyWeight: false,
                 onGearAdded: (_) {},

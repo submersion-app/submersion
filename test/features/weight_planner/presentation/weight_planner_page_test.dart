@@ -91,6 +91,8 @@ void main() {
     Future<DiverWeightEntry?>? latestWeightFuture,
     double? latestHeight,
     Future<double?>? latestHeightFuture,
+    double? latestBodyFat,
+    DiverBodyProfile bodyProfile = (sex: null, ageYears: null),
     AppSettings? settings,
     bool settle = true,
   }) async {
@@ -126,6 +128,8 @@ void main() {
                 ? latestHeight
                 : await latestHeightFuture,
           ),
+          latestDiverBodyFatProvider.overrideWith((ref) async => latestBodyFat),
+          diverBodyProfileProvider.overrideWith((ref) async => bodyProfile),
           ...extraOverrides,
         ],
         child: const WeightPlannerPage(),
@@ -404,6 +408,95 @@ void main() {
           .map((s) => s.depthM)
           .reduce((a, b) => a > b ? a : b);
       expect(deepest, 30);
+    });
+  });
+
+  group('body fat (issue #4525)', () {
+    Finder bodyFatField() => find.widgetWithText(TextField, 'Body fat (%)');
+
+    testWidgets('a typed body fat changes the prediction and the breakdown '
+        'says it was measured', (tester) async {
+      await pumpPage(tester, latestHeight: 165.0);
+      final before = predictedText(tester);
+
+      await tester.enterText(bodyFatField(), '15');
+      await tester.pumpAndSettle();
+      expect(predictedText(tester), isNot(before));
+
+      // Typing in the lower field scrolled the prediction card away.
+      await tester.ensureVisible(find.text('How this was calculated'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('How this was calculated'));
+      await tester.pumpAndSettle();
+      expect(find.text('Body fat (measured)'), findsOneWidget);
+      expect(find.textContaining('estimated from BMI'), findsNothing);
+    });
+
+    testWidgets('the profile body fat prefills the field', (tester) async {
+      await pumpPage(tester, latestBodyFat: 22.5);
+      expect(tester.widget<TextField>(bodyFatField()).controller?.text, '22.5');
+      expect(find.byTooltip('Save weight to profile'), findsNothing);
+    });
+
+    testWidgets('a body fat outside 3 to 60 says why and is not used', (
+      tester,
+    ) async {
+      await pumpPage(tester, latestHeight: 165.0);
+      final before = predictedText(tester);
+
+      await tester.enterText(bodyFatField(), '75');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter a value from 3 to 60'), findsOneWidget);
+      expect(predictedText(tester), before);
+      expect(find.byTooltip('Save weight to profile'), findsNothing);
+    });
+
+    testWidgets('the estimate shows under the field when the profile knows '
+        'sex and age', (tester) async {
+      await pumpPage(
+        tester,
+        latestHeight: 175.0,
+        bodyProfile: (sex: DiverSex.male, ageYears: 40),
+      );
+      // 80 kg at 175 cm: 1.20 * 26.12 + 0.23 * 40 - 10.8 - 5.4 = 24.3
+      expect(find.text('Estimated: about 24%'), findsOneWidget);
+    });
+
+    testWidgets('no estimate shows without sex and age', (tester) async {
+      await pumpPage(tester, latestHeight: 175.0);
+      expect(find.textContaining('Estimated: about'), findsNothing);
+    });
+
+    testWidgets('saving to the profile stores the typed body fat', (
+      tester,
+    ) async {
+      await setUpTestDatabase();
+      addTearDown(tearDownTestDatabase);
+      await DatabaseService.instance.database.customStatement(
+        "INSERT INTO divers (id, name, created_at, updated_at) "
+        "VALUES ('diver-1', 'Eric', 1000, 1000)",
+      );
+      await pumpPage(
+        tester,
+        extraOverrides: [
+          validatedCurrentDiverIdProvider.overrideWith(
+            (ref) async => 'diver-1',
+          ),
+        ],
+      );
+      expect(find.byTooltip('Save weight to profile'), findsNothing);
+
+      await tester.enterText(bodyFatField(), '18');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Save weight to profile'));
+      await tester.pumpAndSettle();
+
+      final entries = await DiverWeightEntryRepository().getEntriesForDiver(
+        'diver-1',
+      );
+      expect(entries.single.weightKg, 80.0);
+      expect(entries.single.bodyFatPercent, 18.0);
     });
   });
 
