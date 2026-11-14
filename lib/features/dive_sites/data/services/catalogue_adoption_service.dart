@@ -3,15 +3,12 @@ import 'dart:async';
 import 'package:submersion/core/services/geocoding/sea_area_index.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/services/catalogue_sea_name.dart';
 import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/services/catalogue_site_mapping.dart';
 
 const _log = LoggerService('CatalogueAdoption');
-
-/// The language the catalogue names seas in: the sea table's own default,
-/// which is what the import asks it for.
-const _catalogueSeaLanguage = 'en';
 
 /// What adopting a catalogue site came to: the diver's site, and whether
 /// this call made it.
@@ -105,10 +102,13 @@ class CatalogueAdoptionService {
     }
 
     final created = await _siteRepository.createSite(
-      catalogueSiteToDiveSite(
-        site,
-        diverId: diverId,
-      ).copyWith(bodyOfWater: await _seaInDiversLanguage(site)),
+      catalogueSiteToDiveSite(site, diverId: diverId).copyWith(
+        bodyOfWater: await catalogueSeaInDiversLanguage(
+          site,
+          loadSeas: loadSeas,
+          placeNameLanguage: placeNameLanguage,
+        ),
+      ),
       classification: catalogueSiteClassification(site),
     );
     _log.info('Adopted catalogue site ${site.id} as ${created.id}');
@@ -119,50 +119,6 @@ class CatalogueAdoptionService {
       unawaited(_fillAltitude(created.id, location, fetch));
     }
     return CatalogueAdoption(site: created, created: true);
-  }
-
-  /// [site]'s sea in the diver's place-name language, or null to keep the
-  /// catalogue's own text.
-  ///
-  /// The catalogue names seas in English, from the sea table. Every other
-  /// route that names a site's sea asks that table in the diver's language,
-  /// so an adopted site does too: one column must not hold "Red Sea" on one
-  /// site and "Rotes Meer" on the next. Only a name the sea table gave is
-  /// translated; a record that came with its own body of water keeps it.
-  /// Never fails an adoption: without the table the catalogue's name stands.
-  Future<String?> _seaInDiversLanguage(CatalogueSite site) async {
-    final location = site.location;
-    final catalogueName = site.bodyOfWater;
-    final load = loadSeas;
-    final language = placeNameLanguage;
-    if (location == null ||
-        catalogueName == null ||
-        load == null ||
-        language == null) {
-      return null;
-    }
-    // The catalogue's names are English already. Most divers stop here,
-    // and the sea table (over a megabyte to read and index) stays unread.
-    final languageCode = language();
-    if (languageCode == _catalogueSeaLanguage) return null;
-    try {
-      final seas = await load();
-      if (seas == null) return null;
-      final english = seas.nameAt(location.latitude, location.longitude);
-      if (english != catalogueName) return null;
-      return seas.nameAt(
-        location.latitude,
-        location.longitude,
-        languageCode: languageCode,
-      );
-    } catch (error, stackTrace) {
-      _log.warning(
-        'Could not name the sea of ${site.id} in the place-name language',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return null;
-    }
   }
 
   Future<void> _fillAltitude(
