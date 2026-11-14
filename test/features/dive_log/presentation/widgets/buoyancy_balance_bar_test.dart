@@ -300,6 +300,43 @@ void main() {
       );
     });
 
+    testWidgets('gear that floats does not share the suit shade', (
+      tester,
+    ) async {
+      // Buoyant gear sits on the up side, where the suit already is.
+      const parts = [
+        TwinBalancePart(kind: TwinBalancePartKind.lead, kg: -6.0),
+        TwinBalancePart(kind: TwinBalancePartKind.gear, kg: 1.5),
+        TwinBalancePart(kind: TwinBalancePartKind.suit, kg: 3.0),
+        TwinBalancePart(kind: TwinBalancePartKind.body, kg: 5.0),
+      ];
+      await _pump(tester, const TwinBalance(parts: parts, netKg: 3.5));
+      final up = {
+        for (final kind in [
+          TwinBalancePartKind.body,
+          TwinBalancePartKind.gear,
+          TwinBalancePartKind.suit,
+        ])
+          _fill(tester, _segment(kind)),
+      };
+      expect(up, hasLength(3));
+    });
+
+    testWidgets('a body that sinks does not share the lead shade', (
+      tester,
+    ) async {
+      const parts = [
+        TwinBalancePart(kind: TwinBalancePartKind.lead, kg: -6.0),
+        TwinBalancePart(kind: TwinBalancePartKind.suit, kg: 3.0),
+        TwinBalancePart(kind: TwinBalancePartKind.body, kg: -2.0),
+      ];
+      await _pump(tester, const TwinBalance(parts: parts, netKg: -5.0));
+      expect(
+        _fill(tester, _segment(TwinBalancePartKind.body)),
+        isNot(_fill(tester, _segment(TwinBalancePartKind.lead))),
+      );
+    });
+
     for (final (name, theme) in [
       ('light', ThemeData(brightness: Brightness.light)),
       ('dark', ThemeData(brightness: Brightness.dark)),

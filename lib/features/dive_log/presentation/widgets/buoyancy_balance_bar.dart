@@ -37,16 +37,12 @@ class BuoyancyBalanceBar extends StatelessWidget {
   static const double _iconSize = 14;
   static const double _iconPadding = 2;
 
-  /// How far each part's fill moves from its side's container colour toward
-  /// that side's strong colour. Parts that share a side differ, so a legend
-  /// swatch can be matched to its segment by shade as well as by icon.
-  static const Map<TwinBalancePartKind, double> _tone = {
-    TwinBalancePartKind.lead: 0.0,
-    TwinBalancePartKind.body: 0.0,
-    TwinBalancePartKind.gear: 0.35,
-    TwinBalancePartKind.suit: 0.35,
-    TwinBalancePartKind.tanks: 0.7,
-  };
+  /// How far a segment's fill moves from its side's container colour toward
+  /// that side's strong colour, by its place counting out from the centre.
+  /// Going by place, not by part, means no two segments on a side can share a
+  /// shade, whichever parts end up there; a legend swatch can then be matched
+  /// to its segment by shade as well as by icon.
+  static const List<double> _tones = [0.0, 0.35, 0.7, 0.85, 1.0];
 
   /// Order from the centre outward: constant parts first, so the parts that
   /// change through a dive (suit, tanks) never push a constant one sideways.
@@ -215,6 +211,7 @@ class BuoyancyBalanceBar extends StatelessWidget {
             width: widths[i],
             label: label,
             inBar: inBar,
+            tone: _tones[i],
             showsIcon:
                 inBar == null && widths[i] >= _iconSize + _iconPadding * 2,
           );
@@ -237,7 +234,7 @@ class BuoyancyBalanceBar extends StatelessWidget {
   }) {
     final (fill, ink) = _colors(
       Theme.of(context).colorScheme,
-      segment.part.kind,
+      segment.tone,
       isDown,
     );
     final l10n = context.l10n;
@@ -285,7 +282,7 @@ class BuoyancyBalanceBar extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     final kind = segment.part.kind;
-    final (fill, ink) = _colors(theme.colorScheme, kind, isDown);
+    final (fill, ink) = _colors(theme.colorScheme, segment.tone, isDown);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -307,21 +304,16 @@ class BuoyancyBalanceBar extends StatelessWidget {
     );
   }
 
-  /// Fill and foreground for one part. The side sets the hue (tertiary pulls
-  /// down, primary holds up; neither is an error) and the part sets the tone
-  /// within it.
-  (Color, Color) _colors(
-    ColorScheme scheme,
-    TwinBalancePartKind kind,
-    bool isDown,
-  ) {
+  /// Fill and foreground for one segment. The side sets the hue (tertiary
+  /// pulls down, primary holds up; neither is an error) and [tone] sets the
+  /// shade within it.
+  (Color, Color) _colors(ColorScheme scheme, double tone, bool isDown) {
     final container = isDown
         ? scheme.tertiaryContainer
         : scheme.primaryContainer;
     final onContainer = isDown
         ? scheme.onTertiaryContainer
         : scheme.onPrimaryContainer;
-    final tone = _tone[kind]!;
     if (tone == 0) return (container, onContainer);
     final strong = isDown ? scheme.tertiary : scheme.primary;
     final fill = Color.lerp(container, strong, tone)!;
@@ -365,11 +357,15 @@ class _Segment {
   /// Whether the segment, with no room for text, still has room for its icon.
   final bool showsIcon;
 
+  /// The shade for this segment's place on its side (see `_tones`).
+  final double tone;
+
   const _Segment({
     required this.part,
     required this.width,
     required this.label,
     required this.inBar,
     required this.showsIcon,
+    required this.tone,
   });
 }
