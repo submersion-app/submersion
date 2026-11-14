@@ -1,0 +1,72 @@
+{
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 1,
+    "REEF_NAME": "None",
+    "REEF__": "AR-130",
+    "LAT_DDM": "36° 0.192' N",
+    "LONG_DDM": "75° 31.800' W",
+    "Digitized": "Completed",
+    "REGION": "Cape Hatteras",
+    "GEN_LOC": "345.3° magnetic - 11.6 nm from Oregon Inlet Sea Buoy",
+    "Acreage": null
+   },
+   "geometry": {
+    "x": -75.53000166941403,
+    "y": 36.003207231942994
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 3,
+    "REEF_NAME": "None",
+    "REEF__": "AR-145",
+    "LAT_DDM": "35° 54.017' N",
+    "LONG_DDM": "75° 23.883' W",
+    "Digitized": "Completed",
+    "REGION": "Cape Hatteras",
+    "GEN_LOC": "35.3° magnetic - 7.7 nm from Oregon Inlet Sea Buoy",
+    "Acreage": null
+   },
+   "geometry": {
+    "x": -75.39805162369332,
+    "y": 35.900290543836704
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 4,
+    "REEF_NAME": "Oregon Inlet Reef",
+    "REEF__": "AR-160",
+    "LAT_DDM": "35° 43.888' N",
+    "LONG_DDM": "75° 26.771' W",
+    "Digitized": "Completed",
+    "REGION": "Cape Hatteras",
+    "GEN_LOC": "136.5° magnetic - 5.7 nm from Oregon Inlet Sea Buoy",
+    "Acreage": null
+   },
+   "geometry": {
+    "x": -75.44618496338934,
+    "y": 35.73147384551276
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 7,
+    "REEF_NAME": "Mr. J.C. Reef",
+    "REEF__": "AR-230",
+    "LAT_DDM": "35° 6.133' N",
+    "LONG_DDM": "75° 42.933' W",
+    "Digitized": "Completed",
+    "REGION": "Cape Hatteras",
+    "GEN_LOC": "133.7° magnetic - 4.2 nm from Hatteras Inlet Sea Buoy",
+    "Acreage": null
+   },
+   "geometry": {
+    "x": -75.71555168341945,
+    "y": 35.10222369881456
+   }
+  }
+ ]
+}

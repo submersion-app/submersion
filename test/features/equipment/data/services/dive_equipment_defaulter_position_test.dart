@@ -9,6 +9,9 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/entities/equipment_set_geofence.dart';
 
 import '../../../../helpers/test_database.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
+import 'package:submersion/features/weight_presets/data/repositories/weight_preset_repository.dart';
 
 /// Issue #3704: a dive positioned from a GPS track after it was created gets
 /// the set its position calls for, as it would have had the position been
@@ -224,5 +227,76 @@ void main() {
       isFalse,
     );
     expect(await gearOn('dive'), isEmpty);
+  });
+
+  group('weights the sets carry (issue #4525)', () {
+    Future<List<double>> weightsOf(String diveId) async {
+      final rows = await (db.select(
+        db.diveWeights,
+      )..where((w) => w.diveId.equals(diveId))).get();
+      return [for (final r in rows) r.amountKg];
+    }
+
+    setUp(() async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.dives)
+          .insert(
+            DivesCompanion.insert(
+              id: 'dive',
+              diverId: const Value('d1'),
+              diveDateTime: t,
+              createdAt: t,
+              updatedAt: t,
+            ),
+          );
+      final presets = WeightPresetRepository();
+      Future<String> lead(String name, double kg) async =>
+          (await presets.createPreset(
+            diverId: 'd1',
+            displayName: name,
+            entries: [
+              (weightType: WeightType.belt, amountKg: kg, notes: '', label: ''),
+            ],
+          )).id;
+      final warm = await lead('Warm lead', 3.63);
+      final cold = await lead('Cold lead', 9.07);
+      await sets.updateSet(
+        (await sets.getSetById('def'))!.copyWith(weightPresetIds: [warm]),
+      );
+      await sets.updateSet(
+        (await sets.getSetById('cold'))!.copyWith(weightPresetIds: [cold]),
+      );
+    });
+
+    /// What creating the dive with no position did: the default set, gear
+    /// then weights.
+    Future<void> createdWithDefault() async {
+      await createdWithoutPosition('dive');
+      await DiveSetBundleApplier().applyTagged(diveId: 'dive');
+      expect(await weightsOf('dive'), [closeTo(3.63, 1e-9)]);
+    }
+
+    test('a dive with no gear takes the fenced set\'s weights with its '
+        'gear', () async {
+      expect(await positioned('dive', inFence, replaceDefault: false), isTrue);
+      expect(await weightsOf('dive'), [closeTo(9.07, 1e-9)]);
+    });
+
+    test('replacing the default set swaps untouched weights for the fenced '
+        'set\'s', () async {
+      await createdWithDefault();
+      expect(await positioned('dive', inFence), isTrue);
+      expect((await gearOn('dive')).values.toSet(), {'cold'});
+      expect(await weightsOf('dive'), [closeTo(9.07, 1e-9)]);
+    });
+
+    test('weights the diver changed survive the swap', () async {
+      await createdWithDefault();
+      await (db.update(db.diveWeights)..where((w) => w.diveId.equals('dive')))
+          .write(const DiveWeightsCompanion(amountKg: Value(5)));
+      expect(await positioned('dive', inFence), isTrue);
+      expect(await weightsOf('dive'), [5]);
+    });
   });
 }

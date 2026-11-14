@@ -40,15 +40,24 @@ final diveMediaEnricherProvider = Provider<DiveMediaEnricher>((ref) {
     loadDive: diveRepo.getDiveById,
     loadMediaForDive: mediaRepo.getMediaForDive,
     saveEnrichments: mediaRepo.saveEnrichments,
+    loadPrimarySourceEntry: diveRepo.getPrimarySourceEntry,
   );
 });
 
-/// Applies the Set-time dialog's choice (issue #1090): one media-row write
-/// plus one enrichment pass, so the new position lands on the next tick.
+/// Applies the Set-time dialog's choice (issue #1090): one write, to the
+/// media row for a pin or the dive for a shift (issue #4539), plus one
+/// enrichment pass, so the new position lands on the next tick.
+// no-tick: a service rather than a cached query result. The dive repository
+// is reached inside a closure, and only to write.
 final mediaTimePinnerProvider = Provider<MediaTimePinner>((ref) {
   return MediaTimePinner(
     repository: ref.watch(mediaRepositoryProvider),
     enricher: ref.watch(diveMediaEnricherProvider),
+    // Read when a shift is applied, so a screen that only pins needs no
+    // dive repository.
+    setDiveShift: (diveId, seconds) => ref
+        .read(diveRepositoryProvider)
+        .setMediaTimeOffsetSeconds(diveId, seconds),
   );
 });
 

@@ -180,5 +180,38 @@ extension RungsFromV340 on AppDatabase {
     // Renumbered from 362, which main took for #4461.
     if (from < 363) await _assertSiteCatalogueIdColumn();
     if (from < 363) await reportProgress();
+
+    // v364: what an equipment set carries besides gear (included sets,
+    // weight presets, cylinder configurations) and the body composition
+    // columns of the weight prediction (issue #4525). Tables and nullable
+    // columns only, no backfill: a set with none of the three and a diver
+    // with no body data are the correct starting state. Re-asserted in
+    // beforeOpen. Renumbered from 363, which main took for the site
+    // catalogue id.
+    if (from < 364) await _assertSetBundleTables();
+    if (from < 364) await _assertBodyCompositionColumns();
+    if (from < 364) await reportProgress();
+
+    // v365: diver_settings.recent_equipment_colors, the custom colours the
+    // diver picked for their gear (issue #4537). Nullable, no backfill.
+    // Re-asserted in beforeOpen. Renumbered from 364, which main took for
+    // #4525.
+    if (from < 365) await _assertRecentEquipmentColorsColumn();
+    if (from < 365) await reportProgress();
+
+    // v366: diver_settings.default_show_counterdiffusion, the default
+    // visibility of the isobaric counterdiffusion overlay on the dive profile
+    // (issue #4530). Column only, defaulted off; re-asserted in beforeOpen.
+    // Renumbered from 365, which main took for #4537.
+    if (from < 366) await _assertDefaultShowCounterdiffusionColumn();
+    if (from < 366) await reportProgress();
+
+    // v367: dives.media_time_offset_seconds, the correction for a camera
+    // whose clock disagrees with the dive computer's (issue #4539). Column
+    // only, defaulted to 0, so the compatibility floor does not move.
+    // Re-asserted in beforeOpen. Renumbered from 366, which main took for
+    // #4530.
+    if (from < 367) await _assertDiveMediaTimeOffsetColumn();
+    if (from < 367) await reportProgress();
   }
 }

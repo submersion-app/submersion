@@ -129,6 +129,51 @@ void main() {
     });
   });
 
+  group('register records', () {
+    setUp(() {
+      when(
+        sites.getAllSites(diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => const []);
+    });
+
+    CatalogueSite record(String id, double metersEast, CatalogueKind kind) =>
+        CatalogueSite(
+          id: id,
+          name: id,
+          location: _eastMeters(metersEast),
+          source: kind == CatalogueKind.register ? 'ukho' : 'osm',
+          kind: kind,
+        );
+
+    test('a dive site near the dive is recommended over a nearer charted '
+        'wreck', () async {
+      catalogue.sites = [
+        record('wreck', 60, CatalogueKind.register),
+        record('site', 120, CatalogueKind.site),
+      ];
+
+      final proposal = (await service().computeProposals([
+        _diveAt('d1', const GeoPoint(0, 0)),
+      ])).single;
+
+      expect(proposal.status, ProposalStatus.clear);
+      expect(proposal.recommendedCandidateId, 'site');
+      // Both are still offered, nearest first.
+      expect(proposal.candidates.map((c) => c.id), ['wreck', 'site']);
+    });
+
+    test('a lone charted wreck near the dive is recommended', () async {
+      catalogue.sites = [record('wreck', 60, CatalogueKind.register)];
+
+      final proposal = (await service().computeProposals([
+        _diveAt('d1', const GeoPoint(0, 0)),
+      ])).single;
+
+      expect(proposal.status, ProposalStatus.clear);
+      expect(proposal.recommendedCandidateId, 'wreck');
+    });
+  });
+
   group('catalogue candidates', () {
     test('an adopted site is not also offered as its catalogue twin', () async {
       // 400 m from the dive: outside the inner radius, so catalogue sites

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
+import 'package:submersion/features/media/data/services/dive_media_enricher.dart';
 import 'package:submersion/features/media/data/services/media_health_report.dart';
 import 'package:submersion/features/media/data/services/media_health_reporter.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
@@ -138,6 +139,9 @@ class _CapturingPinner implements MediaTimePinner {
   Future<void> apply(MediaItem item, MediaTimeChoice choice) async {
     applied.add(choice);
   }
+
+  @override
+  Future<MediaAutomaticTime?> automaticTimeFor(MediaItem item) async => null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>

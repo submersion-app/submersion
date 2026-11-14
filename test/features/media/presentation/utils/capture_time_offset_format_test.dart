@@ -3,6 +3,34 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/media/presentation/utils/capture_time_offset_format.dart';
 
 void main() {
+  group('formatShiftMagnitude', () {
+    test('reads as minutes:seconds under an hour', () {
+      expect(formatShiftMagnitude(0), '0:00');
+      expect(formatShiftMagnitude(87), '1:27');
+      expect(formatShiftMagnitude(3599), '59:59');
+    });
+
+    test('drops the sign', () {
+      expect(formatShiftMagnitude(-87), '1:27');
+      expect(formatShiftMagnitude(-21600), '6h 00m');
+    });
+
+    // A camera left on another time zone.
+    test('rolls into hours from an hour up', () {
+      expect(formatShiftMagnitude(3600), '1h 00m');
+      expect(formatShiftMagnitude(21600), '6h 00m');
+      expect(formatShiftMagnitude(21612), '6h 00m 12s');
+    });
+
+    // A camera on another date, or an item with no real capture time: the
+    // amount has to read as days, not as a six-digit count of minutes.
+    test('rolls into days from a day up', () {
+      expect(formatShiftMagnitude(86400), '1d 0h 00m');
+      expect(formatShiftMagnitude(90061), '1d 1h 01m 01s');
+      expect(formatShiftMagnitude(3652 * 86400), '3652d 0h 00m');
+    });
+  });
+
   group('formatSignedOffset', () {
     test('zero has no sign', () {
       expect(formatSignedOffset(Duration.zero), '0m');

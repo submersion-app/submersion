@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/domain/services/merged_media_time_offset.dart';
 
 /// How a fill group decides whether a row holds a value.
 enum _Holds {
@@ -184,6 +185,10 @@ const Map<String, String> consolidationUnfilledColumns = {
   'site_suggestion_dismissed_at':
       "the diver's answer to the target's own "
       'site suggestion',
+  'media_time_offset_seconds':
+      'stands while the target owns media, which is placed by it; otherwise '
+      'the first dive that owns media brings its own, since its media moves '
+      'here',
 };
 
 /// Every dives column a consolidation can fill.
@@ -195,14 +200,18 @@ final Set<String> consolidationFilledColumns = {
 /// what [secondaries] recorded, before the secondaries are tombstoned and
 /// their rows are gone.
 ///
-/// Never overwrites a value the target holds. [targetHasProfile] says
-/// whether the target has profile samples of its own, which the row cannot
-/// show. Keyed by SQL column name, for a `RawValuesInsertable`; empty when
-/// there is nothing to fill.
+/// Never overwrites a value the target holds, with one exception: the media
+/// time shift belongs to whichever dive's media is placed by it, so a target
+/// that owns no media gives its own up to the first secondary that does
+/// (see [mergedMediaTimeOffsetSeconds]). [targetHasProfile] says whether the
+/// target has profile samples of its own, which the row cannot show, and
+/// [diveIdsWithMedia] which of the dives own media. Keyed by SQL column
+/// name, for a `RawValuesInsertable`; empty when there is nothing to fill.
 Map<String, Expression> consolidationFieldFill(
   Dive target,
   List<Dive> secondaries, {
   required bool targetHasProfile,
+  required Set<String> diveIdsWithMedia,
 }) {
   final targetValues = target.toColumns(false);
   final secondaryValues = [for (final s in secondaries) s.toColumns(false)];
@@ -217,6 +226,16 @@ Map<String, Expression> consolidationFieldFill(
       }
       break;
     }
+  }
+  // Every secondary's media moves to the target, which holds one shift for
+  // all of it (issue #4539). A target that owns media keeps its own, zero
+  // included, so nothing already placed moves.
+  final mediaShift = mergedMediaTimeOffsetSeconds([
+    for (final dive in [target, ...secondaries])
+      (diveId: dive.id, offsetSeconds: dive.mediaTimeOffsetSeconds),
+  ], diveIdsWithMedia: diveIdsWithMedia);
+  if (mediaShift != target.mediaTimeOffsetSeconds) {
+    fill['media_time_offset_seconds'] = Variable<int>(mediaShift);
   }
   // A plan that takes in a logged dive was dived, so it stops being a plan:
   // still flagged, the real dive would drop out of no-fly and residual

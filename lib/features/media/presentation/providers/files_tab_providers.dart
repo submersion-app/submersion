@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
@@ -420,14 +421,18 @@ final diveBoundsProvider = FutureProvider<List<DiveBounds>>((ref) async {
   final dives = await ref.watch(divesProvider.future);
   return [
     for (final d in dives)
+      // Each window is the dive's as its camera reads it, so a file is
+      // matched on the clock it is later placed by (issue #4539).
       DiveBounds(
         diveId: d.id,
-        entryTime: d.effectiveEntryTime,
-        exitTime:
-            d.exitTime ??
-            d.effectiveEntryTime.add(
-              d.effectiveRuntime ?? const Duration(hours: 1),
-            ),
+        entryTime: DiveMediaClock.onCameraClock(d, d.effectiveEntryTime),
+        exitTime: DiveMediaClock.onCameraClock(
+          d,
+          d.exitTime ??
+              d.effectiveEntryTime.add(
+                d.effectiveRuntime ?? const Duration(hours: 1),
+              ),
+        ),
       ),
   ];
 });

@@ -1566,6 +1566,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_color_white => 'أبيض';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'الأخيرة';
+
+  @override
   String get equipment_color_none => 'بلا';
 
   @override
@@ -2667,6 +2675,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get backup_note_dialog_confirm => 'نسخ احتياطي';
 
   @override
+  String get backup_note_keep_title => 'الاحتفاظ بهذه النسخة';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'لا تتم إزالة النسخ المثبتة تلقائياً أبداً';
+
+  @override
   String get backup_delete_dialog_cancel => 'إلغاء';
 
   @override
@@ -2846,6 +2861,33 @@ class AppLocalizationsAr extends AppLocalizations {
       'تتم إزالة النسخ الاحتياطية القديمة تلقائياً';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'لا تتم إزالة النسخ الاحتياطية تلقائياً أبداً';
+
+  @override
+  String get backup_retention_keepAll => 'الاحتفاظ بالكل';
+
+  @override
+  String get backup_retention_custom => 'عدد مخصص…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'مخصص: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title =>
+      'كم نسخة احتياطية تريد الاحتفاظ بها؟';
+
+  @override
+  String get backup_retention_custom_label => 'عدد النسخ الاحتياطية';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'أدخل رقماً من 1 إلى $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'احتساب النسخ الاحتياطية من كل الأجهزة';
 
@@ -2857,6 +2899,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'يحتفظ مجلد السحابة بأحدث النسخ الاحتياطية من كل الأجهزة، وعددها $count. تُحفظ النسخ المثبتة. تُحفظ أيضًا أحدث نسخة من كل جهاز ما لم يمضِ عليها أكثر من 6 أشهر. إذا استخدمت أجهزة أخرى هذا الخيار أيضًا، فالعدد الأصغر هو المعتمد. حدّث التطبيق على كل الأجهزة أولًا حتى تظهر النسخ المثبتة عليها.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'خيار الاحتفاظ بالكل مفعّل، لذا لا يزيل هذا الجهاز أي نسخ احتياطية من مجلد السحابة. تُحفظ النسخ المثبتة.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9549,6 +9595,47 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'تبديلات الغاز المتأخرة';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'الانتشار العكسي';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'الكل';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'انتشار عكسي (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'تبادل متعاكس';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'تبادل الغازات';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2، He $he، الصافي $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'داخل';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'خارج';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'مختلط';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'تبديلات الغاز';
 
   @override
@@ -13191,6 +13278,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'استخدام هذا الموقع';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'حطام وشعاب بالقرب من $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'حطام وشعاب قريبة';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'عرض الحطام والشعاب المسجّلة ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'يُعرض أقرب $count. ابحث للعثور على البقية.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'جميعها موجودة بالفعل ضمن مواقعك.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'أقرب $count موجودة بالفعل ضمن مواقعك. ابحث للعثور على البقية.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'قرّب الخريطة لرؤية جميع المواقع المدمجة';
 
   @override
   String get diveSites_list_groupBy => 'التجميع حسب';
@@ -22779,6 +22897,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'فهمت';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'الملف يعرض الانتشار العكسي متساوي الضغط';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'تم قبول تنبيه التخطيط';
 
@@ -23161,6 +23283,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'تبديل غاز متأخر';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'الانتشار العكسي متساوي الضغط';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'انتشار عكسي متساوي الضغط لمدة $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'خالف تبديل غاز قاعدة الأخماس';
 
   @override
   String get safetySettings_rule_highSurfaceGf => 'عامل تدرج مرتفع عند الصعود';
@@ -23742,6 +23877,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'السقف';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'الانتشار العكسي متساوي الضغط';
 
   @override
   String get settings_appearance_metric_events => 'الأحداث';
@@ -25561,6 +25700,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'مجموعات المعدات المطوية';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'ألوان المعدات الأخيرة';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => 'سجل ترتيب القوائم';
 
   @override
@@ -26263,6 +26406,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'تبديلات الغاز معدّلة يدويًا';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'إزاحة وقت الوسائط';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -29340,7 +29487,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'يعرض في حاسبة ICD تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.';
+      'يعرض في حاسبة ICD وفي طبقة الانتشار العكسي في مخطط الغوص تقييمًا وفق قاعدة الخُمس عند التبديل من غاز أغنى بالهيليوم إلى غاز أغنى بالنيتروجين.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'حساب الـ CNS';
@@ -34000,22 +34147,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'لون مخصص';
+  String get common_color_custom => 'لون مخصص';
 
   @override
-  String get tags_color_hexLabel => 'الرمز الست عشري';
+  String get common_color_hexLabel => 'الرمز الست عشري';
 
   @override
-  String get tags_color_hexError => 'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
+  String get common_color_hexError =>
+      'أدخل ستة أحرف من 0-9 أو A-F، مثل #2E8B57';
 
   @override
-  String get tags_color_use => 'استخدام';
+  String get common_color_use => 'استخدام';
 
   @override
-  String get tags_color_hueLabel => 'تدرج اللون';
+  String get common_color_hueLabel => 'تدرج اللون';
 
   @override
-  String get tags_color_squareLabel => 'التشبع والسطوع';
+  String get common_color_squareLabel => 'التشبع والسطوع';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'إزالة';
@@ -56151,6 +56299,36 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_timeInDive_reset => 'إعادة التعيين إلى التلقائي';
 
   @override
+  String get media_timeInDive_shiftAll => 'إزاحة جميع وسائط هذه الغوصة';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'تُزاح جميع صور ومقاطع فيديو هذه الغوصة بالمقدار نفسه';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'تُزاح جميع صور ومقاطع فيديو هذه الغوصة $amount للخلف';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'تُزاح جميع صور ومقاطع فيديو هذه الغوصة $amount للأمام';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'وسائط هذه الغوصة مُزاحة $amount للخلف';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'وسائط هذه الغوصة مُزاحة $amount للأمام';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'إزالة الإزاحة';
+
+  @override
   String get media_info_store => 'التخزين السحابي';
 
   @override
@@ -61508,6 +61686,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'الاحتفاظ بكل النسخ الاحتياطية';
+
+  @override
   String get settings_backups_folder => 'مجلد النسخ الاحتياطي على هذا الجهاز';
 
   @override
@@ -62472,6 +62653,18 @@ class AppLocalizationsAr extends AppLocalizations {
     int count,
   ) {
     return '$frequency، أثناء فتح Submersion. تُحفظ هنا آخر $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. تُحفظ هنا كل النسخ.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency، أثناء فتح Submersion. تُحفظ هنا كل النسخ.';
   }
 
   @override
@@ -64059,6 +64252,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'قد يرفع تبديل الغاز إجمالي الغاز الخامل في الأنسجة دون تغير العمق عندما يرتفع النيتروجين أسرع مما ينخفض الهيليوم. الفحص الشائع، قاعدة الأخماس، يحد ارتفاع النيتروجين بخمس انخفاض الهيليوم.';
 
   @override
+  String get info_term_counterdiffusionProfile_label =>
+      'الانتشار العكسي في مخطط الغوص';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'في مخطط الغوص يحدد شريط برتقالي المواضع التي يحمل فيها نسيج غازًا خاملًا أكثر مما يُستنشق ومع ذلك يمتص الغاز بشكل ملحوظ. في نموذج بولمان يخرج الهيليوم أسرع مما يدخل النيتروجين، لذا نادرًا ما يُظهر التبديل من التريمكس إلى النيتروكس شريطًا؛ ويُظهر الخط المتقطع عند التبديل قاعدة الأخماس بدلًا من ذلك.';
+
+  @override
   String get info_term_hypercapnia_label => 'فرط ثاني أكسيد الكربون';
 
   @override
@@ -65122,4 +65323,186 @@ class AppLocalizationsAr extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'يُقرَّب الـ MOD دائمًا للأسفل، ولا يُقرَّب للأعلى أبدًا. يستخدم Rec بارًا واحدًا لكل $depth، مثل سجل الغوص. ويحسب OC Tec وCCR Tec الضغط عند العمق من نوع الماء، لذا قد يظهر للخليط نفسه MOD أقل عمقًا بقليل هناك.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'الجنس';
+
+  @override
+  String get settings_conflict_field_birthYear => 'سنة الميلاد';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'دهون الجسم';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'المجموعات المضمَّنة';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'إضافة مجموعة';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'لا توجد مجموعات مضمَّنة';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'لا توجد مجموعة أخرى يمكن تضمينها';
+
+  @override
+  String get equipment_setEdit_weights_title => 'الأثقال';
+
+  @override
+  String get equipment_setEdit_weights_add => 'إضافة إعداد أثقال';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'لا توجد إعدادات أثقال';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'لا توجد إعدادات أثقال أخرى لإضافتها';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'الإجمالي $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'الأسطوانات';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'إضافة تهيئة أسطوانات';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'لا توجد تهيئات أسطوانات';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'لا توجد تهيئات أسطوانات بعد';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'إزالة من المجموعة';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'يطبِّق إجمالاً: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'المجموعة التي لا تحتوي على معدات لا تظهر كمجموعة على الغوصة، لذا يجب إزالة أوزانها وأسطواناتها يدويًا.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'من $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight من الرصاص';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count أسطوانة',
+      many: '$count أسطوانة',
+      few: '$count أسطوانات',
+      two: 'أسطوانتان',
+      one: 'أسطوانة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'استخدام الأثقال من $setName؟';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'هذه الغوصة فيها $current بالفعل. المجموعة تحمل $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'إضافة';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'استبدال';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'الإبقاء على الحالي';
+
+  @override
+  String get rules_change_weights => 'الأثقال';
+
+  @override
+  String get rules_change_tanks => 'الأسطوانات';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'الأثقال: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'الرصاص: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'لم يُضَف الرصاص: هذه الرحلة ليس لها قائمة تحقق.';
+
+  @override
+  String get trips_gear_pickChecklist => 'إلى أي قائمة تحقق يُضاف الرصاص؟';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'دهون الجسم (مقيسة)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'دهون الجسم (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'اختياري. إذا تُرك فارغاً، يُقدَّر تكوين الجسم من الطول والوزن.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'التقدير: نحو $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'أضف الجنس وسنة الميلاد في المعلومات الشخصية لعرض تقدير.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'أدخل قيمة من 3 إلى 60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% دهون الجسم';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'الجنس';
+
+  @override
+  String get diverProfile_sex_female => 'أنثى';
+
+  @override
+  String get diverProfile_sex_male => 'ذكر';
+
+  @override
+  String get diverProfile_sex_notSet => 'غير محدَّد';
+
+  @override
+  String get diverProfile_birthYear_label => 'سنة الميلاد';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'أدخل سنة من 1900 إلى $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'يُستخدمان فقط لتقدير تكوين الجسم من أجل توقّع الأثقال.';
 }

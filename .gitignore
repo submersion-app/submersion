@@ -95,3 +95,7 @@ test/.bundles/
 
 # Geocoder answers for the site catalogue scripts (re-derivable).
 scripts/.site_country_cache.json
+
+# Downloaded catalogue sources and their snapshots (re-derivable; see
+# scripts/site_catalogue/snapshots.py).
+scripts/.site_catalogue_cache/

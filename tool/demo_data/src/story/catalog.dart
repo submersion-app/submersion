@@ -83,7 +83,10 @@ class Catalog {
         if (raw is Map &&
             (raw['name'] as String?)?.trim().isNotEmpty == true &&
             raw['lat'] != null &&
-            raw['lon'] != null)
+            raw['lon'] != null &&
+            // Dive sites only: a register record is a charted wreck or a
+            // reef deployment, and a demo trip is not planned around one.
+            raw['kind'] != 'register')
           CatalogSite(
             id: raw['id'] as String,
             name: (raw['name'] as String).trim(),

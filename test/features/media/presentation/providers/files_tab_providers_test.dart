@@ -965,6 +965,27 @@ void main() {
       expect(bounds.single.exitTime, DateTime.utc(2025, 12, 27, 12, 9));
     });
 
+    // Issue #4539: files are matched on the clock they are later placed by.
+    test("moves a dive's window by its media time shift", () async {
+      final dive = Dive(
+        id: 'dive-3',
+        dateTime: DateTime.utc(2025, 12, 27, 11, 26),
+        exitTime: DateTime.utc(2025, 12, 27, 12, 9),
+        mediaTimeOffsetSeconds: -21600,
+      );
+      final boundsContainer = ProviderContainer(
+        overrides: [
+          divesProvider.overrideWith((ref) async => [dive]),
+        ],
+      );
+      addTearDown(boundsContainer.dispose);
+
+      final bounds = await boundsContainer.read(diveBoundsProvider.future);
+
+      expect(bounds.single.entryTime, DateTime.utc(2025, 12, 27, 17, 26));
+      expect(bounds.single.exitTime, DateTime.utc(2025, 12, 27, 18, 9));
+    });
+
     test('falls back to entry plus one hour with no exit or runtime', () async {
       final dive = Dive(
         id: 'dive-2',

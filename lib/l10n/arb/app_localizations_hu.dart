@@ -1521,6 +1521,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_color_white => 'Fehér';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Legutóbbiak';
+
+  @override
   String get equipment_color_none => 'Nincs';
 
   @override
@@ -2596,6 +2604,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Mentés';
 
   @override
+  String get backup_note_keep_title => 'A mentés megtartása';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'A rögzített mentések soha nem kerülnek automatikusan eltávolításra';
+
+  @override
   String get backup_delete_dialog_cancel => 'Mégse';
 
   @override
@@ -2778,6 +2793,32 @@ class AppLocalizationsHu extends AppLocalizations {
       'A régebbi mentések automatikusan eltávolításra kerülnek';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'A mentések soha nem kerülnek automatikusan eltávolításra';
+
+  @override
+  String get backup_retention_keepAll => 'Összes megtartása';
+
+  @override
+  String get backup_retention_custom => 'Egyéni szám…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Egyéni: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Hány mentést tartson meg?';
+
+  @override
+  String get backup_retention_custom_label => 'Mentések száma';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Adjon meg egy számot 1 és $max között';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Az összes eszköz mentéseinek számolása';
 
@@ -2789,6 +2830,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'A felhőmappa az összes eszközről az utolsó $count biztonsági mentést tartja meg. A rögzített mentések megmaradnak. Minden eszköz legutóbbi mentése is megmarad, hacsak nem régebbi 6 hónapnál. Ha más eszközök is ezt használják, a legkisebb szám érvényes. Először minden eszközön frissíteni kell az alkalmazást, hogy a rögzítéseik láthatók legyenek.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Az Összes megtartása be van kapcsolva, így ez az eszköz nem távolít el mentést a felhőmappából. A rögzített mentések megmaradnak.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9398,6 +9443,47 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Késői gázváltások';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Ellendiffúzió';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Mind';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Ellendiffúzió (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Ellentétes csere';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gázcsere';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, nettó $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'be';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'ki';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'vegyes';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gázcserélések';
 
   @override
@@ -12976,6 +13062,38 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Merülőhely használata';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Roncsok és zátonyok $place közelében';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Roncsok és zátonyok a közelben';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Térképezett roncsok és zátonyok megjelenítése ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'A legközelebbi $count látható. Keressen a többi megtalálásához.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Mindegyik már szerepel a merülőhelyei között.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'A legközelebbi $count már szerepel a merülőhelyei között. Keressen a többi megtalálásához.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Nagyítson a térképen az összes beépített merülőhely megjelenítéséhez';
 
   @override
   String get diveSites_list_groupBy => 'Csoportosítás';
@@ -22353,6 +22471,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Megértettem';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'A profil mutatja az izobár ellendiffúziót';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Tervezési figyelmeztetés elfogadva';
 
@@ -22729,6 +22851,19 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Késői gázváltás';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Izobár ellendiffúzió';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Izobár ellendiffúzió $duration hosszan';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Egy gázváltás megsértette az ötödszabályt';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23308,6 +23443,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Plafon';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Izobár ellendiffúzió';
 
   @override
   String get settings_appearance_metric_events => 'Események';
@@ -25117,6 +25256,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Összecsukott felszereléscsoportok';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Legutóbbi felszerelésszínek';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Listaelrendezési napló';
 
@@ -25842,6 +25985,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gázváltások kézzel szerkesztve';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Média időeltolása';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -28894,7 +29041,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.';
+      'Az ötödszabály szerinti értékelést jeleníti meg az ICD-kalkulátorban és a profil ellendiffúziós rétegén, amikor héliumban gazdagabb gázról nitrogénben gazdagabb gázra váltunk.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-számítás';
@@ -33501,23 +33648,23 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Egyéni szín';
+  String get common_color_custom => 'Egyéni szín';
 
   @override
-  String get tags_color_hexLabel => 'Hexakód';
+  String get common_color_hexLabel => 'Hexakód';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Adjon meg hat karaktert (0-9 vagy A-F), például #2E8B57';
 
   @override
-  String get tags_color_use => 'Használat';
+  String get common_color_use => 'Használat';
 
   @override
-  String get tags_color_hueLabel => 'Színárnyalat';
+  String get common_color_hueLabel => 'Színárnyalat';
 
   @override
-  String get tags_color_squareLabel => 'Telítettség és fényerő';
+  String get common_color_squareLabel => 'Telítettség és fényerő';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Eltávolítás';
@@ -55069,6 +55216,37 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_timeInDive_reset => 'Visszaállítás automatikusra';
 
   @override
+  String get media_timeInDive_shiftAll =>
+      'A merülés összes médiájának eltolása';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'A merülés minden fotója és videója ugyanannyival tolódik el';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'A merülés minden fotója és videója $amount értékkel korábbra tolódik';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'A merülés minden fotója és videója $amount értékkel későbbre tolódik';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'A merülés médiái $amount értékkel korábbra vannak tolva';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'A merülés médiái $amount értékkel későbbre vannak tolva';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Eltolás eltávolítása';
+
+  @override
   String get media_info_store => 'Felhő tárhely';
 
   @override
@@ -60368,6 +60546,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Összes mentés megtartása';
+
+  @override
   String get settings_backups_folder => 'Mentési mappa ezen az eszközön';
 
   @override
@@ -61236,6 +61417,18 @@ class AppLocalizationsHu extends AppLocalizations {
     int count,
   ) {
     return '$frequency, amíg a Submersion meg van nyitva. Itt marad meg az utolsó $count.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Itt minden mentés megmarad.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, amíg a Submersion meg van nyitva. Itt minden mentés megmarad.';
   }
 
   @override
@@ -62791,6 +62984,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Gázváltás mélységváltozás nélkül is növelheti a szövetek teljes inertgáz-tartalmát, ha a nitrogén gyorsabban nő, mint ahogy a hélium csökken. A szokásos ellenőrzés, az ötödszabály, a nitrogén növekedését a héliumcsökkenés egyötödére korlátozza.';
 
   @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Ellendiffúzió a profilon';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'A merülési profilon narancssárga sáv jelzi, ahol egy kompartment már több inert gázt tartalmaz, mint amennyit belélegzünk, és mégis érezhetően telítődik. A Bühlmann-modellben a hélium gyorsabban távozik, mint ahogy a nitrogén belép, ezért a trimixről nitroxra váltás ritkán mutat sávot; a váltásnál lévő szaggatott vonal helyette az ötödszabályt mutatja.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hiperkapnia';
 
   @override
@@ -63857,4 +64058,185 @@ class AppLocalizationsHu extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'A MOD-ot mindig lefelé kerekítjük, soha nem felfelé. A Rec minden $depth mélységre 1 bárt számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából számolja a nyomást a mélységben, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Nem';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Születési év';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Testzsír';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Tartalmazott készletek';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Készlet hozzáadása';
+
+  @override
+  String get equipment_setEdit_includedSets_empty =>
+      'Nincs tartalmazott készlet';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'Nincs más felvehető készlet';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Ólom';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Ólomsablon hozzáadása';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'Nincs ólomsablon';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Nincs több hozzáadható ólomsablon';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Összesen $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Palackok';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Palackkonfiguráció hozzáadása';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'Nincs palackkonfiguráció';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Még nincs palackkonfiguráció';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Eltávolítás a készletből';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Összesen alkalmazza: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'A felszerelés nélküli készlet nem jelenik meg készletként a merülésen, ezért a súlyait és palackjait kézzel kell eltávolítani.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'Innen: $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight ólom';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count palack',
+      one: '1 palack',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Használja a(z) $setName ólmát?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Ezen a merülésen már van $current. A készlet $setTotal ólmot tartalmaz.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Hozzáadás';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Csere';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Jelenlegi megtartása';
+
+  @override
+  String get rules_change_weights => 'Ólom';
+
+  @override
+  String get rules_change_tanks => 'Palackok';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Ólom: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Ólom: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'Az ólom nem került hozzáadásra: ennek az útnak nincs ellenőrzőlistája.';
+
+  @override
+  String get trips_gear_pickChecklist =>
+      'Melyik ellenőrzőlistához adjuk az ólmot?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Testzsír (mért)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Testzsír (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Nem kötelező. Üresen hagyva a testösszetételt a magasságból és a testsúlyból becsüljük.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Becsült: körülbelül $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Becsléshez adja meg a nemet és a születési évet a Személyes adatok alatt.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Adjon meg egy 3 és 60 közötti értéket';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% testzsír';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Nem';
+
+  @override
+  String get diverProfile_sex_female => 'Nő';
+
+  @override
+  String get diverProfile_sex_male => 'Férfi';
+
+  @override
+  String get diverProfile_sex_notSet => 'Nincs megadva';
+
+  @override
+  String get diverProfile_birthYear_label => 'Születési év';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Adjon meg egy évet 1900 és $year között';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Csak a testösszetétel becslésére szolgál az ólomszükséglet előrejelzéséhez.';
 }

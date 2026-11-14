@@ -53,6 +53,17 @@ class BackupPreferences {
   // Settings
   // ===========================================================================
 
+  /// The stored "Keep" count. Any count above the typed maximum is shown as
+  /// Keep all, so it reads as the Keep all sentinel too: every pruning path
+  /// then keeps everything, rather than treating, say, 10000 as a limit
+  /// (issue #4535).
+  int _readRetentionCount() {
+    final count = _prefs.getInt(_retentionCountKey) ?? 10;
+    return BackupSettings.countKeepsAll(count)
+        ? BackupSettings.keepAllRetentionCount
+        : count;
+  }
+
   BackupSettings getSettings() {
     final lastBackupMs = _prefs.getInt(_lastBackupTimeKey);
     final failedMs = _prefs.getInt(_lastScheduledFailureAtKey);
@@ -66,7 +77,7 @@ class BackupPreferences {
     return BackupSettings(
       enabled: _prefs.getBool(_enabledKey) ?? false,
       frequency: _parseFrequency(_prefs.getString(_frequencyKey)),
-      retentionCount: _prefs.getInt(_retentionCountKey) ?? 10,
+      retentionCount: _readRetentionCount(),
       lastBackupTime: lastBackupMs != null
           ? DateTime.fromMillisecondsSinceEpoch(lastBackupMs)
           : null,

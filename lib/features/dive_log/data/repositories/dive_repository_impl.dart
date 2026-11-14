@@ -108,6 +108,7 @@ import 'package:submersion/features/equipment/domain/entities/set_history_rewrit
 import 'package:submersion/features/equipment/domain/services/components_index.dart';
 import 'package:submersion/features/equipment/domain/services/gear_expander.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
@@ -1122,6 +1123,94 @@ class DiveRepository {
     } catch (e, stackTrace) {
       _log.error(
         'Failed to set site suggestion dismissal on dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// Sets the seconds added to each photo's capture time before it is placed
+  /// on [diveId] (issue #4539); 0 removes the shift. Single-column update,
+  /// synced the way [setSiteSuggestionDismissed] is. Placing the media again
+  /// is the caller's job: this only records the correction.
+  ///
+  /// A dive that already has this shift is left untouched, so saving the
+  /// same value again ships no row to other devices.
+  ///
+  /// Throws [ArgumentError] for a shift past [DiveMediaClock.maxOffsetSeconds]:
+  /// the backup importer and an agent hold to that bound, and a value stored
+  /// beyond it would be dropped by the next restore.
+  Future<void> setMediaTimeOffsetSeconds(String diveId, int seconds) async {
+    if (!DiveMediaClock.isValidOffset(seconds)) {
+      throw ArgumentError.value(
+        seconds,
+        'seconds',
+        'a media time shift is at most a century either way',
+      );
+    }
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final changed =
+          await (_db.update(_db.dives)..where(
+                (t) =>
+                    t.id.equals(diveId) &
+                    t.mediaTimeOffsetSeconds.equals(seconds).not(),
+              ))
+              .write(
+                DivesCompanion(
+                  mediaTimeOffsetSeconds: Value(seconds),
+                  updatedAt: Value(now),
+                ),
+              );
+      if (changed == 0) return;
+      await _syncRepository.markRecordPending(
+        entityType: 'dives',
+        recordId: diveId,
+        localUpdatedAt: now,
+      );
+      SyncEventBus.notifyLocalChange();
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to set media time shift on dive: $diveId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// When [diveId]'s primary computer began recording, which is the instant
+  /// the dive's profile samples count from; null when the dive has no primary
+  /// source or that source recorded no entry time (issue #4539).
+  ///
+  /// The dive's own start is not that instant when a log file or the edit
+  /// form gave it at whole minutes. A primary sitting some seconds along the
+  /// timeline began that long after its zero, so the offset is taken off.
+  Future<DateTime?> getPrimarySourceEntry(String diveId) async {
+    try {
+      final row =
+          await (_db.select(_db.diveDataSources)
+                ..where(
+                  (t) =>
+                      t.diveId.equals(diveId) &
+                      t.isPrimary.equals(true) &
+                      t.entryTime.isNotNull(),
+                )
+                ..orderBy([
+                  (t) => OrderingTerm.asc(t.entryTime),
+                  (t) => OrderingTerm.asc(t.id),
+                ])
+                ..limit(1))
+              .getSingleOrNull();
+      final entry = row?.entryTime;
+      if (row == null || entry == null) return null;
+      return entry.toUtc().subtract(
+        Duration(seconds: row.timeOffsetSeconds ?? 0),
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get primary source entry for dive: $diveId',
         error: e,
         stackTrace: stackTrace,
       );
@@ -2475,6 +2564,8 @@ class DiveRepository {
                 // A restored backup brings the diver-owned switch list
                 // flag with it (issue #32); an edit never rewrites it.
                 gasSwitchesEdited: Value(dive.gasSwitchesEdited),
+                // As is the media time shift (issue #4539).
+                mediaTimeOffsetSeconds: Value(dive.mediaTimeOffsetSeconds),
                 // CCR/SCR rebreather fields (v1.5)
                 diveMode: Value(dive.diveMode.code),
                 setpointLow: Value(dive.setpointLow),
@@ -5318,6 +5409,7 @@ class DiveRepository {
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
       gasSwitchesEdited: row.gasSwitchesEdited,
+      mediaTimeOffsetSeconds: row.mediaTimeOffsetSeconds,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
       diveMode: DiveMode.fromCode(row.diveMode),
@@ -5799,6 +5891,7 @@ class DiveRepository {
       excludedFromStats: row.excludedFromStats,
       excludedFromGasStats: row.excludedFromGasStats,
       gasSwitchesEdited: row.gasSwitchesEdited,
+      mediaTimeOffsetSeconds: row.mediaTimeOffsetSeconds,
       tags: tags,
       // CCR/SCR rebreather fields (v1.5)
       diveMode: DiveMode.fromCode(row.diveMode),
@@ -8489,9 +8582,24 @@ class DiveRepository {
   Future<int> countLoggedDivesWithSet(String setId) =>
       _gearTemplates.countWithSet(setId, planned: false);
 
+  /// How many logged dives carry any of [setIds]. A dive carrying gear
+  /// under two of them, as a set and a set that includes it leave, is one
+  /// dive (issue #4525).
+  Future<int> countLoggedDivesWithAnySet(Iterable<String> setIds) async {
+    final dives = <String>{};
+    for (final setId in setIds.toSet()) {
+      dives.addAll(await _gearTemplates.loggedDiveIdsWithSet(setId));
+    }
+    return dives.length;
+  }
+
   /// How many planned dives carry set [setId].
   Future<int> countPlannedDivesWithSet(String setId) =>
       _gearTemplates.countWithSet(setId, planned: true);
+
+  /// The planned dives that carry gear set [setId] put there.
+  Future<List<String>> plannedDiveIdsWithSet(String setId) =>
+      _gearTemplates.diveIdsWithSet(setId, alsoLogged: false);
 
   GearTemplateDiveQueries get _gearTemplates => GearTemplateDiveQueries(_db);
 

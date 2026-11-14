@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Variable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/certifications/presentation/utils/certification_grouping.dart';
 import 'package:submersion/features/dive_sites/domain/utils/site_grouping.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -145,6 +147,43 @@ void main() {
     await notifier.updateEquipmentCollapsedGroups((_) => ['loc:a']);
     await notifier.updateEquipmentCollapsedGroups((_) => const []);
     expect((await stored()).listArrangements.equipmentCollapsedGroups, '[]');
+  });
+
+  test('updateRecentEquipmentColors saves the remembered colours as JSON '
+      '(#4537)', () async {
+    final notifier = await loaded();
+    await notifier.updateRecentEquipmentColors(
+      (current) => ['#FF6A00', ...current],
+    );
+    await notifier.updateRecentEquipmentColors(
+      (current) => ['#0A3D91', ...current],
+    );
+    expect(
+      (await stored()).listArrangements.recentEquipmentColors,
+      '["#0A3D91","#FF6A00"]',
+    );
+  });
+
+  test('a remembered-colour change that changes nothing writes nothing '
+      '(#4537)', () async {
+    final notifier = await loaded();
+    await notifier.setTripSort(const SortState(field: TripSortField.name));
+    Future<String?> clock() async =>
+        (await DatabaseService.instance.database
+                .customSelect(
+                  'SELECT list_arrangement_hlc AS c FROM diver_settings '
+                  'WHERE diver_id = ?',
+                  variables: [Variable.withString(diverId)],
+                )
+                .getSingle())
+            .read<String?>('c');
+    final before = await clock();
+    expect(before, isNotNull);
+
+    await notifier.updateRecentEquipmentColors((current) => current);
+
+    expect(await clock(), before);
+    expect((await stored()).listArrangements.recentEquipmentColors, isNull);
   });
 
   test('a list save leaves the device-local preferences alone', () async {

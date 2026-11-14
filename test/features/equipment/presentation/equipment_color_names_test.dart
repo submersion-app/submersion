@@ -1,6 +1,7 @@
-import 'dart:ui' show Locale;
+import 'dart:ui' show Color, Locale;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_colors.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_color_names.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -42,7 +43,19 @@ void main() {
     expect(equipmentColorName(l10n, '#ef4444'), 'Red');
   });
 
-  test('a colour outside the palette is named by its code', () {
-    expect(equipmentColorName(l10n, '#123abc'), '#123ABC');
+  test('a colour outside the palette reads as its nearest name and code '
+      '(#4537)', () {
+    expect(equipmentColorName(l10n, '#FF6A00'), 'Orange (#FF6A00)');
+    expect(equipmentColorName(l10n, '#123abc'), 'Indigo (#123ABC)');
+  });
+
+  test('a value that is not a colour code reads as itself', () {
+    expect(equipmentColorName(l10n, 'Red'), 'Red');
+  });
+
+  test('nearestEquipmentColor finds the closest palette colour', () {
+    expect(nearestEquipmentColor(const Color(0xFF0A0A0A)), equipmentColorBlack);
+    expect(nearestEquipmentColor(const Color(0xFFFF6A00)), '#F97316');
+    expect(nearestEquipmentColor(const Color(0xFFF97316)), '#F97316');
   });
 }

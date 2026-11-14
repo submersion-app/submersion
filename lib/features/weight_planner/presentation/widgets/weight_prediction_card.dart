@@ -52,6 +52,17 @@ class WeightPredictionCard extends StatelessWidget {
     return term.label;
   }
 
+  /// One breakdown row's text: the term and where its number came from. A
+  /// body fat the diver entered names its own source, so it stands alone
+  /// (issue #4525).
+  String _termText(BuildContext context, PredictionTerm term) {
+    if (term.label == BodyComposition.measuredTermLabel) {
+      return context.l10n.tools_weight_bodyFatTerm;
+    }
+    return '${_termLabel(context, term)} '
+        '(${_sourceLabel(context, term.source)})';
+  }
+
   String _placementLabel(BuildContext context, String weightTypeName) {
     final type = WeightType.values
         .where((t) => t.name == weightTypeName)
@@ -161,8 +172,7 @@ class WeightPredictionCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              '${_termLabel(context, term)} '
-                              '(${_sourceLabel(context, term.source)})',
+                              _termText(context, term),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: colorScheme.onPrimaryContainer,
                               ),

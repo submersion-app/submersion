@@ -68,6 +68,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     // row, for the same reason as the tank columns.
     await _assertDiveIsDraftColumn();
 
+    // v367: dives.media_time_offset_seconds (issue #4539), for the same
+    // reason.
+    await _assertDiveMediaTimeOffsetColumn();
+
     // v350: sightings.abundance (issue #4337). Every sighting read selects
     // the whole row, for the same reason as the tank columns.
     await _assertSightingAbundanceColumn();
@@ -81,5 +85,10 @@ extension BeforeOpenChildColumns on AppDatabase {
     await _assertSiteCountryCodeColumn();
     // v363: dive_sites.catalogue_id. Every site read selects the whole row.
     await _assertSiteCatalogueIdColumn();
+
+    // v364: divers.sex, divers.birth_year and
+    // diver_weight_entries.body_fat_percent (issue #4525). Every diver and
+    // weight-entry read selects the whole row.
+    await _assertBodyCompositionColumns();
   }
 }

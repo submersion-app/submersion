@@ -131,6 +131,10 @@ Map<String, Object?> equipmentSetDocument(EquipmentSet s) => {
   'name': s.name,
   'description': s.description,
   'equipment_ids': s.equipmentIds,
+  // What the set applies besides its own gear (issue #4525), in order.
+  'included_set_ids': s.includedSetIds,
+  'weight_preset_ids': s.weightPresetIds,
+  'cylinder_config_ids': s.cylinderConfigIds,
   'is_default': s.isDefault,
   'auto_apply_on_computer_import': s.autoApplyOnComputerImport,
   'show_figure': s.showFigure,

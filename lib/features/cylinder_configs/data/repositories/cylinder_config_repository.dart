@@ -210,11 +210,23 @@ class CylinderConfigRepository {
     final itemIds = (await (_db.select(
       _db.cylinderConfigItems,
     )..where((t) => t.configId.equals(id))).get()).map((r) => r.id).toList();
+    // The equipment sets that carried this configuration (issue #4525):
+    // their link rows cascade with it and need tombstones too.
+    final setLinkIds = (await (_db.select(
+      _db.equipmentSetCylinderConfigs,
+    )..where((t) => t.configId.equals(id))).get()).map((r) => r.id).toList();
 
     await _db.transaction(() async {
       await (_db.delete(
         _db.cylinderConfigs,
       )..where((t) => t.id.equals(id))).go();
+
+      for (final linkId in setLinkIds) {
+        await _syncRepository.logDeletion(
+          entityType: 'equipmentSetCylinderConfigs',
+          recordId: linkId,
+        );
+      }
 
       for (final itemId in itemIds) {
         await _syncRepository.logDeletion(

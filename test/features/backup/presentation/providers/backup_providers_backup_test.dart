@@ -42,6 +42,8 @@ class _FakeBackupService extends BackupService {
   bool lockCheckThrows = false;
   BackupLocation location = BackupLocation.local;
   String? lastNote;
+  bool failBackup = false;
+  bool? lastPin;
 
   final BackupPreferences _prefs;
 
@@ -57,8 +59,11 @@ class _FakeBackupService extends BackupService {
   Future<BackupRecord> performBackup({
     bool isAutomatic = false,
     String? note,
+    bool pin = false,
   }) async {
     lastNote = note;
+    lastPin = pin;
+    if (failBackup) throw StateError('disk full');
     return BackupRecord(
       id: 'r1',
       filename: 'submersion_backup_test.db',
@@ -115,6 +120,38 @@ void main() {
         .read(backupOperationProvider.notifier)
         .performBackup(note: 'Before the trip');
     expect(service.lastNote, 'Before the trip');
+  });
+
+  group('Keep this backup (issue #4535)', () {
+    test('hands the pin to the service', () async {
+      final container = makeContainer();
+      await container
+          .read(backupOperationProvider.notifier)
+          .performBackup(pin: true);
+      expect(service.lastPin, isTrue);
+      expect(
+        container.read(backupOperationProvider).message,
+        l10n.backup_operation_created('2.0 KB'),
+      );
+    });
+
+    test('pins nothing by default', () async {
+      final container = makeContainer();
+      await container.read(backupOperationProvider.notifier).performBackup();
+      expect(service.lastPin, isFalse);
+    });
+
+    test('a failed backup is reported as failed', () async {
+      service.failBackup = true;
+      final container = makeContainer();
+      await container
+          .read(backupOperationProvider.notifier)
+          .performBackup(pin: true);
+      expect(
+        container.read(backupOperationProvider).status,
+        BackupOperationStatus.error,
+      );
+    });
   });
 
   // Issue #4204: the home chip counts the copy taken before an upgrade, and

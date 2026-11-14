@@ -2360,6 +2360,18 @@ abstract class AppLocalizations {
   /// **'White'**
   String get equipment_color_white;
 
+  /// A custom item colour: its nearest named colour, then its code
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({code})'**
+  String equipment_color_customName(String name, String code);
+
+  /// Heading for the custom item colours the diver used recently, in the colour sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Recent'**
+  String get equipment_color_recent;
+
   /// No description provided for @equipment_color_none.
   ///
   /// In en, this message translates to:
@@ -4030,6 +4042,18 @@ abstract class AppLocalizations {
   /// **'Back Up'**
   String get backup_note_dialog_confirm;
 
+  /// Back up now dialog: switch that pins the new backup
+  ///
+  /// In en, this message translates to:
+  /// **'Keep this backup'**
+  String get backup_note_keep_title;
+
+  /// Back up now dialog: subtitle of the Keep this backup switch
+  ///
+  /// In en, this message translates to:
+  /// **'Pinned backups are never removed automatically'**
+  String get backup_note_keep_subtitle;
+
   /// No description provided for @backup_delete_dialog_cancel.
   ///
   /// In en, this message translates to:
@@ -4336,6 +4360,48 @@ abstract class AppLocalizations {
   /// **'Older backups are automatically removed'**
   String get backup_schedule_retention_subtitle;
 
+  /// Advanced: Keep tile subtitle when every backup is kept (issue #4535)
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are never removed automatically'**
+  String get backup_schedule_retention_keepAll_subtitle;
+
+  /// Keep backups picker: the row that turns automatic removal off
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all'**
+  String get backup_retention_keepAll;
+
+  /// Keep backups picker: the row that opens a number field
+  ///
+  /// In en, this message translates to:
+  /// **'Custom number…'**
+  String get backup_retention_custom;
+
+  /// Keep backups picker: the custom row when the current count is a typed one
+  ///
+  /// In en, this message translates to:
+  /// **'Custom: {count}'**
+  String backup_retention_customCurrent(int count);
+
+  /// Title of the dialog for typing a backup count
+  ///
+  /// In en, this message translates to:
+  /// **'Keep how many backups?'**
+  String get backup_retention_custom_title;
+
+  /// Label of the number field in the custom backup count dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Number of backups'**
+  String get backup_retention_custom_label;
+
+  /// Error under the custom backup count field
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number from 1 to {max}'**
+  String backup_retention_custom_error(int max);
+
   /// No description provided for @backup_retention_allDevices_title.
   ///
   /// In en, this message translates to:
@@ -4353,6 +4419,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The cloud folder keeps the last {count} backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.'**
   String backup_retention_allDevices_on(int count);
+
+  /// Count backups from all devices, on, while Keep all is chosen
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.'**
+  String get backup_retention_allDevices_onKeepAll;
 
   /// No description provided for @backup_retention_cloudFootprint.
   ///
@@ -14823,6 +14895,76 @@ abstract class AppLocalizations {
   /// **'Late gas switches'**
   String get diveLog_legend_label_lateGasSwitches;
 
+  /// No description provided for @diveLog_legend_label_counterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Counterdiffusion'**
+  String get diveLog_legend_label_counterdiffusion;
+
+  /// No description provided for @diveLog_counterdiffusion_segment_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'ICD'**
+  String get diveLog_counterdiffusion_segment_icd;
+
+  /// No description provided for @diveLog_counterdiffusion_segment_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get diveLog_counterdiffusion_segment_all;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_icd.
+  ///
+  /// In en, this message translates to:
+  /// **'Counterdiffusion (ICD)'**
+  String get diveLog_tooltip_counterdiffusion_icd;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_opposing.
+  ///
+  /// In en, this message translates to:
+  /// **'Opposing exchange'**
+  String get diveLog_tooltip_counterdiffusion_opposing;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_exchange.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas exchange'**
+  String get diveLog_tooltip_counterdiffusion_exchange;
+
+  /// Counterdiffusion tooltip: how nitrogen, helium and both together move in the span's compartments. Each value is the in, out or mixed word.
+  ///
+  /// In en, this message translates to:
+  /// **'N₂ {n2}, He {he}, net {net}'**
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  );
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_in.
+  ///
+  /// In en, this message translates to:
+  /// **'in'**
+  String get diveLog_tooltip_counterdiffusion_in;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_out.
+  ///
+  /// In en, this message translates to:
+  /// **'out'**
+  String get diveLog_tooltip_counterdiffusion_out;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_mixed.
+  ///
+  /// In en, this message translates to:
+  /// **'mixed'**
+  String get diveLog_tooltip_counterdiffusion_mixed;
+
+  /// No description provided for @diveLog_tooltip_counterdiffusion_compartments.
+  ///
+  /// In en, this message translates to:
+  /// **'#{list}'**
+  String diveLog_tooltip_counterdiffusion_compartments(String list);
+
   /// No description provided for @diveLog_legend_label_gasSwitches.
   ///
   /// In en, this message translates to:
@@ -20609,6 +20751,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use this site'**
   String get diveSites_picker_builtIn_useSite;
+
+  /// No description provided for @diveSites_picker_register_nearPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrecks and reefs near {place}'**
+  String diveSites_picker_register_nearPlace(Object place);
+
+  /// No description provided for @diveSites_picker_register_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrecks and reefs nearby'**
+  String get diveSites_picker_register_nearby;
+
+  /// No description provided for @diveSites_picker_register_show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show charted wrecks and reefs ({count})'**
+  String diveSites_picker_register_show(Object count);
+
+  /// No description provided for @diveSites_picker_register_capped.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the nearest {count}. Search to find the rest.'**
+  String diveSites_picker_register_capped(Object count);
+
+  /// No description provided for @diveSites_picker_register_allYours.
+  ///
+  /// In en, this message translates to:
+  /// **'All of these are already among your sites.'**
+  String get diveSites_picker_register_allYours;
+
+  /// No description provided for @diveSites_picker_register_nearestYours.
+  ///
+  /// In en, this message translates to:
+  /// **'The nearest {count} are already among your sites. Search to find the rest.'**
+  String diveSites_picker_register_nearestYours(Object count);
+
+  /// No description provided for @diveSites_map_builtIn_zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in to see every built-in site'**
+  String get diveSites_map_builtIn_zoomIn;
 
   /// No description provided for @diveSites_list_groupBy.
   ///
@@ -35471,6 +35655,12 @@ abstract class AppLocalizations {
   /// **'I Understand'**
   String get planning_disclaimer_dialog_confirm;
 
+  /// No description provided for @settings_conflict_field_defaultShowCounterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile shows isobaric counterdiffusion'**
+  String get settings_conflict_field_defaultShowCounterdiffusion;
+
   /// No description provided for @settings_conflict_field_hasAcceptedPlanningDisclaimer.
   ///
   /// In en, this message translates to:
@@ -36040,6 +36230,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Late gas switch'**
   String get safetySettings_rule_lateGasSwitch;
+
+  /// No description provided for @safetySettings_rule_isobaricCounterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion'**
+  String get safetySettings_rule_isobaricCounterdiffusion;
+
+  /// No description provided for @safetyReview_isobaricCounterdiffusion_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion for {duration}'**
+  String safetyReview_isobaricCounterdiffusion_title(String duration);
+
+  /// No description provided for @safetyReview_isobaricCounterdiffusion_switch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'A gas switch broke the rule of fifths'**
+  String get safetyReview_isobaricCounterdiffusion_switch_title;
 
   /// No description provided for @safetySettings_rule_highSurfaceGf.
   ///
@@ -36970,6 +37178,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ceiling'**
   String get settings_appearance_metric_ceiling;
+
+  /// No description provided for @settings_appearance_metric_counterdiffusion.
+  ///
+  /// In en, this message translates to:
+  /// **'Isobaric counterdiffusion'**
+  String get settings_appearance_metric_counterdiffusion;
 
   /// No description provided for @settings_appearance_metric_events.
   ///
@@ -39704,6 +39918,12 @@ abstract class AppLocalizations {
   /// **'Equipment folded groups'**
   String get settings_conflict_field_equipmentCollapsedGroups;
 
+  /// Label for the custom equipment colours the diver picked recently, in a sync conflict
+  ///
+  /// In en, this message translates to:
+  /// **'Recent equipment colors'**
+  String get settings_conflict_field_recentEquipmentColors;
+
   /// Label for a saved list arrangement in a sync conflict
   ///
   /// In en, this message translates to:
@@ -40969,6 +41189,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Gas switches edited by hand'**
   String get settings_conflict_field_gasSwitchesEdited;
+
+  /// No description provided for @settings_conflict_field_mediaTimeOffsetSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media time shift'**
+  String get settings_conflict_field_mediaTimeOffsetSeconds;
 
   /// No description provided for @settings_conflict_field_excludedFromGasStats.
   ///
@@ -46173,7 +46399,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_decompression_icdWarnings_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.'**
+  /// **'Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile\'s counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.'**
   String get settings_decompression_icdWarnings_subtitle;
 
   /// Title of the CNS calculation method setting tile and its picker dialog.
@@ -53370,41 +53596,41 @@ abstract class AppLocalizations {
   /// **'Current color, {code}'**
   String tags_color_current(String code);
 
-  /// No description provided for @tags_color_custom.
+  /// No description provided for @common_color_custom.
   ///
   /// In en, this message translates to:
   /// **'Custom color'**
-  String get tags_color_custom;
+  String get common_color_custom;
 
-  /// No description provided for @tags_color_hexLabel.
+  /// No description provided for @common_color_hexLabel.
   ///
   /// In en, this message translates to:
   /// **'Hex code'**
-  String get tags_color_hexLabel;
+  String get common_color_hexLabel;
 
-  /// No description provided for @tags_color_hexError.
+  /// No description provided for @common_color_hexError.
   ///
   /// In en, this message translates to:
   /// **'Enter six digits 0-9 or A-F, like #2E8B57'**
-  String get tags_color_hexError;
+  String get common_color_hexError;
 
-  /// No description provided for @tags_color_use.
+  /// No description provided for @common_color_use.
   ///
   /// In en, this message translates to:
   /// **'Use'**
-  String get tags_color_use;
+  String get common_color_use;
 
-  /// No description provided for @tags_color_hueLabel.
+  /// No description provided for @common_color_hueLabel.
   ///
   /// In en, this message translates to:
   /// **'Hue'**
-  String get tags_color_hueLabel;
+  String get common_color_hueLabel;
 
-  /// No description provided for @tags_color_squareLabel.
+  /// No description provided for @common_color_squareLabel.
   ///
   /// In en, this message translates to:
   /// **'Saturation and brightness'**
-  String get tags_color_squareLabel;
+  String get common_color_squareLabel;
 
   /// No description provided for @tags_manage_narrowDialog_confirm.
   ///
@@ -86968,6 +87194,48 @@ abstract class AppLocalizations {
   /// **'Reset to automatic'**
   String get media_timeInDive_reset;
 
+  /// Set-time dialog: switch that makes Save move every photo and video on the dive, not only this one, to correct a camera clock that disagrees with the dive computer.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift all media on this dive'**
+  String get media_timeInDive_shiftAll;
+
+  /// Set-time dialog: text under the shift-all switch while the chosen time is the item's automatic one, so nothing would move yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves by the same amount'**
+  String get media_timeInDive_shiftAllHint;
+
+  /// Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive start, as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves {amount} earlier'**
+  String media_timeInDive_shiftAllEarlier(String amount);
+
+  /// Set-time dialog: text under the shift-all switch; {amount} is how far the dive's media would move towards the dive end, as minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Every photo and video on this dive moves {amount} later'**
+  String media_timeInDive_shiftAllLater(String amount);
+
+  /// Set-time dialog: the shift this dive already applies to its media, towards the dive start; {amount} is minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media on this dive is shifted {amount} earlier'**
+  String media_timeInDive_diveShiftEarlier(String amount);
+
+  /// Set-time dialog: the shift this dive already applies to its media, towards the dive end; {amount} is minutes:seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'Media on this dive is shifted {amount} later'**
+  String media_timeInDive_diveShiftLater(String amount);
+
+  /// Set-time dialog: button that removes the dive's media time shift so its photos and videos sit by capture time again.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove shift'**
+  String get media_timeInDive_removeShift;
+
   /// No description provided for @media_info_store.
   ///
   /// In en, this message translates to:
@@ -95611,6 +95879,12 @@ abstract class AppLocalizations {
   /// **'Keep the last {count} backups'**
   String settings_backups_keepLast(int count);
 
+  /// Advanced: Keep tile title when every backup is kept (issue #4535)
+  ///
+  /// In en, this message translates to:
+  /// **'Keep all backups'**
+  String get settings_backups_keepAll;
+
   /// Advanced: the folder on this device that backups are written to
   ///
   /// In en, this message translates to:
@@ -96672,6 +96946,20 @@ abstract class AppLocalizations {
   String settings_setUpDevice_backups_autoDetailDesktop(
     String frequency,
     int count,
+  );
+
+  /// Subtitle of Back up automatically in step 3 when every backup is kept; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}. Every backup is kept here.'**
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency);
+
+  /// Subtitle of Back up automatically in step 3 on a computer when every backup is kept; frequency is like Weekly
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency}, while Submersion is open. Every backup is kept here.'**
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
   );
 
   /// Step 3 switch: also copy each backup to an account
@@ -99106,6 +99394,18 @@ abstract class AppLocalizations {
   /// **'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.'**
   String get info_term_isobaricCounterdiffusion_body;
 
+  /// No description provided for @info_term_counterdiffusionProfile_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Counterdiffusion on the profile'**
+  String get info_term_counterdiffusionProfile_label;
+
+  /// No description provided for @info_term_counterdiffusionProfile_body.
+  ///
+  /// In en, this message translates to:
+  /// **'On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.'**
+  String get info_term_counterdiffusionProfile_body;
+
   /// No description provided for @info_term_hypercapnia_label.
   ///
   /// In en, this message translates to:
@@ -100809,6 +101109,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The MOD is always rounded down, never up. Rec uses 1 bar per {depth}, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.'**
   String info_calculators_mod_background(String depth);
+
+  /// Sync conflict label for a diver's sex.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get settings_conflict_field_sex;
+
+  /// Sync conflict label for a diver's birth year.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth year'**
+  String get settings_conflict_field_birthYear;
+
+  /// Sync conflict label for a body-weight entry's body fat percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Body fat'**
+  String get settings_conflict_field_bodyFatPercent;
+
+  /// Section title on the equipment set editor: other sets this set includes.
+  ///
+  /// In en, this message translates to:
+  /// **'Included sets'**
+  String get equipment_setEdit_includedSets_title;
+
+  /// Button on the equipment set editor that adds another set to this set.
+  ///
+  /// In en, this message translates to:
+  /// **'Add set'**
+  String get equipment_setEdit_includedSets_add;
+
+  /// Shown on the equipment set editor when the set includes no other sets.
+  ///
+  /// In en, this message translates to:
+  /// **'No included sets'**
+  String get equipment_setEdit_includedSets_empty;
+
+  /// Shown in the picker when no other equipment set can be included in this one.
+  ///
+  /// In en, this message translates to:
+  /// **'No other set can be included'**
+  String get equipment_setEdit_includedSets_noneAvailable;
+
+  /// Section title on the equipment set editor: weight presets this set applies.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get equipment_setEdit_weights_title;
+
+  /// Button on the equipment set editor that adds a weight preset to this set.
+  ///
+  /// In en, this message translates to:
+  /// **'Add weight preset'**
+  String get equipment_setEdit_weights_add;
+
+  /// Shown on the equipment set editor when the set has no weight presets.
+  ///
+  /// In en, this message translates to:
+  /// **'No weight presets'**
+  String get equipment_setEdit_weights_empty;
+
+  /// Shown in the picker when every weight preset is already on the equipment set.
+  ///
+  /// In en, this message translates to:
+  /// **'No more weight presets to add'**
+  String get equipment_setEdit_weights_noneAvailable;
+
+  /// Total lead of the weight presets on an equipment set. {weight} is formatted in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Total {weight}'**
+  String equipment_setEdit_weights_total(String weight);
+
+  /// Section title on the equipment set editor: cylinder configurations this set applies.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get equipment_setEdit_tanks_title;
+
+  /// Button on the equipment set editor that adds a cylinder configuration to this set.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cylinder configuration'**
+  String get equipment_setEdit_tanks_add;
+
+  /// Shown on the equipment set editor when the set has no cylinder configurations.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder configurations'**
+  String get equipment_setEdit_tanks_empty;
+
+  /// Shown in the picker when the diver has no cylinder configurations to add to a set.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinder configurations yet'**
+  String get equipment_setEdit_tanks_noneAvailable;
+
+  /// Tooltip of the button that removes an included set, weight preset or cylinder configuration from an equipment set.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from set'**
+  String get equipment_setEdit_bundle_remove;
+
+  /// Summary of everything an equipment set applies. {summary} is a comma-separated list such as "8 items, 12 lbs lead, 1 cylinder".
+  ///
+  /// In en, this message translates to:
+  /// **'Applies in total: {summary}'**
+  String equipment_setEdit_bundle_total(String summary);
+
+  /// Note on the equipment set editor when the set carries weights or tanks but no gear.
+  ///
+  /// In en, this message translates to:
+  /// **'A set with no gear does not appear on a dive as a set, so its weights and tanks have to be removed by hand.'**
+  String get equipment_setEdit_bundle_noGearHint;
+
+  /// Marks a gear row on the equipment set page that comes from an included set. {setName} is that set's name.
+  ///
+  /// In en, this message translates to:
+  /// **'From {setName}'**
+  String equipment_setDetail_fromSet(String setName);
+
+  /// Lead an equipment set carries, in a summary line. {weight} is formatted in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'{weight} lead'**
+  String equipment_sets_leadTotal(String weight);
+
+  /// Number of cylinders an equipment set carries, in a summary line.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 cylinder} other{{count} cylinders}}'**
+  String equipment_sets_cylinderCount(int count);
+
+  /// Title of the question asked in the dive editor when a picked equipment set carries weights and the dive already has some.
+  ///
+  /// In en, this message translates to:
+  /// **'Use the weights from {setName}?'**
+  String diveLog_edit_setWeights_title(String setName);
+
+  /// Body of the set weights question. {current} is the lead already on the dive and {setTotal} the lead the set carries, both formatted in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive already has {current}. The set carries {setTotal}.'**
+  String diveLog_edit_setWeights_body(String current, String setTotal);
+
+  /// Button: add the set's weights to the ones already on the dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get diveLog_edit_setWeights_add;
+
+  /// Button: replace the dive's weights with the set's.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get diveLog_edit_setWeights_replace;
+
+  /// Button: leave the dive's weights as they are.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current'**
+  String get diveLog_edit_setWeights_keep;
+
+  /// Label of a rule run change to a dive's weights.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get rules_change_weights;
+
+  /// Label of a rule run change to a dive's tanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get rules_change_tanks;
+
+  /// Title of a pre-dive check for the lead an equipment set carries. {total} is the total and {breakdown} lists each weight, both in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights: {total} ({breakdown})'**
+  String preDive_setChecks_weights(String total, String breakdown);
+
+  /// Title of the trip checklist item added for the lead an equipment set carries. {weight} is in the diver's unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead: {weight}'**
+  String trips_gear_leadItem(String weight);
+
+  /// Added to the confirmation when a set's lead could not be listed because the trip has no checklist.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead was not added: this trip has no checklist.'**
+  String get trips_gear_leadNoChecklist;
+
+  /// Title of the dialog asking which trip checklist should list a set's lead.
+  ///
+  /// In en, this message translates to:
+  /// **'Add the lead to which checklist?'**
+  String get trips_gear_pickChecklist;
+
+  /// Label of the weight prediction term that comes from a measured body fat percentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Body fat (measured)'**
+  String get tools_weight_bodyFatTerm;
+
+  /// Label of the optional body fat percentage field.
+  ///
+  /// In en, this message translates to:
+  /// **'Body fat (%)'**
+  String get bodyWeight_bodyFatLabel;
+
+  /// Helper under the body fat field.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Left blank, body composition is estimated from height and weight.'**
+  String get bodyWeight_bodyFatHelper;
+
+  /// The app's own estimate of body fat, shown under the field. {percent} is a whole number.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated: about {percent}%'**
+  String bodyWeight_bodyFatEstimate(int percent);
+
+  /// Shown under the body fat field when the app cannot estimate it yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Add sex and birth year under Personal info to see an estimate.'**
+  String get bodyWeight_bodyFatEstimateHint;
+
+  /// Validation message for the body fat field.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a value from 3 to 60'**
+  String get bodyWeight_bodyFatRange;
+
+  /// Body fat shown on a body-weight entry. {percent} is a number such as 18.5.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% body fat'**
+  String bodyWeight_bodyFatValue(String percent);
+
+  /// Label of the optional sex field on the diver's personal info.
+  ///
+  /// In en, this message translates to:
+  /// **'Sex'**
+  String get diverProfile_sex_label;
+
+  /// Sex option.
+  ///
+  /// In en, this message translates to:
+  /// **'Female'**
+  String get diverProfile_sex_female;
+
+  /// Sex option.
+  ///
+  /// In en, this message translates to:
+  /// **'Male'**
+  String get diverProfile_sex_male;
+
+  /// Sex option meaning the diver has not given it.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get diverProfile_sex_notSet;
+
+  /// Label of the optional birth year field on the diver's personal info.
+  ///
+  /// In en, this message translates to:
+  /// **'Birth year'**
+  String get diverProfile_birthYear_label;
+
+  /// Validation message for the birth year field. {year} is the current year.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a year from 1900 to {year}'**
+  String diverProfile_birthYear_invalid(int year);
+
+  /// Note under the sex and birth year fields.
+  ///
+  /// In en, this message translates to:
+  /// **'Used only to estimate body composition for weight prediction.'**
+  String get diverProfile_bodyEstimate_note;
 }
 
 class _AppLocalizationsDelegate

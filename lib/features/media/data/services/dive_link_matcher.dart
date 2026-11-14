@@ -23,21 +23,16 @@ class DiveLinkMatcher {
   /// camera clock a day off in either direction.
   static const Duration window = Duration(days: 2);
 
-  /// Matcher bounds for [dives]: entryTime falling back to dateTime,
-  /// exitTime falling back to dateTime + effectiveRuntime, else 60 minutes.
-  /// Everything is normalized to wall-clock UTC so photo timestamps (stored
-  /// wall-clock-as-UTC) compare against dive times (local wall clock) on
-  /// one basis.
+  /// Matcher bounds for [dives]: [TripMediaScanner.diveBounds], which gives
+  /// each dive's window with the gallery scanner's fallbacks, on the clock
+  /// its media is placed by. Everything is normalized to wall-clock UTC so
+  /// photo timestamps (stored wall-clock-as-UTC) compare against dive times
+  /// (local wall clock) on one basis.
   static List<DiveBounds> boundsFor(List<Dive> dives) {
     return [
       for (final dive in dives)
         () {
-          final entry = dive.entryTime ?? dive.dateTime;
-          final exit =
-              dive.exitTime ??
-              (dive.effectiveRuntime != null
-                  ? dive.dateTime.add(dive.effectiveRuntime!)
-                  : dive.dateTime.add(const Duration(minutes: 60)));
+          final (entry, exit) = TripMediaScanner.diveBounds(dive);
           return DiveBounds(
             diveId: dive.id,
             entryTime: TripMediaScanner.toWallClockUtc(entry),

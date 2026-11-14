@@ -59,6 +59,7 @@ class _StubPhotoPicker implements PhotoPickerService {
 
   DateTime? lastStart;
   DateTime? lastEnd;
+  int queries = 0;
 
   @override
   Future<List<AssetInfo>> getAssetsInDateRange(
@@ -67,6 +68,7 @@ class _StubPhotoPicker implements PhotoPickerService {
   ) async {
     lastStart = start;
     lastEnd = end;
+    queries++;
     return _assets;
   }
 
@@ -731,6 +733,60 @@ void main() {
           expect(result.totalNewPhotos, 0);
         },
       );
+
+      // Issue #4539: a camera thirty days behind wrote this dive's photos
+      // into last month, which the trip's own days never reach.
+      test("also looks where a shifted dive's camera put its photos", () async {
+        final dive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+          entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+          exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+          mediaTimeOffsetSeconds: 30 * 24 * 60 * 60,
+        );
+        final picker = _StubPhotoPicker();
+
+        await TripMediaScanner.scanGalleryForTrip(
+          dives: [dive],
+          tripStartDate: DateTime.utc(2024, 1, 15),
+          tripEndDate: DateTime.utc(2024, 1, 16),
+          linked: const [],
+          linkedGalleryAssets: const LinkedGalleryAssets(),
+          photoPickerService: picker,
+        );
+
+        // The last query is the dive's own: its window thirty days back,
+        // with the matcher's buffers either side.
+        expect(
+          TripMediaScanner.toWallClockUtc(picker.lastStart!),
+          DateTime.utc(2023, 12, 16, 9, 30),
+        );
+        expect(
+          TripMediaScanner.toWallClockUtc(picker.lastEnd!),
+          DateTime.utc(2023, 12, 16, 12, 0),
+        );
+      });
+
+      test('asks once for a trip whose dives sit inside it', () async {
+        final dive = Dive(
+          id: 'dive-1',
+          dateTime: DateTime.utc(2024, 1, 15, 10, 0),
+          entryTime: DateTime.utc(2024, 1, 15, 10, 0),
+          exitTime: DateTime.utc(2024, 1, 15, 11, 0),
+        );
+        final picker = _StubPhotoPicker();
+
+        await TripMediaScanner.scanGalleryForTrip(
+          dives: [dive],
+          tripStartDate: DateTime.utc(2024, 1, 15),
+          tripEndDate: DateTime.utc(2024, 1, 16),
+          linked: const [],
+          linkedGalleryAssets: const LinkedGalleryAssets(),
+          photoPickerService: picker,
+        );
+
+        expect(picker.queries, 1);
+      });
 
       test('returns null when permission is denied', () async {
         final picker = _StubPhotoPicker(

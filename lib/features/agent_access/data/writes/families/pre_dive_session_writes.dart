@@ -167,12 +167,19 @@ class PreDiveSessionWrites extends WritableEntry {
         ? null
         : await _r.equipmentSets.getSetById(setId);
     final all = await _r.equipment.getAllEquipment(diverId: diverId);
+    // What the set applies: its own gear and that of the sets it includes
+    // (issue #4525), as the start sheet checks it. The lead and cylinder
+    // checks the sheet adds are worded in the diver's units and language,
+    // which this path does not have.
+    final setGearIds = set == null
+        ? null
+        : await _r.equipmentSets.getEffectiveEquipmentIds(set.id);
     // The set's members bar the wishlist, which is not in the kit, as the
     // start sheet checks them; single items keep their remembered device.
     final gear = [
       for (final g in all)
         if (!g.isWanted &&
-            ((set?.equipmentIds.contains(g.id) ?? false) ||
+            ((setGearIds?.contains(g.id) ?? false) ||
                 templateItems.any((i) => i.equipmentId == g.id)))
           g,
     ];
@@ -180,6 +187,7 @@ class PreDiveSessionWrites extends WritableEntry {
       templateItems: templateItems,
       templateSections: await repo.getSectionsForTemplate(templateId),
       equipmentSet: set,
+      equipmentSetGearIds: setGearIds,
       equipmentItems: gear,
       now: DateTime.now(),
     );

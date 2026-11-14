@@ -175,15 +175,130 @@ void main() {
         now: 1000,
       );
       expect(
-        await profileSeries.relinkComputer('comp-a', [
-          'd-mine',
-          'd-theirs',
-        ], now: 2000),
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine', 'd-theirs'],
+          sourceIds: const {},
+          now: 2000,
+        ),
         1,
       );
       final rows = await profileSeries.getRowsForDives(['d-mine', 'd-theirs']);
       expect(rows.firstWhere((r) => r.id == a).computerId, 'comp-a');
       expect(rows.firstWhere((r) => r.id == b).computerId, isNull);
+    });
+
+    test('relinkComputer takes a series by the source it names, and never '
+        "another source's", () async {
+      // d-theirs has two computer sources, so only the source a series names
+      // can give it its computer (issue #4529). d-mine's one computer source
+      // is not the file import its series names.
+      await insertComputerDataSource('d-theirs');
+      await insertComputerDataSource('d-theirs');
+      await insertComputerDataSource('d-mine');
+      final now = DateTime.now();
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'file',
+              diveId: 'd-mine',
+              sourceFormat: const Value('uddf'),
+              importedAt: now,
+              createdAt: now,
+            ),
+          );
+      Future<String> series(String diveId, String sourceId) =>
+          profileSeries.insertSeries(
+            diveId: diveId,
+            sourceId: sourceId,
+            samples: one,
+            now: 1000,
+          );
+      final named = await series('d-theirs', 'ds-1');
+      final sibling = await series('d-theirs', 'ds-2');
+      final file = await series('d-mine', 'file');
+
+      expect(
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine', 'd-theirs'],
+          sourceIds: const {'ds-1', 'ds-3'},
+          now: 2000,
+        ),
+        1,
+      );
+      final rows = await profileSeries.getRowsForDives(['d-mine', 'd-theirs']);
+      String? computerOf(String id) =>
+          rows.firstWhere((r) => r.id == id).computerId;
+      expect(computerOf(named), 'comp-a');
+      expect(computerOf(sibling), isNull);
+      expect(computerOf(file), isNull);
+    });
+
+    test('relinkComputer leaves two live unmarked series of one source '
+        'alone', () async {
+      // A dive re-parsed before #3189 holds its recording live beside the
+      // edit, and a computer delete strips the recording's computer: the two
+      // are alike in every column. One of them is the edit, so neither is
+      // stamped onto the strand a re-parse replaces. The demoted series of
+      // the same source is still the computer's own.
+      await insertComputerDataSource('d-mine');
+      Future<String> series({required bool isPrimary}) =>
+          profileSeries.insertSeries(
+            diveId: 'd-mine',
+            sourceId: 'ds-1',
+            isPrimary: isPrimary,
+            samples: one,
+            now: 1000,
+          );
+      final edit = await series(isPrimary: true);
+      final recording = await series(isPrimary: true);
+
+      expect(
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine'],
+          sourceIds: const {'ds-1'},
+          now: 2000,
+        ),
+        0,
+      );
+      final rows = await profileSeries.getRowsForDives(['d-mine']);
+      expect(rows.firstWhere((r) => r.id == edit).computerId, isNull);
+      expect(rows.firstWhere((r) => r.id == recording).computerId, isNull);
+    });
+
+    test('relinkComputer takes a live series marked as a parse whatever lies '
+        'beneath it', () async {
+      // The mark is final (issue #4386): only an unmarked live series is
+      // read as an edit by the generation demoted beneath it.
+      await insertComputerDataSource('d-mine');
+      final live = await profileSeries.insertSeries(
+        diveId: 'd-mine',
+        isPrimary: true,
+        isEdit: false,
+        samples: one,
+        now: 1000,
+      );
+      final older = await profileSeries.insertSeries(
+        diveId: 'd-mine',
+        isPrimary: false,
+        samples: one,
+        now: 500,
+      );
+      expect(
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine'],
+          sourceIds: const {},
+          now: 2000,
+        ),
+        2,
+      );
+      final rows = await profileSeries.getRowsForDives(['d-mine']);
+      expect(rows.firstWhere((r) => r.id == live).computerId, 'comp-a');
+      expect(rows.firstWhere((r) => r.id == older).computerId, 'comp-a');
     });
 
     test('relinkComputer leaves a user-edited series unattributed and takes '
@@ -208,7 +323,12 @@ void main() {
         now: 1000,
       );
       expect(
-        await profileSeries.relinkComputer('comp-a', ['d-mine'], now: 2000),
+        await profileSeries.relinkComputer(
+          'comp-a',
+          ['d-mine'],
+          sourceIds: const {},
+          now: 2000,
+        ),
         1,
       );
       final rows = await profileSeries.getRowsForDives(['d-mine']);
@@ -230,7 +350,12 @@ void main() {
           now: 1000,
         );
         expect(
-          await profileSeries.relinkComputer('comp-a', ['d-mine'], now: 2000),
+          await profileSeries.relinkComputer(
+            'comp-a',
+            ['d-mine'],
+            sourceIds: const {},
+            now: 2000,
+          ),
           1,
         );
         final rows = await profileSeries.getRowsForDives(['d-mine']);

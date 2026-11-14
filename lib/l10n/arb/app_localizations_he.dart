@@ -1500,6 +1500,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_color_white => 'לבן';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'אחרונים';
+
+  @override
   String get equipment_color_none => 'ללא';
 
   @override
@@ -2565,6 +2573,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get backup_note_dialog_confirm => 'גבה';
 
   @override
+  String get backup_note_keep_title => 'שמור גיבוי זה';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'גיבויים מוצמדים לעולם אינם מוסרים אוטומטית';
+
+  @override
   String get backup_delete_dialog_cancel => 'ביטול';
 
   @override
@@ -2741,6 +2756,32 @@ class AppLocalizationsHe extends AppLocalizations {
       'גיבויים ישנים יותר מוסרים אוטומטית';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'גיבויים לעולם אינם מוסרים אוטומטית';
+
+  @override
+  String get backup_retention_keepAll => 'שמור הכול';
+
+  @override
+  String get backup_retention_custom => 'מספר מותאם אישית…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'מותאם אישית: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'כמה גיבויים לשמור?';
+
+  @override
+  String get backup_retention_custom_label => 'מספר הגיבויים';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'הזן מספר בין 1 ל-$max';
+  }
+
+  @override
   String get backup_retention_allDevices_title => 'ספירת גיבויים מכל המכשירים';
 
   @override
@@ -2751,6 +2792,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'תיקיית הענן שומרת את $count הגיבויים האחרונים מכל המכשירים. גיבויים מוצמדים נשמרים. גם הגיבוי האחרון של כל מכשיר נשמר, אלא אם הוא בן יותר מ־6 חודשים. אם גם מכשירים אחרים משתמשים בזה, המספר הקטן ביותר קובע. עדכנו קודם את האפליקציה בכל המכשירים כדי שההצמדות שלהם ייראו.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'האפשרות \'שמור הכול\' פעילה, ולכן מכשיר זה אינו מסיר גיבויים מתיקיית הענן. גיבויים מוצמדים נשמרים.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9212,6 +9257,47 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'החלפות גז מאוחרות';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'דיפוזיה נגדית';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'הכול';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'דיפוזיה נגדית (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'חילוף מנוגד';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'חילוף גזים';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, נטו $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'נכנס';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'יוצא';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'מעורב';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'החלפות גז';
 
   @override
@@ -12723,6 +12809,38 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'שימוש באתר זה';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'ספינות טבועות ושוניות ליד $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'ספינות טבועות ושוניות בקרבת מקום';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'הצגת ספינות טבועות ושוניות ממופות ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'מוצגים $count הקרובים ביותר. חפש כדי למצוא את השאר.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'כולם כבר נמצאים בין האתרים שלך.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return '$count הקרובים ביותר כבר נמצאים בין האתרים שלך. חפש כדי למצוא את השאר.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'התקרב במפה כדי לראות את כל האתרים המובנים';
 
   @override
   String get diveSites_list_groupBy => 'קיבוץ לפי';
@@ -21937,6 +22055,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'הבנתי';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'הפרופיל מציג דיפוזיה נגדית איזוברית';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'אזהרת תכנון אושרה';
 
@@ -22301,6 +22423,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'החלפת גז מאוחרת';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'דיפוזיה נגדית איזוברית';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'דיפוזיה נגדית איזוברית במשך $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'החלפת גז הפרה את כלל החמישיות';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -22869,6 +23004,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'תקרה';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'דיפוזיה נגדית איזוברית';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';
@@ -24623,6 +24762,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'קבוצות ציוד מקופלות';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'צבעי ציוד אחרונים';
+
+  @override
   String get settings_conflict_field_listArrangementHlc => 'יומן סידור הרשימות';
 
   @override
@@ -25319,6 +25462,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'החלפות גז נערכו ידנית';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds => 'הסטת זמן המדיה';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -28307,7 +28453,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'מציג במחשבון ה-ICD הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.';
+      'מציג במחשבון ה-ICD ובשכבת הדיפוזיה הנגדית בפרופיל הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'חישוב CNS';
@@ -32830,23 +32976,23 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'צבע מותאם אישית';
+  String get common_color_custom => 'צבע מותאם אישית';
 
   @override
-  String get tags_color_hexLabel => 'קוד הקסדצימלי';
+  String get common_color_hexLabel => 'קוד הקסדצימלי';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'יש להזין שישה תווים 0-9 או A-F, למשל #2E8B57';
 
   @override
-  String get tags_color_use => 'שימוש';
+  String get common_color_use => 'שימוש';
 
   @override
-  String get tags_color_hueLabel => 'גוון';
+  String get common_color_hueLabel => 'גוון';
 
   @override
-  String get tags_color_squareLabel => 'רוויה ובהירות';
+  String get common_color_squareLabel => 'רוויה ובהירות';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'הסר';
@@ -54204,6 +54350,36 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_timeInDive_reset => 'איפוס לאוטומטי';
 
   @override
+  String get media_timeInDive_shiftAll => 'הסטת כל המדיה בצלילה הזו';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'כל התמונות והסרטונים בצלילה הזו יוסטו באותה מידה';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'כל התמונות והסרטונים בצלילה הזו יוסטו $amount אחורה';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'כל התמונות והסרטונים בצלילה הזו יוסטו $amount קדימה';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'המדיה בצלילה הזו מוסטת $amount אחורה';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'המדיה בצלילה הזו מוסטת $amount קדימה';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'הסרת ההסטה';
+
+  @override
   String get media_info_store => 'אחסון בענן';
 
   @override
@@ -59418,6 +59594,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'שמירת כל הגיבויים';
+
+  @override
   String get settings_backups_folder => 'תיקיית הגיבוי במכשיר הזה';
 
   @override
@@ -60290,6 +60469,18 @@ class AppLocalizationsHe extends AppLocalizations {
     int count,
   ) {
     return '$frequency, כל עוד Submersion פתוח. $count האחרונים נשמרים כאן.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. כל הגיבויים נשמרים כאן.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, כל עוד Submersion פתוח. כל הגיבויים נשמרים כאן.';
   }
 
   @override
@@ -61831,6 +62022,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'החלפת גז יכולה להעלות את סך הגז האינרטי ברקמות בלי שינוי עומק כשהחנקן עולה מהר יותר משההליום יורד. הבדיקה המקובלת, כלל החמישיות, מגבילה את עליית החנקן לחמישית מירידת ההליום.';
 
   @override
+  String get info_term_counterdiffusionProfile_label => 'דיפוזיה נגדית בפרופיל';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'בפרופיל הצלילה פס כתום מסמן היכן מדור מכיל כבר יותר גז אינרטי ממה שנשאף ועדיין קולט גז באופן מורגש. במודל בולמן ההליום יוצא מהר יותר משהחנקן נכנס, ולכן מעבר מטרימיקס לניטרוקס מראה פס לעתים רחוקות; הקו המקווקו במעבר מראה במקום זאת את כלל החמישיות.';
+
+  @override
   String get info_term_hypercapnia_label => 'היפרקפניה';
 
   @override
@@ -62893,4 +63091,183 @@ class AppLocalizationsHe extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'ה-MOD תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה. Rec משתמש בבר אחד לכל $depth, כמו יומן הצלילות. OC Tec ו-CCR Tec מחשבים את הלחץ בעומק לפי סוג המים, ולכן לאותה תערובת עשוי להיות שם MOD רדוד מעט יותר.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'מין';
+
+  @override
+  String get settings_conflict_field_birthYear => 'שנת לידה';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'שומן גוף';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'ערכות כלולות';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'הוספת ערכה';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'אין ערכות כלולות';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'אין ערכה אחרת שאפשר לכלול';
+
+  @override
+  String get equipment_setEdit_weights_title => 'משקולות';
+
+  @override
+  String get equipment_setEdit_weights_add => 'הוספת תצורת משקולות';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'אין תצורות משקולות';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'אין תצורות משקולות נוספות להוספה';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'סה\"כ $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'מכלים';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'הוספת תצורת מכלים';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'אין תצורות מכלים';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable => 'עדיין אין תצורות מכלים';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'הסרה מהערכה';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'מחיל בסך הכול: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'ערכה ללא ציוד אינה מופיעה בצלילה כערכה, ולכן יש להסיר את המשקולות והמכלים שלה ידנית.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'מתוך $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight עופרת';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מכלים',
+      two: '2 מכלים',
+      one: 'מכל אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'להשתמש במשקולות מתוך $setName?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'בצלילה הזו כבר יש $current. הערכה נושאת $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'הוספה';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'החלפה';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'השארת הקיים';
+
+  @override
+  String get rules_change_weights => 'משקולות';
+
+  @override
+  String get rules_change_tanks => 'מכלים';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'משקולות: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'עופרת: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'העופרת לא נוספה: לטיול הזה אין רשימת תיוג.';
+
+  @override
+  String get trips_gear_pickChecklist => 'לאיזו רשימת תיוג להוסיף את העופרת?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'שומן גוף (נמדד)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'שומן גוף (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'אופציונלי. אם נשאר ריק, הרכב הגוף מוערך לפי גובה ומשקל.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'הערכה: כ-$percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'הוסיפו מין ושנת לידה תחת מידע אישי כדי לראות הערכה.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'הזינו ערך בין 3 ל-60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% שומן גוף';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'מין';
+
+  @override
+  String get diverProfile_sex_female => 'נקבה';
+
+  @override
+  String get diverProfile_sex_male => 'זכר';
+
+  @override
+  String get diverProfile_sex_notSet => 'לא הוגדר';
+
+  @override
+  String get diverProfile_birthYear_label => 'שנת לידה';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'הזינו שנה בין 1900 ל-$year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'משמש רק להערכת הרכב הגוף לצורך חיזוי משקולות.';
 }

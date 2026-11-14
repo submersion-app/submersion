@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/dive_gallery_lookup.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/pages/photo_picker_page.dart';
@@ -35,9 +36,15 @@ class PhotoImportHelper {
     List<String>? initialFilePaths,
   }) async {
     // Calculate time window with 30-minute buffer
-    final diveStart = dive.effectiveEntryTime;
+    // The dive's window as its camera reads it, so the picker opens on the
+    // photos the dive's media time shift places inside it (issue #4539).
+    final entry = dive.effectiveEntryTime;
     final diveDuration = dive.effectiveRuntime ?? const Duration(hours: 1);
-    final diveEnd = dive.exitTime ?? diveStart.add(diveDuration);
+    final diveStart = DiveMediaClock.onCameraClock(dive, entry);
+    final diveEnd = DiveMediaClock.onCameraClock(
+      dive,
+      dive.exitTime ?? entry.add(diveDuration),
+    );
 
     // Gallery assets already linked to this dive, as this device knows them:
     // a row linked on another device carries that device's asset id (#885).

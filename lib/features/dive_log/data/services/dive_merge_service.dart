@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/data/services/data_source_strand.da
 import 'package:submersion/features/dive_log/data/services/dive_fold_links.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
+import 'package:submersion/features/dive_log/domain/services/merged_media_time_offset.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -242,6 +243,14 @@ class DiveMergeService {
           // cnsStart is NOT NULL (default 0), so the earliest source's value
           // is always the "first non-null" one.
           cnsStart: Value(chronologicalDiveRows.first.cnsStart),
+          // Every segment's media moves here in step 12, and the combined
+          // dive holds one shift for all of it (issue #4539).
+          mediaTimeOffsetSeconds: Value(
+            mergedMediaTimeOffsetSeconds([
+              for (final row in chronologicalDiveRows)
+                (diveId: row.id, offsetSeconds: row.mediaTimeOffsetSeconds),
+            ], diveIdsWithMedia: snapshot.mediaDiveIds.values.toSet()),
+          ),
           cnsEnd: Value(
             _lastNonNullDiveColumn(
               _loggedDiveRows(chronologicalDiveRows),

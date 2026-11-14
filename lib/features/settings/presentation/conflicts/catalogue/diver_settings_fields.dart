@@ -212,6 +212,10 @@ final Map<String, ConflictField> diverSettingsFields = {
     (l) => l.settings_conflict_field_defaultShowMeanDepth,
     FieldKind.boolean,
   ),
+  'defaultShowCounterdiffusion': ConflictField(
+    (l) => l.settings_conflict_field_defaultShowCounterdiffusion,
+    FieldKind.boolean,
+  ),
   'defaultShowO2CellMv': ConflictField(
     (l) => l.settings_conflict_field_defaultShowO2CellMv,
     FieldKind.boolean,
@@ -409,6 +413,10 @@ final Map<String, ConflictField> diverSettingsFields = {
   ),
   'equipmentCollapsedGroups': ConflictField(
     (l) => l.settings_conflict_field_equipmentCollapsedGroups,
+    FieldKind.opaque,
+  ),
+  'recentEquipmentColors': ConflictField(
+    (l) => l.settings_conflict_field_recentEquipmentColors,
     FieldKind.opaque,
   ),
   'listArrangementHlc': ConflictField(

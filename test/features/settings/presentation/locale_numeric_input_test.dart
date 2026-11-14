@@ -106,6 +106,31 @@ void main() {
       expect(entries.single.heightCm, 180.5);
     });
 
+    testWidgets('body fat accepts a comma decimal under de (issue #4525)', (
+      tester,
+    ) async {
+      Intl.defaultLocale = 'de';
+      await pumpPage(tester);
+
+      await tester.tap(find.text('Add measurement'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Weight (kg)'),
+        '80',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Body fat (%)'),
+        '18,5',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final entries = await DiverWeightEntryRepository().getEntriesForDiver(
+        diverId,
+      );
+      expect(entries.single.bodyFatPercent, 18.5);
+    });
+
     testWidgets('a dot decimal is not read as grouping under de', (
       tester,
     ) async {

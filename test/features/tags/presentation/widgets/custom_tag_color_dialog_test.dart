@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/tags/domain/tag_palette.dart';
 import 'package:submersion/features/tags/presentation/widgets/custom_tag_color_dialog.dart';
-import 'package:submersion/features/tags/presentation/widgets/hsv_color_controls.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
+import 'package:submersion/shared/utils/color_hex.dart';
+import 'package:submersion/shared/widgets/color_picker/hsv_color_controls.dart';
 
 import '../../../../helpers/test_app.dart';
 
 /// The dialog the picker's "+" dot opens (issue #4384).
 void main() {
-  final hexField = find.byKey(const ValueKey('tag-color-hex'));
-  final use = find.byKey(const ValueKey('tag-color-use'));
+  final hexField = find.byKey(const ValueKey('custom-color-hex'));
+  final use = find.byKey(const ValueKey('custom-color-use'));
 
   /// Opens the dialog on [initial] and returns a holder for its result.
   Future<List<String?>> open(WidgetTester tester, Color initial) async {
@@ -87,7 +87,7 @@ void main() {
     );
     expect(shown.color.saturation, closeTo(1, 0.01));
     expect(shown.color.value, closeTo(1, 0.01));
-    expect(fieldText(tester), tagHexOf(shown.color.toColor()));
+    expect(fieldText(tester), colorHexOf(shown.color.toColor()));
   });
 
   testWidgets('a vertical drag on the square wins over a scrolling dialog', (

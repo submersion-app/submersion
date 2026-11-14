@@ -1508,6 +1508,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_color_white => 'White';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recent';
+
+  @override
   String get equipment_color_none => 'None';
 
   @override
@@ -2576,6 +2584,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Back Up';
 
   @override
+  String get backup_note_keep_title => 'Keep this backup';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Pinned backups are never removed automatically';
+
+  @override
   String get backup_delete_dialog_cancel => 'Cancel';
 
   @override
@@ -2753,6 +2768,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'Older backups are automatically removed';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Backups are never removed automatically';
+
+  @override
+  String get backup_retention_keepAll => 'Keep all';
+
+  @override
+  String get backup_retention_custom => 'Custom number…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Custom: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Keep how many backups?';
+
+  @override
+  String get backup_retention_custom_label => 'Number of backups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Enter a number from 1 to $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Count backups from all devices';
 
@@ -2764,6 +2805,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'The cloud folder keeps the last $count backups from every device. Pinned backups are kept. Each device\'s newest backup is kept too, unless it is more than 6 months old. If other devices use this too, the smallest number wins. Update the app on every device first so their pins are seen.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Keep all is on, so this device removes no backups from the cloud folder. Pinned backups are kept.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9273,6 +9318,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Late gas switches';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Counterdiffusion';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'All';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Counterdiffusion (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Opposing exchange';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gas exchange';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, net $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'in';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'out';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'mixed';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gas Switches';
 
   @override
@@ -12806,6 +12892,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Use this site';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Wrecks and reefs near $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'Wrecks and reefs nearby';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Show charted wrecks and reefs ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Showing the nearest $count. Search to find the rest.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'All of these are already among your sites.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'The nearest $count are already among your sites. Search to find the rest.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Zoom in to see every built-in site';
 
   @override
   String get diveSites_list_groupBy => 'Group by';
@@ -22094,6 +22211,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'I Understand';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Profile shows isobaric counterdiffusion';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planning disclaimer accepted';
 
@@ -22462,6 +22583,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Late gas switch';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobaric counterdiffusion';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobaric counterdiffusion for $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'A gas switch broke the rule of fifths';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23036,6 +23170,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Isobaric counterdiffusion';
 
   @override
   String get settings_appearance_metric_events => 'Events';
@@ -24813,6 +24951,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Equipment folded groups';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Recent equipment colors';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'List arrangement record';
 
@@ -25523,6 +25665,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gas switches edited by hand';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Media time shift';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -28542,7 +28688,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.';
+      'Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile\'s counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS calculation';
@@ -33097,22 +33243,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Custom color';
+  String get common_color_custom => 'Custom color';
 
   @override
-  String get tags_color_hexLabel => 'Hex code';
+  String get common_color_hexLabel => 'Hex code';
 
   @override
-  String get tags_color_hexError => 'Enter six digits 0-9 or A-F, like #2E8B57';
+  String get common_color_hexError =>
+      'Enter six digits 0-9 or A-F, like #2E8B57';
 
   @override
-  String get tags_color_use => 'Use';
+  String get common_color_use => 'Use';
 
   @override
-  String get tags_color_hueLabel => 'Hue';
+  String get common_color_hueLabel => 'Hue';
 
   @override
-  String get tags_color_squareLabel => 'Saturation and brightness';
+  String get common_color_squareLabel => 'Saturation and brightness';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remove';
@@ -54499,6 +54646,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_timeInDive_reset => 'Reset to automatic';
 
   @override
+  String get media_timeInDive_shiftAll => 'Shift all media on this dive';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Every photo and video on this dive moves by the same amount';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Every photo and video on this dive moves $amount earlier';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Every photo and video on this dive moves $amount later';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'Media on this dive is shifted $amount earlier';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'Media on this dive is shifted $amount later';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Remove shift';
+
+  @override
   String get media_info_store => 'Cloud store';
 
   @override
@@ -59739,6 +59916,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Keep all backups';
+
+  @override
   String get settings_backups_folder => 'Backup folder on this device';
 
   @override
@@ -60601,6 +60781,18 @@ class AppLocalizationsEn extends AppLocalizations {
     int count,
   ) {
     return '$frequency, while Submersion is open. The last $count are kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Every backup is kept here.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, while Submersion is open. Every backup is kept here.';
   }
 
   @override
@@ -62154,6 +62346,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.';
 
   @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Counterdiffusion on the profile';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hypercapnia';
 
   @override
@@ -63219,4 +63419,183 @@ class AppLocalizationsEn extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'The MOD is always rounded down, never up. Rec uses 1 bar per $depth, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Sex';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Birth year';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Body fat';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Included sets';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Add set';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'No included sets';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'No other set can be included';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Weights';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Add weight preset';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'No weight presets';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'No more weight presets to add';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Total $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Tanks';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Add cylinder configuration';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'No cylinder configurations';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'No cylinder configurations yet';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Remove from set';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Applies in total: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'A set with no gear does not appear on a dive as a set, so its weights and tanks have to be removed by hand.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'From $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight lead';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cylinders',
+      one: '1 cylinder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Use the weights from $setName?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'This dive already has $current. The set carries $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Add';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Replace';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Keep current';
+
+  @override
+  String get rules_change_weights => 'Weights';
+
+  @override
+  String get rules_change_tanks => 'Tanks';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Weights: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Lead: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'Lead was not added: this trip has no checklist.';
+
+  @override
+  String get trips_gear_pickChecklist => 'Add the lead to which checklist?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Body fat (measured)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Body fat (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Optional. Left blank, body composition is estimated from height and weight.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Estimated: about $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Add sex and birth year under Personal info to see an estimate.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Enter a value from 3 to 60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% body fat';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Sex';
+
+  @override
+  String get diverProfile_sex_female => 'Female';
+
+  @override
+  String get diverProfile_sex_male => 'Male';
+
+  @override
+  String get diverProfile_sex_notSet => 'Not set';
+
+  @override
+  String get diverProfile_birthYear_label => 'Birth year';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Enter a year from 1900 to $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Used only to estimate body composition for weight prediction.';
 }

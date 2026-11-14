@@ -357,5 +357,11 @@ class CountryResolverTest(unittest.TestCase):
         self.assertFalse(self.cache_path.exists())
 
 
+class ClientNameTest(unittest.TestCase):
+    def test_the_geocoder_is_asked_under_the_project_s_one_client_name(self):
+        # Nothing in a request may name a person or the project.
+        self.assertEqual(res.NOMINATIM_USER_AGENT, "dive-site-harvester/1.0")
+
+
 if __name__ == "__main__":
     unittest.main()

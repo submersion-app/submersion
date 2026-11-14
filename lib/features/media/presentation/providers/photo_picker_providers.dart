@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show ValueNotifier;
 
 import 'package:submersion/core/platform/host_platform.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
@@ -282,6 +283,8 @@ final enrichmentServiceProvider = Provider<EnrichmentService>((ref) {
 });
 
 /// Provider for the media import service.
+// no-tick: a service rather than a cached query result. The dive repository
+// is read inside a closure each time a pick is imported.
 final mediaImportServiceProvider = Provider<MediaImportService>((ref) {
   return MediaImportService(
     mediaRepository: MediaRepository(),
@@ -289,6 +292,10 @@ final mediaImportServiceProvider = Provider<MediaImportService>((ref) {
     onMediaCreated: ref.watch(mediaStoreEnqueueProvider),
     linkedGalleryAssets: ref.watch(linkedGalleryAssetsProvider),
     cloudIdentifiers: const PhotoManagerCloudIdentifierSource(),
+    // Read when a pick is imported, not when the service is built, so a
+    // screen that only holds the service needs no dive repository.
+    primarySourceEntry: (diveId) =>
+        ref.read(diveRepositoryProvider).getPrimarySourceEntry(diveId),
   );
 });
 

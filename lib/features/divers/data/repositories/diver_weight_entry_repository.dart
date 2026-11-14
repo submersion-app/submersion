@@ -15,6 +15,7 @@ DiverWeightEntry _mapRow(DiverWeightEntryRow row) {
     measuredAt: DateTime.fromMillisecondsSinceEpoch(row.measuredAt),
     weightKg: row.weightKg,
     heightCm: row.heightCm,
+    bodyFatPercent: row.bodyFatPercent,
     createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
     updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
   );
@@ -85,6 +86,7 @@ class DiverWeightEntryRepository {
               measuredAt: Value(entry.measuredAt.millisecondsSinceEpoch),
               weightKg: Value(entry.weightKg),
               heightCm: Value(entry.heightCm),
+              bodyFatPercent: Value(entry.bodyFatPercent),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -120,6 +122,7 @@ class DiverWeightEntryRepository {
           measuredAt: Value(entry.measuredAt.millisecondsSinceEpoch),
           weightKg: Value(entry.weightKg),
           heightCm: Value(entry.heightCm),
+          bodyFatPercent: Value(entry.bodyFatPercent),
           updatedAt: Value(now),
         ),
       );

@@ -1513,6 +1513,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_color_white => 'Wit';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recent';
+
+  @override
   String get equipment_color_none => 'Geen';
 
   @override
@@ -2591,6 +2599,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Back-up maken';
 
   @override
+  String get backup_note_keep_title => 'Deze back-up bewaren';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Vastgemaakte back-ups worden nooit automatisch verwijderd';
+
+  @override
   String get backup_delete_dialog_cancel => 'Annuleren';
 
   @override
@@ -2771,6 +2786,32 @@ class AppLocalizationsNl extends AppLocalizations {
       'Oudere back-ups worden automatisch verwijderd';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Back-ups worden nooit automatisch verwijderd';
+
+  @override
+  String get backup_retention_keepAll => 'Alles bewaren';
+
+  @override
+  String get backup_retention_custom => 'Aangepast aantal…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Aangepast: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Hoeveel back-ups bewaren?';
+
+  @override
+  String get backup_retention_custom_label => 'Aantal back-ups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Voer een getal van 1 tot $max in';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Back-ups van alle apparaten meetellen';
 
@@ -2782,6 +2823,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'De cloudmap bewaart de laatste $count back-ups van alle apparaten. Vastgemaakte back-ups blijven bewaard. Ook de nieuwste back-up van elk apparaat blijft bewaard, tenzij die ouder is dan 6 maanden. Gebruiken andere apparaten dit ook, dan geldt het kleinste aantal. Werk eerst de app op elk apparaat bij, zodat hun vastgemaakte back-ups zichtbaar zijn.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Alles bewaren staat aan, dus dit apparaat verwijdert geen back-ups uit de cloudmap. Vastgemaakte back-ups blijven bewaard.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9360,6 +9405,48 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Late gaswissels';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Tegendiffusie';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Alles';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Tegendiffusie (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing =>
+      'Tegengestelde uitwisseling';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gasuitwisseling';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, netto $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'in';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'uit';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'gemengd';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gaswisselingen';
 
   @override
@@ -12922,6 +13009,38 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Deze stek gebruiken';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Wrakken en riffen bij $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Wrakken en riffen in de buurt';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'In kaart gebrachte wrakken en riffen tonen ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'De dichtstbijzijnde $count worden getoond. Zoek om de rest te vinden.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Ze staan allemaal al tussen je stekken.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'De dichtstbijzijnde $count staan al tussen je stekken. Zoek om de rest te vinden.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Zoom in om alle ingebouwde stekken te zien';
 
   @override
   String get diveSites_list_groupBy => 'Groeperen op';
@@ -22285,6 +22404,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Begrepen';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Profiel toont isobare tegendiffusie';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planningswaarschuwing geaccepteerd';
 
@@ -22657,6 +22780,19 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Late gaswissel';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobare tegendiffusie';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobare tegendiffusie gedurende $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Een gaswissel brak de vijfderegel';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23234,6 +23370,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Plafond';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Isobare tegendiffusie';
 
   @override
   String get settings_appearance_metric_events => 'Gebeurtenissen';
@@ -25042,6 +25182,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Ingeklapte uitrustingsgroepen';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Recente uitrustingskleuren';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Log van lijstordening';
 
@@ -25775,6 +25919,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Gaswissels handmatig bewerkt';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Tijdverschuiving van media';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -28840,7 +28988,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Toont in de ICD-rekenmachine een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.';
+      'Toont in de ICD-rekenmachine en in de tegendiffusielaag van het profiel een beoordeling volgens de vijfde-regel bij het overschakelen van een heliumrijker naar een stikstofrijker gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS-berekening';
@@ -33439,23 +33587,23 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Aangepaste kleur';
+  String get common_color_custom => 'Aangepaste kleur';
 
   @override
-  String get tags_color_hexLabel => 'Hexcode';
+  String get common_color_hexLabel => 'Hexcode';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Voer zes tekens 0-9 of A-F in, zoals #2E8B57';
 
   @override
-  String get tags_color_use => 'Gebruiken';
+  String get common_color_use => 'Gebruiken';
 
   @override
-  String get tags_color_hueLabel => 'Tint';
+  String get common_color_hueLabel => 'Tint';
 
   @override
-  String get tags_color_squareLabel => 'Verzadiging en helderheid';
+  String get common_color_squareLabel => 'Verzadiging en helderheid';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Verwijderen';
@@ -55013,6 +55161,37 @@ class AppLocalizationsNl extends AppLocalizations {
   String get media_timeInDive_reset => 'Terugzetten naar automatisch';
 
   @override
+  String get media_timeInDive_shiftAll =>
+      'Alle media van deze duik verschuiven';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Alle foto\'s en video\'s van deze duik verschuiven evenveel';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Alle foto\'s en video\'s van deze duik komen $amount eerder te staan';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Alle foto\'s en video\'s van deze duik komen $amount later te staan';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'De media van deze duik zijn $amount eerder gezet';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'De media van deze duik zijn $amount later gezet';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Verschuiving verwijderen';
+
+  @override
   String get media_info_store => 'Cloudopslag';
 
   @override
@@ -60304,6 +60483,9 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Alle back-ups bewaren';
+
+  @override
   String get settings_backups_folder => 'Back-upmap op dit apparaat';
 
   @override
@@ -61185,6 +61367,18 @@ class AppLocalizationsNl extends AppLocalizations {
     int count,
   ) {
     return '$frequency, zolang Submersion open is. De laatste $count worden hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Elke back-up wordt hier bewaard.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, zolang Submersion open is. Elke back-up wordt hier bewaard.';
   }
 
   @override
@@ -62750,6 +62944,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Een gaswissel kan het totale inerte gas in weefsels verhogen zonder dieptewijziging als stikstof sneller stijgt dan helium daalt. De gangbare check, de vijfderegel, beperkt de stikstofstijging tot een vijfde van de heliumdaling.';
 
   @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Tegendiffusie op het profiel';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'Op het duikprofiel markeert een oranje band waar een compartiment al meer inert gas bevat dan wordt ingeademd en toch merkbaar gas opneemt. In het Bühlmann-model verlaat helium het weefsel sneller dan stikstof binnenkomt, dus een wissel van trimix naar nitrox toont zelden een band; de stippellijn bij de wissel toont in plaats daarvan de vijfderegel.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hypercapnie';
 
   @override
@@ -63816,4 +64018,184 @@ class AppLocalizationsNl extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'De MOD wordt altijd naar beneden afgerond, nooit naar boven. Rec rekent met 1 bar per $depth, zoals het logboek. OC Tec en CCR Tec berekenen de druk op diepte uit het watertype, dus hetzelfde mengsel kan daar een iets ondiepere MOD tonen.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Geslacht';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Geboortejaar';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Lichaamsvet';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Opgenomen sets';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Set toevoegen';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'Geen opgenomen sets';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'Er kan geen andere set worden opgenomen';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Lood';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Loodvoorinstelling toevoegen';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'Geen loodvoorinstellingen';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Geen loodvoorinstellingen meer om toe te voegen';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Totaal $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Flessen';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Flesconfiguratie toevoegen';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'Geen flesconfiguraties';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Nog geen flesconfiguraties';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Uit set verwijderen';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Past in totaal toe: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'Een set zonder uitrusting verschijnt niet als set op een duik; het lood en de flessen ervan moeten dus met de hand worden verwijderd.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'Uit $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight lood';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count flessen',
+      one: '1 fles',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Het lood van $setName gebruiken?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Deze duik heeft al $current. De set bevat $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Toevoegen';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Vervangen';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Huidige behouden';
+
+  @override
+  String get rules_change_weights => 'Lood';
+
+  @override
+  String get rules_change_tanks => 'Flessen';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Lood: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Lood: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'Lood is niet toegevoegd: deze reis heeft geen checklist.';
+
+  @override
+  String get trips_gear_pickChecklist =>
+      'Aan welke checklist het lood toevoegen?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Lichaamsvet (gemeten)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Lichaamsvet (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Optioneel. Leeg gelaten wordt de lichaamssamenstelling geschat op basis van lengte en gewicht.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Geschat: ongeveer $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Voeg geslacht en geboortejaar toe onder Persoonlijke gegevens om een schatting te zien.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Voer een waarde van 3 tot 60 in';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% lichaamsvet';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Geslacht';
+
+  @override
+  String get diverProfile_sex_female => 'Vrouw';
+
+  @override
+  String get diverProfile_sex_male => 'Man';
+
+  @override
+  String get diverProfile_sex_notSet => 'Niet ingesteld';
+
+  @override
+  String get diverProfile_birthYear_label => 'Geboortejaar';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Voer een jaar in van 1900 tot $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Wordt alleen gebruikt om de lichaamssamenstelling te schatten voor de loodvoorspelling.';
 }

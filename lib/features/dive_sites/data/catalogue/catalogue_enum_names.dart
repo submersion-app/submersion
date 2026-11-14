@@ -13,3 +13,5 @@ final Map<String, SiteDifficulty> siteDifficultiesByName = SiteDifficulty.values
     .asNameMap();
 final Map<String, CatalogueTrust> catalogueTrustByName = CatalogueTrust.values
     .asNameMap();
+final Map<String, CatalogueKind> catalogueKindsByName = CatalogueKind.values
+    .asNameMap();

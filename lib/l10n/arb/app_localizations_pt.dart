@@ -1521,6 +1521,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get equipment_color_white => 'Branco';
 
   @override
+  String equipment_color_customName(String name, String code) {
+    return '$name ($code)';
+  }
+
+  @override
+  String get equipment_color_recent => 'Recentes';
+
+  @override
   String get equipment_color_none => 'Nenhuma';
 
   @override
@@ -2602,6 +2610,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get backup_note_dialog_confirm => 'Fazer backup';
 
   @override
+  String get backup_note_keep_title => 'Manter este backup';
+
+  @override
+  String get backup_note_keep_subtitle =>
+      'Os backups fixados nunca são removidos automaticamente';
+
+  @override
   String get backup_delete_dialog_cancel => 'Cancelar';
 
   @override
@@ -2785,6 +2800,32 @@ class AppLocalizationsPt extends AppLocalizations {
       'Backups mais antigos são removidos automaticamente';
 
   @override
+  String get backup_schedule_retention_keepAll_subtitle =>
+      'Os backups nunca são removidos automaticamente';
+
+  @override
+  String get backup_retention_keepAll => 'Manter todos';
+
+  @override
+  String get backup_retention_custom => 'Número personalizado…';
+
+  @override
+  String backup_retention_customCurrent(int count) {
+    return 'Personalizado: $count';
+  }
+
+  @override
+  String get backup_retention_custom_title => 'Quantos backups manter?';
+
+  @override
+  String get backup_retention_custom_label => 'Número de backups';
+
+  @override
+  String backup_retention_custom_error(int max) {
+    return 'Insira um número de 1 a $max';
+  }
+
+  @override
   String get backup_retention_allDevices_title =>
       'Contar backups de todos os dispositivos';
 
@@ -2796,6 +2837,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String backup_retention_allDevices_on(int count) {
     return 'A pasta na nuvem mantém os últimos $count backups de todos os dispositivos. Os backups fixados são mantidos. O backup mais recente de cada dispositivo também é mantido, a menos que tenha mais de 6 meses. Se outros dispositivos também usarem isto, vale o número mais pequeno. Atualize primeiro a app em todos os dispositivos para que os backups fixados neles sejam vistos.';
   }
+
+  @override
+  String get backup_retention_allDevices_onKeepAll =>
+      'Manter todos está ativado, por isso este dispositivo não remove backups da pasta na nuvem. Os backups fixados são mantidos.';
 
   @override
   String backup_retention_cloudFootprint(int count, String size) {
@@ -9421,6 +9466,47 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Trocas de gás tardias';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Contradifusão';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Tudo';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Contradifusão (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Troca oposta';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Troca gasosa';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, líquido $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'entra';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'sai';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'misto';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Trocas de Gás';
 
   @override
@@ -13009,6 +13095,38 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveSites_picker_builtIn_useSite => 'Usar este ponto';
+
+  @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Naufrágios e recifes perto de $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Naufrágios e recifes por perto';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Mostrar naufrágios e recifes cartografados ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Mostrando os $count mais próximos. Busque para encontrar os demais.';
+  }
+
+  @override
+  String get diveSites_picker_register_allYours =>
+      'Todos já estão entre os seus pontos.';
+
+  @override
+  String diveSites_picker_register_nearestYours(Object count) {
+    return 'Os $count mais próximos já estão entre os seus pontos. Busque para encontrar os demais.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Aproxime o mapa para ver todos os pontos integrados';
 
   @override
   String get diveSites_list_groupBy => 'Agrupar por';
@@ -22424,6 +22542,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Entendi';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Perfil mostra a contradifusão isobárica';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Aviso de planejamento aceito';
 
@@ -22797,6 +22919,19 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Troca de gás tardia';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Contradifusão isobárica';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Contradifusão isobárica durante $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Uma troca de gás violou a regra dos quintos';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23376,6 +23511,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Teto';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Contradifusão isobárica';
 
   @override
   String get settings_appearance_metric_events => 'Eventos';
@@ -25191,6 +25330,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Grupos de equipamentos recolhidos';
 
   @override
+  String get settings_conflict_field_recentEquipmentColors =>
+      'Cores de equipamento recentes';
+
+  @override
   String get settings_conflict_field_listArrangementHlc =>
       'Registro de organização das listas';
 
@@ -25921,6 +26064,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_conflict_field_gasSwitchesEdited =>
       'Trocas de gás editadas manualmente';
+
+  @override
+  String get settings_conflict_field_mediaTimeOffsetSeconds =>
+      'Deslocamento horário da mídia';
 
   @override
   String get settings_conflict_field_excludedFromGasStats =>
@@ -29012,7 +29159,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Mostra na calculadora de ICD uma avaliação pela regra do quinto ao trocar de um gás mais rico em hélio para um mais rico em nitrogênio.';
+      'Mostra na calculadora de ICD e na camada de contradifusão do perfil uma avaliação pela regra do quinto ao trocar de um gás mais rico em hélio para um mais rico em nitrogênio.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Cálculo de CNS';
@@ -33650,23 +33797,23 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get tags_color_custom => 'Cor personalizada';
+  String get common_color_custom => 'Cor personalizada';
 
   @override
-  String get tags_color_hexLabel => 'Código hexadecimal';
+  String get common_color_hexLabel => 'Código hexadecimal';
 
   @override
-  String get tags_color_hexError =>
+  String get common_color_hexError =>
       'Insira seis caracteres 0-9 ou A-F, como #2E8B57';
 
   @override
-  String get tags_color_use => 'Usar';
+  String get common_color_use => 'Usar';
 
   @override
-  String get tags_color_hueLabel => 'Matiz';
+  String get common_color_hueLabel => 'Matiz';
 
   @override
-  String get tags_color_squareLabel => 'Saturação e brilho';
+  String get common_color_squareLabel => 'Saturação e brilho';
 
   @override
   String get tags_manage_narrowDialog_confirm => 'Remover';
@@ -55350,6 +55497,37 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_timeInDive_reset => 'Redefinir para automático';
 
   @override
+  String get media_timeInDive_shiftAll =>
+      'Deslocar toda a mídia deste mergulho';
+
+  @override
+  String get media_timeInDive_shiftAllHint =>
+      'Todas as fotos e vídeos deste mergulho são deslocados na mesma medida';
+
+  @override
+  String media_timeInDive_shiftAllEarlier(String amount) {
+    return 'Todas as fotos e vídeos deste mergulho são deslocados $amount antes';
+  }
+
+  @override
+  String media_timeInDive_shiftAllLater(String amount) {
+    return 'Todas as fotos e vídeos deste mergulho são deslocados $amount depois';
+  }
+
+  @override
+  String media_timeInDive_diveShiftEarlier(String amount) {
+    return 'A mídia deste mergulho está deslocada $amount antes';
+  }
+
+  @override
+  String media_timeInDive_diveShiftLater(String amount) {
+    return 'A mídia deste mergulho está deslocada $amount depois';
+  }
+
+  @override
+  String get media_timeInDive_removeShift => 'Remover deslocamento';
+
+  @override
   String get media_info_store => 'Armazenamento na nuvem';
 
   @override
@@ -60666,6 +60844,9 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get settings_backups_keepAll => 'Manter todos os backups';
+
+  @override
   String get settings_backups_folder => 'Pasta de backup neste dispositivo';
 
   @override
@@ -61548,6 +61729,18 @@ class AppLocalizationsPt extends AppLocalizations {
     int count,
   ) {
     return '$frequency, enquanto o Submersion está aberto. As últimas $count ficam guardadas aqui.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailKeepAll(String frequency) {
+    return '$frequency. Todos os backups ficam guardados aqui.';
+  }
+
+  @override
+  String settings_setUpDevice_backups_autoDetailDesktopKeepAll(
+    String frequency,
+  ) {
+    return '$frequency, enquanto o Submersion está aberto. Todos os backups ficam guardados aqui.';
   }
 
   @override
@@ -63116,6 +63309,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Uma troca de gás pode subir o gás inerte total nos tecidos sem mudar de profundidade quando o azoto sobe mais depressa do que o hélio desce. A verificação habitual, a regra dos quintos, limita a subida de azoto a um quinto da descida de hélio.';
 
   @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Contradifusão no perfil';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'No perfil, uma faixa laranja marca onde um compartimento já contém mais gás inerte do que o respirado e ainda assim absorve gás de forma notória. No modelo de Buhlmann o hélio sai mais depressa do que o azoto entra, por isso uma troca de trimix para nitrox raramente mostra uma faixa; a linha tracejada na troca mostra antes a regra dos quintos.';
+
+  @override
   String get info_term_hypercapnia_label => 'Hipercapnia';
 
   @override
@@ -64185,4 +64386,187 @@ class AppLocalizationsPt extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'A MOD é sempre arredondada para baixo, nunca para cima. Rec usa 1 bar por cada $depth, como o registo. OC Tec e CCR Tec calculam a pressão em profundidade a partir do tipo de água, por isso a mesma mistura pode mostrar aí uma MOD um pouco menor.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Sexo';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Ano de nascimento';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Gordura corporal';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Conjuntos incluídos';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Adicionar conjunto';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'Nenhum conjunto incluído';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'Nenhum outro conjunto pode ser incluído';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Lastro';
+
+  @override
+  String get equipment_setEdit_weights_add =>
+      'Adicionar predefinição de lastro';
+
+  @override
+  String get equipment_setEdit_weights_empty =>
+      'Nenhuma predefinição de lastro';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Não há mais predefinições de lastro para adicionar';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Total $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Garrafas';
+
+  @override
+  String get equipment_setEdit_tanks_add =>
+      'Adicionar configuração de garrafas';
+
+  @override
+  String get equipment_setEdit_tanks_empty =>
+      'Nenhuma configuração de garrafas';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Ainda não há configurações de garrafas';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Remover do conjunto';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Aplica no total: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'Um conjunto sem equipamento não aparece como conjunto no mergulho, por isso os seus pesos e garrafas têm de ser removidos à mão.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'De $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight de lastro';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count garrafas',
+      one: '$count garrafa',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Usar o lastro de $setName?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Este mergulho já tem $current. O conjunto leva $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Adicionar';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Substituir';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Manter atual';
+
+  @override
+  String get rules_change_weights => 'Lastro';
+
+  @override
+  String get rules_change_tanks => 'Garrafas';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Lastro: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Lastro: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'O lastro não foi adicionado: esta viagem não tem lista de verificação.';
+
+  @override
+  String get trips_gear_pickChecklist => 'Adicionar o lastro a que lista?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Gordura corporal (medida)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Gordura corporal (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Opcional. Em branco, a composição corporal é estimada a partir da altura e do peso.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Estimado: cerca de $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Adicione o sexo e o ano de nascimento em Informações pessoais para ver uma estimativa.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Introduza um valor de 3 a 60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% de gordura corporal';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Sexo';
+
+  @override
+  String get diverProfile_sex_female => 'Feminino';
+
+  @override
+  String get diverProfile_sex_male => 'Masculino';
+
+  @override
+  String get diverProfile_sex_notSet => 'Não definido';
+
+  @override
+  String get diverProfile_birthYear_label => 'Ano de nascimento';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Introduza um ano de 1900 a $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Usado apenas para estimar a composição corporal na previsão de lastro.';
 }

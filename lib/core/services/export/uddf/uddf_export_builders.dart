@@ -524,6 +524,15 @@ class UddfExportBuilders {
             if (dive.gasSwitchesEdited) {
               builder.element('gasswitchesedited', nest: 'true');
             }
+            // The correction for the camera's clock (issue #4539): without
+            // it a restored dive's media goes back to where the camera put
+            // it.
+            if (dive.mediaTimeOffsetSeconds != 0) {
+              builder.element(
+                'mediatimeoffset',
+                nest: dive.mediaTimeOffsetSeconds.toString(),
+              );
+            }
             if (dive.photoIds.isNotEmpty) {
               builder.element(
                 'photos',
@@ -1374,6 +1383,20 @@ class UddfExportBuilders {
                                   'itemref',
                                   nest: 'equip_$itemId',
                                 );
+                              }
+                            },
+                          );
+                        }
+                        // The sets this one includes (issue #4525), in
+                        // order. Its weight presets and cylinder
+                        // configurations are not in this file, so they do
+                        // not travel.
+                        if (set.includedSetIds.isNotEmpty) {
+                          builder.element(
+                            'includes',
+                            nest: () {
+                              for (final setId in set.includedSetIds) {
+                                builder.element('setref', nest: 'set_$setId');
                               }
                             },
                           );

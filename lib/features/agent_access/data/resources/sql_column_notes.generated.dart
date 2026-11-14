@@ -323,6 +323,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'default_gtr_source': 'Gas time remaining on the profile chart',
     'default_planner_water_type': 'default water type for a new dive plan (salt, fresh, custom)',
     'default_right_axis_metric': 'Dive profile chart defaults',
+    'default_show_counterdiffusion': 'default visibility for the isobaric counterdiffusion overlay on the dive profile',
     'default_show_estimated_tank_pressure': 'whether synthesized ("(est.)") tank pressure lines are drawn on the profile chart at all',
     'default_show_late_gas_switches': 'shade late and missed deco gas switches on the profile',
     'default_show_o2_cell_mv': 'default visibility for the per-cell O2 mV traces',
@@ -359,6 +360,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'planner_turn_pressure_rule': 'planner air-break and turn-pressure global defaults',
     'pp_o2_deco_bands_enabled': 'Per-O2-band deco ppO2 limits: an optional, finer-grained alternative to the single ppO2MaxDeco above, scoped to the Dive Planner only',
     'profile_metrics_follow_viewport': 'profile metric overlays follow the zoomed depth window, and the passive-SCR ratio',
+    'recent_equipment_colors': 'the custom colours the diver picked for their gear, a JSON list, most recent first',
     'reminder_time': 'HH:mm format',
     'safety_review_disabled_rules': 'JSON array of SafetyRuleId.dbValue strings',
     'safety_review_enabled': 'Post-dive safety review (safety features phase 1, v123)',
@@ -387,9 +389,11 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'visibility_scale_preset': 'per-diver calibration deciding which measured distances count as excellent/good/moderate/poor visibility',
   },
   'diver_weight_entries': {
+    'body_fat_percent': 'Measured body fat as a percentage, 3 to 60',
     'measured_at': 'Unix ms',
   },
   'divers': {
+    'birth_year': 'Year of birth, e.g. 1984, or null when not given',
     'diving_since': 'year, e.g. 1990',
     'emergency_contact2_name': 'Secondary emergency contact',
     'emergency_contact_name': 'Emergency contact',
@@ -402,6 +406,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'photo': 'Profile photo: a 512x512 square JPEG produced by `lib/core/services/images/profile_photo_codec.dart`',
     'photo_path': 'Deprecated, superseded by photo',
     'prior_dive_count': 'Prior dive experience: per-diver lifetime offsets for dives logged before the diver started using Submersion',
+    'sex': 'body composition inputs, used only to estimate body fat for the weight prediction',
     'social_handle': 'buddy card swap: a handle shared on the diver\'s card, and which fields the diver shares, as JSON (null = defaults)',
   },
   'dives': {
@@ -438,6 +443,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'loop_o2_avg': 'Avg loop O2%',
     'loop_o2_max': 'Max loop O2%',
     'loop_o2_min': 'Loop FO2 measurements - for SCR dives',
+    'media_time_offset_seconds': 'seconds added to each photo\'s capture time before it is placed on the dive',
     'name': 'User-defined dive name',
     'otu': 'OTU accumulated this dive',
     'outing_id': 'Shared id across the sibling dives created by one mirror action',
@@ -504,11 +510,22 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'due_date': 'The worst clock\'s date trigger, epoch ms, when it has one',
     'severity': 'A `ServiceClockSeverity` name: ok, dueSoon or overdue',
   },
+  'equipment_set_cylinder_configs': {
+    'sort_order': 'Position among the set\'s cylinder configurations',
+  },
   'equipment_set_geofences': {
     'label': 'Display label',
   },
+  'equipment_set_includes': {
+    'included_set_id': 'The set whose gear, weights and tanks the outer set also applies',
+    'set_id': 'The outer set',
+    'sort_order': 'Position among the outer set\'s included sets',
+  },
   'equipment_set_items': {
     'updated_at': 'The sync merge\'s age signal for this link',
+  },
+  'equipment_set_weight_presets': {
+    'sort_order': 'Position among the set\'s weight presets',
   },
   'equipment_sets': {
     'auto_apply_on_computer_import': 'Whether this set is auto-applied to a dive whose computer is a member of it, e.g. a CCR rig set that bundles the controller with drysuit and tec fins',

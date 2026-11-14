@@ -32,6 +32,12 @@ const List<_OwnedTable> _ownedTables = [
         entityType: 'weightPresetEntries',
         parentColumn: 'preset_id',
       ),
+      // The equipment sets that carry the preset (issue #4525).
+      (
+        table: 'equipment_set_weight_presets',
+        entityType: 'equipmentSetWeightPresets',
+        parentColumn: 'preset_id',
+      ),
     ],
   ),
   (
@@ -42,6 +48,12 @@ const List<_OwnedTable> _ownedTables = [
       (
         table: 'cylinder_config_items',
         entityType: 'cylinderConfigItems',
+        parentColumn: 'config_id',
+      ),
+      // The equipment sets that carry the configuration (issue #4525).
+      (
+        table: 'equipment_set_cylinder_configs',
+        entityType: 'equipmentSetCylinderConfigs',
         parentColumn: 'config_id',
       ),
     ],

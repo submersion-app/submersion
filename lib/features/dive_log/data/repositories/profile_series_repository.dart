@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -661,17 +662,17 @@ class ProfileSeriesRepository {
                 OrderingTerm.asc(_db.diveProfileSeries.id),
               ]))
             .get();
-    return [
-      for (final r in rows)
-        (
-          id: r.read(_db.diveProfileSeries.id)!,
-          computerId: r.read(_db.diveProfileSeries.computerId),
-          sourceId: r.read(_db.diveProfileSeries.sourceId),
-          isPrimary: r.read(_db.diveProfileSeries.isPrimary) ?? false,
-          isEdit: r.read(_db.diveProfileSeries.isEdit),
-        ),
-    ];
+    return [for (final r in rows) _identityOf(r)];
   }
+
+  /// The identity of a row selected with the identity columns.
+  ProfileSeriesIdentity _identityOf(TypedResult r) => (
+    id: r.read(_db.diveProfileSeries.id)!,
+    computerId: r.read(_db.diveProfileSeries.computerId),
+    sourceId: r.read(_db.diveProfileSeries.sourceId),
+    isPrimary: r.read(_db.diveProfileSeries.isPrimary) ?? false,
+    isEdit: r.read(_db.diveProfileSeries.isEdit),
+  );
 
   /// Whether any series of [diveId] is attributed to [computerId], the
   /// exact predicate [promoteByComputer] promotes on.
@@ -713,31 +714,10 @@ class ProfileSeriesRepository {
     now: now,
   );
 
-  /// True when [sourceId] owns a live manual edit of [diveId]: a primary
-  /// series with no computer. An unattributed series never counts: a merge's
-  /// synthetic surface fill has that shape too, and is no edit.
-  Future<bool> hasLiveEdit(String diveId, {required String sourceId}) async {
-    final rows =
-        await (_db.selectOnly(_db.diveProfileSeries)
-              ..addColumns([_db.diveProfileSeries.id])
-              ..where(
-                _db.diveProfileSeries.diveId.equals(diveId) &
-                    _db.diveProfileSeries.isPrimary.equals(true) &
-                    _db.diveProfileSeries.computerId.isNull() &
-                    _db.diveProfileSeries.sourceId.equals(sourceId) &
-                    // A series marked as a parse is none, whatever its
-                    // shape (issue #4386).
-                    (_db.diveProfileSeries.isEdit.isNull() |
-                        _db.diveProfileSeries.isEdit.equals(true)),
-              )
-              ..limit(1))
-            .get();
-    return rows.isNotEmpty;
-  }
-
-  /// The live series of [diveId] that are manual edits, for a source that may
-  /// have no computer. [hasLiveEdit] cannot serve there: a file import's own
-  /// series is primary with no computer too.
+  /// The live series of [diveId] that are manual edits. An edit is live with
+  /// no computer, the shape a file import's own series has, and one a
+  /// computer delete leaves on a download's (issue #4529), so neither the
+  /// computer nor the source alone can tell it apart.
   ///
   /// A series written since schema v357 says what it is in `is_edit`, which
   /// syncs (issue #4386); that answer is final either way. Only a series
@@ -749,9 +729,9 @@ class ProfileSeriesRepository {
   /// with a second computer below an unedited file. History would name an
   /// edit outright, but it does not sync, so a peer holds the edit without it.
   ///
-  /// A live series with no source counts whatever lies beneath it, where
-  /// [hasLiveEdit] refuses it: `clearSource` strips the source of an edit
-  /// that outlives its row, and a resync deletes what this does not name. The
+  /// A live series with no source counts whatever lies beneath it:
+  /// `clearSource` strips the source of an edit that outlives its row, and a
+  /// resync deletes what this does not name. The
   /// price is that a merge's surface fill can read as an edit here, which
   /// only makes a dive's depths come from the samples it shows.
   Future<Set<String>> liveEditIds(String diveId) async =>
@@ -775,6 +755,31 @@ class ProfileSeriesRepository {
     return {
       for (final live in series)
         if (live.isPrimary && (live.isEdit ?? editByShape(live))) live.id,
+    };
+  }
+
+  /// The unmarked live series of [series] that have no computer and share
+  /// their source with another such series.
+  ///
+  /// A dive re-parsed before #3189 holds its recording live beside the edit
+  /// that corrects it, and a computer delete strips the recording's computer.
+  /// The two are then alike in every column, and one of them is the edit, so
+  /// a relink stamps neither and a re-parse replaces neither (issue #4529).
+  /// Not part of [liveEditIdsOf]: a reader that wants the dive's one edit
+  /// cannot take two.
+  static Set<String> liveTwinIdsOf(List<ProfileSeriesIdentity> series) {
+    bool candidate(ProfileSeriesIdentity s) =>
+        s.isPrimary &&
+        s.isEdit == null &&
+        s.computerId == null &&
+        s.sourceId != null;
+    return {
+      for (final s in series)
+        if (candidate(s) &&
+            series.any(
+              (o) => o.id != s.id && candidate(o) && o.sourceId == s.sourceId,
+            ))
+          s.id,
     };
   }
 
@@ -1119,28 +1124,31 @@ class ProfileSeriesRepository {
   );
 
   /// A recreated computer takes back the null-computer series of [diveIds]
-  /// whose only computer source is the one being relinked (the legacy
-  /// `dive_profiles` relink, series twin).
+  /// that it recorded. A series that names one of [sourceIds], the sources
+  /// being relinked, is theirs exactly, as a tank is, however many computers
+  /// read the dive (issue #4529). One that names no source is taken only
+  /// where the dive has one computer source (the legacy `dive_profiles`
+  /// relink, series twin). One that names another source is that source's
+  /// and never taken.
   ///
-  /// A series that is primary while the same dive also carries a demoted one
-  /// is left alone. That is the shape `saveEditedProfile` writes, and the
-  /// primary half of it is the user's manual correction, which carries a null
-  /// computer on purpose rather than because a computer delete stripped one.
-  /// Stamping it would hand the edit to the next reparse of the dive, whose
-  /// first act is to replace what its source owns on the computer's strand,
-  /// and a series is deleted whole: the
-  /// correction would be gone here and tombstoned on every peer. The same
-  /// predicate spares a file-imported profile that `setPrimaryDataSource`
-  /// promoted over the computer's samples.
+  /// A manual edit is left alone, by the one rule every reader shares: a
+  /// series marked as an edit, live or demoted (issue #4386), and an
+  /// unmarked live one [liveEditIdsOf] reads as an edit by the generation
+  /// demoted beneath it, or that [liveTwinIdsOf] cannot tell from the
+  /// recording beside it. `saveEditedProfile` gives an edit a null computer
+  /// on purpose, not because a computer delete stripped one. Stamping it
+  /// would hand it to the next re-parse of the dive, which replaces what its
+  /// source owns, and a series is deleted whole: the correction would be
+  /// gone here and tombstoned on every peer. The same rule spares a
+  /// file-imported profile that `setPrimaryDataSource` promoted over the
+  /// computer's samples.
   ///
-  /// The demoted half is still relinked. It really is the computer's own
-  /// output, restoring its attribution is the point of the relink, and a
-  /// reparse that replaces a superseded generation replaces exactly what that
-  /// computer produced. A series marked as an edit is never relinked, live or
-  /// demoted: re-activating the original in the revision picker leaves the
-  /// edit demoted beneath it, where the shape cannot tell it apart
-  /// (issue #4386). That demoted edit does not shield the original above it
-  /// either, which is relinked like any other.
+  /// The demoted generation is still relinked. It really is the computer's
+  /// own output, restoring its attribution is the point of the relink, and a
+  /// re-parse that replaces a superseded generation replaces exactly what
+  /// that computer produced. A marked edit demoted beneath a re-activated
+  /// original does not shield that original either, which is relinked like
+  /// any other.
   ///
   /// [notify] false leaves the sync bus alone, for a caller that runs this
   /// inside its own transaction and notifies once after commit: a
@@ -1148,44 +1156,78 @@ class ProfileSeriesRepository {
   Future<int> relinkComputer(
     String computerId,
     List<String> diveIds, {
+    required Set<String> sourceIds,
     int? now,
     bool notify = true,
-  }) {
-    if (diveIds.isEmpty) return Future.value(0);
-    final sibling = _db.alias(_db.diveProfileSeries, 'demoted_sibling');
-    return _setComputer(
+  }) async {
+    if (diveIds.isEmpty) return 0;
+    final seriesByDive = await _identitiesByDive(diveIds);
+    final soleComputerSourceDives = await _divesWithOneComputerSource(diveIds);
+    List<String> takenOf(String diveId, List<ProfileSeriesIdentity> series) {
+      final spared = {...liveEditIdsOf(series), ...liveTwinIdsOf(series)};
+      return [
+        for (final s in series)
+          if (s.computerId == null &&
+              s.isEdit != true &&
+              !spared.contains(s.id) &&
+              (s.sourceId == null
+                  ? soleComputerSourceDives.contains(diveId)
+                  : sourceIds.contains(s.sourceId)))
+            s.id,
+      ];
+    }
+
+    return _setComputerOf(
+      [
+        for (final MapEntry(key: diveId, value: series) in seriesByDive.entries)
+          ...takenOf(diveId, series),
+      ],
       computerId,
-      (t) =>
-          t.computerId.isNull() &
-          // Spelled out: NOT (is_edit = 1) is null, so false, for the
-          // unmarked rows written before v357.
-          (t.isEdit.isNull() | t.isEdit.equals(false)) &
-          t.diveId.isIn(diveIds) &
-          t.diveId.isInQuery(
-            _db.selectOnly(_db.diveDataSources)
-              ..addColumns([_db.diveDataSources.diveId])
-              ..where(_db.diveDataSources.sourceFormat.equals('dive_computer'))
-              ..groupBy([
-                _db.diveDataSources.diveId,
-              ], having: _db.diveDataSources.id.count().equals(1)),
-          ) &
-          (t.isPrimary.equals(false) |
-              notExistsQuery(
-                _db.selectOnly(sibling)
-                  ..addColumns([sibling.id])
-                  ..where(
-                    sibling.diveId.equalsExp(t.diveId) &
-                        sibling.isPrimary.equals(false) &
-                        // A marked edit beneath is no generation the live
-                        // series superseded, so it does not make that series
-                        // an edit (issue #4386).
-                        (sibling.isEdit.isNull() |
-                            sibling.isEdit.equals(false)),
-                  ),
-              )),
       now: now,
       notify: notify,
     );
+  }
+
+  /// The identity columns of every series of [diveIds], by dive, without
+  /// the blobs. One statement: the caller chunks [diveIds].
+  Future<Map<String, List<ProfileSeriesIdentity>>> _identitiesByDive(
+    List<String> diveIds,
+  ) async {
+    final t = _db.diveProfileSeries;
+    final rows =
+        await (_db.selectOnly(t)
+              ..addColumns([
+                t.id,
+                t.diveId,
+                t.computerId,
+                t.sourceId,
+                t.isPrimary,
+                t.isEdit,
+              ])
+              ..where(t.diveId.isIn(diveIds)))
+            .get();
+    return rows
+        .groupListsBy((r) => r.read(t.diveId)!)
+        .map(
+          (diveId, group) =>
+              MapEntry(diveId, [for (final r in group) _identityOf(r)]),
+        );
+  }
+
+  /// The dives of [diveIds] that exactly one downloaded source reads, the
+  /// only ones where a series with no source has one possible computer.
+  Future<Set<String>> _divesWithOneComputerSource(List<String> diveIds) async {
+    final sources = _db.diveDataSources;
+    final rows =
+        await (_db.selectOnly(sources)
+              ..addColumns([sources.diveId])
+              ..where(
+                sources.sourceFormat.equals('dive_computer') &
+                    sources.diveId.isIn(diveIds),
+              )
+              ..groupBy([sources.diveId], having: sources.id.count().equals(1)))
+            .get();
+    return {for (final r in rows) r.read(sources.diveId)!};
   }
 
   Future<int> _setComputer(
@@ -1193,10 +1235,17 @@ class ProfileSeriesRepository {
     Expression<bool> Function($DiveProfileSeriesTable t) where, {
     int? now,
     bool notify = true,
+  }) async =>
+      _setComputerOf(await _ids(where), computerId, now: now, notify: notify);
+
+  Future<int> _setComputerOf(
+    List<String> ids,
+    String? computerId, {
+    int? now,
+    bool notify = true,
   }) async {
-    final nowMs = now ?? DateTime.now().millisecondsSinceEpoch;
-    final ids = await _ids(where);
     if (ids.isEmpty) return 0;
+    final nowMs = now ?? DateTime.now().millisecondsSinceEpoch;
     await _writeChunked(
       ids,
       DiveProfileSeriesCompanion(

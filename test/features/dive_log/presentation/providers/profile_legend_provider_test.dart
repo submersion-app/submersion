@@ -608,6 +608,77 @@ void main() {
     });
   });
 
+  group('counterdiffusion overlay (issue #4530)', () {
+    ProviderContainer makeContainer(AppSettings settings) {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(settings),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      // Keep the autoDispose provider alive between reads, like a mounted chart.
+      final sub = container.listen(profileLegendProvider, (_, _) {});
+      addTearDown(sub.close);
+      return container;
+    }
+
+    test('both fields default to off', () {
+      const state = ProfileLegendState();
+      expect(state.showCounterdiffusion, isFalse);
+      expect(state.counterdiffusionShowAll, isFalse);
+    });
+
+    test('showCounterdiffusion counts as an active overlay', () {
+      const off = ProfileLegendState();
+      expect(
+        off.copyWith(showCounterdiffusion: true).activeSecondaryCount,
+        off.activeSecondaryCount + 1,
+      );
+    });
+
+    test('participate in copyWith, equality and hashCode', () {
+      const off = ProfileLegendState();
+      final on = off.copyWith(
+        showCounterdiffusion: true,
+        counterdiffusionShowAll: true,
+      );
+      expect(on.showCounterdiffusion, isTrue);
+      expect(on.counterdiffusionShowAll, isTrue);
+      expect(on, isNot(equals(off)));
+      expect(on.hashCode, isNot(equals(off.hashCode)));
+      expect(off.copyWith(counterdiffusionShowAll: true), isNot(equals(off)));
+    });
+
+    test('toggleCounterdiffusion flips the state', () {
+      final c = makeContainer(const AppSettings());
+      expect(c.read(profileLegendProvider).showCounterdiffusion, isFalse);
+      c.read(profileLegendProvider.notifier).toggleCounterdiffusion();
+      expect(c.read(profileLegendProvider).showCounterdiffusion, isTrue);
+    });
+
+    test('setCounterdiffusionShowAll updates the legend state', () {
+      final c = makeContainer(const AppSettings());
+      c.read(profileLegendProvider.notifier).setCounterdiffusionShowAll(true);
+      expect(c.read(profileLegendProvider).counterdiffusionShowAll, isTrue);
+    });
+
+    test('showCounterdiffusion seeds from defaultShowCounterdiffusion', () {
+      final on = makeContainer(
+        const AppSettings(defaultShowCounterdiffusion: true),
+      );
+      expect(on.read(profileLegendProvider).showCounterdiffusion, isTrue);
+      final off = makeContainer(const AppSettings());
+      expect(off.read(profileLegendProvider).showCounterdiffusion, isFalse);
+    });
+
+    test('counterdiffusionShowAll seeds from the device-local setting', () {
+      final c = makeContainer(const AppSettings(counterdiffusionShowAll: true));
+      expect(c.read(profileLegendProvider).counterdiffusionShowAll, isTrue);
+    });
+  });
+
   group('computed events toggle (issue #1523)', () {
     ProviderContainer makeContainer() {
       final container = ProviderContainer(

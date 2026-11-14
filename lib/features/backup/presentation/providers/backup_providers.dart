@@ -182,8 +182,10 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     }
   }
 
-  /// Perform a manual backup, with the diver's optional [note].
-  Future<void> performBackup({String? note}) async {
+  /// Perform a manual backup, with the diver's optional [note]. With [pin],
+  /// the new backup is recorded pinned, so no prune removes it (issue
+  /// #4535).
+  Future<void> performBackup({String? note, bool pin = false}) async {
     if (state.status == BackupOperationStatus.inProgress) return;
 
     state = BackupOperationState(
@@ -192,7 +194,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
     );
 
     try {
-      final record = await _service.performBackup(note: note);
+      final record = await _service.performBackup(note: note, pin: pin);
       // The cloud copy fails closed while sync encryption is locked on this
       // device (issue #3089); say why it stayed local.
       final withheldFromCloud =
