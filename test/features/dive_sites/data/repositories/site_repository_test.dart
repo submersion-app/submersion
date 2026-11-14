@@ -185,6 +185,21 @@ void main() {
       ]);
     });
 
+    test('search finds a country stored in its own language by its name '
+        'in another (#4520)', () async {
+      await repository.createSite(
+        const DiveSite(id: 'c-th', name: 'Sail Rock', country: 'ประเทศไทย'),
+      );
+      await repository.createSite(
+        const DiveSite(id: 'c-co', name: 'La source', country: 'Colombia'),
+      );
+      for (final query in ['Thailand', 'Thaïlande', 'thai']) {
+        expect((await repository.searchSites(query)).map((s) => s.id), [
+          'c-th',
+        ], reason: query);
+      }
+    });
+
     group('createSite', () {
       test(
         'should create a new site with generated ID when ID is empty',

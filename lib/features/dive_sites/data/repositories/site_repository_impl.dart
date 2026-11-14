@@ -8,6 +8,7 @@ import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -1403,7 +1404,9 @@ class SiteRepository {
   ///
   /// Each column is folded by `unicode_lower` to meet the Dart-lowered
   /// needle: LIKE folds ASCII only, so "österreich" missed "Österreich"
-  /// (#3377).
+  /// (#3377). A query naming a country in any language also matches the
+  /// sites stored with that country's code, so "Thailand" finds a site whose
+  /// country reads "ประเทศไทย" (#4520).
   Future<List<domain.DiveSite>> searchSites(
     String query, {
     String? diverId,
@@ -1411,16 +1414,20 @@ class SiteRepository {
     try {
       return await PerfTimer.measure('searchSites', () async {
         final needle = query.toLowerCase();
+        final countryCodes = countryCodesMatching(query);
         final searchQuery = _db.select(_db.diveSites)
-          ..where(
-            (t) =>
+          ..where((t) {
+            final text =
                 t.name.unicodeLower().contains(needle) |
                 t.country.unicodeLower().contains(needle) |
                 t.region.unicodeLower().contains(needle) |
                 t.city.unicodeLower().contains(needle) |
                 t.island.unicodeLower().contains(needle) |
-                t.bodyOfWater.unicodeLower().contains(needle),
-          )
+                t.bodyOfWater.unicodeLower().contains(needle);
+            return countryCodes.isEmpty
+                ? text
+                : text | t.countryCode.isIn(countryCodes);
+          })
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
         VisibilityFilter.applyToDiveSites(_db, searchQuery, diverId);

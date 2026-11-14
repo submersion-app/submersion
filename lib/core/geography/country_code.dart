@@ -2,12 +2,12 @@ import 'package:submersion/core/geography/country_names.generated.dart';
 import 'package:submersion/core/text/text_sort.dart';
 
 /// Names divers use that CLDR does not list, each with one unambiguous
-/// country (issue #4426). Keyed by [countryLookupKey]; CLDR's own names in
-/// every place-name language and each country's official languages live in
-/// the generated table.
+/// country (issue #4426), written as they appear and folded into [_aliases].
+/// CLDR's own names in every place-name language and each country's official
+/// languages live in the generated table.
 /// "USA" and "Czech Republic" need no entry: the alpha-3 code and CLDR's
 /// own variant name already find them.
-const Map<String, String> _aliases = {
+const Map<String, String> _aliasNames = {
   'united states of america': 'US',
   'uae': 'AE',
   'dr congo': 'CD',
@@ -32,6 +32,27 @@ const Map<String, String> _aliases = {
   'turks and caicos': 'TC',
   // The Maldives in Dhivehi: CLDR ships no Dhivehi locale data.
   'ދިވެހިރާއްޖެ': 'MV',
+  // OpenStreetMap's own country names that CLDR words differently, as the
+  // bundled dive sites and geocoded sites carry them (issue #4520).
+  'ประเทศไทย': 'TH',
+  'Ελλάς': 'GR',
+  'Κύπρος - Kıbrıs': 'CY',
+  'Shqipëria': 'AL',
+  'السعودية': 'SA',
+  'عمان': 'OM',
+  'Algérie ⵍⵣⵣⴰⵢⴻⵔ الجزائر': 'DZ',
+  'Djibouti جيبوتي': 'DJ',
+  'ព្រះរាជាណាចក្រ​កម្ពុជា': 'KH',
+  '臺灣': 'TW',
+  'Belau': 'PW',
+  'Ṃajeḷ': 'MH',
+  'Sesel': 'SC',
+};
+
+/// [_aliasNames] keyed by [countryLookupKey].
+final Map<String, String> _aliases = {
+  for (final MapEntry(:key, :value) in _aliasNames.entries)
+    countryLookupKey(key): value,
 };
 
 /// Latin letters past [textSortKey]'s table, mirrored by _WIDER_LATIN in
@@ -99,6 +120,33 @@ String? countryCodeFor(String? text) {
   if (_resolved.containsKey(text)) return _resolved[text];
   if (_resolved.length >= _maxResolved) _resolved.clear();
   return _resolved[text] = _resolve(text);
+}
+
+/// Folded length below which a search query is read as a whole code or name
+/// only: two letters start dozens of country names.
+const int _minNamePrefixLength = 3;
+
+/// The codes of the countries a search [query] names (issue #4520), so a
+/// search finds sites whose country is stored in another language
+/// ("ประเทศไทย" for "Thailand" or "Thaïlande").
+///
+/// Holds the country [countryCodeFor] reads the whole query as, and, from
+/// three folded characters on, every country with a name in any known
+/// language (or an alias) that starts with it, so "thai" finds Thailand
+/// while it is still being typed. Only the start of a name counts: "land"
+/// would otherwise list Thailand and Switzerland. Empty when the query names
+/// no country.
+Set<String> countryCodesMatching(String query) {
+  final key = countryLookupKey(query);
+  if (key.isEmpty) return const {};
+  final codes = <String>{?countryCodeFor(query)};
+  if (key.length < _minNamePrefixLength) return codes;
+  for (final names in [cldrCountryNameCodes, _aliases]) {
+    for (final MapEntry(key: name, value: code) in names.entries) {
+      if (name.startsWith(key)) codes.add(code);
+    }
+  }
+  return codes;
 }
 
 /// The code a site's flag is drawn for (issue #4426): its stored [code],
