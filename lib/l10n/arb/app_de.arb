@@ -12321,6 +12321,7 @@
   "attr_flagYes": "Ja",
   "attr_flagNo": "Nein",
   "attr_unitDual": "Beide",
+  "attr_unitPicker": "Einheit",
   "attr_figurePosition_automatic": "Automatisch",
   "equipment_edit_invalidThickness": "Format: 5, 5/4 oder 7/5/3",
   "equipment_edit_invalidFocalLength": "Format: 60 oder 15-45",

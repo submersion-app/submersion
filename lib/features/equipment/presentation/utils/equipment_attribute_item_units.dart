@@ -81,7 +81,8 @@ AttributeUnit? _metricUnit(AttributeDimension dimension) => switch (dimension) {
   AttributeDimension.none => null,
 };
 
-/// The diver's own unit for [dimension].
+/// The diver's own unit for [dimension]. Lengths of every size and speeds
+/// all follow the depth unit, as [UnitFormatter] reads them.
 AttributeUnit? _diverUnit(AttributeDimension dimension, UnitFormatter units) {
   final metricLength = units.settings.depthUnit == DepthUnit.meters;
   return switch (dimension) {
@@ -97,10 +98,9 @@ AttributeUnit? _diverUnit(AttributeDimension dimension, UnitFormatter units) {
       units.settings.volumeUnit == VolumeUnit.liters
           ? AttributeUnit.liters
           : AttributeUnit.cubicFeet,
-    AttributeDimension.shortLengthM =>
-      units.heightIsMetric ? AttributeUnit.meters : AttributeUnit.feet,
     AttributeDimension.lengthM ||
     AttributeDimension.depthM ||
+    AttributeDimension.shortLengthM ||
     AttributeDimension.speedMps =>
       metricLength ? AttributeUnit.meters : AttributeUnit.feet,
     AttributeDimension.thicknessMm ||
@@ -110,7 +110,8 @@ AttributeUnit? _diverUnit(AttributeDimension dimension, UnitFormatter units) {
 }
 
 /// The unit [attr] of [def] is read in: its metric unit when the catalog
-/// marks it metric-only (a rebreather cylinder), else the unit picked for this item, else the diver's own.
+/// marks it metric-only (a rebreather cylinder), else the unit picked for
+/// this item, else the diver's own.
 ///
 /// Null for a field with no alternative unit (thickness, burn time, a plain
 /// number), which keeps its existing fixed display.

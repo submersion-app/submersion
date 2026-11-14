@@ -77,19 +77,9 @@ class EquipmentItem extends Equatable {
     return null;
   }
 
-  String? attrText(String key) {
-    for (final a in attributes) {
-      if (!a.isCustom && a.key == key) return a.valueText;
-    }
-    return null;
-  }
+  String? attrText(String key) => attr(key)?.valueText;
 
-  double? attrNum(String key) {
-    for (final a in attributes) {
-      if (!a.isCustom && a.key == key) return a.valueNum;
-    }
-    return null;
-  }
+  double? attrNum(String key) => attr(key)?.valueNum;
 
   String? get size => attrText(EquipmentAttrKeys.size);
   String? get thickness => attrText(EquipmentAttrKeys.thicknessMm);

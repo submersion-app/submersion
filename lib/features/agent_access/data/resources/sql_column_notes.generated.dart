@@ -492,7 +492,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'type': 'regulator, bcd, wetsuit, etc.',
   },
   'equipment_attributes': {
-    'value_unit': 'The unit this item\'s number is read in, an AttributeUnit name such as psi or pounds',
+    'value_unit': 'The unit this item\'s number is read in (an AttributeUnit name such as psi, pounds or dual), or null to follow the diver\'s settings, while value_num stays metric',
   },
   'equipment_components': {
     'role': 'Free text such as "Primary second stage"',

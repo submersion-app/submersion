@@ -41509,6 +41509,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attr_unitDual => 'Both';
 
   @override
+  String get attr_unitPicker => 'Unit';
+
+  @override
   String get attr_figurePosition_automatic => 'Automatic';
 
   @override

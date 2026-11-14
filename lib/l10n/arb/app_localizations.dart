@@ -66425,6 +66425,12 @@ abstract class AppLocalizations {
   /// **'Both'**
   String get attr_unitDual;
 
+  /// No description provided for @attr_unitPicker.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get attr_unitPicker;
+
   /// No description provided for @attr_figurePosition_automatic.
   ///
   /// In en, this message translates to:

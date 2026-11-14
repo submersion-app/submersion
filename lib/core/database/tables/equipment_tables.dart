@@ -86,9 +86,9 @@ class EquipmentAttributes extends Table {
   TextColumn get valueText => text().nullable()();
   RealColumn get valueNum => real().nullable()();
 
-  /// The unit this item's number is read in, an AttributeUnit name such as
-  /// psi or pounds; null follows the diver's settings. value_num stays
-  /// metric either way
+  /// The unit this item's number is read in (an AttributeUnit name such as
+  /// psi, pounds or dual), or null to follow the diver's settings, while
+  /// value_num stays metric
   TextColumn get valueUnit => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   IntColumn get createdAt => integer()();

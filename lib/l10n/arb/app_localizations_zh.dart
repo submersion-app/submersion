@@ -39721,6 +39721,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attr_unitDual => '两者';
 
   @override
+  String get attr_unitPicker => '单位';
+
+  @override
   String get attr_figurePosition_automatic => '自动';
 
   @override

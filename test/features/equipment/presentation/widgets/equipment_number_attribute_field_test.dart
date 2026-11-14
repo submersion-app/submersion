@@ -295,4 +295,21 @@ void main() {
       expect(text(tester, gauge.key), '4000');
     },
   );
+
+  testWidgets('with Both picked the label says which unit to type in', (
+    tester,
+  ) async {
+    await pump(tester, field(gauge));
+    await pick(tester, gauge.key, 'Both');
+
+    expect(find.text('Gauge range (bar)'), findsOneWidget);
+  });
+
+  testWidgets('the unit picker is named for its field', (tester) async {
+    final semantics = tester.ensureSemantics();
+    await pump(tester, field(gauge));
+
+    expect(find.bySemanticsLabel(RegExp('Gauge range, Unit')), findsOneWidget);
+    semantics.dispose();
+  });
 }

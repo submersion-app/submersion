@@ -123,7 +123,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
       // A cylinder's gas capacity reads back at its working pressure, which
       // may come later in the cell (issue #4534).
       double? workingPressureBar;
-      for (final pair in pairs) {
+      for (final pair in pairs.where((p) => p.startsWith('working_pressure'))) {
         final parsed = parseAttributePair(pair, dateFormat: dateFormat);
         if (parsed != null &&
             !parsed.isCustom &&

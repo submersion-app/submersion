@@ -191,22 +191,30 @@ class _EquipmentNumberAttributeFieldState
     final String labelText;
     Widget? picker;
     if (choices.isNotEmpty && inForce != null) {
-      labelText = label;
+      // Both is read on two scales but typed on one, the diver's own: the
+      // label names it, or a figure off the other ring would be misread.
+      final typing = _typing;
+      labelText = inForce == AttributeUnit.dual && typing != null
+          ? '$label (${attributeUnitLabel(_def, typing, l10n)})'
+          : label;
       picker = Padding(
         padding: const EdgeInsetsDirectional.only(end: 8),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<AttributeUnit>(
-            key: ValueKey('attr-unit-${_def.key}'),
-            value: inForce,
-            isDense: true,
-            items: [
-              for (final unit in choices)
-                DropdownMenuItem(
-                  value: unit,
-                  child: Text(attributeUnitLabel(_def, unit, l10n)),
-                ),
-            ],
-            onChanged: _pick,
+        child: Semantics(
+          label: '$label, ${l10n.attr_unitPicker}',
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<AttributeUnit>(
+              key: ValueKey('attr-unit-${_def.key}'),
+              value: inForce,
+              isDense: true,
+              items: [
+                for (final unit in choices)
+                  DropdownMenuItem(
+                    value: unit,
+                    child: Text(attributeUnitLabel(_def, unit, l10n)),
+                  ),
+              ],
+              onChanged: _pick,
+            ),
           ),
         ),
       );
