@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-OSM Dive Site Harvester
+OSM Dive Centre Harvester
 
-Scrapes all scuba diving site data from OpenStreetMap using the Overpass API.
-Outputs the built-in site catalogue the Submersion app ships, and its dive
-centre list.
+Scrapes dive shops, clubs and centres from OpenStreetMap using the Overpass
+API and writes the dive centre list the Submersion app ships.
+
+Dive sites are no longer harvested here: the built-in site catalogue is
+built from several sources by scripts/site_catalogue/ (its merge.py writes
+assets/data/site_catalogue.json).
 
 Usage:
     python scripts/dive_site_harvester.py
 
 Output files are written to assets/data/:
-    - site_catalogue.json and site_catalogue.version: Dive site locations,
-      in the format scripts/site_catalogue_format.py defines
     - dive_centers.json: Dive shops, clubs, and centers
 """
 
 import json
 import logging
 import os
-import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,14 +33,6 @@ from tenacity import (
     retry_if_exception_type,
 )
 from tqdm import tqdm
-
-from curated_sites import load_curated, merge_curated
-from site_catalogue_format import (
-    osm_source_ref,
-    to_catalogue_record,
-    write_catalogue,
-)
-from site_country_resolver import CountryResolver
 
 # Path configuration - resolve relative to project root
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -64,9 +56,8 @@ NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/reverse"
 NOMINATIM_USER_AGENT = "dive-site-harvester/1.0"
 NOMINATIM_MIN_INTERVAL = 1.1  # Nominatim requires max 1 request/second
 
-# OSM tags to query for dive sites
+# OSM tags to query for dive centres
 DIVE_TAGS = [
-    ("sport", "scuba_diving"),
     ("amenity", "dive_centre"),
     ("shop", "scuba_diving"),
     ("club", "scuba_diving"),
@@ -198,10 +189,6 @@ class ReverseGeocoder:
 # Global geocoder instance
 geocoder = ReverseGeocoder()
 
-# Where each site's country comes from: its coordinates, in English, with a
-# territory keeping its own code. The cache makes a rerun cheap.
-country_resolver = CountryResolver(SCRIPT_DIR / ".site_country_cache.json")
-
 
 def generate_chunks() -> list[tuple[float, float, float, float]]:
     """Generate worldwide bounding box chunks."""
@@ -325,32 +312,6 @@ def extract_dive_attributes(tags: dict) -> dict:
         attrs["site_types"] = site_types
 
     return attrs
-
-
-def parse_depth_value(depth_str: str | None) -> float | None:
-    """Parse a depth string (e.g., '30m', '100 ft', '25') to meters."""
-    if not depth_str:
-        return None
-
-    # Remove whitespace and convert to lowercase
-    depth_str = depth_str.strip().lower()
-
-    # Try to extract numeric value and unit
-    match = re.match(r"([\d.]+)\s*(m|meters?|ft|feet)?", depth_str)
-    if not match:
-        return None
-
-    try:
-        value = float(match.group(1))
-        unit = match.group(2) or "m"
-
-        # Convert feet to meters
-        if unit in ("ft", "feet"):
-            value = value * 0.3048
-
-        return round(value, 1)
-    except ValueError:
-        return None
 
 
 def categorize_osm_entry(osm_site: dict) -> str:
@@ -511,121 +472,6 @@ def transform_to_dive_center_format(osm_site: dict) -> dict:
         center["affiliations"] = ", ".join(affiliations)
 
     return center
-
-
-def transform_to_catalogue_record(osm_site: dict) -> dict:
-    """Transform an OSM site record into a site catalogue record.
-
-    The record's shape is defined in site_catalogue_format.py. This gathers
-    the site's values under the harvester's working names and hands them to
-    `to_catalogue_record`, which maps them to names the app knows.
-    """
-    tags = osm_site.get("tags", {})
-    geometry = osm_site.get("geometry")
-    address = osm_site.get("address", {})
-    contact = osm_site.get("contact", {})
-    dive_attrs = osm_site.get("dive_attributes", {})
-
-    # Build unique ID from OSM type and ID
-    site_id = f"osm_{osm_site['osm_type']}_{osm_site['osm_id']}"
-
-    # Extract name (required) - fall back to description or ID
-    name = (
-        tags.get("name")
-        or tags.get("name:en")
-        or tags.get("description")
-        or f"Dive Site {osm_site['osm_id']}"
-    )
-
-    # Extract coordinates
-    latitude, longitude = extract_coordinates(geometry)
-
-    # Build region from city/state
-    region_parts = []
-    if address.get("city"):
-        region_parts.append(address["city"])
-    if address.get("state"):
-        region_parts.append(address["state"])
-    region = ", ".join(region_parts) if region_parts else None
-
-    # Build description from various sources
-    description_parts = []
-    if tags.get("description"):
-        description_parts.append(tags["description"])
-    if tags.get("note"):
-        description_parts.append(tags["note"])
-    description = "\n\n".join(description_parts) if description_parts else None
-
-    # Collect features (site types, dive types, etc.)
-    features = []
-    if dive_attrs.get("site_types"):
-        features.extend(dive_attrs["site_types"])
-    if dive_attrs.get("drift_diving"):
-        features.append("drift")
-
-    # Build the Submersion-compatible site record
-    site = {
-        "id": site_id,
-        "name": name,
-    }
-
-    # Add optional fields only if they have values
-    if description:
-        site["description"] = description
-    if latitude is not None:
-        site["latitude"] = latitude
-    if longitude is not None:
-        site["longitude"] = longitude
-
-    # Depth fields
-    max_depth = parse_depth_value(dive_attrs.get("max_depth"))
-    min_depth = parse_depth_value(dive_attrs.get("depth"))
-    if max_depth:
-        site["max_depth"] = max_depth
-    if min_depth:
-        site["min_depth"] = min_depth
-
-    # Country: from the coordinates, never from OSM's own text, which is in
-    # the local language and files a territory under its parent state. A
-    # site without coordinates keeps a two-letter addr:country as its code.
-    country_code = None
-    country = None
-    if latitude is not None and longitude is not None:
-        country_code, country, island = country_resolver.lookup_place(
-            latitude, longitude
-        )
-        if island:
-            site["island"] = island
-        if not region and not address.get("country"):
-            geo_result = geocoder.lookup(latitude, longitude)
-            region = geo_result.get("region") or geo_result.get("locality")
-    elif re.fullmatch(r"[A-Za-z]{2}", address.get("country") or ""):
-        country_code = address["country"].upper()
-
-    if region:
-        site["region"] = region
-
-    # Dive-specific fields
-    if dive_attrs.get("hazards"):
-        site["hazards"] = dive_attrs["hazards"]
-    if dive_attrs.get("entry_type"):
-        site["entry_type"] = dive_attrs["entry_type"]
-
-    # Contact info
-    if contact.get("website"):
-        site["website"] = contact["website"]
-
-    # Features list
-    if features:
-        site["features"] = features
-
-    return to_catalogue_record(
-        site,
-        source="osm",
-        source_ref=osm_source_ref(site_id),
-        country_code=country_code,
-        country=country,
-    )
 
 
 def process_element(element: Any, osm_type: str) -> dict:
@@ -825,30 +671,11 @@ class DiveSiteHarvester:
 
     def _write_submersion_output(self, timestamp: str):
         """Write output in Submersion app format as separate files."""
-        # Categorize all entries
-        dive_sites_raw = []
-        dive_centers_raw = []
-
-        for site in self.all_sites:
-            category = categorize_osm_entry(site)
-            if category == "dive_site":
-                dive_sites_raw.append(site)
-            else:
-                dive_centers_raw.append(site)
-
-        # Transform dive sites
-        dive_sites = [
-            transform_to_catalogue_record(site) for site in dive_sites_raw
+        dive_centers_raw = [
+            site
+            for site in self.all_sites
+            if categorize_osm_entry(site) == "dive_center"
         ]
-        # Filter out unnamed sites
-        named_sites = [
-            s for s in dive_sites
-            if not s["name"].startswith("Dive Site ")
-        ]
-        # Curated sites fill OpenStreetMap's gaps, and survive every harvest.
-        named_sites = merge_curated(
-            named_sites, load_curated(), country_resolver.lookup_place
-        )
 
         # Transform dive centers
         dive_centers = [
@@ -859,9 +686,6 @@ class DiveSiteHarvester:
             c for c in dive_centers
             if not c["name"].startswith("Dive Center ")
         ]
-
-        # Write the site catalogue and its version sidecar
-        write_catalogue(OUTPUT_DIR, named_sites, utc_timestamp())
 
         # Write dive_centers.json
         centers_output = {
@@ -887,11 +711,10 @@ class DiveSiteHarvester:
             json.dump(centers_output, f, indent=2, ensure_ascii=False)
 
         # Log summary
-        logger.info(f"Site catalogue written to {OUTPUT_DIR}")
         logger.info(f"Dive centers written to {direct_centers_file}")
         logger.info(
             f"Summary: {len(self.all_sites)} total entries -> "
-            f"{len(named_sites)} dive sites, {len(named_centers)} dive centers"
+            f"{len(named_centers)} dive centers"
         )
 
         # Log geocoding stats
@@ -918,7 +741,7 @@ class DiveSiteHarvester:
 
 def main():
     """Entry point."""
-    logger.info("OSM Dive Site Harvester")
+    logger.info("OSM Dive Centre Harvester")
     logger.info(f"Output directory: {OUTPUT_DIR}")
     logger.info(f"Querying tags: {', '.join(f'{k}={v}' for k, v in DIVE_TAGS)}")
 

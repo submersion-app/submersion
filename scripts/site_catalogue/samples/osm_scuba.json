@@ -197,27 +197,6 @@
    }
   },
   {
-   "type": "way",
-   "id": 4323234,
-   "center": {
-    "lat": 51.2833855,
-    "lon": 4.3967241
-   },
-   "tags": {
-    "alt_name": "Grote Put",
-    "intermittent": "no",
-    "name": "Put van Ekeren",
-    "natural": "water",
-    "salt": "no",
-    "scuba_diving:current": "0",
-    "scuba_diving:depth": "21m",
-    "scuba_diving:divespot": "yes",
-    "sport": "scuba_diving",
-    "tidal": "no",
-    "water": "lake"
-   }
-  },
-  {
    "type": "node",
    "id": 663869563,
    "lat": 53.122765,
