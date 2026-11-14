@@ -22890,7 +22890,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveDetailSection_buoyancy_description =>
-      'Flotabilidad durante la inmersión, variación, lastre soltable';
+      'Flotabilidad durante la inmersión, lastre para la próxima vez, lastre soltable';
 
   @override
   String buoyancy_verdictBuoyant(String depth, String amount) {
@@ -22993,6 +22993,105 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get buoyancy_adjust => 'Ajustar';
+
+  @override
+  String buoyancy_readoutHeavy(String amount) {
+    return '$amount sobrelastrado';
+  }
+
+  @override
+  String buoyancy_readoutBuoyant(String amount) {
+    return '$amount de flotabilidad';
+  }
+
+  @override
+  String get buoyancy_readoutNeutral => 'Casi neutro';
+
+  @override
+  String buoyancy_readoutAtFinalStop(String depth) {
+    return 'en tu última parada, a unos $depth';
+  }
+
+  @override
+  String buoyancy_readoutConvention(String depth) {
+    return 'estimado según la convención de parada de seguridad a $depth';
+  }
+
+  @override
+  String buoyancy_readoutAtMoment(String depth, String time) {
+    return 'a $depth, $time';
+  }
+
+  @override
+  String get buoyancy_pullingDown => 'Tira de ti hacia abajo';
+
+  @override
+  String get buoyancy_holdingUp => 'Te mantiene a flote';
+
+  @override
+  String get buoyancy_partGear => 'Equipo';
+
+  @override
+  String get buoyancy_partBody => 'Cuerpo';
+
+  @override
+  String buoyancy_partLabel(String name, String amount) {
+    return '$name $amount';
+  }
+
+  @override
+  String get buoyancy_markerStart => 'Inicio';
+
+  @override
+  String get buoyancy_markerDeepest => 'Punto más profundo';
+
+  @override
+  String get buoyancy_markerFinalStop => 'Última parada';
+
+  @override
+  String buoyancy_causeSuit(String amount, String depth) {
+    return 'La compresión del traje quitó $amount de flotabilidad a $depth';
+  }
+
+  @override
+  String buoyancy_causeGas(String amount) {
+    return 'El gas respirado dejó los tanques $amount más ligeros';
+  }
+
+  @override
+  String get buoyancy_leadTitle => 'Lastre para la próxima vez';
+
+  @override
+  String get buoyancy_leadCarried => 'Llevaste';
+
+  @override
+  String get buoyancy_leadSuggested => 'El modelo sugiere';
+
+  @override
+  String get buoyancy_leadNotRecorded => 'Sin registrar';
+
+  @override
+  String get buoyancy_statusWell => 'Bien lastrado';
+
+  @override
+  String buoyancy_peakLiftWithin(String amount) {
+    return 'dentro de los $amount de tu wing';
+  }
+
+  @override
+  String buoyancy_peakLiftExceeds(String amount) {
+    return 'supera los $amount de tu wing';
+  }
+
+  @override
+  String buoyancy_ditchCovered(String amount) {
+    return 'puedes soltar $amount';
+  }
+
+  @override
+  String buoyancy_ditchShort(String amount) {
+    return 'solo puedes soltar $amount';
+  }
 
   @override
   String get buoyancy_whatIfTitle => 'Ajustar esta inmersión';
@@ -63549,7 +63648,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_diveLog_buoyancy_howToUse =>
-      'Ajustar abre una hoja que prueba otra cantidad de lastre u otra flotabilidad del traje en esta inmersión.';
+      'Pasa por el gráfico para ver qué tiraba de ti hacia abajo y qué te mantenía a flote en ese momento. Ajustar abre una hoja que prueba otra cantidad de lastre u otra flotabilidad del traje en esta inmersión.';
 
   @override
   String get info_diveLog_waterConditions_summary =>
