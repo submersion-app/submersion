@@ -2205,6 +2205,7 @@
   "diveComputer_discovery_unknownDeviceDescription": "מכשיר זה אינו בספרייה שלנו. ננסה להתחבר, אך ייתכן שההורדה לא תעבוד.",
   "diveComputer_discovery_usbInstructions": "חבר את מחשב הצלילה שלך באמצעות כבל USB, ואז בחר אותו למטה.",
   "diveComputer_discovery_usbNoResults": "לא נמצאו מכשירים עבור \"{query}\"",
+  "diveComputer_discovery_usbModelCount": "{count, plural, one{דגם אחד} other{{count} דגמים}}",
   "diveComputer_discovery_usbSearchHint": "חיפוש לפי יצרן או דגם...",
   "diveComputer_downloadStep_cancel": "ביטול",
   "diveComputer_downloadStep_cancelled": "ההורדה בוטלה",

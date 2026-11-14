@@ -2231,6 +2231,7 @@
   "diveComputer_discovery_unknownDeviceDescription": "Dieses Gerät befindet sich nicht in unserer Bibliothek. Wir versuchen eine Verbindung herzustellen, aber der Download funktioniert möglicherweise nicht.",
   "diveComputer_discovery_usbInstructions": "Verbinde deinen Tauchcomputer per USB-Kabel und wähle ihn unten aus.",
   "diveComputer_discovery_usbNoResults": "Keine Geräte für \"{query}\"",
+  "diveComputer_discovery_usbModelCount": "{count, plural, one{{count} Modell} other{{count} Modelle}}",
   "diveComputer_discovery_usbSearchHint": "Nach Hersteller oder Modell suchen...",
   "diveComputer_downloadStep_cancel": "Abbrechen",
   "diveComputer_downloadStep_cancelled": "Download abgebrochen",

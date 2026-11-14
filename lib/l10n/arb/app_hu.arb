@@ -2205,6 +2205,7 @@
   "diveComputer_discovery_unknownDeviceDescription": "Ez az eszköz nem szerepel a könyvtárunkban. Megpróbáljuk csatlakoztatni, de a letöltés nem feltétlen működik.",
   "diveComputer_discovery_usbInstructions": "Csatlakoztassa búvárszámítógépét USB-kábellel, majd válassza ki alább.",
   "diveComputer_discovery_usbNoResults": "Nincs találat erre: \"{query}\"",
+  "diveComputer_discovery_usbModelCount": "{count, plural, one{{count} modell} other{{count} modell}}",
   "diveComputer_discovery_usbSearchHint": "Keresés gyártó vagy modell alapján...",
   "diveComputer_downloadStep_cancel": "Mégse",
   "diveComputer_downloadStep_cancelled": "Letöltés megszakítva",

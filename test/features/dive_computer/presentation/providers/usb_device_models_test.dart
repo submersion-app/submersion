@@ -94,4 +94,109 @@ void main() {
       expect(products, isEmpty);
     });
   });
+
+  /// The order the USB tab shows. libdivecomputer's descriptor table is
+  /// grouped by download protocol, not by brand (issue #4480), so the
+  /// providers sort it themselves.
+  group('USB device order', () {
+    const usb = [pigeon.TransportType.usb];
+
+    Future<Map<String, List<String>>> groupedFor(
+      List<pigeon.DeviceDescriptor> descriptors,
+    ) async {
+      final container = ProviderContainer(
+        overrides: [
+          deviceDescriptorsProvider.overrideWith((ref) async => descriptors),
+        ],
+      );
+      addTearDown(container.dispose);
+      final grouped = await container.read(
+        usbDevicesByManufacturerProvider.future,
+      );
+      return grouped.map(
+        (brand, models) => MapEntry(brand, models.map((m) => m.model).toList()),
+      );
+    }
+
+    test('sorts brands alphabetically, ignoring case', () async {
+      final grouped = await groupedFor([
+        descriptor('Suunto', 'Vyper', 1, usb),
+        descriptor('Scubapro', 'G2', 2, usb),
+        descriptor('Oceanic', 'VT3', 3, usb),
+        descriptor('DiveSystem', 'iX3M', 4, usb),
+        descriptor('Dive Rite', 'NiTek Q', 5, usb),
+        descriptor('Deepblu', 'Cosmiq+', 6, usb),
+        descriptor('Deep Six', 'Excursion', 7, usb),
+        descriptor('Aeris', 'Atmos 2', 8, usb),
+      ]);
+
+      expect(grouped.keys.toList(), [
+        'Aeris',
+        'Deep Six',
+        'Deepblu',
+        'Dive Rite',
+        'DiveSystem',
+        'Oceanic',
+        'Scubapro',
+        'Suunto',
+      ]);
+    });
+
+    test('sorts models alphabetically, numbers by value', () async {
+      final grouped = await groupedFor([
+        descriptor('Scubapro', 'Aladin Sport Matrix', 1, usb),
+        descriptor('Scubapro', 'Mantis 2', 2, usb),
+        descriptor('Scubapro', 'aladin A2', 3, usb),
+        descriptor('Scubapro', 'Mantis', 4, usb),
+        descriptor('Scubapro', 'Aladin A1', 5, usb),
+        descriptor('Scubapro', 'G2 TEK', 6, usb),
+        descriptor('Scubapro', 'G2', 7, usb),
+        descriptor('Oceanic', 'Veo 250', 8, usb),
+        descriptor('Oceanic', 'Veo 1000', 9, usb),
+        descriptor('Oceanic', 'Veo 180', 10, usb),
+        descriptor('Oceanic', 'Veo 200', 11, usb),
+      ]);
+
+      expect(grouped['Scubapro'], [
+        'Aladin A1',
+        'aladin A2',
+        'Aladin Sport Matrix',
+        'G2',
+        'G2 TEK',
+        'Mantis',
+        'Mantis 2',
+      ]);
+      expect(grouped['Oceanic'], ['Veo 180', 'Veo 200', 'Veo 250', 'Veo 1000']);
+    });
+
+    test('merges a brand split across the table into one group', () async {
+      final grouped = await groupedFor([
+        descriptor('Oceanic', 'Versa Pro', 1, usb),
+        descriptor('Aeris', 'Atmos 2', 2, usb),
+        descriptor('Oceanic', 'Atom 1.0', 3, usb),
+        descriptor('Sherwood', 'Wisdom', 4, usb),
+        descriptor('Oceanic', 'Pro Plus 2', 5, usb),
+      ]);
+
+      expect(grouped.keys.toList(), ['Aeris', 'Oceanic', 'Sherwood']);
+      expect(grouped['Oceanic'], ['Atom 1.0', 'Pro Plus 2', 'Versa Pro']);
+    });
+
+    test('orders models with the same name by model code', () async {
+      final container = ProviderContainer(
+        overrides: [
+          deviceDescriptorsProvider.overrideWith(
+            (ref) async => [
+              descriptor('Mares', 'Puck Pro', 0x18, usb),
+              descriptor('Mares', 'Puck Pro', 0x12, usb),
+            ],
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final models = await container.read(usbDeviceModelsProvider.future);
+
+      expect(models.map((m) => m.dcModel).toList(), [0x12, 0x18]);
+    });
+  });
 }

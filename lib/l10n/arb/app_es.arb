@@ -2205,6 +2205,7 @@
   "diveComputer_discovery_unknownDeviceDescription": "Este dispositivo no está en nuestra biblioteca. Intentaremos conectar, pero la descarga podría no funcionar.",
   "diveComputer_discovery_usbInstructions": "Conecte su ordenador de buceo por cable USB y selecciónelo a continuación.",
   "diveComputer_discovery_usbNoResults": "No se encontraron dispositivos para \"{query}\"",
+  "diveComputer_discovery_usbModelCount": "{count, plural, one{{count} modelo} other{{count} modelos}}",
   "diveComputer_discovery_usbSearchHint": "Buscar por fabricante o modelo...",
   "diveComputer_downloadStep_cancel": "Cancelar",
   "diveComputer_downloadStep_cancelled": "Descarga cancelada",

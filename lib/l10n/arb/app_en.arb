@@ -22290,6 +22290,15 @@
       }
     }
   },
+  "diveComputer_discovery_usbModelCount": "{count, plural, one{{count} model} other{{count} models}}",
+  "@diveComputer_discovery_usbModelCount": {
+    "description": "Model count beside a manufacturer's foldable heading in the USB list of Connect New Computer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveComputer_discovery_usbSearchHint": "Search by manufacturer or model...",
   "diveComputer_downloadExit_content": "Leaving will cancel the current download from your dive computer. Are you sure?",
   "diveComputer_downloadExit_leave": "Leave",

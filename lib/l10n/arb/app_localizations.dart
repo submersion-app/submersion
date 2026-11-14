@@ -58293,6 +58293,12 @@ abstract class AppLocalizations {
   /// **'No devices matching \"{query}\"'**
   String diveComputer_discovery_usbNoResults(String query);
 
+  /// Model count beside a manufacturer's foldable heading in the USB list of Connect New Computer
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} model} other{{count} models}}'**
+  String diveComputer_discovery_usbModelCount(int count);
+
   /// No description provided for @diveComputer_discovery_usbSearchHint.
   ///
   /// In en, this message translates to:
