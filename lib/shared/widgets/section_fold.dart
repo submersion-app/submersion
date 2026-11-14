@@ -21,6 +21,7 @@ class SectionFold extends StatelessWidget {
     required this.isExpanded,
     required this.onToggle,
     required this.contentBuilder,
+    this.trailing,
   });
 
   /// Section name shown on the header row.
@@ -35,6 +36,12 @@ class SectionFold extends StatelessWidget {
   /// Called with the requested new expansion state.
   final ValueChanged<bool> onToggle;
 
+  /// A control of its own on the header row, drawn before the chevron: the
+  /// pencil that opens the section for editing while its record is unlocked.
+  /// Tapping it does not fold or unfold the section. The row is laid out so
+  /// that a control up to its own height does not make it taller.
+  final Widget? trailing;
+
   /// Builds the section's content.
   ///
   /// A builder rather than a widget so a folded section's subtree is never
@@ -42,6 +49,8 @@ class SectionFold extends StatelessWidget {
   /// cheap to open, and mounting every heat map and profile chart behind a
   /// closed header would cost the same as showing them.
   final WidgetBuilder contentBuilder;
+
+  static const _rowPadding = EdgeInsets.symmetric(vertical: 12);
 
   @override
   Widget build(BuildContext context) {
@@ -59,26 +68,39 @@ class SectionFold extends StatelessWidget {
               : context.l10n.diveLog_collapsible_semantics_expand(title),
           child: InkWell(
             onTap: () => onToggle(!isExpanded),
+            // The vertical padding sits on the row's own children and not
+            // around the row, so [trailing] has the row's full height for
+            // its tap target without making the row taller.
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Row(
                 children: [
-                  Icon(icon, size: 20, color: colorScheme.primary),
+                  Padding(
+                    padding: _rowPadding,
+                    child: Icon(icon, size: 20, color: colorScheme.primary),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      title,
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                    child: Padding(
+                      padding: _rowPadding,
+                      child: Text(
+                        title,
+                        style: textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                  AnimatedRotation(
-                    turns: isExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.expand_more,
-                      color: colorScheme.onSurfaceVariant,
+                  ?trailing,
+                  Padding(
+                    padding: _rowPadding,
+                    child: AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        Icons.expand_more,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],

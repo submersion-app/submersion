@@ -30,6 +30,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/di
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_text_sections.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_tide_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_health_section.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/dive_detail_weight_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_summary_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
@@ -41,6 +42,8 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_sec
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/record_editing/record_card_frame.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
 
 /// The configurable sections of the dive detail page, in the diver's order.
@@ -103,10 +106,19 @@ class DiveDetailSectionList extends ConsumerWidget {
       settingsProvider.select((s) => s.diveDetailLayout),
     );
 
+    // The page's editing controller, when it offers in-place editing. A
+    // card the diver brought in from the Add strip is shown for the sitting
+    // even when it is hidden or has nothing in it yet.
+    final edit = RecordEditScope.maybeOf<Dive>(context);
+    final added = edit?.addedCardIds ?? const <String>{};
+
     // Visible sections in configured order, minus gauge-hidden ones.
     final visible = [
       for (final section in sections)
-        if (section.shownFor(gauge: dive.isGauge)) section.id,
+        if (section.shownFor(gauge: dive.isGauge) ||
+            (added.contains(section.id.name) &&
+                !(dive.isGauge && section.id.hiddenInGaugeMode)))
+          section.id,
     ];
     final visibleIds = visible.toSet();
     final unfolded = {
@@ -148,7 +160,7 @@ class DiveDetailSectionList extends ConsumerWidget {
         // A folded row wants no gap above its content or itself: each row
         // draws its own divider, and the content starts flush under the
         // header.
-        final content = _sectionContent(ref, id, 0);
+        final content = _framed(id, _sectionContent(ref, id, 0), added);
         if (content == null) continue;
         children.add(
           _foldSection(
@@ -156,16 +168,25 @@ class DiveDetailSectionList extends ConsumerWidget {
             ref,
             id,
             content,
-            isExpanded: unfolded.contains(id),
+            // A card being edited is unfolded for the sitting. That is not
+            // the diver's saved choice, so it is not written back.
+            isExpanded:
+                unfolded.contains(id) ||
+                (edit?.openCardIds.contains(id.name) ?? false),
+            edit: edit,
           ),
         );
         continue;
       }
       final selfSpacing = _selfSpacingSections.contains(id);
-      final content = _sectionContent(
-        ref,
+      final content = _framed(
         id,
-        selfSpacing && children.isNotEmpty ? layout.sectionGap : 0,
+        _sectionContent(
+          ref,
+          id,
+          selfSpacing && children.isNotEmpty ? layout.sectionGap : 0,
+        ),
+        added,
       );
       if (content == null) continue;
       if (!selfSpacing) _addSectionGap(children, layout);
@@ -357,6 +378,22 @@ class DiveDetailSectionList extends ConsumerWidget {
     children.add(SizedBox(height: layout.sectionGap));
   }
 
+  /// [content] wrapped so the section can be edited in place, when it has
+  /// a card (see [diveEditCards]); otherwise [content] as it is.
+  ///
+  /// A section with a card is framed whether or not the page is unlocked,
+  /// so unlocking never remounts it. A section the page was leaving out
+  /// ([content] is null) is given an empty body once it is in [added]: its
+  /// frame then shows the editor in its place.
+  Widget? _framed(DiveDetailSectionId id, Widget? content, Set<String> added) {
+    final card = diveEditCards[id];
+    if (card == null) return content;
+    final body =
+        content ?? (added.contains(id.name) ? const SizedBox.shrink() : null);
+    if (body == null) return null;
+    return RecordCardFrame<Dive>(card: card, child: body);
+  }
+
   /// One folded row for [id] in the list layout, with [content] behind it.
   ///
   /// [isExpanded] comes from the diver's saved section list and the toggle
@@ -368,12 +405,29 @@ class DiveDetailSectionList extends ConsumerWidget {
     DiveDetailSectionId id,
     Widget content, {
     required bool isExpanded,
+    RecordEditController<Dive>? edit,
   }) {
+    final title = id.localizedDisplayName(context.l10n);
+    // While the record is unlocked the row keeps folding and unfolding, and
+    // the pencil alone opens the section's editor.
+    final canOpen =
+        edit != null &&
+        edit.isUnlocked &&
+        diveEditCards.containsKey(id) &&
+        !edit.openCardIds.contains(id.name);
     return SectionFold(
       key: ValueKey('diveSectionFold_${id.name}'),
-      title: id.localizedDisplayName(context.l10n),
+      title: title,
       icon: id.icon,
       isExpanded: isExpanded,
+      trailing: canOpen
+          ? IconButton(
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              color: Theme.of(context).colorScheme.primary,
+              tooltip: context.l10n.recordEdit_editCardTooltip(title),
+              onPressed: () => edit.openCard(id.name),
+            )
+          : null,
       onToggle: (expanded) => ref
           .read(settingsProvider.notifier)
           .setDiveDetailSectionExpanded(id, expanded),

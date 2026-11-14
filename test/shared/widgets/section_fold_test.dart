@@ -107,4 +107,67 @@ void main() {
 
     handle.dispose();
   });
+
+  group('trailing', () {
+    Widget hostWith({Widget? trailing, required ValueChanged<bool> onToggle}) {
+      return MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SectionFold(
+            title: 'Notes',
+            icon: Icons.notes,
+            isExpanded: false,
+            onToggle: onToggle,
+            trailing: trailing,
+            contentBuilder: (context) => const Text('CONTENT'),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('is drawn, and tapping it does not toggle the fold', (
+      tester,
+    ) async {
+      final requested = <bool>[];
+      var tapped = 0;
+      await tester.pumpWidget(
+        hostWith(
+          onToggle: requested.add,
+          trailing: IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => tapped++,
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.edit_outlined));
+      await tester.pumpAndSettle();
+      expect(tapped, 1);
+      expect(requested, isEmpty);
+
+      await tester.tap(find.text('Notes'));
+      await tester.pumpAndSettle();
+      expect(requested, [true]);
+    });
+
+    // A row that grew when its section became editable would shift every
+    // row below it the moment the page is unlocked.
+    testWidgets('does not change the height of the row', (tester) async {
+      await tester.pumpWidget(hostWith(onToggle: (_) {}));
+      final plain = tester.getSize(find.byType(SectionFold)).height;
+
+      await tester.pumpWidget(
+        hostWith(
+          onToggle: (_) {},
+          trailing: IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () {},
+          ),
+        ),
+      );
+
+      expect(tester.getSize(find.byType(SectionFold)).height, plain);
+    });
+  });
 }
