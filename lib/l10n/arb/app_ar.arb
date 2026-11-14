@@ -18804,7 +18804,7 @@
   "equipment_setEdit_tanks_noneAvailable": "لا توجد تهيئات أسطوانات بعد",
   "equipment_setEdit_bundle_remove": "إزالة من المجموعة",
   "equipment_setEdit_bundle_total": "يطبِّق إجمالاً: {summary}",
-  "equipment_setEdit_bundle_noGearHint": "المجموعة التي لا تحتوي على معدات لا تترك وسم مجموعة على الغوصة، لذا لا يمكن إزالتها من الغوصة كمجموعة.",
+  "equipment_setEdit_bundle_noGearHint": "المجموعة التي لا تحتوي على معدات لا تظهر كمجموعة على الغوصة، لذا يجب إزالة أوزانها وأسطواناتها يدويًا.",
   "equipment_setDetail_fromSet": "من {setName}",
   "equipment_sets_leadTotal": "{weight} من الرصاص",
   "equipment_sets_cylinderCount": "{count, plural, =1{أسطوانة واحدة} two{أسطوانتان} few{{count} أسطوانات} many{{count} أسطوانة} other{{count} أسطوانة}}",

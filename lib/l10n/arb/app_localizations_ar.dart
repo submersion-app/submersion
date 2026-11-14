@@ -64939,7 +64939,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'المجموعة التي لا تحتوي على معدات لا تترك وسم مجموعة على الغوصة، لذا لا يمكن إزالتها من الغوصة كمجموعة.';
+      'المجموعة التي لا تحتوي على معدات لا تظهر كمجموعة على الغوصة، لذا يجب إزالة أوزانها وأسطواناتها يدويًا.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

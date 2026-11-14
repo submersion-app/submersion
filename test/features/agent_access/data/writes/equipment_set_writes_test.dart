@@ -106,6 +106,63 @@ void main() {
     expect(await memberIds(id), {'fins'});
   });
 
+  // A set applies the gear of the sets it includes, and a dive tags that
+  // gear with the set picked. So including a set, or editing one that is
+  // included, reaches the planned dives of the outer set (issue #4525).
+  test('an include change, and a member change on an included set, follow '
+      'on the outer set\'s planned dives', () async {
+    final rig = await created({'name': 'Rig'});
+    await h.run([
+      members(rig, add: ['wing']),
+    ]);
+    final outer = await created({'name': 'Outer'});
+    await h.dive('p1');
+    await (db.update(db.dives)..where((d) => d.id.equals('p1'))).write(
+      const DivesCompanion(isPlanned: Value(true)),
+    );
+    await gear('cam');
+    await h.run([
+      members(outer, add: ['cam']),
+    ]);
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'p1',
+            equipmentId: 'cam',
+            viaSetId: Value(outer),
+          ),
+        );
+    Future<Map<String, String?>> gearOn(String dive) async => {
+      for (final row in await (db.select(
+        db.diveEquipment,
+      )..where((r) => r.diveId.equals(dive))).get())
+        row.equipmentId: row.viaSetId,
+    };
+    Map<String, Object?> include(String id, List<String> add) => {
+      'op': 'update',
+      'entity': 'equipment_sets',
+      'id': id,
+      'relations': {
+        'included_set_ids': {'add': add, 'remove': const <String>[]},
+      },
+    };
+
+    final plan = await h.preview([
+      include(outer, [rig]),
+    ]);
+    expect(plan.items.single.alsoChanges, {'dives': 1});
+    await h.apply(plan);
+    expect(await gearOn('p1'), {'cam': outer, 'wing': outer});
+
+    final inner = await h.preview([
+      members(rig, add: ['fins']),
+    ]);
+    expect(inner.items.single.alsoChanges, {'dives': 1});
+    await h.apply(inner);
+    expect(await gearOn('p1'), {'cam': outer, 'wing': outer, 'fins': outer});
+  });
+
   test('a member change follows on planned dives only (#4283)', () async {
     final id = await created({'name': 'Warm'});
     await h.run([

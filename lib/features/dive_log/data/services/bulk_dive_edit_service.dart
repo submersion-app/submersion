@@ -217,14 +217,14 @@ class BulkDiveEditService {
       // is: only where a dive has none of its own (issue #4525).
       if (setsAdded.isNotEmpty) {
         final filledTankDiveIds = <String>{};
-        for (final id in ids) {
-          final applied = await _bundles.apply(
-            diveId: id,
-            setIds: setsAdded,
-            notify: false,
-          );
-          if (applied.weights) setFilledWeightDiveIds.add(id);
-          if (applied.tanks) filledTankDiveIds.add(id);
+        final applied = await _bundles.applyToDives(
+          diveIds: ids,
+          setIds: setsAdded,
+          notify: false,
+        );
+        for (final MapEntry(key: id, value: wrote) in applied.entries) {
+          if (wrote.weights) setFilledWeightDiveIds.add(id);
+          if (wrote.tanks) filledTankDiveIds.add(id);
         }
         final touched = [
           for (final row in tankRowsBefore)

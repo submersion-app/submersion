@@ -100570,7 +100570,7 @@ abstract class AppLocalizations {
   /// Note on the equipment set editor when the set carries weights or tanks but no gear.
   ///
   /// In en, this message translates to:
-  /// **'A set with no gear leaves no set tag on a dive, so it cannot be removed from a dive as a set.'**
+  /// **'A set with no gear does not appear on a dive as a set, so its weights and tanks have to be removed by hand.'**
   String get equipment_setEdit_bundle_noGearHint;
 
   /// Marks a gear row on the equipment set page that comes from an included set. {setName} is that set's name.

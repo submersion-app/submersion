@@ -64166,7 +64166,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'Un ensemble sans matériel ne laisse aucune étiquette d\'ensemble sur la plongée ; il ne peut donc pas en être retiré comme ensemble.';
+      'Un ensemble sans matériel n\'apparaît pas comme ensemble sur la plongée ; ses plombs et ses blocs doivent donc être retirés à la main.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

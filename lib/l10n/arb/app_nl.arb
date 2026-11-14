@@ -18804,7 +18804,7 @@
   "equipment_setEdit_tanks_noneAvailable": "Nog geen flesconfiguraties",
   "equipment_setEdit_bundle_remove": "Uit set verwijderen",
   "equipment_setEdit_bundle_total": "Past in totaal toe: {summary}",
-  "equipment_setEdit_bundle_noGearHint": "Een set zonder uitrusting laat geen setlabel achter op een duik en kan dus niet als set van een duik worden verwijderd.",
+  "equipment_setEdit_bundle_noGearHint": "Een set zonder uitrusting verschijnt niet als set op een duik; het lood en de flessen ervan moeten dus met de hand worden verwijderd.",
   "equipment_setDetail_fromSet": "Uit {setName}",
   "equipment_sets_leadTotal": "{weight} lood",
   "equipment_sets_cylinderCount": "{count, plural, =1{1 fles} other{{count} flessen}}",

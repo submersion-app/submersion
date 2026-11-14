@@ -18804,7 +18804,7 @@
   "equipment_setEdit_tanks_noneAvailable": "Aún no hay configuraciones de botellas",
   "equipment_setEdit_bundle_remove": "Quitar del conjunto",
   "equipment_setEdit_bundle_total": "Aplica en total: {summary}",
-  "equipment_setEdit_bundle_noGearHint": "Un conjunto sin equipo no deja etiqueta de conjunto en la inmersión, así que no se puede quitar de una inmersión como conjunto.",
+  "equipment_setEdit_bundle_noGearHint": "Un conjunto sin equipo no aparece como conjunto en la inmersión, así que sus pesos y botellas hay que quitarlos a mano.",
   "equipment_setDetail_fromSet": "De {setName}",
   "equipment_sets_leadTotal": "{weight} de lastre",
   "equipment_sets_cylinderCount": "{count, plural, =1{1 botella} other{{count} botellas}}",

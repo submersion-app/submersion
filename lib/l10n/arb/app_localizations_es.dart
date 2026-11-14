@@ -64066,7 +64066,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'Un conjunto sin equipo no deja etiqueta de conjunto en la inmersión, así que no se puede quitar de una inmersión como conjunto.';
+      'Un conjunto sin equipo no aparece como conjunto en la inmersión, así que sus pesos y botellas hay que quitarlos a mano.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

@@ -18804,7 +18804,7 @@
   "equipment_setEdit_tanks_noneAvailable": "Még nincs palackkonfiguráció",
   "equipment_setEdit_bundle_remove": "Eltávolítás a készletből",
   "equipment_setEdit_bundle_total": "Összesen alkalmazza: {summary}",
-  "equipment_setEdit_bundle_noGearHint": "A felszerelés nélküli készlet nem hagy készletcímkét a merülésen, ezért készletként nem távolítható el róla.",
+  "equipment_setEdit_bundle_noGearHint": "A felszerelés nélküli készlet nem jelenik meg készletként a merülésen, ezért a súlyait és palackjait kézzel kell eltávolítani.",
   "equipment_setDetail_fromSet": "Innen: {setName}",
   "equipment_sets_leadTotal": "{weight} ólom",
   "equipment_sets_cylinderCount": "{count, plural, =1{1 palack} other{{count} palack}}",

@@ -63037,7 +63037,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'A set with no gear leaves no set tag on a dive, so it cannot be removed from a dive as a set.';
+      'A set with no gear does not appear on a dive as a set, so its weights and tanks have to be removed by hand.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

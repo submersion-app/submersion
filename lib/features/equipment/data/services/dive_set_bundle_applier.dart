@@ -63,32 +63,61 @@ class DiveSetBundleApplier {
     required String diveId,
     required List<String> setIds,
     bool notify = true,
+  }) async =>
+      (await applyToDives(
+        diveIds: [diveId],
+        setIds: setIds,
+        notify: notify,
+      ))[diveId] ??
+      _nothingApplied;
+
+  /// [apply] for each of [diveIds], reading the bundles once: a bulk edit
+  /// or a rule run puts the same sets on every dive. A dive that fails is
+  /// logged and reported as unchanged; the others still apply.
+  Future<Map<String, SetBundleApplied>> applyToDives({
+    required List<String> diveIds,
+    required List<String> setIds,
+    bool notify = true,
   }) async {
-    if (setIds.isEmpty) return _nothingApplied;
-    if (DatabaseService.instance.databaseOrNull == null) return _nothingApplied;
+    final applied = <String, SetBundleApplied>{};
+    if (setIds.isEmpty || diveIds.isEmpty) return applied;
+    if (DatabaseService.instance.databaseOrNull == null) return applied;
+    final List<WeightEntryDraft> weights;
+    final List<CylinderConfigItem> cylinders;
     try {
       final bundles = await _loader.load(setIds);
-      final weights = [for (final b in bundles) ...b.weights];
-      final cylinders = _renumbered([for (final b in bundles) ...b.cylinders]);
-      if (weights.isEmpty && cylinders.isEmpty) return _nothingApplied;
-
-      final applied = await _db.transaction(() async {
-        final wroteWeights = await _fillWeights(diveId, weights);
-        final wroteTanks = await _mergeCylinders(diveId, cylinders);
-        return (weights: wroteWeights, tanks: wroteTanks);
-      });
-      if (notify && (applied.weights || applied.tanks)) {
-        SyncEventBus.notifyLocalChange();
-      }
-      return applied;
+      weights = [for (final b in bundles) ...b.weights];
+      cylinders = _renumbered([for (final b in bundles) ...b.cylinders]);
     } catch (e, stackTrace) {
       _log.warning(
-        'Applying set weights and tanks to dive $diveId failed',
+        'Reading what sets $setIds carry failed',
         error: e,
         stackTrace: stackTrace,
       );
-      return _nothingApplied;
+      return applied;
     }
+    if (weights.isEmpty && cylinders.isEmpty) return applied;
+
+    var changed = false;
+    for (final diveId in diveIds) {
+      try {
+        final result = await _db.transaction(() async {
+          final wroteWeights = await _fillWeights(diveId, weights);
+          final wroteTanks = await _mergeCylinders(diveId, cylinders);
+          return (weights: wroteWeights, tanks: wroteTanks);
+        });
+        applied[diveId] = result;
+        changed = changed || result.weights || result.tanks;
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Applying set weights and tanks to dive $diveId failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    if (notify && changed) SyncEventBus.notifyLocalChange();
+    return applied;
   }
 
   /// [apply] for the sets whose gear the dive carries: [leadSetId] first
@@ -229,13 +258,16 @@ class DiveSetBundleApplier {
       return changed;
     }
     // A fill meant for a tank whose role the configuration would change
-    // would put one cylinder's size on another; that change needs a person.
-    final roleChanges = {
+    // would put one cylinder's size on another, and one meant for a tank
+    // whose known size, pressure or material contradicts the cylinder would
+    // give a different cylinder this one's name and material. Either change
+    // needs a person.
+    final notThisCylinder = {
       for (final o in plan.overwrites)
-        if (o.role != null) o.tankId,
+        if (o.role != null || o.changesCylinder) o.tankId,
     };
     for (final op in plan.ops.whereType<FillTank>()) {
-      if (op.isEmpty || roleChanges.contains(op.tankId)) continue;
+      if (op.isEmpty || notThisCylinder.contains(op.tankId)) continue;
       await _rows.updateTank(
         op.tankId,
         db.DiveTanksCompanion(
@@ -341,10 +373,15 @@ class DiveSetBundleApplier {
   /// set.
   Future<void> _retagAbsorbed(String diveId, List<String> setIds) async {
     final sets = await _sets.getAllSets(ids: setIds);
+    // Only a set that stands may take another's gear: of two sets that
+    // include each other, the resolver keeps one.
+    final standing = {for (final s in SetBundleResolver.absorb(sets)) s.id};
     final outerOf = <String, String>{
       for (final set in sets)
-        for (final included in set.includedSetIds)
-          if (included != set.id && setIds.contains(included)) included: set.id,
+        if (standing.contains(set.id))
+          for (final included in set.includedSetIds)
+            if (included != set.id && setIds.contains(included))
+              included: set.id,
     };
     if (outerOf.isEmpty) return;
     final rows = await (_db.select(

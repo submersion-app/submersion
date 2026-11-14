@@ -60026,7 +60026,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      '没有装备的套装不会在潜水记录上留下套装标签，因此无法作为套装从潜水中移除。';
+      '没有装备的套装不会作为套装显示在潜水记录中，因此其配重和气瓶需要手动移除。';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

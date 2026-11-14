@@ -12,6 +12,8 @@ extension _SetBundleApplying on _DiveEditPageState {
     List<EquipmentItem> items, {
     required bool auto,
   }) async {
+    final covered = await _coveredByOuterSet(set);
+    if (!mounted) return;
     final absorbedWeights = await _absorbIncludedSets(set, auto: auto);
     if (!mounted) return;
     await _addGear(items, viaSetId: set.id, markDirty: !auto);
@@ -25,9 +27,34 @@ extension _SetBundleApplying on _DiveEditPageState {
       bundle = null;
     }
     if (bundle == null || !mounted) return;
-    await _applySetWeights(set, bundle, absorbedWeights, auto: auto);
+    await _applySetWeights(
+      set,
+      bundle,
+      absorbedWeights,
+      auto: auto,
+      coveredByOuterSet: covered,
+    );
     if (!mounted) return;
     await _applySetCylinders(set, bundle, auto: auto);
+  }
+
+  /// Whether a set already on the form includes [set]: its lead is then
+  /// already counted, and adding it again would double it.
+  Future<bool> _coveredByOuterSet(EquipmentSet set) async {
+    final others = {
+      for (final row in _gearRows)
+        if (row.viaSetId != null && row.viaSetId != set.id) row.viaSetId!,
+    };
+    if (others.isEmpty) return false;
+    try {
+      final onForm = await ref
+          .read(equipmentSetRepositoryProvider)
+          .getAllSets(ids: others.toList());
+      return onForm.any((outer) => outer.includedSetIds.contains(set.id));
+    } catch (_) {
+      // Sets unavailable: the question is asked as usual.
+      return false;
+    }
   }
 
   /// A picked set absorbs the sets it includes that are already on the
@@ -75,6 +102,7 @@ extension _SetBundleApplying on _DiveEditPageState {
     SetBundle bundle,
     List<WeightEntryDraft>? absorbedWeights, {
     required bool auto,
+    bool coveredByOuterSet = false,
   }) async {
     List<DiveWeight> fromSet() =>
         bundle.toDiveWeights(diveId: widget.diveId ?? '', newId: _uuid.v4);
@@ -83,6 +111,7 @@ extension _SetBundleApplying on _DiveEditPageState {
       bundleWeights: bundle.weights,
       absorbedWeights: absorbedWeights,
       auto: auto,
+      coveredByOuterSet: coveredByOuterSet,
     );
     var add = false;
     if (step == SetWeightsStep.ask) {

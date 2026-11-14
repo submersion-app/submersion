@@ -63632,7 +63632,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'Een set zonder uitrusting laat geen setlabel achter op een duik en kan dus niet als set van een duik worden verwijderd.';
+      'Een set zonder uitrusting verschijnt niet als set op een duik; het lood en de flessen ervan moeten dus met de hand worden verwijderd.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

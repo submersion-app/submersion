@@ -135,11 +135,29 @@ extension _SetBundleListStore on EquipmentSetRepository {
   /// Refuses a set that would break one-level nesting: including itself, a
   /// set of another diver or one that has includes, or gaining includes
   /// while another set includes it.
+  ///
+  /// Only the includes this save ADDS are judged. Two devices can each make
+  /// a legal include that together nest two deep, and a set that sync left
+  /// in that shape must still take a rename, or the edit that removes the
+  /// include. The resolver reads one level whatever is stored.
   Future<void> _assertNesting(
     String setId,
     String? diverId,
-    List<String> includes,
+    List<String> desired,
   ) async {
+    if (desired.isEmpty) return;
+    final stored = await _db
+        .customSelect(
+          'SELECT included_set_id FROM equipment_set_includes '
+          'WHERE set_id = ?',
+          variables: [Variable<String>(setId)],
+        )
+        .get();
+    final held = {for (final r in stored) r.read<String>('included_set_id')};
+    final includes = [
+      for (final id in desired)
+        if (!held.contains(id)) id,
+    ];
     if (includes.isEmpty) return;
     if (includes.contains(setId)) {
       throw ArgumentError.value(setId, 'includedSetIds', 'includes itself');

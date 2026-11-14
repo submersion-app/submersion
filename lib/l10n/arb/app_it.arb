@@ -18804,7 +18804,7 @@
   "equipment_setEdit_tanks_noneAvailable": "Ancora nessuna configurazione bombole",
   "equipment_setEdit_bundle_remove": "Rimuovi dal set",
   "equipment_setEdit_bundle_total": "Applica in totale: {summary}",
-  "equipment_setEdit_bundle_noGearHint": "Un set senza attrezzatura non lascia alcuna etichetta di set sull'immersione, quindi non può essere rimosso dall'immersione come set.",
+  "equipment_setEdit_bundle_noGearHint": "Un set senza attrezzatura non compare come set sull'immersione, quindi i suoi pesi e le sue bombole vanno rimossi a mano.",
   "equipment_setDetail_fromSet": "Da {setName}",
   "equipment_sets_leadTotal": "{weight} di zavorra",
   "equipment_sets_cylinderCount": "{count, plural, =1{1 bombola} other{{count} bombole}}",

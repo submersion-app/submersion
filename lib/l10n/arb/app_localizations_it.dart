@@ -64024,7 +64024,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'Un set senza attrezzatura non lascia alcuna etichetta di set sull\'immersione, quindi non può essere rimosso dall\'immersione come set.';
+      'Un set senza attrezzatura non compare come set sull\'immersione, quindi i suoi pesi e le sue bombole vanno rimossi a mano.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

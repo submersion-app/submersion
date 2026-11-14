@@ -250,6 +250,31 @@ void main() {
       );
     });
 
+    // Two devices can each make a legal include that together nest two
+    // deep (outer includes plain, plain includes other). The rule guards
+    // what a save adds; a set already in that shape must stay editable.
+    test('a set left nested by sync can still be saved and can drop the '
+        'include', () async {
+      await db
+          .into(db.equipmentSetIncludes)
+          .insert(
+            EquipmentSetIncludesCompanion.insert(
+              id: 'synced',
+              setId: 'plain',
+              includedSetId: 'other',
+              createdAt: 1,
+            ),
+          );
+      await repo.updateSet(
+        set('plain', includes: ['other']).copyWith(name: 'Renamed'),
+      );
+      expect((await repo.getSetById('plain'))!.name, 'Renamed');
+      expect((await repo.getSetById('plain'))!.includedSetIds, ['other']);
+
+      await repo.updateSet(set('plain'));
+      expect((await repo.getSetById('plain'))!.includedSetIds, isEmpty);
+    });
+
     test('a refused write changes nothing', () async {
       await expectLater(
         repo.updateSet(set('other', includes: ['outer']).copyWith(name: 'X')),

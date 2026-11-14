@@ -53,6 +53,45 @@ extension DiveGearSets on DiveRepository {
     ];
   }
 
+  /// [setIds] without the sets that another of them includes (issue
+  /// #4525): the outer set's membership already holds their gear, and the
+  /// gear must take the outer set's tag whichever was named first. Of two
+  /// sets that include each other the lower id stands, as
+  /// `SetBundleResolver.absorb` settles it. Order is kept.
+  Future<List<String>> _withoutAbsorbed(List<String> setIds) async {
+    final ids = setIds.toSet().toList();
+    if (ids.length < 2) return ids;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final variables = [for (final id in ids) Variable<String>(id)];
+    final rows = await _db
+        .customSelect(
+          'SELECT set_id, included_set_id FROM equipment_set_includes '
+          'WHERE set_id IN ($placeholders) '
+          'AND included_set_id IN ($placeholders) '
+          'AND included_set_id != set_id',
+          variables: [...variables, ...variables],
+          readsFrom: {_db.equipmentSetIncludes},
+        )
+        .get();
+    final pairs = {
+      for (final r in rows)
+        (
+          outer: r.read<String>('set_id'),
+          inner: r.read<String>('included_set_id'),
+        ),
+    };
+    bool absorbed(String id) => pairs.any(
+      (p) =>
+          p.inner == id &&
+          (!pairs.contains((outer: id, inner: p.outer)) ||
+              p.outer.compareTo(id) < 0),
+    );
+    return [
+      for (final id in ids)
+        if (!absorbed(id)) id,
+    ];
+  }
+
   /// Adds every item of [setIds] to each dive, expanded as
   /// [bulkAddEquipment] expands, each row tagged with the set it came
   /// through. The tagging is `GearExpander`'s, as everywhere gear goes on:
@@ -68,7 +107,7 @@ extension DiveGearSets on DiveRepository {
     List<String> setIds,
   ) async {
     if (diveIds.isEmpty) return const [];
-    final sets = await _setItems(setIds);
+    final sets = await _setItems(await _withoutAbsorbed(setIds));
     if (sets.every((s) => s.equipmentIds.isEmpty)) return const [];
     final index = await _loadComponentsIndex();
     final candidates = {

@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
+import 'package:submersion/features/equipment/data/services/set_bundle_loader.dart';
+import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -301,6 +303,30 @@ void main() {
     expect(only.o2Percent, 21);
   });
 
+  // An imported 15 L tank is not the set's AL80: naming it one, or calling
+  // it aluminium, would mislabel it and skew the buoyancy numbers.
+  test('a tank whose size contradicts the cylinder takes none of its '
+      'details', () async {
+    await set('rig', configs: ['al80']);
+    await (db.update(
+      db.cylinderConfigItems,
+    )..where((i) => i.configId.equals('al80'))).write(
+      const CylinderConfigItemsCompanion(
+        tankMaterial: Value('aluminum'),
+        label: Value('AL80'),
+        workingPressureBar: Value(207),
+      ),
+    );
+    await tank('t1', 'dive1', volume: 15, o2: 21);
+    final changed = await applier.apply(diveId: 'dive1', setIds: ['rig']);
+    expect(changed.tanks, isFalse);
+    final only = (await tanksOf('dive1')).single;
+    expect(only.volume, 15);
+    expect(only.tankMaterial, isNull);
+    expect(only.tankName, isNull);
+    expect(only.workingPressure, isNull);
+  });
+
   test('two sets landing together combine their weights in order', () async {
     await set('rig', presets: ['belt8']);
     await set('extra', presets: ['pockets6']);
@@ -357,6 +383,36 @@ void main() {
         .get();
     final types = {for (final r in pending) r.read<String>('entity_type')};
     expect(types, containsAll(['diveWeights', 'diveTanks']));
+  });
+
+  // A bulk edit or a rule run puts the same sets on many dives: the
+  // bundle is read once, not once per dive.
+  test('applyToDives reads the bundles once and fills each dive', () async {
+    await set('rig', presets: ['belt8']);
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'dive2',
+            diverId: const Value('d1'),
+            diveDateTime: t,
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+    await weight('own', 'dive2', 5.0);
+    final loader = _CountingLoader();
+    final applied = await DiveSetBundleApplier(
+      loader: loader,
+    ).applyToDives(diveIds: ['dive1', 'dive2'], setIds: ['rig']);
+
+    expect(loader.loads, 1);
+    expect(applied['dive1']!.weights, isTrue);
+    expect(applied['dive2']!.weights, isFalse);
+    final rows = await (db.select(
+      db.diveWeights,
+    )..where((w) => w.diveId.equals('dive1'))).get();
+    expect(rows.single.amountKg, closeTo(3.63, 1e-9));
   });
 
   group('applyTagged', () {
@@ -483,4 +539,14 @@ void main() {
       expect(await weightsOf('dive1'), isEmpty);
     });
   });
+}
+
+class _CountingLoader extends SetBundleLoader {
+  int loads = 0;
+
+  @override
+  Future<List<SetBundle>> load(List<String> setIds) {
+    loads++;
+    return super.load(setIds);
+  }
 }

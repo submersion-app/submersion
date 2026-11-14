@@ -18929,7 +18929,7 @@
   "equipment_setEdit_tanks_noneAvailable": "Noch keine Flaschenkonfigurationen",
   "equipment_setEdit_bundle_remove": "Aus dem Set entfernen",
   "equipment_setEdit_bundle_total": "Wendet insgesamt an: {summary}",
-  "equipment_setEdit_bundle_noGearHint": "Ein Set ohne Ausrüstung hinterlässt kein Set-Etikett am Tauchgang und kann daher nicht als Set vom Tauchgang entfernt werden.",
+  "equipment_setEdit_bundle_noGearHint": "Ein Set ohne Ausrüstung erscheint am Tauchgang nicht als Set; seine Gewichte und Flaschen müssen daher von Hand entfernt werden.",
   "equipment_setDetail_fromSet": "Aus {setName}",
   "equipment_sets_leadTotal": "{weight} Blei",
   "equipment_sets_cylinderCount": "{count, plural, =1{1 Flasche} other{{count} Flaschen}}",

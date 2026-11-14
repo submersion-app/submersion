@@ -62710,7 +62710,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'ערכה ללא ציוד אינה משאירה תג ערכה בצלילה, ולכן אי אפשר להסיר אותה מצלילה כערכה.';
+      'ערכה ללא ציוד אינה מופיעה בצלילה כערכה, ולכן יש להסיר את המשקולות והמכלים שלה ידנית.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

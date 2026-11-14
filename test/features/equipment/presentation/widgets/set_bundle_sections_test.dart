@@ -259,7 +259,10 @@ void main() {
       const SetBundleListValues(weightPresetIds: ['p6']),
       ownGearIds: const {},
     );
-    expect(find.textContaining('leaves no set tag on a dive'), findsOneWidget);
+    expect(
+      find.textContaining('does not appear on a dive as a set'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('an entry whose target is gone is not listed', (tester) async {

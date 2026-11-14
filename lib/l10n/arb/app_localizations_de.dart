@@ -63889,7 +63889,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'Ein Set ohne Ausrüstung hinterlässt kein Set-Etikett am Tauchgang und kann daher nicht als Set vom Tauchgang entfernt werden.';
+      'Ein Set ohne Ausrüstung erscheint am Tauchgang nicht als Set; seine Gewichte und Flaschen müssen daher von Hand entfernt werden.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

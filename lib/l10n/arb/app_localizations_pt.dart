@@ -64005,7 +64005,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'Um conjunto sem equipamento não deixa etiqueta de conjunto no mergulho, por isso não pode ser removido de um mergulho como conjunto.';
+      'Um conjunto sem equipamento não aparece como conjunto no mergulho, por isso os seus pesos e garrafas têm de ser removidos à mão.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {

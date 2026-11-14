@@ -132,6 +132,20 @@ void main() {
     });
   });
 
+  // A bulk edit or a rule that names an inner set before the set that
+  // includes it must still leave one set on the dive: the outer one.
+  test('an inner set named before its outer set is absorbed in '
+      'bulk', () async {
+    await set('rig', ['bp', 'reg']);
+    await set('outer', ['cam'], includes: ['rig']);
+    await DiveRepository().bulkAddEquipmentSets(['dive1'], ['rig', 'outer']);
+    final rows = await (db.select(
+      db.diveEquipment,
+    )..where((r) => r.diveId.equals('dive1'))).get();
+    expect({for (final r in rows) r.equipmentId}, {'bp', 'reg', 'cam'});
+    expect({for (final r in rows) r.viaSetId}, {'outer'});
+  });
+
   test('a set with only included gear still applies in bulk', () async {
     await set('rig', ['bp']);
     await set('outer', const [], includes: ['rig']);

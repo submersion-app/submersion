@@ -18804,7 +18804,7 @@
   "equipment_setEdit_tanks_noneAvailable": "尚无气瓶配置",
   "equipment_setEdit_bundle_remove": "从套装中移除",
   "equipment_setEdit_bundle_total": "合计应用：{summary}",
-  "equipment_setEdit_bundle_noGearHint": "没有装备的套装不会在潜水记录上留下套装标签，因此无法作为套装从潜水中移除。",
+  "equipment_setEdit_bundle_noGearHint": "没有装备的套装不会作为套装显示在潜水记录中，因此其配重和气瓶需要手动移除。",
   "equipment_setDetail_fromSet": "来自 {setName}",
   "equipment_sets_leadTotal": "{weight} 配重",
   "equipment_sets_cylinderCount": "{count, plural, other{{count} 个气瓶}}",

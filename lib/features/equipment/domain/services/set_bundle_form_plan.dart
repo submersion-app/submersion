@@ -17,7 +17,9 @@ enum SetWeightsStep {
   /// The diver decides: add, replace or keep.
   ask,
 
-  /// An automatic apply over weights the diver may have entered: untouched.
+  /// The weights on the form stay as they are, and nobody is asked: an
+  /// automatic apply over weights the diver may have entered, or a pick
+  /// whose lead the form already carries.
   leave,
 }
 
@@ -26,15 +28,26 @@ enum SetWeightsStep {
 ///
 /// [absorbedWeights] is what the sets the picked set absorbs filled in
 /// between them, or null when it absorbs none. [auto] is an apply nobody
-/// asked for: the default set or a location match.
+/// asked for: the default set or a location match. [coveredByOuterSet]
+/// says a set already on the form includes the picked one.
+///
+/// The question is skipped where its main answer, Add, would double lead
+/// the form already carries for this set: when the form holds exactly the
+/// set's weights (it was picked before), and when a set that includes it
+/// is already on the form.
 SetWeightsStep planSetWeights({
   required List<DiveWeight> onDive,
   required List<WeightEntryDraft> bundleWeights,
   required List<WeightEntryDraft>? absorbedWeights,
   required bool auto,
+  bool coveredByOuterSet = false,
 }) {
   if (bundleWeights.isEmpty) return SetWeightsStep.none;
   if (onDive.isEmpty) return SetWeightsStep.fill;
+  if (coveredByOuterSet ||
+      SetBundleResolver.sameWeights(onDive, bundleWeights)) {
+    return SetWeightsStep.leave;
+  }
   if (absorbedWeights != null &&
       absorbedWeights.isNotEmpty &&
       SetBundleResolver.sameWeights(onDive, absorbedWeights)) {

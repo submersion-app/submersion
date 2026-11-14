@@ -262,6 +262,15 @@ void main() {
         'rig',
       ]);
     });
+
+    // Sync can leave two sets including each other. Dropping both would
+    // apply neither bundle; the lower id stands, whatever the order.
+    test('of two sets that include each other, the lower id stands', () {
+      final a = _set('a', includes: ['b']);
+      final b = _set('b', includes: ['a']);
+      expect(SetBundleResolver.absorb([a, b]).map((s) => s.id), ['a']);
+      expect(SetBundleResolver.absorb([b, a]).map((s) => s.id), ['a']);
+    });
   });
 
   group('canInclude', () {

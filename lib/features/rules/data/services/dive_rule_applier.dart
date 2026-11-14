@@ -236,14 +236,14 @@ class DiveRuleApplier {
       final tanksBefore = await recorded.tanks(chunk);
       final filled = <String>[];
       final merged = <String>[];
+      final applied = await _bundles.applyToDives(
+        diveIds: chunk,
+        setIds: setIds,
+        notify: false,
+      );
       for (final id in chunk) {
-        final applied = await _bundles.apply(
-          diveId: id,
-          setIds: setIds,
-          notify: false,
-        );
-        if (applied.weights) filled.add(id);
-        if (applied.tanks) merged.add(id);
+        if (applied[id]?.weights ?? false) filled.add(id);
+        if (applied[id]?.tanks ?? false) merged.add(id);
       }
       final weightsAfter = await recorded.weights(filled);
       final tanksAfter = await recorded.tanks(merged);

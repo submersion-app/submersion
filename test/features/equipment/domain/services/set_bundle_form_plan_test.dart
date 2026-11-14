@@ -30,11 +30,13 @@ void main() {
     List<WeightEntryDraft> bundle = belt6,
     List<WeightEntryDraft>? absorbed,
     bool auto = false,
+    bool covered = false,
   }) => planSetWeights(
     onDive: onDive(dive),
     bundleWeights: bundle,
     absorbedWeights: absorbed,
     auto: auto,
+    coveredByOuterSet: covered,
   );
 
   test('a set with no weights leaves the form alone', () {
@@ -65,11 +67,30 @@ void main() {
   });
 
   test('weights edited since the absorbed set filled them ask', () {
-    expect(plan(dive: belt6, absorbed: belt8), SetWeightsStep.ask);
+    // The picked set carries both; the form holds an edited belt.
+    expect(
+      plan(dive: belt6, bundle: [...belt8, ...belt6], absorbed: belt8),
+      SetWeightsStep.ask,
+    );
   });
 
   test('an absorbed set that carried no weights does not excuse the '
       'question', () {
     expect(plan(dive: belt8, absorbed: const []), SetWeightsStep.ask);
+  });
+
+  // Asking here would offer Add as the main button over lead the dive
+  // already carries for this very set: one tap would double it.
+  test('picking a set whose weights the form already holds asks '
+      'nothing', () {
+    expect(plan(dive: belt6), SetWeightsStep.leave);
+    expect(plan(dive: belt6, auto: true), SetWeightsStep.leave);
+  });
+
+  test('picking a set that a set on the form already includes asks '
+      'nothing', () {
+    expect(plan(dive: belt8, covered: true), SetWeightsStep.leave);
+    // With nothing on the form there is no lead to double.
+    expect(plan(covered: true), SetWeightsStep.fill);
   });
 }

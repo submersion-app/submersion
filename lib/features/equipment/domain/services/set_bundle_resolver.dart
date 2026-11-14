@@ -85,15 +85,22 @@ abstract final class SetBundleResolver {
   /// [landing] without the sets that another set in the list includes: an
   /// outer set absorbs the sets it includes, so their lead and cylinders
   /// count once. Order is kept.
+  ///
+  /// Two sets that include each other (a shape only sync can leave) would
+  /// each absorb the other and neither bundle would apply; the one with the
+  /// lower id stands, so every device keeps the same one.
   static List<EquipmentSet> absorb(List<EquipmentSet> landing) {
-    final absorbed = <String>{
-      for (final set in landing)
-        for (final id in set.includedSetIds)
-          if (id != set.id) id,
-    };
+    final byId = {for (final set in landing) set.id: set};
+    bool absorbedBy(EquipmentSet inner, EquipmentSet outer) {
+      if (inner.id == outer.id) return false;
+      if (!outer.includedSetIds.contains(inner.id)) return false;
+      final mutual = inner.includedSetIds.contains(outer.id);
+      return !mutual || outer.id.compareTo(inner.id) < 0;
+    }
+
     return [
       for (final set in landing)
-        if (!absorbed.contains(set.id)) set,
+        if (!byId.values.any((outer) => absorbedBy(set, outer))) set,
     ];
   }
 

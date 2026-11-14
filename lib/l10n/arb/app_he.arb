@@ -18804,7 +18804,7 @@
   "equipment_setEdit_tanks_noneAvailable": "עדיין אין תצורות מכלים",
   "equipment_setEdit_bundle_remove": "הסרה מהערכה",
   "equipment_setEdit_bundle_total": "מחיל בסך הכול: {summary}",
-  "equipment_setEdit_bundle_noGearHint": "ערכה ללא ציוד אינה משאירה תג ערכה בצלילה, ולכן אי אפשר להסיר אותה מצלילה כערכה.",
+  "equipment_setEdit_bundle_noGearHint": "ערכה ללא ציוד אינה מופיעה בצלילה כערכה, ולכן יש להסיר את המשקולות והמכלים שלה ידנית.",
   "equipment_setDetail_fromSet": "מתוך {setName}",
   "equipment_sets_leadTotal": "{weight} עופרת",
   "equipment_sets_cylinderCount": "{count, plural, =1{מכל אחד} two{2 מכלים} other{{count} מכלים}}",

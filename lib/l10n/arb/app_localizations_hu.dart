@@ -63673,7 +63673,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_setEdit_bundle_noGearHint =>
-      'A felszerelés nélküli készlet nem hagy készletcímkét a merülésen, ezért készletként nem távolítható el róla.';
+      'A felszerelés nélküli készlet nem jelenik meg készletként a merülésen, ezért a súlyait és palackjait kézzel kell eltávolítani.';
 
   @override
   String equipment_setDetail_fromSet(String setName) {
