@@ -32,7 +32,13 @@ Map<String, Expression> fillOf(
   Dive target,
   List<Dive> secondaries, {
   bool hasProfile = false,
-}) => consolidationFieldFill(target, secondaries, targetHasProfile: hasProfile);
+  Set<String> withMedia = const {},
+}) => consolidationFieldFill(
+  target,
+  secondaries,
+  targetHasProfile: hasProfile,
+  diveIdsWithMedia: withMedia,
+);
 
 void main() {
   group('the outing a dive was mirrored on (#3924)', () {
@@ -412,10 +418,55 @@ void main() {
     });
   });
 
-  // The secondary's media moves to the target, so the correction for the
-  // camera that took it has to come along (issue #4539).
+  // Every dive's media moves to the target, which holds one shift for all
+  // of it. The shift that carries is the one that leaves media already
+  // placed where it is (issue #4539).
   group('the media time shift (#4539)', () {
-    test('is adopted from a secondary, whose media moves here', () {
+    test('comes from the secondary when only its media moves here', () {
+      final fill = fillOf(
+        row('t'),
+        [row('s').copyWith(mediaTimeOffsetSeconds: -47)],
+        withMedia: {'s'},
+      );
+
+      expect(filled(fill, 'media_time_offset_seconds'), -47);
+    });
+
+    // The target's media is placed by its zero; adopting the secondary's
+    // shift would move every one of those items.
+    test('stays zero on a target that owns media of its own', () {
+      final fill = fillOf(
+        row('t'),
+        [row('s').copyWith(mediaTimeOffsetSeconds: -47)],
+        withMedia: {'t', 's'},
+      );
+
+      expect(fill.containsKey('media_time_offset_seconds'), isFalse);
+    });
+
+    test("leaves the target's own shift alone", () {
+      final fill = fillOf(
+        row('t').copyWith(mediaTimeOffsetSeconds: 30),
+        [row('s').copyWith(mediaTimeOffsetSeconds: -47)],
+        withMedia: {'t', 's'},
+      );
+
+      expect(fill.containsKey('media_time_offset_seconds'), isFalse);
+    });
+
+    // The secondary's media is placed by its zero, and the target has none
+    // for its own shift to place.
+    test('is cleared when the only media is an unshifted secondary\'s', () {
+      final fill = fillOf(
+        row('t').copyWith(mediaTimeOffsetSeconds: 30),
+        [row('s')],
+        withMedia: {'s'},
+      );
+
+      expect(filled(fill, 'media_time_offset_seconds'), 0);
+    });
+
+    test('carries a set shift when no dive has media yet', () {
       final fill = fillOf(row('t'), [
         row('s1'),
         row('s2').copyWith(mediaTimeOffsetSeconds: -47),
@@ -424,16 +475,8 @@ void main() {
       expect(filled(fill, 'media_time_offset_seconds'), -47);
     });
 
-    test("leaves the target's own shift alone", () {
-      final fill = fillOf(row('t').copyWith(mediaTimeOffsetSeconds: 30), [
-        row('s').copyWith(mediaTimeOffsetSeconds: -47),
-      ]);
-
-      expect(fill.containsKey('media_time_offset_seconds'), isFalse);
-    });
-
-    test('fills nothing when no secondary has one', () {
-      final fill = fillOf(row('t'), [row('s')]);
+    test('fills nothing when no dive has one', () {
+      final fill = fillOf(row('t'), [row('s')], withMedia: {'t', 's'});
 
       expect(fill.containsKey('media_time_offset_seconds'), isFalse);
     });

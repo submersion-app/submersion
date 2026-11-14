@@ -91,6 +91,54 @@ void main() {
     expect(row.otu, 30);
   });
 
+  // Every segment's media moves to the combined dive, which holds one media
+  // time shift for all of it (issue #4539).
+  group('the media time shift (#4539)', () {
+    Future<void> shift(String id, int seconds) =>
+        diveRepo.setMediaTimeOffsetSeconds(id, seconds);
+
+    Future<void> photo(String id, String diveId) => db
+        .into(db.media)
+        .insert(
+          MediaCompanion.insert(
+            id: id,
+            filePath: '$id.jpg',
+            diveId: Value(diveId),
+            createdAt: 0,
+            updatedAt: 0,
+          ),
+        );
+
+    test('comes from the first segment that owns media', () async {
+      await seedSegment('a', entry: first);
+      await seedSegment('b', entry: second);
+      await shift('b', -47);
+      await photo('m1', 'b');
+
+      final outcome = await service.apply(['a', 'b']);
+
+      expect(
+        (await mergedRow(outcome.mergedDive.id)).mediaTimeOffsetSeconds,
+        -47,
+      );
+    });
+
+    test('stays zero when the first segment with media has none', () async {
+      await seedSegment('a', entry: first);
+      await seedSegment('b', entry: second);
+      await shift('b', -47);
+      await photo('m1', 'a');
+      await photo('m2', 'b');
+
+      final outcome = await service.apply(['a', 'b']);
+
+      expect(
+        (await mergedRow(outcome.mergedDive.id)).mediaTimeOffsetSeconds,
+        0,
+      );
+    });
+  });
+
   test('CNS and OTU stay empty when no segment has them', () async {
     await seedSegment('a', entry: first);
     await seedSegment('b', entry: second);
