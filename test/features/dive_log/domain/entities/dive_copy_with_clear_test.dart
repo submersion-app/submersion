@@ -26,6 +26,7 @@ void main() {
     weatherDescription: 'Clear',
     weatherSource: WeatherSource.openMeteo,
     weatherFetchedAt: DateTime(2024, 1, 2),
+    weatherCode: 61,
   );
 
   // Each entry clears one value and reads it back.
@@ -86,10 +87,14 @@ void main() {
       (d) => d.copyWith(clearWeatherFetchedAt: true),
       (d) => d.weatherFetchedAt,
     ),
+    'weatherCode': (
+      (d) => d.copyWith(clearWeatherCode: true),
+      (d) => d.weatherCode,
+    ),
   };
 
-  test('the table covers all seventeen values', () {
-    expect(cases, hasLength(17));
+  test('the table covers all eighteen values', () {
+    expect(cases, hasLength(18));
   });
 
   for (final entry in cases.entries) {

@@ -307,6 +307,27 @@ void main() {
       expect(session.hasHeldWrites, isFalse);
     });
 
+    test('a lookup that returns while the sitting is being saved changes '
+        'nothing', () async {
+      final gate = Completer<void>();
+      final session = sessionOver(bare.copyWith(site: lakeNoAltitude));
+
+      final filling = fillAltitudeIfEmpty(
+        session,
+        resolver: AltitudeResolver(
+          elevationService: _FakeElevation(result: 512, gate: gate),
+        ),
+        writeSiteAltitude: writeSite,
+      );
+      session.freeze();
+      gate.complete();
+      await filling;
+      session.thaw();
+
+      expect(session.isDirty, isFalse);
+      expect(session.hasHeldWrites, isFalse);
+    });
+
     test('a sitting discarded while the lookup ran is left alone', () async {
       final gate = Completer<void>();
       final session = EditSession<Dive>(bare.copyWith(site: lakeNoAltitude));

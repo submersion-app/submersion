@@ -960,6 +960,7 @@ class Dive extends Equatable {
     String? weatherDescription,
     bool clearWeatherDescription = false,
     int? weatherCode,
+    bool clearWeatherCode = false,
     WeatherSource? weatherSource,
     bool clearWeatherSource = false,
     DateTime? weatherFetchedAt,
@@ -1085,7 +1086,7 @@ class Dive extends Equatable {
       weatherDescription: clearWeatherDescription
           ? null
           : (weatherDescription ?? this.weatherDescription),
-      weatherCode: weatherCode ?? this.weatherCode,
+      weatherCode: clearWeatherCode ? null : (weatherCode ?? this.weatherCode),
       weatherSource: clearWeatherSource
           ? null
           : (weatherSource ?? this.weatherSource),

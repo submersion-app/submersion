@@ -257,6 +257,14 @@ void main() {
       expect(ran, isEmpty);
     });
 
+    test('none is taken while the session is frozen', () {
+      final session = EditSession(const _Rec())..freeze();
+
+      session.holdWrite('site', () async {});
+
+      expect(session.hasHeldWrites, isFalse);
+    });
+
     test('a session with none runs nothing', () async {
       final session = EditSession(const _Rec());
 

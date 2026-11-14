@@ -38,9 +38,9 @@ final diveSurfacePressureField = EditField<Dive, double?>(
 /// saved, so cancelling leaves the site as it was.
 ///
 /// It never replaces an altitude: one set before the call, or typed while
-/// the lookup ran, stays. A result that arrives after the sitting ended, or
-/// after [stillWanted] turned false, is dropped. A lookup that fails changes
-/// nothing.
+/// the lookup ran, stays. A result that arrives after the sitting ended,
+/// while it is being saved, or after [stillWanted] turned false, is dropped.
+/// A lookup that fails changes nothing.
 Future<void> fillAltitudeIfEmpty(
   EditSession<Dive> session, {
   required AltitudeResolver resolver,
@@ -68,7 +68,9 @@ Future<void> fillAltitudeIfEmpty(
     return;
   }
 
-  if (session.isDisposed || !(stillWanted?.call() ?? true)) return;
+  // The sitting ended, is being written, or nobody is waiting any more.
+  if (session.isDisposed || session.isFrozen) return;
+  if (!(stillWanted?.call() ?? true)) return;
   final meters = resolution.altitudeMeters;
   if (meters == null || session.valueOf(diveAltitudeField) != null) return;
 

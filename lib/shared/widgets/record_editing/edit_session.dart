@@ -124,8 +124,10 @@ class EditSession<T> extends ChangeNotifier {
   /// replaces the first.
   ///
   /// A held write is not a change to the record, so it neither makes the
-  /// session dirty nor notifies. Discarding the session discards it.
+  /// session dirty nor notifies. Discarding the session discards it. Like
+  /// [set], it does nothing while the session [isFrozen].
   void holdWrite(String key, Future<void> Function() write) {
+    if (_isFrozen) return;
     _heldWrites[key] = write;
   }
 

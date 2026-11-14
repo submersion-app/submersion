@@ -82,6 +82,16 @@ final diveWeatherSourceField = EditField<Dive, WeatherSource?>(
       dive.copyWith(weatherSource: value, clearWeatherSource: value == null),
 );
 
+/// The forecast's WMO weather code. The read card writes its description
+/// from it, in the diver's language. Set by [applyFetchedWeather].
+final diveWeatherCodeField = EditField<Dive, int?>(
+  id: 'weatherCode',
+  cardId: _card,
+  read: (dive) => dive.weatherCode,
+  write: (dive, value) =>
+      dive.copyWith(weatherCode: value, clearWeatherCode: value == null),
+);
+
 /// When the weather values were fetched. Set by [applyFetchedWeather].
 final diveWeatherFetchedAtField = EditField<Dive, DateTime?>(
   id: 'weatherFetchedAt',
@@ -157,14 +167,25 @@ final diveExitMethodField = EditField<Dive, EntryMethod?>(
       dive.copyWith(exitMethod: value, clearExitMethod: value == null),
 );
 
-/// Sets the entry method. The exit method follows it while the two are
-/// linked: the exit is unset, or is the entry method being replaced.
-void setEntryMethod(EditSession<Dive> session, EntryMethod? value) {
-  final entry = session.valueOf(diveEntryMethodField);
-  final exit = session.valueOf(diveExitMethodField);
-  final linked = exit == null || exit == entry;
+/// Whether [dive]'s exit method follows its entry method when editing
+/// begins: it is unset, or the same. This is what the dive form decides as
+/// it loads a dive.
+bool exitFollowsEntry(Dive dive) =>
+    dive.exitMethod == null || dive.exitMethod == dive.entryMethod;
+
+/// Sets the entry method, and the exit method with it while [exitFollows].
+///
+/// The exit mirrors the entry until the diver edits the exit directly. That
+/// cannot be told from the two values (an exit the diver cleared, or chose
+/// to match, looks the same as one never touched), so the editor remembers
+/// it: [exitFollowsEntry] when it opens, false from the first direct edit.
+void setEntryMethod(
+  EditSession<Dive> session,
+  EntryMethod? value, {
+  required bool exitFollows,
+}) {
   session.set(diveEntryMethodField, value);
-  if (linked) session.set(diveExitMethodField, value);
+  if (exitFollows) session.set(diveExitMethodField, value);
 }
 
 /// Writes a fetched forecast into the sitting, as the dive form does.
@@ -174,6 +195,11 @@ void setEntryMethod(EditSession<Dive> session, EntryMethod? value) {
 /// replaces the stored one only when it has words. Air temperature and
 /// surface pressure are filled only when the sitting has none, since the
 /// diver's own reading is the better one. The source and [now] are stamped.
+///
+/// The forecast's weather code replaces the stored one, and clears it when
+/// the forecast has none: the read card describes the weather from that
+/// code, and an old one would describe weather this fetch has replaced.
+/// (The dive form leaves the old code in place.)
 ///
 /// Surface pressure belongs to the Altitude card, so filling it marks that
 /// card as changed too.
@@ -211,6 +237,7 @@ void applyFetchedWeather(
   }
 
   session
+    ..set(diveWeatherCodeField, data.weatherCode)
     ..set(diveWeatherSourceField, WeatherSource.openMeteo)
     ..set(diveWeatherFetchedAtField, now);
 }

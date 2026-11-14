@@ -51,6 +51,10 @@ class _DiveEnvironmentCardEditorState
   );
   bool _fetching = false;
 
+  /// Whether the exit method still mirrors the entry method: true until the
+  /// diver edits the exit directly.
+  late bool _exitFollows = exitFollowsEntry(widget.session.working);
+
   /// A free-text row: blank is no value.
   FieldTextBinding<Dive, String?> _words(EditField<Dive, String?> field) {
     return FieldTextBinding<Dive, String?>(
@@ -69,6 +73,7 @@ class _DiveEnvironmentCardEditorState
     _surfaceConditions.dispose();
     _description = _words(diveWeatherDescriptionField);
     _surfaceConditions = _words(diveSurfaceConditionsField);
+    _exitFollows = exitFollowsEntry(widget.session.working);
   }
 
   @override
@@ -136,8 +141,9 @@ class _DiveEnvironmentCardEditorState
         date: dive.dateTime,
         entryTime: dive.effectiveEntryTime,
       );
-      // The card closed, or the sitting ended, while the fetch ran.
-      if (!mounted || session.isDisposed) return;
+      // The card closed, or the sitting ended or is being saved, while
+      // the fetch ran: the forecast has nowhere to go.
+      if (!mounted || session.isDisposed || session.isFrozen) return;
       if (data == null) {
         _sayUnavailable(messenger, l10n, errorColor);
         return;
@@ -151,6 +157,7 @@ class _DiveEnvironmentCardEditorState
           session,
           resolver: resolver,
           writeSiteAltitude: sites.updateSiteAltitude,
+          stillWanted: () => mounted,
         ),
       );
       messenger.showSnackBar(
@@ -321,15 +328,20 @@ class _DiveEnvironmentCardEditorState
         values: EntryMethod.values,
         displayName: (value) => value.localizedName(l10n),
         // A dive with no entry method of its own shows its site's.
-        placeholder: session.working.site?.soleEntryMethod?.localizedName(l10n),
-        onChanged: (value) => setEntryMethod(session, value),
+        hint: session.working.site?.soleEntryMethod?.localizedName(l10n),
+        onChanged: (value) =>
+            setEntryMethod(session, value, exitFollows: _exitFollows),
       ),
       EnumPickerRow<EntryMethod>(
         label: l10n.diveLog_edit_label_exitMethod,
         value: session.valueOf(diveExitMethodField),
         values: EntryMethod.values,
         displayName: (value) => value.localizedName(l10n),
-        onChanged: (value) => session.set(diveExitMethodField, value),
+        onChanged: (value) {
+          // Edited directly: from here on it no longer mirrors the entry.
+          _exitFollows = false;
+          session.set(diveExitMethodField, value);
+        },
       ),
     ];
   }
