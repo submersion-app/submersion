@@ -42,6 +42,21 @@ class DiveMediaClock {
     offsetSeconds: dive.mediaTimeOffsetSeconds,
   );
 
+  /// [diveTime], a moment on [dive]'s own clock, as the dive's camera reads
+  /// it: the other way by the dive's shift.
+  ///
+  /// Media is matched to a dive on the clock it is later placed by. A camera
+  /// running ahead stamps the dive's moments late, so the dive's window, as
+  /// that camera wrote it, sits later by as much. Matched on the dive's own
+  /// clock, media would be attached that the shift then places outside the
+  /// dive, and the media the shift was set for would never be found.
+  static DateTime onCameraClock(Dive dive, DateTime diveTime) {
+    final shift = dive.mediaTimeOffsetSeconds;
+    return isValidOffset(shift)
+        ? diveTime.subtract(Duration(seconds: shift))
+        : diveTime;
+  }
+
   /// The largest shift a dive holds, either way: a century, which covers a
   /// camera reset to its factory date and keeps a corrupt value from
   /// overflowing the arithmetic it feeds.

@@ -136,6 +136,50 @@ void main() {
     });
   });
 
+  // A capture time is matched to a dive on the clock it is later placed by.
+  group('DiveMediaClock.onCameraClock', () {
+    Dive dive(int shift) => Dive(
+      id: 'd1',
+      dateTime: DateTime.utc(2026, 5, 6, 9, 4),
+      mediaTimeOffsetSeconds: shift,
+    );
+
+    test('is the dive time itself with no shift', () {
+      expect(
+        DiveMediaClock.onCameraClock(dive(0), DateTime.utc(2026, 5, 6, 9, 4)),
+        DateTime.utc(2026, 5, 6, 9, 4),
+      );
+    });
+
+    // A camera six hours ahead stamps the 09:04 entry as 15:04.
+    test('reads later on a camera running ahead', () {
+      expect(
+        DiveMediaClock.onCameraClock(
+          dive(-21600),
+          DateTime.utc(2026, 5, 6, 9, 4),
+        ),
+        DateTime.utc(2026, 5, 6, 15, 4),
+      );
+    });
+
+    test('reads earlier on a camera running behind', () {
+      expect(
+        DiveMediaClock.onCameraClock(dive(90), DateTime.utc(2026, 5, 6, 9, 4)),
+        DateTime.utc(2026, 5, 6, 9, 2, 30),
+      );
+    });
+
+    test('ignores a shift a dive cannot hold', () {
+      expect(
+        DiveMediaClock.onCameraClock(
+          dive(9000000000000000000),
+          DateTime.utc(2026, 5, 6, 9, 4),
+        ),
+        DateTime.utc(2026, 5, 6, 9, 4),
+      );
+    });
+  });
+
   group('DiveMediaClock.forDive', () {
     test("reads the dive's start and shift", () {
       final clock = DiveMediaClock.forDive(

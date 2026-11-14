@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/services/dive_gallery_lookup.dart';
 import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/domain/services/dive_media_clock.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/dive_photo_matcher.dart';
 import 'package:submersion/features/media/domain/value_objects/extracted_file.dart';
@@ -388,6 +389,10 @@ class TripMediaScanner {
   /// Get the effective entry and exit times for a dive.
   ///
   /// Falls back to dateTime and dateTime + duration if entry/exit times not set.
+  ///
+  /// The window is the dive's as its camera reads it: moved by the dive's
+  /// media time shift, so media is matched on the clock it is later placed
+  /// by (issue #4539).
   static (DateTime, DateTime) diveBounds(Dive dive) {
     final entryTime = dive.entryTime ?? dive.dateTime;
     final exitTime =
@@ -395,7 +400,10 @@ class TripMediaScanner {
         (dive.effectiveRuntime != null
             ? dive.dateTime.add(dive.effectiveRuntime!)
             : dive.dateTime.add(const Duration(minutes: 60)));
-    return (entryTime, exitTime);
+    return (
+      DiveMediaClock.onCameraClock(dive, entryTime),
+      DiveMediaClock.onCameraClock(dive, exitTime),
+    );
   }
 
   /// Convert a local [DateTime] to wall-clock-as-UTC by preserving the

@@ -435,6 +435,53 @@ void main() {
     expect(item.enrichment!.depthMeters, 18.0);
   });
 
+  // The camera runs six hours ahead, so it stamped the dive's 10:30 as
+  // 16:30. Matched on the dive's own clock that asset is nowhere near the
+  // dive; matched on the clock it is placed by, it is in the middle of it.
+  test("matches an asset on the dive's media clock", () async {
+    final dive = await createDive(
+      entry: DateTime.utc(2026, 7, 1, 10),
+      exit: DateTime.utc(2026, 7, 1, 11),
+    );
+    await ProfileSeriesRepository().insertSeries(
+      diveId: dive.id,
+      samples: [
+        for (final (ts, depth) in const [(0, 0.0), (1800, 18.0), (3600, 0.0)])
+          ProfileSample(timestamp: ts, depth: depth),
+      ],
+    );
+    await diveRepository.setMediaTimeOffsetSeconds(dive.id, -21600);
+    final shifted = (await diveRepository.getDiveById(dive.id))!;
+
+    final api = _FakeLightroomApi(
+      assets: [
+        LightroomAsset(
+          id: 'onCameraClock',
+          subtype: 'image',
+          captureDate: DateTime.utc(2026, 7, 1, 16, 30),
+          fileName: 'reef.jpg',
+        ),
+        // Inside the dive's own window, which is not when this camera says
+        // the dive happened.
+        LightroomAsset(
+          id: 'onDiveClock',
+          subtype: 'image',
+          captureDate: DateTime.utc(2026, 7, 1, 10, 30),
+          fileName: 'other.jpg',
+        ),
+      ],
+    );
+    final summary = await service(
+      api,
+    ).scanDives(account: account, dives: [shifted], state: state);
+
+    expect(summary.attached, 1);
+    final item = (await mediaRepository.getMediaForDive(dive.id)).single;
+    expect(item.remoteAssetId, 'onCameraClock');
+    expect(item.enrichment!.elapsedSeconds, 1800);
+    expect(item.enrichment!.depthMeters, 18.0);
+  });
+
   // A card of photos from one dive must not load that dive, profile and
   // all, once per photo.
   test('a scan reads each dive it places media on once', () async {

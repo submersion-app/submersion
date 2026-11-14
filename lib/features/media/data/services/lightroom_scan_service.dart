@@ -390,6 +390,10 @@ class LightroomScanService {
 
   /// Dive time bounds with the gallery scanner's fallbacks: entry falls
   /// back to the dive's dateTime; exit to entry + runtime, or one hour.
+  ///
+  /// The window is the dive's as its camera reads it, so an asset is
+  /// matched, and fetched, on the clock [_placementFor] then places it by
+  /// (issue #4539).
   DiveBounds _boundsFor(Dive dive) {
     final entry = dive.entryTime ?? dive.dateTime;
     final exit =
@@ -397,6 +401,10 @@ class LightroomScanService {
         (dive.effectiveRuntime != null
             ? entry.add(dive.effectiveRuntime!)
             : entry.add(const Duration(minutes: 60)));
-    return DiveBounds(diveId: dive.id, entryTime: entry, exitTime: exit);
+    return DiveBounds(
+      diveId: dive.id,
+      entryTime: DiveMediaClock.onCameraClock(dive, entry),
+      exitTime: DiveMediaClock.onCameraClock(dive, exit),
+    );
   }
 }
