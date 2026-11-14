@@ -27,7 +27,10 @@ import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/core/utils/time_weighted_mean.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/dive_log/domain/entities/counterdiffusion_analysis.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
+import 'package:submersion/features/dive_log/domain/services/counterdiffusion_ranges.dart';
+import 'package:submersion/features/dive_log/domain/services/icd_switch_markers.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_curve.dart';
 import 'package:submersion/features/dive_log/domain/services/deco_stop_windows.dart';
 
@@ -360,6 +363,11 @@ class ProfileAnalysis {
   /// computing it changes no other field.
   final GasSwitchEfficiency? gasSwitchEfficiency;
 
+  /// Where the tissue model shows isobaric counterdiffusion, and the gas
+  /// switches that break the rule of fifths (#4530). Read-only like
+  /// [gasSwitchEfficiency]; none when tissue loading is withheld.
+  final CounterdiffusionAnalysis counterdiffusion;
+
   const ProfileAnalysis({
     required this.ascentRates,
     required this.ascentRateStats,
@@ -400,6 +408,7 @@ class ProfileAnalysis {
     this.tissueLoadingWithheld = false,
     this.inputsFingerprint,
     this.gasSwitchEfficiency,
+    this.counterdiffusion = CounterdiffusionAnalysis.none,
   });
 
   /// Whether diver went into decompression obligation
@@ -505,6 +514,7 @@ class ProfileAnalysis {
     bool? tissueLoadingWithheld,
     String? inputsFingerprint,
     GasSwitchEfficiency? gasSwitchEfficiency,
+    CounterdiffusionAnalysis? counterdiffusion,
   }) {
     return ProfileAnalysis(
       ascentRates: ascentRates ?? this.ascentRates,
@@ -550,6 +560,7 @@ class ProfileAnalysis {
           tissueLoadingWithheld ?? this.tissueLoadingWithheld,
       inputsFingerprint: inputsFingerprint ?? this.inputsFingerprint,
       gasSwitchEfficiency: gasSwitchEfficiency ?? this.gasSwitchEfficiency,
+      counterdiffusion: counterdiffusion ?? this.counterdiffusion,
     );
   }
 
@@ -1117,6 +1128,14 @@ class ProfileAnalysisService {
           )
         : null;
 
+    // Read-only like the above (#4530): where the tissues counterdiffuse,
+    // and the switches that break the rule of fifths.
+    final counterdiffusion = _counterdiffusionOf(
+      decoStatuses: decoStatuses,
+      timestamps: timestamps,
+      gasSegments: gasSegments,
+    );
+
     return ProfileAnalysis(
       ascentRates: ascentRates,
       ascentRateStats: ascentRateStats,
@@ -1151,7 +1170,34 @@ class ProfileAnalysisService {
       environment: _environment,
       tissueLoadingWithheld: tissueLoadingWithheld,
       gasSwitchEfficiency: gasSwitchEfficiency,
+      counterdiffusion: counterdiffusion,
     );
+  }
+
+  /// [CounterdiffusionAnalysis] of the replayed [decoStatuses], with the
+  /// rule-of-fifths markers of [gasSegments] when there is a schedule. A
+  /// bailout reads the loop's mix at the ambient pressure of the first sample
+  /// at or after the switch.
+  CounterdiffusionAnalysis _counterdiffusionOf({
+    required List<DecoStatus> decoStatuses,
+    required List<int> timestamps,
+    required List<ProfileGasSegment>? gasSegments,
+  }) {
+    final tissue = counterdiffusionAnalysisOf(decoStatuses, timestamps);
+    if (gasSegments == null || decoStatuses.length != timestamps.length) {
+      return tissue;
+    }
+    final markers = icdSwitchMarkersOf(
+      gasSegments,
+      ambientPressureAt: (time) {
+        for (var i = 0; i < timestamps.length; i++) {
+          if (timestamps[i] >= time) return decoStatuses[i].ambientPressureBar;
+        }
+        return null;
+      },
+    );
+    if (markers.isEmpty) return tissue;
+    return tissue.copyWith(switchMarkers: markers, heliumPresent: true);
   }
 
   /// Detect significant events in the profile.

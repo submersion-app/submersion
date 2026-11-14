@@ -17,7 +17,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 
 import '../../../helpers/test_database.dart';
 
-/// Issue #4534. The v366 repair stamps nothing, so a peer below v366 goes on
+/// Issue #4534. The v367 repair stamps nothing, so a peer below v367 goes on
 /// sending a cylinder volume saved as water cubic feet, and a new device
 /// never ran the rung. Applying such a row has to repair it.
 void main() {
@@ -37,7 +37,7 @@ void main() {
   SyncService buildService() =>
       SyncService(syncRepository: SyncRepository(), serializer: serializer);
 
-  /// An AL80 as a peer below v366 publishes it: 77.4 typed as cubic feet of
+  /// An AL80 as a peer below v367 publishes it: 77.4 typed as cubic feet of
   /// water.
   Future<SyncPayload> legacyPeerPayload() async {
     final repository = EquipmentRepository();

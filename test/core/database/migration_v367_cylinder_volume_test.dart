@@ -4,15 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/cylinder_volume_repair.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v366 (issue #4534): a cylinder volume an imperial diver typed in
+/// Schema v367 (issue #4534): a cylinder volume an imperial diver typed in
 /// cubic feet was stored as that many cubic feet of WATER, so an AL80 typed
 /// as 77.4 became about 2192 L. The rung reads the stored litres back as the
 /// figure typed and stores it as rated gas capacity at the item's working
 /// pressure (200 bar assumed without one). Nothing is stamped.
 void main() {
-  NativeDatabase dbAt365() => NativeDatabase.memory(
+  NativeDatabase dbAt366() => NativeDatabase.memory(
     setup: (rawDb) {
-      rawDb.execute('PRAGMA user_version = 365');
+      rawDb.execute('PRAGMA user_version = 366');
       rawDb.execute(
         'CREATE TABLE equipment (id TEXT NOT NULL PRIMARY KEY, '
         'name TEXT NOT NULL, type TEXT NOT NULL)',
@@ -57,8 +57,8 @@ void main() {
               .getSingle())
           .read<double?>('value_num');
 
-  test('v366 rewrites cylinder volumes saved as water cubic feet', () async {
-    final db = AppDatabase(dbAt365());
+  test('v367 rewrites cylinder volumes saved as water cubic feet', () async {
+    final db = AppDatabase(dbAt366());
     addTearDown(db.close);
 
     expect(await litres(db, 'al80'), 11.1);
@@ -66,7 +66,7 @@ void main() {
   });
 
   test('real cylinder sizes and other items are left alone', () async {
-    final db = AppDatabase(dbAt365());
+    final db = AppDatabase(dbAt366());
     addTearDown(db.close);
 
     expect(await litres(db, 'twelve'), 12);
@@ -75,7 +75,7 @@ void main() {
   });
 
   test('the repair stamps nothing and a second run changes nothing', () async {
-    final db = AppDatabase(dbAt365());
+    final db = AppDatabase(dbAt366());
     addTearDown(db.close);
 
     final row = await db
@@ -89,8 +89,8 @@ void main() {
     expect(await repairCylinderVolumeCubicFeet(db), 0);
   });
 
-  test('a volume saved with a unit since v366 is never repaired', () async {
-    final db = AppDatabase(dbAt365());
+  test('a volume saved with a unit since v367 is never repaired', () async {
+    final db = AppDatabase(dbAt366());
     addTearDown(db.close);
     await db.customStatement(
       "UPDATE equipment_attributes SET value_num = 100, value_unit = 'liters' "

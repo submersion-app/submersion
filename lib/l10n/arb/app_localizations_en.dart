@@ -9281,6 +9281,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Late gas switches';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Counterdiffusion';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'All';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Counterdiffusion (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Opposing exchange';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Gas exchange';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, net $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'in';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'out';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'mixed';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Gas Switches';
 
   @override
@@ -22104,6 +22145,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'I Understand';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Profile shows isobaric counterdiffusion';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Planning disclaimer accepted';
 
@@ -22472,6 +22517,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Late gas switch';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Isobaric counterdiffusion';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Isobaric counterdiffusion for $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'A gas switch broke the rule of fifths';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23046,6 +23104,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Isobaric counterdiffusion';
 
   @override
   String get settings_appearance_metric_events => 'Events';
@@ -28556,7 +28618,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Shows a rule-of-fifths assessment in the ICD calculator when switching from a more helium-rich to a more nitrogen-rich gas.';
+      'Shows a rule-of-fifths assessment in the ICD calculator, and on the dive profile\'s counterdiffusion overlay, when switching from a more helium-rich to a more nitrogen-rich gas.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'CNS calculation';
@@ -62162,6 +62224,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'A gas switch can raise total inert gas in tissues with no change in depth when nitrogen rises faster than helium falls. The common check, the rule of fifths, limits the nitrogen rise to one fifth of the helium drop.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Counterdiffusion on the profile';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'On the dive profile an orange band marks where a compartment already holds more inert gas than is breathed and still takes gas up noticeably. In the Bühlmann model helium leaves faster than nitrogen enters, so a switch from trimix to nitrox rarely shows a band; the dashed line at the switch shows the rule of fifths instead.';
 
   @override
   String get info_term_hypercapnia_label => 'Hypercapnia';

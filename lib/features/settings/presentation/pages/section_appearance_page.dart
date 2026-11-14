@@ -855,6 +855,7 @@ class SectionAppearancePage extends ConsumerWidget {
     settings.defaultShowPpHe,
     settings.defaultShowGasDensity,
     settings.defaultShowO2CellMv,
+    settings.defaultShowCounterdiffusion,
     settings.defaultShowGf,
     settings.defaultShowSurfaceGf,
     settings.defaultShowMeanDepth,

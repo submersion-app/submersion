@@ -199,17 +199,24 @@ extension RungsFromV340 on AppDatabase {
     if (from < 365) await _assertRecentEquipmentColorsColumn();
     if (from < 365) await reportProgress();
 
-    // v366: equipment_attributes.value_unit, the unit an item's own number
+    // v366: diver_settings.default_show_counterdiffusion, the default
+    // visibility of the isobaric counterdiffusion overlay on the dive profile
+    // (issue #4530). Column only, defaulted off; re-asserted in beforeOpen.
+    // Renumbered from 365, which main took for #4537.
+    if (from < 366) await _assertDefaultShowCounterdiffusionColumn();
+    if (from < 366) await reportProgress();
+
+    // v367: equipment_attributes.value_unit, the unit an item's own number
     // reads in (issue #4534). Nullable, no backfill: every existing row
     // follows the diver's settings, as it did. Re-asserted in beforeOpen.
-    // Numbered 366: main took 364 and 365.
     // The same rung repairs cylinder volumes an imperial diver typed in
     // cubic feet, stored as water volume until now. Data only, so the floor
     // does not move; it rewrites equipment_attributes.value_num, so
     // changeLogRewrittenColumns lists it, and it repeats after each sync
-    // apply for rows a peer below v366 still sends.
-    if (from < 366) await _assertAttributeValueUnitColumn();
-    if (from < 366) await _repairCylinderVolumeCubicFeet();
-    if (from < 366) await reportProgress();
+    // apply for rows a peer below v367 still sends. Renumbered from 366,
+    // which main took for #4530.
+    if (from < 367) await _assertAttributeValueUnitColumn();
+    if (from < 367) await _repairCylinderVolumeCubicFeet();
+    if (from < 367) await reportProgress();
   }
 }

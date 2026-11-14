@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v366: equipment_attributes.value_unit, the unit an item's own
+/// Schema v367: equipment_attributes.value_unit, the unit an item's own
 /// number reads in (issue #4534). Nullable and never backfilled: a row made
 /// before this column follows the diver's settings, as it always did.
 void main() {
@@ -32,16 +32,16 @@ void main() {
           .map((row) => row.read<String>('name'))
           .toList();
 
-  test('v366 is in the ladder and keeps the floor', () {
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(366));
-    expect(AppDatabase.migrationVersions, contains(366));
-    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(366));
+  test('v367 is in the ladder and keeps the floor', () {
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(367));
+    expect(AppDatabase.migrationVersions, contains(367));
+    expect(AppDatabase.minimumCompatibleSchemaVersion, lessThan(367));
   });
 
   test(
     'upgrading adds the column and leaves rows following the diver',
     () async {
-      final db = AppDatabase(dbAt(365, withColumn: false));
+      final db = AppDatabase(dbAt(366, withColumn: false));
       addTearDown(db.close);
 
       expect(await columns(db), contains('value_unit'));
@@ -55,7 +55,7 @@ void main() {
   );
 
   test('a database that skipped the rung gets the column on open', () async {
-    final db = AppDatabase(dbAt(366, withColumn: false));
+    final db = AppDatabase(dbAt(367, withColumn: false));
     addTearDown(db.close);
 
     expect(await columns(db), contains('value_unit'));

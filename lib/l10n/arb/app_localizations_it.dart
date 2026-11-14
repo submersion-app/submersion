@@ -9428,6 +9428,47 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'Cambi gas tardivi';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'Controdiffusione';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'Tutto';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'Controdiffusione (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'Scambio opposto';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'Scambio gassoso';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, netto $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'entra';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'esce';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'misto';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'Cambi gas';
 
   @override
@@ -22438,6 +22479,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'Ho capito';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'Il profilo mostra la controdiffusione isobarica';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'Avviso di pianificazione accettato';
 
@@ -22811,6 +22856,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'Cambio gas tardivo';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'Controdiffusione isobarica';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'Controdiffusione isobarica per $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'Un cambio gas ha violato la regola dei quinti';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -23391,6 +23449,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'Ceiling';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'Controdiffusione isobarica';
 
   @override
   String get settings_appearance_metric_events => 'Eventi';
@@ -29057,7 +29119,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'Mostra nel calcolatore ICD una valutazione secondo la regola del quinto quando si passa da un gas più ricco di elio a uno più ricco di azoto.';
+      'Mostra nel calcolatore ICD e nel livello di controdiffusione del profilo una valutazione secondo la regola del quinto quando si passa da un gas più ricco di elio a uno più ricco di azoto.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'Calcolo del CNS';
@@ -63148,6 +63210,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'Un cambio gas può aumentare il gas inerte totale nei tessuti senza cambiare profondità quando l\'azoto sale più in fretta di quanto scenda l\'elio. Il controllo comune, la regola dei quinti, limita l\'aumento di azoto a un quinto del calo di elio.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label =>
+      'Controdiffusione sul profilo';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'Sul profilo una banda arancione segna dove un compartimento contiene già più gas inerte di quello respirato e continua comunque ad assorbirne in modo apprezzabile. Nel modello di Bühlmann l\'elio esce più in fretta di quanto entri l\'azoto, quindi un cambio da trimix a nitrox mostra raramente una banda; la linea tratteggiata al cambio mostra invece la regola dei quinti.';
 
   @override
   String get info_term_hypercapnia_label => 'Ipercapnia';

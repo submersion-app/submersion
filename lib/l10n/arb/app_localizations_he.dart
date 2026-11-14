@@ -9220,6 +9220,47 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_legend_label_lateGasSwitches => 'החלפות גז מאוחרות';
 
   @override
+  String get diveLog_legend_label_counterdiffusion => 'דיפוזיה נגדית';
+
+  @override
+  String get diveLog_counterdiffusion_segment_icd => 'ICD';
+
+  @override
+  String get diveLog_counterdiffusion_segment_all => 'הכול';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_icd => 'דיפוזיה נגדית (ICD)';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_opposing => 'חילוף מנוגד';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_exchange => 'חילוף גזים';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_directions(
+    String n2,
+    String he,
+    String net,
+  ) {
+    return 'N₂ $n2, He $he, נטו $net';
+  }
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_in => 'נכנס';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_out => 'יוצא';
+
+  @override
+  String get diveLog_tooltip_counterdiffusion_mixed => 'מעורב';
+
+  @override
+  String diveLog_tooltip_counterdiffusion_compartments(String list) {
+    return '#$list';
+  }
+
+  @override
   String get diveLog_legend_label_gasSwitches => 'החלפות גז';
 
   @override
@@ -21948,6 +21989,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get planning_disclaimer_dialog_confirm => 'הבנתי';
 
   @override
+  String get settings_conflict_field_defaultShowCounterdiffusion =>
+      'הפרופיל מציג דיפוזיה נגדית איזוברית';
+
+  @override
   String get settings_conflict_field_hasAcceptedPlanningDisclaimer =>
       'אזהרת תכנון אושרה';
 
@@ -22312,6 +22357,19 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get safetySettings_rule_lateGasSwitch => 'החלפת גז מאוחרת';
+
+  @override
+  String get safetySettings_rule_isobaricCounterdiffusion =>
+      'דיפוזיה נגדית איזוברית';
+
+  @override
+  String safetyReview_isobaricCounterdiffusion_title(String duration) {
+    return 'דיפוזיה נגדית איזוברית במשך $duration';
+  }
+
+  @override
+  String get safetyReview_isobaricCounterdiffusion_switch_title =>
+      'החלפת גז הפרה את כלל החמישיות';
 
   @override
   String get safetySettings_rule_highSurfaceGf =>
@@ -22880,6 +22938,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_appearance_metric_ceiling => 'תקרה';
+
+  @override
+  String get settings_appearance_metric_counterdiffusion =>
+      'דיפוזיה נגדית איזוברית';
 
   @override
   String get settings_appearance_metric_events => 'אירועים';
@@ -28322,7 +28384,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_decompression_icdWarnings_subtitle =>
-      'מציג במחשבון ה-ICD הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.';
+      'מציג במחשבון ה-ICD ובשכבת הדיפוזיה הנגדית בפרופיל הערכה לפי כלל החמישית במעבר מגז עשיר יותר בהליום לגז עשיר יותר בחנקן.';
 
   @override
   String get settings_decompression_cnsMethodTitle => 'חישוב CNS';
@@ -61839,6 +61901,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get info_term_isobaricCounterdiffusion_body =>
       'החלפת גז יכולה להעלות את סך הגז האינרטי ברקמות בלי שינוי עומק כשהחנקן עולה מהר יותר משההליום יורד. הבדיקה המקובלת, כלל החמישיות, מגבילה את עליית החנקן לחמישית מירידת ההליום.';
+
+  @override
+  String get info_term_counterdiffusionProfile_label => 'דיפוזיה נגדית בפרופיל';
+
+  @override
+  String get info_term_counterdiffusionProfile_body =>
+      'בפרופיל הצלילה פס כתום מסמן היכן מדור מכיל כבר יותר גז אינרטי ממה שנשאף ועדיין קולט גז באופן מורגש. במודל בולמן ההליום יוצא מהר יותר משהחנקן נכנס, ולכן מעבר מטרימיקס לניטרוקס מראה פס לעתים רחוקות; הקו המקווקו במעבר מראה במקום זאת את כלל החמישיות.';
 
   @override
   String get info_term_hypercapnia_label => 'היפרקפניה';

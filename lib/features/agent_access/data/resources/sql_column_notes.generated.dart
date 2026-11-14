@@ -323,6 +323,7 @@ const Map<String, Map<String, String>> kSqlColumnNotes = {
     'default_gtr_source': 'Gas time remaining on the profile chart',
     'default_planner_water_type': 'default water type for a new dive plan (salt, fresh, custom)',
     'default_right_axis_metric': 'Dive profile chart defaults',
+    'default_show_counterdiffusion': 'default visibility for the isobaric counterdiffusion overlay on the dive profile',
     'default_show_estimated_tank_pressure': 'whether synthesized ("(est.)") tank pressure lines are drawn on the profile chart at all',
     'default_show_late_gas_switches': 'shade late and missed deco gas switches on the profile',
     'default_show_o2_cell_mv': 'default visibility for the per-cell O2 mV traces',
