@@ -451,7 +451,16 @@ class _SiteMapPageState extends ConsumerState<SiteMapPage>
           right: 8,
           child: MapCornerControls(controller: _mapController),
         ),
-        const Positioned(top: 12, left: 12, child: BuiltInOverlayCaption()),
+        // Beside the controls card, wrapping where its language is long.
+        const Positioned(
+          top: 12,
+          left: 12,
+          right: 128,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: BuiltInOverlayCaption(),
+          ),
+        ),
 
         // Empty state overlay
         if (sitesWithLocation.isEmpty)

@@ -92,6 +92,30 @@ void main() {
     expect(text, contains('not for navigation'));
   });
 
+  test('every entry states its licence, the project\'s own sites '
+      'included', () async {
+    final text = await licenceText();
+
+    // A source's name and link are not its licence: the Florida Keys
+    // entry had neither a licence nor "public domain", and the sites the
+    // project adds itself were credited only by the repository's name.
+    expect(
+      text,
+      contains(
+        'Marine Sanctuary. A work of the United States Government, in the '
+        'public domain.',
+      ),
+    );
+    expect(
+      text,
+      contains(
+        'Sites added by the Submersion project '
+        '(scripts/dive_sites_curated.json), under the Open Database '
+        'License 1.0.',
+      ),
+    );
+  });
+
   test('the sources kept apart from the ODbL database say so', () async {
     final text = await licenceText();
 

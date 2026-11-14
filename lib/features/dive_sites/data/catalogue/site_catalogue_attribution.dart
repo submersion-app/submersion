@@ -40,6 +40,9 @@ published, with the scripts that produce it, in the Submersion source
 repository:
 https://github.com/submersion-app/submersion
 
+Sites added by the Submersion project (scripts/dive_sites_curated.json),
+under the Open Database License 1.0.
+
 UK Hydrographic Office Wrecks and Obstructions. Contains public sector
 information, licensed under the Open Government Licence v3.0, from the UK
 Hydrographic Office.
@@ -60,7 +63,8 @@ states. Public domain.
 https://www.fisheries.noaa.gov/inport/item/54191
 
 Florida Keys National Marine Sanctuary buoys, NOAA Florida Keys National
-Marine Sanctuary.
+Marine Sanctuary. A work of the United States Government, in the public
+domain.
 https://floridakeys.noaa.gov/mbuoy/allmbuoys.html
 
 Wreck Inventory of Ireland Database, National Monuments Service,
