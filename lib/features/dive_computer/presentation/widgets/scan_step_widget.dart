@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/discovery_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/widgets/garmin_watch_usb_entry.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/usb_manufacturer_group.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -333,6 +334,36 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
   String? _selectedManufacturer;
   final _searchController = TextEditingController();
 
+  /// Brands the diver opened while no search or brand filter is on. The
+  /// list starts with every brand folded, so its 350-odd models read as an
+  /// index of brands (issue #4480).
+  Set<String> _openBrands = const {};
+
+  /// Brands the diver folded while a search or brand filter is on. Matches
+  /// show open then, and these folds are dropped whenever the filter
+  /// changes, as on the Equipment list.
+  Set<String> _foldedWhileFiltering = const {};
+
+  bool get _isFiltering =>
+      _searchQuery.isNotEmpty || _selectedManufacturer != null;
+
+  bool _isExpanded(String manufacturer) => _isFiltering
+      ? !_foldedWhileFiltering.contains(manufacturer)
+      : _openBrands.contains(manufacturer);
+
+  void _toggle(String manufacturer) {
+    Set<String> flipped(Set<String> brands) => brands.contains(manufacturer)
+        ? brands.difference({manufacturer})
+        : brands.union({manufacturer});
+    setState(() {
+      if (_isFiltering) {
+        _foldedWhileFiltering = flipped(_foldedWhileFiltering);
+      } else {
+        _openBrands = flipped(_openBrands);
+      }
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -466,8 +497,10 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                             ),
                             isDense: true,
                           ),
-                          onChanged: (value) =>
-                              setState(() => _searchQuery = value),
+                          onChanged: (value) => setState(() {
+                            _searchQuery = value;
+                            _foldedWhileFiltering = const {};
+                          }),
                         ),
                         const SizedBox(height: 12),
                         DropdownMenu<String?>(
@@ -498,6 +531,7 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                           onSelected: (value) {
                             setState(() {
                               _selectedManufacturer = value;
+                              _foldedWhileFiltering = const {};
                             });
                           },
                         ),
@@ -524,131 +558,38 @@ class _UsbDevicesTabState extends ConsumerState<_UsbDevicesTab> {
                 ),
               )
             else
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList.builder(
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final manufacturer = manufacturers[index];
-                    final devices = filtered[manufacturer]!;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Manufacturer header
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            manufacturer,
-                            style: theme.textTheme.titleSmall?.copyWith(
-                              color: colorScheme.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        // Devices
-                        ...devices.map(
-                          (model) => _UsbDeviceListTile(
-                            model: model,
-                            onTap: () {
-                              // Garmin is imported, never downloaded.
-                              if (GarminWatchUsbEntry.isEntry(model)) {
-                                widget.onGarminWatchSelected?.call();
-                                return;
-                              }
-                              final discoveredDevice = DiscoveredDevice(
-                                id: model.id,
-                                name: model.fullName,
-                                connectionType: DeviceConnectionType.usb,
-                                address: model.id,
-                                recognizedModel: model,
-                                discoveredAt: DateTime.now(),
-                              );
-                              widget.onDeviceSelected(discoveredDevice);
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                    );
-                  },
-                ),
+              SliverList.builder(
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final manufacturer = manufacturers[index];
+                  return UsbManufacturerGroup(
+                    key: ValueKey('usb-manufacturer-$manufacturer'),
+                    manufacturer: manufacturer,
+                    models: filtered[manufacturer]!,
+                    isExpanded: _isExpanded(manufacturer),
+                    onToggle: () => _toggle(manufacturer),
+                    onModelSelected: (model) {
+                      // Garmin is imported, never downloaded.
+                      if (GarminWatchUsbEntry.isEntry(model)) {
+                        widget.onGarminWatchSelected?.call();
+                        return;
+                      }
+                      final discoveredDevice = DiscoveredDevice(
+                        id: model.id,
+                        name: model.fullName,
+                        connectionType: DeviceConnectionType.usb,
+                        address: model.id,
+                        recognizedModel: model,
+                        discoveredAt: DateTime.now(),
+                      );
+                      widget.onDeviceSelected(discoveredDevice);
+                    },
+                  );
+                },
               ),
           ],
         );
       },
-    );
-  }
-}
-
-/// List tile for a USB device model.
-class _UsbDeviceListTile extends StatelessWidget {
-  final DeviceModel model;
-  final VoidCallback onTap;
-
-  const _UsbDeviceListTile({required this.model, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Semantics(
-        button: true,
-        label: context.l10n.diveComputer_scan_usbSemanticLabel(model.model),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Icon
-                ExcludeSemantics(
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.usb,
-                      color: colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                // Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(model.model, style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 4),
-                      Text(
-                        context.l10n.diveComputer_scan_usbCableLabel,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Chevron
-                ExcludeSemantics(
-                  child: Icon(
-                    Icons.chevron_right,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

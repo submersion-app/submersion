@@ -1,10 +1,6 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -12,126 +8,22 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
-import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
-import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/video_controls_bar.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:video_player_platform_interface/video_player_platform_interface.dart';
 
 import '../../../../helpers/test_database.dart';
-
-class _UnavailableResolver implements MediaSourceResolver {
-  @override
-  MediaSourceType get sourceType => MediaSourceType.localFile;
-  @override
-  bool canResolveOnThisDevice(MediaItem item) => true;
-  @override
-  Future<MediaSourceData> resolve(MediaItem item) async =>
-      const UnavailableData(kind: UnavailableKind.notFound);
-  @override
-  Future<MediaSourceData> resolveThumbnail(
-    MediaItem item, {
-    required Size target,
-  }) => resolve(item);
-  @override
-  Future<VerifyResult> verify(MediaItem item) async => VerifyResult.available;
-}
-
-/// Minimal in-memory video platform. Enough for the controller to reach its
-/// initialized state so the player, its controls, and play/pause can be
-/// exercised without a real decoder.
-class _FakeVideoPlatform extends VideoPlayerPlatform {
-  final _events = StreamController<VideoEvent>.broadcast();
-  bool playing = false;
-
-  /// Native players created and released, so a test can tell how many
-  /// decoders the viewer holds.
-  int created = 0;
-  int disposed = 0;
-
-  @override
-  Future<void> init() async {}
-
-  @override
-  Future<int?> create(DataSource dataSource) async {
-    created++;
-    return 1;
-  }
-
-  @override
-  Future<int?> createWithOptions(VideoCreationOptions options) async {
-    created++;
-    return 1;
-  }
-
-  /// A released player stops, as the real platforms' players do.
-  @override
-  Future<void> dispose(int playerId) async {
-    disposed++;
-    playing = false;
-  }
-
-  @override
-  Stream<VideoEvent> videoEventsFor(int playerId) => _events.stream;
-
-  @override
-  Future<void> setLooping(int playerId, bool looping) async {}
-
-  @override
-  Future<void> play(int playerId) async => playing = true;
-
-  @override
-  Future<void> pause(int playerId) async => playing = false;
-
-  @override
-  Future<void> setVolume(int playerId, double volume) async {}
-
-  @override
-  Future<void> setPlaybackSpeed(int playerId, double speed) async {}
-
-  @override
-  Future<void> seekTo(int playerId, Duration position) async {}
-
-  @override
-  Future<Duration> getPosition(int playerId) async => Duration.zero;
-
-  @override
-  Future<void> setMixWithOthers(bool mixWithOthers) async {}
-
-  @override
-  Widget buildView(int playerId) => const SizedBox.expand();
-
-  /// Announces a ready 640x360 clip; VideoPlayerController.initialize()
-  /// completes only once this lands.
-  void completeInitialization() {
-    _events.add(
-      VideoEvent(
-        eventType: VideoEventType.initialized,
-        duration: const Duration(seconds: 30),
-        size: const Size(640, 360),
-        rotationCorrection: 0,
-      ),
-    );
-  }
-
-  /// Reports a clip the decoder cannot open, after its player was created;
-  /// VideoPlayerController.initialize() then throws.
-  void failInitialization() {
-    _events.addError(
-      PlatformException(code: 'VideoError', message: 'Unsupported codec'),
-    );
-  }
-}
+import 'video_viewer_test_harness.dart';
 
 /// A platform with no player, as on Windows before video_player_win (#3548):
 /// creation throws the platform interface's own UnimplementedError. The
 /// controller then never completes its creation, so its dispose() waits
 /// forever.
-class _UncreatableVideoPlatform extends _FakeVideoPlatform {
+class _UncreatableVideoPlatform extends FakeVideoPlatform {
   @override
   Future<int?> create(DataSource dataSource) =>
       throw UnimplementedError('create() has not been implemented.');
@@ -143,20 +35,12 @@ class _UncreatableVideoPlatform extends _FakeVideoPlatform {
 
 /// A platform whose native release fails, so VideoPlayerController.dispose()
 /// throws.
-class _UnreleasableVideoPlatform extends _FakeVideoPlatform {
+class _UnreleasableVideoPlatform extends FakeVideoPlatform {
   @override
   Future<void> dispose(int playerId) async {
     disposed++;
     throw PlatformException(code: 'VideoError', message: 'release blew up');
   }
-}
-
-/// Installs [platform] as the player for this test, restoring the previous
-/// one when it ends: CI runs many test files in one isolate (#2500).
-void _usePlatform(VideoPlayerPlatform platform) {
-  final original = VideoPlayerPlatform.instance;
-  addTearDown(() => VideoPlayerPlatform.instance = original);
-  VideoPlayerPlatform.instance = platform;
 }
 
 /// Every log entry written from now until the test ends.
@@ -166,22 +50,6 @@ List<LogEntry> _captureLogs() {
   addTearDown(subscription.cancel);
   return logged;
 }
-
-/// A clip path under the platform's temp directory. The fake platform never
-/// opens it; it only has to be a valid path on every OS (issue #2279).
-String _tempVideoPath(String id) =>
-    p.join(Directory.systemTemp.path, '$id.mp4');
-
-MediaItem video(String id) => MediaItem(
-  id: id,
-  mediaType: MediaType.video,
-  sourceType: MediaSourceType.localFile,
-  filePath: _tempVideoPath(id),
-  localPath: _tempVideoPath(id),
-  takenAt: DateTime.utc(2026, 7, 1, 10),
-  createdAt: DateTime.utc(2026, 7, 1),
-  updatedAt: DateTime.utc(2026, 7, 1),
-);
 
 void main() {
   late SharedPreferences prefs;
@@ -205,7 +73,7 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             mediaSourceResolverRegistryProvider.overrideWithValue(
               MediaSourceResolverRegistry({
-                MediaSourceType.localFile: _UnavailableResolver(),
+                MediaSourceType.localFile: UnavailableVideoResolver(),
               }),
             ),
             resolvedFilePathProvider.overrideWith(
@@ -245,10 +113,10 @@ void main() {
 
   testWidgets('a player that cannot be created reports and logs the failure '
       'instead of spinning', (tester) async {
-    _usePlatform(_UncreatableVideoPlatform());
+    useVideoPlatform(_UncreatableVideoPlatform());
     final logged = _captureLogs();
 
-    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await pump(tester, path: () async => tempVideoPath('v1'));
 
     expect(find.text('Failed to load video'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
@@ -265,11 +133,11 @@ void main() {
 
   testWidgets('a video that fails after its player was created reports the '
       'failure and still releases the player', (tester) async {
-    final platform = _FakeVideoPlatform();
-    _usePlatform(platform);
+    final platform = FakeVideoPlatform();
+    useVideoPlatform(platform);
 
     // pump() leaves initialize() waiting on the platform's events.
-    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await pump(tester, path: () async => tempVideoPath('v1'));
     await tester.runAsync(() async {
       platform.failInitialization();
       await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -285,11 +153,11 @@ void main() {
 
   testWidgets('a load that finishes after the viewer closed releases its '
       'player', (tester) async {
-    final platform = _FakeVideoPlatform();
-    _usePlatform(platform);
+    final platform = FakeVideoPlatform();
+    useVideoPlatform(platform);
 
     // pump() leaves initialize() waiting on the platform's events.
-    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await pump(tester, path: () async => tempVideoPath('v1'));
     await tester.runAsync(() async {
       await tester.pumpWidget(const SizedBox());
       platform.completeInitialization();
@@ -305,10 +173,10 @@ void main() {
     tester,
   ) async {
     final platform = _UnreleasableVideoPlatform();
-    _usePlatform(platform);
+    useVideoPlatform(platform);
     final logged = _captureLogs();
 
-    await pump(tester, path: () async => _tempVideoPath('v1'));
+    await pump(tester, path: () async => tempVideoPath('v1'));
     await tester.runAsync(() async {
       platform.failInitialization();
       await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -332,8 +200,8 @@ void main() {
   testWidgets('a resolvable video reaches the player and its controls', (
     tester,
   ) async {
-    final platform = _FakeVideoPlatform();
-    _usePlatform(platform);
+    final platform = FakeVideoPlatform();
+    useVideoPlatform(platform);
 
     await tester.runAsync(() async {
       await tester.pumpWidget(
@@ -342,11 +210,11 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             mediaSourceResolverRegistryProvider.overrideWithValue(
               MediaSourceResolverRegistry({
-                MediaSourceType.localFile: _UnavailableResolver(),
+                MediaSourceType.localFile: UnavailableVideoResolver(),
               }),
             ),
             resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => _tempVideoPath('v1'),
+              (ref, MediaItem arg) async => tempVideoPath('v1'),
             ),
           ],
           child: MaterialApp(
@@ -377,41 +245,7 @@ void main() {
 
   testWidgets('in fullscreen a tap plays, reveals the controls, and they '
       'stay while paused', (tester) async {
-    final platform = _FakeVideoPlatform();
-    _usePlatform(platform);
-
-    await tester.runAsync(() async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            mediaSourceResolverRegistryProvider.overrideWithValue(
-              MediaSourceResolverRegistry({
-                MediaSourceType.localFile: _UnavailableResolver(),
-              }),
-            ),
-            resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => _tempVideoPath('v1'),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: MediaViewerPage(
-              mediaList: [video('v1')],
-              initialMediaId: 'v1',
-            ),
-          ),
-        ),
-      );
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      platform.completeInitialization();
-      await Future<void>.delayed(const Duration(milliseconds: 150));
-      await tester.pump();
-      await Future<void>.delayed(const Duration(milliseconds: 50));
-      await tester.pump();
-    });
+    final platform = await pumpVideoViewer(tester, prefs);
 
     // Matched on the Semantics widgets the player wraps its controls in,
     // which does not depend on how the semantics tree merges them.
@@ -461,11 +295,82 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('in fullscreen the controls stay up while scrubbing, and hide '
+      'again after (#4487)', (tester) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+
+    final track = find.byKey(VideoControlsBar.trackKey);
+    final playPause = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Play or pause video',
+    );
+
+    await tester.tap(find.byTooltip('Full screen'));
+    await tester.pump();
+    // Tap: plays and reveals the controls, on a 3 s clock.
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isTrue);
+    expect(track, findsOneWidget);
+
+    // A scrub begun just before the clock runs out, and held past it.
+    await tester.pump(const Duration(seconds: 2));
+    final rect = tester.getRect(track);
+    final gesture = await tester.startGesture(
+      rect.centerLeft + const Offset(40, 0),
+    );
+    await gesture.moveBy(const Offset(60, 0));
+    await tester.pump();
+    expect(platform.playing, isFalse, reason: 'paused while scrubbing');
+    await tester.pump(const Duration(seconds: 3));
+    expect(track, findsOneWidget, reason: 'not pulled from under the finger');
+
+    // Released: plays on, and the controls go 3 s later.
+    await gesture.up();
+    await tester.pump();
+    expect(platform.playing, isTrue);
+    expect(track, findsOneWidget);
+    await tester.pump(const Duration(seconds: 3));
+    expect(track, findsNothing);
+
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('in fullscreen a tap on the bar restarts the controls\' '
+      'clock, so they do not vanish right after it (#4487)', (tester) async {
+    final platform = await pumpVideoViewer(tester, prefs);
+
+    final track = find.byKey(VideoControlsBar.trackKey);
+    final playPause = find.byWidgetPredicate(
+      (w) => w is Semantics && w.properties.label == 'Play or pause video',
+    );
+
+    await tester.tap(find.byTooltip('Full screen'));
+    await tester.pump();
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(platform.playing, isTrue);
+
+    // Just before the clock runs out, a tap on the bar to jump.
+    await tester.pump(const Duration(milliseconds: 2300));
+    await tester.tapAt(tester.getCenter(track));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(track, findsOneWidget, reason: 'the tap restarted the clock');
+    await tester.pump(const Duration(seconds: 2));
+    expect(track, findsNothing);
+
+    await tester.tap(playPause);
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('controls left up on a paused video hide on the next photo', (
     tester,
   ) async {
-    final platform = _FakeVideoPlatform();
-    _usePlatform(platform);
+    final platform = FakeVideoPlatform();
+    useVideoPlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,
@@ -482,11 +387,11 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             mediaSourceResolverRegistryProvider.overrideWithValue(
               MediaSourceResolverRegistry({
-                MediaSourceType.localFile: _UnavailableResolver(),
+                MediaSourceType.localFile: UnavailableVideoResolver(),
               }),
             ),
             resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => _tempVideoPath('v1'),
+              (ref, MediaItem arg) async => tempVideoPath('v1'),
             ),
           ],
           child: MaterialApp(
@@ -542,8 +447,8 @@ void main() {
   // ahead of a swipe. A video swiped away therefore stays mounted one page
   // off screen, and has to stop playing rather than carry on unseen.
   testWidgets('a playing video pauses when swiped away', (tester) async {
-    final platform = _FakeVideoPlatform();
-    _usePlatform(platform);
+    final platform = FakeVideoPlatform();
+    useVideoPlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,
@@ -560,11 +465,11 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             mediaSourceResolverRegistryProvider.overrideWithValue(
               MediaSourceResolverRegistry({
-                MediaSourceType.localFile: _UnavailableResolver(),
+                MediaSourceType.localFile: UnavailableVideoResolver(),
               }),
             ),
             resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => _tempVideoPath('v1'),
+              (ref, MediaItem arg) async => tempVideoPath('v1'),
             ),
           ],
           child: MaterialApp(
@@ -626,8 +531,8 @@ void main() {
   testWidgets('a neighbouring video creates no player until shown', (
     tester,
   ) async {
-    final platform = _FakeVideoPlatform();
-    _usePlatform(platform);
+    final platform = FakeVideoPlatform();
+    useVideoPlatform(platform);
     final photo = MediaItem(
       id: 'p1',
       mediaType: MediaType.photo,
@@ -644,11 +549,11 @@ void main() {
             sharedPreferencesProvider.overrideWithValue(prefs),
             mediaSourceResolverRegistryProvider.overrideWithValue(
               MediaSourceResolverRegistry({
-                MediaSourceType.localFile: _UnavailableResolver(),
+                MediaSourceType.localFile: UnavailableVideoResolver(),
               }),
             ),
             resolvedFilePathProvider.overrideWith(
-              (ref, MediaItem arg) async => _tempVideoPath('v1'),
+              (ref, MediaItem arg) async => tempVideoPath('v1'),
             ),
           ],
           child: MaterialApp(

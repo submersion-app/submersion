@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
@@ -8,34 +7,16 @@ import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_color_schemes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map_axes.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_pressure_bar_chart.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/info_sheet/info_button.dart';
 
-import '../../../../helpers/mock_providers.dart';
+import 'tissue_card_test_helpers.dart';
 
-const _comp = TissueCompartment(
-  compartmentNumber: 1,
-  halfTimeN2: 4.0,
-  halfTimeHe: 1.51,
-  mValueAN2: 1.2599,
-  mValueBN2: 0.5050,
-  mValueAHe: 1.7424,
-  mValueBHe: 0.4245,
-);
+const _comp = testCompartment;
 
-const _status = DecoStatus(
-  compartments: [_comp],
-  ndlSeconds: 600,
-  ceilingMeters: 0.0,
-  ttsSeconds: 0,
-  gfLow: 0.4,
-  gfHigh: 0.85,
-  decoStops: [],
-  currentDepthMeters: 10.0,
-  ambientPressureBar: 2.0,
-);
+const _status = testStatus;
 
 const _comp2 = TissueCompartment(
   compartmentNumber: 2,
@@ -88,46 +69,6 @@ const _overloadedStatus = DecoStatus(
   currentDepthMeters: 30.0,
   ambientPressureBar: 4.0,
 );
-
-Widget buildCard({
-  DecoStatus status = _status,
-  List<DecoStatus>? decoStatuses,
-  bool expandVisualization = false,
-  VoidCallback? onOpen3dView,
-  bool scrollable = false,
-  ThemeData? theme,
-  TextDirection? textDirection,
-  String? subtitle,
-}) {
-  final card = CompactTissueLoadingCard(
-    status: status,
-    decoStatuses: decoStatuses,
-    expandVisualization: expandVisualization,
-    onOpen3dView: onOpen3dView,
-    subtitle: subtitle,
-  );
-  final body = scrollable ? SingleChildScrollView(child: card) : card;
-  return ProviderScope(
-    overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
-    child: MaterialApp(
-      // The assertions read English strings; pin the locale so they do not
-      // depend on the host's.
-      locale: const Locale('en'),
-      theme: theme,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      // Both real hosts (dive detail, current dive load page) scroll, so a
-      // test that grows the card (the inline explanation) scrolls too.
-      // An explicit direction keeps the English strings while laying the
-      // card out right to left, as Arabic and Hebrew do.
-      home: Scaffold(
-        body: textDirection == null
-            ? body
-            : Directionality(textDirection: textDirection, child: body),
-      ),
-    ),
-  );
-}
 
 void main() {
   // On a phone the card is about 334 px wide inside the page; scrubbing sets
@@ -404,7 +345,8 @@ void main() {
       // Only the bar chart axis: the heat map no longer repeats them.
       expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
       expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
-      expect(find.text(l10n.diveLog_deco_heatMapRows), findsOneWidget);
+      // The compartment axis names the rows now (#4503).
+      expect(find.byType(TissueHeatMapCompartmentAxis), findsOneWidget);
       // The heat map colors against AMBIENT pressure, so its legend names
       // the two halves undersaturated / supersaturated instead of borrowing
       // the badges' "Ongassing"/"Offgassing", which are measured against the
@@ -477,7 +419,7 @@ void main() {
         final l10n = AppLocalizations.of(context);
         expect(find.text(l10n.diveLog_deco_tissueFast), findsOneWidget);
         expect(find.text(l10n.diveLog_deco_tissueSlow), findsOneWidget);
-        expect(find.text(l10n.diveLog_deco_heatMapRows), findsOneWidget);
+        expect(find.byType(TissueHeatMapCompartmentAxis), findsOneWidget);
       },
     );
   });

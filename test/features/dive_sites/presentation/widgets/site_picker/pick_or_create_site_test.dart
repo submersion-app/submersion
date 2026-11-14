@@ -5,10 +5,15 @@ import 'package:submersion/core/providers/location_service_provider.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/location_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/models/new_site_seed.dart';
+import 'package:submersion/features/dive_sites/domain/models/site_area_anchor.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../../helpers/fake_site_catalogue.dart';
 
 const _existingSite = DiveSite(id: 'existing', name: 'House Reef');
 const _newSite = DiveSite(id: 'new-site', name: 'Brand New Site');
@@ -278,6 +283,67 @@ void main() {
 
     expect(result, isNull);
   });
+
+  group('built-in catalogue sites', () {
+    const bonaire = SiteAreaAnchor(
+      point: GeoPoint(12.08, -68.28),
+      placeLabel: 'Bonaire',
+    );
+    final catalogue = FakeSiteCatalogue(const [
+      CatalogueSite(
+        id: 'c1',
+        name: 'Angel City',
+        location: GeoPoint(12.1, -68.28),
+        source: 'osm',
+      ),
+    ]);
+
+    Future<void> pump(WidgetTester tester, {required bool allowCreate}) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            locationServiceProvider.overrideWithValue(_NoFixLocationService()),
+            sitesProvider.overrideWith((ref) async => [_existingSite]),
+            siteCatalogueProvider.overrideWithValue(catalogue),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: const Locale('en'),
+            home: Scaffold(
+              body: ConsumerButton(
+                onResult: (_) {},
+                areaAnchor: bonaire,
+                allowCreate: allowCreate,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open picker'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('are offered around the area anchor when a site may be '
+        'created', (tester) async {
+      await pump(tester, allowCreate: true);
+
+      expect(find.text('More sites near Bonaire'), findsOneWidget);
+      expect(find.text('Angel City'), findsOneWidget);
+    });
+
+    testWidgets('are not offered when the caller cannot create a site', (
+      tester,
+    ) async {
+      final callsBefore = catalogue.nearCalls;
+
+      await pump(tester, allowCreate: false);
+
+      expect(find.text('Angel City'), findsNothing);
+      expect(find.textContaining('More sites'), findsNothing);
+      expect(catalogue.nearCalls, callsBefore);
+    });
+  });
 }
 
 /// Button that calls [pickOrCreateSite] with the ambient [WidgetRef] and
@@ -287,10 +353,14 @@ class ConsumerButton extends ConsumerWidget {
     super.key,
     required this.onResult,
     this.newSiteSeedLocation,
+    this.areaAnchor,
+    this.allowCreate = true,
   });
 
   final void Function(DiveSite?) onResult;
   final GeoPoint? newSiteSeedLocation;
+  final SiteAreaAnchor? areaAnchor;
+  final bool allowCreate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -301,6 +371,8 @@ class ConsumerButton extends ConsumerWidget {
           ref,
           selectedSiteId: null,
           newSiteSeedLocation: newSiteSeedLocation,
+          areaAnchor: areaAnchor,
+          allowCreate: allowCreate,
         );
         onResult(site);
       },

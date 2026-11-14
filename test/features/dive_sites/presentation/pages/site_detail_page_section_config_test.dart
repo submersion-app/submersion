@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +13,8 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/site_dive_photos_card.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
 
@@ -38,6 +42,23 @@ void main() {
     firstDiveId: 'dive-first',
     lastDiveId: 'dive-last',
   );
+
+  /// How many dive photos the site reports; a test may change it and
+  /// invalidate the count to simulate the last photo being unlinked.
+  var divePhotoCount = 0;
+
+  /// When set, the next count read waits on it: a reload in flight.
+  Completer<int>? pendingDivePhotoCount;
+
+  /// Which dive photo lists were read: 'recent' for the strip, 'all' for the
+  /// expanded grid.
+  final divePhotoReads = <String>[];
+
+  setUp(() {
+    divePhotoCount = 0;
+    pendingDivePhotoCount = null;
+    divePhotoReads.clear();
+  });
 
   Future<MockSettingsNotifier> pumpPage(
     WidgetTester tester, {
@@ -85,6 +106,18 @@ void main() {
             return stats;
           }),
           tagsForSiteProvider(site.id).overrideWith((_) async => tags),
+          mediaCountFromDivesAtSiteProvider(site.id).overrideWith(
+            (_) =>
+                pendingDivePhotoCount?.future ?? Future.value(divePhotoCount),
+          ),
+          recentMediaFromDivesAtSiteProvider(site.id).overrideWith((_) async {
+            divePhotoReads.add('recent');
+            return const [];
+          }),
+          flatMediaFromDivesAtSiteProvider(site.id).overrideWith((_) async {
+            divePhotoReads.add('all');
+            return const [];
+          }),
         ].cast<Override>(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -288,6 +321,91 @@ void main() {
 
       expect(find.text('To try'), findsNothing);
       expect(find.text('Tags'), findsNothing);
+    });
+  });
+
+  group('the Dive Photos card (issue #4502)', () {
+    testWidgets('shows right after Description when the site has photos', (
+      tester,
+    ) async {
+      divePhotoCount = 3;
+      await pumpPage(tester);
+
+      final card = find.byType(SiteDivePhotosCard);
+      expect(card, findsOneWidget);
+      expect(find.text('Photos from dives (3)'), findsOneWidget);
+      final top = tester.getTopLeft(card).dy;
+      expect(top, greaterThan(tester.getTopLeft(find.text('Description')).dy));
+      expect(top, lessThan(tester.getTopLeft(find.text('Depth Range')).dy));
+    });
+
+    // The embedded page is not keyed by site, so without its own key the
+    // card's State (and its Show all state) would carry over to the next
+    // site picked in the master list.
+    testWidgets('is keyed by its site', (tester) async {
+      divePhotoCount = 1;
+      await pumpPage(tester);
+
+      expect(
+        tester.widget<SiteDivePhotosCard>(find.byType(SiteDivePhotosCard)).key,
+        ValueKey('divePhotos-${site.id}'),
+      );
+    });
+
+    testWidgets('is not on the page when the site has no dive photos', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      expect(find.byType(SiteDivePhotosCard), findsNothing);
+      expect(divePhotoReads, isEmpty);
+    });
+
+    testWidgets('leaves when the count drops to zero', (tester) async {
+      divePhotoCount = 2;
+      await pumpPage(tester);
+      expect(find.byType(SiteDivePhotosCard), findsOneWidget);
+
+      divePhotoCount = 0;
+      ProviderScope.containerOf(
+        tester.element(find.byType(SiteDetailPage)),
+      ).invalidate(mediaCountFromDivesAtSiteProvider(site.id));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SiteDivePhotosCard), findsNothing);
+    });
+
+    // Every media or dive write re-reads the count; the card keeps the count
+    // it has meanwhile rather than vanishing for a frame.
+    testWidgets('stays up while its count reloads', (tester) async {
+      divePhotoCount = 2;
+      await pumpPage(tester);
+      expect(find.text('Photos from dives (2)'), findsOneWidget);
+
+      pendingDivePhotoCount = Completer<int>();
+      ProviderScope.containerOf(
+        tester.element(find.byType(SiteDetailPage)),
+      ).invalidate(mediaCountFromDivesAtSiteProvider(site.id));
+      await tester.pump();
+      expect(find.text('Photos from dives (2)'), findsOneWidget);
+
+      pendingDivePhotoCount!.complete(3);
+      await tester.pumpAndSettle();
+      expect(find.text('Photos from dives (3)'), findsOneWidget);
+    });
+
+    testWidgets('folded in the list layout, it reads no photos', (
+      tester,
+    ) async {
+      divePhotoCount = 5;
+      await pumpPage(
+        tester,
+        settings: const AppSettings(siteDetailLayout: DiveDetailLayout.list),
+      );
+
+      expect(find.text('Photos from dives'), findsOneWidget);
+      expect(find.byType(SiteDivePhotosCard), findsNothing);
+      expect(divePhotoReads, isEmpty);
     });
   });
 }

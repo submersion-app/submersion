@@ -106,6 +106,33 @@ class BuddyRepository {
   Stream<void> watchBuddiesChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.buddies));
 
+  /// Emits whenever a buddy as the hydrated reads return it may change: its
+  /// `buddies` row, a `certifications` row its primary certification is
+  /// derived from, or a custom agency or level that ranks and titles it (see
+  /// [_withPrimaryCerts]). The buddy edit form writes the certifications
+  /// after the buddy row, so a reader that follows only [watchBuddiesChanges]
+  /// reloads too early and keeps the old level (issue #4496). Readers that
+  /// use only the buddy rows stay on [watchBuddiesChanges].
+  Stream<void> watchHydratedBuddiesChanges() => _db.tableUpdates(
+    TableUpdateQuery.allOf([
+      TableUpdateQuery.onTable(_db.buddies),
+      ..._primaryCertificationTables,
+    ]),
+  );
+
+  /// [watchHydratedBuddiesChanges] without the `buddies` table, for a reader
+  /// that already follows `buddies` through another stream (a debounced one,
+  /// which an undebounced `buddies` tick here would defeat).
+  Stream<void> watchPrimaryCertificationChanges() =>
+      _db.tableUpdates(TableUpdateQuery.allOf(_primaryCertificationTables));
+
+  /// The tables [_withPrimaryCerts] derives a buddy's primary cert from.
+  List<TableUpdateQuery> get _primaryCertificationTables => [
+    TableUpdateQuery.onTable(_db.certifications),
+    TableUpdateQuery.onTable(_db.customCertificationAgencies),
+    TableUpdateQuery.onTable(_db.customCertificationLevels),
+  ];
+
   /// Get all buddies ordered by name
   Future<List<domain.Buddy>> getAllBuddies({String? diverId}) async {
     try {
@@ -618,40 +645,69 @@ class BuddyRepository {
     };
   }
 
-  /// Set buddies for a dive (replaces existing). Each person's roles are
-  /// written to `dive_buddy_roles` (issue #1221); a buddy who left the dive
-  /// loses their role rows.
+  /// Makes [buddies] the dive's buddies. Each person's roles are written to
+  /// `dive_buddy_roles` (issue #1221); a buddy who left the dive loses their
+  /// role rows. Only what changed is written (see [_writeDiveBuddies]).
   Future<void> setBuddiesForDive(
     String diveId,
     List<domain.BuddyWithRole> buddies,
   ) async {
-    // Delete existing dive buddies
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (await _writeDiveBuddies(diveId, buddies, now)) {
+      await _bumpDive(diveId, now);
+    }
+    SyncEventBus.notifyLocalChange();
+  }
+
+  /// Makes [buddies] the buddies of [diveId], writing only what changed
+  /// (issue #4477): a buddy who stays keeps their link row; a dropped buddy's
+  /// links are deleted; an added buddy gets a link under a fresh id. Rewriting
+  /// every link left a revert restoring old rows beside their replacements.
+  /// A buddy linked twice (#3895) is left with one link, as the full rewrite
+  /// left them, and a buddy listed twice in [buddies] takes their first entry.
+  /// A kept link's primary role is brought in line by [_writeRoleSets].
+  ///
+  /// Returns whether any link or role row changed, so the caller bumps the
+  /// dive.
+  Future<bool> _writeDiveBuddies(
+    String diveId,
+    List<domain.BuddyWithRole> buddies,
+    int now,
+  ) async {
     final existing = await (_db.select(
       _db.diveBuddies,
     )..where((t) => t.diveId.equals(diveId))).get();
-    await (_db.delete(
-      _db.diveBuddies,
-    )..where((t) => t.diveId.equals(diveId))).go();
+    final wanted = <String, domain.BuddyWithRole>{};
+    for (final bwr in buddies) {
+      wanted.putIfAbsent(bwr.buddy.id, () => bwr);
+    }
+
+    final kept = <String>{};
+    var changed = false;
     for (final row in existing) {
+      if (wanted.containsKey(row.buddyId) && kept.add(row.buddyId)) continue;
+      await (_db.delete(
+        _db.diveBuddies,
+      )..where((t) => t.id.equals(row.id))).go();
       await _syncRepository.logDeletion(
         entityType: 'diveBuddies',
         recordId: row.id,
       );
+      changed = true;
     }
 
-    // Insert new dive buddies
-    final now = DateTime.now().millisecondsSinceEpoch;
-    await _insertLinks(diveId, buddies, now);
-    await _writeRoleSets(diveId, existing, buddies, now);
-    await (_db.update(_db.dives)..where((t) => t.id.equals(diveId))).write(
-      DivesCompanion(updatedAt: Value(now)),
+    final added = [
+      for (final bwr in wanted.values)
+        if (!kept.contains(bwr.buddy.id)) bwr,
+    ];
+    await _insertLinks(diveId, added, now);
+    final rolesChanged = await _writeRoleSets(
+      diveId,
+      existing,
+      wanted.values.toList(),
+      now,
     );
-    await _syncRepository.markRecordPending(
-      entityType: 'dives',
-      recordId: diveId,
-      localUpdatedAt: now,
-    );
-    SyncEventBus.notifyLocalChange();
+    return changed || added.isNotEmpty || rolesChanged;
   }
 
   /// One fresh `dive_buddies` row per entry of [buddies], carrying the
@@ -682,27 +738,31 @@ class BuddyRepository {
     }
   }
 
-  /// After a dive's links were replaced: drops the role rows of everyone in
-  /// [previous] who is not in [buddies], and writes each entry's set.
-  Future<void> _writeRoleSets(
+  /// Once a dive's links are in place: drops the role rows of everyone in
+  /// [previous] who is not in [buddies], and writes each entry's set, which
+  /// also sets a kept link's primary role. Returns whether any row was
+  /// written.
+  Future<bool> _writeRoleSets(
     String diveId,
     List<DiveBuddy> previous,
     List<domain.BuddyWithRole> buddies,
     int now,
   ) async {
     final kept = {for (final b in buddies) b.buddy.id};
-    await _roleLinks.deleteBuddyRoles(diveId, {
+    var changed = await _roleLinks.deleteBuddyRoles(diveId, {
       for (final row in previous)
         if (!kept.contains(row.buddyId)) row.buddyId,
     });
     for (final bwr in buddies) {
-      await _roleLinks.writeBuddyRoles(
+      final wrote = await _roleLinks.writeBuddyRoles(
         diveId,
         bwr.buddy.id,
         bwr.roleIds,
         now: now,
       );
+      changed = changed || wrote;
     }
+    return changed;
   }
 
   /// Add a buddy to a dive in one role. [roleId] is a dive_roles id (see
@@ -888,8 +948,9 @@ class BuddyRepository {
     }
   }
 
-  /// Replace each dive's buddy set with exactly [buddies], roles included.
-  /// No notify/transaction.
+  /// Replace each dive's buddy set with exactly [buddies], roles included,
+  /// writing only what changed (see [_writeDiveBuddies]). No
+  /// notify/transaction.
   Future<void> bulkReplaceBuddies(
     List<String> diveIds,
     List<domain.BuddyWithRole> buddies,
@@ -897,21 +958,9 @@ class BuddyRepository {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
-      final existing = await (_db.select(
-        _db.diveBuddies,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      await (_db.delete(
-        _db.diveBuddies,
-      )..where((t) => t.diveId.equals(diveId))).go();
-      for (final row in existing) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveBuddies',
-          recordId: row.id,
-        );
+      if (await _writeDiveBuddies(diveId, buddies, now)) {
+        await _bumpDive(diveId, now);
       }
-      await _insertLinks(diveId, buddies, now);
-      await _writeRoleSets(diveId, existing, buddies, now);
-      await _bumpDive(diveId, now);
     }
   }
 

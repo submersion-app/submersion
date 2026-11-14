@@ -175,64 +175,72 @@ void main() {
     expect(byId['spans']!.visibilityKey, 'range_spanning');
   });
 
-  test('suits classify as drysuit, wetsuit thickness, or unknown', () async {
+  test('suits classify as drysuit or wetsuit type (issue #4490)', () async {
     final equipment = EquipmentRepository();
     final dives = DiveRepository();
-    final wet = await equipment.createEquipment(
-      EquipmentItem(
-        id: 'w5',
-        name: 'Wetsuit',
-        type: EquipmentType.wetsuit,
-        attributes: [
-          EquipmentAttribute.curated(
-            equipmentId: 'w5',
-            key: 'thickness_mm',
-            valueText: '5',
-            valueNum: 5,
+    Future<EquipmentItem> wetsuit(String id, {double? mm, String? style}) =>
+        equipment.createEquipment(
+          EquipmentItem(
+            id: id,
+            name: 'Wetsuit $id',
+            type: EquipmentType.wetsuit,
+            attributes: [
+              if (mm != null)
+                EquipmentAttribute.curated(
+                  equipmentId: id,
+                  key: 'thickness_mm',
+                  valueText: '$mm',
+                  valueNum: mm,
+                ),
+              if (style != null)
+                EquipmentAttribute.curated(
+                  equipmentId: id,
+                  key: 'suit_style',
+                  valueText: style,
+                ),
+            ],
           ),
-        ],
-      ),
-    );
+        );
+    final full5 = await wetsuit('w5', mm: 5, style: 'full');
+    final shorty3 = await wetsuit('w3', mm: 3, style: 'shorty');
+    final half = await wetsuit('w6.5', mm: 6.5);
+    final styleOnly = await wetsuit('ws', style: 'semi_dry');
     final dry = await equipment.createEquipment(
       const EquipmentItem(id: 'dry', name: 'Dry', type: EquipmentType.drysuit),
     );
-    final bare = await equipment.createEquipment(
-      const EquipmentItem(id: 'w?', name: 'Old', type: EquipmentType.wetsuit),
-    );
-    await dives.createDive(
+    final bare = await wetsuit('w?');
+    Future<void> dive(
+      String id,
+      int day, [
+      List<EquipmentItem> gear = const [],
+    ]) => dives.createDive(
       domain.Dive(
-        id: 'wet',
-        dateTime: DateTime(2025, 3, 1),
-        gear: looseGear([wet]),
+        id: id,
+        dateTime: DateTime(2025, 3, day),
+        gear: looseGear(gear),
       ),
     );
-    await dives.createDive(
-      domain.Dive(
-        id: 'dry',
-        dateTime: DateTime(2025, 3, 2),
-        gear: looseGear([dry, wet]),
-      ),
-    );
-    await dives.createDive(
-      domain.Dive(
-        id: 'bare',
-        dateTime: DateTime(2025, 3, 3),
-        gear: looseGear([bare]),
-      ),
-    );
-    await dives.createDive(
-      domain.Dive(id: 'nosuit', dateTime: DateTime(2025, 3, 4)),
-    );
+    await dive('wet', 1, [full5]);
+    await dive('dry', 2, [dry, full5]);
+    await dive('bare', 3, [bare]);
+    await dive('nosuit', 4);
+    // Two wetsuits on one dive: the thicker one names it.
+    await dive('two', 5, [shorty3, full5]);
+    await dive('half', 6, [half]);
+    await dive('styleOnly', 7, [styleOnly, bare]);
     final byId = {
       for (final r in await repository.getFocusFactorRows(
         visibilityScale: scale,
       ))
         r.diveId: r,
     };
-    expect(byId['wet']!.suitKey, 'wetsuit:5');
+    expect(byId['wet']!.suitKey, 'wetsuit:5:full');
     expect(byId['dry']!.suitKey, 'drysuit');
-    expect(byId['bare']!.suitKey, 'unknown');
+    expect(byId['bare']!.suitKey, 'wetsuit::');
     expect(byId['nosuit']!.suitKey, isNull);
+    expect(byId['two']!.suitKey, 'wetsuit:5:full');
+    expect(byId['half']!.suitKey, 'wetsuit:6.5:');
+    expect(byId['styleOnly']!.suitKey, 'wetsuit::semi_dry');
   });
 
   test('the Insights filter applies', () async {

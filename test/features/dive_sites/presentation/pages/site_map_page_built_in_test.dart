@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
+import 'package:submersion/features/dive_sites/domain/entities/catalogue_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_classification.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/built_in_sites_providers.dart';
@@ -15,14 +15,13 @@ import 'package:submersion/features/maps/presentation/providers/heat_map_provide
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-const _builtInA = ExternalDiveSite(
-  externalId: 'a',
+const _builtInA = CatalogueSite(
+  id: 'a',
   name: 'A',
   // At the page's default center so it is within the zoom-3 viewport (the
   // marker cluster layer culls off-screen markers).
-  latitude: 20,
-  longitude: -157,
-  source: 't',
+  location: GeoPoint(20, -157),
+  source: 'osm',
 );
 
 /// A repository whose createSite always fails, to exercise the add-error path.
@@ -153,6 +152,9 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
       expect(find.text('Added to your sites'), findsOneWidget);
+      // The new site remembers the catalogue record it came from.
+      final added = await tester.runAsync(SiteRepository().getAllSites);
+      expect(added!.single.catalogueId, 'a');
       expect(find.text('Add to my sites'), findsNothing);
 
       handle.dispose();

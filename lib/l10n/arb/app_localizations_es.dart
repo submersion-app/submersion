@@ -1440,7 +1440,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora?';
+      '¿Aplicar los cambios también a esas inmersiones o solo a partir de ahora? «A partir de ahora» mantiene su equipo y desvincula el conjunto de ellas.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5469,10 +5469,24 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get diveLog_gear_removeSet => 'Quitar el equipo de esta inmersión';
+  String get diveLog_gear_removeSet => 'Quitar el conjunto de esta inmersión';
 
   @override
-  String get diveLog_gear_unknownSet => 'Equipo';
+  String get diveLog_gear_removeSetTitle =>
+      '¿Quitar el conjunto de esta inmersión?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      '¿Quitar también el equipo que añadió este conjunto, o mantener el equipo en la inmersión y solo desvincular el conjunto?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Mantener equipo';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Quitar equipo';
+
+  @override
+  String get diveLog_gear_unknownSet => 'Conjunto';
 
   @override
   String get diveLog_health_after15 => 'Después de 15 min';
@@ -7676,6 +7690,30 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Rápido, tejido muy irrigado';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Medio, músculo y piel';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Lento, grasa y hueso';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Mapa de calor de los compartimentos $first a $last, los rápidos arriba y los lentos abajo';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Mapa de calor de los compartimentos $first a $last, los rápidos arriba y los lentos abajo, de $start a $end de la inmersión';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Carga';
 
   @override
@@ -7686,10 +7724,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Equilibrio';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Filas: rápido (arriba) a lento (abajo)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Nivel de superficie';
@@ -7803,27 +7837,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'A las $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Parada $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Arrastra para recorrer';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Pasa el cursor para recorrer';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -11002,6 +11015,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Aún no hay puntos de buceo';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Cerca de los sitios de tus otras inmersiones';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Ordenados por distancia';
 
   @override
@@ -12627,6 +12644,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Se muestran los primeros $count sitios. Haz una búsqueda más específica para ver el resto.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Ver detalles de $name';
   }
@@ -12926,6 +12948,37 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'Cerca';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Del catálogo integrado de sitios. Fuente: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'No se pudo añadir este sitio';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Detalles del sitio';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Más sitios cerca de $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Más sitios cercanos';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Sitios integrados';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Mostrar los $count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Usar este sitio';
 
   @override
   String get diveSites_list_groupBy => 'Agrupar por';
@@ -17921,6 +17974,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Nuevo conjunto de equipo';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Duplicar conjunto de equipo';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Descripción opcional...';
 
   @override
@@ -17975,6 +18032,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Conjunto de equipo creado';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned =>
+      'Conjunto de equipo duplicado';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20132,12 +20193,21 @@ class AppLocalizationsEs extends AppLocalizations {
       'No hay mapas, fotos ni documentos adjuntos a este punto de buceo';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotos de inmersiones aquí ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Foto de inmersión';
+
+  @override
+  String get media_siteDivePhotos_title => 'Fotos de inmersiones';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotos de inmersiones ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Foto de inmersión';
+  String get media_siteDivePhotos_showAll => 'Mostrar todo';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Mostrar menos';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -21975,6 +22045,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannerCanvas_follow_title => 'Seguir una inmersión';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'gas mínimo $pressure';
   }
@@ -23064,7 +23144,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Fotos, vídeos y documentos del sitio';
+      'Fotos, vídeos y documentos adjuntos al sitio';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Fotos de las inmersiones registradas en este sitio';
 
   @override
   String get siteDetailSection_tags_description => 'Etiquetas de este sitio';
@@ -25099,6 +25183,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Inicio del degradado de tarjetas';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Enlace al catálogo integrado';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -37135,6 +37223,17 @@ class AppLocalizationsEs extends AppLocalizations {
       'Reloj Garmin (Descent, Fenix, Epix...)';
 
   @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modelos',
+      one: '$count modelo',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_discovery_usbSearchHint =>
       'Buscar por fabricante o modelo...';
 
@@ -41147,6 +41246,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Uso de la botella';
 
   @override
+  String get attrLabel_worn_as => 'Se lleva como';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificador';
 
   @override
@@ -41308,6 +41410,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Color';
+
+  @override
+  String get attrLabel_figure_position => 'Posición en la figura';
 
   @override
   String get attrLabel_sleeve_length => 'Mangas';
@@ -41515,6 +41620,87 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Inflado del traje';
+
+  @override
+  String get attrChoice_worn_as_back => 'Montaje dorsal';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount izquierdo';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount derecho';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stage';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Boca';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Pecho (octopus)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Pecho, izquierda';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Pecho, derecha';
+
+  @override
+  String get attrChoice_figure_position_console => 'Consola';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Muñeca izquierda';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Muñeca derecha';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Mano izquierda';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Mano derecha';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Cadera izquierda';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Cadera derecha';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Muslo izquierdo';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Muslo derecho';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Pantorrilla izquierda';
+
+  @override
+  String get attrChoice_figure_position_back => 'Espalda';
+
+  @override
+  String get attrChoice_figure_position_trim_left =>
+      'Bolsillo de trimado, izquierda';
+
+  @override
+  String get attrChoice_figure_position_trim_right =>
+      'Bolsillo de trimado, derecha';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'Anilla D trasera';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left =>
+      'Sidemount, izquierda';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, derecha';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, izquierda';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, derecha';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41857,6 +42043,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get attr_flagNo => 'No';
 
   @override
+  String get attr_figurePosition_automatic => 'Automática';
+
+  @override
   String get equipment_edit_invalidThickness => 'Usa 5, 5/4 o 7/5/3';
 
   @override
@@ -41867,23 +42056,50 @@ class AppLocalizationsEs extends AppLocalizations {
       'Introduce una dirección web, p. ej. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Inmersiones por grosor del traje';
+  String get insights_progression_divesBySuitType_title =>
+      'Inmersiones por tipo de traje';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Grosor principal del traje en tus inmersiones';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Tipo, grosor y corte del traje en tus inmersiones';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'No hay inmersiones con un traje de neopreno o traje seco vinculado';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'No se pudieron cargar los datos de grosor del traje';
+  String get insights_progression_divesBySuitType_error =>
+      'No se pudieron cargar los datos del tipo de traje';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Desconocido';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Traje de neopreno · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Traje de neopreno · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Traje de neopreno · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'completo';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'de dos piezas';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semiseco';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Grosor del traje (mm)';
@@ -42103,6 +42319,40 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Promedio $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Media';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Pico';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gas usado';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Usado';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'Gas usado por fase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount usados';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent %';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override
@@ -51362,10 +51612,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Gráfico de barras. Inmersiones por grosor del traje. $description';
+    return 'Gráfico de barras. Inmersiones por tipo de traje. $description';
   }
 
   @override
@@ -62648,7 +62898,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Los 16 tejidos imaginarios del modelo, que absorben y liberan gas cada uno a su ritmo. Los rápidos representan tejido muy irrigado y los lentos grasa y hueso.';
+      'Los 16 tejidos imaginarios del modelo, que absorben y liberan gas cada uno a su ritmo: 1-5 son rápidos (como el tejido muy irrigado, por ejemplo el cerebro), 6-10 medios (como músculo y piel) y 11-16 lentos (como grasa y hueso). Los rápidos limitan las inmersiones cortas y profundas y los lentos las largas y sucesivas; los nombres de tejidos son ejemplos aproximados, no anatomía.';
 
   @override
   String get info_term_leadingCompartment_label => 'Compartimento dominante';

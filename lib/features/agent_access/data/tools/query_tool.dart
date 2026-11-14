@@ -9,7 +9,7 @@ import 'package:submersion/features/agent_access/data/query_roots.dart';
 import 'package:submersion/features/agent_access/data/records/record_catalog.dart';
 import 'package:submersion/features/agent_access/data/records/record_entity.dart';
 import 'package:submersion/features/agent_access/data/root_scope.dart';
-import 'package:submersion/features/agent_access/data/service_status_overlay.dart';
+import 'package:submersion/features/equipment/data/services/service_status_overlay.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool.dart';
 import 'package:submersion/features/agent_access/data/tools/tool_args.dart';
 import 'package:submersion/features/agent_access/domain/agent_tool_error.dart';
@@ -26,11 +26,21 @@ class QueryTool implements AgentTool {
   QueryTool({
     required DiverContextLoader loader,
     required RecordCatalog catalog,
+    Future<void> Function(String diverId, Set<String> tables)? prepareCaches,
   }) : _loader = loader,
-       _catalog = catalog;
+       _catalog = catalog,
+       _prepareCaches = prepareCaches ?? _noCaches;
 
   final DiverContextLoader _loader;
   final RecordCatalog _catalog;
+
+  /// Brings the caches of engine verdicts among a query's tables up to date
+  /// for a diver before it runs: the computed deco verdicts `deco` reads
+  /// (#4461), which the app mirrors on demand.
+  final Future<void> Function(String diverId, Set<String> tables)
+  _prepareCaches;
+
+  static Future<void> _noCaches(String diverId, Set<String> tables) async {}
 
   @override
   String get name => 'query';
@@ -129,15 +139,29 @@ class QueryTool implements AgentTool {
       diverId: ctx.diverId,
     );
     // The cache `serviceDue` reads holds the active diver's verdicts only,
-    // so the named diver's come from the engine and shadow it here.
-    final cte = compiled.tablesTouched.contains(serviceStatusTable)
-        ? await serviceStatusOverlay(
+    // so the named diver's come from the engine and shadow it here. That
+    // overlay replaces the service cache, so only the others are prepared.
+    // The two are independent, so they run together: a deco preparation can
+    // analyze a whole logbook, and the overlay need not wait for it.
+    final overlay = compiled.tablesTouched.contains(serviceStatusTable)
+        ? serviceStatusOverlay(
             diverId: ctx.diverId,
             settings: ctx.settings,
-            repositories: _catalog.repositories,
+            equipment: _catalog.repositories.equipment,
+            serviceKinds: _catalog.repositories.serviceKinds,
+            schedules: _catalog.repositories.serviceSchedules,
+            records: _catalog.repositories.serviceRecords,
             now: now,
           )
-        : null;
+        : Future<QueryCte?>.value();
+    await Future.wait<void>([
+      _prepareCaches(
+        ctx.diverId,
+        compiled.tablesTouched.difference({serviceStatusTable}),
+      ),
+      overlay,
+    ]);
+    final cte = await overlay;
     final runner = QueryIdSetRunner(context.db);
     final all = (await runner.ids(
       compiled,

@@ -23,8 +23,9 @@ class PdfFrontMatter {
 
   /// Build the diver information page.
   ///
-  /// [photoBytes] is the decoded portrait. Callers load it from
-  /// [Diver.photoPath]; templates never touch the file system. When it is
+  /// [photoBytes] is the decoded portrait. Callers load it through
+  /// `diverPortrait` ([Diver.photo], else the file at [Diver.photoPath]);
+  /// templates never touch the file system. When it is
   /// null an empty frame is drawn so the layout keeps its shape.
   /// Body widgets for a [pw.MultiPage].
   ///

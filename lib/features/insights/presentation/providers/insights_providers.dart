@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -18,11 +17,12 @@ import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 import 'package:submersion/features/insights/domain/logbook_dive_counts.dart';
 import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
-import 'package:submersion/features/insights/domain/suit_thickness_stats.dart';
+import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/domain/water_temp_band_metrics.dart';
 import 'package:submersion/features/insights/domain/water_temp_bands.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
 /// Repository provider.
 ///
@@ -76,7 +76,7 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   // site rename, an attribute-only or a junction-only write refreshes the
   // totals once, never twice.
   final touched = diveFilterTablesTouched(filter);
-  await awaitServiceStatusIfRead(ref, touched);
+  await awaitQueryCachesIfRead(ref, touched);
   ref.invalidateSelfWhen(
     repository.watchTables({
       ...DiveRepository.statisticsTickTables,
@@ -110,7 +110,7 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   // site rename, an attribute-only or a junction-only write refreshes the
   // records once, never twice.
   final touched = diveFilterTablesTouched(filter);
-  await awaitServiceStatusIfRead(ref, touched);
+  await awaitQueryCachesIfRead(ref, touched);
   ref.invalidateSelfWhen(
     repository.watchTables({
       ...DiveRepository.statisticsTickTables,
@@ -135,19 +135,35 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
 /// statistics tables: a tag rename changes which dives a text search matches
 /// without writing a dive (issue #3894). Pass `filtered: false` from a provider
 /// that deliberately ignores the filter, so a filter change leaves it alone.
-void _keepAliveWithExpiry(Ref ref, {bool filtered = true}) {
+///
+/// A filter naming `deco` or `gear.serviceDue` reads a cache of engine
+/// verdicts, so the card waits for it before its first query rather than
+/// computing from an empty or stale cache and correcting itself on the tick
+/// (#4461).
+Future<void> _keepAliveWithExpiry(Ref ref, {bool filtered = true}) async {
+  final filter = filtered ? ref.watch(insightsFilterProvider) : null;
   ref.invalidateSelfWhen(
-    ref
-        .watch(insightsRepositoryProvider)
-        .watchInsightsChanges(
-          filter: filtered ? ref.watch(insightsFilterProvider) : null,
-        ),
+    ref.watch(insightsRepositoryProvider).watchInsightsChanges(filter: filter),
   );
   // Keep alive for 5 minutes after last listener detaches
   final link = ref.keepAlive();
   final timer = Timer(const Duration(minutes: 5), link.close);
   ref.onDispose(timer.cancel);
+  if (filter != null) await awaitInsightsFilterCaches(ref);
 }
+
+/// The tables the Insights filter reads, compiled once per filter rather
+/// than once by every card, page and keeper that asks.
+final insightsFilterTablesProvider = Provider<Set<String>>(
+  (ref) => diveFilterTablesTouched(ref.watch(insightsFilterProvider)),
+);
+
+/// Waits for the caches of engine verdicts the Insights filter reads (a
+/// `deco` or `gear.serviceDue` condition, #2365, #4461), so a provider
+/// filtered by it never queries an empty or stale cache. Every provider
+/// that runs a query under the Insights filter calls this before it.
+Future<void> awaitInsightsFilterCaches(Ref ref) =>
+    awaitQueryCachesIfRead(ref, ref.watch(insightsFilterTablesProvider));
 
 // ============================================================================
 // Gas Statistics Providers
@@ -155,7 +171,7 @@ void _keepAliveWithExpiry(Ref ref, {bool filtered = true}) {
 
 /// Consumption trend for the lane the gas page shows (SAC or RMV).
 final sacTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final lane = ref.watch(insightsGasLaneProvider);
@@ -177,7 +193,7 @@ final sacTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
 final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -191,7 +207,7 @@ final gasMixDistributionProvider = FutureProvider<List<DistributionSegment>>((
 final tankConfigurationStatsProvider = FutureProvider<TankConfigurationStats>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -207,7 +223,7 @@ final tankConfigurationStatsProvider = FutureProvider<TankConfigurationStats>((
 final twinSetCandidatesProvider = FutureProvider<TwinSetCandidates>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref, filtered: false);
+  await _keepAliveWithExpiry(ref, filtered: false);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   return repository.getTwinSetCandidates(diverId: currentDiverId);
@@ -216,7 +232,7 @@ final twinSetCandidatesProvider = FutureProvider<TwinSetCandidates>((
 /// Best and highest consumption for the lane the gas page shows.
 final sacRecordsProvider =
     FutureProvider<({RankingItem? best, RankingItem? worst})>((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final lane = ref.watch(insightsGasLaneProvider);
@@ -238,7 +254,7 @@ final sacRecordsProvider =
 /// O2 and diluent use per CCR dive. Not a SAC or RMV lane, so the gas page's
 /// lane selector does not touch it.
 final ccrGasUseTrendProvider = FutureProvider<CcrGasUseTrend>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -253,7 +269,7 @@ final ccrGasUseTrendProvider = FutureProvider<CcrGasUseTrend>((ref) async {
 final roleConsumptionTrendProvider = FutureProvider<RoleConsumptionTrend>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -270,7 +286,7 @@ final roleConsumptionTrendProvider = FutureProvider<RoleConsumptionTrend>((
 final diveTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -287,7 +303,7 @@ final diveTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
 final depthProgressionTrendProvider = FutureProvider<List<TrendDataPoint>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -296,7 +312,7 @@ final depthProgressionTrendProvider = FutureProvider<List<TrendDataPoint>>((
 
 /// Runtime per dive (issue #3059), for the Progression chart and Dive focus.
 final runtimeTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -306,7 +322,7 @@ final runtimeTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
 final bottomTimeTrendProvider = FutureProvider<List<TrendDataPoint>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -319,30 +335,25 @@ final bottomTimeTrendProvider = FutureProvider<List<TrendDataPoint>>((
 final divesPerYearProvider = FutureProvider<List<({int year, int count})>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
   return repository.getDivesPerYear(diverId: currentDiverId, filter: filter);
 });
 
-final divesBySuitThicknessProvider = FutureProvider<SuitThicknessStats>((
-  ref,
-) async {
-  _keepAliveWithExpiry(ref);
+final divesBySuitTypeProvider = FutureProvider<SuitTypeStats>((ref) async {
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
-  return repository.getDivesBySuitThickness(
-    diverId: currentDiverId,
-    filter: filter,
-  );
+  return repository.getDivesBySuitType(diverId: currentDiverId, filter: filter);
 });
 
 final cumulativeDiveCountProvider = FutureProvider<List<TrendDataPoint>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -358,7 +369,7 @@ final cumulativeDiveCountProvider = FutureProvider<List<TrendDataPoint>>((
 
 final visibilityDistributionProvider =
     FutureProvider<List<DistributionSegment>>((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -375,7 +386,7 @@ final visibilityDistributionProvider =
 
 final waterTypeDistributionProvider = FutureProvider<List<DistributionSegment>>(
   (ref) async {
-    _keepAliveWithExpiry(ref);
+    await _keepAliveWithExpiry(ref);
     final repository = ref.watch(insightsRepositoryProvider);
     final currentDiverId = ref.watch(currentDiverIdProvider);
     final filter = ref.watch(insightsFilterProvider);
@@ -390,7 +401,7 @@ final waterTypeDistributionProvider = FutureProvider<List<DistributionSegment>>(
 final siteTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -402,7 +413,7 @@ final siteTypeDistributionProvider = FutureProvider<List<DistributionSegment>>((
 
 final entryMethodDistributionProvider =
     FutureProvider<List<DistributionSegment>>((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -416,7 +427,7 @@ final temperatureByMonthProvider =
     FutureProvider<
       List<({int month, double? minTemp, double? avgTemp, double? maxTemp})>
     >((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -434,7 +445,7 @@ final temperatureByMonthProvider =
 final waterTempTrendProvider = FutureProvider<List<TrendDataPoint>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -448,7 +459,7 @@ final waterTempTrendProvider = FutureProvider<List<TrendDataPoint>>((
 /// (issue #1827).
 final waterTempBandDistributionProvider =
     FutureProvider<List<WaterTempBandCount>>((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -471,7 +482,7 @@ final waterTempBandDistributionProvider =
 /// use the normal scope.
 final waterTempBandMetricsProvider = FutureProvider<List<WaterTempBandMetrics>>(
   (ref) async {
-    _keepAliveWithExpiry(ref);
+    await _keepAliveWithExpiry(ref);
     final repository = ref.watch(insightsRepositoryProvider);
     final currentDiverId = ref.watch(currentDiverIdProvider);
     final filter = ref.watch(insightsFilterProvider);
@@ -510,7 +521,7 @@ final waterTempBandMetricsProvider = FutureProvider<List<WaterTempBandMetrics>>(
 // ============================================================================
 
 final topBuddiesProvider = FutureProvider<List<RankingItem>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -524,7 +535,7 @@ final topBuddiesProvider = FutureProvider<List<RankingItem>>((ref) async {
 
 final soloVsBuddyCountProvider =
     FutureProvider<({int solo, int buddy, int notRecorded})>((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -535,7 +546,7 @@ final soloVsBuddyCountProvider =
     });
 
 final topDiveCentersProvider = FutureProvider<List<RankingItem>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -552,7 +563,7 @@ final topDiveCentersProvider = FutureProvider<List<RankingItem>>((ref) async {
 // ============================================================================
 
 final countriesVisitedProvider = FutureProvider<List<RankingItem>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -565,7 +576,7 @@ final countriesVisitedProvider = FutureProvider<List<RankingItem>>((ref) async {
 });
 
 final regionsExploredProvider = FutureProvider<List<RankingItem>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -578,7 +589,7 @@ final regionsExploredProvider = FutureProvider<List<RankingItem>>((ref) async {
 });
 
 final divesPerTripProvider = FutureProvider<List<RankingItem>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -595,7 +606,7 @@ final divesPerTripProvider = FutureProvider<List<RankingItem>>((ref) async {
 // ============================================================================
 
 final uniqueSpeciesCountProvider = FutureProvider<int>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -608,7 +619,7 @@ final uniqueSpeciesCountProvider = FutureProvider<int>((ref) async {
 final mostCommonSightingsProvider = FutureProvider<List<RankingItem>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -623,7 +634,7 @@ final mostCommonSightingsProvider = FutureProvider<List<RankingItem>>((
 final bestSitesForMarineLifeProvider = FutureProvider<List<RankingItem>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -646,7 +657,7 @@ final speciesInsightsProvider = FutureProvider.family<SpeciesInsights, String>((
   ref,
   speciesId,
 ) async {
-  _keepAliveWithExpiry(ref, filtered: false);
+  await _keepAliveWithExpiry(ref, filtered: false);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   return repository.getSpeciesInsights(
@@ -661,7 +672,7 @@ final speciesInsightsProvider = FutureProvider.family<SpeciesInsights, String>((
 
 final divesByDayOfWeekProvider =
     FutureProvider<List<({int dayOfWeek, int count})>>((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -674,7 +685,7 @@ final divesByDayOfWeekProvider =
 final divesByTimeOfDayProvider = FutureProvider<TimeOfDayDistribution>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -687,7 +698,7 @@ final divesByTimeOfDayProvider = FutureProvider<TimeOfDayDistribution>((
 final divesBySeasonProvider = FutureProvider<List<({int month, int count})>>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -698,7 +709,7 @@ final divesBySeasonProvider = FutureProvider<List<({int month, int count})>>((
 final divesByCalendarDayProvider = FutureProvider<CalendarDayMatrix>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -712,7 +723,7 @@ final surfaceIntervalStatsProvider =
     FutureProvider<
       ({double? avgMinutes, double? minMinutes, double? maxMinutes})
     >((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -727,7 +738,7 @@ final surfaceIntervalStatsProvider =
 // ============================================================================
 
 final mostUsedGearProvider = FutureProvider<List<RankingItem>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -740,7 +751,7 @@ final mostUsedGearProvider = FutureProvider<List<RankingItem>>((ref) async {
 });
 
 final weightTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final repository = ref.watch(insightsRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(insightsFilterProvider);
@@ -753,7 +764,7 @@ final weightTrendProvider = FutureProvider<List<TrendDataPoint>>((ref) async {
 
 final ascentDescentRatesProvider =
     FutureProvider<({double? avgAscent, double? avgDescent})>((ref) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -767,7 +778,7 @@ final timeAtDepthRangesProvider =
     FutureProvider<List<({int lowerDepth, int? upperDepth, int minutes})>>((
       ref,
     ) async {
-      _keepAliveWithExpiry(ref);
+      await _keepAliveWithExpiry(ref);
       final repository = ref.watch(insightsRepositoryProvider);
       final currentDiverId = ref.watch(currentDiverIdProvider);
       final filter = ref.watch(insightsFilterProvider);
@@ -815,11 +826,6 @@ typedef DecoDiveIds = ({
 /// dive can no longer disagree. Dives with no profile at all stay unknown and
 /// are excluded from the rate rather than counted as no-deco.
 final decoDiveIdsProvider = FutureProvider<DecoDiveIds>((ref) async {
-  _keepAliveWithExpiry(ref);
-  final repository = ref.watch(insightsRepositoryProvider);
-  final currentDiverId = ref.watch(currentDiverIdProvider);
-  final filter = ref.watch(insightsFilterProvider);
-
   void publish(DecoClassificationProgress? progress) {
     if (ref.mounted) {
       ref.read(decoClassificationProgressProvider.notifier).state = progress;
@@ -828,8 +834,15 @@ final decoDiveIdsProvider = FutureProvider<DecoDiveIds>((ref) async {
 
   // A pass this build replaced cannot clear its own progress, and on a diver
   // or filter change the card would show those counts as this pass's. In a
-  // microtask because a provider may not write another while it builds.
+  // microtask because a provider may not write another while it builds, and
+  // before the cache wait below, which under a deco filter can run for as
+  // long as the verdict pass does.
   scheduleMicrotask(() => publish(null));
+
+  await _keepAliveWithExpiry(ref);
+  final repository = ref.watch(insightsRepositoryProvider);
+  final currentDiverId = ref.watch(currentDiverIdProvider);
+  final filter = ref.watch(insightsFilterProvider);
 
   final scan = await repository.scanRecordedDecoSignals(
     diverId: currentDiverId,
@@ -890,7 +903,7 @@ final decoDiveIdsProvider = FutureProvider<DecoDiveIds>((ref) async {
 final decoObligationStatsProvider = FutureProvider<DecoObligationStats>((
   ref,
 ) async {
-  _keepAliveWithExpiry(ref);
+  await _keepAliveWithExpiry(ref);
   final ids = await ref.watch(decoDiveIdsProvider.future);
   return (
     decoCount: ids.deco.length,

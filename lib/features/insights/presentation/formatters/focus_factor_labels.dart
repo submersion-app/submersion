@@ -3,9 +3,10 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
-import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/insights/domain/focus/focus_factor.dart';
+import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/features/insights/presentation/formatters/distribution_labels.dart';
+import 'package:submersion/features/insights/presentation/formatters/suit_type_label.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 String focusFactorName(FocusFactorId id, AppLocalizations l10n) => switch (id) {
@@ -123,11 +124,8 @@ String focusCategoryLabel(
         _ => key,
       };
     case FocusFactorId.suit:
-      if (key == 'drysuit') return EquipmentType.drysuit.localizedName(l10n);
-      if (key == 'unknown') {
-        return l10n.insights_progression_divesBySuitThickness_unknown;
-      }
-      return '${key.substring('wetsuit:'.length)} mm';
+      final suit = SuitType.fromKey(key);
+      return suit == null ? key : suitTypeLabel(suit, l10n);
     case FocusFactorId.buddy:
       return key == 'solo'
           ? l10n.insights_social_soloVsBuddy_solo

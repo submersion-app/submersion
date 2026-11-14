@@ -65,21 +65,21 @@ extension InsightsRepositoryFocus on InsightsRepository {
             ORDER BY t.tank_order LIMIT 1) AS first_tank_volume,
           ${recordedWeightKgSql('d')} AS weight_amount,
           (SELECT CASE
-              WHEN COUNT(e.id) = 0 THEN NULL
-              WHEN MAX(e.type = 'drysuit') = 1 THEN 'drysuit'
-              WHEN MAX(ea.value_num) IS NOT NULL
-                THEN 'wetsuit:' || MAX(ea.value_num)
-              ELSE 'unknown'
+              WHEN e.type = 'drysuit' THEN 'drysuit'
+              ELSE 'wetsuit:' || COALESCE(ea.value_num, '') || ':'
+                || COALESCE(TRIM(es.value_text), '')
             END
             FROM dive_equipment de
             JOIN equipment e ON e.id = de.equipment_id
               AND e.type IN ('wetsuit', 'drysuit')
-            LEFT JOIN equipment_attributes ea ON ea.equipment_id = e.id
-              AND e.type = 'wetsuit'
-              AND ea.attr_key = 'thickness_mm'
-              AND ea.is_custom = 0
-              AND ea.value_num IS NOT NULL
-            WHERE de.dive_id = d.id) AS suit_key,
+            $_suitAttributeJoinsSql
+            WHERE de.dive_id = d.id
+            -- One suit names the dive: a drysuit, else the thickest wetsuit,
+            -- preferring one that records its style.
+            ORDER BY e.type = 'drysuit' DESC,
+              ea.value_num IS NULL, ea.value_num DESC,
+              es.value_text IS NULL, TRIM(es.value_text)
+            LIMIT 1) AS suit_key,
           EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)
             AS has_linked_buddy,
           NULLIF(TRIM(d.buddy), '') AS buddy_text,
@@ -143,15 +143,11 @@ extension InsightsRepositoryFocus on InsightsRepository {
   }
 }
 
-/// SQLite renders a REAL as "5.0"; the key drops a whole number's ".0" so
-/// it reads "wetsuit:5" like the progression page's "5 mm".
+/// The canonical [SuitType.key] for the suit the query picked: SQLite
+/// renders a REAL as "5.0", and the key reads "5" like the chart's label.
 String? _focusSuitKey(String? raw) {
-  if (raw == null || !raw.startsWith('wetsuit:')) return raw;
-  final mm = double.tryParse(raw.substring('wetsuit:'.length));
-  if (mm == null) return 'unknown';
-  return mm == mm.roundToDouble()
-      ? 'wetsuit:${mm.toStringAsFixed(0)}'
-      : 'wetsuit:$mm';
+  if (raw == null) return null;
+  return SuitType.fromKey(raw)?.key ?? raw;
 }
 
 /// The same rule `getSoloVsBuddyCount` applies, per dive.

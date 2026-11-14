@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_sites/data/services/site_matching_servi
 import 'package:submersion/features/dive_sites/presentation/providers/site_match_review_notifier.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/match_sites_map.dart';
 import 'package:submersion/features/media/presentation/widgets/quick_site_from_gps_dialog.dart';
+import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Staged review: compute proposals, choose a site per dive (list or map),
@@ -427,12 +428,20 @@ class _CandidateCard extends StatelessWidget {
                     style: TextStyle(color: scheme.onSurfaceVariant),
                   ),
                 ),
-              if (c.features.isNotEmpty)
+              if (c.typeIds.isNotEmpty || c.features.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
                   child: Wrap(
                     spacing: 6,
                     children: [
+                      // Site types by their translated names; one this
+                      // build does not know is shown as it came.
+                      for (final id in c.typeIds)
+                        Chip(
+                          label: Text(
+                            builtInSiteTypeName(context.l10n, id) ?? id,
+                          ),
+                        ),
                       for (final f in c.features) Chip(label: Text(f)),
                     ],
                   ),

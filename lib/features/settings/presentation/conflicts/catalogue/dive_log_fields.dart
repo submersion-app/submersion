@@ -786,6 +786,12 @@ final Map<String, ConflictField> diveLogOverrides = {
     FieldKind.enumValue,
     enumLabel: eventSourceLabeler,
   ),
+  // A dive's types read back in created_at order, so a reorder rewrites it and
+  // the change log records it (issue #4477). It is an order here, not a date.
+  'diveDiveTypes.createdAt': ConflictField(
+    (l) => l.settings_conflict_field_sortOrder,
+    FieldKind.number,
+  ),
   // When this generation last went live for its source (v283, issue #3189).
   'diveProfileSeries.activatedAt': ConflictField(
     (l) => l.settings_conflict_field_lastUsedAt,

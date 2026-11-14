@@ -12,8 +12,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
+import 'package:submersion/features/equipment/query/equipment_query_entity.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
-import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
+import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -51,13 +52,16 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      container.listen(serviceStatusKeeperProvider, (_, _) {});
+      container.listen(queryCachesKeeperProvider, (_, _) {});
       await container.pump();
     });
 
     test('no filter reads the cache, so the writer never runs', () async {
-      await container.read(serviceStatusKeeperProvider.future);
-      expect(container.read(serviceStatusDemandProvider), isFalse);
+      await container.read(queryCachesKeeperProvider.future);
+      expect(
+        container.read(queryCacheDemandProvider(serviceStatusTable)),
+        isFalse,
+      );
       expect(writerBuilds, 0);
     });
 
@@ -65,8 +69,11 @@ void main() {
       container.read(diveFilterProvider.notifier).state = DiveFilterState(
         query: parse(QuerySubject.dives, 'gear.serviceDue = overdue'),
       );
-      await container.read(serviceStatusKeeperProvider.future);
-      expect(container.read(serviceStatusDemandProvider), isTrue);
+      await container.read(queryCachesKeeperProvider.future);
+      expect(
+        container.read(queryCacheDemandProvider(serviceStatusTable)),
+        isTrue,
+      );
       expect(writerBuilds, 1);
     });
 
@@ -74,12 +81,12 @@ void main() {
       container.read(diveFilterProvider.notifier).state = DiveFilterState(
         query: parse(QuerySubject.dives, 'gear.serviceDue = overdue'),
       );
-      await container.read(serviceStatusKeeperProvider.future);
+      await container.read(queryCachesKeeperProvider.future);
       expect(container.exists(equipmentServiceStatusCacheProvider), isTrue);
 
       container.read(diveFilterProvider.notifier).state =
           const DiveFilterState();
-      await container.read(serviceStatusKeeperProvider.future);
+      await container.read(queryCachesKeeperProvider.future);
       await container.pump();
       // Disposed, not merely idle: it no longer follows the clocks.
       expect(container.exists(equipmentServiceStatusCacheProvider), isFalse);
@@ -91,8 +98,11 @@ void main() {
       // the clocks running after the list closes.
       container.read(equipmentFilterProvider.notifier).state =
           const EquipmentFilterState(serviceDue: ServiceDueFilter.overdue);
-      await container.read(serviceStatusKeeperProvider.future);
-      expect(container.read(serviceStatusDemandProvider), isFalse);
+      await container.read(queryCachesKeeperProvider.future);
+      expect(
+        container.read(queryCacheDemandProvider(serviceStatusTable)),
+        isFalse,
+      );
       expect(writerBuilds, 0);
     });
   });

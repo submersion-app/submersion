@@ -163,6 +163,13 @@ void main() {
       row.equipmentId,
   };
 
+  Future<Set<String?>> setOn(String diveId) async => {
+    for (final row in await (db.select(
+      db.diveEquipment,
+    )..where((r) => r.diveId.equals(diveId))).get())
+      row.viaSetId,
+  };
+
   /// Opens the editor, unticks fins and saves.
   Future<void> untickFinsAndSave(
     WidgetTester tester, {
@@ -206,6 +213,11 @@ void main() {
       find.textContaining('This set is on 1 logged dive.'),
       findsOneWidget,
     );
+    // The question says what From now on does to those dives (#4500).
+    expect(
+      find.textContaining('keeps their gear and unlinks the set'),
+      findsOneWidget,
+    );
     await tester.tap(find.text('Also update 1 dive'));
     await tester.pumpAndSettle();
 
@@ -213,6 +225,8 @@ void main() {
     expect(await EquipmentSetRepository().getEquipmentIdsInSet('s1'), ['wing']);
     expect(await gearOn('logged'), {'wing'});
     expect(await gearOn('planned'), {'wing'});
+    // Both dives match the set again, so both keep naming it.
+    expect(await setOn('logged'), {'s1'});
   });
 
   testWidgets('from now on saves the set and follows on planned dives', (
@@ -225,6 +239,10 @@ void main() {
     expect(find.text('home'), findsOneWidget);
     expect(await gearOn('logged'), {'wing', 'fins'});
     expect(await gearOn('planned'), {'wing'});
+    // The logged dive no longer matches the set, so it stops naming it
+    // and keeps its gear as its own (#4500); the planned one still follows.
+    expect(await setOn('logged'), {null});
+    expect(await setOn('planned'), {'s1'});
   });
 
   testWidgets('cancel saves nothing and keeps the editor open', (tester) async {
@@ -278,6 +296,7 @@ void main() {
     expect(await EquipmentSetRepository().getEquipmentIdsInSet('s1'), ['wing']);
     expect(await gearOn('planned'), {'wing'});
     expect(await gearOn('logged'), {'wing', 'fins'});
+    expect(await setOn('logged'), {null});
   });
 
   testWidgets('a save that leaves the members alone asks nothing', (
@@ -296,5 +315,7 @@ void main() {
     expect(find.text('Update past dives?'), findsNothing);
     expect(find.text('home'), findsOneWidget);
     expect(await gearOn('logged'), {'wing', 'fins'});
+    // Only a change to the members makes a dive stop matching its set.
+    expect(await setOn('logged'), {'s1'});
   });
 }

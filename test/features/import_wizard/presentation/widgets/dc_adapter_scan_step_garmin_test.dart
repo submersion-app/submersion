@@ -88,6 +88,16 @@ void main() {
     await tester.tap(find.text('USB Cable'));
     await tester.pumpAndSettle();
 
+    // Every brand starts folded (issue #4480). The finder is scoped to the
+    // list because the brand dropdown keeps an offstage clone of each name.
+    await tester.tap(
+      find.descendant(
+        of: find.byType(SliverList),
+        matching: find.text('Garmin'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text(entryLabel));
     await tester.pumpAndSettle();
 

@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_import/presentation/health_auto_import_
 import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/stale_open_draft_prompt.dart';
 import 'package:submersion/features/documents/presentation/providers/equipment_file_conversion_provider.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -44,7 +45,7 @@ import 'package:submersion/features/cylinder_passports/presentation/services/pas
 import 'package:submersion/features/cylinder_passports/presentation/services/recent_passport_tags.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/query/presentation/providers/service_status_keeper.dart';
+import 'package:submersion/features/query/presentation/providers/query_caches_keeper.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/core/services/suunto_cloud/suunto_json_file_reader.dart';
@@ -191,11 +192,11 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _hasDivers = (next.value ?? 0) > 0;
       _updateNavigationReady();
     }, fireImmediately: true);
-    // The serviceDue query field reads a cache of the service engine's
-    // verdicts, and any list can reach it through a relation (a dive's
-    // gear.serviceDue). The keeper runs the cache writer while a filter
-    // names it, and leaves the clocks idle otherwise (#2365).
-    ref.listenManual(serviceStatusKeeperProvider, (_, _) {});
+    // The serviceDue and deco query fields read caches of engine verdicts
+    // (the service clocks, the dive analysis), and any list can reach them
+    // through a relation. The keeper runs each cache writer while a filter
+    // names its field, and leaves the engines idle otherwise (#2365, #4461).
+    ref.listenManual(queryCachesKeeperProvider, (_, _) {});
     // Nearby Bluetooth sync (issue #3731): the switch re-decides whether the
     // radio is on.
     ref.listenManual<bool>(
@@ -214,6 +215,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _convertGearFiles();
+      _importSiteCatalogue();
       _fileShareHandler.initialize();
       _passportLinks.start();
       _buddyCardLinks.start();
@@ -335,6 +337,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   /// callback later still.
   void _resumeMediaTransfers() {
     unawaited(ref.read(mediaTransferResumeProvider)());
+  }
+
+  /// Loads the bundled site catalogue into the local cache when its version
+  /// changed (once per app update). Not awaited: built-in sites appear in
+  /// the picker and on the map when it finishes. Same database timing
+  /// argument as [_resumeMediaTransfers].
+  void _importSiteCatalogue() {
+    unawaited(ref.read(siteCatalogueImportProvider)());
   }
 
   /// Runs the storage cleanup coordinator (issue #3396) once [syncs] end:

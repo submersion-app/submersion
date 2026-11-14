@@ -32,5 +32,12 @@ void main() {
         throwsA(anything),
       );
     });
+
+    test('getRecentMediaFromDivesAtSite rethrows a database failure', () async {
+      await expectLater(
+        repository.getRecentMediaFromDivesAtSite('s1', limit: 12),
+        throwsA(anything),
+      );
+    });
   });
 }

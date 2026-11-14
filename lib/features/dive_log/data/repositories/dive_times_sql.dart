@@ -20,6 +20,7 @@
 library;
 
 import 'package:submersion/core/database/dive_source_stamp.dart';
+import 'package:submersion/features/dive_log/data/sql/analysis_inputs_stamp_sql.dart';
 
 /// `entry_time` and `exit_time` are epoch milliseconds; `runtime` and
 /// `bottom_time` are already stored in seconds.
@@ -181,7 +182,8 @@ String diveUnfilledSql(String alias) =>
 const kResidualLookback = Duration(hours: 48);
 
 /// A version token for the dives whose load can reach the dive at [alias]:
-/// the sum of [diveSourceStampSql] over the dives that start up to
+/// the sum of [diveSourceStampSql] and [diveAnalysisInputsStampSql] over
+/// the dives that start up to
 /// [kResidualLookback] plus a day before it, or 0 when there are none.
 ///
 /// A stored result computed from a dive's residual load goes stale when one of
@@ -203,8 +205,13 @@ String earlierDivesRevisionSql(String alias) {
   final start = 'COALESCE($alias.entry_time, $alias.dive_date_time)';
   final window = kResidualLookback + const Duration(days: 1);
   final from = '$start - ${window.inMilliseconds}';
+  // The analysis inputs too (the site's water, the gas switches, the primary
+  // computer, the computer events): an earlier dive's load is computed from
+  // them (#4461).
   String stamps(String where) =>
-      'COALESCE((SELECT SUM(${diveSourceStampSql(h)}) FROM dives $h '
+      'COALESCE((SELECT SUM(${diveSourceStampSql(h)} + '
+      '${diveAnalysisInputsStampSql(h)} + ${diveProfileEventsStampSql(h)}) '
+      'FROM dives $h '
       'WHERE $where), 0)';
   return '(${stamps('$h.entry_time >= $from AND $h.entry_time < $start')} + '
       '${stamps('$h.entry_time IS NULL '

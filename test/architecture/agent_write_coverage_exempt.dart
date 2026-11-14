@@ -42,6 +42,8 @@ final exempt = <String, String>{
       'a cache',
   'lib/features/insights/data/repositories/deco_classification_cache.dart:*':
       'a cache',
+  'lib/features/insights/data/repositories/dive_deco_status_repository.dart:*':
+      'verdicts derived from dive analysis, recomputed from the dives',
   'lib/features/insights/data/repositories/observation_dismissals_repository.dart:*':
       'the state of derived findings, recomputed from records',
   'lib/features/data_quality/data/repositories/quality_findings_repository.dart:*':
@@ -276,6 +278,10 @@ final exempt = <String, String>{
   ])
     method:
         'an inner step of another write, run by the repository an agent write calls',
+  'lib/features/dive_log/data/repositories/dive_repository_impl.dart:unlinkSetFromLoggedDives':
+      'the set editor\'s "From now on" answer: logged dives keep their gear '
+      'and stop naming the set (issue #4500); an agent\'s set edit leaves '
+      'logged dives alone (issue #4283)',
   // Planned dives.
   for (final method in const [
     'lib/features/dive_log/data/repositories/dive_repository_impl.dart:createPlannedDive',

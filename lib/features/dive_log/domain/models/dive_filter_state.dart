@@ -43,13 +43,13 @@ class DiveFilterState {
   /// unconditionally, whether or not this axis is set.
   final bool? excludedFromStatsOnly;
 
-  /// Decompression status, derived from the recorded profile signal: a
-  /// deco-stop profile point, a `decoStopStart` event, or a positive ceiling
-  /// on a profile carrying no deco-type data at all (mirroring
-  /// `scanRecordedDecoSignals` in InsightsRepository). Null means no filter;
-  /// true/false restrict to deco/no-deco dives. Dives whose status is
-  /// unrecorded (no profile, or a profile needing the computed fallback)
-  /// match neither.
+  /// Decompression status, resolved as the Insights deco card resolves it:
+  /// the recorded profile signal (a deco-stop profile point, a
+  /// `decoStopStart` event, or a positive ceiling on a profile carrying no
+  /// deco-type data at all), else the app's own analysis of the profile
+  /// (#4461). Null means no filter; true/false restrict to deco/no-deco
+  /// dives. Dives with neither (no profile, or not yet analyzed) match
+  /// neither.
   ///
   /// Lowered to the registry's `deco` field, whose SQL is
   /// `decoSignalCondition`, so every path evaluates it the same way.

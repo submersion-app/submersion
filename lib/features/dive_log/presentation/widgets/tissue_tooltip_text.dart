@@ -1,6 +1,7 @@
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compartment_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_exchange_style.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -31,6 +32,7 @@ String tissueCompartmentTooltip(
   final net = exchanges.net;
   return [
     l10n.diveLog_deco_tooltipCompartment(comp.compartmentNumber),
+    CompartmentGroup.ofNumber(comp.compartmentNumber).label(l10n),
     l10n.diveLog_deco_tooltipLoaded(
       formatFixedForDisplay(comp.percentLoading, 1),
     ),

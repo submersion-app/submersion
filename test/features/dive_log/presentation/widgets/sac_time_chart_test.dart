@@ -90,12 +90,15 @@ void main() {
     Color columnColor(WidgetTester tester, int index) =>
         columnDecoration(tester, index).color!;
 
-    Finder rowBars() => find.descendant(
-      of: find.descendant(
-        of: find.byType(SacSegmentTable),
-        matching: find.byType(FractionallySizedBox),
+    /// The color dot that keys each table row to the chart.
+    Finder rowDots() => find.descendant(
+      of: find.byType(SacSegmentTable),
+      matching: find.byWidgetPredicate(
+        (w) =>
+            w is DecoratedBox &&
+            w.decoration is BoxDecoration &&
+            (w.decoration as BoxDecoration).shape == BoxShape.circle,
       ),
-      matching: find.byType(DecoratedBox),
     );
 
     testWidgets('a column takes the color of the phase it mostly falls in', (
@@ -137,7 +140,7 @@ void main() {
       expect(columnColor(tester, 0), theme.colorScheme.primary);
     });
 
-    testWidgets('a phase row bar wears its full color under the label', (
+    testWidgets('a phase row dot wears its full color before the label', (
       tester,
     ) async {
       await pumpSacSegmentsView(tester, gases: const []);
@@ -145,31 +148,23 @@ void main() {
         tester.element(find.byType(SacTimeColumns)),
       ).brightness;
 
-      final bar = rowBars().first;
+      final dot = rowDots().first;
       expect(
-        (tester.widget<DecoratedBox>(bar).decoration as BoxDecoration).color,
+        (tester.widget<DecoratedBox>(dot).decoration as BoxDecoration).color,
         SacSegmentColors.forPhase(DivePhase.descent, brightness),
       );
       expect(
-        tester.getRect(bar).top,
-        greaterThanOrEqualTo(tester.getRect(find.text('Descent')).bottom),
+        tester.getRect(dot).right,
+        lessThanOrEqualTo(tester.getRect(find.text('Descent')).left),
       );
     });
 
-    testWidgets('a row with no color of its own gets a primary bar', (
-      tester,
-    ) async {
+    testWidgets('a row with no color of its own has no dot', (tester) async {
+      // The fixture's cylinders name no mix, so they have no color.
       await pumpSacSegmentsView(tester, phases: const []);
-      final scheme = Theme.of(
-        tester.element(find.byType(SacTimeColumns)),
-      ).colorScheme;
 
-      expect(
-        (tester.widget<DecoratedBox>(rowBars().first).decoration
-                as BoxDecoration)
-            .color,
-        scheme.primary,
-      );
+      expect(find.text('Back gas'), findsOneWidget);
+      expect(rowDots(), findsNothing);
     });
 
     testWidgets('a phase row uses the color of its columns', (tester) async {
@@ -261,7 +256,14 @@ void main() {
         rates: sacRates(lane: GasConsumptionLane.sac),
       );
 
-      expect(find.text('2.0 bar/min'), findsOneWidget);
+      // The summary also gives the peak; this is the axis's top label.
+      expect(
+        find.descendant(
+          of: find.byType(SacTimeColumns),
+          matching: find.text('2.0 bar/min'),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('follows the diver\'s units', (tester) async {
@@ -548,7 +550,7 @@ void main() {
     });
 
     void widenWindow(WidgetTester tester) {
-      tester.view.physicalSize = const Size(4800, 1800);
+      tester.view.physicalSize = const Size(7200, 1800);
       addTearDown(tester.view.resetPhysicalSize);
     }
 
@@ -564,7 +566,8 @@ void main() {
 
     testWidgets('marks every column once there is room', (tester) async {
       widenWindow(tester);
-      await pumpSacSegmentsView(tester, time: fiftyMinutes, width: 1200);
+      // A wide card gives the chart half its width, beside the table.
+      await pumpSacSegmentsView(tester, time: fiftyMinutes, width: 2400);
 
       expect(axisLabels(tester).map((t) => t.data), [
         for (var minutes = 0; minutes < 50; minutes += 5) '$minutes',

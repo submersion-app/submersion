@@ -1420,7 +1420,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו?';
+      'להחיל את השינויים גם על הצלילות האלה, או רק מעכשיו? „מעכשיו“ משאיר את הציוד שלהן ומנתק מהן את הסט.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5350,6 +5350,19 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_gear_removeSet => 'הסרת הסט מהצלילה הזו';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'להסיר את הסט מהצלילה הזו?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'להסיר גם את הציוד שהסט הוסיף, או להשאיר את הציוד בצלילה ולנתק רק את הסט?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'השארת הציוד';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'הסרת הציוד';
+
+  @override
   String get diveLog_gear_unknownSet => 'סט';
 
   @override
@@ -7513,6 +7526,30 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'מהירה, רקמה עשירה בדם';
+
+  @override
+  String get diveLog_deco_groupMedium => 'בינונית, שריר ועור';
+
+  @override
+  String get diveLog_deco_groupSlow => 'איטית, שומן ועצם';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'מפת חום של התאים $first עד $last, המהירים למעלה והאיטיים למטה';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'מפת חום של התאים $first עד $last, המהירים למעלה והאיטיים למטה, מ-$start עד $end של הצלילה';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'עומס';
 
   @override
@@ -7523,10 +7560,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'שיווי משקל';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'שורות: מהירים (למעלה) עד איטיים (למטה)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'רמת פני המים';
@@ -7640,27 +7673,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'ב-$timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes דק׳';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'עצירה $depth · $minutes דק׳';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'גרור כדי לדפדף';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'רחף כדי לדפדף';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -10756,6 +10768,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'אין עדיין אתרי צלילה';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'ליד האתרים של הצלילות האחרות שלך';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'ממוין לפי מרחק';
 
   @override
@@ -12353,6 +12369,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'מוצגים $count האתרים הראשונים. חפש משהו מדויק יותר כדי לראות את השאר.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'צפה בפרטים עבור $name';
   }
@@ -12642,6 +12663,37 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'בקרבת מקום';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'מתוך קטלוג האתרים המובנה. מקור: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'לא ניתן היה להוסיף את האתר';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'פרטי האתר';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'אתרים נוספים ליד $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'אתרים נוספים בקרבת מקום';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'אתרים מובנים';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'הצגת כל ה-$count';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'שימוש באתר זה';
 
   @override
   String get diveSites_list_groupBy => 'קיבוץ לפי';
@@ -17551,6 +17603,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'סט ציוד חדש';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => 'שכפול סט ציוד';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'תיאור אופציונלי...';
 
   @override
@@ -17600,6 +17655,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'סט הציוד נוצר';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'סט הציוד שוכפל';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -19701,12 +19759,21 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין מפות, תמונות או מסמכים המצורפים לאתר זה';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'תמונות מצלילות כאן ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'תמונת צלילה';
+
+  @override
+  String get media_siteDivePhotos_title => 'תמונות מצלילות';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'תמונות מצלילות ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'תמונת צלילה';
+  String get media_siteDivePhotos_showAll => 'הצג הכול';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'הצג פחות';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -21504,6 +21571,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get plannerCanvas_follow_title => 'עקוב אחרי צלילה';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'גז מינימלי $pressure';
   }
@@ -22566,7 +22643,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'תמונות, סרטונים ומסמכים של האתר';
+      'תמונות, סרטונים ומסמכים המצורפים לאתר';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'תמונות מהצלילות שנרשמו באתר זה';
 
   @override
   String get siteDetailSection_tags_description => 'תגיות של אתר זה';
@@ -24524,6 +24605,9 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'תחילת מעבר הצבעים של הכרטיסים';
+
+  @override
+  String get settings_conflict_field_catalogueId => 'קישור לקטלוג המובנה';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -36210,6 +36294,17 @@ class AppLocalizationsHe extends AppLocalizations {
       'שעון Garmin (Descent, Fenix, Epix...)';
 
   @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count דגמים',
+      one: 'דגם אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_discovery_usbSearchHint => 'חיפוש לפי יצרן או דגם...';
 
   @override
@@ -40104,6 +40199,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_cylinder_use => 'שימוש בבלון';
 
   @override
+  String get attrLabel_worn_as => 'נישא כ־';
+
+  @override
   String get attrLabel_tank_identifier => 'מזהה';
 
   @override
@@ -40264,6 +40362,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'צבע';
+
+  @override
+  String get attrLabel_figure_position => 'מיקום על דמות הצולל';
 
   @override
   String get attrLabel_sleeve_length => 'שרוולים';
@@ -40468,6 +40569,84 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'ניפוח חליפה';
+
+  @override
+  String get attrChoice_worn_as_back => 'הרכבה על הגב';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'סיידמאונט שמאל';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'סיידמאונט ימין';
+
+  @override
+  String get attrChoice_worn_as_stage => 'סטייג\'';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'פה';
+
+  @override
+  String get attrChoice_figure_position_octo => 'חזה (אוקטופוס)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'חזה, שמאל';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'חזה, ימין';
+
+  @override
+  String get attrChoice_figure_position_console => 'קונסולה';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'פרק יד שמאל';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'פרק יד ימין';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'יד שמאל';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'יד ימין';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'מותן שמאל';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'מותן ימין';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'ירך שמאל';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'ירך ימין';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'שוק שמאל';
+
+  @override
+  String get attrChoice_figure_position_back => 'גב';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'כיס טרים, שמאל';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'כיס טרים, ימין';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'טבעת D אחורית';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'סיידמאונט, שמאל';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'סיידמאונט, ימין';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'סטייג\', שמאל';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'סטייג\', ימין';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -40809,6 +40988,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attr_flagNo => 'לא';
 
   @override
+  String get attr_figurePosition_automatic => 'אוטומטי';
+
+  @override
   String get equipment_edit_invalidThickness => 'השתמשו ב-5, 5/4 או 7/5/3';
 
   @override
@@ -40819,23 +41001,50 @@ class AppLocalizationsHe extends AppLocalizations {
       'הזן כתובת אינטרנט, למשל shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'צלילות לפי עובי חליפה';
+  String get insights_progression_divesBySuitType_title =>
+      'צלילות לפי סוג חליפה';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'העובי העיקרי של חליפת הצלילה על פני הצלילות';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'סוג, עובי וגזרה של חליפת הצלילה על פני הצלילות';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'אין צלילות המקושרות לחליפת צלילה או לחליפה יבשה';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'לא ניתן לטעון נתוני עובי חליפה';
+  String get insights_progression_divesBySuitType_error =>
+      'לא ניתן לטעון נתוני סוג חליפה';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'לא ידוע';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'חליפת צלילה · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'חליפת צלילה · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'חליפת צלילה · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'מלאה';
+
+  @override
+  String get insights_suitType_style_shorty => 'שורטי';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'שני חלקים';
+
+  @override
+  String get insights_suitType_style_semiDry => 'חצי יבשה';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'עובי חליפה (מ\"מ)';
@@ -41050,6 +41259,40 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'ממוצע $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'ממוצע';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'שיא';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'גז שנוצל';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'נוצל';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'גז שנוצל לפי שלב';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount נוצלו';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override
@@ -50228,10 +50471,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'תרשים עמודות. צלילות לפי עובי חליפה. $description';
+    return 'תרשים עמודות. צלילות לפי סוג חליפה. $description';
   }
 
   @override
@@ -61304,7 +61547,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      '16 הרקמות הדמיוניות של המודל, שכל אחת סופגת ומשחררת גז בקצב משלה. המהירות מייצגות רקמה עשירה בדם והאיטיות שומן ועצם.';
+      '16 הרקמות הדמיוניות של המודל, שכל אחת סופגת ומשחררת גז בקצב משלה: 1-5 מהירות (כמו רקמה עשירה בדם, למשל המוח), 6-10 בינוניות (כמו שריר ועור) ו-11-16 איטיות (כמו שומן ועצם). המהירות מגבילות צלילות קצרות ועמוקות והאיטיות צלילות ארוכות וחוזרות; שמות הרקמות הם דוגמאות גסות, לא אנטומיה.';
 
   @override
   String get info_term_leadingCompartment_label => 'התא המוביל';

@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show OrderingTerm, Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -61,6 +62,145 @@ void main() {
     expect(loaded!.diveTypeIds, ['cave', 'deep']);
     final row = await db.select(db.dives).getSingle();
     expect(row.diveType, 'cave');
+  });
+
+  group('updateDive writes only the types that changed (#4477)', () {
+    Future<List<DiveDiveType>> typeRows() =>
+        (db.select(db.diveDiveTypes)
+              ..where((t) => t.diveId.equals('d1'))
+              ..orderBy([
+                (t) => OrderingTerm(expression: t.createdAt),
+                (t) => OrderingTerm(expression: t.id),
+              ]))
+            .get();
+
+    Future<domain.Dive> diveWith(List<String> types) async {
+      await repository.createDive(
+        domain.Dive(
+          id: 'd1',
+          dateTime: DateTime(2026, 1, 1),
+          diveTypeIds: types,
+        ),
+      );
+      return (await repository.getDiveById('d1'))!;
+    }
+
+    test('an edit that keeps the types leaves their rows alone', () async {
+      final dive = await diveWith(const ['shore', 'wreck']);
+      final before = await typeRows();
+
+      await repository.updateDive(dive.copyWith(notes: 'Edited'));
+
+      expect(await typeRows(), before);
+    });
+
+    test('adding a type keeps the rows of those that stay', () async {
+      final dive = await diveWith(const ['shore', 'wreck']);
+      final before = {for (final r in await typeRows()) r.diveTypeId: r.id};
+
+      await repository.updateDive(
+        dive.copyWith(diveTypeIds: const ['shore', 'wreck', 'night']),
+      );
+
+      final after = await typeRows();
+      expect(after.map((r) => r.diveTypeId), ['shore', 'wreck', 'night']);
+      expect(after[0].id, before['shore']);
+      expect(after[1].id, before['wreck']);
+      expect((await repository.getDiveById('d1'))!.diveTypeIds, [
+        'shore',
+        'wreck',
+        'night',
+      ]);
+    });
+
+    test('dropping a type deletes only its row', () async {
+      final dive = await diveWith(const ['shore', 'wreck', 'night']);
+      final before = {for (final r in await typeRows()) r.diveTypeId: r.id};
+
+      await repository.updateDive(
+        dive.copyWith(diveTypeIds: const ['shore', 'night']),
+      );
+
+      final after = await typeRows();
+      expect(after.map((r) => r.id), [before['shore'], before['night']]);
+    });
+
+    test('a new first type becomes the representative', () async {
+      final dive = await diveWith(const ['shore', 'wreck']);
+      final before = {for (final r in await typeRows()) r.diveTypeId: r.id};
+
+      await repository.updateDive(
+        dive.copyWith(diveTypeIds: const ['wreck', 'shore']),
+      );
+
+      final after = await typeRows();
+      expect(after.map((r) => r.diveTypeId), ['wreck', 'shore']);
+      expect(after.map((r) => r.id), [before['wreck'], before['shore']]);
+      expect((await db.select(db.dives).getSingle()).diveType, 'wreck');
+      expect((await repository.getDiveById('d1'))!.diveTypeIds, [
+        'wreck',
+        'shore',
+      ]);
+    });
+
+    test('a type added in front comes first', () async {
+      final dive = await diveWith(const ['shore']);
+
+      await repository.updateDive(
+        dive.copyWith(diveTypeIds: const ['cave', 'shore']),
+      );
+
+      expect((await repository.getDiveById('d1'))!.diveTypeIds, [
+        'cave',
+        'shore',
+      ]);
+      expect((await db.select(db.dives).getSingle()).diveType, 'cave');
+    });
+  });
+
+  group('bulk type edits bump only the dives they change (#4477)', () {
+    Future<int> updatedAt(String id) async => (await (db.select(
+      db.dives,
+    )..where((t) => t.id.equals(id))).getSingle()).updatedAt;
+
+    setUp(() async {
+      for (final (id, types) in [
+        ('has', const ['shore', 'wreck']),
+        ('lacks', const ['shore']),
+      ]) {
+        await repository.createDive(
+          domain.Dive(
+            id: id,
+            dateTime: DateTime(2026, 1, 1),
+            diveTypeIds: types,
+          ),
+        );
+        await (db.update(db.dives)..where((t) => t.id.equals(id))).write(
+          const DivesCompanion(updatedAt: Value(1)),
+        );
+      }
+    });
+
+    test('adding a type one dive already has leaves that dive alone', () async {
+      await repository.bulkAddDiveTypes(['has', 'lacks'], ['wreck']);
+
+      expect(await updatedAt('has'), 1);
+      expect(await updatedAt('lacks'), greaterThan(1));
+    });
+
+    test('removing a type one dive lacks leaves that dive alone', () async {
+      await repository.bulkRemoveDiveTypes(['has', 'lacks'], ['wreck']);
+
+      expect(await updatedAt('has'), greaterThan(1));
+      expect(await updatedAt('lacks'), 1);
+    });
+
+    test('replacing with the set a dive has leaves that dive alone', () async {
+      await repository.bulkReplaceDiveTypes(['has', 'lacks'], ['shore']);
+
+      expect(await updatedAt('has'), greaterThan(1));
+      expect(await updatedAt('lacks'), 1);
+    });
   });
 
   test('a dive with no junction rows falls back to the column', () async {

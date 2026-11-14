@@ -9,6 +9,7 @@ import 'package:submersion/core/database/tables/cylinder_tables.dart';
 import 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
 import 'package:submersion/core/database/tables/dive_lab_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_tables.dart';
+import 'package:submersion/core/database/tables/dive_deco_status_tables.dart';
 import 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 import 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 import 'package:submersion/core/database/tables/dive_profile_tables.dart';
@@ -47,6 +48,7 @@ export 'package:submersion/core/database/tables/cylinder_tables.dart';
 export 'package:submersion/core/database/tables/dive_health_tables.dart';
 export 'package:submersion/core/database/tables/dive_lab_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_tables.dart';
+export 'package:submersion/core/database/tables/dive_deco_status_tables.dart';
 export 'package:submersion/core/database/tables/dive_derived_metrics_tables.dart';
 export 'package:submersion/core/database/tables/dive_plan_mission_tables.dart';
 export 'package:submersion/core/database/tables/dive_computer_connection_tables.dart';
@@ -161,6 +163,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveSensorSummaries,
     // Explore derived metrics (v247, issue #2195), local only
     DiveDerivedMetricsRows,
+    DiveDecoStatus,
     EquipmentObservations,
     EquipmentFindings,
     EquipmentConditionReviews,
@@ -319,7 +322,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 361;
+  static const int currentSchemaVersion = 363;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -1668,6 +1671,14 @@ class AppDatabase extends _$AppDatabase {
     // #4426), backfilled offline from each site's country text. Nullable,
     // so the floor does not move. Renumbered from 360.
     361,
+    // v362: dive_deco_status, the computed deco verdicts the query
+    // language's deco field reads (issue #4461). A table with no hlc, never
+    // synced, so the floor does not move.
+    362,
+    // v363: dive_sites.catalogue_id, the built-in catalogue record a site
+    // was adopted from. Nullable, nothing to backfill, so the floor does
+    // not move. Renumbered from 362, which main took for #4461.
+    363,
   ];
 
   /// Returns the number of migration steps that will execute when upgrading

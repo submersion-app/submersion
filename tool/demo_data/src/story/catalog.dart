@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 
 /// A dive site from the app's bundled public catalogue
-/// (`assets/data/dive_sites.json`, from OpenStreetMap).
+/// (`assets/data/site_catalogue.json`).
 class CatalogSite {
   const CatalogSite({
     required this.id,
@@ -12,6 +12,7 @@ class CatalogSite {
     required this.latitude,
     required this.longitude,
     this.country,
+    this.countryCode,
     this.region,
     this.description,
   });
@@ -20,7 +21,12 @@ class CatalogSite {
   final String name;
   final double latitude;
   final double longitude;
+
+  /// The country's English name.
   final String? country;
+
+  /// ISO 3166-1 alpha-2.
+  final String? countryCode;
   final String? region;
   final String? description;
 }
@@ -73,17 +79,18 @@ class Catalog {
             as Map<String, Object?>;
     double? asDouble(Object? v) => (v as num?)?.toDouble();
     final sites = [
-      for (final raw in read('dive_sites.json')['sites']! as List)
+      for (final raw in read('site_catalogue.json')['sites']! as List)
         if (raw is Map &&
             (raw['name'] as String?)?.trim().isNotEmpty == true &&
-            raw['latitude'] != null &&
-            raw['longitude'] != null)
+            raw['lat'] != null &&
+            raw['lon'] != null)
           CatalogSite(
             id: raw['id'] as String,
             name: (raw['name'] as String).trim(),
-            latitude: asDouble(raw['latitude'])!,
-            longitude: asDouble(raw['longitude'])!,
+            latitude: asDouble(raw['lat'])!,
+            longitude: asDouble(raw['lon'])!,
             country: raw['country'] as String?,
+            countryCode: raw['country_code'] as String?,
             region: raw['region'] as String?,
             description: raw['description'] as String?,
           ),

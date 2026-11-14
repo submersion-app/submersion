@@ -74,7 +74,8 @@ class FocusFactorRow {
   /// Lead in kilograms.
   final double? weight;
 
-  /// `drysuit`, `wetsuit:<mm>` or `unknown`; null with no suit linked.
+  /// The [SuitType.key] of the dive's suit (a drysuit, else its thickest
+  /// wetsuit); null with no suit linked.
   final String? suitKey;
 
   /// `solo` or `buddy`; null when neither is recorded.

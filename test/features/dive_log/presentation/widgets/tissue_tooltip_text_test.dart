@@ -48,6 +48,8 @@ void main() {
     expect(
       text,
       'Compartment 1\n'
+      // The speed group names what the number stands for (#4503).
+      'Fast, blood-rich tissue\n'
       '${c.percentLoading.toStringAsFixed(1)}% loaded\n'
       // (1.2 - 1.0) / (3.2401 - 1.0) at 1 bar ambient.
       'GF: 9%\n'

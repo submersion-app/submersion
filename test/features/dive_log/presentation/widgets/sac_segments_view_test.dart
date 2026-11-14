@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_rate_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segment_table.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/sac_share_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_segments_view.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_time_columns.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -151,7 +152,13 @@ void main() {
 
       expect(find.text('L/min'), findsOneWidget);
       expect(find.text('10.0'), findsNWidgets(2)); // Bottom and Back gas.
-      expect(find.textContaining('10.0 L/min'), findsNothing);
+      expect(
+        find.descendant(
+          of: find.byType(SacSegmentTable),
+          matching: find.textContaining('10.0 L/min'),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('gives a row that cannot convert its own unit', (tester) async {
@@ -186,29 +193,51 @@ void main() {
       expect(find.text('21m'), findsOneWidget);
     });
 
-    testWidgets('sizes gas bars by the displayed rate, not bar/min', (
+    testWidgets('converts gas used with each cylinder\'s own volume', (
       tester,
     ) async {
-      // The same bar/min from different cylinders: 8 L/min against 4 L/min.
+      // The same bar from different cylinders: 8 L against 4 L.
       await pumpSacSegmentsView(
         tester,
         phases: const [],
         gases: [
-          sacSegment(0, 10, sacRate: 1.0, tankId: 'big', tankName: 'Big'),
-          sacSegment(10, 20, sacRate: 1.0, tankId: 'small', tankName: 'Small'),
+          sacSegment(0, 10, tankId: 'big', tankName: 'Big'),
+          sacSegment(10, 20, tankId: 'small', tankName: 'Small'),
         ],
         rates: sacRates(volumeFor: (id) => id == 'big' ? 8.0 : 4.0),
       );
 
-      final bars = tester
-          .widgetList<FractionallySizedBox>(
-            find.descendant(
-              of: find.byType(SacSegmentTable),
-              matching: find.byType(FractionallySizedBox),
-            ),
-          )
-          .map((b) => b.widthFactor);
-      expect(bars, [1.0, 0.5]);
+      expect(find.text('8 L 67%'), findsOneWidget);
+      expect(find.text('4 L 33%'), findsOneWidget);
+    });
+
+    testWidgets('shows the gas each phase and cylinder used, and its share', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester);
+
+      expect(find.text('Used'), findsOneWidget);
+      // Every stretch drew 1 bar from a 10 L cylinder. Ascent has two.
+      expect(find.text('20 L 40%'), findsOneWidget); // Ascent.
+      expect(find.text('10 L 20%'), findsNWidgets(3)); // Descent, Bottom, Stop.
+      expect(find.text('10 L 50%'), findsNWidgets(2)); // Back gas and EAN50.
+    });
+
+    testWidgets('leaves out shares that cannot be added up', (tester) async {
+      // Bar from two cylinders of unknown size.
+      await pumpSacSegmentsView(
+        tester,
+        phases: [
+          sacSegment(0, 10, phase: DivePhase.bottom, tankId: 'back'),
+          sacSegment(10, 20, phase: DivePhase.ascent, tankId: 'stage'),
+        ],
+        gases: const [],
+        rates: sacRates(lane: GasConsumptionLane.sac),
+      );
+
+      expect(find.text('1 bar'), findsNWidgets(2));
+      expect(find.textContaining('%'), findsNothing);
+      expect(find.byType(SacShareBar), findsNothing);
     });
 
     testWidgets('names a deco stop without a warning sign', (tester) async {
@@ -218,7 +247,6 @@ void main() {
       );
 
       expect(find.text('Deco'), findsOneWidget);
-      expect(find.byIcon(Icons.hourglass_bottom), findsOneWidget);
       expect(find.byIcon(Icons.warning), findsNothing);
     });
 
@@ -245,11 +273,39 @@ void main() {
 
       await tester.tapAt(sacColumnCenter(tester, 2, 4));
       await tester.pump();
-      expect(find.text('10-15 min · 5.0 L/min · 30m'), findsOneWidget);
+      expect(
+        find.text('10-15 min · 5.0 L/min · 30m (0-30m) · 10 L used'),
+        findsOneWidget,
+      );
 
       await tester.tapAt(sacColumnCenter(tester, 2, 4));
       await tester.pump();
       expect(find.text('Peak 20.0 L/min at 5-10 min'), findsOneWidget);
+    });
+
+    testWidgets('gives depth alone where the stretch held one depth', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(
+        tester,
+        time: const [
+          SacSegment(
+            startTimestamp: 0,
+            endTimestamp: 300,
+            avgDepth: 5,
+            minDepth: 4.8,
+            maxDepth: 5.2,
+            sacRate: 1.0,
+            gasConsumed: 1.0,
+          ),
+        ],
+        selectedTimestamp: 60,
+      );
+
+      expect(
+        find.text('0-5 min · 10.0 L/min · 5m · 10 L used'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('dragging across the columns scrubs the readout', (
@@ -265,7 +321,10 @@ void main() {
       await gesture.up();
       await tester.pump();
 
-      expect(find.text('15-20 min · 5.0 L/min · 5m'), findsOneWidget);
+      expect(
+        find.text('15-20 min · 5.0 L/min · 5m (0-30m) · 10 L used'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('hovering a column reads it out until the pointer leaves', (
@@ -278,7 +337,10 @@ void main() {
       await mouse.addPointer(location: Offset.zero);
       await mouse.moveTo(sacColumnCenter(tester, 0, 4));
       await tester.pump();
-      expect(find.text('0-5 min · 10.0 L/min · 10m'), findsOneWidget);
+      expect(
+        find.text('0-5 min · 10.0 L/min · 10m (0-30m) · 10 L used'),
+        findsOneWidget,
+      );
 
       await mouse.moveTo(Offset.zero);
       await tester.pump();
@@ -292,7 +354,10 @@ void main() {
     ) async {
       await pumpSacSegmentsView(tester, selectedTimestamp: 16 * 60 + 30);
 
-      expect(find.text('15-20 min · 5.0 L/min · 5m'), findsOneWidget);
+      expect(
+        find.text('15-20 min · 5.0 L/min · 5m (0-30m) · 10 L used'),
+        findsOneWidget,
+      );
       expect(sacIsHighlighted(tester, 'Safety stop'), isTrue);
       expect(sacIsHighlighted(tester, 'Bottom'), isFalse);
       expect(sacIsHighlighted(tester, 'EAN50'), isTrue);
@@ -330,6 +395,124 @@ void main() {
       await tester.pump();
 
       expect(find.textContaining('5-10 min'), findsOneWidget);
+    });
+  });
+
+  group('summary', () {
+    testWidgets('gives the average, the peak and the gas used', (tester) async {
+      await pumpSacSegmentsView(tester);
+
+      expect(find.text('Average'), findsOneWidget);
+      expect(find.text('10.0 L/min'), findsOneWidget);
+      expect(find.text('Peak'), findsOneWidget);
+      expect(find.text('20.0 L/min'), findsOneWidget);
+      // Back gas and EAN50 drew 10 L each.
+      expect(find.text('Gas used'), findsOneWidget);
+      expect(find.text('20 L'), findsOneWidget);
+    });
+
+    testWidgets('gives the peak in the unit of the chart axis', (tester) async {
+      // The stage can't convert, so the whole chart reads in bar/min.
+      await pumpSacSegmentsView(
+        tester,
+        time: [
+          sacSegment(0, 5, sacRate: 2.0, tankId: 'back'),
+          sacSegment(5, 10, sacRate: 1.0, tankId: 'stage'),
+        ],
+        rates: sacRates(volumeFor: (id) => id == 'stage' ? null : 10.0),
+      );
+
+      expect(find.text('2.0 bar/min'), findsNWidgets(2)); // Summary and axis.
+      expect(find.text('Peak 2.0 bar/min at 0-5 min'), findsOneWidget);
+      expect(find.text('20.0 L/min'), findsNothing);
+    });
+
+    testWidgets('totals the time chart on a dive on one cylinder', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester, gases: const []);
+
+      expect(find.text('40 L'), findsOneWidget);
+    });
+
+    testWidgets('leaves out gas used that cannot be added up', (tester) async {
+      // Bar from two cylinders of unknown size.
+      await pumpSacSegmentsView(
+        tester,
+        phases: const [],
+        rates: sacRates(volumeFor: (id) => id == 'stage' ? null : 10.0),
+      );
+
+      expect(find.text('Average'), findsOneWidget);
+      expect(find.text('Gas used'), findsNothing);
+    });
+  });
+
+  group('share bar', () {
+    testWidgets('splits by the gas each phase used', (tester) async {
+      await pumpSacSegmentsView(tester);
+
+      expect(find.text('Gas used by phase'), findsOneWidget);
+      final bar = tester.widget<SacShareBar>(find.byType(SacShareBar));
+      expect(bar.parts.map((p) => p.share), [0.2, 0.2, 0.4, 0.2]);
+    });
+
+    testWidgets('names each share for a screen reader', (tester) async {
+      final handle = tester.ensureSemantics();
+      await pumpSacSegmentsView(tester);
+
+      expect(
+        find.bySemanticsLabel(
+          'Gas used by phase: Descent 20%, Bottom 20%, Ascent 40%, '
+          'Safety stop 20%',
+        ),
+        findsOneWidget,
+      );
+      handle.dispose();
+    });
+
+    testWidgets('is left out with no phases', (tester) async {
+      await pumpSacSegmentsView(tester, phases: const []);
+
+      expect(find.byType(SacShareBar), findsNothing);
+    });
+  });
+
+  group('width', () {
+    testWidgets('stacks the chart over the table on a narrow card', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester, width: 342);
+
+      final chart = tester.getRect(find.byType(SacTimeColumns));
+      final table = tester.getRect(find.byType(SacSegmentTable));
+      expect(table.top, greaterThan(chart.bottom));
+    });
+
+    testWidgets('sets the chart beside the table on a wide card', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(tester, width: 760);
+
+      final chart = tester.getRect(find.byType(SacTimeColumns));
+      final table = tester.getRect(find.byType(SacSegmentTable));
+      expect(table.left, greaterThan(chart.right));
+      expect(table.top, lessThan(chart.bottom));
+      // Neither stretches across the whole card.
+      expect(chart.width, lessThan(760 / 2));
+    });
+
+    testWidgets('keeps the chart to half a wide card with no table', (
+      tester,
+    ) async {
+      await pumpSacSegmentsView(
+        tester,
+        width: 760,
+        phases: const [],
+        gases: const [],
+      );
+
+      expect(tester.getSize(find.byType(SacTimeColumns)).width, lessThan(380));
     });
   });
 
@@ -402,7 +585,10 @@ void main() {
       tester.semantics.tap(find.semantics.byLabel('15-20 min, 5.0 L/min, 5m'));
       await tester.pump();
 
-      expect(find.text('15-20 min · 5.0 L/min · 5m'), findsOneWidget);
+      expect(
+        find.text('15-20 min · 5.0 L/min · 5m (0-30m) · 10 L used'),
+        findsOneWidget,
+      );
       handle.dispose();
     });
 
@@ -499,7 +685,10 @@ void main() {
       await drag.up();
       await tester.pump();
 
-      expect(find.text('15-20 min · 5.0 L/min · 5m'), findsOneWidget);
+      expect(
+        find.text('15-20 min · 5.0 L/min · 5m (0-30m) · 10 L used'),
+        findsOneWidget,
+      );
     });
   });
 }
@@ -523,16 +712,18 @@ class _CursorLoopBackState extends State<_CursorLoopBack> {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
-        body: Center(
-          child: SizedBox(
-            width: 342,
-            child: SacSegmentsView(
-              timeSegments: sacTimeSegments,
-              phaseSegments: sacPhaseSegments,
-              gasSegments: sacGasSegments,
-              rates: sacRates(),
-              selectedTimestamp: _cursor,
-              onCursorSeconds: (seconds) => setState(() => _cursor = seconds),
+        body: SingleChildScrollView(
+          child: Center(
+            child: SizedBox(
+              width: 342,
+              child: SacSegmentsView(
+                timeSegments: sacTimeSegments,
+                phaseSegments: sacPhaseSegments,
+                gasSegments: sacGasSegments,
+                rates: sacRates(),
+                selectedTimestamp: _cursor,
+                onCursorSeconds: (seconds) => setState(() => _cursor = seconds),
+              ),
             ),
           ),
         ),

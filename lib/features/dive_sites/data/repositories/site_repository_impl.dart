@@ -8,6 +8,7 @@ import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/app_sql_functions.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
+import 'package:submersion/core/geography/country_code.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/services/change_log/change_log_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
@@ -151,6 +152,39 @@ class SiteRepository {
     }
   }
 
+  /// The site [diverId] adopted from the built-in catalogue record
+  /// [catalogueId], or null. With no [diverId], a site that has no diver.
+  /// The oldest wins if there are several, so every caller agrees on one.
+  Future<domain.DiveSite?> getSiteByCatalogueId(
+    String catalogueId, {
+    String? diverId,
+  }) async {
+    try {
+      final query = _db.select(_db.diveSites)
+        ..where(
+          (t) =>
+              t.catalogueId.equals(catalogueId) &
+              (diverId == null
+                  ? t.diverId.isNull()
+                  : t.diverId.equals(diverId)),
+        )
+        ..orderBy([
+          (t) => OrderingTerm.asc(t.createdAt),
+          (t) => OrderingTerm.asc(t.id),
+        ])
+        ..limit(1);
+      final row = await query.getSingleOrNull();
+      return row != null ? _mapRowToSite(row) : null;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get site by catalogue id: $catalogueId',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Create a new site. A [classification] (issue #1765) is written in the
   /// same transaction, so a failure leaves neither the row nor its links.
   Future<domain.DiveSite> createSite(
@@ -194,6 +228,7 @@ class SiteRepository {
                 exitMethod: Value(encodeEntryMethods(site.exitMethods)),
                 isShared: Value(site.isShared),
                 sharedLibraryId: Value(site.sharedLibraryId),
+                catalogueId: Value(site.catalogueId),
                 createdAt: Value(now),
                 updatedAt: Value(now),
               ),
@@ -316,6 +351,10 @@ class SiteRepository {
         entryMethod: Value(encodeEntryMethods(site.entryMethods)),
         exitMethod: Value(encodeEntryMethods(site.exitMethods)),
         isShared: Value(site.isShared),
+        // catalogueId is deliberately not written here, like
+        // sharedLibraryId: the site edit page saves an entity built fresh
+        // from its form, so writing the link would erase it on every edit.
+        // It is set by createSite and carried by a merge.
         updatedAt: Value(now),
       );
       if (metadataPatch != null) {
@@ -327,6 +366,13 @@ class SiteRepository {
         if (metadataPatch.bodyOfWater.present) {
           companion = companion.copyWith(
             bodyOfWater: metadataPatch.bodyOfWater,
+          );
+        }
+        // The one way an update sets the catalogue link: an import that
+        // carries it, for a site that had none.
+        if (metadataPatch.catalogueId.present) {
+          companion = companion.copyWith(
+            catalogueId: metadataPatch.catalogueId,
           );
         }
       }
@@ -1003,6 +1049,15 @@ class SiteRepository {
         final missing = duplicateIds.where((id) => !found.contains(id));
         throw StateError('Sites not found: ${missing.join(', ')}');
       }
+      // The catalogue link is not the caller's to choose: the merge page
+      // builds [mergedSite] from its form, which knows nothing of it. The
+      // survivor keeps its own, else takes the first merged site's.
+      final linkedSurvivor = _withMergedCatalogueLink(
+        guardedSurvivor,
+        originalSurvivor: originalSurvivor,
+        duplicateIds: duplicateIds,
+        deletedSites: deletedSites,
+      );
 
       final affectedDives = await (_db.select(
         _db.dives,
@@ -1059,7 +1114,7 @@ class SiteRepository {
       // set at a duplicate meanwhile is moved too rather than failing the
       // duplicate's delete, and the hides it removed.
       final merged = await _db.transaction(() async {
-        await _updateSiteRow(guardedSurvivor, now);
+        await _updateSiteRow(linkedSurvivor, now);
         await _syncRepository.markRecordPending(
           entityType: 'diveSites',
           recordId: survivorId,
@@ -1237,6 +1292,7 @@ class SiteRepository {
                   entryMethod: Value(encodeEntryMethods(site.entryMethods)),
                   exitMethod: Value(encodeEntryMethods(site.exitMethods)),
                   isShared: Value(site.isShared),
+                  catalogueId: Value(site.catalogueId),
                   createdAt: Value(ts?.createdAt ?? now),
                   updatedAt: Value(ts?.updatedAt ?? now),
                 ),
@@ -1403,7 +1459,9 @@ class SiteRepository {
   ///
   /// Each column is folded by `unicode_lower` to meet the Dart-lowered
   /// needle: LIKE folds ASCII only, so "österreich" missed "Österreich"
-  /// (#3377).
+  /// (#3377). A query naming a country in any language also matches the
+  /// sites stored with that country's code, so "Thailand" finds a site whose
+  /// country reads "ประเทศไทย" (#4520).
   Future<List<domain.DiveSite>> searchSites(
     String query, {
     String? diverId,
@@ -1411,15 +1469,22 @@ class SiteRepository {
     try {
       return await PerfTimer.measure('searchSites', () async {
         final needle = query.toLowerCase();
+        final countryCodes = countryCodesMatching(query);
+        final uncodedCountries = countryCodes.isEmpty
+            ? const <String>[]
+            : await _uncodedCountriesNaming(countryCodes);
         final searchQuery = _db.select(_db.diveSites)
           ..where(
-            (t) =>
-                t.name.unicodeLower().contains(needle) |
-                t.country.unicodeLower().contains(needle) |
-                t.region.unicodeLower().contains(needle) |
-                t.city.unicodeLower().contains(needle) |
-                t.island.unicodeLower().contains(needle) |
-                t.bodyOfWater.unicodeLower().contains(needle),
+            (t) => [
+              t.name.unicodeLower().contains(needle),
+              t.country.unicodeLower().contains(needle),
+              t.region.unicodeLower().contains(needle),
+              t.city.unicodeLower().contains(needle),
+              t.island.unicodeLower().contains(needle),
+              t.bodyOfWater.unicodeLower().contains(needle),
+              if (countryCodes.isNotEmpty) t.countryCode.isIn(countryCodes),
+              if (uncodedCountries.isNotEmpty) t.country.isIn(uncodedCountries),
+            ].reduce((a, b) => a | b),
           )
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
@@ -1436,6 +1501,24 @@ class SiteRepository {
       );
       rethrow;
     }
+  }
+
+  /// Stored country texts with no code beside them that name one of [codes]
+  /// (#4520). The v361 backfill ran once, so a name the recognizer learned
+  /// later ("ประเทศไทย") is still stored without its code.
+  Future<List<String>> _uncodedCountriesNaming(Set<String> codes) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT country FROM dive_sites '
+          'WHERE country_code IS NULL AND country IS NOT NULL',
+          readsFrom: {_db.diveSites},
+        )
+        .get();
+    return [
+      for (final row in rows)
+        if (codes.contains(countryCodeFor(row.read<String>('country'))))
+          row.read<String>('country'),
+    ];
   }
 
   /// Dive count per site. Kept for callers that only need the count; the
@@ -1615,6 +1698,24 @@ class SiteRepository {
   static String _placeholders(List<String> ids) =>
       List.filled(ids.length, '?').join(', ');
 
+  /// [survivor] carrying the catalogue link a merge leaves it with: its
+  /// stored one, else the first non-null link among [deletedSites] taken in
+  /// [duplicateIds] order, else none.
+  domain.DiveSite _withMergedCatalogueLink(
+    domain.DiveSite survivor, {
+    required domain.DiveSite originalSurvivor,
+    required List<String> duplicateIds,
+    required List<domain.DiveSite> deletedSites,
+  }) {
+    final linkBySite = {
+      for (final site in deletedSites) site.id: site.catalogueId,
+    };
+    final link =
+        originalSurvivor.catalogueId ??
+        duplicateIds.map((id) => linkBySite[id]).nonNulls.firstOrNull;
+    return survivor.copyWith(catalogueId: link, clearCatalogueId: link == null);
+  }
+
   Future<void> _updateSiteRow(domain.DiveSite site, int now) async {
     await (_db.update(_db.diveSites)..where((t) => t.id.equals(site.id))).write(
       DiveSitesCompanion(
@@ -1643,6 +1744,7 @@ class SiteRepository {
         exitMethod: Value(encodeEntryMethods(site.exitMethods)),
         isShared: Value(site.isShared),
         sharedLibraryId: Value(site.sharedLibraryId),
+        catalogueId: Value(site.catalogueId),
         updatedAt: Value(now),
       ),
     );

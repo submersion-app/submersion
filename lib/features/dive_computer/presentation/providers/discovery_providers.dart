@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:clock/clock.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:permission_handler/permission_handler.dart';
@@ -50,6 +51,10 @@ final libdcVersionProvider = FutureProvider<String>((ref) async {
 });
 
 /// Provider for USB-capable device models derived from descriptors.
+///
+/// Sorted by manufacturer, then model, then model code. libdivecomputer's
+/// descriptor table is grouped by download protocol rather than by brand, so
+/// its own order scatters a brand across the list (issue #4480).
 final usbDeviceModelsProvider = FutureProvider<List<DeviceModel>>((ref) async {
   final descriptors = await ref.watch(deviceDescriptorsProvider.future);
   return descriptors
@@ -60,10 +65,28 @@ final usbDeviceModelsProvider = FutureProvider<List<DeviceModel>>((ref) async {
         ),
       )
       .map(DeviceModel.fromDescriptor)
-      .toList();
+      .sorted(compareDeviceModels);
 });
 
+/// Orders device models for display: manufacturer, then model name, both
+/// case-insensitive with numbers compared by value ("Mantis" before
+/// "Mantis 2", "Veo 180" before "Veo 1000"), then libdivecomputer model code
+/// so models that share a name keep a stable order.
+int compareDeviceModels(DeviceModel a, DeviceModel b) {
+  final byManufacturer = compareAsciiLowerCaseNatural(
+    a.manufacturer,
+    b.manufacturer,
+  );
+  if (byManufacturer != 0) return byManufacturer;
+  final byModel = compareAsciiLowerCaseNatural(a.model, b.model);
+  if (byModel != 0) return byModel;
+  return (a.dcModel ?? 0).compareTo(b.dcModel ?? 0);
+}
+
 /// Provider for USB devices grouped by manufacturer.
+///
+/// Keeps the order of [usbDeviceModelsProvider]: brands and the models within
+/// each brand are alphabetical.
 final usbDevicesByManufacturerProvider =
     FutureProvider<Map<String, List<DeviceModel>>>((ref) async {
       final models = await ref.watch(usbDeviceModelsProvider.future);

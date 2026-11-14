@@ -37,10 +37,10 @@ final siteDiveMediaRepositoryProvider = Provider<SiteDiveMediaRepository>(
   (ref) => SiteDiveMediaRepository(),
 );
 
-/// How many media items the dives logged at the site hold: all the collapsed
-/// "Photos from dives" group needs to decide whether to show and to title
-/// itself, so a site with hundreds of dives and no photos costs one count
-/// (issue #4252).
+/// How many media items the dives logged at the site hold: all Site Details
+/// needs to decide whether to show the dive photos card and to title it, so
+/// a site with hundreds of dives and no photos costs one count (issues #4252
+/// and #4502).
 ///
 /// Which dives belong to the site is a dives-table read, so a merge, a bulk
 /// delete, or a sync pull changes this without the media table being written
@@ -56,8 +56,9 @@ final mediaCountFromDivesAtSiteProvider = FutureProvider.family<int, String>((
 });
 
 /// Every media item from the dives logged at the site, chronological, for
-/// the expanded group and the site viewer. Read in one statement and only
-/// while one of them is open; the collapsed group reads
+/// the dive photos card's Show all grid and the site viewer. Read in one
+/// statement and only while one of them is open; the card's strip reads
+/// [recentMediaFromDivesAtSiteProvider] and the page
 /// [mediaCountFromDivesAtSiteProvider] instead.
 ///
 /// Takes the whole media tick, enrichment included, because the viewer shows
@@ -73,6 +74,32 @@ final flatMediaFromDivesAtSiteProvider = FutureProvider.autoDispose
       return ref
           .watch(siteDiveMediaRepositoryProvider)
           .getMediaFromDivesAtSite(siteId);
+    });
+
+/// Most photos the strip on the site's dive photos card reads: enough to fill
+/// one row on a wide desktop card. The card shows as many as fit.
+const int kSiteDivePhotoStripLimit = 12;
+
+/// The newest [kSiteDivePhotoStripLimit] media items from the dives logged at
+/// the site, for the strip on the site's dive photos card (issue #4502).
+///
+/// Takes the same ticks as [flatMediaFromDivesAtSiteProvider], for the same
+/// reasons: the viewer it opens shows the enrichment, and which dives belong
+/// to the site is a dives-table read.
+final recentMediaFromDivesAtSiteProvider = FutureProvider.autoDispose
+    .family<List<MediaItem>, String>((ref, siteId) async {
+      ref.invalidateSelfWhen(
+        ref.watch(mediaRepositoryProvider).watchMediaChanges(),
+      );
+      ref.invalidateSelfWhen(
+        ref.watch(diveRepositoryProvider).watchDivesChanges(),
+      );
+      return ref
+          .watch(siteDiveMediaRepositoryProvider)
+          .getRecentMediaFromDivesAtSite(
+            siteId,
+            limit: kSiteDivePhotoStripLimit,
+          );
     });
 
 /// Narrow writers for a site attachment's name, category and size

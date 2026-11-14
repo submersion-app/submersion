@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/features/insights/presentation/insights_dive_filters.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -415,8 +416,28 @@ void main() {
       expect(await repository.getGasMixDiveIds(gasType: 'Nitrox'), ['deco']);
     });
 
-    test('suit thickness, with an unknown wetsuit and a drysuit', () async {
-      Future<void> suit(String id, String type, {double? mm}) async {
+    test('suit type, by thickness and style, with a drysuit', () async {
+      Future<void> attr(String id, String key, {double? num, String? text}) =>
+          db
+              .into(db.equipmentAttributes)
+              .insert(
+                EquipmentAttributesCompanion(
+                  id: Value('$id-$key'),
+                  equipmentId: Value(id),
+                  attrKey: Value(key),
+                  valueNum: Value(num),
+                  valueText: Value(text),
+                  createdAt: const Value(1),
+                  updatedAt: const Value(1),
+                ),
+              );
+
+      Future<void> suit(
+        String id,
+        String type, {
+        double? mm,
+        String? style,
+      }) async {
         await db
             .into(db.equipment)
             .insert(
@@ -428,20 +449,8 @@ void main() {
                 updatedAt: 1,
               ),
             );
-        if (mm != null) {
-          await db
-              .into(db.equipmentAttributes)
-              .insert(
-                EquipmentAttributesCompanion(
-                  id: Value('$id-mm'),
-                  equipmentId: Value(id),
-                  attrKey: const Value('thickness_mm'),
-                  valueNum: Value(mm),
-                  createdAt: const Value(1),
-                  updatedAt: const Value(1),
-                ),
-              );
-        }
+        if (mm != null) await attr(id, 'thickness_mm', num: mm);
+        if (style != null) await attr(id, 'suit_style', text: style);
       }
 
       Future<void> wear(String diveId, String suitId) => db
@@ -450,30 +459,51 @@ void main() {
             DiveEquipmentCompanion.insert(diveId: diveId, equipmentId: suitId),
           );
 
+      await suit('five-full', 'wetsuit', mm: 5, style: 'full');
       await suit('five', 'wetsuit', mm: 5);
       await suit('plain', 'wetsuit');
       await suit('dry', 'drysuit');
       await dive('a');
-      await wear('a', 'five');
+      await wear('a', 'five-full');
       await dive('b');
-      await wear('b', 'plain');
+      await wear('b', 'five');
       await dive('c');
-      await wear('c', 'dry');
+      await wear('c', 'plain');
+      await dive('d');
+      await wear('d', 'dry');
       await dive('excluded', excluded: true);
-      await wear('excluded', 'five');
+      await wear('excluded', 'five-full');
 
-      final stats = await repository.getDivesBySuitThickness();
-
-      expect(await repository.getSuitThicknessDiveIds(bucket: 'mm', mm: 5), [
-        'a',
-      ]);
-      expect(await repository.getSuitThicknessDiveIds(bucket: 'unknown'), [
-        'b',
-      ]);
-      expect(await repository.getSuitThicknessDiveIds(bucket: 'drysuit'), [
-        'c',
-      ]);
-      expect(stats.byThickness.single.count, 1);
+      // Every bar opens exactly the dives it counted.
+      final stats = await repository.getDivesBySuitType();
+      expect(stats, hasLength(4));
+      for (final bar in stats) {
+        expect(
+          await repository.getSuitTypeDiveIds(type: bar.type),
+          hasLength(bar.count),
+          reason: bar.type.key,
+        );
+      }
+      expect(
+        await repository.getSuitTypeDiveIds(
+          type: const SuitType.wetsuit(mm: 5, style: 'full'),
+        ),
+        ['a'],
+      );
+      expect(
+        await repository.getSuitTypeDiveIds(
+          type: const SuitType.wetsuit(mm: 5),
+        ),
+        ['b'],
+      );
+      expect(
+        await repository.getSuitTypeDiveIds(type: const SuitType.wetsuit()),
+        ['c'],
+      );
+      expect(
+        await repository.getSuitTypeDiveIds(type: const SuitType.drysuit()),
+        ['d'],
+      );
     });
 
     test('solo, buddy and not recorded follow the chart', () async {

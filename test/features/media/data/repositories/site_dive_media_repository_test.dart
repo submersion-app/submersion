@@ -121,6 +121,109 @@ void main() {
     });
   });
 
+  // Documents and signatures attached to a dive are not things a diver
+  // browses as photos (PR #4505 review): every read of the site's dive
+  // photos leaves them out, so the card, its count and the viewer agree.
+  group('documents and signatures', () {
+    setUp(() async {
+      await dive('d1', 'S');
+      await media('photo', diveId: 'd1', takenAt: 1000);
+      await media('clip', diveId: 'd1', takenAt: 2000, fileType: 'video');
+      await media('pdf', diveId: 'd1', takenAt: 3000, fileType: 'document');
+      await media(
+        'sig-i',
+        diveId: 'd1',
+        takenAt: 4000,
+        fileType: 'instructor_signature',
+      );
+      await media(
+        'sig-legacy',
+        diveId: 'd1',
+        takenAt: 5000,
+        fileType: 'instructorSignature',
+      );
+      await media(
+        'sig-b',
+        diveId: 'd1',
+        takenAt: 6000,
+        fileType: 'buddy_signature',
+      );
+    });
+
+    test('are not counted', () async {
+      expect(await repository.countMediaFromDivesAtSite('S'), 2);
+    });
+
+    test('are not in the full list', () async {
+      final items = await repository.getMediaFromDivesAtSite('S');
+      expect(items.map((m) => m.id), ['photo', 'clip']);
+    });
+
+    test('are not in the strip', () async {
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 10,
+      );
+      expect(items.map((m) => m.id), ['clip', 'photo']);
+    });
+  });
+
+  // The strip on the site's dive photos card (issue #4502).
+  group('getRecentMediaFromDivesAtSite', () {
+    test('returns the newest first, capped at the limit', () async {
+      await dive('d1', 'S');
+      await dive('d2', 'S');
+      for (var i = 1; i <= 5; i++) {
+        await media('p$i', diveId: i.isEven ? 'd2' : 'd1', takenAt: i * 1000);
+      }
+
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 3,
+      );
+      expect(items.map((m) => m.id), ['p5', 'p4', 'p3']);
+    });
+
+    test('undated photos come after dated ones', () async {
+      await dive('d1', 'S');
+      await media('undated', diveId: 'd1', takenAt: null);
+      await media('older', diveId: 'd1', takenAt: 1000);
+      await media('newer', diveId: 'd1', takenAt: 2000);
+
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 10,
+      );
+      expect(items.map((m) => m.id), ['newer', 'older', 'undated']);
+    });
+
+    test('excludes other sites and direct site attachments', () async {
+      await dive('d1', 'S');
+      await dive('elsewhere', 'other');
+      await media('mine', diveId: 'd1', takenAt: 1000);
+      await media('x', diveId: 'elsewhere', takenAt: 5000);
+      await media('direct', siteId: 'S', takenAt: 6000);
+
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 10,
+      );
+      expect(items.map((m) => m.id), ['mine']);
+    });
+
+    test('carries the enrichment of items that have one', () async {
+      await dive('d1', 'S');
+      await media('a', diveId: 'd1', takenAt: 1000);
+      await enrichment('a', 'd1', 12.0);
+
+      final items = await repository.getRecentMediaFromDivesAtSite(
+        'S',
+        limit: 10,
+      );
+      expect(items.single.enrichment?.depthMeters, 12.0);
+    });
+  });
+
   // The provider this replaced hydrated every dive at the site, profile and
   // tank-pressure series included, then queried once per dive.
   group('statement budget', () {

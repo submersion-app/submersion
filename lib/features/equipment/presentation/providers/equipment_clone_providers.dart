@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/equipment_clone_service.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
@@ -38,3 +39,17 @@ final cloneSourceProvider = FutureProvider.family<EquipmentItem?, String>((
   if (diverId == null) return item;
   return await repository.isVisibleTo(id, diverId) ? item : null;
 });
+
+/// The set a set clone starts from (issue #2156), or null when it is not the
+/// active diver's. Sets are never shared, and the `cloneFrom` id arrives in
+/// the route, so as with [cloneSourceProvider] a known id alone must not copy
+/// another profile's set. An unowned set is not the diver's either: the set
+/// list shows only theirs. With no active diver every set counts, as above.
+final equipmentSetCloneSourceProvider =
+    FutureProvider.family<EquipmentSet?, String>((ref, id) async {
+      final set = await ref.watch(equipmentSetProvider(id).future);
+      if (set == null) return null;
+      final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+      if (diverId == null) return set;
+      return set.diverId == diverId ? set : null;
+    });

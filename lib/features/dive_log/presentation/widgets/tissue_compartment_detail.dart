@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/gas_exchange.dart';
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/compartment_group.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_exchange_style.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/loading_severity_color.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -66,13 +67,25 @@ class TissueCompartmentDetail extends StatelessWidget {
         const SizedBox(height: 6),
         Row(
           children: [
-            Text(
-              isLeading
-                  ? l10n.diveLog_deco_compartmentLeading(comp.compartmentNumber)
-                  : l10n.diveLog_deco_compartmentOther(comp.compartmentNumber),
-              style: textTheme.labelSmall?.copyWith(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+            // Shrinks rather than overflowing beside the badge at large text.
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  isLeading
+                      ? l10n.diveLog_deco_compartmentLeading(
+                          comp.compartmentNumber,
+                        )
+                      : l10n.diveLog_deco_compartmentOther(
+                          comp.compartmentNumber,
+                        ),
+                  maxLines: 1,
+                  style: textTheme.labelSmall?.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
             if (net != null) ...[
@@ -80,6 +93,20 @@ class TissueCompartmentDetail extends StatelessWidget {
               _ExchangeBadge(exchange: net),
             ],
           ],
+        ),
+        // On its own line, so the direction badge keeps its place beside the
+        // number, and always ONE line, shrunk to fit rather than wrapped or
+        // cut short, so the card's height does not change from bar to bar
+        // when one group's label is longer than another's (issue #4503).
+        const SizedBox(height: 2),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            CompartmentGroup.ofNumber(comp.compartmentNumber).label(l10n),
+            maxLines: 1,
+            style: labelStyle,
+          ),
         ),
         const SizedBox(height: 6),
         Row(

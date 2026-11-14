@@ -22,7 +22,8 @@ required.
 | **Installed in** | For an O2 cell or a battery, the item it is fitted to |
 | **Name** | Your label, for example "My Primary Regulator" |
 | **Brand** / **Model** | Manufacturer and product |
-| Type-specific fields | For example a tank's volume, working pressure and material, or a suit's thickness. Some types also have a colour, used when the gear is drawn on the diver figure. |
+| Type-specific fields | For example a tank's volume, working pressure and material, or a suit's thickness. Some types also have a colour, used when the gear is drawn on the diver figure. A tank's **Worn as** (back mount, sidemount left or right, or stage) puts it there on the figure. |
+| **Position on figure** | For gear the figure can draw in more than one place, where to draw it: for example a light in the left hand or clipped to the chest. **Automatic** lets the figure choose. |
 | **Serial Number** | For warranty and service records |
 | **Purchase Information** | **Purchase Date**, **Purchase Price** and **Currency** |
 | **Notes** | Anything else |
@@ -279,6 +280,10 @@ Optional settings on a set:
 - **Geofences:** suggest the set for dives near chosen places. Center a
   geofence on a dive site or a dropped pin and set its radius.
 - **Show diver figure:** draw the set's gear on a diver. This is on by default.
+  Tanks are drawn at your sides when the set has a sidemount BCD or a tank
+  worn as sidemount. On a dive, a tank's role (for example Sidemount Left or
+  Stage) decides where it is drawn, ahead of its **Worn as**. A **Position on
+  figure** you chose for the item wins over both.
 
 ### Using a set on a dive
 

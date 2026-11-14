@@ -798,7 +798,7 @@
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
   "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver",
   "equipment_setEdit_figureSwitch_title": "Show diver figure",
-  "equipment_setEdit_historyAsk": "Apply the changes to those dives as well, or only from now on?",
+  "equipment_setEdit_historyAsk": "Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.",
   "equipment_setEdit_historyOnDives": "{count, plural, =1{This set is on 1 logged dive.} other{This set is on {count} logged dives.}}",
   "equipment_color_red": "Red",
   "equipment_color_orange": "Orange",
@@ -3336,6 +3336,22 @@
     }
   },
   "diveLog_gear_removeSet": "Remove set from this dive",
+  "diveLog_gear_removeSetTitle": "Remove set from this dive?",
+  "@diveLog_gear_removeSetTitle": {
+    "description": "Title of the question asked when a set chip is removed from a dive's gear (issue #4500)"
+  },
+  "diveLog_gear_removeSetBody": "Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?",
+  "@diveLog_gear_removeSetBody": {
+    "description": "Body of that question: remove the set's gear too, or keep the gear and only unlink the set"
+  },
+  "diveLog_gear_removeSetKeepGear": "Keep gear",
+  "@diveLog_gear_removeSetKeepGear": {
+    "description": "Button that keeps the gear on the dive and only unlinks the set"
+  },
+  "diveLog_gear_removeSetRemoveGear": "Remove gear",
+  "@diveLog_gear_removeSetRemoveGear": {
+    "description": "Button that removes the gear the set added from the dive"
+  },
   "diveLog_gear_unknownSet": "Set",
   "diveLog_health_after15": "After 15 min",
   "diveLog_health_after5": "After 5 min",
@@ -4601,11 +4617,40 @@
       }
     }
   },
+  "diveLog_deco_groupFast": "Fast, blood-rich tissue",
+  "@diveLog_deco_groupFast": {
+    "description": "Speed group of tissue compartments 1-5, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_groupMedium": "Medium, muscle and skin",
+  "@diveLog_deco_groupMedium": {
+    "description": "Speed group of tissue compartments 6-10, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_groupSlow": "Slow, fat and bone",
+  "@diveLog_deco_groupSlow": {
+    "description": "Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for"
+  },
+  "diveLog_deco_heatMapSemantics": "Heat map of compartments {first} to {last}, fast at the top and slow at the bottom",
+  "@diveLog_deco_heatMapSemantics": {
+    "description": "Screen reader description of the tissue heat map rows",
+    "placeholders": {
+      "first": {"type": "int"},
+      "last": {"type": "int"}
+    }
+  },
+  "diveLog_deco_heatMapTimedSemantics": "Heat map of compartments {first} to {last}, fast at the top and slow at the bottom, from {start} to {end} of the dive",
+  "@diveLog_deco_heatMapTimedSemantics": {
+    "description": "Screen reader description of the tissue heat map rows and the dive time it covers; start and end read like \"0 min\"",
+    "placeholders": {
+      "first": {"type": "int"},
+      "last": {"type": "int"},
+      "start": {"type": "String"},
+      "end": {"type": "String"}
+    }
+  },
   "diveLog_deco_metricLoad": "Load",
   "diveLog_deco_gasOngassing": "Ongassing",
   "diveLog_deco_gasOffgassing": "Offgassing",
   "diveLog_deco_gasEquilibrium": "Equilibrium",
-  "diveLog_deco_heatMapRows": "Rows: fast (top) to slow (bottom)",
   "diveLog_deco_surfaceLevel": "Surface level",
   "diveLog_deco_mValue": "M-value",
   "diveLog_deco_tooltipCompartment": "Compartment {number}",
@@ -4689,11 +4734,6 @@
   "diveLog_detail_button_rangeAnalysis": "Range Stats",
   "diveLog_detail_captureSignature": "Capture Instructor Signature",
   "diveLog_detail_collapsed_atTime": "{timestamp}",
-  "diveLog_pinnedStrip_ndl": "NDL {minutes} min",
-  "diveLog_pinnedStrip_stop": "Stop {depth} · {minutes} min",
-  "diveLog_pinnedStrip_ppO2": "ppO2 {value}",
-  "diveLog_pinnedStrip_hintDrag": "Drag to scrub",
-  "diveLog_pinnedStrip_hintHover": "Hover to scrub",
   "diveLog_pinnedStrip_semantics": "Dive profile, scrub to move the cursor",
   "diveLog_detail_customFieldCount": "{count, plural, =1{1 field} other{{count} fields}}",
   "@diveLog_detail_customFieldCount": {
@@ -6272,6 +6312,7 @@
   "diveLog_sitePicker_errorLoading": "Error loading sites: {error}",
   "diveLog_sitePicker_newDiveSite": "New Dive Site",
   "diveLog_sitePicker_noSites": "No dive sites yet",
+  "diveLog_sitePicker_sortedByArea": "Near the sites of your other dives",
   "diveLog_sitePicker_sortedByDistance": "Sorted by distance",
   "diveLog_sitePicker_title": "Select Dive Site",
   "diveLog_sort_title": "Sort Dives",
@@ -7547,6 +7588,7 @@
   "diveSites_import_search_hint": "Search dive sites (e.g., \"Blue Hole\", \"Thailand\")",
   "diveSites_import_section_importFromDatabase": "Import from Database ({count})",
   "diveSites_import_section_mySites": "My Sites ({count})",
+  "diveSites_import_section_truncated": "Showing the first {count} sites. Search for something more specific to see the rest.",
   "diveSites_import_semantics_viewDetails": "View details for {name}",
   "diveSites_import_semantics_viewSavedSite": "View saved site {name}",
   "diveSites_import_snackbar_failed": "Failed to import site",
@@ -7687,6 +7729,14 @@
     }
   },
   "diveSites_picker_nearby": "Nearby",
+  "diveSites_catalogue_credit": "From the built-in site catalogue. Source: {source}",
+  "diveSites_picker_builtIn_adoptError": "Could not add this site",
+  "diveSites_picker_builtIn_details": "Site details",
+  "diveSites_picker_builtIn_nearPlace": "More sites near {place}",
+  "diveSites_picker_builtIn_nearby": "More sites nearby",
+  "diveSites_picker_builtIn_search": "Built-in sites",
+  "diveSites_picker_builtIn_showAll": "Show all {count}",
+  "diveSites_picker_builtIn_useSite": "Use this site",
   "diveSites_list_groupBy": "Group by",
   "diveSites_list_groupBy_location": "Country & region",
   "diveSites_list_groupBy_locationAndWater": "Country & body of water",
@@ -10581,6 +10631,8 @@
   "equipment_setEdit_addEquipmentFirst": "Add equipment first before creating a set.",
   "equipment_setEdit_appBar_editTitle": "Edit Set",
   "equipment_setEdit_appBar_newTitle": "New Equipment Set",
+  "equipment_setEdit_appBar_cloneTitle": "Clone Equipment Set",
+  "@equipment_setEdit_appBar_cloneTitle": {"description": "Title of the equipment set form when it is pre-filled to clone an existing set"},
   "equipment_setEdit_descriptionHint": "Optional description...",
   "equipment_setEdit_descriptionLabel": "Description",
   "equipment_setEdit_errorMessage": "Error: {error}",
@@ -10597,6 +10649,8 @@
   "equipment_setEdit_selectEquipmentSubtitle": "Choose the equipment items to include in this set.",
   "equipment_setEdit_selectEquipmentTitle": "Select Equipment",
   "equipment_setEdit_snackbar_created": "Equipment set created",
+  "equipment_setEdit_snackbar_cloned": "Equipment set cloned",
+  "@equipment_setEdit_snackbar_cloned": {"description": "Shown after a cloned equipment set is saved"},
   "equipment_setEdit_snackbar_error": "Error saving equipment set: {error}",
   "equipment_setEdit_snackbar_updated": "Equipment set updated",
   "equipment_sets_appBar_title": "Equipment Sets",
@@ -12167,8 +12221,11 @@
   "media_siteAttachment_sizeTile": "Tile",
   "media_siteMediaSection_addDocument": "Add document",
   "media_siteMediaSection_emptyState": "No maps, photos, or documents attached to this site",
-  "media_siteMediaSection_divePhotosGroup": "Photos from dives here ({count})",
   "media_siteMediaSection_divePhotoLabel": "Dive photo",
+  "media_siteDivePhotos_title": "Photos from dives",
+  "media_siteDivePhotos_titleWithCount": "Photos from dives ({count})",
+  "media_siteDivePhotos_showAll": "Show all",
+  "media_siteDivePhotos_showLess": "Show less",
   "media_siteMediaSection_unlinkSelectedTitle": "Unlink {count} items?",
   "media_siteMediaSection_unlinkSelectedContent": "Removes {count} items from your library, along with their cloud copies and thumbnails. Media a dive still uses is kept. Your original files are not affected.",
   "@media_siteMediaSection_unlinkSelectedContent": {
@@ -12597,7 +12654,8 @@
       }
     }
   },
-  "@media_siteMediaSection_divePhotosGroup": {
+  "@media_siteDivePhotos_titleWithCount": {
+    "description": "Title of the Site Details card that shows photos from the dives logged at the site, with how many there are",
     "placeholders": {
       "count": {
         "type": "int"
@@ -13902,6 +13960,10 @@
   "plannerSeries_missionUnavailable": "A series of dives can't be planned as a DPV mission",
   "plannerSeries_followUnavailableInReplan": "A replan can't follow another dive",
   "plannerCanvas_follow_title": "Follow a dive",
+  "plannerCanvas_pickDive_number": "#{number}",
+  "@plannerCanvas_pickDive_number": {"description": "A logged dive in the planner's dive pickers when it has no name or site: its dive number", "placeholders": {"number": {"type": "int"}}},
+  "plannerCanvas_pickDive_numberTitle": "#{number} · {title}",
+  "@plannerCanvas_pickDive_numberTitle": {"description": "A logged dive in the planner's dive pickers: its dive number, then its name or else its site", "placeholders": {"number": {"type": "int"}, "title": {"type": "String"}}},
   "plannerCanvas_gas_minGas": "min gas {pressure}",
   "@plannerCanvas_gas_minGas": {
     "placeholders": {
@@ -14562,7 +14624,8 @@
   "siteDetailSection_tide_description": "Tide cycle graph and timing",
   "siteDetailSection_reefHealth_description": "Satellite water conditions at the site",
   "siteDetailSection_marineLife_description": "Species seen at this site",
-  "siteDetailSection_media_description": "Photos, videos and documents for the site",
+  "siteDetailSection_media_description": "Photos, videos and documents attached to the site",
+  "siteDetailSection_divePhotos_description": "Photos from the dives logged at this site",
   "siteDetailSection_tags_description": "Tags on this site",
   "siteDetailSection_difficulty_description": "Difficulty level of the site",
   "siteDetailSection_rating_description": "Your rating of the site",
@@ -15433,6 +15496,7 @@
   "settings_conflict_field_cardColorGradientEnd": "Card color gradient end",
   "settings_conflict_field_cardColorGradientPreset": "Card color gradient",
   "settings_conflict_field_cardColorGradientStart": "Card color gradient start",
+  "settings_conflict_field_catalogueId": "Built-in catalogue link",
   "settings_conflict_field_ccrDiluentModPpO2": "CCR diluent MOD ppO2",
   "settings_conflict_field_ccrSetpointHigh": "CCR high setpoint",
   "settings_conflict_field_ccrSetpointLow": "CCR low setpoint",
@@ -22284,6 +22348,15 @@
   "@diveComputer_discovery_garminWatchEntry": {
     "description": "The single Garmin entry in the USB list of Connect New Computer (Windows); picking it imports the watch's FIT files"
   },
+  "diveComputer_discovery_usbModelCount": "{count, plural, one{{count} model} other{{count} models}}",
+  "@diveComputer_discovery_usbModelCount": {
+    "description": "Model count beside a manufacturer's foldable heading in the USB list of Connect New Computer",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "diveComputer_discovery_usbSearchHint": "Search by manufacturer or model...",
   "diveComputer_downloadExit_content": "Leaving will cancel the current download from your dive computer. Are you sure?",
   "diveComputer_downloadExit_leave": "Leave",
@@ -25142,6 +25215,7 @@
   "attrLabel_tank_material": "Material",
   "attrLabel_valve_type": "Valve",
   "attrLabel_cylinder_use": "Cylinder use",
+  "attrLabel_worn_as": "Worn as",
   "attrLabel_tank_identifier": "Identifier",
   "attrLabel_last_visual_inspection": "Last visual inspection",
   "attrLabel_last_hydro_test": "Last hydrostatic test",
@@ -25196,6 +25270,7 @@
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",
   "attrLabel_color": "Color",
+  "attrLabel_figure_position": "Position on figure",
   "attrLabel_sleeve_length": "Sleeves",
   "attrLabel_upf_rating": "UPF rating",
   "attrLabel_hooded": "Hooded",
@@ -25264,6 +25339,32 @@
   "attrChoice_valve_type_convertible": "Convertible",
   "attrChoice_cylinder_use_breathing_gas": "Breathing gas",
   "attrChoice_cylinder_use_suit_inflation": "Suit inflation",
+  "attrChoice_worn_as_back": "Back mount",
+  "attrChoice_worn_as_sidemount_left": "Sidemount, left",
+  "attrChoice_worn_as_sidemount_right": "Sidemount, right",
+  "attrChoice_worn_as_stage": "Stage",
+  "attrChoice_figure_position_mouth": "Mouth",
+  "attrChoice_figure_position_octo": "Chest (octo)",
+  "attrChoice_figure_position_chest_left": "Chest, left",
+  "attrChoice_figure_position_chest_right": "Chest, right",
+  "attrChoice_figure_position_console": "Console",
+  "attrChoice_figure_position_wrist_left": "Left wrist",
+  "attrChoice_figure_position_wrist_right": "Right wrist",
+  "attrChoice_figure_position_hand_left": "Left hand",
+  "attrChoice_figure_position_hand_right": "Right hand",
+  "attrChoice_figure_position_hip_left": "Left hip",
+  "attrChoice_figure_position_hip_right": "Right hip",
+  "attrChoice_figure_position_thigh_left": "Left thigh",
+  "attrChoice_figure_position_thigh_right": "Right thigh",
+  "attrChoice_figure_position_calf_left": "Left calf",
+  "attrChoice_figure_position_back": "Back",
+  "attrChoice_figure_position_trim_left": "Trim pocket, left",
+  "attrChoice_figure_position_trim_right": "Trim pocket, right",
+  "attrChoice_figure_position_butt_d_ring": "Butt D-ring",
+  "attrChoice_figure_position_sidemount_left": "Sidemount, left",
+  "attrChoice_figure_position_sidemount_right": "Sidemount, right",
+  "attrChoice_figure_position_stage_left": "Stage, left",
+  "attrChoice_figure_position_stage_right": "Stage, right",
   "attrChoice_connection_din": "DIN",
   "attrChoice_connection_yoke": "Yoke (INT)",
   "attrChoice_hose_type_lp": "LP (low pressure)",
@@ -25377,14 +25478,21 @@
   "equipment_edit_addCustomField": "Add custom field",
   "attr_flagYes": "Yes",
   "attr_flagNo": "No",
+  "attr_figurePosition_automatic": "Automatic",
   "equipment_edit_invalidThickness": "Use 5, 5/4 or 7/5/3",
   "equipment_edit_invalidFocalLength": "Use 60 or 15-45",
   "equipment_edit_invalidWebLink": "Enter a web address, e.g. shop.example.com",
-  "insights_progression_divesBySuitThickness_title": "Dives by Suit Thickness",
-  "insights_progression_divesBySuitThickness_subtitle": "Exposure suit primary thickness across your dives",
-  "insights_progression_divesBySuitThickness_empty": "No dives with a wetsuit or drysuit linked",
-  "insights_progression_divesBySuitThickness_error": "Could not load suit thickness data",
-  "insights_progression_divesBySuitThickness_unknown": "Unknown",
+  "insights_progression_divesBySuitType_title": "Dives by Suit Type",
+  "insights_progression_divesBySuitType_subtitle": "Exposure suit type, thickness and style across your dives",
+  "insights_progression_divesBySuitType_empty": "No dives with a wetsuit or drysuit linked",
+  "insights_progression_divesBySuitType_error": "Could not load suit type data",
+  "insights_suitType_wetsuitThicknessStyle": "Wetsuit · {thickness} mm {style}",
+  "insights_suitType_wetsuitThickness": "Wetsuit · {thickness} mm",
+  "insights_suitType_wetsuitStyle": "Wetsuit · {style}",
+  "insights_suitType_style_full": "full",
+  "insights_suitType_style_shorty": "shorty",
+  "insights_suitType_style_twoPiece": "two-piece",
+  "insights_suitType_style_semiDry": "semi-dry",
   "diveLog_filter_sectionSuitThickness": "Suit thickness (mm)",
   "diveLog_filter_sectionGearAttributes": "Gear attributes",
   "diveLog_filter_gearCategory": "Gear category",
@@ -25594,6 +25702,59 @@
     "description": "Collapsed subtitle of the gas consumption by segment card",
     "placeholders": {
       "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_summaryAverage": "Average",
+  "@diveLog_detail_sacSegments_summaryAverage": {
+    "description": "Label over the dive average rate in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_summaryPeak": "Peak",
+  "@diveLog_detail_sacSegments_summaryPeak": {
+    "description": "Label over the highest segment rate in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_summaryUsed": "Gas used",
+  "@diveLog_detail_sacSegments_summaryUsed": {
+    "description": "Label over the total gas used in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_used": "Used",
+  "@diveLog_detail_sacSegments_used": {
+    "description": "Heading of the gas used column in the gas consumption by segment card"
+  },
+  "diveLog_detail_sacSegments_shareByPhase": "Gas used by phase",
+  "@diveLog_detail_sacSegments_shareByPhase": {
+    "description": "Heading of the bar showing each phase's share of the gas used"
+  },
+  "diveLog_detail_sacSegments_usedAmount": "{amount} used",
+  "@diveLog_detail_sacSegments_usedAmount": {
+    "description": "Gas used in a stretch of the dive, such as 228 L used",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_share": "{percent}%",
+  "@diveLog_detail_sacSegments_share": {
+    "description": "A row's share of the gas used, such as 59%",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_sacSegments_depthWithRange": "{average} ({shallowest}-{deepest})",
+  "@diveLog_detail_sacSegments_depthWithRange": {
+    "description": "Average depth of a stretch of the dive with its shallowest and deepest, such as 27m (18-30m)",
+    "placeholders": {
+      "average": {
+        "type": "String"
+      },
+      "shallowest": {
+        "type": "String"
+      },
+      "deepest": {
         "type": "String"
       }
     }
@@ -29567,7 +29728,7 @@
   "insights_conditions_entryMethod_semanticLabel": "Bar chart. Entry methods. {description}",
   "insights_conditions_visibility_semanticLabel": "Pie chart. Visibility distribution. {description}",
   "insights_conditions_waterType_semanticLabel": "Pie chart. Water type distribution. {description}",
-  "insights_progression_divesBySuitThickness_semanticLabel": "Bar chart. Dives by suit thickness. {description}",
+  "insights_progression_divesBySuitType_semanticLabel": "Bar chart. Dives by suit type. {description}",
   "insights_progression_divesPerYear_countInYear": "{count, plural, =1{1 dive in {year}} other{{count} dives in {year}}}",
   "insights_progression_divesPerYear_semanticLabel": "Bar chart. Dives per year. {description}",
   "insights_records_unavailable": "Records unavailable",
@@ -30091,12 +30252,43 @@
       }
     }
   },
-  "@insights_progression_divesBySuitThickness_semanticLabel": {
-    "description": "Screen-reader summary of the dives-by-suit-thickness bar chart",
+  "@insights_suitType_wetsuitThicknessStyle": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its thickness in mm and its style word",
+    "placeholders": {
+      "thickness": {
+        "type": "String",
+        "example": "5"
+      },
+      "style": {
+        "type": "String",
+        "example": "full"
+      }
+    }
+  },
+  "@insights_suitType_wetsuitThickness": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its thickness in mm and no style",
+    "placeholders": {
+      "thickness": {
+        "type": "String",
+        "example": "5"
+      }
+    }
+  },
+  "@insights_suitType_wetsuitStyle": {
+    "description": "A wetsuit bar on the Insights Suit Type chart with its style word and no thickness",
+    "placeholders": {
+      "style": {
+        "type": "String",
+        "example": "shorty"
+      }
+    }
+  },
+  "@insights_progression_divesBySuitType_semanticLabel": {
+    "description": "Screen-reader summary of the dives-by-suit-type bar chart",
     "placeholders": {
       "description": {
         "type": "String",
-        "example": "5 mm: 12"
+        "example": "Wetsuit · 5 mm full: 12, Drysuit: 3"
       }
     }
   },
@@ -36743,7 +36935,7 @@
   "info_term_surfaceInterval_label": "Surface interval",
   "info_term_surfaceInterval_body": "Time on the surface between two dives. Tissues keep releasing gas during it, so a longer interval carries less into the next dive.",
   "info_term_tissueCompartment_label": "Tissue compartments",
-  "info_term_tissueCompartment_body": "The model's 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.",
+  "info_term_tissueCompartment_body": "The model's 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones limit long and repeat dives; the tissue names are rough examples, not anatomy.",
   "info_term_leadingCompartment_label": "Leading compartment",
   "info_term_leadingCompartment_body": "The compartment closest to its limit right now. It sets the ceiling and changes during the dive.",
   "info_term_tissueLoad_label": "Load",

@@ -33,6 +33,21 @@ class Preset:
     show_slogan: bool = True
     icon_ratio: float = 0.53
     left_inset: float | None = None
+    # Width and height of a centered area the content must stay inside, for
+    # platforms that crop the image differently per device.
+    safe_size: tuple[int, int] | None = None
+
+    def __post_init__(self):
+        if self.safe_size is None:
+            return
+        if self.left_inset is not None:
+            raise ValueError(f"{self.name}: set left_inset or safe_size, not both")
+        safe_w, safe_h = self.safe_size
+        if not (0 < safe_w <= self.width and 0 < safe_h <= self.height):
+            raise ValueError(
+                f"{self.name}: safe_size {self.safe_size} must fit the "
+                f"{self.width}x{self.height} canvas"
+            )
 
 
 def _banner(name, width, height, purpose, **kw):
@@ -85,6 +100,15 @@ PRESETS = (
         "Reddit community banner, mobile app slot",
         icon_ratio=1 - 2 * DEFAULT_INSET_RATIO,
     ),
+    # YouTube crops the channel banner per device (TV shows all of it, phones
+    # only the middle); 1546x423 in the center is visible everywhere.
+    _banner(
+        "youtube-banner",
+        2560,
+        1440,
+        "YouTube channel banner",
+        safe_size=(1546, 423),
+    ),
     _mark(256),
     _mark(512),
     _mark(1024),
@@ -111,6 +135,10 @@ def safe_insets(preset):
     if preset.kind == "transparent":
         m = LOCKUP_MARGIN
         return Insets(m, m, m, m)
+    if preset.safe_size is not None:
+        safe_w, safe_h = preset.safe_size
+        x, y = (preset.width - safe_w) / 2, (preset.height - safe_h) / 2
+        return Insets(x, y, x, y)
     d = preset.height * DEFAULT_INSET_RATIO
     left = preset.left_inset if preset.left_inset is not None else d
     return Insets(left, d, d, d)

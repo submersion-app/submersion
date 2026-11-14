@@ -532,19 +532,14 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
 
   /// Once the `dive_buddies` junction holds anyone it is authoritative, and the
   /// legacy [Dive.buddy] / [Dive.diveMaster] text is stale (#1864). This is the
-  /// same rule as the dive list's Buddy and Dive Master columns.
-  ///
-  /// The diver's own roles are labelled with the logbook [diver]'s name, as
-  /// on the dive's detail page (#4458), when the dive is theirs; a dive owned
-  /// by another profile, or an export with no diver, keeps "Me".
+  /// same rule as the dive list's Buddy and Dive Master columns. The diver's
+  /// own roles carry the logbook [diver]'s name when the dive is theirs.
   List<_Field> _teamFields(
     Dive dive,
     AppLocalizations l10n,
     Map<String, DiveRole> diveRolesById,
     Diver? diver,
   ) {
-    final ownerId = dive.diverId;
-    final owner = ownerId == null || ownerId == diver?.id ? diver : null;
     return [
       // The diver's own roles (#1221), then each person with every role
       // they held, comma-joined.
@@ -554,7 +549,7 @@ class PdfTemplateDetailed extends PdfTemplateBuilder {
             dive.diverRoleIds,
             diveRolesById,
           ).joinedLocalizedNames(l10n),
-          diveOwnerLabel(owner, l10n),
+          diveOwnerLabel(diverIfOwner(dive.diverId, diver), l10n),
         ),
       for (final buddy in dive.buddies)
         _Field(buddy.roles.joinedLocalizedNames(l10n), buddy.buddy.name),

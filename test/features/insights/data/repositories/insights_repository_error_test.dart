@@ -41,7 +41,7 @@ void main() {
       'getRuntimePerDive': (r) => r.getRuntimePerDive(),
       'getDivesPerYear': (r) => r.getDivesPerYear(),
       'getYearStats': (r) => r.getYearStats(2026),
-      'getDivesBySuitThickness': (r) => r.getDivesBySuitThickness(),
+      'getDivesBySuitType': (r) => r.getDivesBySuitType(),
       'getCumulativeDiveCount': (r) => r.getCumulativeDiveCount(),
       'getVisibilityDistribution': (r) =>
           r.getVisibilityDistribution(scale: VisibilityScale.tropical),

@@ -54,18 +54,26 @@ class RuleTargetScope {
   /// The ids among [targetIds] that [condition] matches and the diver may
   /// change, queried in chunks of [kRuleIdChunk]. A null condition matches
   /// every eligible target.
+  ///
+  /// [cte] shadows a cache table with another profile's verdicts, for a run
+  /// on a profile the cache does not hold.
   Future<Set<String>> matches(
     QueryNode? condition,
     RuleSubject s,
     String diverId,
-    Set<String> targetIds,
-  ) async {
+    Set<String> targetIds, {
+    QueryCte? cte,
+  }) async {
     if (targetIds.isEmpty) return {};
     final compiled = _compile(condition, s, diverId);
     final out = <String>{};
     for (final chunk in ruleIdChunks(targetIds.toList())) {
       out.addAll(
-        await _runner.ids(compiled, scope: scopeFor(s, diverId, chunk)),
+        await _runner.ids(
+          compiled,
+          scope: scopeFor(s, diverId, chunk),
+          cte: cte,
+        ),
       );
     }
     return out;
@@ -77,9 +85,38 @@ class RuleTargetScope {
     RuleSubject s,
     String diverId,
     String table,
-  ) =>
-      condition != null &&
-      _compile(condition, s, diverId).tablesTouched.contains(table);
+  ) => tablesTouched(condition, s, diverId).contains(table);
+
+  /// Whether [condition] reads [table] through a relation: a hop
+  /// (`site.dives.deco`) or a scoped one (`site.dives[deco = true]`), which
+  /// reaches rows other than the target's own. False when it reads [table]
+  /// only on the target row, or not at all.
+  bool readsTableThroughRelation(
+    QueryNode? condition,
+    RuleSubject s,
+    String diverId,
+    String table,
+  ) {
+    bool walk(QueryNode node) => switch (node) {
+      AndNode(:final children) || OrNode(:final children) => children.any(walk),
+      NotNode(:final child) => walk(child),
+      ScopedNode() => reads(node, s, diverId, table),
+      ConditionNode(:final path) =>
+        path.length > 1 && reads(node, s, diverId, table),
+      TextNode() => false,
+    };
+    return condition != null && walk(condition);
+  }
+
+  /// Every table [condition] reads, for the caches a caller must bring up
+  /// to date before matching it. Empty for no condition.
+  Set<String> tablesTouched(
+    QueryNode? condition,
+    RuleSubject s,
+    String diverId,
+  ) => condition == null
+      ? const {}
+      : _compile(condition, s, diverId).tablesTouched;
 
   /// Every dive or site the diver's rules may change.
   Future<Set<String>> allEligibleIds(RuleSubject s, String diverId) =>

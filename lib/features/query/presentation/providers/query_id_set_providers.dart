@@ -4,9 +4,9 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_service_status_providers.dart';
 import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/data/query_id_set_runner.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 
 /// The one id-set runner the site, equipment and trip lists share (#2365).
 final queryIdSetRunnerProvider = Provider<QueryIdSetRunner>(
@@ -23,7 +23,7 @@ Future<Set<String>> watchQueryIds(
   QueryScope? scope,
 }) async {
   final runner = ref.watch(queryIdSetRunnerProvider);
-  await awaitServiceStatusIfRead(ref, compiled.tablesTouched);
+  await awaitQueryCachesIfRead(ref, compiled.tablesTouched);
   ref.invalidateSelfWhen(runner.watchTables(compiled.tablesTouched));
   return runner.ids(compiled, scope: scope);
 }

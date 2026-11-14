@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/rules/data/services/rule_target_scope.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 
@@ -29,6 +30,65 @@ void main() {
     );
   });
   tearDown(tearDownTestDatabase);
+
+  group('reads a table through a relation (#4461)', () {
+    // A rule run on a few dives can prepare the deco verdicts of just those
+    // dives only when no condition reads another row's.
+    final deco = ConditionNode(
+      FieldPath(['deco']),
+      QueryOp.eq,
+      const BoolValue(true),
+    );
+    bool through(QueryNode node) => scope.readsTableThroughRelation(
+      node,
+      RuleSubject.dives,
+      'me',
+      kDiveDecoStatusTable,
+    );
+
+    test('not when deco is read on the row itself', () {
+      expect(through(deco), isFalse);
+      expect(through(AndNode([depthOver(18), NotNode(deco)])), isFalse);
+    });
+
+    test('when a hop reaches other dives\' deco', () {
+      expect(
+        through(
+          ConditionNode(
+            FieldPath(['site', 'dives', 'deco']),
+            QueryOp.eq,
+            const BoolValue(true),
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        through(
+          OrNode([
+            depthOver(18),
+            ScopedNode(FieldPath(['site', 'dives']), deco),
+          ]),
+        ),
+        isTrue,
+      );
+    });
+
+    test('not for a hop that reads something else', () {
+      expect(
+        through(
+          AndNode([
+            deco,
+            ConditionNode(
+              FieldPath(['site', 'country']),
+              QueryOp.eq,
+              const StringValue('Egypt'),
+            ),
+          ]),
+        ),
+        isFalse,
+      );
+    });
+  });
 
   test('depth > 18 matches only my logged deep dive', () async {
     final all = {'shallow', 'deep', 'plan', 'theirs'};

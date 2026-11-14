@@ -73,6 +73,11 @@ class DiveSite extends Equatable {
   /// personal site.
   final String? sharedLibraryId;
 
+  /// The id of the built-in catalogue record this site was adopted from;
+  /// null for a site the diver made by hand. It records where the site came
+  /// from: written when the site is created, never by an ordinary edit.
+  final String? catalogueId;
+
   const DiveSite({
     required this.id,
     this.diverId,
@@ -101,6 +106,7 @@ class DiveSite extends Equatable {
     this.exitMethods = const [],
     this.isShared = false,
     this.sharedLibraryId,
+    this.catalogueId,
   });
 
   /// Whether this site belongs to a shared site library (issue #2567).
@@ -184,6 +190,8 @@ class DiveSite extends Equatable {
     bool? isShared,
     String? sharedLibraryId,
     bool clearSharedLibraryId = false,
+    String? catalogueId,
+    bool clearCatalogueId = false,
     bool clearRating = false,
     bool clearLocation = false,
     bool clearMinDepth = false,
@@ -236,6 +244,7 @@ class DiveSite extends Equatable {
       sharedLibraryId: clearSharedLibraryId
           ? null
           : (sharedLibraryId ?? this.sharedLibraryId),
+      catalogueId: clearCatalogueId ? null : (catalogueId ?? this.catalogueId),
     );
   }
 
@@ -268,6 +277,7 @@ class DiveSite extends Equatable {
     exitMethods,
     isShared,
     sharedLibraryId,
+    catalogueId,
   ];
 }
 

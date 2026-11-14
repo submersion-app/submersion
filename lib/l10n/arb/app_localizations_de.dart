@@ -1441,7 +1441,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'Die Änderungen auch dort übernehmen oder nur ab jetzt?';
+      'Die Änderungen auch dort übernehmen oder nur ab jetzt? „Ab jetzt“ behält ihre Ausrüstung und löst die Verknüpfung mit dem Set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5467,6 +5467,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Set von diesem Tauchgang entfernen';
 
   @override
+  String get diveLog_gear_removeSetTitle =>
+      'Set von diesem Tauchgang entfernen?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Auch die Ausrüstung entfernen, die dieses Set hinzugefügt hat, oder die Ausrüstung beim Tauchgang behalten und nur die Verknüpfung mit dem Set lösen?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Ausrüstung behalten';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Ausrüstung entfernen';
+
+  @override
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
@@ -7676,6 +7690,30 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Schnell, gut durchblutetes Gewebe';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Mittel, Muskeln und Haut';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Langsam, Fett und Knochen';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Heatmap der Kompartimente $first bis $last, schnelle oben und langsame unten';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Heatmap der Kompartimente $first bis $last, schnelle oben und langsame unten, von $start bis $end des Tauchgangs';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Belastung';
 
   @override
@@ -7686,10 +7724,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Gleichgewicht';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Zeilen: schnell (oben) bis langsam (unten)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Oberflächenniveau';
@@ -7804,27 +7838,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'Um $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Stopp $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Zum Durchsuchen ziehen';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Zum Durchsuchen darüberfahren';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -10992,6 +11005,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Noch keine Tauchplätze';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'In der Nähe der Tauchplätze anderer Tauchgänge';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Nach Entfernung sortiert';
 
   @override
@@ -12616,6 +12633,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'Die ersten $count Tauchplätze werden angezeigt. Suche genauer, um die übrigen zu sehen.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Details für $name anzeigen';
   }
@@ -12916,6 +12938,38 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'In der Nähe';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Aus dem integrierten Tauchplatzkatalog. Quelle: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Tauchplatz konnte nicht hinzugefügt werden';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Details zum Tauchplatz';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Weitere Tauchplätze bei $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby =>
+      'Weitere Tauchplätze in der Nähe';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Integrierte Tauchplätze';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Alle $count anzeigen';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Diesen Tauchplatz verwenden';
 
   @override
   String get diveSites_list_groupBy => 'Gruppieren nach';
@@ -17907,6 +17961,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Neues Ausrüstungsset';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle =>
+      'Ausrüstungsset duplizieren';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Optionale Beschreibung...';
 
   @override
@@ -17960,6 +18018,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Ausrüstungsset erstellt';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'Ausrüstungsset dupliziert';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20116,12 +20177,21 @@ class AppLocalizationsDe extends AppLocalizations {
       'Keine Karten, Fotos oder Dokumente an diesem Tauchplatz angehängt';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Fotos von Tauchgängen hier ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Tauchgangsfoto';
+
+  @override
+  String get media_siteDivePhotos_title => 'Fotos von Tauchgängen';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Fotos von Tauchgängen ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Tauchgangsfoto';
+  String get media_siteDivePhotos_showAll => 'Alle anzeigen';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Weniger anzeigen';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -21959,6 +22029,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannerCanvas_follow_title => 'Einem Tauchgang folgen';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'Min-Gas $pressure';
   }
@@ -23040,7 +23120,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Fotos, Videos und Dokumente zum Tauchplatz';
+      'Fotos, Videos und Dokumente, die dem Tauchplatz angehängt sind';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Fotos der an diesem Tauchplatz geloggten Tauchgänge';
 
   @override
   String get siteDetailSection_tags_description => 'Tags dieses Tauchplatzes';
@@ -25065,6 +25149,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Anfang des Kartenfarbverlaufs';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Verknüpfung mit integriertem Katalog';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -37040,6 +37128,17 @@ class AppLocalizationsDe extends AppLocalizations {
       'Garmin-Uhr (Descent, Fenix, Epix...)';
 
   @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Modelle',
+      one: '$count Modell',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_discovery_usbSearchHint =>
       'Nach Hersteller oder Modell suchen...';
 
@@ -41033,6 +41132,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Flaschenverwendung';
 
   @override
+  String get attrLabel_worn_as => 'Getragen als';
+
+  @override
   String get attrLabel_tank_identifier => 'Kennung';
 
   @override
@@ -41195,6 +41297,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Farbe';
+
+  @override
+  String get attrLabel_figure_position => 'Position an der Taucherfigur';
 
   @override
   String get attrLabel_sleeve_length => 'Ärmel';
@@ -41401,6 +41506,84 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Anzugflasche';
+
+  @override
+  String get attrChoice_worn_as_back => 'Rückenmontage';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount links';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount rechts';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stageflasche';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Mund';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Brust (Oktopus)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Brust, links';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Brust, rechts';
+
+  @override
+  String get attrChoice_figure_position_console => 'Konsole';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Linkes Handgelenk';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Rechtes Handgelenk';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Linke Hand';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Rechte Hand';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Linke Hüfte';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Rechte Hüfte';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Linker Oberschenkel';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Rechter Oberschenkel';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Linke Wade';
+
+  @override
+  String get attrChoice_figure_position_back => 'Rücken';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Trimmtasche, links';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Trimmtasche, rechts';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'D-Ring am Gesäß';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, links';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, rechts';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, links';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, rechts';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41744,6 +41927,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attr_flagNo => 'Nein';
 
   @override
+  String get attr_figurePosition_automatic => 'Automatisch';
+
+  @override
   String get equipment_edit_invalidThickness => 'Format: 5, 5/4 oder 7/5/3';
 
   @override
@@ -41754,23 +41940,50 @@ class AppLocalizationsDe extends AppLocalizations {
       'Webadresse eingeben, z.B. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Tauchgänge nach Anzugdicke';
+  String get insights_progression_divesBySuitType_title =>
+      'Tauchgänge nach Anzugtyp';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Primäre Anzugdicke über deine Tauchgänge';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Anzugtyp, -dicke und -schnitt über deine Tauchgänge';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Keine Tauchgänge mit verknüpftem Neopren- oder Trockentauchanzug';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Anzugdicken-Daten konnten nicht geladen werden';
+  String get insights_progression_divesBySuitType_error =>
+      'Anzugtyp-Daten konnten nicht geladen werden';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Unbekannt';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Neoprenanzug · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Neoprenanzug · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Neoprenanzug · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'lang';
+
+  @override
+  String get insights_suitType_style_shorty => 'Shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'zweiteilig';
+
+  @override
+  String get insights_suitType_style_semiDry => 'halbtrocken';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Anzugdicke (mm)';
@@ -41989,6 +42202,41 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Durchschnitt $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Durchschnitt';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Spitze';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gasverbrauch';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Verbraucht';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'Gasverbrauch nach Phase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount verbraucht';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent %';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override
@@ -51222,10 +51470,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Balkendiagramm. Tauchgänge nach Anzugdicke. $description';
+    return 'Balkendiagramm. Tauchgänge nach Anzugtyp. $description';
   }
 
   @override
@@ -62476,7 +62724,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'Die 16 gedachten Gewebe des Modells, die Gas jeweils in eigenem Tempo aufnehmen und abgeben. Schnelle stehen für gut durchblutetes Gewebe, langsame für Fett und Knochen.';
+      'Die 16 gedachten Gewebe des Modells, die Gas jeweils in eigenem Tempo aufnehmen und abgeben: 1-5 sind schnell (etwa gut durchblutetes Gewebe wie das Gehirn), 6-10 mittel (etwa Muskeln und Haut) und 11-16 langsam (etwa Fett und Knochen). Schnelle begrenzen kurze, tiefe Tauchgänge, langsame lange und Wiederholungstauchgänge; die Gewebenamen sind grobe Beispiele, keine Anatomie.';
 
   @override
   String get info_term_leadingCompartment_label => 'Führendes Kompartiment';

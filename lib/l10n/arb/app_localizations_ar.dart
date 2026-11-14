@@ -1483,7 +1483,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟';
+      'تطبيق التغييرات على تلك الغطسات أيضًا، أم من الآن فصاعدًا فقط؟ خيار «من الآن فصاعدًا» يُبقي معداتها ويفك ارتباط الطقم بها.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5561,6 +5561,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_gear_removeSet => 'إزالة الطقم من هذه الغطسة';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'إزالة الطقم من هذه الغطسة؟';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'هل تريد إزالة المعدات التي أضافها هذا الطقم أيضًا، أم إبقاء المعدات في الغطسة وفك ارتباط الطقم فقط؟';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'إبقاء المعدات';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'إزالة المعدات';
+
+  @override
   String get diveLog_gear_unknownSet => 'طقم';
 
   @override
@@ -7792,6 +7805,30 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'سريعة، أنسجة غنية بالدم';
+
+  @override
+  String get diveLog_deco_groupMedium => 'متوسطة، العضلات والجلد';
+
+  @override
+  String get diveLog_deco_groupSlow => 'بطيئة، الدهون والعظام';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'الخريطة الحرارية للحجرات من $first إلى $last، السريعة في الأعلى والبطيئة في الأسفل';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'الخريطة الحرارية للحجرات من $first إلى $last، السريعة في الأعلى والبطيئة في الأسفل، من $start إلى $end من الغوصة';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'الحمل';
 
   @override
@@ -7802,10 +7839,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'توازن';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'الصفوف: من السريعة (أعلى) إلى البطيئة (أسفل)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'مستوى السطح';
@@ -7922,27 +7955,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'عند $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes د';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'توقف $depth · $minutes د';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'اسحب للتنقل';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'مرر المؤشر للتنقل';
 
   @override
   String get diveLog_pinnedStrip_semantics => 'مخطط الغطسة، اسحب لتحريك المؤشر';
@@ -11152,6 +11164,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'لا توجد مواقع غوص بعد';
 
   @override
+  String get diveLog_sitePicker_sortedByArea => 'بالقرب من مواقع غطساتك الأخرى';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'مرتبة حسب المسافة';
 
   @override
@@ -12787,6 +12802,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'تُعرض أول $count مواقع. ابحث بعبارة أدق لرؤية البقية.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'عرض تفاصيل $name';
   }
@@ -13113,6 +13133,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'قريب';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'من كتالوج المواقع المدمج. المصدر: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => 'تعذّرت إضافة هذا الموقع';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'تفاصيل الموقع';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'مواقع أخرى بالقرب من $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'مواقع أخرى قريبة';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'المواقع المدمجة';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'عرض الكل ($count)';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'استخدام هذا الموقع';
 
   @override
   String get diveSites_list_groupBy => 'التجميع حسب';
@@ -18207,6 +18257,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'مجموعة معدات جديدة';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => 'استنساخ مجموعة المعدات';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'وصف اختياري...';
 
   @override
@@ -18257,6 +18310,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'تم إنشاء مجموعة المعدات';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'تم استنساخ مجموعة المعدات';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20448,12 +20504,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد خرائط أو صور أو مستندات مرفقة بهذا الموقع';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'صور من الغوصات هنا ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'صورة غوص';
+
+  @override
+  String get media_siteDivePhotos_title => 'صور من الغوصات';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'صور من الغوصات ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'صورة غوص';
+  String get media_siteDivePhotos_showAll => 'إظهار الكل';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'إظهار أقل';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -22347,6 +22412,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get plannerCanvas_follow_title => 'اتباع غطسة';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'الحد الأدنى للغاز $pressure';
   }
@@ -23441,7 +23516,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'صور ومقاطع فيديو ومستندات الموقع';
+      'صور ومقاطع فيديو ومستندات مرفقة بالموقع';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'صور من الغوصات المسجلة في هذا الموقع';
 
   @override
   String get siteDetailSection_tags_description => 'وسوم هذا الموقع';
@@ -25467,6 +25546,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'بداية تدرج ألوان البطاقات';
+
+  @override
+  String get settings_conflict_field_catalogueId => 'رابط الكتالوج المدمج';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -37646,6 +37728,21 @@ class AppLocalizationsAr extends AppLocalizations {
       'ساعة Garmin (Descent وFenix وEpix...)';
 
   @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count طراز',
+      many: '$count طرازًا',
+      few: '$count طرازات',
+      two: 'طرازان',
+      one: 'طراز واحد',
+      zero: 'لا طرازات',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_discovery_usbSearchHint =>
       'البحث حسب الشركة المصنعة أو الطراز...';
 
@@ -41682,6 +41779,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_cylinder_use => 'استخدام الأسطوانة';
 
   @override
+  String get attrLabel_worn_as => 'يُحمل كـ';
+
+  @override
   String get attrLabel_tank_identifier => 'المعرف';
 
   @override
@@ -41842,6 +41942,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'اللون';
+
+  @override
+  String get attrLabel_figure_position => 'الموضع على مجسم الغواص';
 
   @override
   String get attrLabel_sleeve_length => 'الأكمام';
@@ -42046,6 +42149,84 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'نفخ البدلة';
+
+  @override
+  String get attrChoice_worn_as_back => 'تثبيت خلفي';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'تعليق جانبي أيسر';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'تعليق جانبي أيمن';
+
+  @override
+  String get attrChoice_worn_as_stage => 'أسطوانة مرحلية';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'الفم';
+
+  @override
+  String get attrChoice_figure_position_octo => 'الصدر (أوكتوبوس)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'الصدر، يسار';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'الصدر، يمين';
+
+  @override
+  String get attrChoice_figure_position_console => 'كونسول';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'المعصم الأيسر';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'المعصم الأيمن';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'اليد اليسرى';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'اليد اليمنى';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'الورك الأيسر';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'الورك الأيمن';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'الفخذ الأيسر';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'الفخذ الأيمن';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'ربلة الساق اليسرى';
+
+  @override
+  String get attrChoice_figure_position_back => 'الظهر';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'جيب الموازنة، يسار';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'جيب الموازنة، يمين';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'حلقة D الخلفية';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'تعليق جانبي، يسار';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'تعليق جانبي، يمين';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'أسطوانة مرحلية، يسار';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'أسطوانة مرحلية، يمين';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -42388,6 +42569,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attr_flagNo => 'لا';
 
   @override
+  String get attr_figurePosition_automatic => 'تلقائي';
+
+  @override
   String get equipment_edit_invalidThickness => 'استخدم 5 أو 5/4 أو 7/5/3';
 
   @override
@@ -42398,23 +42582,50 @@ class AppLocalizationsAr extends AppLocalizations {
       'أدخل عنوان ويب، مثل shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'الغطسات حسب سماكة البدلة';
+  String get insights_progression_divesBySuitType_title =>
+      'الغطسات حسب نوع البدلة';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'السماكة الأساسية لبدلة الغطس عبر غطساتك';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'نوع بدلة الغطس وسماكتها وطرازها عبر غطساتك';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'لا توجد غطسات مرتبطة ببدلة غوص أو بدلة جافة';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'تعذر تحميل بيانات سماكة البدلة';
+  String get insights_progression_divesBySuitType_error =>
+      'تعذر تحميل بيانات نوع البدلة';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'غير معروف';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'بدلة غوص · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'بدلة غوص · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'بدلة غوص · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'كاملة';
+
+  @override
+  String get insights_suitType_style_shorty => 'شورتي';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'قطعتان';
+
+  @override
+  String get insights_suitType_style_semiDry => 'شبه جافة';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'سماكة البدلة (مم)';
@@ -42631,6 +42842,41 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'المتوسط $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'المتوسط';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'الذروة';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'الغاز المستهلك';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'المستهلك';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase =>
+      'الغاز المستهلك حسب المرحلة';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount مستهلكة';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override
@@ -52045,10 +52291,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'مخطط أعمدة. الغوصات حسب سماكة البدلة. $description';
+    return 'مخطط أعمدة. الغوصات حسب نوع البدلة. $description';
   }
 
   @override
@@ -63530,7 +63776,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'الأنسجة الستة عشر الافتراضية في النموذج، يمتص كل منها الغاز ويطلقه بسرعته الخاصة. تمثل السريعة الأنسجة الغنية بالدم والبطيئة الدهون والعظام.';
+      'الأنسجة الستة عشر الافتراضية في النموذج، يمتص كل منها الغاز ويطلقه بسرعته الخاصة: 1-5 سريعة (مثل الأنسجة الغنية بالدم كالدماغ)، و6-10 متوسطة (مثل العضلات والجلد)، و11-16 بطيئة (مثل الدهون والعظام). تحدّ السريعة من الغوصات القصيرة العميقة والبطيئة من الغوصات الطويلة والمتكررة؛ أسماء الأنسجة أمثلة تقريبية وليست تشريحًا.';
 
   @override
   String get info_term_leadingCompartment_label => 'الحجيرة القائدة';

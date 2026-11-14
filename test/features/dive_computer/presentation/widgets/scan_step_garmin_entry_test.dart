@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_computer/domain/entities/device_model.dart';
+import 'package:submersion/features/dive_computer/presentation/widgets/garmin_watch_usb_entry.dart';
 
 import 'scan_step_test_support.dart';
 
@@ -25,6 +26,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Scoped to the device list: the brand dropdown keeps an offstage clone
+  /// of every brand name.
+  Finder inList(String text) =>
+      find.descendant(of: find.byType(SliverList), matching: find.text(text));
+
+  /// Every brand starts folded (issue #4480); a tap on its heading opens it.
+  Future<void> openBrand(WidgetTester tester, String brand) async {
+    await tester.tap(inList(brand));
+    await tester.pumpAndSettle();
+  }
+
   Future<void> search(WidgetTester tester, String query) async {
     await tester.enterText(find.byType(TextField).first, query);
     await tester.pumpAndSettle();
@@ -45,7 +57,11 @@ void main() {
     await tester.pumpAndSettle();
     await openUsbTab(tester);
 
-    expect(find.text('Garmin'), findsOneWidget);
+    // Garmin is a brand like any other: folded until its heading is tapped.
+    expect(inList('Garmin'), findsOneWidget);
+    expect(find.text(entryLabel), findsNothing);
+
+    await openBrand(tester, 'Garmin');
     expect(find.text(entryLabel), findsOneWidget);
 
     await tester.tap(find.text(entryLabel));
@@ -70,6 +86,7 @@ void main() {
     await tester.pumpAndSettle();
     await openUsbTab(tester);
 
+    await openBrand(tester, 'Shearwater');
     await tester.tap(find.text('Petrel'));
     await tester.pumpAndSettle();
 
@@ -109,6 +126,8 @@ void main() {
       await tester.pumpAndSettle();
       await openUsbTab(tester);
 
+      expect(inList('Garmin'), findsNothing);
+      await openBrand(tester, 'Shearwater');
       expect(find.text(entryLabel), findsNothing);
       expect(find.text('Petrel'), findsOneWidget);
     },
@@ -126,6 +145,55 @@ void main() {
     await tester.pumpAndSettle();
     await openUsbTab(tester);
 
+    expect(inList('Garmin'), findsNothing);
     expect(find.text(entryLabel), findsNothing);
   }, variant: TargetPlatformVariant.only(TargetPlatform.windows));
+
+  group('where the entry goes in the list', () {
+    DeviceModel model(String manufacturer, String name) => DeviceModel(
+      id: '${manufacturer}_$name',
+      manufacturer: manufacturer,
+      model: name,
+      connectionTypes: const [DeviceConnectionType.usb],
+    );
+
+    test('Garmin takes its alphabetical place among the brands', () {
+      // The list is sorted by brand (issue #4480); appended at the end,
+      // Garmin sat below Zeagle.
+      final devices = GarminWatchUsbEntry.addTo({
+        'Aqualung': [model('Aqualung', 'i300')],
+        'Mares': [model('Mares', 'Genius')],
+        'Zeagle': [model('Zeagle', 'N2iTiON3')],
+      }, label: entryLabel);
+
+      expect(devices.keys, ['Aqualung', 'Garmin', 'Mares', 'Zeagle']);
+      expect(devices['Garmin']!.single.model, entryLabel);
+      expect(GarminWatchUsbEntry.isEntry(devices['Garmin']!.single), isTrue);
+    });
+
+    test('goes last when every brand sorts before it, and alone when none', () {
+      expect(
+        GarminWatchUsbEntry.addTo({
+          'Aqualung': [model('Aqualung', 'i300')],
+        }, label: entryLabel).keys,
+        ['Aqualung', 'Garmin'],
+      );
+      expect(GarminWatchUsbEntry.addTo(const {}, label: entryLabel).keys, [
+        'Garmin',
+      ]);
+    });
+
+    test('joins a Garmin brand that is already listed, keeping its place', () {
+      final devices = GarminWatchUsbEntry.addTo({
+        'Garmin': [model('Garmin', 'Descent Mk1')],
+        'Mares': [model('Mares', 'Genius')],
+      }, label: entryLabel);
+
+      expect(devices.keys, ['Garmin', 'Mares']);
+      expect(devices['Garmin']!.map((m) => m.model), [
+        'Descent Mk1',
+        entryLabel,
+      ]);
+    });
+  });
 }

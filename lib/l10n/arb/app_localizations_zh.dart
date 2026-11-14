@@ -1378,7 +1378,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
 
   @override
-  String get equipment_setEdit_historyAsk => '也将这些更改应用到这些潜水，还是仅从现在起？';
+  String get equipment_setEdit_historyAsk =>
+      '也将这些更改应用到这些潜水，还是仅从现在起？ “从现在起”会保留其装备，并解除它们与套装的关联。';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5168,6 +5169,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_gear_removeSet => '从本次潜水移除套装';
 
   @override
+  String get diveLog_gear_removeSetTitle => '从本次潜水移除套装？';
+
+  @override
+  String get diveLog_gear_removeSetBody => '同时移除此套装添加的装备，还是保留潜水中的装备、只解除与套装的关联？';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => '保留装备';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => '移除装备';
+
+  @override
   String get diveLog_gear_unknownSet => '套装';
 
   @override
@@ -7284,6 +7297,30 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => '快速，血流丰富的组织';
+
+  @override
+  String get diveLog_deco_groupMedium => '中速，肌肉和皮肤';
+
+  @override
+  String get diveLog_deco_groupSlow => '慢速，脂肪和骨骼';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return '隔间 $first 至 $last 的热力图，快速在上，慢速在下';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return '隔间 $first 至 $last 的热力图，快速在上，慢速在下，覆盖潜水的 $start 至 $end';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => '负荷';
 
   @override
@@ -7294,9 +7331,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => '平衡';
-
-  @override
-  String get diveLog_deco_heatMapRows => '行：快速（上）到慢速（下）';
 
   @override
   String get diveLog_deco_surfaceLevel => '水面水平';
@@ -7409,27 +7443,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return '$timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes 分钟';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return '停留 $depth · $minutes 分钟';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => '拖动以浏览';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => '悬停以浏览';
 
   @override
   String get diveLog_pinnedStrip_semantics => '潜水剖面图，拖动以移动光标';
@@ -10438,6 +10451,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_sitePicker_noSites => '暂无潜水点';
 
   @override
+  String get diveLog_sitePicker_sortedByArea => '靠近你其他潜水的潜水点';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => '按距离排序';
 
   @override
@@ -12007,6 +12023,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return '仅显示前 $count 个潜水点。请缩小搜索范围以查看其余结果。';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return '查看 $name 的详情';
   }
@@ -12284,6 +12305,36 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => '附近';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return '来自内置潜水点目录。来源：$source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError => '无法添加此潜水点';
+
+  @override
+  String get diveSites_picker_builtIn_details => '潜水点详情';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return '$place附近的更多潜水点';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => '附近的更多潜水点';
+
+  @override
+  String get diveSites_picker_builtIn_search => '内置潜水点';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return '显示全部 $count 个';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => '使用此潜水点';
 
   @override
   String get diveSites_list_groupBy => '分组方式';
@@ -17058,6 +17109,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => '新建装备套装';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => '复制装备套装';
+
+  @override
   String get equipment_setEdit_descriptionHint => '可选描述...';
 
   @override
@@ -17106,6 +17160,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => '装备套装已创建';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => '装备套装已复制';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -19142,12 +19199,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_siteMediaSection_emptyState => '此潜水点尚未附加地图、照片或文档';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return '此处潜水的照片（$count）';
+  String get media_siteMediaSection_divePhotoLabel => '潜水照片';
+
+  @override
+  String get media_siteDivePhotos_title => '潜水照片';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return '潜水照片（$count）';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => '潜水照片';
+  String get media_siteDivePhotos_showAll => '显示全部';
+
+  @override
+  String get media_siteDivePhotos_showLess => '收起';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -20899,6 +20965,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_follow_title => '跟随一次潜水';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return '最低气量 $pressure';
   }
@@ -21908,7 +21984,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get siteDetailSection_marineLife_description => '在此潜水点见到的物种';
 
   @override
-  String get siteDetailSection_media_description => '潜水点的照片、视频和文档';
+  String get siteDetailSection_media_description => '附加到潜水点的照片、视频和文档';
+
+  @override
+  String get siteDetailSection_divePhotos_description => '在此潜水点记录的潜水中拍摄的照片';
 
   @override
   String get siteDetailSection_tags_description => '此潜水点的标签';
@@ -23781,6 +23860,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_conflict_field_cardColorGradientStart => '卡片渐变起点';
+
+  @override
+  String get settings_conflict_field_catalogueId => '内置目录链接';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 => 'CCR 稀释气 MOD 的 ppO2';
@@ -34899,6 +34981,16 @@ class AppLocalizationsZh extends AppLocalizations {
       'Garmin 手表（Descent、Fenix、Epix...）';
 
   @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个型号',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_discovery_usbSearchHint => '按制造商或型号搜索...';
 
   @override
@@ -38647,6 +38739,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_cylinder_use => '气瓶用途';
 
   @override
+  String get attrLabel_worn_as => '佩戴方式';
+
+  @override
   String get attrLabel_tank_identifier => '标识';
 
   @override
@@ -38807,6 +38902,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_color => '颜色';
+
+  @override
+  String get attrLabel_figure_position => '在潜水员图示上的位置';
 
   @override
   String get attrLabel_sleeve_length => '袖长';
@@ -39011,6 +39109,84 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => '干衣充气';
+
+  @override
+  String get attrChoice_worn_as_back => '背挂式';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => '左侧挂';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => '右侧挂';
+
+  @override
+  String get attrChoice_worn_as_stage => '阶段气瓶';
+
+  @override
+  String get attrChoice_figure_position_mouth => '嘴部';
+
+  @override
+  String get attrChoice_figure_position_octo => '胸前（备用二级头）';
+
+  @override
+  String get attrChoice_figure_position_chest_left => '胸前左侧';
+
+  @override
+  String get attrChoice_figure_position_chest_right => '胸前右侧';
+
+  @override
+  String get attrChoice_figure_position_console => '仪表组';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => '左手腕';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => '右手腕';
+
+  @override
+  String get attrChoice_figure_position_hand_left => '左手';
+
+  @override
+  String get attrChoice_figure_position_hand_right => '右手';
+
+  @override
+  String get attrChoice_figure_position_hip_left => '左髋';
+
+  @override
+  String get attrChoice_figure_position_hip_right => '右髋';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => '左大腿';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => '右大腿';
+
+  @override
+  String get attrChoice_figure_position_calf_left => '左小腿';
+
+  @override
+  String get attrChoice_figure_position_back => '背部';
+
+  @override
+  String get attrChoice_figure_position_trim_left => '配平袋（左）';
+
+  @override
+  String get attrChoice_figure_position_trim_right => '配平袋（右）';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => '臀部D环';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => '侧挂（左）';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => '侧挂（右）';
+
+  @override
+  String get attrChoice_figure_position_stage_left => '阶段气瓶（左）';
+
+  @override
+  String get attrChoice_figure_position_stage_right => '阶段气瓶（右）';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -39352,6 +39528,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attr_flagNo => '否';
 
   @override
+  String get attr_figurePosition_automatic => '自动';
+
+  @override
   String get equipment_edit_invalidThickness => '请输入 5、5/4 或 7/5/3';
 
   @override
@@ -39361,20 +39540,47 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_edit_invalidWebLink => '请输入网址，例如 shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title => '按潜水服厚度统计';
+  String get insights_progression_divesBySuitType_title => '按潜水服类型统计';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      '您潜水时所穿潜水服的主要厚度';
+  String get insights_progression_divesBySuitType_subtitle =>
+      '您潜水时所穿潜水服的类型、厚度和款式';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty => '没有关联湿衣或干衣的潜水';
+  String get insights_progression_divesBySuitType_empty => '没有关联湿衣或干衣的潜水';
 
   @override
-  String get insights_progression_divesBySuitThickness_error => '无法加载潜水服厚度数据';
+  String get insights_progression_divesBySuitType_error => '无法加载潜水服类型数据';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => '未知';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return '湿衣 · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return '湿衣 · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return '湿衣 · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => '全身';
+
+  @override
+  String get insights_suitType_style_shorty => '短款';
+
+  @override
+  String get insights_suitType_style_twoPiece => '两件式';
+
+  @override
+  String get insights_suitType_style_semiDry => '半干式';
 
   @override
   String get diveLog_filter_sectionSuitThickness => '潜水服厚度（毫米）';
@@ -39585,6 +39791,40 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return '平均 $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => '平均';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => '峰值';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => '用气量';
+
+  @override
+  String get diveLog_detail_sacSegments_used => '已用';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => '各阶段用气量';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '已用 $amount';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override
@@ -48211,10 +48451,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return '柱状图。按潜水服厚度统计的潜水次数。$description';
+    return '柱状图。按潜水服类型统计的潜水次数。$description';
   }
 
   @override
@@ -58760,7 +59000,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      '模型中的 16 个假想组织，各自以不同速度吸收和释放气体。快组织代表血流丰富的组织，慢组织代表脂肪和骨骼。';
+      '模型中的 16 个假想组织，各自以不同速度吸收和释放气体：1-5 为快速（如血流丰富的组织，例如大脑），6-10 为中速（如肌肉和皮肤），11-16 为慢速（如脂肪和骨骼）。快组织限制短而深的潜水，慢组织限制长时间和重复潜水；这些组织名称只是粗略示例，并非解剖对应。';
 
   @override
   String get info_term_leadingCompartment_label => '主导舱室';

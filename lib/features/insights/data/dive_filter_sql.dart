@@ -18,12 +18,17 @@ import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
   return (subquery: compiled.idSubquery(), params: compiled.params);
 }
 
-/// Recorded deco-signal SQL condition (no bind params), shared by
-/// [buildFilteredDiveIdSubquery], `DiveRepository._buildFilterWhereClauses`
-/// and `DiveRepository.getDiveIdsWithDecoSignal` so the three SQL paths
-/// (Insights, the paginated dive list, and the id set the entity-backed
-/// surfaces intersect with) can't drift apart. Mirrors
-/// `InsightsRepository.scanRecordedDecoSignals`:
+/// The local cache of computed deco verdicts (v362) the `deco` field reads
+/// for dives that record no deco signal; a compiled query naming it waits
+/// for the cache before it runs (`awaitQueryCachesIfRead`).
+const kDiveDecoStatusTable = 'dive_deco_status';
+
+/// Deco SQL condition (no bind params) behind the dive query registry's
+/// `deco` field, which every dive path reads at every depth through the
+/// `{r}` placeholder (#2365), so they all evaluate it the same way. It
+/// resolves a dive as the Insights deco card does (`decoDiveIdsProvider`,
+/// recorded signals first and the app's own analysis as the fallback), so a
+/// `deco` search finds the dives the card counts (#4461):
 ///
 /// - A series with a recorded deco stop (`has_deco_stop`) or a
 ///   `decoStopStart` event means deco.
@@ -33,18 +38,40 @@ import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 /// - A positive ceiling (`has_positive_ceiling`) on a series with no
 ///   `deco_type` at all also means deco (some import sources only ever
 ///   write a stop depth).
-/// - A dive with no qualifying series data matches neither branch; it is
-///   only classifiable via the computed fallback, which this SQL-only axis
-///   does not have access to.
+/// - Any other dive takes the computed verdict in [kDiveDecoStatusTable],
+///   the analysis that draws the dive's DECO badge. A dive with no verdict
+///   (no profile, or not analyzed) matches neither branch.
 ///
-/// The dive query registry's `deco` field reads this at every depth through
-/// the `{r}` placeholder (#2365), so every dive path evaluates it the same
-/// way.
+/// The recorded branches mirror `InsightsRepository.scanRecordedDecoSignals`.
 ///
 /// [diveIdRef] must be a reference to the enclosing query's `dives.id`
 /// resolvable from inside these correlated subqueries (e.g. `d.id` when the
 /// caller aliases `dives` as `d`, or `dives.id` when it does not).
 String decoSignalCondition({
+  required bool wantDeco,
+  required String diveIdRef,
+}) {
+  final recordedDeco = _recordedDecoCondition(
+    wantDeco: true,
+    diveIdRef: diveIdRef,
+  );
+  final recordedNoDeco = _recordedDecoCondition(
+    wantDeco: false,
+    diveIdRef: diveIdRef,
+  );
+  final computed =
+      'EXISTS (SELECT 1 FROM $kDiveDecoStatusTable c '
+      'WHERE c.dive_id = $diveIdRef AND c.had_deco = ${wantDeco ? 1 : 0})';
+  // The two recorded branches never both hold, so a dive the recorded data
+  // answers ignores any computed verdict left over from before it did. The
+  // verdict probe (a primary key lookup) goes first: most dives have no
+  // verdict row, and SQLite then skips the other recorded branch's scans.
+  return wantDeco
+      ? '($recordedDeco OR ($computed AND NOT $recordedNoDeco))'
+      : '($recordedNoDeco OR ($computed AND NOT $recordedDeco))';
+}
+
+String _recordedDecoCondition({
   required bool wantDeco,
   required String diveIdRef,
 }) {

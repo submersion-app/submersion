@@ -10,6 +10,7 @@ import 'package:submersion/features/insights/data/repositories/insights_reposito
 import 'package:submersion/features/insights/domain/calendar_day_matrix.dart';
 import 'package:submersion/features/insights/domain/conditions/conditions_row.dart';
 import 'package:submersion/features/insights/domain/role_consumption_trend.dart';
+import 'package:submersion/features/insights/domain/suit_type.dart';
 import 'package:submersion/features/insights/domain/tank_configuration/tank_configuration.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
 import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
@@ -393,21 +394,24 @@ void main() {
         depthProgressionTrendProvider.overrideWith((ref) async => const []),
         runtimeTrendProvider.overrideWith((ref) async => const []),
         bottomTimeTrendProvider.overrideWith((ref) async => const []),
-        divesBySuitThicknessProvider.overrideWith(
-          (ref) async => (
-            byThickness: const [(mm: 5.0, count: 4)],
-            unknownThicknessCount: 1,
-            drysuitCount: 2,
-          ),
+        divesBySuitTypeProvider.overrideWith(
+          (ref) async => const [
+            (type: SuitType.wetsuit(mm: 5, style: 'full'), count: 4),
+            (type: SuitType.wetsuit(), count: 1),
+            (type: SuitType.drysuit(), count: 2),
+          ],
         ),
       ]);
 
       final chart = tester.widget<CategoryBarChart>(
-        inCard('Dives by Suit Thickness', find.byType(CategoryBarChart)),
+        inCard('Dives by Suit Type', find.byType(CategoryBarChart)),
       );
       await chart.onOpenBar!(0);
       await tester.pumpAndSettle();
-      expect(repository.lastAsked, 'suit:mm:5.0');
+      expect(repository.lastAsked, 'suit:wetsuit:5:full');
+      await chart.onOpenBar!(2);
+      await tester.pumpAndSettle();
+      expect(repository.lastAsked, 'suit:drysuit');
     });
 
     testWidgets('Not recorded opens its own slice on Solo vs Buddy', (

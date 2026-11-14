@@ -88,7 +88,7 @@ class _FollowDiveSheetState extends ConsumerState<FollowDiveSheet> {
   }
 
   Widget _diveTile(Dive dive, UnitFormatter units) {
-    final labels = diveRowLabels(dive, units);
+    final labels = diveRowLabels(dive, units, context.l10n);
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(labels.title),

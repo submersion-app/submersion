@@ -6,8 +6,10 @@ import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_log/query/dive_number_query.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/providers/query_cache_awaits.dart';
 import 'package:submersion/features/query/presentation/widgets/save_query_flow.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -60,6 +62,15 @@ final diveJumpResultsProvider = FutureProvider.autoDispose
             disabledSafetyRules: disabledRules,
           );
       try {
+        // A query naming `deco` or `gear.serviceDue` reads a cache of engine
+        // verdicts (#2365, #4461): wait for it, and re-run when it is
+        // written. Inside the try, so a failed cache write hides the rows
+        // like any other failure.
+        await awaitAndFollowQueryCaches(
+          ref,
+          diveFilterTablesTouched(DiveFilterState(query: query)),
+          repository.watchTables,
+        );
         final number = bareDiveNumber(query);
         if (number == null) return await fetch(query);
         final (numbered, text) = await (

@@ -1433,7 +1433,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_historyAsk =>
-      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu?';
+      'De wijzigingen ook op die duiken toepassen, of alleen vanaf nu? ‘Vanaf nu’ behoudt hun uitrusting en verbreekt de koppeling met de set.';
 
   @override
   String equipment_setEdit_historyOnDives(num count) {
@@ -5437,6 +5437,19 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_gear_removeSet => 'Set van deze duik verwijderen';
 
   @override
+  String get diveLog_gear_removeSetTitle => 'Set van deze duik verwijderen?';
+
+  @override
+  String get diveLog_gear_removeSetBody =>
+      'Ook de uitrusting verwijderen die deze set heeft toegevoegd, of de uitrusting bij de duik houden en alleen de koppeling met de set verbreken?';
+
+  @override
+  String get diveLog_gear_removeSetKeepGear => 'Uitrusting behouden';
+
+  @override
+  String get diveLog_gear_removeSetRemoveGear => 'Uitrusting verwijderen';
+
+  @override
   String get diveLog_gear_unknownSet => 'Set';
 
   @override
@@ -7626,6 +7639,30 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get diveLog_deco_groupFast => 'Snel, goed doorbloed weefsel';
+
+  @override
+  String get diveLog_deco_groupMedium => 'Gemiddeld, spier en huid';
+
+  @override
+  String get diveLog_deco_groupSlow => 'Langzaam, vet en bot';
+
+  @override
+  String diveLog_deco_heatMapSemantics(int first, int last) {
+    return 'Heatmap van compartimenten $first tot $last, snelle bovenaan en trage onderaan';
+  }
+
+  @override
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  ) {
+    return 'Heatmap van compartimenten $first tot $last, snelle bovenaan en trage onderaan, van $start tot $end van de duik';
+  }
+
+  @override
   String get diveLog_deco_metricLoad => 'Belading';
 
   @override
@@ -7636,10 +7673,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_deco_gasEquilibrium => 'Evenwicht';
-
-  @override
-  String get diveLog_deco_heatMapRows =>
-      'Rijen: snel (boven) tot langzaam (onder)';
 
   @override
   String get diveLog_deco_surfaceLevel => 'Oppervlakteniveau';
@@ -7754,27 +7787,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String diveLog_detail_collapsed_atTime(Object timestamp) {
     return 'Om $timestamp';
   }
-
-  @override
-  String diveLog_pinnedStrip_ndl(Object minutes) {
-    return 'NDL $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes) {
-    return 'Stop $depth · $minutes min';
-  }
-
-  @override
-  String diveLog_pinnedStrip_ppO2(Object value) {
-    return 'ppO2 $value';
-  }
-
-  @override
-  String get diveLog_pinnedStrip_hintDrag => 'Sleep om te verschuiven';
-
-  @override
-  String get diveLog_pinnedStrip_hintHover => 'Beweeg erover om te verschuiven';
 
   @override
   String get diveLog_pinnedStrip_semantics =>
@@ -10930,6 +10942,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_sitePicker_noSites => 'Nog geen duikstekken';
 
   @override
+  String get diveLog_sitePicker_sortedByArea =>
+      'Bij de stekken van je andere duiken';
+
+  @override
   String get diveLog_sitePicker_sortedByDistance => 'Gesorteerd op afstand';
 
   @override
@@ -12546,6 +12562,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String diveSites_import_section_truncated(Object count) {
+    return 'De eerste $count stekken worden getoond. Zoek specifieker om de rest te zien.';
+  }
+
+  @override
   String diveSites_import_semantics_viewDetails(Object name) {
     return 'Details bekijken voor $name';
   }
@@ -12841,6 +12862,37 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveSites_picker_nearby => 'In de buurt';
+
+  @override
+  String diveSites_catalogue_credit(Object source) {
+    return 'Uit de ingebouwde stekkencatalogus. Bron: $source';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_adoptError =>
+      'Stek kon niet worden toegevoegd';
+
+  @override
+  String get diveSites_picker_builtIn_details => 'Details van de stek';
+
+  @override
+  String diveSites_picker_builtIn_nearPlace(Object place) {
+    return 'Meer stekken bij $place';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_nearby => 'Meer stekken in de buurt';
+
+  @override
+  String get diveSites_picker_builtIn_search => 'Ingebouwde stekken';
+
+  @override
+  String diveSites_picker_builtIn_showAll(Object count) {
+    return 'Alle $count tonen';
+  }
+
+  @override
+  String get diveSites_picker_builtIn_useSite => 'Deze stek gebruiken';
 
   @override
   String get diveSites_list_groupBy => 'Groeperen op';
@@ -17817,6 +17869,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_setEdit_appBar_newTitle => 'Nieuwe uitrustingsset';
 
   @override
+  String get equipment_setEdit_appBar_cloneTitle => 'Uitrustingsset dupliceren';
+
+  @override
   String get equipment_setEdit_descriptionHint => 'Optionele beschrijving...';
 
   @override
@@ -17870,6 +17925,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_setEdit_snackbar_created => 'Uitrustingsset aangemaakt';
+
+  @override
+  String get equipment_setEdit_snackbar_cloned => 'Uitrustingsset gedupliceerd';
 
   @override
   String equipment_setEdit_snackbar_error(Object error) {
@@ -20015,12 +20073,21 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen kaarten, foto\'s of documenten aan deze duikstek gekoppeld';
 
   @override
-  String media_siteMediaSection_divePhotosGroup(int count) {
-    return 'Foto\'s van duiken hier ($count)';
+  String get media_siteMediaSection_divePhotoLabel => 'Duikfoto';
+
+  @override
+  String get media_siteDivePhotos_title => 'Foto\'s van duiken';
+
+  @override
+  String media_siteDivePhotos_titleWithCount(int count) {
+    return 'Foto\'s van duiken ($count)';
   }
 
   @override
-  String get media_siteMediaSection_divePhotoLabel => 'Duikfoto';
+  String get media_siteDivePhotos_showAll => 'Alles tonen';
+
+  @override
+  String get media_siteDivePhotos_showLess => 'Minder tonen';
 
   @override
   String media_siteMediaSection_unlinkSelectedTitle(int count) {
@@ -21849,6 +21916,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get plannerCanvas_follow_title => 'Volg een duik';
 
   @override
+  String plannerCanvas_pickDive_number(int number) {
+    return '#$number';
+  }
+
+  @override
+  String plannerCanvas_pickDive_numberTitle(int number, String title) {
+    return '#$number · $title';
+  }
+
+  @override
   String plannerCanvas_gas_minGas(String pressure) {
     return 'min. gas $pressure';
   }
@@ -22927,7 +23004,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get siteDetailSection_media_description =>
-      'Foto\'s, video\'s en documenten van de duikstek';
+      'Foto\'s, video\'s en documenten gekoppeld aan de duikstek';
+
+  @override
+  String get siteDetailSection_divePhotos_description =>
+      'Foto\'s van de duiken die op deze duikstek zijn gelogd';
 
   @override
   String get siteDetailSection_tags_description => 'Tags van deze duikstek';
@@ -24946,6 +25027,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_conflict_field_cardColorGradientStart =>
       'Begin van het kaartkleurverloop';
+
+  @override
+  String get settings_conflict_field_catalogueId =>
+      'Koppeling met ingebouwde catalogus';
 
   @override
   String get settings_conflict_field_ccrDiluentModPpO2 =>
@@ -36868,6 +36953,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Garmin-horloge (Descent, Fenix, Epix...)';
 
   @override
+  String diveComputer_discovery_usbModelCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count modellen',
+      one: '$count model',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get diveComputer_discovery_usbSearchHint =>
       'Zoeken op fabrikant of model...';
 
@@ -40849,6 +40945,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_cylinder_use => 'Gebruik van de fles';
 
   @override
+  String get attrLabel_worn_as => 'Gedragen als';
+
+  @override
   String get attrLabel_tank_identifier => 'Identificatie';
 
   @override
@@ -41009,6 +41108,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrLabel_color => 'Kleur';
+
+  @override
+  String get attrLabel_figure_position => 'Positie op de duikerfiguur';
 
   @override
   String get attrLabel_sleeve_length => 'Mouwen';
@@ -41214,6 +41316,84 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get attrChoice_cylinder_use_suit_inflation => 'Droogpakfles';
+
+  @override
+  String get attrChoice_worn_as_back => 'Rugmontage';
+
+  @override
+  String get attrChoice_worn_as_sidemount_left => 'Sidemount links';
+
+  @override
+  String get attrChoice_worn_as_sidemount_right => 'Sidemount rechts';
+
+  @override
+  String get attrChoice_worn_as_stage => 'Stagefles';
+
+  @override
+  String get attrChoice_figure_position_mouth => 'Mond';
+
+  @override
+  String get attrChoice_figure_position_octo => 'Borst (octopus)';
+
+  @override
+  String get attrChoice_figure_position_chest_left => 'Borst, links';
+
+  @override
+  String get attrChoice_figure_position_chest_right => 'Borst, rechts';
+
+  @override
+  String get attrChoice_figure_position_console => 'Console';
+
+  @override
+  String get attrChoice_figure_position_wrist_left => 'Linkerpols';
+
+  @override
+  String get attrChoice_figure_position_wrist_right => 'Rechterpols';
+
+  @override
+  String get attrChoice_figure_position_hand_left => 'Linkerhand';
+
+  @override
+  String get attrChoice_figure_position_hand_right => 'Rechterhand';
+
+  @override
+  String get attrChoice_figure_position_hip_left => 'Linkerheup';
+
+  @override
+  String get attrChoice_figure_position_hip_right => 'Rechterheup';
+
+  @override
+  String get attrChoice_figure_position_thigh_left => 'Linkerdij';
+
+  @override
+  String get attrChoice_figure_position_thigh_right => 'Rechterdij';
+
+  @override
+  String get attrChoice_figure_position_calf_left => 'Linkerkuit';
+
+  @override
+  String get attrChoice_figure_position_back => 'Rug';
+
+  @override
+  String get attrChoice_figure_position_trim_left => 'Trimzak, links';
+
+  @override
+  String get attrChoice_figure_position_trim_right => 'Trimzak, rechts';
+
+  @override
+  String get attrChoice_figure_position_butt_d_ring => 'D-ring achter';
+
+  @override
+  String get attrChoice_figure_position_sidemount_left => 'Sidemount, links';
+
+  @override
+  String get attrChoice_figure_position_sidemount_right => 'Sidemount, rechts';
+
+  @override
+  String get attrChoice_figure_position_stage_left => 'Stage, links';
+
+  @override
+  String get attrChoice_figure_position_stage_right => 'Stage, rechts';
 
   @override
   String get attrChoice_connection_din => 'DIN';
@@ -41556,6 +41736,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attr_flagNo => 'Nee';
 
   @override
+  String get attr_figurePosition_automatic => 'Automatisch';
+
+  @override
   String get equipment_edit_invalidThickness => 'Gebruik 5, 5/4 of 7/5/3';
 
   @override
@@ -41566,23 +41749,49 @@ class AppLocalizationsNl extends AppLocalizations {
       'Voer een webadres in, bijv. shop.example.com';
 
   @override
-  String get insights_progression_divesBySuitThickness_title =>
-      'Duiken per pakdikte';
+  String get insights_progression_divesBySuitType_title => 'Duiken per paktype';
 
   @override
-  String get insights_progression_divesBySuitThickness_subtitle =>
-      'Primaire pakdikte over je duiken';
+  String get insights_progression_divesBySuitType_subtitle =>
+      'Type, dikte en model van je pak over je duiken';
 
   @override
-  String get insights_progression_divesBySuitThickness_empty =>
+  String get insights_progression_divesBySuitType_empty =>
       'Geen duiken met een gekoppeld wetsuit of droogpak';
 
   @override
-  String get insights_progression_divesBySuitThickness_error =>
-      'Kan pakdiktegegevens niet laden';
+  String get insights_progression_divesBySuitType_error =>
+      'Kan paktypegegevens niet laden';
 
   @override
-  String get insights_progression_divesBySuitThickness_unknown => 'Onbekend';
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  ) {
+    return 'Wetsuit · $thickness mm $style';
+  }
+
+  @override
+  String insights_suitType_wetsuitThickness(String thickness) {
+    return 'Wetsuit · $thickness mm';
+  }
+
+  @override
+  String insights_suitType_wetsuitStyle(String style) {
+    return 'Wetsuit · $style';
+  }
+
+  @override
+  String get insights_suitType_style_full => 'volledig';
+
+  @override
+  String get insights_suitType_style_shorty => 'shorty';
+
+  @override
+  String get insights_suitType_style_twoPiece => 'tweedelig';
+
+  @override
+  String get insights_suitType_style_semiDry => 'semi-droog';
 
   @override
   String get diveLog_filter_sectionSuitThickness => 'Pakdikte (mm)';
@@ -41799,6 +42008,40 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveLog_detail_sacSegments_average(String rate) {
     return 'Gemiddeld $rate';
+  }
+
+  @override
+  String get diveLog_detail_sacSegments_summaryAverage => 'Gemiddeld';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryPeak => 'Piek';
+
+  @override
+  String get diveLog_detail_sacSegments_summaryUsed => 'Gasverbruik';
+
+  @override
+  String get diveLog_detail_sacSegments_used => 'Verbruikt';
+
+  @override
+  String get diveLog_detail_sacSegments_shareByPhase => 'Gasverbruik per fase';
+
+  @override
+  String diveLog_detail_sacSegments_usedAmount(String amount) {
+    return '$amount verbruikt';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_share(String percent) {
+    return '$percent%';
+  }
+
+  @override
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  ) {
+    return '$average ($shallowest-$deepest)';
   }
 
   @override
@@ -51008,10 +51251,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String insights_progression_divesBySuitThickness_semanticLabel(
+  String insights_progression_divesBySuitType_semanticLabel(
     String description,
   ) {
-    return 'Staafdiagram. Duiken per pakdikte. $description';
+    return 'Staafdiagram. Duiken per paktype. $description';
   }
 
   @override
@@ -62223,7 +62466,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get info_term_tissueCompartment_body =>
-      'De 16 denkbeeldige weefsels van het model, die elk in hun eigen tempo gas opnemen en afgeven. Snelle staan voor goed doorbloed weefsel, trage voor vet en bot.';
+      'De 16 denkbeeldige weefsels van het model, die elk in hun eigen tempo gas opnemen en afgeven: 1-5 zijn snel (zoals goed doorbloed weefsel, bijvoorbeeld de hersenen), 6-10 gemiddeld (zoals spier en huid) en 11-16 langzaam (zoals vet en bot). Snelle begrenzen korte, diepe duiken en trage lange en herhalingsduiken; de weefselnamen zijn ruwe voorbeelden, geen anatomie.';
 
   @override
   String get info_term_leadingCompartment_label => 'Leidend compartiment';

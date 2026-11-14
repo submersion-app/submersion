@@ -741,7 +741,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'new',
                     name: 'newEquipmentSet',
-                    builder: (context, state) => const EquipmentSetEditPage(),
+                    builder: (context, state) => EquipmentSetEditPage(
+                      // A set page's Clone (issue #2156).
+                      cloneFromId: state.uri.queryParameters['cloneFrom'],
+                    ),
                   ),
                   GoRoute(
                     path: ':setId',

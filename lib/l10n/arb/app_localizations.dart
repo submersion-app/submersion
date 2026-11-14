@@ -2219,7 +2219,7 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_setEdit_historyAsk.
   ///
   /// In en, this message translates to:
-  /// **'Apply the changes to those dives as well, or only from now on?'**
+  /// **'Apply the changes to those dives as well, or only from now on? From now on keeps their gear and unlinks the set from them.'**
   String get equipment_setEdit_historyAsk;
 
   /// No description provided for @equipment_setEdit_historyOnDives.
@@ -8514,6 +8514,30 @@ abstract class AppLocalizations {
   /// **'Remove set from this dive'**
   String get diveLog_gear_removeSet;
 
+  /// Title of the question asked when a set chip is removed from a dive's gear (issue #4500)
+  ///
+  /// In en, this message translates to:
+  /// **'Remove set from this dive?'**
+  String get diveLog_gear_removeSetTitle;
+
+  /// Body of that question: remove the set's gear too, or keep the gear and only unlink the set
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the gear this set added as well, or keep the gear on the dive and only unlink the set?'**
+  String get diveLog_gear_removeSetBody;
+
+  /// Button that keeps the gear on the dive and only unlinks the set
+  ///
+  /// In en, this message translates to:
+  /// **'Keep gear'**
+  String get diveLog_gear_removeSetKeepGear;
+
+  /// Button that removes the gear the set added from the dive
+  ///
+  /// In en, this message translates to:
+  /// **'Remove gear'**
+  String get diveLog_gear_removeSetRemoveGear;
+
   /// No description provided for @diveLog_gear_unknownSet.
   ///
   /// In en, this message translates to:
@@ -12037,6 +12061,41 @@ abstract class AppLocalizations {
   /// **'Compartment: #{number}'**
   String diveLog_deco_compartmentOther(int number);
 
+  /// Speed group of tissue compartments 1-5, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Fast, blood-rich tissue'**
+  String get diveLog_deco_groupFast;
+
+  /// Speed group of tissue compartments 6-10, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Medium, muscle and skin'**
+  String get diveLog_deco_groupMedium;
+
+  /// Speed group of tissue compartments 11-16, with a rough example of the body tissue they stand for
+  ///
+  /// In en, this message translates to:
+  /// **'Slow, fat and bone'**
+  String get diveLog_deco_groupSlow;
+
+  /// Screen reader description of the tissue heat map rows
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map of compartments {first} to {last}, fast at the top and slow at the bottom'**
+  String diveLog_deco_heatMapSemantics(int first, int last);
+
+  /// Screen reader description of the tissue heat map rows and the dive time it covers; start and end read like "0 min"
+  ///
+  /// In en, this message translates to:
+  /// **'Heat map of compartments {first} to {last}, fast at the top and slow at the bottom, from {start} to {end} of the dive'**
+  String diveLog_deco_heatMapTimedSemantics(
+    int first,
+    int last,
+    String start,
+    String end,
+  );
+
   /// No description provided for @diveLog_deco_metricLoad.
   ///
   /// In en, this message translates to:
@@ -12060,12 +12119,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equilibrium'**
   String get diveLog_deco_gasEquilibrium;
-
-  /// No description provided for @diveLog_deco_heatMapRows.
-  ///
-  /// In en, this message translates to:
-  /// **'Rows: fast (top) to slow (bottom)'**
-  String get diveLog_deco_heatMapRows;
 
   /// No description provided for @diveLog_deco_surfaceLevel.
   ///
@@ -12234,36 +12287,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{timestamp}'**
   String diveLog_detail_collapsed_atTime(Object timestamp);
-
-  /// No description provided for @diveLog_pinnedStrip_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL {minutes} min'**
-  String diveLog_pinnedStrip_ndl(Object minutes);
-
-  /// No description provided for @diveLog_pinnedStrip_stop.
-  ///
-  /// In en, this message translates to:
-  /// **'Stop {depth} · {minutes} min'**
-  String diveLog_pinnedStrip_stop(Object depth, Object minutes);
-
-  /// No description provided for @diveLog_pinnedStrip_ppO2.
-  ///
-  /// In en, this message translates to:
-  /// **'ppO2 {value}'**
-  String diveLog_pinnedStrip_ppO2(Object value);
-
-  /// No description provided for @diveLog_pinnedStrip_hintDrag.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag to scrub'**
-  String get diveLog_pinnedStrip_hintDrag;
-
-  /// No description provided for @diveLog_pinnedStrip_hintHover.
-  ///
-  /// In en, this message translates to:
-  /// **'Hover to scrub'**
-  String get diveLog_pinnedStrip_hintHover;
 
   /// No description provided for @diveLog_pinnedStrip_semantics.
   ///
@@ -17386,6 +17409,12 @@ abstract class AppLocalizations {
   /// **'No dive sites yet'**
   String get diveLog_sitePicker_noSites;
 
+  /// No description provided for @diveLog_sitePicker_sortedByArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Near the sites of your other dives'**
+  String get diveLog_sitePicker_sortedByArea;
+
   /// No description provided for @diveLog_sitePicker_sortedByDistance.
   ///
   /// In en, this message translates to:
@@ -20121,6 +20150,12 @@ abstract class AppLocalizations {
   /// **'My Sites ({count})'**
   String diveSites_import_section_mySites(Object count);
 
+  /// No description provided for @diveSites_import_section_truncated.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the first {count} sites. Search for something more specific to see the rest.'**
+  String diveSites_import_section_truncated(Object count);
+
   /// No description provided for @diveSites_import_semantics_viewDetails.
   ///
   /// In en, this message translates to:
@@ -20484,6 +20519,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nearby'**
   String get diveSites_picker_nearby;
+
+  /// No description provided for @diveSites_catalogue_credit.
+  ///
+  /// In en, this message translates to:
+  /// **'From the built-in site catalogue. Source: {source}'**
+  String diveSites_catalogue_credit(Object source);
+
+  /// No description provided for @diveSites_picker_builtIn_adoptError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add this site'**
+  String get diveSites_picker_builtIn_adoptError;
+
+  /// No description provided for @diveSites_picker_builtIn_details.
+  ///
+  /// In en, this message translates to:
+  /// **'Site details'**
+  String get diveSites_picker_builtIn_details;
+
+  /// No description provided for @diveSites_picker_builtIn_nearPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'More sites near {place}'**
+  String diveSites_picker_builtIn_nearPlace(Object place);
+
+  /// No description provided for @diveSites_picker_builtIn_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'More sites nearby'**
+  String get diveSites_picker_builtIn_nearby;
+
+  /// No description provided for @diveSites_picker_builtIn_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in sites'**
+  String get diveSites_picker_builtIn_search;
+
+  /// No description provided for @diveSites_picker_builtIn_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all {count}'**
+  String diveSites_picker_builtIn_showAll(Object count);
+
+  /// No description provided for @diveSites_picker_builtIn_useSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this site'**
+  String get diveSites_picker_builtIn_useSite;
 
   /// No description provided for @diveSites_list_groupBy.
   ///
@@ -28612,6 +28695,12 @@ abstract class AppLocalizations {
   /// **'New Equipment Set'**
   String get equipment_setEdit_appBar_newTitle;
 
+  /// Title of the equipment set form when it is pre-filled to clone an existing set
+  ///
+  /// In en, this message translates to:
+  /// **'Clone Equipment Set'**
+  String get equipment_setEdit_appBar_cloneTitle;
+
   /// No description provided for @equipment_setEdit_descriptionHint.
   ///
   /// In en, this message translates to:
@@ -28707,6 +28796,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Equipment set created'**
   String get equipment_setEdit_snackbar_created;
+
+  /// Shown after a cloned equipment set is saved
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment set cloned'**
+  String get equipment_setEdit_snackbar_cloned;
 
   /// No description provided for @equipment_setEdit_snackbar_error.
   ///
@@ -32018,17 +32113,35 @@ abstract class AppLocalizations {
   /// **'No maps, photos, or documents attached to this site'**
   String get media_siteMediaSection_emptyState;
 
-  /// No description provided for @media_siteMediaSection_divePhotosGroup.
-  ///
-  /// In en, this message translates to:
-  /// **'Photos from dives here ({count})'**
-  String media_siteMediaSection_divePhotosGroup(int count);
-
   /// No description provided for @media_siteMediaSection_divePhotoLabel.
   ///
   /// In en, this message translates to:
   /// **'Dive photo'**
   String get media_siteMediaSection_divePhotoLabel;
+
+  /// No description provided for @media_siteDivePhotos_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from dives'**
+  String get media_siteDivePhotos_title;
+
+  /// Title of the Site Details card that shows photos from the dives logged at the site, with how many there are
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from dives ({count})'**
+  String media_siteDivePhotos_titleWithCount(int count);
+
+  /// No description provided for @media_siteDivePhotos_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get media_siteDivePhotos_showAll;
+
+  /// No description provided for @media_siteDivePhotos_showLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Show less'**
+  String get media_siteDivePhotos_showLess;
 
   /// No description provided for @media_siteMediaSection_unlinkSelectedTitle.
   ///
@@ -34761,6 +34874,18 @@ abstract class AppLocalizations {
   /// **'Follow a dive'**
   String get plannerCanvas_follow_title;
 
+  /// A logged dive in the planner's dive pickers when it has no name or site: its dive number
+  ///
+  /// In en, this message translates to:
+  /// **'#{number}'**
+  String plannerCanvas_pickDive_number(int number);
+
+  /// A logged dive in the planner's dive pickers: its dive number, then its name or else its site
+  ///
+  /// In en, this message translates to:
+  /// **'#{number} · {title}'**
+  String plannerCanvas_pickDive_numberTitle(int number, String title);
+
   /// No description provided for @plannerCanvas_gas_minGas.
   ///
   /// In en, this message translates to:
@@ -36483,8 +36608,14 @@ abstract class AppLocalizations {
   /// No description provided for @siteDetailSection_media_description.
   ///
   /// In en, this message translates to:
-  /// **'Photos, videos and documents for the site'**
+  /// **'Photos, videos and documents attached to the site'**
   String get siteDetailSection_media_description;
+
+  /// No description provided for @siteDetailSection_divePhotos_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos from the dives logged at this site'**
+  String get siteDetailSection_divePhotos_description;
 
   /// No description provided for @siteDetailSection_tags_description.
   ///
@@ -39590,6 +39721,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Card color gradient start'**
   String get settings_conflict_field_cardColorGradientStart;
+
+  /// No description provided for @settings_conflict_field_catalogueId.
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in catalogue link'**
+  String get settings_conflict_field_catalogueId;
 
   /// No description provided for @settings_conflict_field_ccrDiluentModPpO2.
   ///
@@ -58204,6 +58341,12 @@ abstract class AppLocalizations {
   /// **'Garmin watch (Descent, Fenix, Epix...)'**
   String get diveComputer_discovery_garminWatchEntry;
 
+  /// Model count beside a manufacturer's foldable heading in the USB list of Connect New Computer
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} model} other{{count} models}}'**
+  String diveComputer_discovery_usbModelCount(int count);
+
   /// No description provided for @diveComputer_discovery_usbSearchHint.
   ///
   /// In en, this message translates to:
@@ -64406,6 +64549,12 @@ abstract class AppLocalizations {
   /// **'Cylinder use'**
   String get attrLabel_cylinder_use;
 
+  /// No description provided for @attrLabel_worn_as.
+  ///
+  /// In en, this message translates to:
+  /// **'Worn as'**
+  String get attrLabel_worn_as;
+
   /// No description provided for @attrLabel_tank_identifier.
   ///
   /// In en, this message translates to:
@@ -64729,6 +64878,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Color'**
   String get attrLabel_color;
+
+  /// No description provided for @attrLabel_figure_position.
+  ///
+  /// In en, this message translates to:
+  /// **'Position on figure'**
+  String get attrLabel_figure_position;
 
   /// No description provided for @attrLabel_sleeve_length.
   ///
@@ -65137,6 +65292,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Suit inflation'**
   String get attrChoice_cylinder_use_suit_inflation;
+
+  /// No description provided for @attrChoice_worn_as_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back mount'**
+  String get attrChoice_worn_as_back;
+
+  /// No description provided for @attrChoice_worn_as_sidemount_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, left'**
+  String get attrChoice_worn_as_sidemount_left;
+
+  /// No description provided for @attrChoice_worn_as_sidemount_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, right'**
+  String get attrChoice_worn_as_sidemount_right;
+
+  /// No description provided for @attrChoice_worn_as_stage.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage'**
+  String get attrChoice_worn_as_stage;
+
+  /// No description provided for @attrChoice_figure_position_mouth.
+  ///
+  /// In en, this message translates to:
+  /// **'Mouth'**
+  String get attrChoice_figure_position_mouth;
+
+  /// No description provided for @attrChoice_figure_position_octo.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest (octo)'**
+  String get attrChoice_figure_position_octo;
+
+  /// No description provided for @attrChoice_figure_position_chest_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest, left'**
+  String get attrChoice_figure_position_chest_left;
+
+  /// No description provided for @attrChoice_figure_position_chest_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Chest, right'**
+  String get attrChoice_figure_position_chest_right;
+
+  /// No description provided for @attrChoice_figure_position_console.
+  ///
+  /// In en, this message translates to:
+  /// **'Console'**
+  String get attrChoice_figure_position_console;
+
+  /// No description provided for @attrChoice_figure_position_wrist_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left wrist'**
+  String get attrChoice_figure_position_wrist_left;
+
+  /// No description provided for @attrChoice_figure_position_wrist_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right wrist'**
+  String get attrChoice_figure_position_wrist_right;
+
+  /// No description provided for @attrChoice_figure_position_hand_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left hand'**
+  String get attrChoice_figure_position_hand_left;
+
+  /// No description provided for @attrChoice_figure_position_hand_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right hand'**
+  String get attrChoice_figure_position_hand_right;
+
+  /// No description provided for @attrChoice_figure_position_hip_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left hip'**
+  String get attrChoice_figure_position_hip_left;
+
+  /// No description provided for @attrChoice_figure_position_hip_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right hip'**
+  String get attrChoice_figure_position_hip_right;
+
+  /// No description provided for @attrChoice_figure_position_thigh_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left thigh'**
+  String get attrChoice_figure_position_thigh_left;
+
+  /// No description provided for @attrChoice_figure_position_thigh_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Right thigh'**
+  String get attrChoice_figure_position_thigh_right;
+
+  /// No description provided for @attrChoice_figure_position_calf_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Left calf'**
+  String get attrChoice_figure_position_calf_left;
+
+  /// No description provided for @attrChoice_figure_position_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get attrChoice_figure_position_back;
+
+  /// No description provided for @attrChoice_figure_position_trim_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim pocket, left'**
+  String get attrChoice_figure_position_trim_left;
+
+  /// No description provided for @attrChoice_figure_position_trim_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Trim pocket, right'**
+  String get attrChoice_figure_position_trim_right;
+
+  /// No description provided for @attrChoice_figure_position_butt_d_ring.
+  ///
+  /// In en, this message translates to:
+  /// **'Butt D-ring'**
+  String get attrChoice_figure_position_butt_d_ring;
+
+  /// No description provided for @attrChoice_figure_position_sidemount_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, left'**
+  String get attrChoice_figure_position_sidemount_left;
+
+  /// No description provided for @attrChoice_figure_position_sidemount_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Sidemount, right'**
+  String get attrChoice_figure_position_sidemount_right;
+
+  /// No description provided for @attrChoice_figure_position_stage_left.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage, left'**
+  String get attrChoice_figure_position_stage_left;
+
+  /// No description provided for @attrChoice_figure_position_stage_right.
+  ///
+  /// In en, this message translates to:
+  /// **'Stage, right'**
+  String get attrChoice_figure_position_stage_right;
 
   /// No description provided for @attrChoice_connection_din.
   ///
@@ -65816,6 +66127,12 @@ abstract class AppLocalizations {
   /// **'No'**
   String get attr_flagNo;
 
+  /// No description provided for @attr_figurePosition_automatic.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get attr_figurePosition_automatic;
+
   /// No description provided for @equipment_edit_invalidThickness.
   ///
   /// In en, this message translates to:
@@ -65834,35 +66151,74 @@ abstract class AppLocalizations {
   /// **'Enter a web address, e.g. shop.example.com'**
   String get equipment_edit_invalidWebLink;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_title.
+  /// No description provided for @insights_progression_divesBySuitType_title.
   ///
   /// In en, this message translates to:
-  /// **'Dives by Suit Thickness'**
-  String get insights_progression_divesBySuitThickness_title;
+  /// **'Dives by Suit Type'**
+  String get insights_progression_divesBySuitType_title;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_subtitle.
+  /// No description provided for @insights_progression_divesBySuitType_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Exposure suit primary thickness across your dives'**
-  String get insights_progression_divesBySuitThickness_subtitle;
+  /// **'Exposure suit type, thickness and style across your dives'**
+  String get insights_progression_divesBySuitType_subtitle;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_empty.
+  /// No description provided for @insights_progression_divesBySuitType_empty.
   ///
   /// In en, this message translates to:
   /// **'No dives with a wetsuit or drysuit linked'**
-  String get insights_progression_divesBySuitThickness_empty;
+  String get insights_progression_divesBySuitType_empty;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_error.
+  /// No description provided for @insights_progression_divesBySuitType_error.
   ///
   /// In en, this message translates to:
-  /// **'Could not load suit thickness data'**
-  String get insights_progression_divesBySuitThickness_error;
+  /// **'Could not load suit type data'**
+  String get insights_progression_divesBySuitType_error;
 
-  /// No description provided for @insights_progression_divesBySuitThickness_unknown.
+  /// A wetsuit bar on the Insights Suit Type chart with its thickness in mm and its style word
   ///
   /// In en, this message translates to:
-  /// **'Unknown'**
-  String get insights_progression_divesBySuitThickness_unknown;
+  /// **'Wetsuit · {thickness} mm {style}'**
+  String insights_suitType_wetsuitThicknessStyle(
+    String thickness,
+    String style,
+  );
+
+  /// A wetsuit bar on the Insights Suit Type chart with its thickness in mm and no style
+  ///
+  /// In en, this message translates to:
+  /// **'Wetsuit · {thickness} mm'**
+  String insights_suitType_wetsuitThickness(String thickness);
+
+  /// A wetsuit bar on the Insights Suit Type chart with its style word and no thickness
+  ///
+  /// In en, this message translates to:
+  /// **'Wetsuit · {style}'**
+  String insights_suitType_wetsuitStyle(String style);
+
+  /// No description provided for @insights_suitType_style_full.
+  ///
+  /// In en, this message translates to:
+  /// **'full'**
+  String get insights_suitType_style_full;
+
+  /// No description provided for @insights_suitType_style_shorty.
+  ///
+  /// In en, this message translates to:
+  /// **'shorty'**
+  String get insights_suitType_style_shorty;
+
+  /// No description provided for @insights_suitType_style_twoPiece.
+  ///
+  /// In en, this message translates to:
+  /// **'two-piece'**
+  String get insights_suitType_style_twoPiece;
+
+  /// No description provided for @insights_suitType_style_semiDry.
+  ///
+  /// In en, this message translates to:
+  /// **'semi-dry'**
+  String get insights_suitType_style_semiDry;
 
   /// No description provided for @diveLog_filter_sectionSuitThickness.
   ///
@@ -66205,6 +66561,58 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average {rate}'**
   String diveLog_detail_sacSegments_average(String rate);
+
+  /// Label over the dive average rate in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Average'**
+  String get diveLog_detail_sacSegments_summaryAverage;
+
+  /// Label over the highest segment rate in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Peak'**
+  String get diveLog_detail_sacSegments_summaryPeak;
+
+  /// Label over the total gas used in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used'**
+  String get diveLog_detail_sacSegments_summaryUsed;
+
+  /// Heading of the gas used column in the gas consumption by segment card
+  ///
+  /// In en, this message translates to:
+  /// **'Used'**
+  String get diveLog_detail_sacSegments_used;
+
+  /// Heading of the bar showing each phase's share of the gas used
+  ///
+  /// In en, this message translates to:
+  /// **'Gas used by phase'**
+  String get diveLog_detail_sacSegments_shareByPhase;
+
+  /// Gas used in a stretch of the dive, such as 228 L used
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} used'**
+  String diveLog_detail_sacSegments_usedAmount(String amount);
+
+  /// A row's share of the gas used, such as 59%
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String diveLog_detail_sacSegments_share(String percent);
+
+  /// Average depth of a stretch of the dive with its shallowest and deepest, such as 27m (18-30m)
+  ///
+  /// In en, this message translates to:
+  /// **'{average} ({shallowest}-{deepest})'**
+  String diveLog_detail_sacSegments_depthWithRange(
+    String average,
+    String shallowest,
+    String deepest,
+  );
 
   /// No description provided for @diveLog_detail_sacVolumeHint.
   ///
@@ -81133,13 +81541,11 @@ abstract class AppLocalizations {
   /// **'Pie chart. Water type distribution. {description}'**
   String insights_conditions_waterType_semanticLabel(String description);
 
-  /// Screen-reader summary of the dives-by-suit-thickness bar chart
+  /// Screen-reader summary of the dives-by-suit-type bar chart
   ///
   /// In en, this message translates to:
-  /// **'Bar chart. Dives by suit thickness. {description}'**
-  String insights_progression_divesBySuitThickness_semanticLabel(
-    String description,
-  );
+  /// **'Bar chart. Dives by suit type. {description}'**
+  String insights_progression_divesBySuitType_semanticLabel(String description);
 
   /// One entry of the dives-per-year screen-reader summary
   ///
@@ -98247,7 +98653,7 @@ abstract class AppLocalizations {
   /// No description provided for @info_term_tissueCompartment_body.
   ///
   /// In en, this message translates to:
-  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed. Fast ones stand for blood-rich tissue and slow ones for fat and bone.'**
+  /// **'The model\'s 16 imaginary tissues, each taking up and releasing gas at its own speed: 1-5 are fast (like blood-rich tissue such as the brain), 6-10 medium (like muscle and skin) and 11-16 slow (like fat and bone). Fast ones limit short, deep dives and slow ones limit long and repeat dives; the tissue names are rough examples, not anatomy.'**
   String get info_term_tissueCompartment_body;
 
   /// No description provided for @info_term_leadingCompartment_label.

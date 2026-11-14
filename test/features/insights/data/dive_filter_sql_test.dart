@@ -433,6 +433,48 @@ void main() {
     },
   );
 
+  test('decoOnly axis: a dive recording no deco signal reads the computed '
+      'verdict, as the Insights card does (#4461)', () async {
+    Future<void> computed(String diveId, {required bool hadDeco}) => db
+        .into(db.diveDecoStatus)
+        .insert(
+          DiveDecoStatusCompanion.insert(
+            diveId: diveId,
+            hadDeco: hadDeco,
+            computedAt: now,
+          ),
+        );
+
+    // Profiles with no deco columns at all: only the analysis can say.
+    await insertDive('computedDeco');
+    await insertProfilePoint('computedDeco', 'p-cd-1');
+    await computed('computedDeco', hadDeco: true);
+    await insertDive('computedNoDeco');
+    await insertProfilePoint('computedNoDeco', 'p-cn-1');
+    await computed('computedNoDeco', hadDeco: false);
+    // Not analyzed yet (or nothing to analyze): matches neither.
+    await insertDive('unanalyzed');
+    await insertProfilePoint('unanalyzed', 'p-un-1');
+
+    // A recorded signal outranks a computed verdict left over from before
+    // the computer's data arrived.
+    await insertDive('stop');
+    await insertProfilePoint('stop', 'p-stop-1', decoType: 2);
+    await computed('stop', hadDeco: false);
+    await insertDive('noStop');
+    await insertProfilePoint('noStop', 'p-noStop-1', decoType: 0);
+    await computed('noStop', hadDeco: true);
+
+    expect(await idsMatching(const DiveFilterState(decoOnly: true)), {
+      'computedDeco',
+      'stop',
+    });
+    expect(await idsMatching(const DiveFilterState(decoOnly: false)), {
+      'computedNoDeco',
+      'noStop',
+    });
+  });
+
   test(
     'noBuddyOnly excludes both legacy and junction-linked buddies',
     () async {

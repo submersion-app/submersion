@@ -259,6 +259,76 @@ void main() {
     });
   });
 
+  test('resolves the OpenStreetMap names CLDR words differently (#4520)', () {
+    const names = {
+      'ประเทศไทย': 'TH',
+      'Ελλάς': 'GR',
+      'Κύπρος - Kıbrıs': 'CY',
+      'Shqipëria': 'AL',
+      'السعودية': 'SA',
+      'عمان': 'OM',
+      'Algérie ⵍⵣⵣⴰⵢⴻⵔ الجزائر': 'DZ',
+      'Djibouti جيبوتي': 'DJ',
+      'ព្រះរាជាណាចក្រ​កម្ពុជា': 'KH',
+      '臺灣': 'TW',
+      'Belau': 'PW',
+      'Ṃajeḷ': 'MH',
+      'Sesel': 'SC',
+    };
+    for (final MapEntry(key: text, value: code) in names.entries) {
+      expect(countryCodeFor(text), code, reason: text);
+    }
+  });
+
+  test('resolves slash-joined names only when they agree (#4520)', () {
+    expect(countryCodeFor('Schweiz/Suisse/Svizzera/Svizra'), 'CH');
+    expect(countryCodeFor('België / Belgique / Belgien'), 'BE');
+    expect(countryCodeFor('Belgique / Atlantis'), 'BE');
+    expect(countryCodeFor('France / Italia'), isNull);
+    expect(countryCodeFor('Atlantis / Lemuria'), isNull);
+  });
+
+  group('countryCodesMatching', () {
+    test('reads a whole country name in any place-name language', () {
+      for (final query in ['Thailand', 'Thaïlande', 'tailandia', 'ประเทศไทย']) {
+        expect(countryCodesMatching(query), contains('TH'), reason: query);
+      }
+      for (final query in ['Egypt', 'Égypte', 'Ägypten']) {
+        expect(countryCodesMatching(query), contains('EG'), reason: query);
+      }
+    });
+
+    test('reads a name still being typed', () {
+      expect(countryCodesMatching('thai'), contains('TH'));
+      expect(countryCodesMatching('Switz'), contains('CH'));
+      expect(countryCodesMatching('new zea'), contains('NZ'));
+    });
+
+    test('reads codes and aliases whole', () {
+      expect(countryCodesMatching('UK'), {'GB'});
+      expect(countryCodesMatching('de'), {'DE'});
+    });
+
+    test('matches only the start of a name', () {
+      // "land" ends "Thailand" and "Switzerland"; neither is a match.
+      final codes = countryCodesMatching('land');
+      expect(codes, isNot(contains('TH')));
+      expect(codes, isNot(contains('CH')));
+    });
+
+    test('a short fragment is read as a code only', () {
+      // Two letters would start dozens of names.
+      expect(countryCodesMatching('ma'), {'MA'});
+      expect(countryCodesMatching('xq'), isEmpty);
+    });
+
+    test('names no country for blank or unrelated text', () {
+      expect(countryCodesMatching(''), isEmpty);
+      expect(countryCodesMatching('   '), isEmpty);
+      expect(countryCodesMatching('Blue Hole'), isEmpty);
+    });
+  });
+
   group('generated table', () {
     test('keys are folded the way the app folds a stored country', () {
       // The Python generator mirrors textSortKey; this catches the two

@@ -9,9 +9,9 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
-import 'package:submersion/features/dive_sites/data/services/dive_site_api_service.dart';
 import 'package:submersion/features/dive_sites/data/services/site_matching_service.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_catalogue_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_suggestion_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -20,24 +20,24 @@ import 'package:submersion/features/media/presentation/providers/media_providers
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weather/presentation/providers/weather_providers.dart';
 
+import '../../../../helpers/fake_site_catalogue.dart';
 import '../../../../helpers/mock_providers.dart';
 import 'site_suggestion_providers_test.mocks.dart';
 
-@GenerateMocks([
-  SiteRepository,
-  DiveSiteApiService,
-  DiveRepository,
-  MediaRepository,
-])
+@GenerateMocks([SiteRepository, DiveRepository, MediaRepository])
 void main() {
   late MockSiteRepository sites;
-  late MockDiveSiteApiService api;
+  late FakeSiteCatalogue catalogue;
   late MockDiveRepository dives;
   late MockMediaRepository media;
 
   ProviderContainer makeContainer({required List<Dive> eligible}) {
     sites = MockSiteRepository();
-    api = MockDiveSiteApiService();
+    // No catalogue site has been adopted yet, unless a test says so.
+    when(
+      sites.getSiteByCatalogueId(any, diverId: anyNamed('diverId')),
+    ).thenAnswer((_) async => null);
+    catalogue = FakeSiteCatalogue();
     dives = MockDiveRepository();
     media = MockMediaRepository();
     when(
@@ -62,18 +62,11 @@ void main() {
     when(
       sites.getAllSites(diverId: anyNamed('diverId')),
     ).thenAnswer((_) async => const []);
-    when(
-      api.searchNearby(
-        latitude: anyNamed('latitude'),
-        longitude: anyNamed('longitude'),
-        radiusKm: anyNamed('radiusKm'),
-      ),
-    ).thenAnswer((_) async => const DiveSiteSearchResult(sites: []));
     final container = ProviderContainer(
       overrides: [
         diveRepositoryProvider.overrideWithValue(dives),
         siteRepositoryProvider.overrideWithValue(sites),
-        diveSiteApiServiceProvider.overrideWithValue(api),
+        siteCatalogueProvider.overrideWithValue(catalogue),
         mediaRepositoryProvider.overrideWithValue(media),
         validatedCurrentDiverIdProvider.overrideWith((ref) => 'diver-1'),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
