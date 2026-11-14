@@ -182,10 +182,18 @@ class SiteCatalogueFillRepository {
       if (was != null && was.isLibrarySite) {
         final after = await _sites.getSiteById(siteId);
         if (after != null) {
+          // The filled fields are shared: they go to the library. The link
+          // and the answers are this profile's own, and travel with it.
           await _stamper.stamp(siteId, {
             ...LibraryEditStamper.changedFields(was, after),
             if (typesAdded) 'siteTypes',
           }, actingDiverId: actingDiverId);
+          await _stamper.keepCatalogue(
+            siteId,
+            catalogueId: after.catalogueId,
+            answers: after.catalogueAnswers,
+            actingDiverId: actingDiverId,
+          );
         }
       }
       SyncEventBus.notifyLocalChange();
@@ -214,14 +222,20 @@ class SiteCatalogueFillRepository {
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
+      String? link;
+      var librarySite = false;
+      var answers = SiteCatalogueAnswers.empty;
       final changed = await _db.transaction(() async {
         final row = await (_db.select(
           _db.diveSites,
         )..where((t) => t.id.equals(siteId))).getSingleOrNull();
         if (row == null) return false;
         final current = SiteCatalogueAnswers.decode(row.catalogueAnswers);
-        final next = change(current).encode();
+        answers = change(current);
+        final next = answers.encode();
         if (next == current.encode()) return false;
+        link = row.catalogueId;
+        librarySite = row.sharedLibraryId != null;
         await (_db.update(
           _db.diveSites,
         )..where((t) => t.id.equals(siteId))).write(
@@ -237,7 +251,16 @@ class SiteCatalogueFillRepository {
         );
         return true;
       });
-      if (changed) SyncEventBus.notifyLocalChange();
+      if (!changed) return;
+      if (librarySite) {
+        await _stamper.keepCatalogue(
+          siteId,
+          catalogueId: link,
+          answers: answers,
+          actingDiverId: actingDiverId,
+        );
+      }
+      SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to update catalogue answers of site $siteId',

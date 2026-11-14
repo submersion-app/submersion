@@ -1229,6 +1229,19 @@ class SiteRepository {
         );
       });
 
+      // A library survivor's row is outside personal sync: what the merge
+      // left it claiming is kept for the profile, like its notes.
+      if (linkedSurvivor.isLibrarySite &&
+          (linkedSurvivor.catalogueId != originalSurvivor.catalogueId ||
+              linkedSurvivor.catalogueAnswers !=
+                  originalSurvivor.catalogueAnswers)) {
+        await _libraryStamper.keepCatalogue(
+          survivorId,
+          catalogueId: linkedSurvivor.catalogueId,
+          answers: linkedSurvivor.catalogueAnswers,
+          actingDiverId: actingDiverId,
+        );
+      }
       SyncEventBus.notifyLocalChange();
       _log.info('Merged ${orderedIds.length} sites into survivor: $survivorId');
 
