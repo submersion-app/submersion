@@ -26,21 +26,14 @@ enum AttributeUnit {
   feet,
 }
 
-/// Rebreather cylinders have no working pressure, so cubic feet cannot mean
-/// gas capacity on them, and they are sold by litres everywhere: no picker,
-/// always litres.
-const _litresOnlyKeys = {'diluent_cylinder_l', 'o2_cylinder_l'};
-
-const _gaugeRangeKey = 'gauge_max_pressure_bar';
-
 /// The units [def]'s picker offers, or none when it has no picker.
 List<AttributeUnit> attributeUnitChoices(EquipmentAttributeDef def) {
-  if (def.kind != AttributeKind.number || _litresOnlyKeys.contains(def.key)) {
+  if (def.kind != AttributeKind.number || def.metricOnly) {
     return const [];
   }
   return switch (def.dimension) {
     AttributeDimension.pressureBar =>
-      def.key == _gaugeRangeKey
+      def.dualScale
           ? const [AttributeUnit.bar, AttributeUnit.psi, AttributeUnit.dual]
           : const [AttributeUnit.bar, AttributeUnit.psi],
     AttributeDimension.massKg => const [
@@ -74,6 +67,20 @@ AttributeUnit? parseAttributeUnit(EquipmentAttributeDef def, String? stored) {
   return null;
 }
 
+/// [dimension]'s canonical metric unit.
+AttributeUnit? _metricUnit(AttributeDimension dimension) => switch (dimension) {
+  AttributeDimension.pressureBar => AttributeUnit.bar,
+  AttributeDimension.massKg => AttributeUnit.kilograms,
+  AttributeDimension.volumeL => AttributeUnit.liters,
+  AttributeDimension.lengthM ||
+  AttributeDimension.depthM ||
+  AttributeDimension.shortLengthM ||
+  AttributeDimension.speedMps => AttributeUnit.meters,
+  AttributeDimension.thicknessMm ||
+  AttributeDimension.durationH ||
+  AttributeDimension.none => null,
+};
+
 /// The diver's own unit for [dimension].
 AttributeUnit? _diverUnit(AttributeDimension dimension, UnitFormatter units) {
   final metricLength = units.settings.depthUnit == DepthUnit.meters;
@@ -102,8 +109,8 @@ AttributeUnit? _diverUnit(AttributeDimension dimension, UnitFormatter units) {
   };
 }
 
-/// The unit [attr] of [def] is read in: litres on a rebreather cylinder,
-/// else the unit picked for this item, else the diver's own.
+/// The unit [attr] of [def] is read in: its metric unit when the catalog
+/// marks it metric-only (a rebreather cylinder), else the unit picked for this item, else the diver's own.
 ///
 /// Null for a field with no alternative unit (thickness, burn time, a plain
 /// number), which keeps its existing fixed display.
@@ -112,7 +119,7 @@ AttributeUnit? attributeUnitInForce(
   EquipmentAttribute? attr,
   UnitFormatter units,
 ) {
-  if (_litresOnlyKeys.contains(def.key)) return AttributeUnit.liters;
+  if (def.metricOnly) return _metricUnit(def.dimension);
   return parseAttributeUnit(def, attr?.valueUnit) ??
       _diverUnit(def.dimension, units);
 }
