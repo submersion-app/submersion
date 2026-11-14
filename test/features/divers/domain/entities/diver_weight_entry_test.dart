@@ -24,7 +24,8 @@ void main() {
     expect(entry.copyWith(bodyFatPercent: null).bodyFatPercent, isNull);
   });
 
-  test('copyWith sets a new body fat', () {
+  test('copyWith sets a new body fat, whole numbers included', () {
     expect(entry.copyWith(bodyFatPercent: 18.5).bodyFatPercent, 18.5);
+    expect(entry.copyWith(bodyFatPercent: 21).bodyFatPercent, 21.0);
   });
 }

@@ -53,7 +53,9 @@ class DiverWeightEntry extends Equatable {
       heightCm: heightCm ?? this.heightCm,
       bodyFatPercent: identical(bodyFatPercent, _unset)
           ? this.bodyFatPercent
-          : bodyFatPercent as double?,
+          // Any number: a whole-number literal is an int once the parameter
+          // is no longer typed double.
+          : (bodyFatPercent as num?)?.toDouble(),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
