@@ -794,6 +794,8 @@ jobs:
             scripts/site_catalogue/overlap_test.py
           python3 -m coverage run --append --include="$guards" \
             scripts/site_catalogue/merge_test.py
+          python3 -m coverage run --append --include="$guards" \
+            scripts/site_catalogue/fetch_test.py
           python3 -m coverage report -m --include="$guards"
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
