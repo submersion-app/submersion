@@ -9762,6 +9762,31 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_unlockTooltip => 'Unlock to edit';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return 'Editing $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return 'Edit $card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Unsaved changes';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, hidden';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Couldn\'t save your changes. Nothing was changed.';
+
+  @override
   String get settings_manage_setupAssistant => 'Setup assistant';
 
   @override
@@ -61136,6 +61161,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Removed duplicate cylinders';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Edited: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>

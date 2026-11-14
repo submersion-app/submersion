@@ -30,6 +30,9 @@ void main() {
     // The bulk notes field and the save-as-set description.
     'lib/features/dive_log/presentation/pages/dive_edit_page.dart':
         'MarkdownNotesField(',
+    // The Notes card edited in place on the dive page (issue #4527).
+    'lib/features/dive_log/presentation/widgets/dive_detail/editing/dive_notes_card_editor.dart':
+        'MarkdownNotesField(',
     'lib/features/dive_log/presentation/widgets/edit_sections/experience_section.dart':
         'markdown: true',
     'lib/features/dive_sites/presentation/widgets/edit_sections/access_safety_section.dart':

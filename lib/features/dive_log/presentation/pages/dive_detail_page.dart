@@ -100,10 +100,19 @@ import 'package:submersion/features/settings/presentation/providers/export_provi
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/transfer/presentation/widgets/pdf_export_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_edit_save_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_detail/editing/dive_edit_cards.dart';
+import 'package:submersion/shared/widgets/record_editing/add_strip.dart';
+import 'package:submersion/shared/widgets/record_editing/edit_session.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_bar.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_controller.dart';
+import 'package:submersion/shared/widgets/record_editing/record_edit_leave_guard.dart';
+import 'package:submersion/shared/widgets/record_editing/unlock_editing_flag.dart';
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 
 part 'dive_detail_page_actions.dart';
+part 'dive_detail_page_editing.dart';
 part 'dive_detail_page_exports.dart';
 
 final _log = LoggerService.forClass(DiveDetailPage);
@@ -124,6 +133,10 @@ class DiveDetailPage extends ConsumerStatefulWidget {
   /// Callback when the dive is deleted (used in embedded mode).
   final VoidCallback? onDeleted;
 
+  /// Whether the page can be unlocked to edit in place (issue #4527). Off
+  /// in released builds until every card can be edited this way.
+  final bool unlockEditing;
+
   const DiveDetailPage({
     super.key,
     required this.diveId,
@@ -131,6 +144,7 @@ class DiveDetailPage extends ConsumerStatefulWidget {
     this.embeddedSiteId,
     this.onCloseEmbeddedSite,
     this.onDeleted,
+    this.unlockEditing = kUnlockEditing,
   });
 
   @override
@@ -138,7 +152,10 @@ class DiveDetailPage extends ConsumerStatefulWidget {
 }
 
 class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
-    with _DiveDetailPageActions, _DiveDetailPageExports {
+    with
+        _DiveDetailPageActions,
+        _DiveDetailPageExports,
+        _DiveDetailPageEditing {
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
 
@@ -171,6 +188,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
 
   @override
   void dispose() {
+    disposeEditing();
     _profileViewport.dispose();
     super.dispose();
   }
@@ -356,6 +374,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
   /// well as the selected param, so the highlight moves with the pane. Left
   /// behind, it keeps the first dive lit next to the one on show (#2345).
   void _navigateToDive(String neighborId) {
+    // A sitting ends by Save or Cancel, not by stepping to another dive.
+    if (isSittingOpen) return;
     ref.read(highlightedDiveIdProvider.notifier).state = neighborId;
     if (widget.embedded) {
       context.goInPlace('/dives?selected=$neighborId');
@@ -380,6 +400,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     // say, stays put: the redirect's go() would erase the page under it
     // and its back arrow (#764, #3292).
     if (!_hasRedirected &&
+        !isSittingOpen &&
         shouldRedirectToMasterDetail(
           context,
           embedded: widget.embedded,
@@ -416,6 +437,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final diveAsync = ref.watch(
       diveProvider(diveId).select(_withoutRefreshFlag),
     );
+    followStoredDive();
 
     // Which sources are overlaid on the chart lasts as long as the page, but
     // the only widgets watching it are in the profile card, and in the list
@@ -438,6 +460,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
         }
         return _DiveShortcuts(
           diveId: dive.id,
+          enabled: !isSittingOpen,
           onNavigate: _navigateToDive,
           child: _buildContent(context, dive),
         );
@@ -483,6 +506,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final layout = ref.watch(
       settingsProvider.select((s) => s.diveDetailLayout),
     );
+    final shown = shownDive(dive);
 
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
@@ -526,7 +550,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
             // They build in the same frame as the header, on a phone as in
             // the desktop pane, so the visible page appears at once (#3538).
             DiveDetailSectionList(
-              dive: dive,
+              dive: shown,
               profileSection: _profileSectionFor(dive.id),
               safetyReviewKey: _safetyReviewSectionKey,
               notesKey: _notesSectionKey,
@@ -597,38 +621,43 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage>
     final favoriteLabel = dive.isFavorite
         ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
         : context.l10n.diveLog_detail_tooltip_addToFavorites;
-    return Scaffold(
-      appBar: AppBar(
-        // Titled like the desktop pane's header, not "Dive Details" (#4445).
-        title: Text(
-          diveTitle(context, dive),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [
-          DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
-          if (!compactActions)
-            IconButton(
-              icon: Icon(
-                dive.isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: dive.isFavorite ? Colors.red : null,
-              ),
-              tooltip: favoriteLabel,
-              onPressed: () {
-                ref
-                    .read(paginatedDiveListProvider.notifier)
-                    .toggleFavorite(diveId);
-              },
-            ),
-          IconButton(
-            icon: const Icon(Icons.edit),
-            tooltip: context.l10n.diveLog_detail_tooltip_editDive,
-            onPressed: () => context.push('/dives/$diveId/edit'),
-          ),
-          _overflowMenu(dive, _appBarMenuKey, showFavorite: compactActions),
-        ],
+    final appBar = AppBar(
+      // Titled like the desktop pane's header, not "Dive Details" (#4445).
+      title: Text(
+        diveTitle(context, dive),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
-      body: content,
+      actions: [
+        DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
+        if (!compactActions)
+          IconButton(
+            icon: Icon(
+              dive.isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: dive.isFavorite ? Colors.red : null,
+            ),
+            tooltip: favoriteLabel,
+            onPressed: () {
+              ref
+                  .read(paginatedDiveListProvider.notifier)
+                  .toggleFavorite(diveId);
+            },
+          ),
+        if (editingOffered) lockButton(dive),
+        IconButton(
+          icon: const Icon(Icons.edit),
+          tooltip: context.l10n.diveLog_detail_tooltip_editDive,
+          onPressed: () => context.push('/dives/$diveId/edit'),
+        ),
+        _overflowMenu(dive, _appBarMenuKey, showFavorite: compactActions),
+      ],
+    );
+    if (!editingOffered) return Scaffold(appBar: appBar, body: content);
+    return editScaffold(
+      dive: dive,
+      shown: shown,
+      lockedBar: appBar,
+      content: content,
     );
   }
 
@@ -717,9 +746,14 @@ class _DiveShortcuts extends ConsumerWidget {
     required this.diveId,
     required this.onNavigate,
     required this.child,
+    this.enabled = true,
   });
 
   final String diveId;
+
+  /// Off during an editing sitting, when the arrow keys belong to the text
+  /// being typed: a binding here would swallow them before a field saw them.
+  final bool enabled;
   final void Function(String neighborId) onNavigate;
   final Widget child;
 
@@ -727,16 +761,18 @@ class _DiveShortcuts extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final neighbors = ref.watch(diveNeighborsProvider(diveId));
     return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
-          final id = neighbors.previousId;
-          if (id != null) onNavigate(id);
-        },
-        const SingleActivator(LogicalKeyboardKey.arrowRight): () {
-          final id = neighbors.nextId;
-          if (id != null) onNavigate(id);
-        },
-      },
+      bindings: !enabled
+          ? const {}
+          : {
+              const SingleActivator(LogicalKeyboardKey.arrowLeft): () {
+                final id = neighbors.previousId;
+                if (id != null) onNavigate(id);
+              },
+              const SingleActivator(LogicalKeyboardKey.arrowRight): () {
+                final id = neighbors.nextId;
+                if (id != null) onNavigate(id);
+              },
+            },
       child: Focus(child: child),
     );
   }

@@ -9895,6 +9895,31 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_unlockTooltip => 'Feloldás a szerkesztéshez';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '$name szerkesztése';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '$card szerkesztése';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Nem mentett módosítások';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, rejtett';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Nem sikerült menteni a módosításokat. Semmi sem változott.';
+
+  @override
   String get settings_manage_setupAssistant => 'Beállítási varázsló';
 
   @override
@@ -61775,6 +61800,14 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Ismétlődő palackok eltávolítva';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Szerkesztve: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>

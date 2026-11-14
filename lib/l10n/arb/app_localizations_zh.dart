@@ -9403,6 +9403,30 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_unlockTooltip => '解锁以编辑';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '正在编辑 $name';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '编辑$card';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => '未保存的更改';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card，已隐藏';
+  }
+
+  @override
+  String get recordEdit_saveFailed => '无法保存更改。未做任何更改。';
+
+  @override
   String get settings_manage_setupAssistant => '设置向导';
 
   @override
@@ -58301,6 +58325,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeLog_label_removeDuplicateCylinders => '已移除重复气瓶';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return '已编辑：$cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => '、';
 
   @override
   String get changeLog_undoIncomplete => '撤销未能恢复全部内容。其余内容见 设置 > 数据 > 更改日志。';

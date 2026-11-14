@@ -15573,6 +15573,42 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{1 issue} other{{count} issues}}'**
   String forms_section_issues(int count);
 
+  /// Tooltip of the lock button in a record page's top bar.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to edit'**
+  String get recordEdit_unlockTooltip;
+
+  /// Top bar title while a record is unlocked for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing {name}'**
+  String recordEdit_editingTitle(String name);
+
+  /// Tooltip of the pencil that opens a card for editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit {card}'**
+  String recordEdit_editCardTooltip(String card);
+
+  /// Spoken label of the dot on a card that has changes not yet saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get recordEdit_unsavedChanges;
+
+  /// Spoken label of an Add strip chip for a card the diver has hidden.
+  ///
+  /// In en, this message translates to:
+  /// **'{card}, hidden'**
+  String recordEdit_hiddenCard(String card);
+
+  /// Message shown when saving an unlocked record fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save your changes. Nothing was changed.'**
+  String get recordEdit_saveFailed;
+
   /// No description provided for @settings_manage_setupAssistant.
   ///
   /// In en, this message translates to:
@@ -97519,6 +97555,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removed duplicate cylinders'**
   String get changeLog_label_removeDuplicateCylinders;
+
+  /// Change log entry title for one editing sitting. cards is a list of card titles, already joined.
+  ///
+  /// In en, this message translates to:
+  /// **'Edited: {cards}'**
+  String changeLog_label_recordEdit(String cards);
+
+  /// Separator between card titles in changeLog_label_recordEdit, such as ", " in English.
+  ///
+  /// In en, this message translates to:
+  /// **', '**
+  String get changeLog_label_recordEditSeparator;
 
   /// Snackbar shown when an Undo that reverts a change log operation left some records unrestored.
   ///

@@ -1393,16 +1393,27 @@ class PaginatedDiveListNotifier
   Future<void> updateDive(domain.Dive dive) async {
     final oldDive = await _repository.getDiveById(dive.id);
     await _repository.updateDive(dive);
+    await refreshAfterWrite(before: oldDive, after: dive);
+  }
 
+  /// Refreshes the list and every provider that depends on a dive, after
+  /// [after] was written by something other than [updateDive]: an editing
+  /// sitting writes inside its own transaction and needs the refresh alone.
+  /// [before] is the dive as it was, so what it used to belong to (its old
+  /// trip, say) is refreshed too.
+  Future<void> refreshAfterWrite({
+    required domain.Dive? before,
+    required domain.Dive after,
+  }) async {
     // Optimistic: replace the item in the list by ID, unless a filter decides
     // whether the edited dive still belongs in it.
     final current = state.valueOrNull;
     if (_loadedUnderFilter) {
       await _silentReloadLoadedPages();
     } else if (current != null) {
-      final summary = DiveSummary.fromDive(dive);
+      final summary = DiveSummary.fromDive(after);
       final updated = current.dives.map((d) {
-        return d.id == dive.id ? summary : d;
+        return d.id == after.id ? summary : d;
       }).toList();
       state = AsyncValue.data(current.copyWith(dives: updated));
     } else {
@@ -1410,9 +1421,9 @@ class PaginatedDiveListNotifier
     }
 
     _invalidateStatistics();
-    _ref.invalidate(diveProvider(dive.id));
-    if (oldDive != null) _invalidateRelatedProviders(oldDive);
-    _invalidateRelatedProviders(dive);
+    _ref.invalidate(diveProvider(after.id));
+    if (before != null) _invalidateRelatedProviders(before);
+    _invalidateRelatedProviders(after);
     _invalidateOldProvider();
   }
 

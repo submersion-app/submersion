@@ -9855,6 +9855,31 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get recordEdit_unlockTooltip => 'Ontgrendelen om te bewerken';
+
+  @override
+  String recordEdit_editingTitle(String name) {
+    return '$name bewerken';
+  }
+
+  @override
+  String recordEdit_editCardTooltip(String card) {
+    return '$card bewerken';
+  }
+
+  @override
+  String get recordEdit_unsavedChanges => 'Niet-opgeslagen wijzigingen';
+
+  @override
+  String recordEdit_hiddenCard(String card) {
+    return '$card, verborgen';
+  }
+
+  @override
+  String get recordEdit_saveFailed =>
+      'Kon de wijzigingen niet opslaan. Er is niets gewijzigd.';
+
+  @override
   String get settings_manage_setupAssistant => 'Configuratie-assistent';
 
   @override
@@ -61724,6 +61749,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get changeLog_label_removeDuplicateCylinders =>
       'Dubbele flessen verwijderd';
+
+  @override
+  String changeLog_label_recordEdit(String cards) {
+    return 'Bewerkt: $cards';
+  }
+
+  @override
+  String get changeLog_label_recordEditSeparator => ', ';
 
   @override
   String get changeLog_undoIncomplete =>
