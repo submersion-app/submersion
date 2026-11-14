@@ -38,6 +38,7 @@ CatalogueSite builtInSite(
   double north = 0,
   String? island = 'Bonaire',
   double? maxDepth,
+  CatalogueKind kind = CatalogueKind.site,
 }) => CatalogueSite(
   id: id,
   name: name,
@@ -47,8 +48,13 @@ CatalogueSite builtInSite(
   island: island,
   maxDepth: maxDepth,
   entryMethods: const [EntryMethod.shore],
-  source: 'osm',
+  source: kind == CatalogueKind.register ? 'ukho' : 'osm',
+  kind: kind,
 );
+
+/// A register record (a charted wreck) [north] metres north of Salt Pier.
+CatalogueSite registerSite(String id, String name, {double north = 0}) =>
+    builtInSite(id, name, north: north, kind: CatalogueKind.register);
 
 /// Nine Bonaire sites, in an order that is neither by name nor by distance.
 final bonaireSites = [

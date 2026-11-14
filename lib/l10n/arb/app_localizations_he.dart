@@ -12696,6 +12696,29 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'שימוש באתר זה';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'ספינות טבועות ושוניות ליד $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'ספינות טבועות ושוניות בקרבת מקום';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'הצגת ספינות טבועות ושוניות ממופות ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'מוצגים $count הקרובים ביותר. חפש כדי למצוא את השאר.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'התקרב במפה כדי לראות את כל האתרים המובנים';
+
+  @override
   String get diveSites_list_groupBy => 'קיבוץ לפי';
 
   @override

@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_provi
 import 'package:submersion/features/dive_sites/presentation/widgets/built_in_site_info_card.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/catalogue_site_tile.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/grouped_site_list_view.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_register.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_picker/site_picker_sheet.dart';
 import 'package:submersion/features/rules/domain/rule_subject.dart';
 import 'package:submersion/features/rules/presentation/run_rules_flow.dart';
@@ -55,6 +56,16 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
   bool _adoptFailed = false;
   Timer? _debounce;
   ProviderSubscription<int>? _revision;
+
+  /// The charted wrecks and reefs around the anchor, in a section of their
+  /// own below the dive sites.
+  late final _register = SitePickerRegisterSection(
+    catalogue: () => ref.read(siteCatalogueProvider),
+    setState: setState,
+    isMounted: () => mounted,
+    currentAnchor: () => builtInAnchor,
+    radiusMeters: sitePickerNearbyRadiusMeters,
+  );
 
   /// Counts searches, so an answer that comes back after a newer search
   /// started is dropped.
@@ -111,9 +122,15 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
   Future<void> loadBuiltInNearby() async {
     final anchor = builtInAnchor;
     if (!_enabled || anchor == null) return;
+    // Dive sites only: register records have a section of their own.
+    unawaited(_register.load(anchor));
     final sites = await ref
         .read(siteCatalogueProvider)
-        .near(anchor, radiusMeters: sitePickerNearbyRadiusMeters);
+        .near(
+          anchor,
+          radiusMeters: sitePickerNearbyRadiusMeters,
+          kind: CatalogueKind.site,
+        );
     if (!mounted || anchor != builtInAnchor) return;
     setState(() => _nearby = sites);
   }
@@ -177,13 +194,39 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
   /// all" when there are more than fit. Empty when nothing is offered.
   ///
   /// [offered] is [offeredBuiltIn]'s answer, worked out once per build and
-  /// shared with [showsBuiltInNearby].
-  List<Widget Function()> builtInRows(List<CatalogueSite> offered) {
+  /// shared with [showsBuiltInNearby]. [userSites] are the diver's own,
+  /// which the register section below hides its twins of.
+  List<Widget Function()> builtInRows(
+    List<CatalogueSite> offered,
+    List<DiveSite> userSites,
+  ) {
     final l10n = context.l10n;
+    // Charted wrecks and reefs follow the dive sites, and only when the
+    // diver is not searching: a search is one list of both.
+    final register = !_enabled || builtInQuery.isNotEmpty
+        ? const <Widget Function()>[]
+        : _register.rows(
+            context,
+            userSites: userSites,
+            anchor: builtInAnchor,
+            anchorIsInferred: builtInAnchorIsInferred,
+            placeLabel: builtInPlaceLabel,
+            formatDistance: formatBuiltInDistance,
+            busy: _adopting,
+            onTap: (site) => unawaited(_adopt(site)),
+            onDetails: (site) => unawaited(
+              showCatalogueSiteDetails(
+                context,
+                site: site,
+                actionLabel: l10n.diveSites_picker_builtIn_useSite,
+                onAction: () => _adopt(site),
+              ),
+            ),
+          );
     if (offered.isEmpty) {
       // A failure is still said when the site it was about is gone from
       // the list (an import replaced the catalogue meanwhile).
-      return [if (_adoptFailed) () => _adoptError(l10n)];
+      return [if (_adoptFailed) () => _adoptError(l10n), ...register];
     }
 
     final searching = builtInQuery.isNotEmpty;
@@ -231,6 +274,7 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
           textColor: Theme.of(context).colorScheme.primary,
           onTap: () => setState(() => _showAll = true),
         ),
+      ...register,
     ];
   }
 
@@ -251,7 +295,7 @@ mixin SitePickerBuiltIn on ConsumerState<SitePickerSheet> {
   /// header can say what the list is sorted by. [offered] is
   /// [offeredBuiltIn]'s answer.
   bool showsBuiltInNearby(List<CatalogueSite> offered) =>
-      builtInQuery.isEmpty && offered.isNotEmpty;
+      builtInQuery.isEmpty && (offered.isNotEmpty || _register.isOpen);
 
   /// Adopts [site] and hands the diver's new site to the picker's caller,
   /// exactly as tapping one of their own sites does.

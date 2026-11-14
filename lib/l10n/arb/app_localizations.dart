@@ -20568,6 +20568,36 @@ abstract class AppLocalizations {
   /// **'Use this site'**
   String get diveSites_picker_builtIn_useSite;
 
+  /// No description provided for @diveSites_picker_register_nearPlace.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrecks and reefs near {place}'**
+  String diveSites_picker_register_nearPlace(Object place);
+
+  /// No description provided for @diveSites_picker_register_nearby.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrecks and reefs nearby'**
+  String get diveSites_picker_register_nearby;
+
+  /// No description provided for @diveSites_picker_register_show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show charted wrecks and reefs ({count})'**
+  String diveSites_picker_register_show(Object count);
+
+  /// No description provided for @diveSites_picker_register_capped.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing the nearest {count}. Search to find the rest.'**
+  String diveSites_picker_register_capped(Object count);
+
+  /// No description provided for @diveSites_map_builtIn_zoomIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom in to see every built-in site'**
+  String get diveSites_map_builtIn_zoomIn;
+
   /// No description provided for @diveSites_list_groupBy.
   ///
   /// In en, this message translates to:

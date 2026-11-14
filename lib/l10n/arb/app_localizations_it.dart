@@ -12985,6 +12985,29 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'Usa questo sito';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Relitti e reef vicino a $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Relitti e reef nelle vicinanze';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Mostra relitti e reef censiti ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Vengono mostrati i $count più vicini. Cerca per trovare gli altri.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Ingrandisci per vedere tutti i siti integrati';
+
+  @override
   String get diveSites_list_groupBy => 'Raggruppa per';
 
   @override

@@ -12981,6 +12981,28 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'Usar este sitio';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Pecios y arrecifes cerca de $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'Pecios y arrecifes cercanos';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Mostrar pecios y arrecifes cartografiados ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Se muestran los $count más cercanos. Busca para encontrar el resto.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Acerca el mapa para ver todos los sitios integrados';
+
+  @override
   String get diveSites_list_groupBy => 'Agrupar por';
 
   @override

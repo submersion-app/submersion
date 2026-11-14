@@ -12949,6 +12949,29 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'Merülőhely használata';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Roncsok és zátonyok $place közelében';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby =>
+      'Roncsok és zátonyok a közelben';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Térképezett roncsok és zátonyok megjelenítése ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'A legközelebbi $count látható. Keressen a többi megtalálásához.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Nagyítson a térképen az összes beépített merülőhely megjelenítéséhez';
+
+  @override
   String get diveSites_list_groupBy => 'Csoportosítás';
 
   @override

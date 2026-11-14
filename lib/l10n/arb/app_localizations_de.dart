@@ -12972,6 +12972,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_picker_builtIn_useSite => 'Diesen Tauchplatz verwenden';
 
   @override
+  String diveSites_picker_register_nearPlace(Object place) {
+    return 'Wracks und Riffe bei $place';
+  }
+
+  @override
+  String get diveSites_picker_register_nearby => 'Wracks und Riffe in der Nähe';
+
+  @override
+  String diveSites_picker_register_show(Object count) {
+    return 'Verzeichnete Wracks und Riffe anzeigen ($count)';
+  }
+
+  @override
+  String diveSites_picker_register_capped(Object count) {
+    return 'Die nächsten $count werden angezeigt. Suche, um die übrigen zu finden.';
+  }
+
+  @override
+  String get diveSites_map_builtIn_zoomIn =>
+      'Hineinzoomen, um alle integrierten Tauchplätze zu sehen';
+
+  @override
   String get diveSites_list_groupBy => 'Gruppieren nach';
 
   @override
