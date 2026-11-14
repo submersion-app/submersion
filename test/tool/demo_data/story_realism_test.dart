@@ -221,33 +221,7 @@ void main() {
   });
 
   test('about half the trips go to the Caribbean, the rest worldwide', () {
-    const elsewhere = {
-      'the rest of the Americas': {
-        'florida-springs',
-        'galapagos',
-        'st-lawrence',
-      },
-      'Europe': {'med', 'croatia', 'malta', 'cyprus', 'norway', 'scotland'},
-      'the Red Sea and Indian Ocean': {
-        'red-sea',
-        'sinai',
-        'maldives',
-        'ari-atoll',
-      },
-      'South-east Asia': {
-        'bali',
-        'raja-ampat',
-        'komodo',
-        'lembeh',
-        'cebu',
-        'palawan',
-        'similan',
-        'koh-tao',
-        'sabah',
-        'okinawa',
-      },
-      'the Pacific': {'chuuk', 'palau', 'bikini', 'nsw', 'polynesia', 'hawaii'},
-    };
+    const elsewhere = worldRegions;
     expect(
       {...caribbeanDestinations, ...elsewhere.values.expand((r) => r)},
       {for (final d in tripDestinations) d.key},
@@ -269,6 +243,46 @@ void main() {
           reason: '$name: no trips to $region',
         );
       }
+    });
+  });
+
+  group('whatever the seed', () {
+    // The three seeds above are a small sample: a catalogue refresh changes
+    // every site pool, and with it what each seed draws. These two hold by
+    // construction, so they are checked over many more.
+    final many = <int, StoryPlan>{};
+
+    setUpAll(() {
+      for (var seed = 0; seed < 40; seed++) {
+        many[seed] = StoryPlanner(
+          Random(seed),
+          catalog,
+        ).plan(anchor: DateTime(2026, 10, 1));
+      }
+    });
+
+    test('home dives keep to the Jersey boat season', () {
+      many.forEach((seed, plan) {
+        for (final d in plan.dives.where((d) => d.destination.key == 'home')) {
+          expect(
+            d.start.month,
+            inInclusiveRange(4, 11),
+            reason: 'seed $seed: dive ${d.number} on ${d.start}',
+          );
+        }
+      });
+    });
+
+    test('the trips reach every part of the world', () {
+      many.forEach((seed, plan) {
+        for (final MapEntry(key: region, value: keys) in worldRegions.entries) {
+          expect(
+            plan.trips.where((t) => keys.contains(t.destination.key)),
+            isNotEmpty,
+            reason: 'seed $seed: no trips to $region',
+          );
+        }
+      });
     });
   });
 

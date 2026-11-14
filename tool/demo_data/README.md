@@ -83,8 +83,10 @@ The story:
   the rest worldwide, with their dive centres. The diver logs in US units.
 
 The New Jersey sites come from `scripts/dive_sites_curated.json`, which the
-site harvester merges into `assets/data/site_catalogue.json` on every harvest
-(`scripts/curated_sites.py`), because OpenStreetMap has no New Jersey ocean
+catalogue merge writes into `assets/data/site_catalogue.json` on every run
+(`scripts/site_catalogue/merge.py`), because OpenStreetMap has no New Jersey
+ocean sites. The catalogue's register records (charted wrecks and reef
+structures, `"kind": "register"`) are left out: a trip is planned around dive
 sites.
 
 A destination picks its sites by the catalogue's ISO country code
