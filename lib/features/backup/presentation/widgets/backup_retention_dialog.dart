@@ -9,33 +9,13 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 /// The counts offered as a single tap; any other count is typed.
 const backupRetentionChoices = [5, 10, 15, 20, 30];
 
-/// What a row of the picker stands for: a count, or "type one". Compared by
-/// value, so the shared choice dialog can check the current row.
-sealed class _Pick {
-  const _Pick();
-}
+/// What a row of the picker stands for: a count, or null for "type one". A
+/// record, so it compares by value and the shared choice dialog can check
+/// the current row, while still telling a pick apart from backing out.
+typedef _Pick = ({int? count});
 
-final class _Count extends _Pick {
-  const _Count(this.count);
-
-  final int count;
-
-  @override
-  bool operator ==(Object other) => other is _Count && other.count == count;
-
-  @override
-  int get hashCode => count.hashCode;
-}
-
-final class _Custom extends _Pick {
-  const _Custom();
-
-  @override
-  bool operator ==(Object other) => other is _Custom;
-
-  @override
-  int get hashCode => (_Custom).hashCode;
-}
+const _Pick _custom = (count: null);
+const _Pick _keepAll = (count: BackupSettings.keepAllRetentionCount);
 
 /// Asks how many backups to keep (issue #4535): the usual counts, Keep all
 /// ([BackupSettings.keepAllRetentionCount]), or a typed count from 1 to
@@ -48,41 +28,33 @@ Future<int?> showBackupRetentionDialog(
   final l10n = context.l10n;
   final keepsAll = BackupSettings.countKeepsAll(selected);
   final custom = !keepsAll && !backupRetentionChoices.contains(selected);
-  const keepAll = _Count(BackupSettings.keepAllRetentionCount);
   final pick = await showBackupChoiceDialog<_Pick>(
     context,
     title: l10n.backup_schedule_retention,
     values: [
-      for (final n in backupRetentionChoices) _Count(n),
-      keepAll,
-      const _Custom(),
+      for (final n in backupRetentionChoices) (count: n),
+      _keepAll,
+      _custom,
     ],
     selected: keepsAll
-        ? keepAll
+        ? _keepAll
         : custom
-        ? const _Custom()
-        : _Count(selected),
-    label: (pick) => switch (pick) {
-      _Count(count: BackupSettings.keepAllRetentionCount) =>
-        l10n.backup_retention_keepAll,
-      _Count(:final count) => '$count',
-      _Custom() when custom => l10n.backup_retention_customCurrent(selected),
-      _Custom() => l10n.backup_retention_custom,
+        ? _custom
+        : (count: selected),
+    label: (pick) => switch (pick.count) {
+      BackupSettings.keepAllRetentionCount => l10n.backup_retention_keepAll,
+      final int count => '$count',
+      null when custom => l10n.backup_retention_customCurrent(selected),
+      null => l10n.backup_retention_custom,
     },
   );
-  switch (pick) {
-    case null:
-      return null;
-    case _Count(:final count):
-      return count;
-    case _Custom():
-      if (!context.mounted) return null;
-      return showDialog<int>(
-        context: context,
-        builder: (_) =>
-            _CustomRetentionDialog(initial: keepsAll ? null : selected),
-      );
-  }
+  if (pick == null) return null;
+  if (pick.count case final count?) return count;
+  if (!context.mounted) return null;
+  return showDialog<int>(
+    context: context,
+    builder: (_) => _CustomRetentionDialog(initial: keepsAll ? null : selected),
+  );
 }
 
 /// A number field for the count, with Save enabled only for 1 to

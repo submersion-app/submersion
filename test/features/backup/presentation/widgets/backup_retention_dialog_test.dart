@@ -108,6 +108,29 @@ void main() {
     expect(result(), 365);
   });
 
+  testWidgets('Enter in the field saves the typed count', (tester) async {
+    final result = await open(tester, 10);
+    await openCustom(tester, 'Custom number…');
+    await tester.enterText(find.byType(TextField), '120');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(result(), 120);
+  });
+
+  testWidgets('Enter on an invalid count keeps the dialog open', (
+    tester,
+  ) async {
+    final result = await open(tester, 10);
+    await openCustom(tester, 'Custom number…');
+    await tester.enterText(find.byType(TextField), '0');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+    expect(find.text('Keep how many backups?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(result(), isNull);
+  });
+
   testWidgets('a leading zero is read as the number', (tester) async {
     final result = await open(tester, 10);
     await openCustom(tester, 'Custom number…');

@@ -149,6 +149,16 @@ void main() {
     );
   });
 
+  testWidgets('on a computer, a count says how many are kept while open', (
+    tester,
+  ) async {
+    await pump(tester, chosen: _drive);
+    expect(
+      find.text('Weekly, while Submersion is open. The last 10 are kept here.'),
+      findsOneWidget,
+    );
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
   testWidgets('on a computer, Keep all says every backup is kept while open', (
     tester,
   ) async {
