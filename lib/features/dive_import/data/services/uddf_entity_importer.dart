@@ -112,6 +112,7 @@ import 'package:submersion/features/certification_agencies/data/repositories/cus
 import 'package:submersion/features/certification_agencies/data/services/certification_import_resolver.dart';
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
+import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
 
 /// Bundles all repositories needed for UDDF import.
 class ImportRepositories {
@@ -3231,7 +3232,8 @@ class UddfEntityImporter {
         }
       }
 
-      await DiveEquipmentDefaulter().applyForImportedDive(dive);
+      final defaultSetId = await DiveEquipmentDefaulter()
+          .applySetForImportedDive(dive);
       await ChecklistDiveLinker().applyForImportedDive(dive);
       await altitudeEnricher.applyForImportedDive(dive);
       // After the defaulter, never before: the defaulter bails on a dive
@@ -3242,6 +3244,13 @@ class UddfEntityImporter {
       // (issue #1020). Additive, independent of the defaulter above.
       await EquipmentSetForComputerLinker().linkComputerSetsForDive(
         diveId: dive.id,
+      );
+      // What those sets carry besides gear (issue #4525): weights only
+      // where the dive has none, and never a cylinder beside its own.
+      await DiveSetBundleApplier().applyTagged(
+        diveId: dive.id,
+        leadSetId: defaultSetId,
+        retagAbsorbed: true,
       );
       importedDiveIds.add(diveId);
       diveIdByIndex[i] = diveId;

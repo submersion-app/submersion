@@ -67,6 +67,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
+import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
 
 /// A `dive_profile_series` row [DiveComputerRepository.findComputerDivesContainingTime]
 /// found, with the anchor needed to turn an absolute time into an offset on
@@ -1655,6 +1656,9 @@ class DiveComputerRepository {
 
       final diveId = matchedDiveId ?? _uuid.v4();
       final isNewDive = matchedDiveId == null;
+      // The set the defaulter chose for a new dive. Its weights and
+      // cylinders wait until the computer's own tanks are written.
+      String? defaultSetId;
 
       // A bottom time the source reported, bounded by the runtime so it
       // cannot come out longer than the dive (issue #1642).
@@ -1799,7 +1803,7 @@ class DiveComputerRepository {
           if (exitLatitude != null && exitLongitude != null)
             GeoPoint(exitLatitude, exitLongitude),
         ];
-        await DiveEquipmentDefaulter().applyDefaultEquipmentIfEmpty(
+        defaultSetId = await DiveEquipmentDefaulter().applyDefaultSetIfEmpty(
           diveId: diveId,
           diverId: diverId,
           divePoints: defaultPoints,
@@ -2174,6 +2178,17 @@ class DiveComputerRepository {
         );
       }
 
+      // What the sets on a new dive carry besides gear (issue #4525). After
+      // the computer's own tanks are written, so the merge sees them: it
+      // fills their gaps and adds no cylinder beside them.
+      if (isNewDive) {
+        await DiveSetBundleApplier().applyTagged(
+          diveId: diveId,
+          leadSetId: defaultSetId,
+          retagAbsorbed: true,
+        );
+      }
+
       // Insert per-tank pressure time-series data: one series insert per
       // tank, each marked pending and stamped with an hlc by the repository.
       if (tankIdsByIndex.isNotEmpty) {
@@ -2457,6 +2472,10 @@ class DiveComputerRepository {
         await EquipmentSetForComputerLinker().linkComputerSetsForDive(
           diveId: diveId,
         );
+        // Their weights and cylinders too, where the dive has none (issue
+        // #4525). The dive already existed, so its set tags are left as
+        // they are.
+        await DiveSetBundleApplier().applyTagged(diveId: diveId);
       }
 
       // Note: Computer stats (incrementDiveCount, updateLastDownload) are
