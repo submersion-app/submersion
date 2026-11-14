@@ -112,8 +112,10 @@ and "Holding you up" (right) over a bar split at a centre line. The parts:
   samples), so only the parts that really change move while scrubbing.
 - A segment shows "Name value" when it fits, the name alone when only that
   fits, the part's icon when only that fits, and nothing when it is narrower
-  still. Each part also has its own tone within its side's hue, and its legend
-  entry is the segment in miniature: the same shade and the same icon. The
+  still. Each segment also has its own tone within its side's hue, set by its
+  place counting out from the centre and not by which part it is: that way no
+  two segments on a side can share a shade, whichever parts end up there. A
+  legend entry is the segment in miniature: the same shade and the same icon. The
   cylinders shrink and change sides through a dive, so the segment most in
   need of a name is the one least able to carry text. Any part not shown in full is
   listed in a legend line under the bar, in the bar's own left-to-right
