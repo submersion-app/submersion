@@ -128,6 +128,10 @@ void main() {
         ),
         latestDiverWeightProvider.overrideWith((ref) async => entry),
         latestDiverHeightProvider.overrideWith((ref) async => null),
+        latestDiverBodyFatProvider.overrideWith((ref) async => null),
+        diverBodyProfileProvider.overrideWith(
+          (ref) async => (sex: null, ageYears: null),
+        ),
       ],
     );
     addTearDown(c.dispose);
@@ -189,6 +193,10 @@ void main() {
         allEquipmentProvider.overrideWith((ref) async => const [suitItem]),
         latestDiverWeightProvider.overrideWith((ref) async => entry),
         latestDiverHeightProvider.overrideWith((ref) async => null),
+        latestDiverBodyFatProvider.overrideWith((ref) async => null),
+        diverBodyProfileProvider.overrideWith(
+          (ref) async => (sex: null, ageYears: null),
+        ),
       ],
     );
     addTearDown(c2.dispose);
@@ -302,6 +310,10 @@ void main() {
         ),
         latestDiverWeightProvider.overrideWith((ref) async => entry),
         latestDiverHeightProvider.overrideWith((ref) async => 165.0),
+        latestDiverBodyFatProvider.overrideWith((ref) async => null),
+        diverBodyProfileProvider.overrideWith(
+          (ref) async => (sex: null, ageYears: null),
+        ),
       ],
     );
     addTearDown(c.dispose);
@@ -325,5 +337,30 @@ void main() {
     final term = prediction.terms.singleWhere((t) => t.label == 'bmi');
     expect(term.source, TermSource.bodyComposition);
     expect(term.kg, greaterThan(0.5));
+  });
+
+  test('weightCalibrationProvider passes body fat, sex and age to the '
+      'fit (issue #4525)', () async {
+    final base = await getBaseOverrides();
+    final c = ProviderContainer(
+      overrides: [
+        ...base,
+        weightObservationsProvider.overrideWith((ref) async => observations()),
+        allEquipmentProvider.overrideWith(
+          (ref) async => const [suitItem, leadItem],
+        ),
+        latestDiverWeightProvider.overrideWith((ref) async => entry),
+        latestDiverHeightProvider.overrideWith((ref) async => 165.0),
+        latestDiverBodyFatProvider.overrideWith((ref) async => 28.0),
+        diverBodyProfileProvider.overrideWith(
+          (ref) async => (sex: DiverSex.female, ageYears: 51),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    final model = await c.read(weightCalibrationProvider.future);
+    expect(model.bodyFatPercent, 28.0);
+    expect(model.sex, DiverSex.female);
+    expect(model.ageYears, 51);
   });
 }

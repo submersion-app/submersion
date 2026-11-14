@@ -15,6 +15,7 @@ BuoyancyTwinOutcome buoyancyOutcome({
   double? wingLiftCapacityKg,
   double verdictNet = 1.8,
   List<TwinTankInput> tanks = const [],
+  List<TwinStaticTerm> extraVerdictTerms = const [],
   List<TwinSample> samples = const [
     TwinSample(timestamp: 0, depthM: 0, suitKg: 3, tanksKg: 0, netKg: 2),
     TwinSample(timestamp: 60, depthM: 5, suitKg: 3, tanksKg: 0, netKg: 1.8),
@@ -69,6 +70,7 @@ BuoyancyTwinOutcome buoyancyOutcome({
         kg: 5.0,
         source: TermSource.measured,
       ),
+      ...extraVerdictTerms,
       TwinStaticTerm(label: 'lead', kg: -leadKg, source: TermSource.measured),
     ],
   );

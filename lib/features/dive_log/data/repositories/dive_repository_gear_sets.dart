@@ -4,35 +4,91 @@ part of 'dive_repository_impl.dart';
 /// bulk edit. Gear a set brings carries the set's id, as on the dive edit
 /// page, so a set can later be taken off by what it brought.
 extension DiveGearSets on DiveRepository {
-  /// Each set's equipment ids, in [setIds] order. A set that has gone, or
-  /// has no items, gives none. A member on the wishlist stays in the set but
-  /// never goes on a dive (#2025), as the set picker leaves it out too.
+  /// Each set's equipment ids, in [setIds] order: its own members and those
+  /// of the sets it includes (issue #4525), one level deep. A set that has
+  /// gone, or has no items, gives none. A member on the wishlist stays in
+  /// the set but never goes on a dive (#2025), as the set picker leaves it
+  /// out too.
   Future<List<({String setId, List<String> equipmentIds})>> _setItems(
     List<String> setIds,
   ) async {
     if (setIds.isEmpty) return const [];
-    final items = _db.equipmentSetItems;
-    final gear = _db.equipment;
-    final rows =
-        await (_db.select(items).join([
-                innerJoin(gear, gear.id.equalsExp(items.equipmentId)),
-              ])
-              ..where(
-                items.setId.isIn(setIds) &
-                    gear.status.isNotValue(EquipmentStatus.wanted.name),
-              )
-              ..orderBy([OrderingTerm.asc(items.equipmentId)]))
-            .map((r) => r.readTable(items))
-            .get();
+    final ids = setIds.toSet().toList();
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final variables = [for (final id in ids) Variable<String>(id)];
+    final rows = await _db
+        .customSelect(
+          'SELECT m.set_id AS set_id, m.equipment_id AS equipment_id FROM ('
+          'SELECT set_id, equipment_id FROM equipment_set_items '
+          'WHERE set_id IN ($placeholders) '
+          'UNION '
+          'SELECT inc.set_id, i.equipment_id FROM equipment_set_includes inc '
+          'JOIN equipment_set_items i ON i.set_id = inc.included_set_id '
+          'WHERE inc.set_id IN ($placeholders) '
+          'AND inc.included_set_id != inc.set_id'
+          ') m JOIN equipment g ON g.id = m.equipment_id '
+          'WHERE g.status != ? ORDER BY m.equipment_id',
+          variables: [
+            ...variables,
+            ...variables,
+            Variable<String>(EquipmentStatus.wanted.name),
+          ],
+          readsFrom: {
+            _db.equipmentSetItems,
+            _db.equipmentSetIncludes,
+            _db.equipment,
+          },
+        )
+        .get();
     return [
-      for (final setId in setIds.toSet())
+      for (final setId in ids)
         (
           setId: setId,
           equipmentIds: [
             for (final r in rows)
-              if (r.setId == setId) r.equipmentId,
+              if (r.read<String>('set_id') == setId)
+                r.read<String>('equipment_id'),
           ],
         ),
+    ];
+  }
+
+  /// [setIds] without the sets that another of them includes (issue
+  /// #4525): the outer set's membership already holds their gear, and the
+  /// gear must take the outer set's tag whichever was named first. Of two
+  /// sets that include each other the lower id stands, as
+  /// `SetBundleResolver.absorb` settles it. Order is kept.
+  Future<List<String>> _withoutAbsorbed(List<String> setIds) async {
+    final ids = setIds.toSet().toList();
+    if (ids.length < 2) return ids;
+    final placeholders = List.filled(ids.length, '?').join(',');
+    final variables = [for (final id in ids) Variable<String>(id)];
+    final rows = await _db
+        .customSelect(
+          'SELECT set_id, included_set_id FROM equipment_set_includes '
+          'WHERE set_id IN ($placeholders) '
+          'AND included_set_id IN ($placeholders) '
+          'AND included_set_id != set_id',
+          variables: [...variables, ...variables],
+          readsFrom: {_db.equipmentSetIncludes},
+        )
+        .get();
+    final pairs = {
+      for (final r in rows)
+        (
+          outer: r.read<String>('set_id'),
+          inner: r.read<String>('included_set_id'),
+        ),
+    };
+    bool absorbed(String id) => pairs.any(
+      (p) =>
+          p.inner == id &&
+          (!pairs.contains((outer: id, inner: p.outer)) ||
+              p.outer.compareTo(id) < 0),
+    );
+    return [
+      for (final id in ids)
+        if (!absorbed(id)) id,
     ];
   }
 
@@ -51,7 +107,7 @@ extension DiveGearSets on DiveRepository {
     List<String> setIds,
   ) async {
     if (diveIds.isEmpty) return const [];
-    final sets = await _setItems(setIds);
+    final sets = await _setItems(await _withoutAbsorbed(setIds));
     if (sets.every((s) => s.equipmentIds.isEmpty)) return const [];
     final index = await _loadComponentsIndex();
     final candidates = {

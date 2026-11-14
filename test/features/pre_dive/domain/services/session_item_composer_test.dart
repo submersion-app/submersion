@@ -382,4 +382,85 @@ void main() {
       expect(out[1].valueMin, 95);
     });
   });
+
+  group('what a set carries besides gear (issue #4525)', () {
+    final set = EquipmentSet(
+      id: 'set1',
+      name: 'BP + camera',
+      equipmentIds: const ['g2'],
+      includedSetIds: const ['rig'],
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    test('expands to the gear ids it is given, included sets and all', () {
+      final composed = SessionItemComposer.compose(
+        templateItems: [tItem(0, type: PreDiveItemType.equipmentSet)],
+        equipmentSet: set,
+        equipmentSetGearIds: const ['g1', 'g2'],
+        equipmentItems: [gear('g1', 'Regulator'), gear('g2', 'Camera')],
+        now: now,
+      );
+      expect(composed.items.map((i) => i.title), ['Regulator', 'Camera']);
+    });
+
+    test('set check titles follow the gear rows as plain checks', () {
+      final composed = SessionItemComposer.compose(
+        templateItems: [
+          tItem(0),
+          tItem(
+            1,
+            type: PreDiveItemType.equipmentSet,
+            sectionId: 'sec-gear',
+            required: true,
+          ),
+          tItem(2),
+        ],
+        templateSections: [tSection('sec-gear', 'Gear')],
+        equipmentSet: set,
+        equipmentSetGearIds: const ['g1'],
+        equipmentItems: [gear('g1', 'Regulator')],
+        setCheckTitles: const [
+          'Weights: 12.0 lbs (Belt 12.0 lbs)',
+          'AL80 EAN32',
+        ],
+        now: now,
+      );
+      final out = composed.items;
+      expect(out.map((i) => i.title), [
+        'T0',
+        'Regulator',
+        'Weights: 12.0 lbs (Belt 12.0 lbs)',
+        'AL80 EAN32',
+        'T2',
+      ]);
+      final lead = out[2];
+      expect(lead.itemType, PreDiveItemType.check);
+      expect(lead.equipmentId, isNull);
+      expect(lead.isRequired, isTrue);
+      expect(lead.sectionId, composed.sections.single.id);
+      expect(out.map((i) => i.sortOrder), [0, 1, 2, 3, 4]);
+    });
+
+    test('a set with no gear still gets its checks', () {
+      final composed = SessionItemComposer.compose(
+        templateItems: [tItem(0, type: PreDiveItemType.equipmentSet)],
+        equipmentSet: set,
+        equipmentSetGearIds: const [],
+        setCheckTitles: const ['Weights: 6.0 lbs (Belt 6.0 lbs)'],
+        now: now,
+      );
+      expect(composed.items.single.title, 'Weights: 6.0 lbs (Belt 6.0 lbs)');
+    });
+
+    test('titles are ignored without a set', () {
+      final composed = SessionItemComposer.compose(
+        templateItems: [tItem(0, type: PreDiveItemType.equipmentSet)],
+        setCheckTitles: const ['Weights: 6.0 lbs'],
+        now: now,
+      );
+      // The placeholder degrades to its own plain check, as before.
+      expect(composed.items.single.title, 'T0');
+    });
+  });
 }

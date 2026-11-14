@@ -112,6 +112,7 @@ import 'package:submersion/features/certification_agencies/data/repositories/cus
 import 'package:submersion/features/certification_agencies/data/services/certification_import_resolver.dart';
 import 'package:submersion/features/dive_sites/domain/entry_method_list.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_country_code.dart';
+import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
 
 /// Bundles all repositories needed for UDDF import.
 class ImportRepositories {
@@ -2313,6 +2314,9 @@ class UddfEntityImporter {
     if (selected.isEmpty) return 0;
     onProgress?.call(ImportPhase.equipmentSets, 0, selected.length);
     var count = 0;
+    // The sets a set includes are linked once every set exists, since a
+    // file may list an outer set before the one it includes (issue #4525).
+    final includedRefs = <({EquipmentSet set, List<String> refs})>[];
 
     for (var i = 0; i < items.length; i++) {
       if (!selected.contains(i)) continue;
@@ -2343,13 +2347,35 @@ class UddfEntityImporter {
         updatedAt: now,
       );
 
-      await repository.createSet(equipmentSet);
+      final created = await repository.createSet(equipmentSet);
       // Gear links on dives name the set they came from (issue #1487).
       if (setData['uddfId'] case final String uddfId) {
         setIdMapping[uddfId] = newId;
       }
+      if (setData['includedSetRefs'] case final List refs) {
+        includedRefs.add((
+          set: created,
+          refs: refs.whereType<String>().toList(),
+        ));
+      }
       count++;
       onProgress?.call(ImportPhase.equipmentSets, count, selected.length);
+    }
+
+    for (final (:set, :refs) in includedRefs) {
+      // A set left out of the import, or missing from the file, is dropped.
+      final included = [
+        for (final ref in refs)
+          if (setIdMapping[ref] case final id? when id != set.id) id,
+      ];
+      if (included.isEmpty) continue;
+      try {
+        await repository.updateSet(set.copyWith(includedSetIds: included));
+      } on ArgumentError catch (e) {
+        // Untrusted input: a file may nest sets deeper than the one level
+        // the app allows. The set still lands, without those includes.
+        _log.warning('Set "${set.name}": included sets not restored ($e)');
+      }
     }
 
     return count;
@@ -3249,7 +3275,8 @@ class UddfEntityImporter {
         }
       }
 
-      await DiveEquipmentDefaulter().applyForImportedDive(dive);
+      final defaultSetId = await DiveEquipmentDefaulter()
+          .applySetForImportedDive(dive);
       await ChecklistDiveLinker().applyForImportedDive(dive);
       await altitudeEnricher.applyForImportedDive(dive);
       // After the defaulter, never before: the defaulter bails on a dive
@@ -3258,8 +3285,15 @@ class UddfEntityImporter {
       await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
       // Apply every equipment set that lists this computer as a member
       // (issue #1020). Additive, independent of the defaulter above.
-      await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+      final computerSetIds = await EquipmentSetForComputerLinker()
+          .linkComputerSets(diveId: dive.id);
+      // What those sets carry besides gear (issue #4525): weights only
+      // where the dive has none, and never a cylinder beside its own.
+      await DiveSetBundleApplier().applyTagged(
         diveId: dive.id,
+        leadSetId: defaultSetId,
+        alsoSetIds: computerSetIds,
+        retagAbsorbed: true,
       );
       importedDiveIds.add(diveId);
       diveIdByIndex[i] = diveId;

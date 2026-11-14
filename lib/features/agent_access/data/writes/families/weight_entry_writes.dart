@@ -32,6 +32,12 @@ class WeightEntryWrites extends WritableEntry {
     'measured_at': const FieldCodec.calendarDate(),
     'weight_kg': const FieldCodec.number(min: 0.1, max: 500),
     'height_cm': const FieldCodec.number(min: 30, max: 300, nullable: true),
+    // Measured body fat, the range the app's own field takes (issue #4525).
+    'body_fat_percent': const FieldCodec.number(
+      min: 3,
+      max: 60,
+      nullable: true,
+    ),
   };
 
   @override
@@ -73,6 +79,7 @@ class WeightEntryWrites extends WritableEntry {
         measuredAt: day,
         weightKg: (values['weight_kg']! as num).toDouble(),
         heightCm: (values['height_cm'] as num?)?.toDouble(),
+        bodyFatPercent: (values['body_fat_percent'] as num?)?.toDouble(),
         createdAt: day,
         updatedAt: day,
       ),
@@ -94,6 +101,9 @@ class WeightEntryWrites extends WritableEntry {
         heightCm: v.containsKey('height_cm')
             ? (v['height_cm'] as num?)?.toDouble()
             : current.heightCm,
+        bodyFatPercent: v.containsKey('body_fat_percent')
+            ? (v['body_fat_percent'] as num?)?.toDouble()
+            : current.bodyFatPercent,
         createdAt: current.createdAt,
         updatedAt: current.updatedAt,
       ),

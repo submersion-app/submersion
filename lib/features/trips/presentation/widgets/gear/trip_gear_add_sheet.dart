@@ -18,6 +18,13 @@ import 'package:submersion/features/trips/presentation/providers/trip_cylinder_p
 import 'package:submersion/features/trips/presentation/providers/trip_equipment_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/checklists/domain/entities/trip_checklist.dart';
+import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/set_bundle.dart';
+import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/trips/data/services/trip_set_bundle.dart';
 
 const _log = LoggerService('tripGearAddSheet');
 
@@ -75,7 +82,24 @@ Future<void> showTripGearAddSheet(
       final picked = await _pickSet(context);
       if (picked == null || !context.mounted) return;
       final (set, items) = picked;
-      await _apply(context, ref, trip, slots, items, setName: set.name);
+      // What the set carries besides gear (issue #4525): its cylinders are
+      // slotted and its lead goes on the trip's checklist.
+      SetBundle? bundle;
+      try {
+        bundle = await ref.read(setBundleProvider(set.id).future);
+      } catch (_) {
+        bundle = null;
+      }
+      if (!context.mounted) return;
+      await _apply(
+        context,
+        ref,
+        trip,
+        slots,
+        items,
+        setName: set.name,
+        bundle: bundle,
+      );
     case _Way.scan:
       final item = await scanOwnedItem(context, ref);
       if (item == null || !context.mounted) return;
@@ -176,9 +200,20 @@ Future<int?> _apply(
   List<TripCylinder> slots,
   List<EquipmentItem> items, {
   required String? setName,
+  SetBundle? bundle,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
+  final checklists = ref.read(tripChecklistsRepositoryProvider);
+  final checklistItems = ref.read(tripChecklistRepositoryProvider);
+  final leadTitle = bundle == null || bundle.weights.isEmpty
+      ? ''
+      : l10n.trips_gear_leadItem(
+          UnitFormatter(
+            ref.read(settingsProvider),
+          ).formatWeight(bundle.totalWeightKg),
+        );
+  final container = ProviderScope.containerOf(context);
   // Everything from ref is read before the first await: the tab can be gone
   // by the time the diver resolves.
   final packs = ref.read(tripEquipmentRepositoryProvider);
@@ -230,10 +265,39 @@ Future<int?> _apply(
       ]);
       addedCount += created.length;
     }
+    var leadSkipped = false;
+    if (bundle != null) {
+      final applied = await applySetBundleToTrip(
+        bundle: bundle,
+        tripId: trip.id,
+        leadTitle: leadTitle,
+        cylinders: cylinders,
+        checklists: checklists,
+        items: checklistItems,
+        // The sheet is long gone; the tab's context asks, when it is still
+        // there.
+        pickChecklist: (all) async =>
+            context.mounted ? pickTripChecklist(context, all) : null,
+        now: DateTime.now().toUtc(),
+      );
+      addedCount += applied.slotted;
+      leadSkipped = applied.lead == TripLeadOutcome.noChecklist;
+      if (applied.lead == TripLeadOutcome.added) {
+        // The lead item is something the set put on the trip too: without
+        // it a set that carries only lead would report nothing to pack.
+        addedCount += 1;
+        container.invalidate(tripChecklistProvider);
+        container.invalidate(tripChecklistAllItemsProvider);
+      }
+      if (applied.slotted > 0) container.invalidate(tripCylindersProvider);
+    }
     if (setName != null) {
+      final packed = l10n.trips_gear_packedFromSet(addedCount, setName);
       messenger.showSnackBar(
         SnackBar(
-          content: Text(l10n.trips_gear_packedFromSet(addedCount, setName)),
+          content: Text(
+            leadSkipped ? '$packed ${l10n.trips_gear_leadNoChecklist}' : packed,
+          ),
         ),
       );
     }
@@ -244,3 +308,23 @@ Future<int?> _apply(
     return null;
   }
 }
+
+/// Asks which of the trip's [checklists] a set's lead goes on (issue #4525).
+/// Null when the diver backs out.
+Future<String?> pickTripChecklist(
+  BuildContext context,
+  List<TripChecklist> checklists,
+) => showDialog<String>(
+  context: context,
+  builder: (dialogContext) => SimpleDialog(
+    title: Text(dialogContext.l10n.trips_gear_pickChecklist),
+    children: [
+      for (final checklist in checklists)
+        SimpleDialogOption(
+          key: Key('trip-lead-checklist-${checklist.id}'),
+          onPressed: () => Navigator.of(dialogContext).pop(checklist.id),
+          child: Text(checklist.name),
+        ),
+    ],
+  ),
+);

@@ -41,4 +41,26 @@ void main() {
     expect(updated.isDefault, isTrue);
     expect(updated.geofences, hasLength(1));
   });
+
+  test('copyWith carries the three bundle lists', () {
+    final updated = base().copyWith(
+      includedSetIds: ['rig'],
+      weightPresetIds: ['p1', 'p2'],
+      cylinderConfigIds: ['c1'],
+    );
+    expect(updated.includedSetIds, ['rig']);
+    expect(updated.weightPresetIds, ['p1', 'p2']);
+    expect(updated.cylinderConfigIds, ['c1']);
+    // An unrelated copy keeps them.
+    expect(updated.copyWith(name: 'x').weightPresetIds, ['p1', 'p2']);
+  });
+
+  test('sets differing only by a bundle list or its order are not equal', () {
+    expect(base().copyWith(includedSetIds: ['rig']), isNot(equals(base())));
+    expect(base().copyWith(cylinderConfigIds: ['c1']), isNot(equals(base())));
+    expect(
+      base().copyWith(weightPresetIds: ['p1', 'p2']),
+      isNot(equals(base().copyWith(weightPresetIds: ['p2', 'p1']))),
+    );
+  });
 }

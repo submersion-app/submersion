@@ -16,6 +16,7 @@ import 'package:submersion/features/equipment/data/services/dive_computer_gear_l
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
+import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
 
 /// Saves one Apple Health workout as a new dive, the way every Health
 /// import does (issue #637): numbered, in the trip that covers it,
@@ -98,7 +99,9 @@ class HealthDiveWriter {
         stackTrace: stackTrace,
       );
     }
-    await DiveEquipmentDefaulter().applyForImportedDive(dive);
+    final defaultSetId = await DiveEquipmentDefaulter().applySetForImportedDive(
+      dive,
+    );
     await _checklistLinker.applyForImportedDive(dive);
     if (enrichAltitude) await _altitudeEnricher.applyForImportedDive(dive);
     // After the defaulter, never before: the defaulter bails on a dive that
@@ -106,8 +109,15 @@ class HealthDiveWriter {
     // default and geofenced sets.
     await DiveComputerGearLinker().linkComputerGearForDive(diveId: dive.id);
     // Every equipment set that lists this computer as a member (#1020).
-    await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+    final computerSetIds = await EquipmentSetForComputerLinker()
+        .linkComputerSets(diveId: dive.id);
+    // What those sets carry besides gear (issue #4525): weights only
+    // where the dive has none, and never a cylinder beside its own.
+    await DiveSetBundleApplier().applyTagged(
       diveId: dive.id,
+      leadSetId: defaultSetId,
+      alsoSetIds: computerSetIds,
+      retagAbsorbed: true,
     );
     return dive;
   }

@@ -63182,4 +63182,183 @@ class AppLocalizationsEn extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'The MOD is always rounded down, never up. Rec uses 1 bar per $depth, like the dive log. OC Tec and CCR Tec work out the pressure at depth from the water type, so the same mix can show a slightly shallower MOD there.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Sex';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Birth year';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Body fat';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Included sets';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Add set';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'No included sets';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'No other set can be included';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Weights';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Add weight preset';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'No weight presets';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'No more weight presets to add';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Total $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Tanks';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Add cylinder configuration';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'No cylinder configurations';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'No cylinder configurations yet';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Remove from set';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Applies in total: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'A set with no gear does not appear on a dive as a set, so its weights and tanks have to be removed by hand.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'From $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight lead';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cylinders',
+      one: '1 cylinder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Use the weights from $setName?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'This dive already has $current. The set carries $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Add';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Replace';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Keep current';
+
+  @override
+  String get rules_change_weights => 'Weights';
+
+  @override
+  String get rules_change_tanks => 'Tanks';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Weights: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Lead: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'Lead was not added: this trip has no checklist.';
+
+  @override
+  String get trips_gear_pickChecklist => 'Add the lead to which checklist?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Body fat (measured)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Body fat (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Optional. Left blank, body composition is estimated from height and weight.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Estimated: about $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Add sex and birth year under Personal info to see an estimate.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Enter a value from 3 to 60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% body fat';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Sex';
+
+  @override
+  String get diverProfile_sex_female => 'Female';
+
+  @override
+  String get diverProfile_sex_male => 'Male';
+
+  @override
+  String get diverProfile_sex_notSet => 'Not set';
+
+  @override
+  String get diverProfile_birthYear_label => 'Birth year';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Enter a year from 1900 to $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Used only to estimate body composition for weight prediction.';
 }

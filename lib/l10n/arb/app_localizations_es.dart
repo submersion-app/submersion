@@ -64213,4 +64213,183 @@ class AppLocalizationsEs extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'La MOD siempre se redondea hacia abajo, nunca hacia arriba. Rec usa 1 bar por cada $depth, como el registro. OC Tec y CCR Tec calculan la presión en profundidad a partir del tipo de agua, así que la misma mezcla puede mostrar allí una MOD algo menor.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Sexo';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Año de nacimiento';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Grasa corporal';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Conjuntos incluidos';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Añadir conjunto';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'Sin conjuntos incluidos';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'No se puede incluir ningún otro conjunto';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Lastre';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Añadir ajuste de lastre';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'Sin ajustes de lastre';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'No hay más ajustes de lastre que añadir';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Total $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Botellas';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Añadir configuración de botellas';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'Sin configuraciones de botellas';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Aún no hay configuraciones de botellas';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Quitar del conjunto';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Aplica en total: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'Un conjunto sin equipo no aparece como conjunto en la inmersión, así que sus pesos y botellas hay que quitarlos a mano.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'De $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight de lastre';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count botellas',
+      one: '1 botella',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return '¿Usar el lastre de $setName?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Esta inmersión ya tiene $current. El conjunto lleva $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Añadir';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Reemplazar';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Mantener actual';
+
+  @override
+  String get rules_change_weights => 'Lastre';
+
+  @override
+  String get rules_change_tanks => 'Botellas';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Lastre: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Lastre: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'No se añadió el lastre: este viaje no tiene lista de comprobación.';
+
+  @override
+  String get trips_gear_pickChecklist => '¿A qué lista añadir el lastre?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Grasa corporal (medida)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Grasa corporal (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Opcional. Si se deja en blanco, la composición corporal se estima a partir de la altura y el peso.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Estimado: alrededor del $percent %';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Añade el sexo y el año de nacimiento en Información personal para ver una estimación.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Introduce un valor de 3 a 60';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent % de grasa corporal';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Sexo';
+
+  @override
+  String get diverProfile_sex_female => 'Mujer';
+
+  @override
+  String get diverProfile_sex_male => 'Hombre';
+
+  @override
+  String get diverProfile_sex_notSet => 'Sin indicar';
+
+  @override
+  String get diverProfile_birthYear_label => 'Año de nacimiento';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Introduce un año entre 1900 y $year';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Solo se usa para estimar la composición corporal en la predicción de lastre.';
 }

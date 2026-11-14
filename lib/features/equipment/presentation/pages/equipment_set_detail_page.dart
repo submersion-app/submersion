@@ -29,6 +29,7 @@ import 'package:submersion/features/equipment/figure/presentation/figure_palette
 import 'package:submersion/features/equipment/presentation/helpers/equipment_set_clone_action.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/shared/widgets/markdown_notes/markdown_notes_view.dart';
+import 'package:submersion/features/equipment/presentation/widgets/set_bundle_summary.dart';
 
 class EquipmentSetDetailPage extends ConsumerStatefulWidget {
   final String setId;
@@ -108,6 +109,15 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
       typeLabel: (type) => type.localizedName(context.l10n),
     );
     final ordered = [for (final group in groups) ...group.items];
+    // The items are what the set applies: its own gear and that of the sets
+    // it includes (issue #4525). Rows from an included set say which.
+    final appliedCount = set.items?.length ?? set.itemCount;
+    final setsById = {
+      for (final s
+          in ref.watch(equipmentSetsProvider).valueOrNull ??
+              const <EquipmentSet>[])
+        s.id: s,
+    };
     // Parts are told apart from items by the components index (which the
     // rows' assembly chips load anyway). Until it loads, every part would
     // count as an item of its own and be numbered, then vanish and renumber
@@ -273,12 +283,12 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
                           ],
                           const SizedBox(height: 4),
                           Text(
-                            set.itemCount == 1
+                            appliedCount == 1
                                 ? context.l10n.equipment_sets_itemCountSingular(
-                                    set.itemCount,
+                                    appliedCount,
                                   )
                                 : context.l10n.equipment_sets_itemCountPlural(
-                                    set.itemCount,
+                                    appliedCount,
                                   ),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
@@ -366,9 +376,16 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
                     badgeSlot: badgeSlot,
                     noLongerShared:
                         visibleIds != null && !visibleIds.contains(item.id),
+                    fromSetName: includedSourceOf(set, item.id, setsById)?.name,
                   ),
                 ),
               ],
+            if (set.includedSetIds.isNotEmpty ||
+                set.weightPresetIds.isNotEmpty ||
+                set.cylinderConfigIds.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              SetBundleSummaryCard(set: set),
+            ],
             const SizedBox(height: 24),
             Text(
               context.l10n.equipment_setDetail_geofencesTitle,
@@ -433,6 +450,7 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
     int? number, {
     double? badgeSlot,
     bool noLongerShared = false,
+    String? fromSetName,
   }) {
     final selected = item.id == selectedFigureItemId;
     final scheme = Theme.of(context).colorScheme;
@@ -489,6 +507,8 @@ class _EquipmentSetDetailPageState extends ConsumerState<EquipmentSetDetailPage>
                   item.type.localizedName(context.l10n),
                 ...?labels[item.id]?.subtitleParts,
                 if (noLongerShared) context.l10n.equipment_set_noLongerShared,
+                if (fromSetName != null)
+                  context.l10n.equipment_setDetail_fromSet(fromSetName),
               ].join(' · '),
             ),
             AssemblyChips(itemId: item.id),

@@ -1,4 +1,5 @@
 import 'package:submersion/core/buoyancy/body_composition.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_weight_entry_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver_weight_entry.dart';
@@ -50,4 +51,34 @@ final latestDiverHeightProvider = FutureProvider<double?>((ref) async {
     }
   }
   return null;
+});
+
+/// The active diver's most recent body fat percentage: the newest entry
+/// that carries a plausible one (issue #4525). Like height it is optional
+/// per entry, so a newer weight-only entry must not discard it.
+final latestDiverBodyFatProvider = FutureProvider<double?>((ref) async {
+  final entries = await ref.watch(diverWeightEntriesProvider.future);
+  for (final entry in entries) {
+    final bodyFat = entry.bodyFatPercent;
+    if (bodyFat != null && BodyComposition.isPlausibleBodyFat(bodyFat)) {
+      return bodyFat;
+    }
+  }
+  return null;
+});
+
+/// What the active diver's profile says about their build beyond weight
+/// and height: sex, and age today from the birth year. Both sharpen the
+/// body fat estimate, and either may be missing.
+typedef DiverBodyProfile = ({DiverSex? sex, int? ageYears});
+
+final diverBodyProfileProvider = FutureProvider<DiverBodyProfile>((ref) async {
+  final diver = await ref.watch(currentDiverProvider.future);
+  return (
+    sex: diver?.sex,
+    ageYears: BodyComposition.ageYears(
+      birthYear: diver?.birthYear,
+      at: DateTime.now(),
+    ),
+  );
 });

@@ -28,4 +28,28 @@ void main() {
 
     expect(sessionSetGear(all, set).map((g) => g.id), ['reg']);
   });
+
+  test('given the gear the set applies, it checks included sets\' gear '
+      'too (#4525)', () {
+    const all = [
+      EquipmentItem(id: 'reg', name: 'Reg', type: EquipmentType.regulator),
+      EquipmentItem(id: 'other', name: 'Fins', type: EquipmentType.fins),
+      EquipmentItem(
+        id: 'wish',
+        name: 'Dream wing',
+        type: EquipmentType.bcd,
+        status: EquipmentStatus.wanted,
+        isActive: false,
+      ),
+    ];
+
+    expect(
+      sessionSetGear(
+        all,
+        set,
+        gearIds: const ['other', 'reg', 'wish'],
+      ).map((g) => g.id),
+      ['reg', 'other'],
+    );
+  });
 }

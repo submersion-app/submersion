@@ -67,6 +67,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
 import 'package:submersion/features/dive_log/data/repositories/stored_tank_serial_fill.dart';
+import 'package:submersion/features/equipment/data/services/dive_set_bundle_applier.dart';
 
 /// A `dive_profile_series` row [DiveComputerRepository.findComputerDivesContainingTime]
 /// found, with the anchor needed to turn an absolute time into an offset on
@@ -1655,6 +1656,11 @@ class DiveComputerRepository {
 
       final diveId = matchedDiveId ?? _uuid.v4();
       final isNewDive = matchedDiveId == null;
+      // The set the defaulter chose for a new dive, and the sets linked to
+      // this computer. Their weights and cylinders wait until the
+      // computer's own tanks are written.
+      String? defaultSetId;
+      var computerSetIds = const <String>[];
 
       // A bottom time the source reported, bounded by the runtime so it
       // cannot come out longer than the dive (issue #1642).
@@ -1799,7 +1805,7 @@ class DiveComputerRepository {
           if (exitLatitude != null && exitLongitude != null)
             GeoPoint(exitLatitude, exitLongitude),
         ];
-        await DiveEquipmentDefaulter().applyDefaultEquipmentIfEmpty(
+        defaultSetId = await DiveEquipmentDefaulter().applyDefaultSetIfEmpty(
           diveId: diveId,
           diverId: diverId,
           divePoints: defaultPoints,
@@ -1813,7 +1819,7 @@ class DiveComputerRepository {
         // Apply every equipment set that lists this computer as a member
         // (issue #1020), e.g. a CCR rig set that bundles the controller with
         // drysuit and tec fins. Additive, independent of the defaulter above.
-        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+        computerSetIds = await EquipmentSetForComputerLinker().linkComputerSets(
           diveId: diveId,
         );
 
@@ -2174,6 +2180,18 @@ class DiveComputerRepository {
         );
       }
 
+      // What the sets on a new dive carry besides gear (issue #4525). After
+      // the computer's own tanks are written, so the merge sees them: it
+      // fills their gaps and adds no cylinder beside them.
+      if (isNewDive) {
+        await DiveSetBundleApplier().applyTagged(
+          diveId: diveId,
+          leadSetId: defaultSetId,
+          alsoSetIds: computerSetIds,
+          retagAbsorbed: true,
+        );
+      }
+
       // Insert per-tank pressure time-series data: one series insert per
       // tank, each marked pending and stamped with an hlc by the repository.
       if (tankIdsByIndex.isNotEmpty) {
@@ -2454,9 +2472,14 @@ class DiveComputerRepository {
         await DiveComputerGearLinker().linkComputerGearForDive(diveId: diveId);
         // Apply every equipment set that lists this computer as a member
         // (issue #1020). Additive, independent of the defaulter above.
-        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+        final landed = await EquipmentSetForComputerLinker().linkComputerSets(
           diveId: diveId,
         );
+        // Their weights and cylinders too, where the dive has none (issue
+        // #4525). Only the sets that land with this reading: the sets the
+        // dive already carried are its history, and re-applying one would
+        // add lead the diver never logged to a dive made long ago.
+        await DiveSetBundleApplier().apply(diveId: diveId, setIds: landed);
       }
 
       // Note: Computer stats (incrementDiveCount, updateLastDownload) are

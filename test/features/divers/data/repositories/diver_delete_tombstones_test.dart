@@ -505,6 +505,82 @@ void main() {
         ('equipment_set_geofences', 'equipmentSetGeofences', 'fence-a'),
       ];
     },
+    'a set that includes another and carries lead and tanks (#4525)': () async {
+      for (final id in ['set-x', 'set-y']) {
+        await db
+            .into(db.equipmentSets)
+            .insert(
+              EquipmentSetsCompanion.insert(
+                id: id,
+                name: id,
+                diverId: const Value('diver-a'),
+                createdAt: stale,
+                updatedAt: stale,
+              ),
+            );
+      }
+      await db
+          .into(db.weightPresets)
+          .insert(
+            WeightPresetsCompanion.insert(
+              id: 'preset-x',
+              displayName: 'Belt',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.cylinderConfigs)
+          .insert(
+            CylinderConfigsCompanion.insert(
+              id: 'config-x',
+              name: 'AL80',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      await db
+          .into(db.equipmentSetIncludes)
+          .insert(
+            EquipmentSetIncludesCompanion.insert(
+              id: 'inc-a',
+              setId: 'set-x',
+              includedSetId: 'set-y',
+              createdAt: stale,
+            ),
+          );
+      await db
+          .into(db.equipmentSetWeightPresets)
+          .insert(
+            EquipmentSetWeightPresetsCompanion.insert(
+              id: 'wp-a',
+              setId: 'set-x',
+              presetId: 'preset-x',
+              createdAt: stale,
+            ),
+          );
+      await db
+          .into(db.equipmentSetCylinderConfigs)
+          .insert(
+            EquipmentSetCylinderConfigsCompanion.insert(
+              id: 'cc-a',
+              setId: 'set-x',
+              configId: 'config-x',
+              createdAt: stale,
+            ),
+          );
+      return [
+        ('equipment_set_includes', 'equipmentSetIncludes', 'inc-a'),
+        ('equipment_set_weight_presets', 'equipmentSetWeightPresets', 'wp-a'),
+        (
+          'equipment_set_cylinder_configs',
+          'equipmentSetCylinderConfigs',
+          'cc-a',
+        ),
+      ];
+    },
     'a buddy and the certifications recorded for them': () async {
       await insertBuddy('buddy-a');
       await db

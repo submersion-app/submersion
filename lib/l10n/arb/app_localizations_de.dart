@@ -64037,4 +64037,184 @@ class AppLocalizationsDe extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'Die MOD wird immer abgerundet, nie aufgerundet. Rec rechnet mit 1 bar pro $depth wie das Logbuch. OC Tec und CCR Tec berechnen den Druck in der Tiefe aus der Wasserart, daher kann dasselbe Gemisch dort eine etwas flachere MOD zeigen.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Geschlecht';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Geburtsjahr';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Körperfett';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Enthaltene Sets';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Set hinzufügen';
+
+  @override
+  String get equipment_setEdit_includedSets_empty => 'Keine enthaltenen Sets';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'Kein anderes Set kann aufgenommen werden';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Blei';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Bleivorlage hinzufügen';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'Keine Bleivorlagen';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Keine weiteren Bleivorlagen zum Hinzufügen';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Gesamt $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Flaschen';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Flaschenkonfiguration hinzufügen';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'Keine Flaschenkonfigurationen';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Noch keine Flaschenkonfigurationen';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Aus dem Set entfernen';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Wendet insgesamt an: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'Ein Set ohne Ausrüstung erscheint am Tauchgang nicht als Set; seine Gewichte und Flaschen müssen daher von Hand entfernt werden.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'Aus $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight Blei';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Flaschen',
+      one: '1 Flasche',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Blei aus $setName verwenden?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Dieser Tauchgang hat bereits $current. Das Set enthält $setTotal.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Hinzufügen';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Ersetzen';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Aktuelle behalten';
+
+  @override
+  String get rules_change_weights => 'Blei';
+
+  @override
+  String get rules_change_tanks => 'Flaschen';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Blei: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Blei: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'Blei wurde nicht hinzugefügt: Diese Reise hat keine Checkliste.';
+
+  @override
+  String get trips_gear_pickChecklist =>
+      'Zu welcher Checkliste soll das Blei hinzugefügt werden?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Körperfett (gemessen)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Körperfett (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Optional. Bleibt das Feld leer, wird die Körperzusammensetzung aus Größe und Gewicht geschätzt.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Geschätzt: etwa $percent %';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Gib unter Persönliche Daten Geschlecht und Geburtsjahr an, um eine Schätzung zu sehen.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Gib einen Wert von 3 bis 60 ein';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent % Körperfett';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Geschlecht';
+
+  @override
+  String get diverProfile_sex_female => 'Weiblich';
+
+  @override
+  String get diverProfile_sex_male => 'Männlich';
+
+  @override
+  String get diverProfile_sex_notSet => 'Nicht angegeben';
+
+  @override
+  String get diverProfile_birthYear_label => 'Geburtsjahr';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Gib ein Jahr von 1900 bis $year ein';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Wird nur verwendet, um die Körperzusammensetzung für die Bleivorhersage zu schätzen.';
 }

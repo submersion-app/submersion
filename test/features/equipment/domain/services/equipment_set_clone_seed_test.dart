@@ -59,4 +59,17 @@ void main() {
     final clone = seed();
     expect(identical(clone.equipmentIds, source.equipmentIds), isFalse);
   });
+
+  test('copies what the set carries besides gear (issue #4525)', () {
+    final carrying = source.copyWith(
+      includedSetIds: ['rig'],
+      weightPresetIds: ['p1', 'p2'],
+      cylinderConfigIds: ['c1'],
+    );
+    final clone = equipmentSetCloneSeed(carrying, copyName: (name) => name);
+    expect(clone.includedSetIds, ['rig']);
+    expect(clone.weightPresetIds, ['p1', 'p2']);
+    expect(clone.cylinderConfigIds, ['c1']);
+    expect(identical(clone.weightPresetIds, carrying.weightPresetIds), isFalse);
+  });
 }

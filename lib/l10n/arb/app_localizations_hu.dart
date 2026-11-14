@@ -63820,4 +63820,185 @@ class AppLocalizationsHu extends AppLocalizations {
   String info_calculators_mod_background(String depth) {
     return 'A MOD-ot mindig lefelé kerekítjük, soha nem felfelé. A Rec minden $depth mélységre 1 bárt számol, mint a napló. Az OC Tec és a CCR Tec a víz típusából számolja a nyomást a mélységben, így ugyanaz a keverék ott kissé sekélyebb MOD-ot mutathat.';
   }
+
+  @override
+  String get settings_conflict_field_sex => 'Nem';
+
+  @override
+  String get settings_conflict_field_birthYear => 'Születési év';
+
+  @override
+  String get settings_conflict_field_bodyFatPercent => 'Testzsír';
+
+  @override
+  String get equipment_setEdit_includedSets_title => 'Tartalmazott készletek';
+
+  @override
+  String get equipment_setEdit_includedSets_add => 'Készlet hozzáadása';
+
+  @override
+  String get equipment_setEdit_includedSets_empty =>
+      'Nincs tartalmazott készlet';
+
+  @override
+  String get equipment_setEdit_includedSets_noneAvailable =>
+      'Nincs más felvehető készlet';
+
+  @override
+  String get equipment_setEdit_weights_title => 'Ólom';
+
+  @override
+  String get equipment_setEdit_weights_add => 'Ólomsablon hozzáadása';
+
+  @override
+  String get equipment_setEdit_weights_empty => 'Nincs ólomsablon';
+
+  @override
+  String get equipment_setEdit_weights_noneAvailable =>
+      'Nincs több hozzáadható ólomsablon';
+
+  @override
+  String equipment_setEdit_weights_total(String weight) {
+    return 'Összesen $weight';
+  }
+
+  @override
+  String get equipment_setEdit_tanks_title => 'Palackok';
+
+  @override
+  String get equipment_setEdit_tanks_add => 'Palackkonfiguráció hozzáadása';
+
+  @override
+  String get equipment_setEdit_tanks_empty => 'Nincs palackkonfiguráció';
+
+  @override
+  String get equipment_setEdit_tanks_noneAvailable =>
+      'Még nincs palackkonfiguráció';
+
+  @override
+  String get equipment_setEdit_bundle_remove => 'Eltávolítás a készletből';
+
+  @override
+  String equipment_setEdit_bundle_total(String summary) {
+    return 'Összesen alkalmazza: $summary';
+  }
+
+  @override
+  String get equipment_setEdit_bundle_noGearHint =>
+      'A felszerelés nélküli készlet nem jelenik meg készletként a merülésen, ezért a súlyait és palackjait kézzel kell eltávolítani.';
+
+  @override
+  String equipment_setDetail_fromSet(String setName) {
+    return 'Innen: $setName';
+  }
+
+  @override
+  String equipment_sets_leadTotal(String weight) {
+    return '$weight ólom';
+  }
+
+  @override
+  String equipment_sets_cylinderCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count palack',
+      one: '1 palack',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String diveLog_edit_setWeights_title(String setName) {
+    return 'Használja a(z) $setName ólmát?';
+  }
+
+  @override
+  String diveLog_edit_setWeights_body(String current, String setTotal) {
+    return 'Ezen a merülésen már van $current. A készlet $setTotal ólmot tartalmaz.';
+  }
+
+  @override
+  String get diveLog_edit_setWeights_add => 'Hozzáadás';
+
+  @override
+  String get diveLog_edit_setWeights_replace => 'Csere';
+
+  @override
+  String get diveLog_edit_setWeights_keep => 'Jelenlegi megtartása';
+
+  @override
+  String get rules_change_weights => 'Ólom';
+
+  @override
+  String get rules_change_tanks => 'Palackok';
+
+  @override
+  String preDive_setChecks_weights(String total, String breakdown) {
+    return 'Ólom: $total ($breakdown)';
+  }
+
+  @override
+  String trips_gear_leadItem(String weight) {
+    return 'Ólom: $weight';
+  }
+
+  @override
+  String get trips_gear_leadNoChecklist =>
+      'Az ólom nem került hozzáadásra: ennek az útnak nincs ellenőrzőlistája.';
+
+  @override
+  String get trips_gear_pickChecklist =>
+      'Melyik ellenőrzőlistához adjuk az ólmot?';
+
+  @override
+  String get tools_weight_bodyFatTerm => 'Testzsír (mért)';
+
+  @override
+  String get bodyWeight_bodyFatLabel => 'Testzsír (%)';
+
+  @override
+  String get bodyWeight_bodyFatHelper =>
+      'Nem kötelező. Üresen hagyva a testösszetételt a magasságból és a testsúlyból becsüljük.';
+
+  @override
+  String bodyWeight_bodyFatEstimate(int percent) {
+    return 'Becsült: körülbelül $percent%';
+  }
+
+  @override
+  String get bodyWeight_bodyFatEstimateHint =>
+      'Becsléshez adja meg a nemet és a születési évet a Személyes adatok alatt.';
+
+  @override
+  String get bodyWeight_bodyFatRange => 'Adjon meg egy 3 és 60 közötti értéket';
+
+  @override
+  String bodyWeight_bodyFatValue(String percent) {
+    return '$percent% testzsír';
+  }
+
+  @override
+  String get diverProfile_sex_label => 'Nem';
+
+  @override
+  String get diverProfile_sex_female => 'Nő';
+
+  @override
+  String get diverProfile_sex_male => 'Férfi';
+
+  @override
+  String get diverProfile_sex_notSet => 'Nincs megadva';
+
+  @override
+  String get diverProfile_birthYear_label => 'Születési év';
+
+  @override
+  String diverProfile_birthYear_invalid(int year) {
+    return 'Adjon meg egy évet 1900 és $year között';
+  }
+
+  @override
+  String get diverProfile_bodyEstimate_note =>
+      'Csak a testösszetétel becslésére szolgál az ólomszükséglet előrejelzéséhez.';
 }

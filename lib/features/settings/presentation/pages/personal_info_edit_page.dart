@@ -3,11 +3,14 @@ import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/app/app_exit_guard.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class PersonalInfoEditPage extends ConsumerStatefulWidget {
   final bool isNewDiver;
@@ -25,6 +28,11 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _socialCtrl = TextEditingController();
+  final _birthYearCtrl = TextEditingController();
+  DiverSex? _sex;
+
+  /// The earliest birth year the field accepts.
+  static const int _minBirthYear = 1900;
 
   bool _populated = false;
   bool _hasChanges = false;
@@ -37,6 +45,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
     _emailCtrl.addListener(_onFieldChanged);
     _phoneCtrl.addListener(_onFieldChanged);
     _socialCtrl.addListener(_onFieldChanged);
+    _birthYearCtrl.addListener(_onFieldChanged);
   }
 
   void _onFieldChanged() {
@@ -51,6 +60,7 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
     _emailCtrl.dispose();
     _phoneCtrl.dispose();
     _socialCtrl.dispose();
+    _birthYearCtrl.dispose();
     super.dispose();
   }
 
@@ -61,8 +71,21 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
     _emailCtrl.text = diver.email ?? '';
     _phoneCtrl.text = diver.phone ?? '';
     _socialCtrl.text = diver.socialHandle ?? '';
+    _birthYearCtrl.text = diver.birthYear?.toString() ?? '';
+    _sex = diver.sex;
     _hasChanges = false;
   }
+
+  /// The birth year field's value once the form has validated: blank is
+  /// "not given", and unreadable text cannot reach here.
+  int? get _birthYear => switch (readNumber(
+    _birthYearCtrl.text,
+    integer: true,
+    allowNegative: false,
+  )) {
+    NumberValue(:final value) => value.round(),
+    NumberBlank() || NumberInvalid() => null,
+  };
 
   String? _trimOrNull(TextEditingController ctrl) {
     final value = ctrl.text.trim();
@@ -83,6 +106,8 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
           email: _trimOrNull(_emailCtrl),
           phone: _trimOrNull(_phoneCtrl),
           socialHandle: _trimOrNull(_socialCtrl),
+          sex: _sex,
+          birthYear: _birthYear,
           createdAt: now,
           updatedAt: now,
         );
@@ -102,6 +127,8 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
           email: _trimOrNull(_emailCtrl),
           phone: _trimOrNull(_phoneCtrl),
           socialHandle: _trimOrNull(_socialCtrl),
+          sex: _sex,
+          birthYear: _birthYear,
           updatedAt: DateTime.now(),
         );
         await ref.read(diverListNotifierProvider.notifier).updateDiver(updated);
@@ -274,6 +301,8 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
                         prefixIcon: const Icon(Icons.alternate_email),
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    ..._bodyEstimateFields(context),
                   ],
                 ),
               ),
@@ -282,5 +311,70 @@ class _PersonalInfoEditPageState extends ConsumerState<PersonalInfoEditPage> {
         ),
       ),
     );
+  }
+
+  /// Sex and birth year, both optional: they only sharpen the body fat
+  /// estimate behind the weight prediction (issue #4525), and the note
+  /// under them says so.
+  List<Widget> _bodyEstimateFields(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final thisYear = DateTime.now().year;
+    return [
+      DropdownButtonFormField<DiverSex?>(
+        key: const Key('personalInfo_sex'),
+        initialValue: _sex,
+        decoration: InputDecoration(
+          labelText: l10n.diverProfile_sex_label,
+          prefixIcon: const Icon(Icons.wc),
+        ),
+        items: [
+          DropdownMenuItem<DiverSex?>(
+            value: null,
+            child: Text(l10n.diverProfile_sex_notSet),
+          ),
+          DropdownMenuItem<DiverSex?>(
+            value: DiverSex.female,
+            child: Text(l10n.diverProfile_sex_female),
+          ),
+          DropdownMenuItem<DiverSex?>(
+            value: DiverSex.male,
+            child: Text(l10n.diverProfile_sex_male),
+          ),
+        ],
+        onChanged: (value) => setState(() {
+          _sex = value;
+          _hasChanges = true;
+        }),
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _birthYearCtrl,
+        decoration: InputDecoration(
+          labelText: l10n.diverProfile_birthYear_label,
+          prefixIcon: const Icon(Icons.cake_outlined),
+        ),
+        keyboardType: TextInputType.number,
+        inputFormatters: numberInputFormatters(),
+        validator: numberValidator(
+          context,
+          integer: true,
+          allowNegative: false,
+          check: (year) => year >= _minBirthYear && year <= thisYear
+              ? null
+              : l10n.diverProfile_birthYear_invalid(thisYear),
+        ),
+      ),
+      const SizedBox(height: 8),
+      Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Text(
+          l10n.diverProfile_bodyEstimate_note,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+    ];
   }
 }

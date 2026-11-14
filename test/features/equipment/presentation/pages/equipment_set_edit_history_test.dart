@@ -29,6 +29,9 @@ class _FailingReplay extends Fake implements DiveRepository {
   Future<int> countLoggedDivesWithSet(String setId) async => 1;
 
   @override
+  Future<int> countLoggedDivesWithAnySet(Iterable<String> setIds) async => 1;
+
+  @override
   Future<List<String>> rewriteSetOnDives(
     String setId,
     List<SetHistoryRewrite> rewrites, {

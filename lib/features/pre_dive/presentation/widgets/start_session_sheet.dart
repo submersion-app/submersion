@@ -19,6 +19,10 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/features/settings/presentation/providers/hidden_built_ins_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/providers/set_bundle_providers.dart';
+import 'package:submersion/features/pre_dive/presentation/helpers/set_check_titles.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Bottom sheet that starts a pre-dive checklist session: pick a template,
 /// optionally pick an equipment set (only offered when the template has an
@@ -43,11 +47,19 @@ Future<void> showStartSessionSheet(
 
 /// The members of [set] a pre-dive session checks: every member in [all]
 /// except one on the wishlist (#2025), which is not in the diver's kit.
-List<EquipmentItem> sessionSetGear(List<EquipmentItem> all, EquipmentSet set) =>
-    [
-      for (final g in all)
-        if (set.equipmentIds.contains(g.id) && !g.isWanted) g,
-    ];
+/// [gearIds] is what the set applies when that is more than its own
+/// members, the gear of the sets it includes (issue #4525).
+List<EquipmentItem> sessionSetGear(
+  List<EquipmentItem> all,
+  EquipmentSet set, {
+  List<String>? gearIds,
+}) {
+  final ids = (gearIds ?? set.equipmentIds).toSet();
+  return [
+    for (final g in all)
+      if (ids.contains(g.id) && !g.isWanted) g,
+  ];
+}
 
 class _StartSessionSheet extends ConsumerStatefulWidget {
   final String? diveId;
@@ -94,6 +106,10 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
     final template = _template;
     if (template == null || _starting) return;
     setState(() => _starting = true);
+    // Read before the first await: the set's checks are worded for the
+    // diver (issue #4525).
+    final l10n = context.l10n;
+    final units = UnitFormatter(ref.read(settingsProvider));
     try {
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       final chosenSet = _needsEquipmentSet ? _equipmentSet : null;
@@ -103,11 +119,24 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
             item.id: _equipmentByItemId[item.id]!,
       };
       var gear = const <EquipmentItem>[];
+      List<String>? setGearIds;
+      var setChecks = const <String>[];
       if (chosenSet != null) {
+        // What the set applies: its gear with that of the sets it includes,
+        // and a check each for its lead and its cylinders (issue #4525).
+        try {
+          final bundle = await ref.read(setBundleProvider(chosenSet.id).future);
+          if (bundle != null) {
+            setGearIds = bundle.gearIds;
+            setChecks = setCheckTitles(l10n, units, bundle);
+          }
+        } catch (_) {
+          // Sets unavailable: the set's own gear, as before.
+        }
         final all = await EquipmentRepository().getAllEquipment(
           diverId: diverId,
         );
-        gear = sessionSetGear(all, chosenSet);
+        gear = sessionSetGear(all, chosenSet, gearIds: setGearIds);
       }
       // Union of set-expanded gear and single-item links, deduplicated by id
       // so a device chosen both ways is not passed twice to the composer.
@@ -122,6 +151,8 @@ class _StartSessionSheetState extends ConsumerState<_StartSessionSheet> {
         templateItems: _templateItems,
         templateSections: _templateSections,
         equipmentSet: chosenSet,
+        equipmentSetGearIds: setGearIds,
+        setCheckTitles: setChecks,
         equipmentItems: allGear,
         equipmentByTemplateItemId: {
           for (final entry in chosenSingles.entries) entry.key: entry.value.id,

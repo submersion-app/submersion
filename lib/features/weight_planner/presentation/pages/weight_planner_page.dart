@@ -66,8 +66,10 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
   final _heightCmController = TextEditingController();
   final _heightFeetController = TextEditingController();
   final _heightInchesController = TextEditingController();
+  final _bodyFatController = TextEditingController();
   bool _bodyWeightSeeded = false;
   bool _heightSeeded = false;
+  bool _bodyFatSeeded = false;
   bool _tanksSeeded = false;
   String? _deltaText;
   Timer? _deltaTimer;
@@ -79,6 +81,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
     _heightCmController.dispose();
     _heightFeetController.dispose();
     _heightInchesController.dispose();
+    _bodyFatController.dispose();
     super.dispose();
   }
 
@@ -118,6 +121,17 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
     return cm;
   }
 
+  /// Entered body fat percentage, or null when the field is empty or
+  /// outside what it accepts, so the prediction falls back to the profile
+  /// and then to an estimate (issue #4525).
+  double? _bodyFatPercent() {
+    final percent = _typed(_bodyFatController);
+    if (percent == null || !BodyComposition.isPlausibleBodyFat(percent)) {
+      return null;
+    }
+    return percent;
+  }
+
   WeightPrediction? _predict(FittedWeightModel? model, UnitFormatter units) {
     if (model == null) return null;
     final gear = <GearFeature>[for (final item in _gear) ?gearFeatureFor(item)];
@@ -137,6 +151,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
         waterType: _water,
         bodyWeightKg: _bodyWeightKg(units),
         heightCm: _heightCm(units),
+        bodyFatPercent: _bodyFatPercent(),
       ),
     );
   }
@@ -173,6 +188,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
       waterType: _water,
       bodyWeightKg: _bodyWeightKg(units),
       heightCm: _heightCm(units),
+      bodyFatPercent: _bodyFatPercent(),
       rolledUpIds: GearTree.rolledUpIds(_gearProvenance),
     );
     final input = TwinInput(
@@ -374,6 +390,7 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
             measuredAt: now,
             weightKg: kg,
             heightCm: _heightCm(units),
+            bodyFatPercent: _bodyFatPercent(),
             createdAt: now,
             updatedAt: now,
           ),
@@ -434,6 +451,15 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
         }
       }
     }
+    // Prefill body fat from the newest profile entry that records one,
+    // once, on the same one-shot terms as the height.
+    final latestBodyFat = ref.watch(latestDiverBodyFatProvider).valueOrNull;
+    if (!_bodyFatSeeded && latestBodyFat != null) {
+      _bodyFatSeeded = true;
+      if (_bodyFatController.text.isEmpty) {
+        _bodyFatController.text = formatRoundedForInput(latestBodyFat, 1);
+      }
+    }
     // Start with one tank once presets load.
     final presets = ref.watch(tankPresetsProvider).valueOrNull;
     if (!_tanksSeeded && presets != null && presets.isNotEmpty) {
@@ -469,8 +495,29 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
     final heightDiffers =
         enteredHeight != null &&
         (latestHeight == null || (enteredHeight - latestHeight).abs() > 0.5);
-    // A profile entry always carries a weight, so height alone cannot save.
-    final showSave = enteredKg != null && (weightDiffers || heightDiffers);
+    final enteredBodyFat = _bodyFatPercent();
+    final bodyFatDiffers =
+        enteredBodyFat != null &&
+        (latestBodyFat == null ||
+            (enteredBodyFat - latestBodyFat).abs() > 0.05);
+    // A profile entry always carries a weight, so height or body fat alone
+    // cannot save.
+    final showSave =
+        enteredKg != null && (weightDiffers || heightDiffers || bodyFatDiffers);
+    final bodyProfile = ref.watch(diverBodyProfileProvider).valueOrNull;
+    // A blank field falls back to the body fat the model was fitted with,
+    // when there is one: the estimate is then not what a blank means, and
+    // is not shown as if it were.
+    final blankMeansProfile =
+        _bodyFatController.text.trim().isEmpty && model?.bodyFatPercent != null;
+    final bodyFatEstimate = blankMeansProfile
+        ? null
+        : BodyComposition.displayEstimate(
+            weightKg: enteredKg,
+            heightCm: enteredHeight,
+            ageYears: bodyProfile?.ageYears,
+            sex: bodyProfile?.sex,
+          );
     final bmi = enteredKg == null
         ? null
         : BodyComposition.bmi(weightKg: enteredKg, heightCm: enteredHeight);
@@ -505,6 +552,8 @@ class _WeightPlannerPageState extends ConsumerState<WeightPlannerPage> {
             heightCmController: _heightCmController,
             heightFeetController: _heightFeetController,
             heightInchesController: _heightInchesController,
+            bodyFatController: _bodyFatController,
+            bodyFatEstimate: bodyFatEstimate,
             bmi: bmi,
             units: units,
             showSaveBodyWeight: showSave,

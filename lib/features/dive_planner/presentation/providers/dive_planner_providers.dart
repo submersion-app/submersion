@@ -28,6 +28,9 @@ import 'package:submersion/features/planner/domain/services/dive_plan_state_mapp
 import 'package:submersion/features/planner/domain/services/tank_role_resolver.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_repository_providers.dart';
 import 'package:submersion/features/planner/domain/services/plan_breathing_tanks.dart';
+import 'package:submersion/features/cylinder_configs/domain/entities/cylinder_config_item.dart';
+import 'package:submersion/features/cylinder_configs/domain/services/dive_tank_config_adapter.dart';
+import 'package:submersion/features/cylinder_configs/domain/services/main_supply.dart';
 
 const _uuid = Uuid();
 
@@ -485,6 +488,77 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
       state.copyWith(tanks: tanks, isDirty: true, updatedAt: DateTime.now()),
     );
   }
+
+  /// Adds the cylinders an equipment set carries (issue #4525), each as a
+  /// plan tank with its gas, the way a saved cylinder is added.
+  ///
+  /// A plan that still holds only its untouched default tank gives it up
+  /// to a set that brings a main supply: the set says what the diver is
+  /// carrying. A set with only a stage or a deco cylinder adds it beside
+  /// the default tank, which stands in for the main gas. A cylinder the
+  /// plan already has (same role, size, pressure and mix) is not added
+  /// again, and one that is not breathing gas never joins a plan (issue
+  /// #4243). When nothing would change the plan is left as it is, unsaved
+  /// flag included.
+  void addSetCylinders(List<CylinderConfigItem> items) {
+    final breathing = [
+      for (final item in items)
+        if (item.tankRole.isBreathingGas) item,
+    ];
+    if (breathing.isEmpty) return;
+    const adapter = DiveTankConfigAdapter();
+    final onlyDefault =
+        state.tanks.length == 1 &&
+        state.tanks.single == defaultPlanTank(id: state.tanks.single.id) &&
+        bringsMainSupply(breathing);
+    final tanks = onlyDefault ? <DiveTank>[] : [...state.tanks];
+    var added = false;
+    for (final item in breathing) {
+      final tank = adapter.tankFromItem(
+        item,
+        id: _uuid.v4(),
+        order: tanks.length,
+      );
+      if (tanks.any((t) => _sameCylinder(t, tank))) continue;
+      tanks.add(tank);
+      added = true;
+    }
+    if (!added) return;
+    // Segments written on the default tank (a quick plan's) follow it out,
+    // as [removeTank] moves a removed tank's segments: onto the set's main
+    // cylinder, which is not always the first it lists.
+    var segments = state.segments;
+    if (onlyDefault) {
+      final replacedId = state.tanks.single.id;
+      final main = tanks.firstWhere(
+        (t) => mainSupplyRoles.contains(t.role),
+        orElse: () => tanks.first,
+      );
+      segments = [
+        for (final s in state.segments)
+          s.tankId == replacedId
+              ? s.copyWith(tankId: main.id, gasMix: main.gasMix)
+              : s,
+      ];
+    }
+    state = _withMissionSegments(
+      state.copyWith(
+        tanks: tanks,
+        segments: segments,
+        isDirty: true,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
+  static bool _sameCylinder(DiveTank a, DiveTank b) =>
+      a.role == b.role &&
+      a.gasMix == b.gasMix &&
+      _near(a.volume, b.volume, 0.01) &&
+      _near(a.workingPressure, b.workingPressure, 0.5);
+
+  static bool _near(double? a, double? b, double tolerance) =>
+      a == null || b == null ? a == b : (a - b).abs() <= tolerance;
 
   /// Replace the equipment attached to the plan (Gear & Weights, v104).
   ///

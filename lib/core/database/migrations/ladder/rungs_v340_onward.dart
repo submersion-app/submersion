@@ -180,5 +180,16 @@ extension RungsFromV340 on AppDatabase {
     // Renumbered from 362, which main took for #4461.
     if (from < 363) await _assertSiteCatalogueIdColumn();
     if (from < 363) await reportProgress();
+
+    // v364: what an equipment set carries besides gear (included sets,
+    // weight presets, cylinder configurations) and the body composition
+    // columns of the weight prediction (issue #4525). Tables and nullable
+    // columns only, no backfill: a set with none of the three and a diver
+    // with no body data are the correct starting state. Re-asserted in
+    // beforeOpen. Renumbered from 363, which main took for the site
+    // catalogue id.
+    if (from < 364) await _assertSetBundleTables();
+    if (from < 364) await _assertBodyCompositionColumns();
+    if (from < 364) await reportProgress();
   }
 }
