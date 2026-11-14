@@ -142,7 +142,7 @@ void main() {
           source: TermSource.bodyComposition,
         ),
       ];
-      final s = TwinSample(
+      const s = TwinSample(
         timestamp: 0,
         depthM: 5,
         suitKg: 3,
@@ -240,14 +240,14 @@ void main() {
 
     test('is never zero', () {
       final empty = _result(const [], statics: const [], withTank: false);
-      final verdict = TwinVerdict(
-        anchor: const TwinAnchor(
+      const verdict = TwinVerdict(
+        anchor: TwinAnchor(
           kind: TwinAnchorKind.convention,
           timestamp: -1,
           depthM: 5,
         ),
         netKg: 0,
-        terms: const [],
+        terms: [],
       );
       expect(TwinBalance.scaleKg(empty, verdict), greaterThan(0));
     });
