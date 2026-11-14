@@ -169,4 +169,35 @@ void main() {
     session.rebase(const _Rec(notes: 'a', depth: 3));
     expect(told, 3);
   });
+
+  test('revisionOf counts changes to a card and ignores no-ops', () {
+    final session = EditSession(const _Rec(notes: 'a'));
+    expect(session.revisionOf('notes'), 0);
+
+    session.set(_notes, 'b');
+    session.set(_notes, 'b');
+    session.set(_notes, 'c');
+
+    expect(session.revisionOf('notes'), 2);
+    expect(session.revisionOf('details'), 0);
+  });
+
+  test('revisionOf counts a change typed back to the stored value', () {
+    final session = EditSession(const _Rec(notes: 'a'))
+      ..set(_notes, 'b')
+      ..set(_notes, 'a');
+
+    expect(session.isDirty, isFalse);
+    expect(session.revisionOf('notes'), 2);
+  });
+
+  test('revisionOf is counted per card', () {
+    final session = EditSession(const _Rec(notes: 'a'))
+      ..set(_notes, 'b')
+      ..set(_depth, 4)
+      ..set(_depth, 5);
+
+    expect(session.revisionOf('notes'), 1);
+    expect(session.revisionOf('details'), 2);
+  });
 }

@@ -14,9 +14,11 @@ typedef RecordSave<T> = Future<void> Function(EditSession<T> session);
 ///
 /// It notifies when the lock, the open or added cards, the saving state, or
 /// the set of cards with changes changes, and when the stored record changes
-/// underneath. It does not notify for each further change to a card that
-/// already has one: a page listening here must not rebuild on every
-/// keystroke. An editor that needs every value listens to [session].
+/// underneath. It does not notify for each further change to an open card
+/// that already has one: a page listening here must not rebuild on every
+/// keystroke, and an open card's editor listens to [session] for every
+/// value. A card that is not open shows the page's copy of the record, so a
+/// change to it from elsewhere (a rule that spans cards) does notify.
 class RecordEditController<T> extends ChangeNotifier {
   RecordEditController({required this.onSave});
 
@@ -30,6 +32,10 @@ class RecordEditController<T> extends ChangeNotifier {
 
   /// The cards that had changes when listeners were last told.
   Set<String> _toldChangedCardIds = const {};
+
+  /// Each changed card's [EditSession.revisionOf] when listeners were last
+  /// told, or when the card was last opened or closed.
+  Map<String, int> _toldRevisions = {};
 
   bool get isUnlocked => _session != null;
 
@@ -52,6 +58,7 @@ class RecordEditController<T> extends ChangeNotifier {
   void unlock(T stored) {
     if (isUnlocked) return;
     _toldChangedCardIds = const {};
+    _toldRevisions = {};
     _session = EditSession<T>(stored)..addListener(_onSessionChanged);
     notifyListeners();
   }
@@ -69,8 +76,11 @@ class RecordEditController<T> extends ChangeNotifier {
   }
 
   void openCard(String cardId) {
-    if (!isUnlocked) return;
-    if (_openCardIds.add(cardId)) notifyListeners();
+    final session = _session;
+    if (session == null) return;
+    if (!_openCardIds.add(cardId)) return;
+    _toldRevisions[cardId] = session.revisionOf(cardId);
+    notifyListeners();
   }
 
   /// Closes [cardId]. A card that came from the Add strip and was given no
@@ -82,15 +92,21 @@ class RecordEditController<T> extends ChangeNotifier {
     final wasAdded =
         !session.changedCardIds.contains(cardId) &&
         _addedCardIds.remove(cardId);
-    if (wasOpen || wasAdded) notifyListeners();
+    if (!wasOpen && !wasAdded) return;
+    // What was typed while it was open is drawn by this notification.
+    _toldRevisions[cardId] = session.revisionOf(cardId);
+    notifyListeners();
   }
 
   /// Brings in a card the page was leaving out, already open.
   void addCard(String cardId) {
-    if (!isUnlocked) return;
+    final session = _session;
+    if (session == null) return;
     final added = _addedCardIds.add(cardId);
     final opened = _openCardIds.add(cardId);
-    if (added || opened) notifyListeners();
+    if (!added && !opened) return;
+    _toldRevisions[cardId] = session.revisionOf(cardId);
+    notifyListeners();
   }
 
   /// Tells the sitting the stored record changed underneath it.
@@ -100,15 +116,31 @@ class RecordEditController<T> extends ChangeNotifier {
     session.rebase(stored);
     // Cards the diver has not touched now show other values, whether or not
     // the set of changed cards moved.
-    _toldChangedCardIds = session.changedCardIds;
+    _rememberTold(session);
     notifyListeners();
   }
 
   void _onSessionChanged() {
-    final changed = _session?.changedCardIds ?? const <String>{};
-    if (setEquals(changed, _toldChangedCardIds)) return;
-    _toldChangedCardIds = changed;
+    final session = _session;
+    if (session == null) return;
+    final changed = session.changedCardIds;
+    final setMoved = !setEquals(changed, _toldChangedCardIds);
+    // A card that is not open changed again: nothing else will redraw it.
+    final closedCardMoved = changed.any(
+      (id) =>
+          !_openCardIds.contains(id) &&
+          session.revisionOf(id) != _toldRevisions[id],
+    );
+    if (!setMoved && !closedCardMoved) return;
+    _rememberTold(session);
     notifyListeners();
+  }
+
+  /// Records what listeners are about to be told about the changed cards.
+  void _rememberTold(EditSession<T> session) {
+    final changed = session.changedCardIds;
+    _toldChangedCardIds = changed;
+    _toldRevisions = {for (final id in changed) id: session.revisionOf(id)};
   }
 
   /// Writes the sitting and locks. False when nothing was saved: the page

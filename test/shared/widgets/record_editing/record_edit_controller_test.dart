@@ -32,6 +32,13 @@ final _notes = EditField<_Rec, String>(
   write: (r, v) => r.copyWith(notes: v),
 );
 
+final _depth = EditField<_Rec, int>(
+  id: 'depth',
+  cardId: 'details',
+  read: (r) => r.depth,
+  write: (r, v) => r.copyWith(depth: v),
+);
+
 RecordEditController<_Rec> _controller({
   Future<void> Function(EditSession<_Rec> session)? onSave,
 }) {
@@ -99,8 +106,11 @@ void main() {
 
   // A page rebuilds when its controller notifies. Typing must not do that
   // on every keystroke: only a change in which cards have changes does.
-  test('more changes on a card already changed do not notify again', () {
-    final controller = _controller()..unlock(const _Rec(notes: 'a'));
+  // Typing happens in an open card, whose editor follows the session itself.
+  test('more changes on an open card already changed do not notify again', () {
+    final controller = _controller()
+      ..unlock(const _Rec(notes: 'a'))
+      ..openCard('notes');
     var told = 0;
     controller.addListener(() => told++);
 
@@ -114,6 +124,58 @@ void main() {
     controller.session!.set(_notes, 'a');
     expect(told, 2);
     expect(controller.isDirty, isFalse);
+  });
+
+  // A closed card shows the page's copy of the record. When a rule changes
+  // it from outside (a weather fetch filling a pressure, a site choice), the
+  // page has to draw it again even though it already carried a change.
+  test('a change to a closed card that is already changed notifies', () {
+    final controller = _controller()
+      ..unlock(const _Rec())
+      ..openCard('notes');
+    controller.session!.set(_depth, 5);
+    var told = 0;
+    controller.addListener(() => told++);
+
+    controller.session!.set(_depth, 6);
+
+    expect(told, 1);
+  });
+
+  test('closing a card does not replay its own typing as a change', () {
+    final controller = _controller()
+      ..unlock(const _Rec())
+      ..openCard('notes')
+      ..openCard('details');
+    controller.session!
+      ..set(_depth, 5)
+      ..set(_notes, 'b')
+      ..set(_notes, 'bc')
+      ..set(_notes, 'bcd');
+    controller.closeCard('notes');
+    var told = 0;
+    controller.addListener(() => told++);
+
+    // Typing in the card that is still open. Notes is closed now and was
+    // typed in three times while open; closing it drew that, so nothing is
+    // owed for it here.
+    controller.session!.set(_depth, 6);
+
+    expect(told, 0);
+  });
+
+  test('an open card changed from outside does not notify the page', () {
+    final controller = _controller()
+      ..unlock(const _Rec())
+      ..openCard('details');
+    controller.session!.set(_depth, 5);
+    var told = 0;
+    controller.addListener(() => told++);
+
+    // Its editor follows the session itself.
+    controller.session!.set(_depth, 6);
+
+    expect(told, 0);
   });
 
   test('storedChanged notifies once when the stored record differs', () {

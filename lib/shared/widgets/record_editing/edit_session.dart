@@ -18,6 +18,9 @@ class EditSession<T> extends ChangeNotifier {
   /// Pending changes by field id, in the order they were first made.
   final Map<String, _Pending<T>> _pending = {};
 
+  /// How many times each card's pending values have changed, by card id.
+  final Map<String, int> _revisions = {};
+
   /// The record as stored, as of the last [rebase].
   T get stored => _stored;
 
@@ -30,6 +33,11 @@ class EditSession<T> extends ChangeNotifier {
   Set<String> get changedCardIds => {
     for (final pending in _pending.values) pending.cardId,
   };
+
+  /// How many times [set] has changed or cleared a pending value of a field
+  /// [cardId] owns. It only ever goes up, so a listener that remembers it
+  /// can tell that a card's values moved without comparing them.
+  int revisionOf(String cardId) => _revisions[cardId] ?? 0;
 
   /// The pending value of [field], or the stored one when it is unchanged.
   V valueOf<V>(EditField<T, V> field) {
@@ -45,7 +53,7 @@ class EditSession<T> extends ChangeNotifier {
     if (field.same(value, field.read(_stored))) {
       if (current == null) return;
       _pending.remove(field.id);
-      notifyListeners();
+      _changed(field.cardId);
       return;
     }
     if (current != null && field.same(value, current.value as V)) return;
@@ -55,6 +63,11 @@ class EditSession<T> extends ChangeNotifier {
       apply: (record) => field.write(record, value),
       matches: (record) => field.same(value, field.read(record)),
     );
+    _changed(field.cardId);
+  }
+
+  void _changed(String cardId) {
+    _revisions[cardId] = revisionOf(cardId) + 1;
     notifyListeners();
   }
 
