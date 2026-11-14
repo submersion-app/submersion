@@ -1,7 +1,8 @@
 # Site catalogue: open-register expansion (slice 2)
 
 Date: 2026-11-14
-Status: draft for approval
+Status: approved 2026-11-14; first harvest shipped 21,218 records (see
+"Result of the first harvest")
 Program: `2026-11-13-site-catalogue-program.md`
 Issue: #4514
 
@@ -180,6 +181,38 @@ records. About 3,800 are dive site records and 17,600 register records.
 will not reproduce these numbers exactly. When a source lands more than a
 tenth away from its expected count, the PR says why. The asset test pins the
 exact total only after the harvest is final.
+
+### Result of the first harvest (2026-11-14)
+
+The harvest wrote 21,218 records: 3,928 dive site records and 17,290
+register records.
+
+| Source | Expected | Written | Why it differs |
+|---|---|---|---|
+| OpenStreetMap dive sites | 3,400 | 3,468 | |
+| Curated | 55 | 55 | |
+| UKHO Global Wrecks | 8,300 | 8,156 | |
+| Florida FWC reefs | 3,200 | 3,528 | The prototype matched names more loosely and merged more deployments |
+| Other states' reefs, federal file | 2,300 | 2,297 | |
+| OpenStreetMap wrecks | 1,050 | 947 | Wrecks that show at low tide are dropped too; 39 were named only "wreck" in another language |
+| Wikidata | 1,170 | 1,064 | |
+| New Jersey reefs | 600 | 615 | |
+| NOAA AWOIS | 560 | 471 | The register writes "Wreck - Visible"; 61 such rows and 87 reported removed are gated |
+| Ireland wreck inventory | 500 | 435 | 154 are the same wreck as a UKHO record, which is kept |
+| Florida Keys moorings | 92 | 96 | |
+| North Carolina reefs | 55 | 55 | |
+| Hawaii, Texas reefs | 45 | 31 | 20 Hawaii rows are corner markers of a reef area, not structures |
+
+Of the 3,667 ids shipped before, 334 are gone, all from OpenStreetMap: 260
+are businesses, 71 are no longer in OpenStreetMap and 3 have lost their
+name. No curated id is gone. 283 dive sites that had no position now have
+one.
+
+Rules the harvest added to the ones above, each found in the real data: a
+register row that repeats an id ships once; a name of a single letter or
+digit is a placeholder; the corner markers of a reef area are not
+structures; and the word for a wreck alone, in any language OpenStreetMap is
+mapped in ("Wrack", "Naufragio", "Épave"), is a placeholder.
 
 At 28,369 records (the larger, rejected set), on a desktop in a debug build:
 import took 268 ms to parse and name seas and 269 ms to insert (72 ms and

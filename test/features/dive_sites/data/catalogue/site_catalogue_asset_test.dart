@@ -162,6 +162,20 @@ void main() {
     expect(thistlegorm.single['kind'], isNull);
   });
 
+  test('the dive businesses the last catalogue listed as sites are gone', () {
+    // Dive centres, shops and a dive hotel that OpenStreetMap tags with the
+    // sport, which the last catalogue shipped as places to dive.
+    const businesses = {
+      'osm_node_2678338322', // Blue Coral Diving, a travel agency
+      'osm_node_4694084262', // Bali Dive Trek, a sports centre
+      'osm_node_12374075315', // Twin Island Dive, a shop
+      'osm_node_4432316400', // Murex Dive, a hotel
+      'osm_node_3842620651', // Centre de Plongée Souterraine
+    };
+
+    expect(sites.map((s) => s['id']).toSet().intersection(businesses), isEmpty);
+  });
+
   test('register depths are ones a diver can reach', () {
     for (final site in sites.where((s) => s['kind'] == 'register')) {
       final id = site['id'] as String;
