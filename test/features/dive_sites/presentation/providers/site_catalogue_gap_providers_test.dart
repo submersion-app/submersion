@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -51,6 +53,39 @@ class _Service extends CatalogueGapService {
     if (isCancelled != null) cancelChecks.add(isCancelled);
     return pairs;
   }
+}
+
+/// Preferences whose writes land only when the test says so, the way a
+/// slow platform channel would let them.
+class _SlowPrefs implements SharedPreferences {
+  final sent = <List<String>>[];
+  final _waiting = <(Completer<bool>, List<String>)>[];
+  List<String>? stored;
+
+  @override
+  List<String>? getStringList(String key) => null;
+
+  @override
+  Future<bool> setStringList(String key, List<String> value) {
+    sent.add(value);
+    final completer = Completer<bool>();
+    _waiting.add((completer, value));
+    return completer.future;
+  }
+
+  void finishNext() {
+    final (completer, value) = _waiting.removeAt(0);
+    stored = value;
+    completer.complete(true);
+  }
+
+  void failNext() {
+    final (completer, _) = _waiting.removeAt(0);
+    completer.completeError(StateError('disk full'));
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 void main() {
@@ -165,6 +200,43 @@ void main() {
         ..dismiss([_pair('b').key]);
 
       expect(c.read(catalogueGapNoticeSeenProvider), {_pair('b').key});
+    });
+
+    test('a second dismissal is written only after the first', () async {
+      final slow = _SlowPrefs();
+      final notifier = CatalogueGapNoticeNotifier(slow, 'd1');
+
+      notifier.dismiss(['a']);
+      notifier.dismiss(['b']);
+      await Future<void>.delayed(Duration.zero);
+      // The first write is still under way: the second has not been sent,
+      // so it cannot finish first and be overwritten by the older value.
+      expect(slow.sent, [
+        ['a'],
+      ]);
+
+      slow.finishNext();
+      await Future<void>.delayed(Duration.zero);
+      slow.finishNext();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(slow.stored, ['b']);
+      expect(notifier.state, {'b'});
+    });
+
+    test('a failed write does not hold up the next', () async {
+      final slow = _SlowPrefs();
+      final notifier = CatalogueGapNoticeNotifier(slow, 'd1');
+
+      notifier.dismiss(['a']);
+      notifier.dismiss(['b']);
+      await Future<void>.delayed(Duration.zero);
+      slow.failNext();
+      await Future<void>.delayed(Duration.zero);
+      slow.finishNext();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(slow.stored, ['b']);
     });
 
     test("one diver's dismissal is not another's", () async {

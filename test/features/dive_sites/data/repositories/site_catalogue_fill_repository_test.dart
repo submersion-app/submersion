@@ -491,6 +491,24 @@ void main() {
       expect(stamper.stamped.single.fields, isNot(contains('description')));
     });
 
+    test('that may not be edited takes no answer either', () async {
+      await seedLibrarySite();
+      fills = SiteCatalogueFillRepository(stamper: _Stamper(allow: false));
+      await clearPendingMarks(db);
+
+      await fills.updateAnswers(
+        'club',
+        (current) => current.withNotSame('r1'),
+        actingDiverId: 'd1',
+      );
+
+      expect(
+        (await stored('club')).catalogueAnswers,
+        SiteCatalogueAnswers.empty,
+      );
+      expect(await pendingCount(db, 'diveSites', 'club'), 0);
+    });
+
     test('that may not be edited is left alone', () async {
       await seedLibrarySite();
       final stamper = _Stamper(allow: false);

@@ -102,28 +102,31 @@ class CatalogueGapNoticeNotifier extends StateNotifier<Set<String>> {
   final SharedPreferences _prefs;
   final String? _diverId;
 
+  /// Writes are sent one after another, so a later dismissal can never be
+  /// stored before an earlier one and then be overwritten by it.
+  Future<void> _writes = Future.value();
+
   /// Remembers [keys] as the pairs the diver has seen the notice for,
   /// replacing what was remembered: a pair that has since left the list
   /// need not be kept.
   void dismiss(Iterable<String> keys) {
     final next = keys.toSet();
     state = next;
-    unawaited(
-      _prefs
-          .setStringList(
-            catalogueGapNoticeSeenPrefsKeyFor(_diverId),
-            next.toList(),
-          )
-          .then<void>((_) {})
-          .catchError((Object error, StackTrace stackTrace) {
-            _log.warning(
-              'Could not remember the dismissed catalogue notice; it will '
-              'show again on the next launch',
-              error: error,
-              stackTrace: stackTrace,
-            );
-          }),
-    );
+    _writes = _writes.then((_) async {
+      try {
+        await _prefs.setStringList(
+          catalogueGapNoticeSeenPrefsKeyFor(_diverId),
+          next.toList(),
+        );
+      } catch (error, stackTrace) {
+        _log.warning(
+          'Could not remember the dismissed catalogue notice; it will '
+          'show again on the next launch',
+          error: error,
+          stackTrace: stackTrace,
+        );
+      }
+    });
   }
 }
 

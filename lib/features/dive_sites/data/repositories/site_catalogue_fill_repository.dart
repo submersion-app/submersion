@@ -220,13 +220,19 @@ class SiteCatalogueFillRepository {
 
   /// Rewrites what the diver has settled about catalogue records for
   /// [siteId] with [change], and marks the site for sync. A change that
-  /// leaves the answers as they were writes nothing.
+  /// leaves the answers as they were writes nothing, and so does one for a
+  /// shared library site this profile may not edit: such a site takes no
+  /// part in pairing, whatever the caller still holds from before it lost
+  /// the right.
   Future<void> updateAnswers(
     String siteId,
     SiteCatalogueAnswers Function(SiteCatalogueAnswers current) change, {
     String? actingDiverId,
   }) async {
     try {
+      if (!await _stamper.mayEdit(siteId, actingDiverId: actingDiverId)) {
+        return;
+      }
       final now = DateTime.now().millisecondsSinceEpoch;
       String? link;
       var librarySite = false;

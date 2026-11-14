@@ -340,6 +340,42 @@ void main() {
     expect(ticked(tester, 'Hilma Hooker'), isTrue);
   });
 
+  testWidgets('a site paired with a different record is reviewed afresh', (
+    tester,
+  ) async {
+    // The diver ticks the nearby pair and chooses its fields.
+    await pump(tester, pairs: [_thistlegorm]);
+    await tester.tap(checkboxFor('Thistlegorm'));
+    await tester.pump();
+    container
+        .read(catalogueGapReviewProvider.notifier)
+        .setFields('wreck', const {});
+    expect(ticked(tester, 'Thistlegorm'), isTrue);
+
+    // A catalogue import lands: the same site now pairs with another record.
+    final other = CataloguePair(
+      site: _thistlegorm.site,
+      record: const CatalogueSite(
+        id: 'r_other',
+        name: 'Tug Boat',
+        location: _here,
+        maxDepth: 12,
+        source: 'osm',
+      ),
+      kind: CataloguePairKind.nearby,
+      fields: const {CatalogueGapField.depth},
+      distanceMeters: 60,
+    );
+    container.read(_pairs.notifier).state = [other];
+    await tester.pumpAndSettle();
+
+    expect(ticked(tester, 'Thistlegorm'), isFalse);
+    expect(
+      container.read(catalogueGapReviewProvider).fieldsFor(other),
+      other.fields,
+    );
+  });
+
   testWidgets('a pair that appears later is seeded like the first ones', (
     tester,
   ) async {

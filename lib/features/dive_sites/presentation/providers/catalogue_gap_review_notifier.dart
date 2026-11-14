@@ -70,6 +70,12 @@ class CatalogueGapReviewNotifier
   /// before keeps whatever tick the diver left it with.
   final Set<String> _seeded = {};
 
+  /// The record each listed site was last paired with. A tick and a choice
+  /// of fields are a decision about that record: when a site turns up
+  /// paired with another one, both are dropped and the pair is seeded
+  /// afresh.
+  Map<String, String> _recordBySite = const {};
+
   static String _seedKey(CataloguePair pair) =>
       '${pair.site.id}|${pair.record.id}';
 
@@ -77,7 +83,15 @@ class CatalogueGapReviewNotifier
     // While the pairs are being found again the rows stay as they are.
     final pairs = next.value;
     if (pairs == null || !mounted) return;
-    final present = {for (final pair in pairs) pair.site.id};
+    final recordBySite = {
+      for (final pair in pairs) pair.site.id: pair.record.id,
+    };
+    // Sites still listed against the record the diver last saw them with.
+    final present = {
+      for (final entry in recordBySite.entries)
+        if ((_recordBySite[entry.key] ?? entry.value) == entry.value) entry.key,
+    };
+    _recordBySite = recordBySite;
     final ticked = state.ticked.intersection(present);
     for (final pair in pairs) {
       if (_seeded.add(_seedKey(pair)) && pair.preTicked) {
