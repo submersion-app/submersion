@@ -7,8 +7,10 @@
 **Architecture:** "Keep all" is a sentinel count in the existing `retentionCount`
 setting, so pruning code is untouched and older builds keep everything. A new
 retention picker dialog replaces the plain choice list for the Keep tile. The
-Back up now dialog returns a `pin` flag, and the operation notifier pins the new
-record through `BackupService.pinBackup`.
+Back up now dialog returns a `pin` flag, which the operation notifier passes to
+`BackupService.performBackup(pin:)`: the service records the backup already
+pinned and writes its cross-device pin marker, so no prune ever sees it
+unpinned.
 
 **Tech Stack:** Flutter, Riverpod, SharedPreferences, ARB l10n.
 

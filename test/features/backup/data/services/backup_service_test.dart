@@ -20,12 +20,15 @@ import 'package:submersion/features/backup/data/repositories/backup_preferences.
 import 'package:submersion/features/backup/data/services/backup_attribution.dart';
 import 'package:submersion/features/backup/data/services/backup_copy_guard.dart';
 import 'package:submersion/features/backup/data/services/backup_crypto.dart';
+import 'package:submersion/features/backup/data/services/backup_pin_markers.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
+import 'package:submersion/features/backup/data/services/cross_device_retention.dart';
 import 'package:submersion/features/backup/domain/entities/backup_record.dart';
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/backup_type.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 
+import '../../../../helpers/fake_cloud_storage_provider.dart' as listing;
 import '../../../../helpers/mock_channels.dart';
 
 // =============================================================================
@@ -91,6 +94,20 @@ class _FixedDeviceIdSyncRepository extends SyncRepository {
 
   @override
   Future<String> getDeviceId() async => deviceId;
+}
+
+/// A device with an id and a sync account, so a cloud copy it makes is "here"
+/// and its pin markers carry its tag (issue #4535).
+class _PinningDevice extends SyncRepository {
+  _PinningDevice(this.deviceId);
+
+  final String deviceId;
+
+  @override
+  Future<String> getDeviceId() async => deviceId;
+
+  @override
+  Future<String?> getSyncAccountId() async => 'acct';
 }
 
 /// Spy sync repository: records the post-restore re-baseline without touching a
@@ -580,6 +597,78 @@ void main() {
           pin: true,
         );
         expect(record.pinned, isFalse);
+      });
+
+      group('with a cloud copy', () {
+        // The shared fake lists what it stores, so markers can be read back.
+        late listing.FakeCloudStorageProvider folder;
+
+        BackupService device(String id) => BackupService(
+          dbAdapter: fakeDb,
+          preferences: preferences,
+          cloudProvider: folder,
+          syncRepository: _PinningDevice(id),
+        );
+
+        setUp(() async {
+          folder = listing.FakeCloudStorageProvider();
+          await preferences.setCloudBackupEnabled(true);
+        });
+
+        test('writes this device\'s pin marker for this backup', () async {
+          final record = await device('dev-A').performBackup(pin: true);
+          expect(record.cloudFileId, isNotNull);
+          final markers = [
+            for (final f in await folder.listFiles()) ?parsePinMarker(f.name),
+          ];
+          expect(markers, hasLength(1));
+          expect(markers.single.backupStem, backupStem(record.filename));
+          expect(markers.single.deviceTag, deviceTag('dev-A'));
+        });
+
+        // The prune at the end of every backup also reconciles markers, but
+        // only from a listing; the marker is written without one.
+        test('writes the marker when the folder cannot be listed', () async {
+          folder.failLists = true;
+          final record = await device('dev-A').performBackup(pin: true);
+          expect(record.cloudFileId, isNotNull);
+          expect(
+            folder.bytesOf(
+              pinMarkerName(
+                backupFilename: record.filename,
+                pinningDeviceId: 'dev-A',
+              ),
+            ),
+            isNotNull,
+          );
+        });
+
+        test('an unpinned backup writes no marker', () async {
+          await device('dev-A').performBackup();
+          final names = [for (final f in await folder.listFiles()) f.name];
+          expect(names.where((n) => parsePinMarker(n) != null), isEmpty);
+        });
+
+        test('another device pruning across devices keeps it', () async {
+          await preferences.setRetentionCount(1);
+          final kept = await device('dev-A').performBackup(pin: true);
+          await device('dev-A').performBackup(isAutomatic: true);
+          await device('dev-A').performBackup(isAutomatic: true);
+
+          // Device B has no record of the pin; only the marker tells it.
+          final plan = planCrossDeviceRetention(
+            listing: await folder.listFiles(),
+            keepCount: 1,
+            locallyPinnedStems: const {},
+            locallyPinnedFileIds: const {},
+            thisDeviceId: 'dev-B',
+            now: DateTime.now(),
+          );
+          expect(
+            plan.toDelete.map((c) => c.file.id),
+            isNot(contains(kept.cloudFileId)),
+          );
+        });
       });
 
       test('a pinned backup outlives the prunes of later backups', () async {
