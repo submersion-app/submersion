@@ -21,7 +21,7 @@ import urllib.request
 from pathlib import Path
 
 NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/reverse"
-NOMINATIM_USER_AGENT = "DiveSiteHarvester/1.0 (Submersion Dive Log App)"
+NOMINATIM_USER_AGENT = "dive-site-harvester/1.0"
 # Nominatim allows at most one request a second.
 NOMINATIM_MIN_INTERVAL = 1.1
 

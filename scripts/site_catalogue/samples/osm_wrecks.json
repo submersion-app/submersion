@@ -1,0 +1,161 @@
+{
+ "elements": [
+  {
+   "type": "node",
+   "id": 105399696,
+   "lat": 54.5732536,
+   "lon": 10.3931112,
+   "tags": {
+    "historic": "wreck",
+    "name": "Sten Trans",
+    "scuba_diving:divespot": "yes",
+    "seamark:type": "wreck",
+    "sport": "scuba_diving",
+    "wreck:depth": "20m",
+    "wreck:length": "65m"
+   }
+  },
+  {
+   "type": "node",
+   "id": 283360371,
+   "lat": 51.8694467,
+   "lon": -5.2143587,
+   "tags": {
+    "historic": "wreck",
+    "name": "Three tugs",
+    "seamark:type": "wreck",
+    "wreck:visible_at_high_tide": "yes",
+    "wreck:visible_at_low_tide": "yes"
+   }
+  },
+  {
+   "type": "node",
+   "id": 331325152,
+   "lat": 49.3463399,
+   "lon": -0.565956,
+   "tags": {
+    "historic": "wreck",
+    "name": "Epave du Marcia 1888",
+    "seamark:name": "Marcia 1888",
+    "seamark:type": "wreck",
+    "seamark:wreck:category": "hull_showing"
+   }
+  },
+  {
+   "type": "node",
+   "id": 455926943,
+   "lat": 51.4665615,
+   "lon": 0.7848663,
+   "tags": {
+    "access": "no",
+    "historic": "wreck",
+    "name": "SS Richard Montgomery",
+    "seamark:type": "wreck",
+    "seamark:wreck:category": "dangerous",
+    "url": "http://www.mcga.gov.uk/c4mca/mcga-environmental/mcga-dops_row_receiver_of_wreck/dops_receiver-of-wreck_richard-montgomery.htm",
+    "wikidata": "Q7394285",
+    "wikipedia": "en:SS Richard Montgomery",
+    "wreck:date_sunk": "1944-08-25",
+    "wreck:visible_at_low_tide": "yes"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3701621597,
+   "lat": 44.5791196,
+   "lon": 9.236874,
+   "tags": {
+    "name": "Relitto di automobile",
+    "wreck": "yes",
+    "wreck:type": "car"
+   }
+  },
+  {
+   "type": "node",
+   "id": 270525194,
+   "lat": 50.6829569,
+   "lon": -0.5875117,
+   "tags": {
+    "historic": "wreck",
+    "name": "Shirala",
+    "position:accuracy": "50m",
+    "position:date_surveyed": "2008-06-15",
+    "seamark:type": "wreck",
+    "source": "dive_boat",
+    "wreck:clearance": "20m",
+    "wreck:depth": "22m",
+    "wreck:visible_at_high_tide": "no",
+    "wreck:visible_at_low_tide": "no"
+   }
+  },
+  {
+   "type": "node",
+   "id": 330610844,
+   "lat": 54.521617,
+   "lon": 13.699233,
+   "tags": {
+    "depth": "12.2",
+    "depth:exposition": "within_range",
+    "depth:source_quality": "least_depth_known",
+    "depth:technique": "echo;multi-beam;diver;acoustic;sonar",
+    "historic": "wreck",
+    "name": "Sturmvogel",
+    "seamark:lnam": "00B4000010F11389",
+    "seamark:type": "wreck",
+    "seamark:wreck:category": "dangerous",
+    "seamark:wreck:water_level": "submerged"
+   }
+  },
+  {
+   "type": "node",
+   "id": 44933809,
+   "lat": -35.0038981,
+   "lon": 150.8295169,
+   "tags": {
+    "historic": "wreck",
+    "name": "SS Merimbula",
+    "seamark:type": "wreck",
+    "website": "https://www.environment.nsw.gov.au/MaritimeHeritage/researchcentre/wreckmerimbula.htm",
+    "wreck:date_sunk": "1928"
+   }
+  },
+  {
+   "type": "way",
+   "id": 101368127,
+   "center": {
+    "lat": 50.8393317,
+    "lon": -0.9784284
+   },
+   "tags": {
+    "historic": "wreck",
+    "name": "Langstone",
+    "seamark:type": "wreck",
+    "wreck:visible_at_high_tide": "no",
+    "wreck:visible_at_low_tide": "yes"
+   }
+  },
+  {
+   "type": "node",
+   "id": 295839258,
+   "lat": 55.346,
+   "lon": 14.7545,
+   "tags": {
+    "historic": "wreck",
+    "name": "Fu Shan Hai",
+    "seamark:type": "wreck",
+    "website": "https://www.fushanhai.dk/",
+    "website:casualty_report": "http://soefart.inforce.dk/graphics/synkron-library/dma/uk_pdf/casualtyreports/fu_shan_hai_gdnynia.pdf",
+    "website:owner": "http://www.cosbulk.com/",
+    "wreck:cargo": "fertilizer",
+    "wreck:date_commissioned": "1995",
+    "wreck:date_sunk": "20030531T2049A",
+    "wreck:depth": "69m",
+    "wreck:gross_tonnage": "38,603t",
+    "wreck:length": "225m",
+    "wreck:visible_at_high_tide": "no",
+    "wreck:visible_at_low_tide": "no",
+    "wreck:width": "32.2m"
+   }
+  }
+ ]
+}

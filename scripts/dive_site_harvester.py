@@ -61,7 +61,7 @@ OUTPUT_FORMAT = "submersion"
 # Reverse geocoding configuration
 ENABLE_REVERSE_GEOCODING = True
 NOMINATIM_ENDPOINT = "https://nominatim.openstreetmap.org/reverse"
-NOMINATIM_USER_AGENT = "DiveSiteHarvester/1.0 (Submersion Dive Log App)"
+NOMINATIM_USER_AGENT = "dive-site-harvester/1.0"
 NOMINATIM_MIN_INTERVAL = 1.1  # Nominatim requires max 1 request/second
 
 # OSM tags to query for dive sites
