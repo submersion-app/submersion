@@ -238,4 +238,26 @@ void main() {
     expect(text(tester, diluent.key), '3');
     expect(find.textContaining('(L)'), findsOneWidget);
   });
+
+  testWidgets('a unit picked over unreadable text is still reported', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      field(
+        gauge,
+        current: EquipmentAttribute.curated(
+          equipmentId: 'g1',
+          key: gauge.key,
+          valueNum: 300,
+        ),
+      ),
+    );
+    await tester.enterText(input(gauge.key), '3..0');
+    emitted.clear();
+    await pick(tester, gauge.key, 'psi');
+
+    expect(emitted, isNotEmpty);
+    expect(emitted.last.valueUnit, 'psi');
+  });
 }

@@ -240,23 +240,16 @@ String attributeUnitLabel(
 /// through [UnitFormatter] (the passport card and printed labels). Anything
 /// else they show keeps the diver's units.
 UnitFormatter cylinderSpecUnits(EquipmentItem item, UnitFormatter units) {
-  EquipmentAttribute? own(String key) {
-    for (final a in item.attributes) {
-      if (!a.isCustom && a.key == key) return a;
-    }
-    return null;
-  }
-
   final volumeDef = EquipmentAttributeCatalog.defFor(EquipmentAttrKeys.volumeL);
   final pressureDef = EquipmentAttributeCatalog.defFor(
     EquipmentAttrKeys.workingPressureBar,
   );
   final volume = volumeDef == null
       ? null
-      : parseAttributeUnit(volumeDef, own(volumeDef.key)?.valueUnit);
+      : parseAttributeUnit(volumeDef, item.attr(volumeDef.key)?.valueUnit);
   final pressure = pressureDef == null
       ? null
-      : parseAttributeUnit(pressureDef, own(pressureDef.key)?.valueUnit);
+      : parseAttributeUnit(pressureDef, item.attr(pressureDef.key)?.valueUnit);
   if (volume == null && pressure == null) return units;
   return UnitFormatter(
     UnitFormatterSettingsOverride(

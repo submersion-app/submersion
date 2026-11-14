@@ -134,7 +134,9 @@ class _EquipmentNumberAttributeFieldState
     );
   }
 
-  void _emit(String text) {
+  /// Reports [text] read in the unit in force; false when it is unreadable
+  /// and nothing was reported.
+  bool _emit(String text) {
     final trimmed = text.trim();
     if (trimmed.isEmpty) {
       if (_unitName == null) {
@@ -142,7 +144,7 @@ class _EquipmentNumberAttributeFieldState
       } else {
         widget.onChanged(_base.copyWith(clearValueNum: true));
       }
-      return;
+      return true;
     }
     // Read in the diver's locale, matching how the field is seeded: a blanket
     // replaceAll(',', '.') would misread the en_US thousands separator,
@@ -154,15 +156,17 @@ class _EquipmentNumberAttributeFieldState
     // Non-empty but unreadable (transient like "-", or invalid): keep the
     // last pending value rather than dropping the field; the validator shows
     // why (#1900).
-    if (parsed != null) {
-      widget.onChanged(_base.copyWith(valueNum: _metric(parsed)));
-    }
+    if (parsed == null) return false;
+    widget.onChanged(_base.copyWith(valueNum: _metric(parsed)));
+    return true;
   }
 
   void _pick(AttributeUnit? unit) {
     if (unit == null) return;
     setState(() => _unitName = unit.name);
-    _emit(_controller.text);
+    // Over unreadable text the number stays as it was, but the unit picked
+    // must still reach the form, or the save would drop it.
+    if (!_emit(_controller.text)) widget.onChanged(_base);
   }
 
   @override

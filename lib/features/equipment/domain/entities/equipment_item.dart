@@ -70,6 +70,13 @@ class EquipmentItem extends Equatable {
   /// Curated attribute lookup helpers. Legacy field names are preserved as
   /// getters so existing consumers (weight planner, CSV export, detail page)
   /// read from the attribute store transparently.
+  EquipmentAttribute? attr(String key) {
+    for (final a in attributes) {
+      if (!a.isCustom && a.key == key) return a;
+    }
+    return null;
+  }
+
   String? attrText(String key) {
     for (final a in attributes) {
       if (!a.isCustom && a.key == key) return a.valueText;
