@@ -56,7 +56,9 @@ class FigureNameLabel extends StatelessWidget {
       context,
     ).scale(style.fontSize ?? 12);
     final lineHeight = fontSize * (style.height ?? 1.34);
-    return math.max(40, lineHeight * (pill ? 1 : 2) + 10);
+    // Two lines in a pill as in a phone column, so a pill in a narrow wide
+    // column wraps its name rather than cutting it short (issue #4553).
+    return math.max(40, lineHeight * 2 + 10);
   }
 
   static double _measure(
@@ -76,11 +78,10 @@ class FigureNameLabel extends StatelessWidget {
     return width;
   }
 
-  /// Two lines in a column, unless one word is wider than a line: wrapping
-  /// would then split the word mid-letter, so the name takes one line and
-  /// ends in an ellipsis instead.
+  /// Two lines, in a pill or a column, unless one word is wider than a
+  /// line: wrapping would then split the word mid-letter, so the name takes
+  /// one line and ends in an ellipsis instead.
   int _linesFor(BuildContext context, double lineWidth, TextStyle style) {
-    if (pill) return 1;
     final direction = Directionality.of(context);
     final scaler = MediaQuery.textScalerOf(context);
     final longestWord = text

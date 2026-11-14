@@ -286,6 +286,38 @@ void main() {
       }
     });
 
+    testWidgets('a wide pill may wrap its name to two lines', (tester) async {
+      // Just over the breakpoint each label column is narrow, so a long
+      // name wraps rather than ending in an ellipsis, as on a phone.
+      await pump(tester, reef, width: 620, labelText: (p) => 'Abcd Efgh');
+      for (final id in ['mask', 'bcd', 'fins', 'tank']) {
+        final text = tester.widget<Text>(
+          find.descendant(of: label(id), matching: find.byType(Text)).last,
+        );
+        expect(text.maxLines, 2, reason: id);
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.descendant(of: label(id), matching: find.byType(RichText)).last,
+        );
+        expect(paragraph.didExceedMaxLines, isFalse, reason: id);
+      }
+    });
+
+    testWidgets('a word too long for a pill truncates instead of splitting', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        reef,
+        width: 620,
+        labelText: (p) => 'Supercalifragilistic Perdix',
+      );
+      final text = tester.widget<Text>(
+        find.descendant(of: label('mask'), matching: find.byType(Text)).last,
+      );
+      expect(text.maxLines, 1);
+      expect(text.overflow, TextOverflow.ellipsis);
+    });
+
     testWidgets('large text widens the pill instead of cutting the name', (
       tester,
     ) async {
