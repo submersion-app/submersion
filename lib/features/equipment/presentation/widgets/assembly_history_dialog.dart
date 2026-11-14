@@ -76,15 +76,25 @@ Future<AssemblyHistoryChoice?> askAssemblyHistory(
 );
 
 /// The same question for a change to the members of set [setId].
+/// [alsoSetIds] are the sets that include it and so carry its gear on
+/// their own dives (issue #4525); their logged dives are counted too.
 Future<AssemblyHistoryChoice?> askSetHistory(
   BuildContext context,
   WidgetRef ref, {
   required String setId,
-}) => _askWithCount(
-  context,
-  ref.read(diveRepositoryProvider).countLoggedDivesWithSet(setId),
-  AssemblyHistoryChange.setMembers,
-);
+  List<String> alsoSetIds = const [],
+}) {
+  final dives = ref.read(diveRepositoryProvider);
+  Future<int> count() async {
+    var total = 0;
+    for (final id in {setId, ...alsoSetIds}) {
+      total += await dives.countLoggedDivesWithSet(id);
+    }
+    return total;
+  }
+
+  return _askWithCount(context, count(), AssemblyHistoryChange.setMembers);
+}
 
 Future<AssemblyHistoryChoice?> _askWithCount(
   BuildContext context,

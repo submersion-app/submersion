@@ -247,4 +247,72 @@ void main() {
       }
     });
   });
+
+  group('a set that includes another (issue #4525)', () {
+    setUp(() async {
+      // "winter" now includes "base", which holds the regulator.
+      await db
+          .into(db.equipmentSets)
+          .insert(
+            EquipmentSetsCompanion.insert(
+              id: 'base',
+              name: 'Base',
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await db
+          .into(db.equipmentSetItems)
+          .insert(
+            EquipmentSetItemsCompanion.insert(
+              setId: 'winter',
+              equipmentId: 'bcd',
+            ),
+          );
+      await db
+          .into(db.equipmentSetItems)
+          .insert(
+            EquipmentSetItemsCompanion.insert(
+              setId: 'base',
+              equipmentId: 'hose',
+            ),
+          );
+      await db
+          .into(db.equipmentSetIncludes)
+          .insert(
+            EquipmentSetIncludesCompanion.insert(
+              id: 'inc1',
+              setId: 'winter',
+              includedSetId: 'base',
+              createdAt: 1,
+            ),
+          );
+    });
+
+    test('gear added to the included set reaches the outer set\'s '
+        'dives, under the outer set', () async {
+      final touched = await repo.rewriteSetOnDives('winter', const [
+        SetItemAdded('hose'),
+      ], alsoLogged: true);
+      expect(touched.toSet(), {'a', 'p'});
+      expect((await rowsOf('a'))['hose']!.viaSetId, 'winter');
+      // A dive that does not carry the outer set is left alone.
+      expect((await rowsOf('c')).containsKey('hose'), isFalse);
+    });
+
+    test('a part the included set still holds counts as a member', () async {
+      // The hose rides under the bcd on the dive; removing the bcd from
+      // the outer set must not strand or drop a row the set still applies.
+      await repo.replaceGearRows('a', const [
+        GearProvenance(equipmentId: 'bcd', viaSetId: 'winter'),
+        GearProvenance(equipmentId: 'hose', viaSetId: 'winter'),
+      ]);
+      await repo.rewriteSetOnDives('winter', const [
+        SetItemRemoved('bcd'),
+      ], alsoLogged: true);
+      final rows = await rowsOf('a');
+      expect(rows.containsKey('bcd'), isFalse);
+      expect(rows['hose']!.viaSetId, 'winter');
+    });
+  });
 }
