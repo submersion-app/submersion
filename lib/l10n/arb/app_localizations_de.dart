@@ -54735,7 +54735,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String backup_operation_createdNotPinned(String size) {
-    return 'Sicherung erstellt: $size. Sie konnte nicht angeheftet werden; hefte sie im Verlauf an.';
+    return 'Sicherung erstellt: $size. Das Anheften hat nicht geklappt; hefte sie im Verlauf an.';
   }
 
   @override
