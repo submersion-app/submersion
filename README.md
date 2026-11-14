@@ -59,7 +59,7 @@ Download straight from your computer.
 
 Where you dove, and what lives there.
 
-- 3,600 dive sites and 3,600 dive centers built in
+- 3,900 dive sites, 17,000 charted wrecks and artificial reefs, and 3,600 dive centers built in
 - Clustering, a dive heat map, and offline map regions
 - Bathymetry overlays and 3D seafloor terrain
 - 685 species, recorded per dive and per site
