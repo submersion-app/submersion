@@ -1,22 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_color_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_color_field.dart';
+import 'package:submersion/features/settings/domain/list_arrangements.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/mock_providers.dart';
+
+/// The field with [settings] as the diver's settings and [gear] as the
+/// colours on their gear (issue #4537).
 Widget _field({
   String? hex,
   ValueChanged<String>? onChanged,
   VoidCallback? onCleared,
-}) => MaterialApp(
-  locale: const Locale('en'),
-  localizationsDelegates: AppLocalizations.localizationsDelegates,
-  supportedLocales: AppLocalizations.supportedLocales,
-  home: Scaffold(
-    body: EquipmentColorField(
-      label: 'Color',
-      hex: hex,
-      onChanged: onChanged ?? (_) {},
-      onCleared: onCleared ?? () {},
+  MockSettingsNotifier? settings,
+  Future<List<String>> Function()? gear,
+}) => ProviderScope(
+  overrides: [
+    settingsProvider.overrideWith((ref) => settings ?? MockSettingsNotifier()),
+    equipmentGearColorsProvider.overrideWith(
+      (ref) => gear?.call() ?? Future.value(const <String>[]),
+    ),
+  ],
+  child: MaterialApp(
+    locale: const Locale('en'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: Scaffold(
+      body: EquipmentColorField(
+        label: 'Color',
+        hex: hex,
+        onChanged: onChanged ?? (_) {},
+        onCleared: onCleared ?? () {},
+      ),
+    ),
+  ),
+);
+
+MockSettingsNotifier _remembering(List<String> colors) => MockSettingsNotifier(
+  AppSettings(
+    listArrangements: ListArrangements(
+      recentEquipmentColors: '[${colors.map((c) => '"$c"').join(',')}]',
     ),
   ),
 );
@@ -81,5 +107,73 @@ void main() {
     await tester.pumpAndSettle();
     expect(cleared, isTrue);
     expect(find.text('Choose a color'), findsNothing);
+  });
+
+  group('recent colours (#4537)', () {
+    testWidgets('the sheet offers remembered colours, then gear colours', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _field(
+          settings: _remembering(['#FF6A00']),
+          gear: () async => ['#0A3D91', '#FF6A00'],
+        ),
+      );
+      await tester.tap(find.byType(EquipmentColorField));
+      await tester.pumpAndSettle();
+      final remembered = tester.getCenter(
+        find.byKey(const ValueKey('color-swatch-recent-#FF6A00')),
+      );
+      final gear = tester.getCenter(
+        find.byKey(const ValueKey('color-swatch-recent-#0A3D91')),
+      );
+      expect(remembered.dx, lessThan(gear.dx));
+    });
+
+    testWidgets('Use in the custom dialog remembers the colour first', (
+      tester,
+    ) async {
+      final settings = _remembering(['#0A3D91']);
+      String? picked;
+      await tester.pumpWidget(
+        _field(settings: settings, onChanged: (hex) => picked = hex),
+      );
+      await tester.tap(find.byType(EquipmentColorField));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('color-swatch-custom')));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const ValueKey('custom-color-hex')),
+        'ff6a00',
+      );
+      await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('custom-color-use')));
+      await tester.pumpAndSettle();
+      expect(picked, '#FF6A00');
+      expect(
+        settings.state.listArrangements.recentEquipmentColors,
+        '["#FF6A00","#0A3D91"]',
+      );
+    });
+
+    testWidgets('a failed gear lookup still opens the sheet', (tester) async {
+      await tester.pumpWidget(
+        _field(
+          settings: _remembering(['#FF6A00']),
+          gear: () => Future.error(StateError('database closed')),
+        ),
+      );
+      await tester.tap(find.byType(EquipmentColorField));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose a color'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('color-swatch-recent-#FF6A00')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('color-swatch-#EF4444')),
+        findsOneWidget,
+      );
+    });
   });
 }
