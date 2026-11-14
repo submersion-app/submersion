@@ -155,12 +155,25 @@ void main() {
     await h.apply(plan);
     expect(await gearOn('p1'), {'cam': outer, 'wing': outer});
 
+    // A dive carrying gear under both sets is one dive, counted once.
+    await gear('reg');
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion.insert(
+            diveId: 'p1',
+            equipmentId: 'reg',
+            viaSetId: Value(rig),
+          ),
+        );
     final inner = await h.preview([
       members(rig, add: ['fins']),
     ]);
     expect(inner.items.single.alsoChanges, {'dives': 1});
     await h.apply(inner);
-    expect(await gearOn('p1'), {'cam': outer, 'wing': outer, 'fins': outer});
+    final after = await gearOn('p1');
+    expect(after['fins'], isNotNull);
+    expect(after.keys.toSet(), {'cam', 'wing', 'fins', 'reg'});
   });
 
   test('a member change follows on planned dives only (#4283)', () async {

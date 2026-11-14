@@ -8493,6 +8493,10 @@ class DiveRepository {
   Future<int> countPlannedDivesWithSet(String setId) =>
       _gearTemplates.countWithSet(setId, planned: true);
 
+  /// The planned dives that carry gear set [setId] put there.
+  Future<List<String>> plannedDiveIdsWithSet(String setId) =>
+      _gearTemplates.diveIdsWithSet(setId, alsoLogged: false);
+
   GearTemplateDiveQueries get _gearTemplates => GearTemplateDiveQueries(_db);
 
   /// Replays changes to an assembly's template on the dives that carry the

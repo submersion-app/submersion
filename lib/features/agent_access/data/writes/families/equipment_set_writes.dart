@@ -176,17 +176,23 @@ class EquipmentSetWrites extends WritableEntry with PlannedDiveRescan {
     // Only a delta that changes the gear the set applies reaches a dive:
     // its own members, or the sets it includes (issue #4525). The planned
     // dives of every set that includes this one carry its gear too.
-    var planned = 0;
-    final current = await _r.equipmentSets.getSetById(id);
+    // A dive carrying gear under two of those sets is still one dive.
+    bool touches(String relation) =>
+        !(update.relations[relation]?.isEmpty ?? true);
+    final plannedDives = <String>{};
+    final current = touches('equipment_ids') || touches('included_set_ids')
+        ? await _r.equipmentSets.getSetById(id)
+        : null;
     if (current != null) {
       for (final change in setHistoryRewrites(
         before: current,
         after: _afterUpdate(current, update),
         allSets: await _r.equipmentSets.getAllSets(diverId: current.diverId),
       )) {
-        planned += await _r.dives.countPlannedDivesWithSet(change.setId);
+        plannedDives.addAll(await _r.dives.plannedDiveIdsWithSet(change.setId));
       }
     }
+    final planned = plannedDives.length;
     final others = update.values['is_default'] != true
         ? 0
         : await _otherDefaults(id, ownerId);

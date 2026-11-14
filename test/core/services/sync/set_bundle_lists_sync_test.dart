@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart' show Value;
+import 'package:drift/drift.dart' show TableUpdateQuery, Value;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
@@ -18,6 +18,12 @@ void main() {
     'equipmentSetIncludes': ('includedSetId', 'inner'),
     'equipmentSetWeightPresets': ('presetId', 'p1'),
     'equipmentSetCylinderConfigs': ('configId', 'c1'),
+  };
+
+  const tableNames = {
+    'equipmentSetIncludes': 'equipment_set_includes',
+    'equipmentSetWeightPresets': 'equipment_set_weight_presets',
+    'equipmentSetCylinderConfigs': 'equipment_set_cylinder_configs',
   };
 
   Map<String, dynamic> row(String type, {String id = 'r1', int sortOrder = 0}) {
@@ -153,6 +159,20 @@ void main() {
       await serializer.upsertRecord(type, row(type, sortOrder: 5));
       await serializer.upsertRecords(type, [row(type, sortOrder: 6)]);
       expect((await serializer.fetchRecord(type, 'r1'))!['sortOrder'], 6);
+    });
+
+    // The set pages refresh from table updates, which a raw statement
+    // does not send by itself.
+    test('$type: applying a row tells the table\'s watchers', () async {
+      final table = db.allTables.firstWhere(
+        (t) => t.actualTableName == tableNames[type],
+      );
+      final ticked = db
+          .tableUpdates(TableUpdateQuery.onTable(table))
+          .first
+          .timeout(const Duration(seconds: 2));
+      await serializer.upsertRecord(type, row(type));
+      await ticked;
     });
 
     test('$type: is a parent-gated child with no updatedAt', () {

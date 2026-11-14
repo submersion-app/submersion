@@ -5142,6 +5142,10 @@ class SyncDataSerializer {
         );
       }
     });
+    // A raw statement tells no watcher; the set pages refresh from these.
+    if (rows.isNotEmpty) {
+      _db.notifyUpdates({TableUpdate.onTable(_tableNamed(table))});
+    }
   }
 
   /// [rows] reduced to one entry per natural pair, the LOWEST id winning.

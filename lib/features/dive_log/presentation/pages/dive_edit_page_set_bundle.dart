@@ -188,9 +188,7 @@ extension _SetBundleApplying on _DiveEditPageState {
       // rewriting cylinders the set just placed.
       _tanksDirty = true;
       _tankRowGeneration++;
-      _tanks
-        ..clear()
-        ..addAll(tanks);
+      _tanks = [...tanks];
     });
   }
 }
