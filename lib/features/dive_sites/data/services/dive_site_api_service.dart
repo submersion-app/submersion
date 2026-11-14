@@ -42,22 +42,8 @@ class ExternalDiveSite {
   /// The ISO code of the country this site's [country] text names, or null
   /// (issue #4520). The bundled data keeps OpenStreetMap's names: a name in
   /// the country's own language ("ประเทศไทย"), a code ("DE"), or several
-  /// names joined by slashes ("Schweiz/Suisse/Svizzera/Svizra"), which count
-  /// only when every name they hold that is readable agrees.
-  String? get countryCode {
-    final text = country;
-    if (text == null) return null;
-    return _countryCodes.putIfAbsent(text, () {
-      final whole = countryCodeFor(text);
-      if (whole != null || !text.contains('/')) return whole;
-      final codes = {for (final part in text.split('/')) ?countryCodeFor(part)};
-      return codes.length == 1 ? codes.single : null;
-    });
-  }
-
-  /// Codes already read, keyed by country text: the bundled data holds about
-  /// a hundred distinct texts across thousands of sites.
-  static final Map<String, String?> _countryCodes = {};
+  /// names joined by slashes ("Schweiz/Suisse/Svizzera/Svizra").
+  String? get countryCode => countryCodeFor(country);
 
   /// Convert to a DiveSite entity for import.
   DiveSite toDiveSite({String? diverId}) {

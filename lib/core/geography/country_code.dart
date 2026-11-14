@@ -110,9 +110,10 @@ String countryLookupKey(String text) {
 ///
 /// Accepts an alpha-2 or alpha-3 code, a country's name in any of the app's
 /// place-name languages or in its own official languages, and a few common
-/// aliases ("UK", "Holland"). Only whole, exact (folded) names match: "Gulf
-/// of Mexico" and "Mexico City" give null, because a missing flag is better
-/// than a wrong one.
+/// aliases ("UK", "Holland"), alone or as slash-joined names that agree
+/// ("België / Belgique / Belgien"). Only whole, exact (folded) names match:
+/// "Gulf of Mexico" and "Mexico City" give null, and so does "France /
+/// Italia", because a missing flag is better than a wrong one.
 String? countryCodeFor(String? text) {
   if (text == null) return null;
   // A list resolves the same few stored countries in every row it builds,
@@ -159,7 +160,18 @@ String? siteFlagCode({required String? country, required String? code}) =>
 final Map<String, String?> _resolved = {};
 const int _maxResolved = 512;
 
+/// A whole name, else several names joined by slashes as OpenStreetMap
+/// writes a multilingual country ("Schweiz/Suisse/Svizzera/Svizra"): those
+/// count only when every name in them that is readable names the same
+/// country (issue #4520).
 String? _resolve(String text) {
+  final whole = _resolveName(text);
+  if (whole != null || !text.contains('/')) return whole;
+  final codes = {for (final part in text.split('/')) ?_resolveName(part)};
+  return codes.length == 1 ? codes.single : null;
+}
+
+String? _resolveName(String text) {
   final key = countryLookupKey(text);
   if (key.isEmpty) return null;
   final upper = key.toUpperCase();

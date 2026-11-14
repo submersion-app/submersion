@@ -280,6 +280,14 @@ void main() {
     }
   });
 
+  test('resolves slash-joined names only when they agree (#4520)', () {
+    expect(countryCodeFor('Schweiz/Suisse/Svizzera/Svizra'), 'CH');
+    expect(countryCodeFor('België / Belgique / Belgien'), 'BE');
+    expect(countryCodeFor('Belgique / Atlantis'), 'BE');
+    expect(countryCodeFor('France / Italia'), isNull);
+    expect(countryCodeFor('Atlantis / Lemuria'), isNull);
+  });
+
   group('countryCodesMatching', () {
     test('reads a whole country name in any place-name language', () {
       for (final query in ['Thailand', 'Thaïlande', 'tailandia', 'ประเทศไทย']) {

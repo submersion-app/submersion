@@ -200,6 +200,34 @@ void main() {
       }
     });
 
+    test('search finds a country stored before its name was readable, with '
+        'no code (#4520)', () async {
+      // The v361 backfill could not read these names, so they kept no code.
+      final now = DateTime.now().millisecondsSinceEpoch;
+      for (final (id, country) in [
+        ('u-th', 'ประเทศไทย'),
+        ('u-ch', 'Schweiz/Suisse/Svizzera/Svizra'),
+      ]) {
+        await database
+            .into(database.diveSites)
+            .insert(
+              db.DiveSitesCompanion.insert(
+                id: id,
+                name: 'Uncoded $id',
+                createdAt: now,
+                updatedAt: now,
+                country: Value(country),
+              ),
+            );
+      }
+      expect((await repository.searchSites('Thailand')).map((s) => s.id), [
+        'u-th',
+      ]);
+      expect((await repository.searchSites('Switzerland')).map((s) => s.id), [
+        'u-ch',
+      ]);
+    });
+
     group('createSite', () {
       test(
         'should create a new site with generated ID when ID is empty',

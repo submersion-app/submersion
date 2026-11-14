@@ -1415,18 +1415,25 @@ class SiteRepository {
       return await PerfTimer.measure('searchSites', () async {
         final needle = query.toLowerCase();
         final countryCodes = countryCodesMatching(query);
+        final uncodedCountries = countryCodes.isEmpty
+            ? const <String>[]
+            : await _uncodedCountriesNaming(countryCodes);
         final searchQuery = _db.select(_db.diveSites)
           ..where((t) {
-            final text =
+            var match =
                 t.name.unicodeLower().contains(needle) |
                 t.country.unicodeLower().contains(needle) |
                 t.region.unicodeLower().contains(needle) |
                 t.city.unicodeLower().contains(needle) |
                 t.island.unicodeLower().contains(needle) |
                 t.bodyOfWater.unicodeLower().contains(needle);
-            return countryCodes.isEmpty
-                ? text
-                : text | t.countryCode.isIn(countryCodes);
+            if (countryCodes.isNotEmpty) {
+              match = match | t.countryCode.isIn(countryCodes);
+            }
+            if (uncodedCountries.isNotEmpty) {
+              match = match | t.country.isIn(uncodedCountries);
+            }
+            return match;
           })
           ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
@@ -1443,6 +1450,24 @@ class SiteRepository {
       );
       rethrow;
     }
+  }
+
+  /// Stored country texts with no code beside them that name one of [codes]
+  /// (#4520). The v361 backfill ran once, so a name the recognizer learned
+  /// later ("ประเทศไทย") is still stored without its code.
+  Future<List<String>> _uncodedCountriesNaming(Set<String> codes) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT country FROM dive_sites '
+          'WHERE country_code IS NULL AND country IS NOT NULL',
+          readsFrom: {_db.diveSites},
+        )
+        .get();
+    return [
+      for (final row in rows)
+        if (codes.contains(countryCodeFor(row.read<String>('country'))))
+          row.read<String>('country'),
+    ];
   }
 
   /// Dive count per site. Kept for callers that only need the count; the
