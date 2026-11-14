@@ -1037,6 +1037,13 @@ The plan was built as written, then reviewed as a whole branch. Review comments 
 - **`UnitFormatter.surfacePressureDecimals`**, `fillAltitudeIfEmpty(stillWanted:)`, `EditSession.isDisposed`, `revisedCardIds`.
 - **The unsaved-changes dot keeps its place** in an open card's header while there is none.
 
+Added when #4536 merged and main was brought in, from its last review and from applying the same two rules to this plan's own code:
+
+- **A stored record that arrives during a save is kept.** `storedChanged` holds it while the sitting is frozen; a save that fails rebases onto it. A page passes on only the sitting's own dive, and a sitting whose dive is no longer the page's is ended when its save fails.
+- **After the write, a refresh that fails is not a failed save.** The dive list and the site list are each read again in a `try` of their own, and a failure is logged. A later plan that adds another refresh after `service.save` returns guards it the same way.
+- **`replaceTextKeepingCaret`** (`text_keeping_caret.dart`), used by `FieldTextBinding` and the Notes editor. An editor that shows a value of the sitting in a text field uses it; assigning `text` throws the caret out of a field the diver is in.
+- A disposed `EditSession` ignores `set` and `rebase`. The row of an open card in the folding layout does not save a fold. The closed header row is announced as a button.
+
 ### Calls, as they turned out
 
 - Call 7 changes nothing on screen: every language's altitude range text is the same as the English one. The shared banner uses `localizedRange` all the same.
